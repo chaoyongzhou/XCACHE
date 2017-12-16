@@ -1,0 +1,316 @@
+################################################################################
+#
+# compile:
+#   make bgn 
+#
+################################################################################
+#ROOT_DIR = $(shell pwd)
+ROOT_DIR = .
+
+MBITS = $(shell getconf LONG_BIT)
+
+LIB_DIR  = $(ROOT_DIR)/lib/ngx_lib
+OBJ_DIR  = $(ROOT_DIR)/obj/ngx_obj
+BIN_DIR  = $(ROOT_DIR)/bin
+TOOL_DIR = $(ROOT_DIR)/tool
+
+NGX_DIR = ../nginx
+NGX_MODULE_DIR = ../modules
+
+EXT_INC = `xml2-config --cflags` \
+    -I $(NGX_DIR)/src/core \
+    -I $(NGX_DIR)/src/event \
+    -I $(NGX_DIR)/src/os/unix \
+    -I $(NGX_DIR)/src/http \
+    -I $(NGX_DIR)/src/http/modules \
+    -I $(NGX_MODULE_DIR)/bgn-nginx-module-0.0.1 \
+    -I $(NGX_DIR)/objs
+            
+EXT_LIB = `xml2-config --libs` -lm -lrt -lpthread -lpcre -lexpat -lz -lreadline -rdynamic -ldl
+
+
+BGN_SRC  = $(ROOT_DIR)/bgn_src
+BGN_INC  = -I $(ROOT_DIR)/bgn_inc
+BGN_LIB  = -L $(LIB_DIR) -lbgn
+
+GDB_SRC = $(ROOT_DIR)/gdb_src
+GDB_INC = -I $(ROOT_DIR)/gdb_inc
+GDB_LIB = -L $(LIB_DIR) -lgdb
+
+JSON_SRC = $(ROOT_DIR)/json_src
+JSON_INC = -I $(ROOT_DIR)/json_inc
+JSON_LIB = -L $(LIB_DIR) -ljson
+
+REL_SRC = $(ROOT_DIR)/rel_src
+REL_INC = -I $(ROOT_DIR)/rel_inc
+
+NGX_SRC  = $(ROOT_DIR)/ngx_src
+NGX_INC  = -I $(ROOT_DIR)/ngx_inc
+
+CVENDOR_SRC  = $(ROOT_DIR)/custom/cvendor_src
+CVENDOR_INC  = -I $(ROOT_DIR)/custom/cvendor_inc
+
+CREFRESH_SRC  = $(ROOT_DIR)/custom/crefresh_src
+CREFRESH_INC  = -I $(ROOT_DIR)/custom/crefresh_inc
+
+CRFSGW_SRC  = $(ROOT_DIR)/custom/crfsgw_src
+CRFSGW_INC  = -I $(ROOT_DIR)/custom/crfsgw_inc
+
+TST_SRC = $(ROOT_DIR)/test
+TST_INC =
+
+BYTESIZE   = 8
+WORDSIZE   = ${MBITS}
+DOUBLESIZE = 64
+
+MEM_BUFF_128B = 128 
+MEM_BUFF_512B = 512 
+MEM_BUFF_1K   = 1024
+MEM_BUFF_8K   = 8192
+MEM_BUFF_16K  = 16384 
+MEM_BUFF_32K  = 32768 
+MEM_BUFF_48K  = 49152 
+MEM_BUFF_64K  = 65536 
+MEM_BUFF_128K = 131072 
+MEM_BUFF_1M   = 1048576
+MEM_BUFF_8M   = 8388608
+MEM_BUFF_16M  = 16777216
+MEM_BUFF_32M  = 33554432
+MEM_BUFF_64M  = 67108864
+MEM_BUFF_128M = 134217728 
+
+FILE_LOG_RECORDS_400 = 400
+FILE_LOG_RECORDS_001K  = 1000
+FILE_LOG_RECORDS_002K  = 2000
+FILE_LOG_RECORDS_004K  = 4000
+FILE_LOG_RECORDS_008K  = 8000
+FILE_LOG_RECORDS_010K  = 10000
+FILE_LOG_RECORDS_020K  = 20000
+FILE_LOG_RECORDS_040K  = 40000
+FILE_LOG_RECORDS_080K  = 80000
+FILE_LOG_RECORDS_100K  = 100000
+FILE_LOG_RECORDS_001M  = 1000000
+FILE_LOG_RECORDS_002M  = 2000000
+FILE_LOG_RECORDS_004M  = 4000000
+FILE_LOG_RECORDS_010M  = 10000000
+FILE_LOG_RECORDS_020M  = 20000000
+
+CTHREAD_STACK_MAX_SIZE_008K = 8192
+CTHREAD_STACK_MAX_SIZE_016K = 16384
+CTHREAD_STACK_MAX_SIZE_032K = 32768
+CTHREAD_STACK_MAX_SIZE_064K = 65536
+CTHREAD_STACK_MAX_SIZE_128K = 131072
+CTHREAD_STACK_MAX_SIZE_256K = 262144
+CTHREAD_STACK_MAX_SIZE_512K = 524288
+CTHREAD_STACK_MAX_SIZE_001M = 1048576
+CTHREAD_STACK_MAX_SIZE_002M = 2097152
+CTHREAD_STACK_MAX_SIZE_004M = 4194304
+CTHREAD_STACK_MAX_SIZE_008M = 8388608
+
+CTHREAD_STACK_GUARD_SIZE_001K = 1024
+CTHREAD_STACK_GUARD_SIZE_002K = 2048
+CTHREAD_STACK_GUARD_SIZE_004K = 4096
+CTHREAD_STACK_GUARD_SIZE_008K = 8192
+CTHREAD_STACK_GUARD_SIZE_016K = 16384
+CTHREAD_STACK_GUARD_SIZE_032K = 32768
+CTHREAD_STACK_GUARD_SIZE_064K = 65536
+CTHREAD_STACK_GUARD_SIZE_128K = 131072
+CTHREAD_STACK_GUARD_SIZE_256K = 262144
+CTHREAD_STACK_GUARD_SIZE_512K = 524288
+CTHREAD_STACK_GUARD_SIZE_001M = 1048576
+CTHREAD_STACK_GUARD_SIZE_002M = 2097152
+CTHREAD_STACK_GUARD_SIZE_004M = 4194304
+CTHREAD_STACK_GUARD_SIZE_008M = 8388608
+
+#DBG_ENCODING_RULE  = 1
+#BYTE_ENCODING_RULE = 2
+
+CMACRO = \
+         -D_GNU_SOURCE \
+         -D_LARGEFILE_SOURCE \
+         -D_LARGEFILE64_SOURCE \
+         -D_FILE_OFFSET_BITS=64 \
+         -DSWITCH_ON=1 \
+         -DSWITCH_OFF=0 \
+         -DTASK_BRD_CPU_UPDATE_INTVAL_NSEC=30 \
+         -DCPU_OVERLOAD_THREASHOLD=70 \
+         -DDBG_ENCODING_RULE=1 \
+         -DBYTE_ENCODING_RULE=2 \
+         -DCPROC_PACKAGE_SWITCH=SWITCH_ON \
+         -DSTATIC_MEM_TYPE_CHECK_SWITCH=SWITCH_OFF \
+         -DWORDSIZE=${WORDSIZE} \
+         -DDOUBLESIZE=${DOUBLESIZE} \
+         -DBYTESIZE=${BYTESIZE} \
+         -DCROUTINE_SUPPORT_COROUTINE_SWITCH=SWITCH_ON \
+         -DCROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH=SWITCH_ON \
+         -DCOROUTINE_FIX_BUG_SWITCH=SWITCH_ON \
+         -DCROUTINE_SUPPORT_CTHREAD_SWITCH=SWITCH_OFF \
+         -DTASK_REQ_SHORTCUT=SWITCH_OFF \
+         -DTASK_FWD_SHORTCUT=SWITCH_ON \
+         -DCROUTINE_STACK_MAX_SIZE=${CTHREAD_STACK_MAX_SIZE_064K} \
+         -DCROUTINE_STACK_GUARD_SIZE=${CTHREAD_STACK_GUARD_SIZE_004K} \
+         -DCTHREAD_SET_CORE_SWITCH=SWITCH_OFF \
+         -DTASK_HEADER_COMPRESSED_SWITCH=SWITCH_ON \
+         -DTASK_REQ_HANDLE_THREAD_SWITCH=SWITCH_ON \
+         -DTASK_REQ_DECODE_THREAD_SWITCH=SWITCH_ON \
+         -DTASK_RSP_DECODE_THREAD_SWITCH=SWITCH_ON \
+         -DTASK_FWD_DECODE_THREAD_SWITCH=SWITCH_ON \
+         -DTASK_REQ_DECODE_AND_HANDLE_THREAD_SWITCH=SWITCH_OFF \
+         -DTASK_FWD_DECODE_AND_HANDLE_THREAD_SWITCH=SWITCH_OFF \
+         -DCBASE64_ENCODE_SWITCH=SWITCH_OFF \
+         -DTASK_ENCODING_RULE=BYTE_ENCODING_RULE \
+         -DTASK_REPORT_MAX_NUM=16 \
+         -DTASK_DEFAULT_LIVE_NSEC=600 \
+         -DRANK_HEARTBEAT_ALL_SWITCH=SWITCH_OFF \
+         -DRANK_HEARTBEAT_FASTDEC_SWITCH=SWITCH_ON \
+         -DRANK_HEARTBEAT_FWD_SWITCH=SWITCH_OFF \
+         -DRANK_HEARTBEAT_NODE_SWITCH=SWITCH_OFF \
+         -DCLOAD_HEARTBEAT_INTVL_NSEC=10 \
+         -DRANK_HEARTBEAT_FASTDEC_INTVL_NSEC=10 \
+         -DCLOAD_STAT_UPDATE_INTVL_NSEC=3 \
+         -DFILE_LOG_MAX_RECORDS=${FILE_LOG_RECORDS_001M} \
+         -DFILE_LOG_NAME_WITH_DATE_SWITCH=SWITCH_OFF \
+         -DLOG_ACCURATE_TIME_SWITCH=SWITCH_OFF \
+         -DLOG_PTHREAD_ID_SWITCH=SWITCH_ON \
+         -DCBGT_BASED_ON_HSDFS_SWITCH=SWITCH_ON \
+         -DCRFS_ASSERT_SWITCH=SWITCH_OFF \
+         -DCRFS_NP_CACHE_IN_MEM=SWITCH_OFF \
+         -DCRFS_DN_CACHE_IN_MEM=SWITCH_OFF \
+         -DCRFS_DN_DEFER_WRITE_SWITCH=SWITCH_OFF \
+         -DCRFS_DN_DEFER_WRITE_THREAD_NUM=10 \
+         -DCHFS_NP_CACHE_IN_MEM=SWITCH_OFF \
+         -DCHFS_DN_DEFER_WRITE_SWITCH=SWITCH_OFF \
+         -DCHFS_DN_DEFER_WRITE_THREAD_NUM=10 \
+         -DCSFS_DN_CACHE_IN_MEM=SWITCH_OFF \
+         -DCMUTEX_DEBUG_SWITCH=SWITCH_OFF \
+         -DTASK_BRD_CEPOLL_MAX_EVENT_NUM=256 \
+         -DCRFSNGX_SWITCH=SWITCH_OFF \
+         -DCRFSNGX_SOCKET_TIMEOUT_NSEC=60 \
+         -DCRFSHTTP_SWITCH=SWITCH_OFF \
+         -DCRFSCHTTP_SWITCH=SWITCH_OFF \
+         -DCRFSCHTTP_SOCKET_TIMEOUT_NSEC=10 \
+         -DCRFSCHTTP_OVERLOAD_MAX_RETIRES=3 \
+         -DCHFSHTTP_SWITCH=SWITCH_OFF \
+         -DCSFSHTTP_SWITCH=SWITCH_OFF \
+         -DCSFS_NP_CACHE_IN_MEM=SWITCH_OFF \
+         -DCRFS_TRANS_MAX_TASK_NUM=128 \
+         -DCTASKS_SRV_ACCEPT_MAX_NUM=20 \
+         -DCSRV_ACCEPT_MAX_NUM=20 \
+         -DCRFS_MD5_SWITCH=SWITCH_OFF \
+         -DCSFS_MD5_SWITCH=SWITCH_OFF \
+         -DLOAD_UPDATE_SWITCH=SWITCH_OFF \
+         -DNGX_BGN_SWITCH=SWITCH_ON \
+
+# C Language
+CC       = /usr/bin/gcc
+CLINKER  = /usr/bin/gcc
+
+# C++ Language
+#CC       = /usr/bin/g++
+#CLINKER  = /usr/bin/g++
+
+AR       = /usr/bin/ar cr
+SO       = /usr/bin/gcc -shared -o
+
+# ignore Wunused-function, Wuninitialized, Wunused-parameter
+CWARNS   = -Wall
+
+COPTS    = -g
+#COPTS    = -O2
+
+# for static library
+#CFLAGS = $(CWARNS) $(COPTS) -m$(MBITS) $(CMACRO) -fstack-check
+
+# for dynamic library
+CFLAGS = $(CWARNS) $(COPTS) -m$(MBITS) $(CMACRO) -fstack-check -fpic
+
+BGN_OBJS      = $(patsubst $(BGN_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(BGN_SRC)/*.c))
+GDB_OBJS      = $(patsubst $(GDB_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(GDB_SRC)/*.c))
+JSON_OBJS     = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*.c))
+REL_OBJS      = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
+NGX_OBJS      = $(patsubst $(NGX_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(NGX_SRC)/*.c))
+CVENDOR_OBJS  = $(patsubst $(CVENDOR_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CVENDOR_SRC)/*.c))
+CREFRESH_OBJS = $(patsubst $(CREFRESH_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CREFRESH_SRC)/*.c))
+CRFSGW_OBJS   = $(patsubst $(CRFSGW_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CRFSGW_SRC)/*.c))
+TST_OBJS      = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
+
+usage:
+	@echo "usage:"
+	@echo "    make bgn"
+	@echo "    make clean"
+
+libbgn: $(BGN_OBJS)
+	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
+
+libgdb: $(GDB_OBJS)
+	$(AR) $(LIB_DIR)/libgdb.a $(GDB_OBJS)
+
+libjson: $(JSON_OBJS)
+	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
+
+libcvendor: $(CVENDOR_OBJS)
+	$(SO) $(LIB_DIR)/libcvendor.so $(CVENDOR_OBJS)
+#$(SO) $(LIB_DIR)/libcvendor.so $(CVENDOR_OBJS)
+
+libcrefresh: $(CREFRESH_OBJS)
+	$(SO) $(LIB_DIR)/libcrefresh.so $(CREFRESH_OBJS)
+#$(SO) $(LIB_DIR)/libcrefresh.so $(CREFRESH_OBJS)
+
+libcrfsgw: $(CRFSGW_OBJS)
+	$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
+#$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
+
+libngx: $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+
+$(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
+
+$(GDB_OBJS): $(OBJ_DIR)/%.o: $(GDB_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@
+
+$(JSON_OBJS): $(OBJ_DIR)/%.o: $(JSON_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(JSON_INC) $(EXT_INC) -o $@
+
+$(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(REL_INC) $(EXT_INC) -o $@
+
+$(NGX_OBJS): $(OBJ_DIR)/%.o: $(NGX_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
+
+$(CVENDOR_OBJS): $(OBJ_DIR)/%.o: $(CVENDOR_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
+
+$(CREFRESH_OBJS): $(OBJ_DIR)/%.o: $(CREFRESH_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CREFRESH_INC) $(EXT_INC) -o $@
+
+$(CRFSGW_OBJS): $(OBJ_DIR)/%.o: $(CRFSGW_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CRFSGW_INC) $(EXT_INC) -o $@
+
+$(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@
+
+install-lib:
+	$(if $(wildcard $(LIB_DIR)/*.a) ,cp -rp $(LIB_DIR)/*.a  $(DESTDIR)/lib64,)
+	$(if $(wildcard $(LIB_DIR)/*.so),cp -rp $(LIB_DIR)/*.so $(DESTDIR)/lib64,)
+
+uninstall-lib:
+	$(if $(wildcard /lib64/libngx.so)    , rm -f /lib64/libngx.so,)
+	$(if $(wildcard /lib64/libcvendor.so), rm -f /lib64/libngx.so,)
+
+clean-obj:
+	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	
+
+clean-lib:
+	$(if $(wildcard $(LIB_DIR)/*.a) ,rm -f $(LIB_DIR)/*.a,)	
+	$(if $(wildcard $(LIB_DIR)/*.so),rm -f $(LIB_DIR)/*.so,)
+
+clean-log:
+	$(if $(wildcard $(BIN_DIR)/*.log),rm -f $(BIN_DIR)/*.log,)	
+
+clean-bin:
+
+clean-trial: clean-log clean-bin clean-obj
+	
+clean: clean-log clean-bin clean-obj clean-lib

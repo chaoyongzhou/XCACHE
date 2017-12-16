@@ -1,0 +1,7836 @@
+/******************************************************************************
+*
+* Copyright (C) Chaoyong Zhou
+* Email: bgnvendor@163.com
+* QQ: 2796796
+*
+*******************************************************************************/
+#ifdef __cplusplus
+extern "C"{
+#endif/*__cplusplus*/
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+
+#include "type.h"
+#include "mm.h"
+#include "log.h"
+#include "cstring.h"
+
+#include "cbc.h"
+#include "cmisc.h"
+
+#include "task.h"
+
+#include "csocket.h"
+
+#include "cmpie.h"
+
+#include "crb.h"
+
+#include "cload.h"
+
+#include "cbc.h"
+
+#include "crange.h"
+
+#include "ccache.h"
+
+#include "crfsmon.h"
+
+#include "cvendor.h"
+
+#include "cngx.h"
+#include "chttp.h"
+
+#include "findex.inc"
+
+#define CVENDOR_MD_CAPACITY()                  (cbc_md_capacity(MD_CVENDOR))
+
+#define CVENDOR_MD_GET(cvendor_md_id)     ((CVENDOR_MD *)cbc_md_get(MD_CVENDOR, (cvendor_md_id)))
+
+#define CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id)  \
+    ((CMPI_ANY_MODI != (cvendor_md_id)) && ((NULL_PTR == CVENDOR_MD_GET(cvendor_md_id)) || (0 == (CVENDOR_MD_GET(cvendor_md_id)->usedcounter))))
+
+/**
+*   for test only
+*
+*   to query the status of CVENDOR Module
+*
+**/
+void cvendor_print_module_status(const UINT32 cvendor_md_id, LOG *log)
+{
+    CVENDOR_MD *cvendor_md;
+    UINT32      this_cvendor_md_id;
+
+    for( this_cvendor_md_id = 0; this_cvendor_md_id < CVENDOR_MD_CAPACITY(); this_cvendor_md_id ++ )
+    {
+        cvendor_md = CVENDOR_MD_GET(this_cvendor_md_id);
+
+        if(NULL_PTR != cvendor_md && 0 < cvendor_md->usedcounter )
+        {
+            sys_log(log,"CVENDOR Module # %u : %u refered\n",
+                    this_cvendor_md_id,
+                    cvendor_md->usedcounter);
+        }
+    }
+
+    return ;
+}
+
+/**
+*
+* register CVENDOR module
+*
+**/
+EC_BOOL cvendor_reg()
+{
+    /*register mm*/
+    /*do nothing*/
+
+    /*register module*/
+    return cbc_md_reg(MD_CVENDOR , 32);
+}
+
+/**
+*
+* unregister CVENDOR module
+*
+**/
+EC_BOOL cvendor_unreg()
+{
+    /*unregister mm*/
+    /*do nothing*/
+
+    /*unregister module*/
+    return cbc_md_unreg(MD_CVENDOR);
+}
+
+/**
+*
+* start CVENDOR module
+*
+**/
+UINT32 cvendor_start(ngx_http_request_t *r)
+{
+    CVENDOR_MD *cvendor_md;
+    UINT32      cvendor_md_id;
+
+    //TASK_BRD   *task_brd;
+
+    uint32_t    cache_seg_size;
+
+    //task_brd = task_brd_default_get();
+   
+    cvendor_md_id = cbc_md_new(MD_CVENDOR, sizeof(CVENDOR_MD));
+    if(CMPI_ERROR_MODI == cvendor_md_id)
+    {
+        return (CMPI_ERROR_MODI);
+    }
+
+    /* initialize new one CVENDOR module */
+    cvendor_md = (CVENDOR_MD *)cbc_md_get(MD_CVENDOR, cvendor_md_id);
+    cvendor_md->usedcounter   = 0;
+
+    /* create a new module node */
+    init_static_mem();  
+
+    /* init */
+    cngx_get_var_uint32_t(r, (const char *)CNGX_VAR_CACHE_SEG_SIZE, &cache_seg_size, CNGX_CACHE_SEG_SIZE_DEFAULT);
+    CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) = cache_seg_size;
+    cstring_init(CVENDOR_MD_CACHE_PATH(cvendor_md), NULL_PTR);
+   
+    CVENDOR_MD_NGX_HTTP_REQ(cvendor_md) = r;
+
+    /*TODO: load all variables into module*/
+    cngx_option_init(CVENDOR_MD_CNGX_OPTION(cvendor_md));
+
+    CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md)          = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)              = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)           = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md)           = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) = BIT_FALSE;
+    CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                = BIT_FALSE;
+    CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          = BIT_FALSE;
+    CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    = BIT_FALSE;
+    CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md)                    = BIT_FALSE;
+    CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)                 = BIT_FALSE;
+
+    crange_mgr_init(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    CVENDOR_MD_CONTENT_LENGTH(cvendor_md)   = 0;
+
+    cstring_init(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), NULL_PTR);
+    CVENDOR_MD_DEPTH(cvendor_md)            = 0;
+
+    CVENDOR_MD_CHTTP_REQ(cvendor_md)        = NULL_PTR;
+    CVENDOR_MD_CHTTP_RSP(cvendor_md)        = NULL_PTR;
+    CVENDOR_MD_CHTTP_STORE(cvendor_md)      = NULL_PTR;
+    CVENDOR_MD_CHTTP_STAT(cvendor_md)       = NULL_PTR;
+
+    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)    = CVENDOR_ERR_SEG_NO;
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md)   = 0; 
+
+    CVENDOR_MD_NGX_LOC(cvendor_md)          = LOC_NONE_END;
+    CVENDOR_MD_NGX_RC(cvendor_md)           = NGX_OK;
+
+    cvendor_md->usedcounter = 1;
+
+    csig_atexit_register((CSIG_ATEXIT_HANDLER)cvendor_end, cvendor_md_id);
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_start: start CVENDOR module #%u\n", cvendor_md_id);
+
+    return ( cvendor_md_id );
+}
+
+/**
+*
+* end CVENDOR module
+*
+**/
+void cvendor_end(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD *cvendor_md;
+
+    csig_atexit_unregister((CSIG_ATEXIT_HANDLER)cvendor_end, cvendor_md_id);
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    if(NULL_PTR == cvendor_md)
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %u not exist.\n", cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+   
+    /* if the module is occupied by others,then decrease counter only */
+    if ( 1 < cvendor_md->usedcounter )
+    {
+        cvendor_md->usedcounter --;
+        return ;
+    }
+
+    if ( 0 == cvendor_md->usedcounter )
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %u is not started.\n", cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+
+    CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) = 0;
+    cstring_clean(CVENDOR_MD_CACHE_PATH(cvendor_md));
+
+    CVENDOR_MD_NGX_HTTP_REQ(cvendor_md) = NULL_PTR;
+    cngx_option_clean(CVENDOR_MD_CNGX_OPTION(cvendor_md));
+
+    CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md)          = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)              = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)           = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md)           = BIT_FALSE;
+    CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) = BIT_FALSE;
+    CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                = BIT_FALSE;
+    CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          = BIT_FALSE;
+    CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    = BIT_FALSE;
+    CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md)                    = BIT_FALSE;
+    CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)                 = BIT_FALSE;
+
+    crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    CVENDOR_MD_CONTENT_LENGTH(cvendor_md)   = 0;
+
+    cstring_clean(CVENDOR_MD_HEADER_EXPIRES(cvendor_md));
+    CVENDOR_MD_DEPTH(cvendor_md)            = 0;
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_REQ(cvendor_md))
+    {
+        chttp_req_free(CVENDOR_MD_CHTTP_REQ(cvendor_md));
+        CVENDOR_MD_CHTTP_REQ(cvendor_md) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        chttp_rsp_free(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        CVENDOR_MD_CHTTP_RSP(cvendor_md) = NULL_PTR;
+    }   
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_STORE(cvendor_md))
+    {
+        chttp_store_free(CVENDOR_MD_CHTTP_STORE(cvendor_md));
+        CVENDOR_MD_CHTTP_STORE(cvendor_md) = NULL_PTR;
+    }   
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat_free(CVENDOR_MD_CHTTP_STAT(cvendor_md));
+        CVENDOR_MD_CHTTP_STAT(cvendor_md) = NULL_PTR;
+    }    
+
+    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)    = CVENDOR_ERR_SEG_NO;
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md)   = 0; 
+
+    CVENDOR_MD_NGX_LOC(cvendor_md)          = LOC_NONE_END;
+    CVENDOR_MD_NGX_RC(cvendor_md)           = NGX_OK;
+   
+    /* free module */
+    cvendor_md->usedcounter = 0;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "cvendor_end: stop CVENDOR module #%u\n", cvendor_md_id);
+    cbc_md_free(MD_CVENDOR, cvendor_md_id);
+
+    return ;
+}
+
+EC_BOOL cvendor_get_ngx_rc(const UINT32 cvendor_md_id, ngx_int_t *rc, UINT32 *location)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_ngx_rc: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(NULL_PTR != rc)
+    {
+        (*rc) = CVENDOR_MD_NGX_RC(cvendor_md);
+    }
+
+    if(NULL_PTR != location)
+    {
+        (*location) = CVENDOR_MD_NGX_LOC(cvendor_md);
+    }
+    return (EC_TRUE);
+}
+
+/*only for failure!*/
+EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const UINT32 location)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_set_ngx_rc: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    /*do not override*/
+    if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+                                                "ignore rc %d due to its %d now\n", 
+                                                rc, CVENDOR_MD_NGX_RC(cvendor_md));    
+        return (EC_TRUE);
+    }
+    
+    CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
+    CVENDOR_MD_NGX_LOC(cvendor_md) = location;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
+                                            "set rc %d\n", 
+                                            rc);
+
+    return (EC_TRUE);
+}
+
+/*only for failure!*/
+EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const UINT32 location)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_override_ngx_rc: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(rc == CVENDOR_MD_NGX_RC(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+                                                "ignore same rc %d\n", 
+                                                rc);    
+        return (EC_TRUE);
+    }
+
+    if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+                                                "modify rc %d => %d\n", 
+                                                CVENDOR_MD_NGX_RC(cvendor_md), rc);    
+        CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
+        CVENDOR_MD_NGX_LOC(cvendor_md) = location;
+
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+                                            "set rc %d\n", 
+                                            rc);
+
+    CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
+    CVENDOR_MD_NGX_LOC(cvendor_md) = location;
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_set_store_cache_path(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+        
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_set_store_cache_path: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(EC_FALSE == cngx_set_store_cache_path(r, CVENDOR_MD_CACHE_PATH(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_set_store_cache_path: set store_path failed\n");
+
+        return (EC_FALSE);
+    }  
+        
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_store_cache_path: set store_path '%s'\n",
+                    (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md))); 
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_get_cache_seg_uri(const UINT32 cvendor_md_id, const UINT32 seg_no, CSTRING *cache_uri)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+        
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_cache_seg_uri: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(BIT_TRUE == CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md))
+    {
+        if(EC_FALSE == cstring_format(cache_uri, "%s%s/%ld", 
+                                                  (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)), 
+                                                  (char *)CHTTP_STORE_GZIP_POSTFIX,
+                                                  seg_no))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_uri: "
+                                                     "gen string '%s%s/%ld' failed\n",
+                                                    (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)), 
+                                                    (char *)CHTTP_STORE_GZIP_POSTFIX,
+                                                     seg_no);
+            return (EC_FALSE);
+        }
+    }
+    else
+    {
+        if(EC_FALSE == cstring_format(cache_uri, "%s/%ld", 
+                                                  (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)), 
+                                                  seg_no))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_uri: "
+                                                     "gen string '%s/%ld' failed\n",
+                                                    (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)), 
+                                                     seg_no);
+            return (EC_FALSE);
+        }
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg_uri: cache_uri '%s'\n",
+                    (char *)cstring_get_str(cache_uri));
+    
+    return (EC_TRUE);
+}
+
+/*get whole seg*/
+EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, CBYTES *seg_cbytes)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    CSTRING                      cache_uri_cstr;
+    UINT32                       cache_srv_tcid;
+    UINT32                       cache_srv_ipaddr;
+    UINT32                       cache_srv_port;/*http port*/
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_cache_seg: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    cstring_init(&cache_uri_cstr, NULL_PTR);
+    if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, seg_no, &cache_uri_cstr))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg: get cache_uri failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg: gen cache_uri '%s' done\n",
+                    (char *)cstring_get_str(&cache_uri_cstr));
+
+    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(), 
+                                                &cache_uri_cstr, 
+                                                &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg: "
+                                                "fetch cache server of '%s' failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == ccache_file_read(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port, 
+                                    &cache_uri_cstr, 
+                                    CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, /*whole seg file*/
+                                    seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg: "
+                                                "read '%s' from cache failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg: "
+                                            "read '%s', %ld bytes from cache done\n",
+                                            (char *)cstring_get_str(&cache_uri_cstr), 
+                                            cbytes_len(seg_cbytes));    
+
+    cstring_clean(&cache_uri_cstr);
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_get_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    CSTRING                      cache_uri_cstr;
+
+    UINT32                       cache_srv_tcid;
+    UINT32                       cache_srv_ipaddr;
+    UINT32                       cache_srv_port;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_cache_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    cstring_init(&cache_uri_cstr, NULL_PTR);
+    if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_n: get cache_uri failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg_n: gen cache_uri '%s' done\n",
+                    (char *)cstring_get_str(&cache_uri_cstr));
+
+    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(), 
+                                                &cache_uri_cstr, 
+                                                &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_n: "
+                                                "fetch cache server of '%s' failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == ccache_file_read(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port, 
+                                    &cache_uri_cstr, 
+                                    CRANGE_SEG_S_OFFSET(range_seg), 
+                                    CRANGE_SEG_E_OFFSET(range_seg),
+                                    seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_n: "
+                                                "read '%s' from cache failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }    
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg_n: "
+                                            "read '%s', %ld bytes from cache done\n",
+                                            (char *)cstring_get_str(&cache_uri_cstr), 
+                                            cbytes_len(seg_cbytes));    
+
+    cstring_clean(&cache_uri_cstr);
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_wait_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    CSTRING                      cache_uri_cstr;
+
+    UINT32                       cache_srv_tcid;
+    UINT32                       cache_srv_ipaddr;
+    UINT32                       cache_srv_port;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_wait_cache_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    cstring_init(&cache_uri_cstr, NULL_PTR);
+    if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: get cache_uri failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_wait_cache_seg_n: gen cache_uri '%s' done\n",
+                    (char *)cstring_get_str(&cache_uri_cstr));
+
+    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(), 
+                                                &cache_uri_cstr, 
+                                                &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: "
+                                                "fetch cache server of '%s' failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+    
+    if(EC_FALSE == ccache_file_wait_and_read(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port,
+                                             &cache_uri_cstr, 
+                                             CRANGE_SEG_S_OFFSET(range_seg), 
+                                             CRANGE_SEG_E_OFFSET(range_seg), 
+                                             seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: "
+                                                "read '%s' from cache failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_wait_cache_seg_n: "
+                                            "read '%s', %ld bytes from cache done\n",
+                                            (char *)cstring_get_str(&cache_uri_cstr), 
+                                            cbytes_len(seg_cbytes));    
+
+    cstring_clean(&cache_uri_cstr);
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_get_req_range_segs(const UINT32 cvendor_md_id, const UINT32 seg_size)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_req_range_segs: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(NULL_PTR != r->headers_in.range)
+    {
+        char       *range_str;
+        
+        range_str = (char *)(r->headers_in.range->value.data);
+        ASSERT('\0' == range_str[ r->headers_in.range->value.len ]);
+        
+        if(EC_FALSE == crange_parse_range(range_str, CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_req_range_segs: "
+                                                    "invalid Range '%s'\n",
+                                                    range_str);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                "parse Range '%s' done\n",
+                                                range_str);        
+
+        CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)  = BIT_TRUE;
+
+        if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md) = BIT_TRUE;
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                    "set CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG flag to %s\n",
+                                                    c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)));
+        }
+
+        if(EC_TRUE == crange_mgr_is_start_zero_endless(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) = BIT_TRUE;
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                    "set CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG flag to %s\n",
+                                                    c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md)));            
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                "split Range '%s' into segs done\n",
+                                                range_str);
+        return (EC_TRUE);             
+    }    
+
+    /*support extensible Request-Range*/
+    k = (const char *)"Request-Range";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_req_range_segs: "
+                                                 "[cngx] fetch header '%s' failed\n",
+                                                 k);
+         return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        if(EC_FALSE == crange_parse_range(v, CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_req_range_segs: "
+                                                    "invalid %s '%s'\n",
+                                                    k, v);
+            safe_free(v, LOC_CVENDOR_0001);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                "parse %s '%s' done\n",
+                                                k, v);        
+
+        CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)  = BIT_TRUE;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: "
+                                                "split %s '%s' into segs done\n",
+                                                k, v);
+        safe_free(v, LOC_CVENDOR_0002);
+        return (EC_TRUE);             
+    }
+
+    CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)  = BIT_FALSE; 
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_req_range_segs: no Range\n");
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_get_rsp_length_segs(const UINT32 cvendor_md_id, const UINT32 seg_size)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    UINT32                       content_length;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_get_rsp_length_segs: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    ASSERT(EC_TRUE == crange_mgr_is_empty(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)));
+
+    content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+    if(0 == content_length)
+    {
+        char     *content_range_str;
+        
+        content_range_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Range");
+        if(NULL_PTR != content_range_str)
+        {
+            UINT32      range_start;
+            UINT32      range_end;
+            
+            if(EC_FALSE == crange_parse_content_range(content_range_str, &range_start, &range_end, &content_length))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_rsp_length_segs: "
+                                                        "invalid Content-Range '%s'\n",
+                                                        content_range_str);
+                return (EC_FALSE);
+            }
+
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_rsp_length_segs: "
+                                                    "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
+                                                    content_range_str,
+                                                    range_start, range_end, content_length);            
+        }
+    }
+
+    if(0 < content_length)
+    {
+        CRANGE_NODE  *crange_node;
+
+        crange_node = crange_node_new();
+        if(NULL_PTR == crange_node)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_rsp_length_segs: "
+                                                    "new range_node failed\n");
+
+            return (EC_FALSE);
+        }
+
+        CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
+        CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
+        CRANGE_NODE_RANGE_START(crange_node)   = 0;
+        CRANGE_NODE_RANGE_END(crange_node)     = content_length - 1;
+        
+        if(EC_FALSE == crange_node_split(crange_node, seg_size))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_rsp_length_segs: "
+                                                    "split content_length '%ld' into segs failed\n",
+                                                    content_length);
+
+            crange_node_free(crange_node);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == crange_mgr_add_node(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), (void *)crange_node))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_rsp_length_segs: "
+                                                    "add crange_node of content_length '%ld' failed\n",
+                                                    content_length);
+
+            crange_node_free(crange_node);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_rsp_length_segs: "
+                                                "split content_length '%ld' into segs done\n",
+                                                content_length);     
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_is_redirect_rsp(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    uint32_t                     status;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_is_redirect_rsp: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_is_redirect_rsp: rsp status %u\n",
+                        status);
+                        
+    if(CHTTP_MOVED_PERMANENTLY == status 
+    || CHTTP_MOVED_TEMPORARILY == status)
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cvendor_is_specific_redirect_rsp(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    
+    uint32_t                     status;
+    uint32_t                     des_status;
+    const char                  *k;
+    char                        *v;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_is_specific_redirect_rsp: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_is_specific_redirect_rsp: "
+                                            "rsp status %u\n",
+                                            status);
+
+    if(EC_FALSE == cngx_get_redirect_specific(r, status, &des_status, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_is_specific_redirect_rsp: "
+                                                "got fialed\n");
+        return (EC_FALSE);
+    }
+
+    if(CHTTP_STATUS_NONE == des_status || NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_is_specific_redirect_rsp: "
+                                                "no spec => ignore\n");
+        return (EC_TRUE);
+    }
+                        
+    if(CHTTP_MOVED_PERMANENTLY != des_status 
+    && CHTTP_MOVED_TEMPORARILY != des_status)
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_is_specific_redirect_rsp: "
+                                                "unsupported status %u\n",
+                                                des_status);
+
+        if(NULL_PTR != v)
+        {
+            safe_free(v, LOC_CVENDOR_0003);
+        }
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_is_specific_redirect_rsp: "
+                                                "status %u, but redirect url is null\n",
+                                                des_status);
+        return (EC_FALSE);
+    }
+
+    /*set to rsp header*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = des_status;
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_is_specific_redirect_rsp: "
+                                            "modify rsp status: %u => %u\n",
+                                            status, des_status);  
+    k = (const char *)"Location";                                        
+    chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_is_specific_redirect_rsp: "
+                                            "add rsp header '%s':'%s'\n",
+                                            k, v);     
+
+    safe_free(v, LOC_CVENDOR_0004);
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_filter_rsp_range(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    UINT32                       content_length;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_rsp_range: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+    if(0 == content_length)
+    {
+        char                       *content_range_str;
+
+        UINT32                      range_start;
+        UINT32                      range_end;
+        
+        content_range_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Range");
+        if(NULL_PTR == content_range_str)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: no 'Content-Range'\n");
+
+            /*we always send rang request to orig. if no 'Content-Range', that may be chunked response*/
+            //return cvendor_content_chunk_procedure(cvendor_md_id);
+            return (EC_TRUE);
+        }
+        
+        if(EC_FALSE == crange_parse_content_range(content_range_str, &range_start, &range_end, &content_length))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_rsp_range: "
+                                                    "invalid Content-Range '%s'\n",
+                                                    content_range_str);
+            return (EC_FALSE);
+        }    
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: "
+                                                "Content-Range '%s' => content_length %ld\n",
+                                                content_range_str, 
+                                                CVENDOR_MD_CONTENT_LENGTH(cvendor_md));
+    }
+    
+    /*adjust range_start and range_end*/
+    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md))
+    {   
+        if(EC_FALSE == crange_mgr_adjust(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 
+                                         CVENDOR_MD_CONTENT_LENGTH(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_rsp_range: "
+                                                    "crange_mgr_adjust with content_length %ld failed\n",
+                                                    CVENDOR_MD_CONTENT_LENGTH(cvendor_md));         
+            return (EC_FALSE);
+        }
+
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: "
+                                                    "after crange_nodes adjust with content_length %ld =>\n",
+                                                    CVENDOR_MD_CONTENT_LENGTH(cvendor_md));         
+            crange_mgr_print_no_seg(LOGSTDOUT, CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+        }
+
+        if(0 == crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_rsp_range: "
+                                                    "crange_mgr_adjust with content_length %ld and no valid returned\n",
+                                                    CVENDOR_MD_CONTENT_LENGTH(cvendor_md));         
+
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CVENDOR_0005); 
+            return (EC_FALSE);
+        }
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: "
+                                                "crange_nodes adjust with content_length %ld done\n",
+                                                CVENDOR_MD_CONTENT_LENGTH(cvendor_md)); 
+
+        if(EC_FALSE == crange_mgr_split(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_rsp_range: "
+                                                    "crange_nodes split with seg size %ld failed\n",
+                                                    CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md));         
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: "
+                                                "crange_nodes split with seg size %ld done\n",
+                                                CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md));   
+
+        CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md) = BIT_TRUE;
+    }
+
+    /*filter req range_segs*/
+    crange_mgr_filter(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), content_length);
+  
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_rsp_range: done\n");
+    
+    return (EC_TRUE);
+}
+
+/*for chttp_req to orig server*/
+EC_BOOL cvendor_filter_header_in_common(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_in_common: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*del debug headers*/
+    chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_SWITCH_HDR);
+    chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_NAME_HDR);
+    chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_ERROR_HDR);
+    chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_INFO_HDR);
+    chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_EXPIRE_HDR);
+       
+    return (EC_TRUE);
+}
+#if 0
+/*---- debug ----*/
+EC_BOOL cvendor_filter_header_out_debug(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_debug: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(0 == CVENDOR_MD_DEPTH(cvendor_md))
+    {
+        ngx_http_request_t          *r;
+        const char                  *k;
+        char                        *v;
+        
+        r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+        
+        k = (const char *)CNGX_BGN_MOD_DBG_EXPIRE_HDR;
+        if(EC_FALSE == cngx_get_header_in(r, k, &v) || NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_debug: "
+                                                    "[cngx] not found debug header '%s' => ignore\n",
+                                                    k);         
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_debug: "
+                                                "[cngx] found debug header '%s':'%s'\n",
+                                                k, v);
+
+        if(EC_FALSE == c_str_is_digit(v))
+        {
+            if(EC_FALSE == cvendor_renew_header_cache(cvendor_md_id, k, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_debug: "
+                                                        "cache renew debug header '%s':'%s' failed\n",
+                                                        k, v);            
+                safe_free(v, LOC_CVENDOR_0006);
+                return (EC_FALSE);
+            }
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_debug: "
+                                                    "cache renew debug header '%s':'%s' done\n",
+                                                    k, v);
+            safe_free(v, LOC_CVENDOR_0007);
+            return (EC_TRUE);
+        }
+        else
+        {
+            time_t                       expires;
+            
+            expires = (time_t)c_str_to_word(v);
+            safe_free(v, LOC_CVENDOR_0008);
+
+            v = c_http_time(task_brd_default_get_time() + expires);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                    "expires '%d' => '%s'\n",
+                                                    expires, v);
+
+            k = (const char *)"Expires";
+
+            if(EC_FALSE == cvendor_renew_header_cache(cvendor_md_id, k, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_debug: "
+                                                        "cache renew debug header '%s':'%s' failed\n",
+                                                        k, v);            
+                return (EC_FALSE);
+            }
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_debug: "
+                                                    "cache renew debug header '%s':'%s' done\n",
+                                                    k, v);
+            return (EC_TRUE);
+        }
+    }
+
+    return (EC_TRUE);    
+}
+#endif
+
+/*before sending response to client*/
+EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char *procedure)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_common: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    cvendor_filter_header_out_cache_control(cvendor_md_id);
+
+    if(NULL_PTR != procedure && 0 == STRCASECMP(procedure, (const char *)"cache"))
+    {
+        const char                  *v;
+
+        v = (const char *)CNGX_CACHE_STATUS_HIT;
+        cngx_set_cache_status(r, v);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_common: "
+                                                "set cache status to '%s' done\n",
+                                                v);         
+    }
+
+    if(BIT_TRUE == CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+        
+        k = (const char *)CNGX_BGN_MOD_DBG_X_PROCEDURE_TAG;
+        v = (const char *)procedure;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
+                                                    "add header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+
+        k = (const char *)CNGX_BGN_MOD_DBG_X_PROXY_TAG;
+        v = (const char *)CNGX_BGN_MOD_DBG_X_PROXY_VAL;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
+                                                    "add header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+
+        k = (const char *)CNGX_BGN_MOD_DBG_X_MODULE_TAG;
+        v = (const char *)CVENDOR_MODULE_NAME;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
+                                                    "add header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+    }
+
+    /*merge header function. it should be optional function*/
+    if(EC_TRUE == cngx_is_merge_header_switch_on(r))
+    {
+        chttp_rsp_merge_header(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_common: "
+                                                "merge header done\n");    
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_filter_header_out_cache_control(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_cache_control: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(BIT_FALSE == CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md))
+    {
+
+        const char                  *k;
+        //char                        *v;    
+    
+        k = (const char *)CHTTP_RSP_X_CACHE_CONTROL;
+        
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    }
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_filter_header_out_single_range(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    CRANGE_MGR                  *crange_mgr;
+    CRANGE_NODE                 *crange_node;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_single_range: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    crange_mgr = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+
+    ASSERT(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md));
+    ASSERT(1 == crange_mgr_node_num(crange_mgr));
+
+    /*only one crange_node*/
+    crange_node = crange_mgr_first_node(crange_mgr);
+   
+    if(0 != CRANGE_NODE_RANGE_START(crange_node) 
+     || CRANGE_NODE_RANGE_END(crange_node) + 1 != CVENDOR_MD_CONTENT_LENGTH(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        UINT32                       content_length; /*rsp body length*/
+        
+        content_length = (CRANGE_NODE_RANGE_END(crange_node) + 1 - CRANGE_NODE_RANGE_START(crange_node));
+        
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "renew header %s:%s done\n",
+                                                k, v);        
+
+        snprintf(header_buf, sizeof(header_buf), "bytes %ld-%ld/%ld", 
+                             CRANGE_NODE_RANGE_START(crange_node),
+                             CRANGE_NODE_RANGE_END(crange_node),
+                             CVENDOR_MD_CONTENT_LENGTH(cvendor_md));                
+        k = (const char *)"Content-Range";
+        v = (const char *)header_buf;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "renew header %s:%s done\n",
+                                                k, v);
+    }
+    else if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        UINT32                       content_length; /*rsp body length*/
+        
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+        
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "[ZERO_ENDLESS] renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "[ZERO_ENDLESS] renew header %s:%s done\n",
+                                                k, v);        
+
+        snprintf(header_buf, sizeof(header_buf), "bytes %ld-%ld/%ld", 
+                             (UINT32)0,
+                             content_length - 1,
+                             content_length);                
+        k = (const char *)"Content-Range";
+        v = (const char *)header_buf;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "[ZERO_ENDLESS] renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "[ZERO_ENDLESS] renew header %s:%s done\n",
+                                                k, v);
+    }
+    else if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        UINT32                       content_length; /*whole content length*/
+
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+        
+        snprintf(header_buf, sizeof(header_buf), "bytes %ld-%ld/%ld", 
+                             (UINT32)0,
+                             content_length - 1,
+                             content_length); 
+                             
+        k = (const char *)"Content-Range";
+        v = (const char *)header_buf;
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "[cngx] range exist and covers whole content => renew header '%s':'%s' failed\n",
+                                                    k, v);         
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "[cngx] range exist and covers whole content => renew header '%s':'%s' done\n",
+                                                k, v); 
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "[cngx] range exist and covers whole content => renew header %s:%s failed\n",
+                                                    k, v);        
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "[cngx] range exist and covers whole content => renew header %s:%s done\n",
+                                                k, v);
+    }
+    else
+    {
+        const char                  *k;
+        const char                  *v;
+
+        UINT32                       content_length; /*whole content length*/
+
+        k = (const char *)"Content-Range";        
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "range covers whole content => delete header '%s' done\n",
+                                                k); 
+                                                
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_single_range: "
+                                                    "renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);   
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                                "renew header %s:%s done\n",
+                                                k, v);           
+                                                 
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_single_range: "
+                                            "done\n");
+    return (EC_TRUE);    
+}
+
+EC_BOOL cvendor_filter_header_out_multi_range(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    CRANGE_MGR                  *crange_mgr;
+    CLIST                       *crange_nodes;
+    CLIST_DATA                  *clist_data;
+
+    UINT32                       content_length;
+    UINT32                       body_size;
+    char                        *boundary;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_multi_range: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    ASSERT(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md));
+    ASSERT(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)));
+
+    content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+    boundary       = c_get_day_time_str();
+
+    crange_mgr     = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+    crange_nodes   = CRANGE_MGR_RANGE_NODES(crange_mgr);
+
+    body_size      = 0;
+
+    CLIST_LOOP_NEXT(crange_nodes, clist_data)
+    {
+        CRANGE_NODE                 *crange_node;
+
+        crange_node = (CRANGE_NODE *)CLIST_DATA_DATA(clist_data);
+
+        cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
+        
+        if(EC_FALSE == cstring_format(CRANGE_NODE_BOUNDARY(crange_node), 
+                                       (const char *)""
+                                       "\n"
+                                       "--%s\n"
+                                       "Content-Type: application/octet-stream\n"
+                                       "Content-Range: bytes %ld-%ld/%ld\n"
+                                       "\n",
+                                       boundary,
+                                       CRANGE_NODE_RANGE_START(crange_node),
+                                       CRANGE_NODE_RANGE_END(crange_node),
+                                       content_length))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_multi_range:"
+                                                    "format boundary '"
+                                                    "\n"
+                                                    "--%s\n"
+                                                    "Content-Type: application/octet-stream\n"
+                                                    "Content-Range: bytes %ld-%ld/%ld\n"
+                                                    "\n"
+                                                    "' failed\n",
+                                                    boundary,
+                                                    CRANGE_NODE_RANGE_START(crange_node),
+                                                    CRANGE_NODE_RANGE_END(crange_node),
+                                                    content_length);
+            return (EC_FALSE);
+        }
+
+        body_size += cstring_get_len(CRANGE_NODE_BOUNDARY(crange_node));
+        body_size += CRANGE_NODE_RANGE_END(crange_node) + 1 - CRANGE_NODE_RANGE_START(crange_node);
+    }
+
+    /*last boundary*/
+    cstring_clean(CRANGE_MGR_BOUNDARY(crange_mgr));
+    if(EC_FALSE == cstring_format(CRANGE_MGR_BOUNDARY(crange_mgr), 
+                                   (const char *)""
+                                   "\n"
+                                   "--%s--\n",
+                                   boundary))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_multi_range:"
+                                                "format last boundary '"
+                                                "\n"
+                                                "--%s\n"
+                                                "' failed\n",
+                                                boundary);
+        return (EC_FALSE);
+    }
+
+    body_size += cstring_get_len(CRANGE_MGR_BOUNDARY(crange_mgr));
+
+    CRANGE_MGR_BODY_SIZE(crange_mgr) = body_size;
+
+    /*handle rsp heander*/
+
+    if(1)
+    {
+        const char                  *k;
+        
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    }
+    
+    if(1)
+    {
+        const char                  *k;
+        const char                  *v;
+        
+        char                         header_buf[ 64 ];
+        
+        char                        *boundary_str;
+        uint32_t                     boundary_len;
+
+        crange_mgr_get_naked_boundary(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), &boundary_str, &boundary_len);
+
+        snprintf(header_buf, sizeof(header_buf), "multipart/byteranges; boundary=%.*s", 
+                                                 boundary_len, boundary_str);
+
+        k = (const char *)"Content-Type";   
+        v = (const char *)header_buf;
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_multi_range: "
+                                                "renew '%s' done\n",
+                                                k, v);
+    }
+
+    if(1)
+    {
+        const char                  *k;
+        const char                  *v;
+        
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(body_size);
+
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_multi_range: "
+                                                "renew header %s:%s done\n",
+                                                k, v);                                                  
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_filter_header_out_range(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    UINT32                       crange_node_num;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_filter_header_out_range: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    ASSERT(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md));
+
+    crange_node_num = crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    if(1 == crange_node_num)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_range: "
+                                                "crange_node_num = %ld => single range\n",
+                                                crange_node_num);     
+        return cvendor_filter_header_out_single_range(cvendor_md_id);
+    }
+
+    if(1 < crange_node_num)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_range: "
+                                                "crange_node_num = %ld => multi range\n",
+                                                crange_node_num);     
+        return cvendor_filter_header_out_multi_range(cvendor_md_id);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_range: "
+                                            "no range, done\n");    
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, const char *v)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+
+    UINT32                       seg_no;
+    CSTRING                      cache_uri_cstr;
+
+    UINT32                       cache_srv_tcid;
+    UINT32                       cache_srv_ipaddr;
+    UINT32                       cache_srv_port;
+
+    CSTRKV_MGR                  *cstrkv_mgr;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_renew_header_cache: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    seg_no = 0;
+
+    cstring_init(&cache_uri_cstr, NULL_PTR);
+    if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, seg_no, &cache_uri_cstr))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: get cache_uri failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_renew_header_cache: gen cache_uri '%s' done\n",
+                    (char *)cstring_get_str(&cache_uri_cstr));
+
+    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(), 
+                                                &cache_uri_cstr, 
+                                                &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
+                                                "fetch cache server of '%s' failed\n",
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    cstrkv_mgr = cstrkv_mgr_new();
+    if(NULL_PTR == cstrkv_mgr)
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
+                                                "new cstrkv_mgr failed\n");
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+    
+    if(EC_FALSE == cstrkv_mgr_add_kv_str(cstrkv_mgr, k, v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
+                                                "add '%s':'%s' to cstrkv_mgr failed\n",
+                                                k, v);
+        cstrkv_mgr_free(cstrkv_mgr);
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+    
+    if(EC_FALSE == ccache_renew_headers(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port,
+                                         &cache_uri_cstr, cstrkv_mgr, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
+                                                "renew header '%s':'%s' in cache '%s' failed\n",
+                                                k, v,
+                                                (char *)cstring_get_str(&cache_uri_cstr));
+
+        cstrkv_mgr_free(cstrkv_mgr);
+        cstring_clean(&cache_uri_cstr);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_renew_header_cache: "
+                                            "renew header '%s':'%s' in cache '%s' done\n",
+                                            k, v,
+                                            (char *)cstring_get_str(&cache_uri_cstr));    
+
+    cstrkv_mgr_free(cstrkv_mgr);
+    cstring_clean(&cache_uri_cstr);
+
+    return (EC_TRUE);    
+}
+
+/**
+*
+* content handler
+*
+**/
+EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_handler: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+  
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+   
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: enter\n");
+
+    /*priority: if set debug on when module starting, ignore switch in cngx http req header*/
+    if(BIT_FALSE == CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md)
+    && EC_TRUE == cngx_is_debug_switch_on(r))
+    {
+        CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md) = BIT_TRUE;
+    }
+
+    cngx_option_set_cacheable_method(r, CVENDOR_MD_CNGX_OPTION(cvendor_md));
+    if(BIT_TRUE == CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md))
+    {
+        if(BIT_TRUE == CNGX_OPTION_CACHEABLE_METHOD(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: method cachable\n");
+            cngx_set_header_out_kv(r, (const char *)CNGX_BGN_MOD_DBG_X_METHOD_CACHABLE_TAG, (const char *)"yes");
+        }
+        else
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: method not cachable\n");
+            cngx_set_header_out_kv(r, (const char *)CNGX_BGN_MOD_DBG_X_METHOD_CACHABLE_TAG, (const char *)"no");
+        }
+    }
+
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        CHTTP_REQ       chttp_req_t;
+
+        chttp_req_init(&chttp_req_t);
+
+        cngx_export_header_in(r, &chttp_req_t);
+
+        cngx_export_method(r, &chttp_req_t);
+        cngx_export_uri(r, &chttp_req_t);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: cngx req is -------------------------\n");
+        chttp_req_print_plain(LOGSTDOUT, &chttp_req_t);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: -------------------------------------\n");
+
+        chttp_req_clean(&chttp_req_t);
+    }
+
+    if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                "not cacheable method => direct procedure\n");
+        return cvendor_content_direct_procedure(cvendor_md_id);
+    }
+
+    /*parse 'Range' in cngx http req header*/
+    if(EC_FALSE == cvendor_get_req_range_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_handler: "
+                                                "get Range from cngx req failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0009);    
+        return (EC_FALSE);
+    }    
+
+    /*check gzip header*/
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Accept-Encoding", (const char *)"gzip"))
+    {
+        CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)  = BIT_TRUE;
+        CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md) = BIT_TRUE; /*set same as CNGX at present*/
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                "set use-gzip\n");        
+    }
+
+    if(EC_FALSE == cvendor_set_store_cache_path(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_handler: set store_path failed\n");
+
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0010); 
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: set store_path '%s'\n",
+                    (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)));    
+
+    if(EC_TRUE == cngx_is_orig_force(r))
+    {
+        CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md) = BIT_TRUE;    
+    }
+    else
+    {
+        CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md) = BIT_FALSE;    
+    }
+    
+    return cvendor_content_cache_procedure(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_in_filter_port: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*when cngx config direct port*/
+    k = (const char *)CNGX_VAR_ORIG_PORT;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }  
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v); 
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                                    "[conf] set port '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0011);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                             "[conf] set port '%s' to http req done\n",
+                                             v);         
+        safe_free(v, LOC_CVENDOR_0012);  
+        return (EC_TRUE);
+    }
+
+    /*when cngx NOT config direct port*/
+    k = (const char *)"server_port";
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                             "[cngx] get var '%s':'%s' done\n",
+                                             k, v); 
+                                             
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                                    "[cngx] set port to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0013);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                             "[cngx] set port '%s' to http req done\n",
+                                             v);          
+        safe_free(v, LOC_CVENDOR_0014);  
+
+        return (EC_TRUE);
+    }
+    
+    /*set default direct port*/
+    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                         "[default] set default port '%d' to http req done\n",
+                                         CNGX_ORIG_PORT_DEFAULT);
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_in_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*set http request server or ipaddr*/
+    do
+    {
+        /*when cngx config direct server*/
+        k = (const char *)CNGX_VAR_ORIG_SERVER;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_server(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set server '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0015);
+                return (EC_FALSE);
+            }
+            safe_free(v, LOC_CVENDOR_0016);
+
+            break; /*ok*/
+        }
+
+        /*when cngx config direct host and port*/
+        k = (const char *)CNGX_VAR_ORIG_HOST;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set host '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0017);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0018);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*now cngx NOT config direct server and NOT config direct (host, port)*/
+
+        /*try http_host*/
+        k = (const char *)"http_host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0019);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0020);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*try server_name*/
+        k = (const char *)"server_name";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0021);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0022);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }           
+
+            break; /*ok*/
+        }        
+
+        /*try host*/
+        k = (const char *)"host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[cngx] set ipaddr of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0023);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0024);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }               
+    }while(0);
+
+    /*set http request method*/
+    if(EC_FALSE == cngx_get_req_method_str(r, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                "get method failed\n");
+        return (EC_FALSE);
+    }
+    if(EC_FALSE == chttp_req_set_method(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                "set method '%s' failed\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0025);
+        return (EC_FALSE);
+    }
+    safe_free(v, LOC_CVENDOR_0026);
+
+    /*set http request uri*/
+    do
+    {
+        /*when cngx config direct uri*/
+        k = (const char *)CNGX_VAR_ORIG_URI;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                 "get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set uri '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0027);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set uri '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0028);
+
+            break; /*ok*/
+        }
+        
+        /*when cngx NOT config direct uri*/
+        if(EC_FALSE == cngx_get_req_uri(r, &v) || NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "get uri failed\n");
+            return (EC_FALSE);
+        }
+        
+        if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] set uri '%s' failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0029);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                "[cngx] set uri '%s' to http req done\n",
+                                                v);         
+        safe_free(v, LOC_CVENDOR_0030);    
+    }while(0);
+    
+    /*set range*/
+    if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {   
+        UINT32      range_start;
+        UINT32      range_end;
+        char        range[ 32 ];
+
+        if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            range_start = 0;
+            range_end   = range_start + CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) - 1;
+        }
+        else
+        {
+            range_start = (CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) - 1) * CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md);
+            range_end   = range_start + CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) - 1;   
+        }
+
+        if(0 < CVENDOR_MD_CONTENT_LENGTH(cvendor_md) && range_end >= CVENDOR_MD_CONTENT_LENGTH(cvendor_md))
+        {
+            range_end = CVENDOR_MD_CONTENT_LENGTH(cvendor_md) - 1;
+        }
+        
+        snprintf(range, sizeof(range), "bytes=%ld-%ld", range_start, range_end);
+        
+        k = (const char *)"Range";
+        v = (char       *)range;
+        if(EC_FALSE == chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "set header '%s':'%s' failed\n",
+                                                    k, v);
+            return (EC_FALSE);
+        }
+    }
+
+    return cvendor_filter_header_in_common(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_direct_header_out_length_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_out_length_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        char       *content_length_str;
+        UINT32      content_length;
+        
+        content_length_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Length");
+        if(NULL_PTR == content_length_str)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_length_filter: "
+                                                    "no 'Content-Length'\n");
+            return (EC_FALSE);
+        }
+
+        content_length = c_str_to_word(content_length_str);
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_length_filter: "
+                                                "parse Content-Length '%s' to %ld\n",
+                                                content_length_str,
+                                                content_length);
+    }
+
+    if(BIT_TRUE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_length_filter: "
+                                                    "split content_length to segs failed\n");
+            return (EC_FALSE);   
+        } 
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_length_filter: "
+                                                "split content_length to segs done\n");
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_length_filter: "
+                                            "done\n");  
+                                            
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_out_range_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        char       *content_range_str;
+        char       *content_length_str;
+        
+        content_range_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Range");
+        if(NULL_PTR != content_range_str)
+        {
+            UINT32      range_start;
+            UINT32      range_end;
+            UINT32      content_length;
+            
+            if(EC_FALSE == crange_parse_content_range(content_range_str, &range_start, &range_end, &content_length))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_range_filter: "
+                                                        "invalid Content-Range '%s'\n",
+                                                        content_range_str);
+                return (EC_FALSE);
+            }
+
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                    "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
+                                                    content_range_str,
+                                                    range_start, range_end, content_length);        
+            /*fall throught*/
+            break;
+        }
+
+        content_length_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Length");
+        if(NULL_PTR != content_length_str)
+        {
+            UINT32      content_length;
+
+            content_length = c_str_to_word(content_length_str);
+            
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                    "parse Content-Length '%s' to %ld\n",
+                                                    content_length_str,
+                                                    content_length);            
+            /*fall throught*/
+            break;            
+        }
+       
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "warn:cvendor_content_direct_header_out_range_filter: "
+                                                "no 'Content-Range' => chunk\n");
+        /*maybe chunk*/
+        return cvendor_content_chunk_header_out_filter(cvendor_md_id);
+    }
+
+    if(EC_FALSE == cvendor_content_direct_header_out_length_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_range_filter: "
+                                                "filter length failed\n"); 
+        return(EC_FALSE);                                         
+    }
+    
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+       
+        /*no range in cngx http request, return whole content*/
+        
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k);
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                "del rsp header %s done\n",
+                                                k); 
+                                                
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(CVENDOR_MD_CONTENT_LENGTH(cvendor_md));
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                "renew rsp header %s:%s done\n",
+                                                k, v); 
+                                                
+        return (EC_TRUE);
+    }
+
+    /*single range and multiple range*/
+    if(EC_FALSE == cvendor_filter_header_out_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_range_filter: "
+                                                "filter range failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                            "filter range done\n");   
+#if 0
+    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        
+        char                        *boundary_str;
+        uint32_t                     boundary_len;
+
+        crange_mgr_get_naked_boundary(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), &boundary_str, &boundary_len);
+
+        snprintf(header_buf, sizeof(header_buf), "multipart/byteranges; boundary=%.*s", 
+                                                 boundary_len, boundary_str);
+
+        k = (const char *)"Content-Type";   
+        v = (const char *)header_buf;
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                "renew '%s' done\n",
+                                                k);         
+    }
+#endif
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                            "done\n");  
+                                            
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    const char                  *k;
+    uint32_t                     status;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_out_status_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    k = (const char *)"Response-Status";
+    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
+                                            "response status = %u [before]\n",
+                                            status);
+                                            
+    if(CHTTP_OK != status && CHTTP_PARTIAL_CONTENT != status)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
+                                               "unchangeable => response status = %u [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+        return (EC_TRUE);
+    }
+
+    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
+                                               "range exist => response status = %u [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+        return (EC_TRUE);
+    }
+
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
+                                            "response status = %u [after]\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"direct";
+    cvendor_filter_header_out_common(cvendor_md_id, k);
+
+    /*Content-Length and Content-Range*/
+    if(EC_FALSE == cvendor_content_direct_header_out_range_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
+                                                "range filter failed\n");
+        return (EC_FALSE);   
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
+                                            "range filter done\n");
+
+    if(EC_FALSE == cvendor_content_direct_header_out_status_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
+                                                "status filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
+                                            "status filter done\n"); 
+                                            
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: done\n");
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_body_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_body_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_send_request(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+    CHTTP_REQ                   *chttp_req;
+    CHTTP_RSP                   *chttp_rsp;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_send_request: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*chttp_req*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_REQ(cvendor_md))
+    {
+        chttp_req = chttp_req_new();
+        if(NULL_PTR == chttp_req)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                    "new chttp_req failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0031); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_REQ(cvendor_md) = chttp_req;
+    }
+    else
+    {
+        chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+        chttp_req_clean(chttp_req);
+    }
+
+    /*chttp_rsp*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        chttp_rsp = chttp_rsp_new();
+        if(NULL_PTR == chttp_rsp)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                    "new chttp_rsp failed\n");
+            chttp_req_free(chttp_req);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0032); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_RSP(cvendor_md) = chttp_rsp;
+    }
+    else
+    {
+        chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+        chttp_rsp_clean(chttp_rsp);
+    }
+
+    if(EC_FALSE == cngx_export_header_in(r, chttp_req))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                "export headers_in to http req failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0033); 
+        return (EC_FALSE);
+    }
+    if(EC_FALSE == cvendor_content_direct_header_in_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                "header_in filter failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0034); 
+        return (EC_FALSE);
+    }
+   
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_request: http req:\n");
+        chttp_req_print_plain(LOGSTDOUT, chttp_req);
+    }
+    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                "http request failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0035); 
+        return (EC_FALSE);
+    }
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_request: http rsp:\n");
+        chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+    CHTTP_RSP                   *chttp_rsp;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_send_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    ASSERT(0 < CRANGE_SEG_NO(crange_seg));
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+    
+    ASSERT(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md));
+
+    /*no-direct*/
+    if(CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) == CRANGE_SEG_NO(crange_seg))   
+    {
+        uint8_t         *data;
+        uint32_t         len;
+        
+        cvendor_content_direct_body_out_filter(cvendor_md_id);
+
+        data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp)) + CRANGE_SEG_S_OFFSET(crange_seg);
+        len  = (uint32_t)(CRANGE_SEG_E_OFFSET(crange_seg) + 1 - CRANGE_SEG_S_OFFSET(crange_seg));
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_seg_n: "
+                                                    "send body seg %ld failed\n",
+                                                    CRANGE_SEG_NO(crange_seg));
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += len;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_seg_n: "
+                                                "send body seg %ld: %u bytes done\n", 
+                                                CRANGE_SEG_NO(crange_seg), len);
+
+        chttp_rsp_clean(chttp_rsp);
+        return (EC_TRUE);
+    }
+
+    /*else*/
+    
+    chttp_rsp_clean(chttp_rsp);
+
+    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_seg_n: "
+                                            "set absent_seg_no = %ld\n", 
+                                            CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+
+    /*recursively*/
+    return cvendor_content_direct_procedure(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_direct_send_node(const UINT32 cvendor_md_id, CRANGE_NODE *crange_node)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+
+    CRANGE_SEG                  *crange_seg;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_send_node: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*boundary*/
+    if(EC_FALSE == cstring_is_empty(CRANGE_NODE_BOUNDARY(crange_node)))
+    {
+        CSTRING     *boundary;
+        uint8_t     *data;
+        uint32_t     len;
+
+        boundary = CRANGE_NODE_BOUNDARY(crange_node);
+        
+        cvendor_content_direct_body_out_filter(cvendor_md_id);
+
+        data = (uint8_t *)CSTRING_STR(boundary);
+        len  = (uint32_t)CSTRING_LEN(boundary);
+
+        if(EC_FALSE == cngx_send_body(r, data, len,
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
+                                                    "send body boundary failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_node: "
+                                                "send body boundary: %ld bytes done\n", 
+                                                CSTRING_LEN(boundary));
+
+        /*clean boundary which was sent out*/
+        cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
+    }
+    
+    while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
+    {  
+        UINT32      seg_no;
+
+        seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
+
+        if(EC_FALSE == cvendor_content_direct_send_seg_n(cvendor_md_id, crange_seg))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
+                                                    "send direct seg %ld failed\n", 
+                                                    seg_no);
+                            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_node: "
+                                                "send direct seg %ld done => sent body %ld bytes\n", 
+                                                seg_no, 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+        if(crange_node_first_seg(crange_node) == crange_seg)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_node: "
+                                                    "pop seg %ld\n", 
+                                                    CRANGE_SEG_NO(crange_seg));        
+            crange_node_first_seg_pop(crange_node);
+            crange_seg_free(crange_seg);
+        }
+    } 
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+    CHTTP_RSP                   *chttp_rsp;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_send_response: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+
+    if(EC_TRUE == cngx_need_send_header(r))
+    {
+        if(EC_FALSE == cvendor_content_direct_header_out_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                    "header_out filter failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0036); 
+            return (EC_FALSE);
+        }
+
+        cngx_import_header_out(r, chttp_rsp);
+
+        cngx_disable_write_delayed(r);
+
+        if(0 == CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp)))
+        {
+            cngx_set_header_only(r);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                    "set header only\n");        
+        }
+        
+        if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                    "send header failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                "send header done\n");    
+    
+
+        if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) ++;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                    "inc absent_seg_no to %ld\n", 
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+        }
+    }
+
+    /*direct is not triggered by seg loss, but by ngx cfg => send chttp rsp only*/
+    if(BIT_FALSE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)
+    && CVENDOR_ERR_SEG_NO == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        uint8_t         *data;
+        uint32_t         len;
+        
+        cvendor_content_direct_body_out_filter(cvendor_md_id);
+
+        data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp));
+        len  = (uint32_t)CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp));
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                    "send body failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += len;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                "send body %u bytes done\n", 
+                                                len);
+
+        chttp_rsp_clean(chttp_rsp);
+        return (EC_TRUE);
+    }
+
+    if(EC_FALSE == cvendor_filter_rsp_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                "chttp rsp header_in range filter failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CVENDOR_0037);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                            "chttp rsp header_in range filter done\n");
+
+    /*send body: direct*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        CRANGE_MGR                  *crange_mgr;
+        CRANGE_NODE                 *crange_node;
+
+        crange_mgr = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                    "before send body, crange_mgr:\n");
+            crange_mgr_print(LOGSTDOUT, crange_mgr);
+        } 
+    
+        /*send body: ranges*/
+        while(NULL_PTR != (crange_node = crange_mgr_first_node(crange_mgr)))
+        {
+            if(EC_FALSE == cvendor_content_direct_send_node(cvendor_md_id, crange_node))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                        "send node (%ld:%s, %ld:%s) failed\n", 
+                                                        CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                        CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
+                                
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                    "send node (%ld:%s, %ld:%s) done => sent body %ld bytes\n", 
+                                                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                    CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)), 
+                                                    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+            if(crange_mgr_first_node(crange_mgr) == crange_node)
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                        "pop node (%ld:%s, %ld:%s)\n", 
+                                                        CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                        CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));         
+                crange_mgr_first_node_pop(crange_mgr);
+                crange_node_free(crange_node);
+            }
+        }
+
+        /*send body: last boundary*/
+        if(EC_FALSE == cstring_is_empty(CRANGE_MGR_BOUNDARY(crange_mgr)))
+        {
+            CSTRING     *boundary;
+            uint8_t     *data;
+            uint32_t     len;
+
+            boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
+            
+            cvendor_content_direct_body_out_filter(cvendor_md_id);
+            data = (uint8_t *)CSTRING_STR(boundary);
+            len  = (uint32_t)CSTRING_LEN(boundary);
+
+            if(EC_FALSE == cngx_send_body(r, data, len,
+                             /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                             &(CVENDOR_MD_NGX_RC(cvendor_md))))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                                                        "send body boundary failed\n");
+                
+                return (EC_FALSE);
+            }
+
+            CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                    "send body boundary: %ld bytes done\n", 
+                                                    CSTRING_LEN(boundary));
+        }
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
+                                                "send body done => complete %ld bytes\n",
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));      
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    
+    if(EC_FALSE == cvendor_content_direct_send_request(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_procedure: "
+                                                "send request failed\n");
+        return (EC_FALSE);
+    }   
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_procedure: "
+                                            "send request done\n");
+                                            
+    if(EC_FALSE == cvendor_content_direct_send_response(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_procedure: "
+                                                "send response failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_procedure: "
+                                            "send response done\n");
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_header_out_length_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_header_out_length_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        char       *content_length_str;
+        UINT32      content_length;
+        
+        content_length_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Length");
+        if(NULL_PTR == content_length_str)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_header_out_length_filter: "
+                                                    "no 'Content-Length'\n");
+            return (EC_FALSE);
+        }
+
+        content_length = c_str_to_word(content_length_str);
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_length_filter: "
+                                                "parse Content-Length '%s' to %ld\n",
+                                                content_length_str,
+                                                content_length);          
+
+        if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_header_out_length_filter: "
+                                                    "split content_length to segs failed\n");
+            return (EC_FALSE);   
+        }
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_length_filter: "
+                                            "done\n");  
+                                            
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_header_out_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_header_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(EC_FALSE == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_header_out_filter: "
+                                                "not chunked rsp\n");
+        return (EC_FALSE);
+    }
+
+    k = (const char *)"chunk";
+    cvendor_filter_header_out_common(cvendor_md_id, k);
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: "
+                                            "set chunked\n");
+
+    /*set ngx flag*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+
+    k = (const char *)"Transfer-Encoding";
+    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+    k = (const char *)"Connection";
+    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+    k = (const char *)"Response-Status";
+    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);    
+
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: "
+                                                "after filter, rsp is\n");
+        chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    }
+    
+    CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) = BIT_TRUE;/*set flag*/
+   
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_body_out_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_body_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    cngx_set_keepalive(r);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    CBYTES                       seg_cbytes;
+    uint8_t                     *data;
+    uint32_t                     len;
+  
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_send_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    ASSERT(0 < CRANGE_SEG_NO(crange_seg));
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    cbytes_init(&seg_cbytes);
+    
+    if(EC_FALSE == cvendor_wait_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_seg_n: "
+                                                "wait cache seg %ld failed => no more data\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                        
+        cbytes_clean(&seg_cbytes);
+        return (EC_TRUE);/*no more data*/
+    }
+    
+    cvendor_content_chunk_body_out_filter(cvendor_md_id);
+
+    data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
+    len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
+
+    if(EC_FALSE == cngx_send_body(r, data, len, 
+                     /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                     &(CVENDOR_MD_NGX_RC(cvendor_md))))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_seg_n: "
+                                                "send body seg %ld failed\n",
+                                                CRANGE_SEG_NO(crange_seg));
+        
+        cbytes_clean(&seg_cbytes);
+        return (EC_FALSE);
+    }
+
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += len;
+
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_seg_n: "
+                                            "send seg %ld [%ld, %ld], %u bytes\n", 
+                                            CRANGE_SEG_NO(crange_seg), 
+                                            CRANGE_SEG_S_OFFSET(crange_seg), 
+                                            CRANGE_SEG_E_OFFSET(crange_seg), 
+                                            len); 
+
+    cbytes_clean(&seg_cbytes);
+                
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_send_end(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+  
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_send_end: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0,  
+                     CNGX_SEND_BODY_NO_MORE_FLAG/* | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG*/,
+                     &(CVENDOR_MD_NGX_RC(cvendor_md))))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_end: "
+                                                "send body chunk-end failed\n");
+        
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_end: "
+                                            "send chunk-end done\n");
+                
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_send_response(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_send_response: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*send header*/
+    if(EC_TRUE == cngx_need_send_header(r))
+    {
+        /*check validity*/
+        if(EC_FALSE == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                                                    "not chunk rsp:\n"); 
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0038); 
+            return (EC_FALSE);                                        
+        }
+
+        if(EC_FALSE == cvendor_content_chunk_header_out_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                                                    "chunk header_out filter failed\n"); 
+
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0039); 
+            return (EC_FALSE);                                        
+        }        
+        
+        cngx_import_header_out(r, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+        cngx_disable_write_delayed(r);
+    
+        if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                                                    "send header failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                                "send header done\n");
+    }
+    
+    /*send body: chunk*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md))
+    {
+        CRANGE_SEG      *crange_seg;
+       
+        crange_seg = crange_seg_new();
+        if(NULL_PTR == crange_seg)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                                    "before send body, chunk [Y], new crange_seg failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0040); 
+            return (EC_FALSE);
+        }
+
+        CRANGE_SEG_SIZE(crange_seg)     = CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md);
+        CRANGE_SEG_S_OFFSET(crange_seg) = 0;
+        CRANGE_SEG_E_OFFSET(crange_seg) = CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) - 1;  
+        
+        for(CRANGE_SEG_NO(crange_seg) = 1; ;CRANGE_SEG_NO(crange_seg) ++)
+        {
+            UINT32               seg_no;
+            UINT32               sent_body_size;
+
+            seg_no = CRANGE_SEG_NO(crange_seg);
+
+            sent_body_size = CVENDOR_MD_SENT_BODY_SIZE(cvendor_md);
+            
+            if(EC_FALSE == cvendor_content_chunk_send_seg_n(cvendor_md_id, crange_seg))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                                                        "chunk [Y], send cache seg %ld failed\n", 
+                                                        seg_no);
+                                
+                crange_seg_free(crange_seg);
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0041); 
+                return (EC_FALSE);
+            }
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                                    "chunk [Y], send cache seg %ld done => sent body %ld bytes\n", 
+                                                    seg_no, 
+                                                    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));
+            /*no change => no more data*/                                        
+            if(CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) == sent_body_size /*the last chunked file with zero length*/
+            || (CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) - sent_body_size < CRANGE_SEG_SIZE(crange_seg)) /*the last chunked file with length < seg size*/
+            )
+            {
+                break;
+            }
+        }        
+
+        crange_seg_free(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                                "chunk [Y], send segs done => sent %ld bytes\n",
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));         
+    }
+
+    if(EC_FALSE == cvendor_content_chunk_send_end(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                                                "send body chunk-end failed\n");
+        
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                            "send body chunk-end done\n");
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: "
+                                            "chunk [Y], send body done => complete %ld bytes\n",
+                                            CVENDOR_MD_SENT_BODY_SIZE(cvendor_md)); 
+                                            
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_send_response: done\n");    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_chunk_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+    const char                  *v;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_chunk_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"Transfer-Encoding";
+    v = (const char *)"chunked";
+    if(EC_FALSE == chttp_rsp_has_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_procedure: "
+                                                "no '%s':'%s' found\n",
+                                                k, v);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cvendor_content_orig_send_response(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_procedure: "
+                                                "send response failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_procedure: "
+                                            "send response done\n");   
+ 
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_in_filter_port: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*when cngx config orig port*/
+    k = (const char *)CNGX_VAR_ORIG_PORT;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }  
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v); 
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                                    "[conf] set port '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0042);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                             "[conf] set port '%s' to http req done\n",
+                                             v);         
+        safe_free(v, LOC_CVENDOR_0043);  
+        return (EC_TRUE);
+    }
+
+    /*when cngx NOT config orig port*/
+    k = (const char *)"server_port";
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                             "[cngx] get var '%s':'%s' done\n",
+                                             k, v); 
+                                             
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                                    "[cngx] set port to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0044);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                             "[cngx] set port '%s' to http req done\n",
+                                             v);          
+        safe_free(v, LOC_CVENDOR_0045);  
+
+        return (EC_TRUE);
+    }
+    
+    /*set default orig port*/
+    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                         "[default] set default port '%d' to http req done\n",
+                                         CNGX_ORIG_PORT_DEFAULT);
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_in_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*set http request server or ipaddr*/
+    do
+    {
+        /*when cngx config orig server*/
+        k = (const char *)CNGX_VAR_ORIG_SERVER;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_server(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set server '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0046);
+                return (EC_FALSE);
+            }
+            safe_free(v, LOC_CVENDOR_0047);
+
+            break; /*ok*/
+        }
+
+        /*when cngx config orig host and port*/
+        k = (const char *)CNGX_VAR_ORIG_HOST;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set host '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0048);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0049);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*now cngx NOT config orig server and NOT config orig (host, port)*/
+
+        /*try http_host*/
+        k = (const char *)"http_host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0050);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0051);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*try server_name*/
+        k = (const char *)"server_name";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0052);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0053);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }           
+
+            break; /*ok*/
+        }        
+
+        /*try host*/
+        k = (const char *)"host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] set ipaddr of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0054);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0055);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }               
+    }while(0);
+
+    /*set http request method*/
+    if(EC_FALSE == cngx_get_req_method_str(r, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                "get method failed\n");
+        return (EC_FALSE);
+    }
+    if(EC_FALSE == chttp_req_set_method(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                "set method '%s' failed\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0056);
+        return (EC_FALSE);
+    }
+    safe_free(v, LOC_CVENDOR_0057);
+
+    /*set http request uri*/
+    do
+    {
+        /*when cngx config orig uri*/
+        k = (const char *)CNGX_VAR_ORIG_URI;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                 "get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set uri '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0058);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set uri '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0059);
+
+            break; /*ok*/
+        }
+        
+        /*when cngx NOT config orig uri*/
+        if(EC_FALSE == cngx_get_req_uri(r, &v) || NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "get uri failed\n");
+            return (EC_FALSE);
+        }
+        
+        if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] set uri '%s' failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0060);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                "[cngx] set uri '%s' to http req done\n",
+                                                v);         
+        safe_free(v, LOC_CVENDOR_0061);   
+
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] get args '%s'\n",
+                                                    v); 
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] set '?' failed\n");
+                safe_free(v, LOC_CVENDOR_0062);
+                return (EC_FALSE);
+            }
+            
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] set args '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0063);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[cngx] set args '%s' to http req done\n",
+                                                    v); 
+            safe_free(v, LOC_CVENDOR_0064);
+        }
+    }while(0);
+    
+    /*set range*/
+    if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {   
+        UINT32      range_start;
+        UINT32      range_end;
+        char        range[ 32 ];
+
+        if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            range_start = 0;
+            range_end   = range_start + CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) - 1;
+        }
+        else
+        {
+            range_start = (CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) - 1) * CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md);
+            range_end   = range_start + CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) - 1;  
+        }
+
+        if(0 < CVENDOR_MD_CONTENT_LENGTH(cvendor_md) && range_end >= CVENDOR_MD_CONTENT_LENGTH(cvendor_md))
+        {
+            range_end = CVENDOR_MD_CONTENT_LENGTH(cvendor_md) - 1;
+        }        
+        
+        snprintf(range, sizeof(range), "bytes=%ld-%ld", range_start, range_end);
+        
+        k = (const char *)"Range";
+        v = (char       *)range;
+        if(EC_FALSE == chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "set header '%s':'%s' failed\n",
+                                                    k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                "set header '%s':'%s' done\n",
+                                                k, v);        
+    }
+
+    return cvendor_filter_header_in_common(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_orig_header_out_range_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_range_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        char       *content_length_str;
+        char       *content_range_str;
+        
+        UINT32      range_start;
+        UINT32      range_end;
+        UINT32      content_length;      
+        
+        content_length_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Length");
+        if(NULL_PTR != content_length_str)
+        {
+            content_length = c_str_to_word(content_length_str);
+
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                    "parse Content-Length '%s' to  %ld\n",
+                                                    content_length_str,
+                                                    content_length);          
+            break; /*fall through*/
+        }
+        
+        content_range_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Range");
+        if(NULL_PTR == content_range_str)
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "warn:cvendor_content_orig_header_out_range_filter: "
+                                                    "no 'Content-Range' => chunk\n");
+            /*maybe chunk*/
+            return cvendor_content_chunk_header_out_filter(cvendor_md_id);
+        }
+
+        if(EC_FALSE == crange_parse_content_range(content_range_str, &range_start, &range_end, &content_length))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_range_filter: "
+                                                    "invalid Content-Range '%s'\n",
+                                                    content_range_str);
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
+                                                content_range_str,
+                                                range_start, range_end, content_length);          
+        break;/*fall through*/ 
+    }
+
+    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)
+    && 1 == crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {   
+        UINT32                       content_length;
+   
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+        if(EC_TRUE == crange_mgr_is_range(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1))
+        {
+            const char                  *k;
+            const char                  *v;
+        
+            k = (const char *)"Content-Range";
+            
+            chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                    "only one range which cover whole content => delete header '%s' done\n",
+                                                    k);            
+
+            k = (const char *)"Content-Length";
+            v = (const char *)c_word_to_str(content_length);
+           
+            chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                    "only one range which cover whole content => renew header '%s':'%s' done\n",
+                                                    k, v);              
+        }
+    }
+    
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+    
+        UINT32                       content_length;
+   
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);        
+        
+        /*no range in cngx http request, return whole content*/
+        
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                 "delete '%s' done\n",
+                                                 k);
+
+        /*whole Content*/
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+           
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                 "renew '%s':'%s' done\n",
+                                                 k, v);        
+        return (EC_TRUE);
+    }
+
+    /*single range and multiple range*/
+    if(EC_FALSE == cvendor_filter_header_out_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_range_filter: "
+                                                "filter range failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                            "filter range done\n");   
+
+#if 0
+    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        
+        char                        *boundary_str;
+        uint32_t                     boundary_len;
+
+        crange_mgr_get_naked_boundary(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), &boundary_str, &boundary_len);
+
+        snprintf(header_buf, sizeof(header_buf), "multipart/byteranges; boundary=%.*s", 
+                                                 boundary_len, boundary_str);
+
+        k = (const char *)"Content-Type";   
+        v = (const char *)header_buf;
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                "renew '%s' done\n",
+                                                k);         
+
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                "delete '%s' done\n",
+                                                k);
+    }
+#endif
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                           "CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG          = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)));
+
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                           "CVENDOR_MD_CNGX_RANGE_EXIST_FLAG              = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)));
+    } 
+#if 0    
+    if(BIT_TRUE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)
+    && BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) /*not range:0-*/
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_END_OVERFLOW_FLAG(cvendor_md))
+    {
+        UINT32                       content_length;
+
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+        if(EC_TRUE == crange_mgr_is_range(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1))
+        {
+            const char                  *k;
+            const char                  *v;
+           
+            k = (const char *)"Content-Range";
+            
+            chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                    "range is whole content => delete header '%s' done\n",
+                                                    k);            
+
+            /*whole Content*/
+            k = (const char *)"Content-Length";
+            v = (const char *)c_word_to_str(content_length);
+                
+            chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                     "range is whole content => renew '%s':'%s' done\n",
+                                                     k, v); 
+        }
+    }
+#endif
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                            "done\n");  
+                                            
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_out_status_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    const char                  *k;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_status_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    k = (const char *)"Response-Status";
+    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                            "response status = %u [before]\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    if(CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "[cngx] 301/302 keep unchanged => response status = %u [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));        
+        return (EC_TRUE);
+    }
+
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "[cngx] no range => response status = %u [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));        
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                            "CVENDOR_MD_CONTENT_LENGTH = %ld\n",
+                                            CVENDOR_MD_CONTENT_LENGTH(cvendor_md));    
+
+#if 0
+    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "RANGE_START_ZERO_ENDLESS => del rsp header '%s' => response status = %ld [after]\n",
+                                                k,
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+        return (EC_TRUE);
+    }
+#endif
+    k = (const char *)"Content-Range";
+    if(EC_TRUE == chttp_rsp_has_header_key(CVENDOR_MD_CHTTP_RSP(cvendor_md), k))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "'%s' exist => response status = %ld [after]\n",
+                                                k, CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+        return (EC_TRUE);
+    }
+
+    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+        return (EC_TRUE);
+    }
+
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                            "response status = %ld [after]\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_out_cache_control_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_cache_control_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+                                         
+    if(BIT_FALSE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        const char      *k;
+        const char      *v;
+        
+        k = (const char *)CHTTP_RSP_X_CACHE_CONTROL;
+        v = (const char *)"no-cache";   
+
+        if(EC_TRUE == chttp_rsp_has_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_cache_control_filter: "
+                                                    "found '%s':'%s' => set orig_no_cache_flag = true\n",
+                                                    k, v);
+            CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md) = BIT_TRUE;
+            return (EC_TRUE);
+        } 
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_cache_control_filter: "
+                                            "found orig_no_cache_flag is true\n");    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_out_gzip_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_gzip_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(BIT_TRUE == CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)
+    && BIT_TRUE == CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+        
+        k = (const char *)"Content-Encoding";
+        v = (const char *)"gzip"; 
+
+        if(EC_FALSE == chttp_rsp_has_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            /*note: the cache gzip flag will impact on cache_uri generation*/
+            CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md) = BIT_FALSE; /*reset to false*/
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_gzip_filter: "
+                                                    "orig not given '%s':'%s' => reset cache gzip flag to false\n",
+                                                    k, v);             
+        }
+
+        k = (const char *)"Content-Length";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_gzip_filter: "
+                                                "gzip => del rsp header '%s'\n",
+                                                k);            
+    }
+   
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_gzip_filter: "
+                                            "gzip filter done\n");   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+                        
+    k = (const char *)"orig";
+    cvendor_filter_header_out_common(cvendor_md_id, k);
+    
+    /*Content-Length and Content-Range*/
+    if(EC_FALSE == cvendor_content_orig_header_out_range_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_filter: "
+                                                "range filter failed\n");
+        return (EC_FALSE);   
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: "
+                                            "range filter done\n");
+    /*gzip*/
+    if(EC_FALSE == cvendor_content_orig_header_out_gzip_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_filter: "
+                                                "gzip filter failed\n");
+        return (EC_FALSE);   
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: "
+                                            "gzip filter done\n");
+
+    if(BIT_FALSE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        if(EC_FALSE == cvendor_content_orig_header_out_status_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_filter: "
+                                                    "status filter failed\n");
+            return (EC_FALSE);   
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: "
+                                                "status filter done\n");        
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_body_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_body_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+    CHTTP_STORE                 *chttp_store;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_set_store: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_store = CVENDOR_MD_CHTTP_STORE(cvendor_md);
+
+    /*--- chttp_store settting --- BEG ---*/
+    if(CVENDOR_ERR_SEG_NO == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        CHTTP_STORE_SEG_ID(chttp_store) = 0;
+    }
+    else
+    {
+        CHTTP_STORE_SEG_ID(chttp_store) = (uint32_t)CVENDOR_MD_ABSENT_SEG_NO(cvendor_md);
+    }
+    
+    CHTTP_STORE_SEG_SIZE(chttp_store)     = CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md);
+    CHTTP_STORE_SEG_S_OFFSET(chttp_store) = CHTTP_SEG_ERR_OFFSET;
+    CHTTP_STORE_SEG_E_OFFSET(chttp_store) = CHTTP_SEG_ERR_OFFSET;
+
+    cstring_clone(CVENDOR_MD_CACHE_PATH(cvendor_md), CHTTP_STORE_BASEDIR(chttp_store));
+
+    if(0 == CHTTP_STORE_SEG_ID(chttp_store))
+    {
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_FALSE;
+    }
+    else
+    {
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_TRUE;
+    }
+    //cstring_init(CHTTP_STORE_BILLING_FLAGS(chttp_store), xxx);
+    //cstring_init(CHTTP_STORE_BILLING_DOMAIN(chttp_store), xxx);
+    //cstring_init(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), xxx);
+    
+    if(EC_FALSE == cngx_set_store(r, chttp_store))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_set_store: "
+                                                "fetch ngx cfg to chttp_store failed\n");
+        return (EC_FALSE);
+    }
+
+    CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_BOTH;
+ 
+    /*--- chttp_store settting --- END ---*/
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_send_request(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+    CHTTP_REQ                   *chttp_req;
+    CHTTP_RSP                   *chttp_rsp;
+    CHTTP_STORE                 *chttp_store;
+    CHTTP_STAT                  *chttp_stat;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_send_request: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*chttp_req*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_REQ(cvendor_md))
+    {
+        chttp_req = chttp_req_new();
+        if(NULL_PTR == chttp_req)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                    "new chttp_req failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0065); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_REQ(cvendor_md) = chttp_req;
+    }
+    else
+    {
+        chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+        chttp_req_clean(chttp_req);
+    }
+
+    /*chttp_rsp*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        chttp_rsp = chttp_rsp_new();
+        if(NULL_PTR == chttp_rsp)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                    "new chttp_rsp failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0066); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_RSP(cvendor_md) = chttp_rsp;
+    }
+    else
+    {
+        chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+        chttp_rsp_clean(chttp_rsp);
+    }
+
+    /*chttp_store*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STORE(cvendor_md))
+    {
+        chttp_store = chttp_store_new();
+        if(NULL_PTR == chttp_store)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                    "new chttp_store failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0067); 
+            return (EC_FALSE);
+        }    
+        CVENDOR_MD_CHTTP_STORE(cvendor_md) = chttp_store;
+    }
+    else
+    {
+        chttp_store = CVENDOR_MD_CHTTP_STORE(cvendor_md);
+        chttp_store_clean(chttp_store);
+    }
+
+    if(EC_FALSE == cvendor_content_orig_set_store(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                "set chttp_store failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0068); 
+        return (EC_FALSE);
+    }
+
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_request: "
+                                                "chttp_store is\n");
+        chttp_store_print(LOGSTDOUT, chttp_store);
+    }
+
+    /*chttp_stat*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat = chttp_stat_new();
+        if(NULL_PTR == chttp_stat)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                    "new chttp_stat failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0069); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_STAT(cvendor_md)  = chttp_stat;
+    }
+    else
+    {
+        chttp_stat = CVENDOR_MD_CHTTP_STAT(cvendor_md);
+        chttp_stat_clean(chttp_stat);
+    }
+
+    if(EC_FALSE == cngx_export_header_in(r, chttp_req))/*xxx*/
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                "export headers_in to http req failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0070); 
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cvendor_content_orig_header_in_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                "header_in filter failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0071); 
+        return (EC_FALSE);
+    }
+   
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_request: http req:\n");
+        chttp_req_print_plain(LOGSTDOUT, chttp_req);
+    }
+    
+    if(EC_FALSE == chttp_request(chttp_req, chttp_store, chttp_rsp, chttp_stat))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
+                                                "http request failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0072); 
+        return (EC_FALSE);
+    }
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_request: http rsp:\n");
+        chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_request: "
+                                            "send request done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    CBYTES                       seg_cbytes;
+    uint8_t                     *data;
+    uint32_t                     len;
+  
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_send_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    ASSERT(0 < CRANGE_SEG_NO(crange_seg));
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    cbytes_init(&seg_cbytes);
+    
+    if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
+                                                "get cache seg %ld failed\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                        
+        cbytes_clean(&seg_cbytes);
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_NOT_FOUND, LOC_CVENDOR_0073); /*xxx*/
+        return (EC_FALSE);
+    }
+    
+    cvendor_content_orig_body_out_filter(cvendor_md_id);
+
+    data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
+    len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
+
+    if(EC_FALSE == cngx_send_body(r, data, len,
+                     /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                     &(CVENDOR_MD_NGX_RC(cvendor_md))))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
+                                                "send body seg %ld failed\n",
+                                                CRANGE_SEG_NO(crange_seg));
+        
+        cbytes_clean(&seg_cbytes);
+        return (EC_FALSE);
+    }
+
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CBYTES_LEN(&seg_cbytes);
+
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_seg_n: "
+                                            "send seg %ld [%ld, %ld], %ld bytes\n", 
+                                            CRANGE_SEG_NO(crange_seg), 
+                                            CRANGE_SEG_S_OFFSET(crange_seg), 
+                                            CRANGE_SEG_E_OFFSET(crange_seg), 
+                                            CBYTES_LEN(&seg_cbytes)); 
+
+    cbytes_clean(&seg_cbytes);
+                
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    CRANGE_MGR                  *crange_mgr;  
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_send_response: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*chunk*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+    || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "orig => chunk procedure\n");  
+                                                
+        return cvendor_content_chunk_send_response(cvendor_md_id);
+    }
+
+    if(EC_FALSE == cvendor_filter_rsp_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                "chttp rsp header range filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                            "chttp rsp header range filter done\n");
+
+    /*send header*/
+    if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        if(EC_FALSE == cvendor_content_orig_header_out_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                    "header_out filter failed\n");
+
+            return (EC_FALSE);
+        }
+
+        cngx_import_header_out(r, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+        cngx_disable_write_delayed(r);
+    }
+    else
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "absent_seg_no = %ld != 0 => ignore header_out filter and sending\n",
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));    
+    }
+
+    crange_mgr = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+    
+    /*note: only after header_out filter with unchanged range segs, we can parse content lengt to segs*/
+    /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
+    if(EC_TRUE == crange_mgr_is_empty(crange_mgr))
+    {
+        if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                    "get range segs from chttp rsp failed\n");
+            return (EC_FALSE);
+        }
+    }    
+
+    if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                             "crange_mgr size = %ld\n",
+                                             crange_mgr_node_num(crange_mgr));
+        if(BIT_FALSE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) /*not chunk*/
+        && EC_TRUE == crange_mgr_is_empty(crange_mgr))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                 "set header only\n");
+            cngx_set_header_only(r);
+        }
+        
+        if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                    "send header failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "send header done\n");
+
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) ++;
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "inc absent_seg_no to %ld\n",
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));        
+    }
+    
+    /*send body*/
+    /*send one seg only*/
+    if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+    && EC_FALSE == crange_mgr_is_empty(crange_mgr))
+    {
+        CRANGE_NODE                *crange_node;
+        CRANGE_SEG                 *crange_seg;
+        UINT32                      seg_no;
+
+        crange_node = crange_mgr_first_node(crange_mgr);
+        crange_seg  = crange_node_first_seg(crange_node);
+        seg_no      = CRANGE_SEG_NO(crange_seg);
+
+        if(seg_no != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_orig_send_response: "
+                                                    "seg_no %ld != absent_seg_no %ld => return\n", 
+                                                    seg_no, CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));        
+
+            return (EC_TRUE);
+        }
+        ASSERT(seg_no == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+        
+        if(EC_FALSE == cvendor_content_orig_send_seg_n(cvendor_md_id, crange_seg))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                    "get cache seg %ld failed\n", 
+                                                    seg_no);
+                            
+            return (EC_FALSE);
+        }
+        
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CVENDOR_ERR_SEG_NO;/*clear*/
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "send cache seg %ld done => sent body %ld bytes\n", 
+                                                CRANGE_SEG_NO(crange_seg), 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md)); 
+
+        if(crange_node_first_seg(crange_node) == crange_seg)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                    "pop seg %ld\n", 
+                                                    CRANGE_SEG_NO(crange_seg));         
+            crange_node_first_seg_pop(crange_node);
+            crange_seg_free(crange_seg);
+        }
+
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                    "crange_node %p:\n", 
+                                                    crange_node);
+            crange_node_print(LOGSTDOUT, crange_node);
+        }
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: done\n");    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);    
+
+    if(EC_FALSE == cvendor_content_orig_send_request(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                "send request failed\n");
+        return (EC_FALSE);
+    }   
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                            "send request done\n");
+
+    /*301/302 redirect*/
+    if(EC_TRUE == cvendor_is_redirect_rsp(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                                "301/302 => redirect procedure\n");
+        /*return cvendor_content_redirect_procedure(cvendor_md_id);*//*TODO*/
+        if(EC_FALSE == cvendor_content_redirect_procedure(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                     "301/302 failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                                "301/302 done\n");
+    }
+
+    /*specific redirect*/
+    if(EC_TRUE == cvendor_is_specific_redirect_rsp(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                                "specific redirect rsp => redirect procedure\n");
+        /*return cvendor_content_redirect_procedure(cvendor_md_id);*//*TODO*/
+        if(EC_FALSE == cvendor_content_redirect_procedure(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                     "specific redirect rsp failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                                "specific redirect rsp done\n");
+    }
+
+    if(EC_FALSE == cvendor_content_orig_header_out_cache_control_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                 "filter rsp cache-control failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                             "filter rsp cache-control done\n");    
+                        
+    if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                                "found orig_no_cache_flag is true => direct send response\n");
+
+        return cvendor_content_direct_send_response(cvendor_md_id);
+    }
+#if 0
+    /*---- debug ----*/
+    cvendor_filter_header_out_debug(cvendor_md_id);
+#endif                        
+    if(EC_FALSE == cvendor_content_orig_send_response(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                "send response failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                            "send response done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+    uint32_t                     redirect_times;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_redirect_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);  
+
+    dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect ctrl '%s'\n", 
+                        c_bool_str(CHTTP_STORE_REDIRECT_CTRL(CVENDOR_MD_CHTTP_STORE(cvendor_md))));
+
+    dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect max times '%u'\n", 
+                        CHTTP_STORE_REDIRECT_MAX_TIMES(CVENDOR_MD_CHTTP_STORE(cvendor_md)));
+
+    for(redirect_times = 0;
+        EC_TRUE == CHTTP_STORE_REDIRECT_CTRL(CVENDOR_MD_CHTTP_STORE(cvendor_md))
+        && CHTTP_STORE_REDIRECT_MAX_TIMES(CVENDOR_MD_CHTTP_STORE(cvendor_md)) > redirect_times
+        && EC_TRUE == cvendor_is_redirect_rsp(cvendor_md_id);
+        redirect_times ++
+    )
+    {
+        char      *loc;
+        char      *host;
+        char      *port;
+        char      *uri;
+        CHTTP_REQ  chttp_req_t;
+
+        loc = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Location");
+        if(NULL_PTR == loc)
+        {
+            break;
+        }
+        dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: [%u] redirect to '%s'\n", redirect_times, loc);
+
+        host = NULL_PTR;
+        port = NULL_PTR;
+        uri  = NULL_PTR;
+
+        if(EC_FALSE == c_parse_location(loc, &host, &port, &uri))
+        {
+            if(NULL_PTR != host)
+            {
+                safe_free(host, LOC_CVENDOR_0074);
+            }
+            if(NULL_PTR != port)
+            {
+                safe_free(port, LOC_CVENDOR_0075);
+            }
+            if(NULL_PTR != uri)
+            {
+                safe_free(uri, LOC_CVENDOR_0076);
+            }         
+            break;
+        }
+
+        chttp_rsp_clean(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        chttp_stat_clean(CVENDOR_MD_CHTTP_STAT(cvendor_md));
+      
+        chttp_req_init(&chttp_req_t);
+        chttp_req_clone(&chttp_req_t, CVENDOR_MD_CHTTP_REQ(cvendor_md));
+
+        if(NULL_PTR != host)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: location '%s' =>  host '%s'\n", loc, host);
+            chttp_req_set_ipaddr(&chttp_req_t, host);
+            safe_free(host, LOC_CVENDOR_0077);
+        }
+
+        if(NULL_PTR != port)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: location '%s' =>  port '%s'\n", loc, port);
+            chttp_req_set_port(&chttp_req_t, port);
+            safe_free(port, LOC_CVENDOR_0078);
+        }
+
+        if(NULL_PTR == uri)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: location '%s' =>  uri is null\n", loc);
+
+            chttp_req_clean(&chttp_req_t);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: location '%s' =>  uri '%s'\n", loc, uri);
+
+        cstring_clean(CHTTP_REQ_URI(&chttp_req_t));
+        chttp_req_set_uri(&chttp_req_t, uri);
+        safe_free(uri, LOC_CVENDOR_0079);
+
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect request is\n");
+            chttp_req_print(LOGSTDOUT, &chttp_req_t);
+
+            sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect store is\n");
+            chttp_store_print(LOGSTDOUT, CVENDOR_MD_CHTTP_STORE(cvendor_md));
+        }
+
+        if(EC_FALSE == chttp_request(&chttp_req_t, 
+                                     CVENDOR_MD_CHTTP_STORE(cvendor_md), 
+                                     CVENDOR_MD_CHTTP_RSP(cvendor_md), 
+                                     CVENDOR_MD_CHTTP_STAT(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_redirect_procedure: redirect request failed\n");
+            chttp_req_print(LOGSTDOUT, &chttp_req_t);
+         
+            chttp_req_clean(&chttp_req_t);
+            return (EC_FALSE);
+        }
+
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect response is\n");
+            chttp_rsp_print(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        }     
+
+        chttp_req_clean(&chttp_req_t);
+    }    
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_header_in_filter_port: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*when cngx config ims port*/
+    k = (const char *)CNGX_VAR_ORIG_PORT;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }  
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v); 
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                    "[conf] set port '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0080);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                "[conf] set port '%s' to http req done\n",
+                                                v);         
+        safe_free(v, LOC_CVENDOR_0081);  
+        return (EC_TRUE);
+    }
+
+    /*when cngx NOT config ims port*/
+    k = (const char *)"server_port";
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                "[cngx] get var '%s':'%s' done\n",
+                                                k, v); 
+                                             
+        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                    "[cngx] set port to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0082);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                "[cngx] set port '%s' to http req done\n",
+                                                v);          
+        safe_free(v, LOC_CVENDOR_0083);  
+
+        return (EC_TRUE);
+    }
+    
+    /*set default ims port*/
+    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                           "[default] set default port '%d' to http req done\n",
+                                           CNGX_ORIG_PORT_DEFAULT);
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_header_in_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*set http request server or ipaddr*/
+    do
+    {
+        /*when cngx config ims server*/
+        k = (const char *)CNGX_VAR_ORIG_SERVER;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_server(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set server '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0084);
+                return (EC_FALSE);
+            }
+            safe_free(v, LOC_CVENDOR_0085);
+
+            break; /*ok*/
+        }
+
+        /*when cngx config ims host and port*/
+        k = (const char *)CNGX_VAR_ORIG_HOST;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set host '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0086);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0087);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*now cngx NOT config ims server and NOT config ims (host, port)*/
+
+        /*try http_host*/
+        k = (const char *)"http_host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0088);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0089);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }
+
+        /*try server_name*/
+        k = (const char *)"server_name";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0090);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0091);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }           
+
+            break; /*ok*/
+        }        
+
+        /*try host*/
+        k = (const char *)"host";
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+        
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "[cngx] get var '%s':'%s' done\n",
+                                                 k, v);        
+
+            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[cngx] set ipaddr of '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0092);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    v);             
+            safe_free(v, LOC_CVENDOR_0093);
+
+            /*set port*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            break; /*ok*/
+        }               
+    }while(0);
+
+    /*set http request method*/
+    if(EC_FALSE == cngx_get_req_method_str(r, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                "get method failed\n");
+        return (EC_FALSE);
+    }
+    if(EC_FALSE == chttp_req_set_method(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                "set method '%s' failed\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0094);
+        return (EC_FALSE);
+    }
+    safe_free(v, LOC_CVENDOR_0095);
+
+    /*set http request uri*/
+    do
+    {
+        /*when cngx config orig uri*/
+        k = (const char *)CNGX_VAR_ORIG_URI;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                 "get var '%s' failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                 "get var '%s':'%s' done\n",
+                                                 k, v);
+                                                 
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set uri '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0096);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set uri '%s' to http req done\n",
+                                                    v);            
+            safe_free(v, LOC_CVENDOR_0097);
+
+            break; /*ok*/
+        }
+        
+        /*when cngx NOT config orig uri*/
+        if(EC_FALSE == cngx_get_req_uri(r, &v) || NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "get uri failed\n");
+            return (EC_FALSE);
+        }
+        
+        if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] set uri '%s' failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0098);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                "[cngx] set uri '%s' to http req done\n",
+                                                v);         
+        safe_free(v, LOC_CVENDOR_0099);   
+
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] get args '%s'\n",
+                                                    v); 
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[cngx] set '?' failed\n");
+                safe_free(v, LOC_CVENDOR_0100);
+                return (EC_FALSE);
+            }
+            
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[cngx] set args '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0101);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[cngx] set args '%s' to http req done\n",
+                                                    v); 
+            safe_free(v, LOC_CVENDOR_0102);
+        }
+    }while(0);
+    
+    /*set range: 0-1*/
+    if(1)
+    {   
+        UINT32      range_start;
+        UINT32      range_end;
+        char        range[ 32 ];
+
+        range_start = 0;
+        range_end   = 1;
+        snprintf(range, sizeof(range), "bytes=%ld-%ld", range_start, range_end);
+        
+        k = (const char *)"Range";
+        v = (char       *)range;
+        if(EC_FALSE == chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "set header '%s':'%s' failed\n",
+                                                    k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                "set header '%s':'%s' done\n",
+                                                k, v);        
+    }
+
+    /*set If-Modified-Since*/
+    if(EC_FALSE == cstring_is_empty(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)))
+    {
+        k = (const char *)"If-Modified-Since";
+        v = (char *      )cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md));
+
+        if(EC_FALSE == chttp_req_add_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "set header '%s':'%s' failed\n",
+                                                    k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                "set header '%s':'%s' done\n",
+                                                k, v);        
+    }
+
+    return cvendor_filter_header_in_common(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_ims_send_request(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+   
+    CHTTP_REQ                   *chttp_req;
+    CHTTP_RSP                   *chttp_rsp;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_send_request: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    /*chttp_req*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_REQ(cvendor_md))
+    {
+        chttp_req = chttp_req_new();
+        if(NULL_PTR == chttp_req)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                    "new chttp_req failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0103); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_REQ(cvendor_md) = chttp_req;
+    }
+    else
+    {
+        chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+        chttp_req_clean(chttp_req);
+    }
+
+    /*chttp_rsp*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        chttp_rsp = chttp_rsp_new();
+        if(NULL_PTR == chttp_rsp)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                    "new chttp_rsp failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0104); 
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_RSP(cvendor_md) = chttp_rsp;
+    }
+    else
+    {
+        chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+        chttp_rsp_clean(chttp_rsp);
+    }
+
+    if(EC_FALSE == cngx_export_header_in(r, chttp_req))/*xxx*/
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                "export headers_in to http req failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0105); 
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cvendor_content_ims_header_in_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                "header_in filter failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0106); 
+        return (EC_FALSE);
+    }
+   
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_ims_send_request: http req:\n");
+        chttp_req_print_plain(LOGSTDOUT, chttp_req);
+    }
+    
+    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                "http request failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0107); 
+        return (EC_FALSE);
+    }
+    
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_ims_send_request: http rsp:\n");
+        chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_send_request: "
+                                            "send request done\n");
+    return (EC_TRUE);
+}
+
+/*If-Modified-Since procedure*/
+EC_BOOL cvendor_content_ims_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+    //ngx_int_t                    rc;
+    
+    UINT32                       cvendor_md_id_t;
+    CVENDOR_MD                  *cvendor_md_t;
+
+    uint32_t                     status;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    ASSERT(EC_FALSE == cstring_is_empty(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)));
+
+    /*create new module*/ 
+    cvendor_md_id_t = cvendor_start(r);
+    if(CMPI_ERROR_MODI == cvendor_md_id_t)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "start cvendor module failed\n");      
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                            "start cvendor module %ld#\n",
+                                            cvendor_md_id_t);   
+
+    cvendor_md_t = CVENDOR_MD_GET(cvendor_md_id_t);
+    CVENDOR_MD_DEPTH(cvendor_md_t) = CVENDOR_MD_DEPTH(cvendor_md) + 1;
+    
+    /*clone header Expires*/
+    cstring_clone(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), CVENDOR_MD_HEADER_EXPIRES(cvendor_md_t));
+    cstring_clone(CVENDOR_MD_CACHE_PATH(cvendor_md), CVENDOR_MD_CACHE_PATH(cvendor_md_t));
+
+    if(EC_FALSE == cvendor_content_ims_send_request(cvendor_md_id_t))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                "send ims request failed\n");  
+        cvendor_end(cvendor_md_id_t);
+        return (EC_FALSE);
+    }
+
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                            "ims rsp status = %u\n",
+                                            status); 
+                                            
+    if(CHTTP_NOT_MODIFIED == status)
+    {
+        const char      *k;
+        const char      *v;
+        
+        /*update rsp header*/
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md_t), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] ims rsp has no header '%s' which is\n",
+                                                    status, k, v);         
+                                                    
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+            
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);        
+        }
+
+        /*renew Last-Modified in previous rsp*/
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew rsp header '%s':'%s' done\n",
+                                                status, k, v);         
+
+        /*renew Last-Modified in cache (seg-0)*/
+        if(EC_FALSE == cvendor_renew_header_cache(cvendor_md_id_t, k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] renew cache header '%s':'%s' failed => ignore\n",
+                                                    status, k, v);
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);
+        }     
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew cache header '%s':'%s' done\n",
+                                                status, k, v);        
+                                
+        /*renew Content-Range in previous rsp*/
+        k = (const char *)"Content-Range";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md_t), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] ims rsp has no header '%s' which is\n",
+                                                    status, k, v);         
+                                                    
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+            
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);        
+        }
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew rsp header '%s':'%s' done\n",
+                                                status, k, v);         
+        
+        cvendor_end(cvendor_md_id_t);
+        return (EC_TRUE);
+    }
+
+    /*compare If-Modified-Since and Last-Modified*/
+    if(CHTTP_PARTIAL_CONTENT == status || CHTTP_OK == status)
+    {
+        const char      *k;
+        const char      *v;
+        time_t           time_if_modified_since;
+        time_t           time_last_modified;
+        
+        /*update rsp header*/
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md_t), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] ims rsp has no header '%s' which is\n",
+                                                    status, k, v);         
+                                                    
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+            
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);        
+        }
+
+        time_if_modified_since = c_parse_http_time(cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)), 
+                                                   (size_t)cstring_get_len(CVENDOR_MD_HEADER_EXPIRES(cvendor_md))); 
+
+        time_last_modified = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+
+        if(time_last_modified > time_if_modified_since)/*modified*/
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                    "[status %u] 'Last-Modified':'%s' > 'If-Modified-Since':'%s' "
+                                                    "=> return false\n",
+                                                    status, 
+                                                    v,
+                                                    (char *)cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)));         
+                                                    
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+            
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);        
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] 'Last-Modified':'%s' <= 'If-Modified-Since':'%s' "
+                                                "=> ims works\n",
+                                                status, 
+                                                v,
+                                                (char *)cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)));         
+          
+        
+        /*renew Last-Modified in previous rsp*/
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew rsp header '%s':'%s' done\n",
+                                                status, k, v);         
+
+        /*renew Last-Modified in cache (seg-0)*/
+        if(EC_FALSE == cvendor_renew_header_cache(cvendor_md_id_t, k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] renew cache header '%s':'%s' failed => ignore\n",
+                                                    status, k, v);
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);
+        }     
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew cache header '%s':'%s' done\n",
+                                                status, k, v);        
+                                
+        /*renew Content-Range in previous rsp*/
+        k = (const char *)"Content-Range";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md_t), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_procedure: "
+                                                    "[status %u] ims rsp has no header '%s' which is\n",
+                                                    status, k, v);         
+                                                    
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
+            
+            cvendor_end(cvendor_md_id_t);
+            return (EC_FALSE);        
+        }
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                                "[status %u] renew rsp header '%s':'%s' done\n",
+                                                status, k, v);         
+        
+        cvendor_end(cvendor_md_id_t);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_procedure: "
+                                            "ims rsp status = %u != %u => return false\n",
+                                            status, CHTTP_NOT_MODIFIED); 
+    cvendor_end(cvendor_md_id_t);
+    return (EC_FALSE);
+}
+
+EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_header_out_range_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(1) /*renew content-length info*/
+    {
+        const char *k;
+        char       *v;
+        
+        UINT32      range_start;
+        UINT32      range_end;
+        UINT32      content_length;      
+
+        /*ignore Content-Length*/
+        
+        k = (const char *)"Content-Range";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
+                                                    "no 'Content-Range'\n");
+            /*maybe chunk*/
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == crange_parse_content_range(v, &range_start, &range_end, &content_length))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
+                                                    "invalid Content-Range '%s'\n",
+                                                    v);
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
+                                                v,
+                                                range_start, range_end, content_length);          
+        /*fall through*/
+    }
+    
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+       
+        /*no range in cngx http request, return whole content*/
+        
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                "del rsp header '%s'\n",
+                                                k);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(CVENDOR_MD_CONTENT_LENGTH(cvendor_md));
+        
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                "renew rsp header '%s'\n",
+                                                k);
+        
+        return (EC_TRUE);
+    }
+
+    /*single range and multiple range*/
+    if(EC_FALSE == cvendor_filter_header_out_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
+                                                "filter range failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                            "filter range done\n");   
+
+#if 0
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                           "CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG          = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)));
+
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                           "CVENDOR_MD_CNGX_RANGE_EXIST_FLAG              = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)));
+
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                           "CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md)));
+    }
+#endif    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                            "done\n");   
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_header_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_header_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"expired";
+    cvendor_filter_header_out_common(cvendor_md_id, k);
+
+    /*Content-Length and Content-Range*/
+    if(EC_FALSE == cvendor_content_expired_header_out_range_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_filter: "
+                                                "range filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_filter: "
+                                            "range filter done\n");    
+                                           
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_filter: done\n");
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_body_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_body_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+    CBYTES                       seg_cbytes;
+    uint8_t                     *data;
+    uint32_t                     len;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_send_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    ASSERT(0 < CRANGE_SEG_NO(crange_seg));
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    
+    cbytes_init(&seg_cbytes);
+
+    /*force orig*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                                "force orig, expired seg %ld\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                                                
+        /*force change to orig procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                                "force orig, absent_seg_no %ld => orig\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_orig_procedure(cvendor_md_id);
+    }
+
+    /*no-expired*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                                "no-expired => direct, expired seg %ld\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                                                
+        /*force change to direct procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                                "no-expired => direct, absent_seg_no %ld\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_direct_procedure(cvendor_md_id);
+    }    
+
+    if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
+                                                "get cache seg %ld failed\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                        
+        cbytes_clean(&seg_cbytes);
+                        
+        /*change to orig procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                                "absent_seg_no %ld => orig\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_orig_procedure(cvendor_md_id);
+    }
+    
+    cvendor_content_expired_body_out_filter(cvendor_md_id);
+
+    data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
+    len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
+
+    if(EC_FALSE == cngx_send_body(r, data, len,
+                     /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                     &(CVENDOR_MD_NGX_RC(cvendor_md))))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
+                                                "send body seg %ld failed\n",
+                                                CRANGE_SEG_NO(crange_seg));
+        
+        cbytes_clean(&seg_cbytes);
+        return (EC_FALSE);
+    }
+
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CBYTES_LEN(&seg_cbytes);
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
+                                            "send body seg %ld: %ld bytes done\n", 
+                                            CRANGE_SEG_NO(crange_seg), CBYTES_LEN(&seg_cbytes));
+
+    cbytes_clean(&seg_cbytes);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_send_node(const UINT32 cvendor_md_id, CRANGE_NODE *crange_node)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+
+    CRANGE_SEG                  *crange_seg;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_send_node: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(EC_FALSE == cstring_is_empty(CRANGE_NODE_BOUNDARY(crange_node)))
+    {
+        CSTRING     *boundary;
+        uint8_t     *data;
+        uint32_t     len;
+
+        boundary = CRANGE_NODE_BOUNDARY(crange_node);
+        
+        cvendor_content_expired_body_out_filter(cvendor_md_id);
+
+        data = (uint8_t *)CSTRING_STR(boundary);
+        len  = (uint32_t)CSTRING_LEN(boundary);
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
+                                                    "send body boundary failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_node: "
+                                                "send body boundary: %ld bytes done\n", 
+                                                CSTRING_LEN(boundary));
+
+        /*clean boundary which was sent out*/
+        cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
+    }
+    
+    while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
+    {  
+        UINT32      seg_no;
+
+        seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
+
+        if(EC_FALSE == cvendor_content_expired_send_seg_n(cvendor_md_id, crange_seg))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
+                                                    "send expired seg %ld failed\n", 
+                                                    seg_no);
+                            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_node: "
+                                                "send expired seg %ld done => sent body %ld bytes\n", 
+                                                seg_no, 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+        if(crange_node_first_seg(crange_node) == crange_seg)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_node: "
+                                                    "pop seg %ld\n", 
+                                                    CRANGE_SEG_NO(crange_seg));        
+            crange_node_first_seg_pop(crange_node);
+            crange_seg_free(crange_seg);
+        }
+    } 
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_send_response(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+
+    CRANGE_MGR                  *crange_mgr;
+    CRANGE_NODE                 *crange_node;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_send_response: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    crange_mgr = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+  
+    /*send header*/
+    if(EC_TRUE == cngx_need_send_header(r))
+    {
+        /*no-cache*/
+        if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                    "expired => direct send response\n");        
+            return cvendor_content_direct_send_response(cvendor_md_id);
+        }
+        
+        /*chunk*/
+        if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+        || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                    "expired => chunk send response\n");  
+                                                    
+            return cvendor_content_chunk_send_response(cvendor_md_id);
+        }
+        
+        if(EC_FALSE == cvendor_content_expired_header_out_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                                                    "header_out filter failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0108);
+            return (EC_FALSE);
+        }
+
+        if(do_log(SEC_0175_CVENDOR, 9))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                    "rsp:\n");
+            chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        }
+
+        cngx_import_header_out(r, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+        cngx_disable_write_delayed(r);
+    
+        if(EC_TRUE == crange_mgr_is_empty(crange_mgr))
+        {
+            cngx_set_header_only(r);
+        }
+        
+        if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                                                    "send header failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "send header done\n");
+    }
+    
+    /*send body*/
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                            "before send body, chunk [%s]\n",
+                                            BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) ? "Y" : "N");
+
+    /*send body: chunk*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "found chunk flag => chunk procedure\n");    
+        return cvendor_content_chunk_send_response(cvendor_md_id);
+    }
+
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "before send body, crange_mgr:\n");
+        crange_mgr_print(LOGSTDOUT, crange_mgr);
+    }    
+
+    /*send body: ranges*/
+    while(NULL_PTR != (crange_node = crange_mgr_first_node(crange_mgr)))
+    {
+        if(EC_FALSE == cvendor_content_expired_send_node(cvendor_md_id, crange_node))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                                                    "send node (%ld:%s, %ld:%s) failed\n", 
+                                                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                    CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
+                            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "send node (%ld:%s, %ld:%s) done => sent body %ld bytes\n", 
+                                                CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)), 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+        if(crange_mgr_first_node(crange_mgr) == crange_node)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_node: "
+                                                    "pop node (%ld:%s, %ld:%s)\n", 
+                                                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                    CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));         
+            crange_mgr_first_node_pop(crange_mgr);
+            crange_node_free(crange_node);
+        }
+    }
+
+    /*send body: last boundary (for multi-ranges)*/
+    if(EC_FALSE == cstring_is_empty(CRANGE_MGR_BOUNDARY(crange_mgr)))
+    {
+        CSTRING     *boundary;
+        uint8_t     *data;
+        uint32_t     len;
+
+        boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
+        
+        cvendor_content_expired_body_out_filter(cvendor_md_id);
+
+        data = (uint8_t *)CSTRING_STR(boundary);
+        len  = (uint32_t)CSTRING_LEN(boundary);
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                                                    "send body boundary failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "send body boundary: %ld bytes done\n", 
+                                                CSTRING_LEN(boundary));
+    }
+
+    /*for gzip*/
+    if(BIT_TRUE == CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md))
+    {
+        if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0,  
+                         CNGX_SEND_BODY_NO_MORE_FLAG/* | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG*/,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                                                    "send body chunk-end failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                                "send chunk-end done\n");        
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_response: "
+                                            "send body done => complete %ld bytes\n",
+                                            CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_expired_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    ngx_int_t                    rc;
+    
+    UINT32                       cvendor_md_id_t;
+    CVENDOR_MD                  *cvendor_md_t;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_expired_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    ASSERT(BIT_TRUE == CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md));
+
+    /*check If-Modified-Since*/
+    if(EC_FALSE == cstring_is_empty(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)))
+    {
+        const char      *cache_status;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "found Expires '%s' => ims\n",
+                                                (char *)cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)));    
+
+        if(EC_TRUE == cvendor_content_ims_procedure(cvendor_md_id))
+        {
+            cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
+            cngx_set_cache_status(r, cache_status);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                    "ims succ => cache_status = %s\n",
+                                                    cache_status);         
+            return cvendor_content_expired_send_response(cvendor_md_id);
+        }
+
+        cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_MISS;   
+        
+        cngx_set_cache_status(r, cache_status);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "ims fail => cache_status = %s\n",
+                                                cache_status); 
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "ims fail => cache ddir '%s'\n",
+                                                (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)));                                                      
+        ccache_dir_delete(CVENDOR_MD_CACHE_PATH(cvendor_md));
+    }
+    else
+    {
+        const char      *cache_status;
+
+        cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_MISS;  
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "not found Expires => expired\n");  
+
+        cngx_set_cache_status(r, cache_status);                                                
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "not found Expires => cache_status = %s\n",
+                                                cache_status); 
+                                                
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "not found Expires => cache ddir '%s'\n",
+                                                (char *)cstring_get_str(CVENDOR_MD_CACHE_PATH(cvendor_md)));                                                 
+        ccache_dir_delete(CVENDOR_MD_CACHE_PATH(cvendor_md));
+    }
+    
+    /*create new module*/ 
+    cvendor_md_id_t = cvendor_start(r);
+    if(CMPI_ERROR_MODI == cvendor_md_id_t)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "start cvendor module failed\n");      
+        return (EC_FALSE);
+    }
+
+    cvendor_md_t = CVENDOR_MD_GET(cvendor_md_id_t);
+    CVENDOR_MD_DEPTH(cvendor_md_t) = CVENDOR_MD_DEPTH(cvendor_md) + 1;
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                            "start cvendor module %ld#\n",
+                                            cvendor_md_id_t);     
+
+    dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                            "expired => orig procedure\n");  
+   
+    if(EC_FALSE == cvendor_content_handler(cvendor_md_id_t))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                "error:content handler failed, stop module %ld#\n",
+                                                cvendor_md_id_t);     
+
+        cvendor_get_ngx_rc(cvendor_md_id_t, &rc, NULL_PTR);
+        cvendor_set_ngx_rc(cvendor_md_id, rc, LOC_CVENDOR_0109);
+        
+        cvendor_end(cvendor_md_id_t);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                            "[DEBUG] content handler done, stop module %ld#\n",
+                                            cvendor_md_id_t);  
+                                            
+    cvendor_get_ngx_rc(cvendor_md_id_t, &rc, NULL_PTR);
+    cvendor_set_ngx_rc(cvendor_md_id, rc, LOC_CVENDOR_0110);
+    
+    cvendor_end(cvendor_md_id_t);
+        
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBYTES *header_cbytes)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_parse_header: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_parse_header: "
+                                                "free old chttp_rsp %p\n", 
+                                                CVENDOR_MD_CHTTP_RSP(cvendor_md));
+                    
+        chttp_rsp_free(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+        CVENDOR_MD_CHTTP_RSP(cvendor_md) = NULL_PTR;
+    }
+
+    CVENDOR_MD_CHTTP_RSP(cvendor_md) = chttp_rsp_new();
+    if(NULL_PTR == CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_parse_header: "
+                                                "new chttp_rsp failed\n");
+
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0111);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == ccache_parse_header(header_cbytes, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_parse_header: "
+                                                "parse header failed\n");
+
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0112);
+        return (EC_FALSE);
+    }
+  
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_parse_header: "
+                                                "header '\n%.*s\n' => \n",
+                                                CBYTES_LEN(header_cbytes), 
+                                                (char *)CBYTES_BUF(header_cbytes));
+
+        chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    }
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_if_modified_since_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+
+    time_t                       ims_1st; /*if-modifed-since in cngx http req*/
+    time_t                       ims_2nd; /*last-modified in response (seg-0 in storage)*/
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_if_modified_since_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"If-Modified-Since";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_if_modified_since_filter: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+    
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                                "[cngx] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    safe_free(v, LOC_CVENDOR_0113);
+
+    k = (const char *)"Last-Modified";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                                "[rsp] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    ims_2nd = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    if(ims_1st < ims_2nd)
+    {
+        if(CHTTP_PARTIAL_CONTENT != CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            /*set rsp status to 200*/
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                                    "set rsp status = %u\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+        }
+        
+        return (EC_TRUE);                                         
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                            "set rsp status = %u\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+
+    crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+        
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_range_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_range_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        const char *k;
+        char       *v;
+        
+        UINT32      range_start;
+        UINT32      range_end;
+        UINT32      content_length;      
+
+        k = (const char *)"Content-Length";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR != v)
+        {
+            content_length = c_str_to_word(v);
+
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                    "parse Content-Length '%s' to %ld\n",
+                                                    v,
+                                                    content_length);          
+            break; /*fall through*/
+        }
+
+        k = (const char *)"Content-Range";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_range_filter: "
+                                                    "no 'Content-Range'\n");
+            /*maybe chunk*/
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == crange_parse_content_range(v, &range_start, &range_end, &content_length))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_range_filter: "
+                                                    "invalid Content-Range '%s'\n",
+                                                    v);
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
+                                                v,
+                                                range_start, range_end, content_length);          
+        break; /*fall through*/
+    }
+    
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        const char                  *k;
+        const char                  *v;
+       
+        /*no range in cngx http request, return whole content*/
+        
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "del rsp header '%s'\n",
+                                                k);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(CVENDOR_MD_CONTENT_LENGTH(cvendor_md));
+        
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "renew rsp header '%s'\n",
+                                                k);
+        
+        return (EC_TRUE);
+    }
+
+    /*single range and multiple range*/
+    if(EC_FALSE == cvendor_filter_header_out_range(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_range_filter: "
+                                                "filter range failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                            "filter range done\n");   
+
+#if 0
+    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)
+    && 1 == crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {   
+        UINT32                       content_length;
+   
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+        if(EC_TRUE == crange_mgr_is_range(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1))
+        {
+            const char                  *k;
+
+            k = (const char *)"Content-Range";
+            
+            chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                    "only one range which cover whole content => delete header '%s' done\n",
+                                                    k);            
+        }
+    }
+
+    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {
+        const char                  *k;
+        const char                  *v;
+
+        char                         header_buf[ 64 ];
+        
+        char                        *boundary_str;
+        uint32_t                     boundary_len;
+
+        crange_mgr_get_naked_boundary(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), &boundary_str, &boundary_len);
+
+        snprintf(header_buf, sizeof(header_buf), "multipart/byteranges; boundary=%.*s", 
+                                                 boundary_len, boundary_str);
+
+        k = (const char *)"Content-Type";   
+        v = (const char *)header_buf;
+        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "renew '%s' done\n",
+                                                k);         
+
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "del rsp header '%s'\n",
+                                                k);
+    }
+#endif
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                           "CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG          = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)));
+
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                           "CVENDOR_MD_CNGX_RANGE_EXIST_FLAG              = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)));
+
+        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                           "CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG = %s\n",
+                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md)));
+    }
+#if 0    
+    if(BIT_TRUE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)
+    && BIT_TRUE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) /*not range:0-*/
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_END_OVERFLOW_FLAG(cvendor_md))
+    {   
+        UINT32                       content_length;
+   
+        content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+
+        if(EC_TRUE == crange_mgr_is_range(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1))
+        {
+            const char                  *k;
+            
+            k = (const char *)"Content-Range";
+            
+            chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                    "range is whole content => delete header '%s' done\n",
+                                                    k);            
+        }
+    }
+#endif
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                            "done\n");   
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_status_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    const char                  *k;
+    char                        *v;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_status_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    k = (const char *)"Response-Status";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+        
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+
+        k = (const char *)"Location";
+        if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
+        && EC_TRUE == chttp_rsp_has_header_key(CVENDOR_MD_CHTTP_RSP(cvendor_md), k))/*has 'Location'*/
+        {
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                                    "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                    k,
+                                                    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));        
+            return (EC_TRUE);
+        }
+    }
+    
+
+    if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                                "[cngx] no range => response status = %ld [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));        
+        return (EC_TRUE);
+    }
+
+    k = (const char *)"Content-Range";
+    if(EC_TRUE == chttp_rsp_has_header_key(CVENDOR_MD_CHTTP_RSP(cvendor_md), k))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                                "'Content-Range' exist => response status = %ld [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+        return (EC_TRUE);
+    }
+
+    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+    {
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
+        return (EC_TRUE);
+    }    
+
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                            "response status = %ld\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    const char                  *v;
+
+    time_t                       expires;
+    time_t                       curtime;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_expires_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"Expires";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "not found '%s' => done\n",
+                                                k);    
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                            "get '%s':'%s'\n",
+                                            k, v);
+
+    curtime = task_brd_default_get_time();
+    
+    if(EC_FALSE == c_str_is_digit(v))
+    {
+        expires = c_parse_http_time((uint8_t *)v, strlen(v));
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "'%s' => %d\n",
+                                                v, expires);        
+        if(expires >= curtime)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                    "expires '%d' >= curtime '%d'\n",
+                                                    expires, curtime);        
+            /*not expired yet*/
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "expires '%d' < curtime '%d' => set cache_expired_flag to true\n",
+                                                expires, curtime);  
+
+        /*REFRESH_HIT or REFRESH_MISS*/
+        CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md) = BIT_TRUE;
+
+        cstring_append_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), (const UINT8 *)v);
+        return (EC_TRUE);
+    }
+    
+    expires = (time_t)c_str_to_word(v);
+    if(0 == expires)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "expires = %d => set cache_expired_flag to true\n",
+                                                expires);  
+
+        /*REFRESH_HIT or REFRESH_MISS*/
+        CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md) = BIT_TRUE;
+
+        v = c_http_time(curtime);
+        cstring_append_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), (const UINT8 *)v);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                            "expires = %d\n",
+                                            expires);
+                                        
+    v = c_http_time(curtime + expires);
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                            "'renew %s':'%s'\n",
+                                            k, v);
+                                            
+    chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
+
+    if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        /*miss*/
+        v = (const char *)CNGX_CACHE_STATUS_MISS;
+        cngx_set_cache_status(r, v);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "set cache status to '%s' done\n",
+                                                v);             
+        return (EC_TRUE);
+    }
+
+    /*hit*/
+    v = (const char *)CNGX_CACHE_STATUS_HIT;
+    cngx_set_cache_status(r, v);
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                            "set cache status to '%s' done\n",
+                                            v);
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+    const char                  *k;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"cache";
+    cvendor_filter_header_out_common(cvendor_md_id, k);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "common filter done\n");
+                                            
+    /*Content-Length and Content-Range*/
+    if(EC_FALSE == cvendor_content_cache_header_out_range_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_filter: "
+                                                "range filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "range filter done\n");    
+
+    if(EC_FALSE == cvendor_content_cache_header_out_status_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_filter: "
+                                                "status filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "status filter done\n");
+
+    if(EC_FALSE == cvendor_content_cache_header_out_if_modified_since_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_filter: "
+                                                "if-modified-since filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "if-modified-since filter done\n");
+
+    if(EC_FALSE == cvendor_content_cache_header_out_expires_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_filter: "
+                                                "expires filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "expires filter done\n");
+                                            
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: done\n");
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_body_out_filter(const UINT32 cvendor_md_id)
+{
+    //CVENDOR_MD                  *cvendor_md;
+   
+    //ngx_http_request_t          *r;
+   
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_body_out_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+    CBYTES                       seg_cbytes;
+    uint8_t                     *data;
+    uint32_t                     len;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_send_seg_n: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    ASSERT(0 < CRANGE_SEG_NO(crange_seg));
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    
+    cbytes_init(&seg_cbytes);
+
+    /*force orig*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                                "force orig, cache seg %ld\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                                                
+        /*force change to orig procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                                "force orig, absent_seg_no %ld => orig\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_orig_procedure(cvendor_md_id);
+    }
+
+    /*no-cache*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                                "no-cache => direct, cache seg %ld\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                                                
+        /*force change to direct procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                                "no-cache => direct, absent_seg_no %ld\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_direct_procedure(cvendor_md_id);
+    }    
+
+    if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+                                                "get cache seg %ld failed\n", 
+                                                CRANGE_SEG_NO(crange_seg));
+                        
+        cbytes_clean(&seg_cbytes);
+                        
+        /*change to orig procedure*/
+        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                                "absent_seg_no %ld => orig\n", 
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                                                
+        return cvendor_content_orig_procedure(cvendor_md_id);
+    }
+    
+    cvendor_content_cache_body_out_filter(cvendor_md_id);
+
+    data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
+    len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
+
+    if(EC_FALSE == cngx_send_body(r, data, len,
+                     /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                     &(CVENDOR_MD_NGX_RC(cvendor_md))))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+                                                "send body seg %ld failed\n",
+                                                CRANGE_SEG_NO(crange_seg));
+        
+        cbytes_clean(&seg_cbytes);
+        return (EC_FALSE);
+    }
+
+    CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CBYTES_LEN(&seg_cbytes);
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
+                                            "send body seg %ld: %ld bytes done\n", 
+                                            CRANGE_SEG_NO(crange_seg), CBYTES_LEN(&seg_cbytes));
+
+    cbytes_clean(&seg_cbytes);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE *crange_node)
+{
+    CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
+
+    CRANGE_SEG                  *crange_seg;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_send_node: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    if(EC_FALSE == cstring_is_empty(CRANGE_NODE_BOUNDARY(crange_node)))
+    {
+        CSTRING     *boundary;
+        uint8_t     *data;
+        uint32_t     len;
+
+        boundary = CRANGE_NODE_BOUNDARY(crange_node);
+        
+        cvendor_content_cache_body_out_filter(cvendor_md_id);
+
+        data = (uint8_t *)CSTRING_STR(boundary);
+        len  = (uint32_t)CSTRING_LEN(boundary);
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
+                                                    "send body boundary failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
+                                                "send body boundary: %ld bytes done\n", 
+                                                CSTRING_LEN(boundary));
+
+        /*clean boundary which was sent out*/
+        cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
+    }
+    
+    while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
+    {  
+        UINT32      seg_no;
+
+        seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
+
+        if(EC_FALSE == cvendor_content_cache_send_seg_n(cvendor_md_id, crange_seg))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
+                                                    "send cache seg %ld failed\n", 
+                                                    seg_no);
+                            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
+                                                "send cache seg %ld done => sent body %ld bytes\n", 
+                                                seg_no, 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+        if(crange_node_first_seg(crange_node) == crange_seg)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
+                                                    "pop seg %ld\n", 
+                                                    CRANGE_SEG_NO(crange_seg));        
+            crange_node_first_seg_pop(crange_node);
+            crange_seg_free(crange_seg);
+        }
+    } 
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+   
+    ngx_http_request_t          *r;
+
+    CRANGE_MGR                  *crange_mgr;
+    CRANGE_NODE                 *crange_node;
+    
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_send_response: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    crange_mgr = CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md);
+  
+    /*send header*/
+    if(EC_TRUE == cngx_need_send_header(r))
+    {
+        /*no-cache*/
+        if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                    "cache => direct send response\n");        
+            return cvendor_content_direct_send_response(cvendor_md_id);
+        }
+        
+        /*chunk*/
+        if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+        || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                    "cache => chunk send response\n");  
+                                                    
+            return cvendor_content_chunk_send_response(cvendor_md_id);
+        }
+        
+        if(EC_FALSE == cvendor_content_cache_header_out_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                                                    "header_out filter failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        if(BIT_TRUE == CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                    "cache => expired procedure\n");        
+            return cvendor_content_expired_procedure(cvendor_md_id);
+        }
+
+        cngx_import_header_out(r, CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+        cngx_disable_write_delayed(r);
+    
+        if(EC_TRUE == crange_mgr_is_empty(crange_mgr))
+        {
+            cngx_set_header_only(r);
+        }
+        
+        if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                                                    "send header failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "send header done\n");
+    }
+    
+    /*send body*/
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                            "before send body, chunk [%s]\n",
+                                            BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) ? "Y" : "N");
+
+    /*send body: chunk*/
+    if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "found chunk flag => chunk procedure\n");    
+        return cvendor_content_chunk_send_response(cvendor_md_id);
+    }
+
+    if(do_log(SEC_0175_CVENDOR, 9))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "before send body, crange_mgr:\n");
+        crange_mgr_print(LOGSTDOUT, crange_mgr);
+    }    
+
+    /*send body: ranges*/
+    while(NULL_PTR != (crange_node = crange_mgr_first_node(crange_mgr)))
+    {
+        if(EC_FALSE == cvendor_content_cache_send_node(cvendor_md_id, crange_node))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                                                    "send node (%ld:%s, %ld:%s) failed\n", 
+                                                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                    CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
+                            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "send node (%ld:%s, %ld:%s) done => sent body %ld bytes\n", 
+                                                CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)), 
+                                                CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));           
+
+        if(crange_mgr_first_node(crange_mgr) == crange_node)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
+                                                    "pop node (%ld:%s, %ld:%s)\n", 
+                                                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                    CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));         
+            crange_mgr_first_node_pop(crange_mgr);
+            crange_node_free(crange_node);
+        }
+    }
+
+    /*send body: last boundary (for multi-ranges)*/
+    if(EC_FALSE == cstring_is_empty(CRANGE_MGR_BOUNDARY(crange_mgr)))
+    {
+        CSTRING     *boundary;
+        uint8_t     *data;
+        uint32_t     len;
+
+        boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
+        
+        cvendor_content_cache_body_out_filter(cvendor_md_id);
+
+        data = (uint8_t *)CSTRING_STR(boundary);
+        len  = (uint32_t)CSTRING_LEN(boundary);
+
+        if(EC_FALSE == cngx_send_body(r, data, len, 
+                         /*CNGX_SEND_BODY_NO_MORE_FLAG | */CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                                                    "send body boundary failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        CVENDOR_MD_SENT_BODY_SIZE(cvendor_md) += CSTRING_LEN(boundary);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "send body boundary: %ld bytes done\n", 
+                                                CSTRING_LEN(boundary));
+    }
+
+    /*for gzip*/
+    if(BIT_TRUE == CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md))
+    {
+        if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0,  
+                         CNGX_SEND_BODY_NO_MORE_FLAG/* | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG*/,
+                         &(CVENDOR_MD_NGX_RC(cvendor_md))))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                                                    "send body chunk-end failed\n");
+            
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "send chunk-end done\n");        
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                            "send body done => complete %ld bytes\n",
+                                            CVENDOR_MD_SENT_BODY_SIZE(cvendor_md));    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_procedure: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    /*fetch header from cache*/
+    do
+    {
+        UINT32                       seg_no;
+        CBYTES                       seg_cbytes;
+
+        seg_no = 0;
+    
+        if(BIT_TRUE == CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "force orig, seg %ld\n", 
+                                                    seg_no);
+                        
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "force orig, absent_seg_no %ld => orig\n", 
+                                                    seg_no);
+
+            /*change to orig procedure*/
+            CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = seg_no;
+            if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                        "force orig, orig send absent seg %ld failed\n", 
+                                                        seg_no);        
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "force orig, orig send absent seg %ld done\n", 
+                                                    seg_no);  
+
+            /*if chunk, send no more data*/
+            if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+            || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "force orig, orig should sent out all chunk data\n");
+                return (EC_TRUE);
+            }
+
+            break;/*fall through*/
+        }
+
+        cbytes_init(&seg_cbytes);
+        
+        if(EC_FALSE == cvendor_get_cache_seg(cvendor_md_id, seg_no, &seg_cbytes))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                    "fetch seg %ld from cache failed\n", 
+                                                    seg_no);
+                        
+            cbytes_clean(&seg_cbytes);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "absent_seg_no %ld => orig\n", 
+                                                    seg_no);
+
+            /*change to orig procedure*/
+            CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = seg_no;
+
+            if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                        "orig send absent seg %ld failed\n", 
+                                                        seg_no);        
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "orig send absent seg %ld done\n", 
+                                                    seg_no);  
+
+            /*if chunk, send no more data*/
+            if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+            || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "orig should sent out all chunk data\n");
+                return (EC_TRUE);
+            }
+
+            /*if no-cache, send no more data*/
+            if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "direct should sent out all no-cache data\n");
+                return (EC_TRUE);
+            }            
+
+            break;/*fall through*/
+        }
+        
+        /*parse header*/
+        if(EC_FALSE == cvendor_content_cache_parse_header(cvendor_md_id, &seg_cbytes))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                    "parse seg %ld failed\n", 
+                                                    seg_no);
+            cbytes_clean(&seg_cbytes);
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                "parse seg %ld done\n", 
+                                                seg_no);
+
+        cbytes_clean(&seg_cbytes);
+
+        /*chunk*/
+        if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
+        || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "cache => chunk procedure\n");  
+                                                    
+            return cvendor_content_chunk_send_response(cvendor_md_id);
+        }
+
+        /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
+        if(EC_TRUE == crange_mgr_is_empty(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
+        {
+            if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                        "get range segs from chttp rsp failed\n");
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0115);
+                return (EC_FALSE);
+            }
+        }
+
+        if(EC_FALSE == cvendor_filter_rsp_range(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                    "chttp rsp header_in range filter failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CVENDOR_0116);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                "chttp rsp header_in range filter done\n");   
+
+        /*fall through*/        
+    }while(0);
+
+    /*send header and body*/
+    if(EC_FALSE == cvendor_content_cache_send_response(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                "send response failed\n");
+
+        return (EC_FALSE);
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                            "send response done\n");    
+    return (EC_TRUE);
+}
+
+
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#ifdef __cplusplus
+}
+#endif/*__cplusplus*/
+
+
