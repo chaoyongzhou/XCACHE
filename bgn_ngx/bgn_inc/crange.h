@@ -92,7 +92,7 @@ void    crange_seg_print(LOG *log, const CRANGE_SEG *crange_seg);
 
 EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, const UINT32 range_seg_size, CLIST *range_segs);
 
-EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_length);
+EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length);
 
 CRANGE_NODE *crange_node_new();
 
@@ -116,7 +116,7 @@ EC_BOOL crange_node_split(CRANGE_NODE *crange_node, const UINT32 range_seg_size)
 
 EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length);
 
-EC_BOOL crange_node_filter(CRANGE_NODE *crange_node, const UINT32 content_length);
+EC_BOOL crange_node_filter(CRANGE_NODE *crange_node, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length);
 
 EC_BOOL crange_node_range(CRANGE_NODE *crange_node, UINT32 *range_start, UINT32 *range_end);
 
@@ -146,13 +146,15 @@ CRANGE_NODE *crange_mgr_first_node_pop(CRANGE_MGR *crange_mgr);
 
 EC_BOOL crange_mgr_add_node(CRANGE_MGR *crange_mgr, CRANGE_NODE *crange_node);
 
+EC_BOOL crange_mgr_add_range(CRANGE_MGR *crange_mgr, const UINT32 range_start, const UINT32 range_end, const UINT32 seg_size);
+
 EC_BOOL crange_mgr_get_naked_boundary(CRANGE_MGR *crange_mgr, char **boundary, uint32_t *boundary_len);
 
 EC_BOOL crange_mgr_split(CRANGE_MGR *crange_mgr, const UINT32 range_seg_size);
 
 EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length);
 
-EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_nodes, const UINT32 content_length);
+EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_nodes, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length);
 
 EC_BOOL crange_mgr_is_range(const CRANGE_MGR *crange_mgr, const UINT32 range_start, const UINT32 range_end);
 

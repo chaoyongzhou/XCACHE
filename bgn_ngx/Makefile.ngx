@@ -56,6 +56,12 @@ CREFRESH_INC  = -I $(ROOT_DIR)/custom/crefresh_inc
 CRFSGW_SRC  = $(ROOT_DIR)/custom/crfsgw_src
 CRFSGW_INC  = -I $(ROOT_DIR)/custom/crfsgw_inc
 
+CFLV_SRC  = $(ROOT_DIR)/custom/cflv_src
+CFLV_INC  = -I $(ROOT_DIR)/custom/cflv_inc
+
+CMP4_SRC  = $(ROOT_DIR)/custom/cmp4_src
+CMP4_INC  = -I $(ROOT_DIR)/custom/cmp4_inc
+
 TST_SRC = $(ROOT_DIR)/test
 TST_INC =
 
@@ -232,6 +238,8 @@ NGX_OBJS      = $(patsubst $(NGX_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(NGX_SRC)
 CVENDOR_OBJS  = $(patsubst $(CVENDOR_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CVENDOR_SRC)/*.c))
 CREFRESH_OBJS = $(patsubst $(CREFRESH_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CREFRESH_SRC)/*.c))
 CRFSGW_OBJS   = $(patsubst $(CRFSGW_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CRFSGW_SRC)/*.c))
+CFLV_OBJS     = $(patsubst $(CFLV_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CFLV_SRC)/*.c))
+CMP4_OBJS     = $(patsubst $(CMP4_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CMP4_SRC)/*.c))
 TST_OBJS      = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
 usage:
@@ -260,6 +268,14 @@ libcrfsgw: $(CRFSGW_OBJS)
 	$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
 #$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
 
+libcflv: $(CFLV_OBJS)
+	$(SO) $(LIB_DIR)/libcflv.so $(CFLV_OBJS)
+#$(SO) $(LIB_DIR)/libcflv.so $(CFLV_OBJS)
+
+libcmp4: $(CMP4_OBJS)
+	$(SO) $(LIB_DIR)/libcmp4.so $(CMP4_OBJS)
+#$(SO) $(LIB_DIR)/libcmp4.so $(CMP4_OBJS)
+
 libngx: $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
@@ -287,6 +303,12 @@ $(CREFRESH_OBJS): $(OBJ_DIR)/%.o: $(CREFRESH_SRC)/%.c
 
 $(CRFSGW_OBJS): $(OBJ_DIR)/%.o: $(CRFSGW_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CRFSGW_INC) $(EXT_INC) -o $@
+
+$(CFLV_OBJS): $(OBJ_DIR)/%.o: $(CFLV_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CFLV_INC) $(EXT_INC) -o $@
+
+$(CMP4_OBJS): $(OBJ_DIR)/%.o: $(CMP4_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMP4_INC) $(EXT_INC) -o $@
 
 $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@

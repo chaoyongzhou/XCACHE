@@ -220,12 +220,12 @@ gdbPad(RawFile *fp, const offset_t offset, uint32_t count)
     {
         return;
     }
-    MEM_CHECK(buff = (uint8_t *)SAFE_MALLOC(count, LOC_DB_0001));
+    MEM_CHECK(buff = (uint8_t *)SAFE_MALLOC(count, LOC_DB_0051));
     memset(buff, 0, count);
 
-    rawFileWrite(fp, offset, buff, 1, count, LOC_DB_0002);
+    rawFileWrite(fp, offset, buff, 1, count, LOC_DB_0052);
 
-    SAFE_FREE(buff, LOC_DB_0003);
+    SAFE_FREE(buff, LOC_DB_0053);
     return;
 }
 
@@ -266,10 +266,10 @@ gdbCompressString(const uint8_t *base, uint16_t baseLen,
 
     newLen = keyLen - preLen + 1;
 
-    MEM_CHECK(newKey = (uint8_t *)SAFE_MALLOC(newLen, LOC_DB_0004));
+    MEM_CHECK(newKey = (uint8_t *)SAFE_MALLOC(newLen, LOC_DB_0054));
 
     newKey[0] = preLen;
-    __safe_strncpy(newKey + 1, key + preLen, keyLen - preLen, LOC_DB_0005);
+    __safe_strncpy(newKey + 1, key + preLen, keyLen - preLen, LOC_DB_0055);
 
     *outKey = newKey;
     *outLen = newLen;
@@ -295,10 +295,10 @@ gdbUncompressString(const uint8_t *base, uint16_t baseLen,
 
     newLen = preLen + keyLen - 1;
 
-    MEM_CHECK(newKey = (uint8_t *)SAFE_MALLOC(newLen, LOC_DB_0006));
+    MEM_CHECK(newKey = (uint8_t *)SAFE_MALLOC(newLen, LOC_DB_0056));
 
-    __safe_strncpy(newKey, base, preLen, LOC_DB_0007);
-    __safe_strncpy(newKey + preLen, key + 1, keyLen - 1, LOC_DB_0008);
+    __safe_strncpy(newKey, base, preLen, LOC_DB_0057);
+    __safe_strncpy(newKey + preLen, key + 1, keyLen - 1, LOC_DB_0058);
 
     *outKey = newKey;
     *outLen = newLen;

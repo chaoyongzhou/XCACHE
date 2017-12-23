@@ -136,7 +136,7 @@ UINT32 crefresh_start(ngx_http_request_t *r)
     init_static_mem();  
 
     /* init */
-    cngx_get_var_uint32_t(r, (const char *)CNGX_VAR_CACHE_SEG_SIZE, &cache_seg_size, CNGX_CACHE_SEG_SIZE_DEFAULT);
+    cngx_get_cache_seg_size(r, &cache_seg_size);
     clist_init(CREFRESH_MD_CACHE_PATH_LIST(crefresh_md), MM_CSTRING, LOC_CREFRESH_0001);
    
     CREFRESH_MD_NGX_HTTP_REQ(crefresh_md) = r;

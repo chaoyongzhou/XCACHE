@@ -66,7 +66,8 @@ extern "C"{
 #define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.request_uri*/
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
-#define  CNGX_VAR_ORIG_FORCE                      ("c_orig_force")              /*default: off*/          
+#define  CNGX_VAR_DIRECT_ORIG_SWITCH              ("c_orig_direct_switch")      /*default: off*/ 
+#define  CNGX_VAR_ORIG_FORCE                      ("c_orig_force_switch")       /*default: off*/          
 #define  CNGX_VAR_ORIG_REDIRECT_MAX_TIMES         ("c_orig_redirect_max_times") /*default: 3*/
 #define  CNGX_VAR_ORIG_REDIRECT_SPECIFIC          ("c_orig_redirect_specific")  /*default: null. format: <src status> => <des status> => <redirect url>[|...]*/
 #define  CNGX_VAR_ORIG_SERVER                     ("c_orig_server")             /*default: ngx.var.host or ngx.var.http_host*/
@@ -79,6 +80,9 @@ extern "C"{
 
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
 
+#define  CNGX_VAR_MP4_BUFFER_SIZE                 ("c_mp4_buffer_size")
+#define  CNGX_VAR_MP4_MAX_BUFFER_SIZE             ("c_mp4_max_buffer_size")
+
 /*cache status definition*/
 #define  CNGX_CACHE_STATUS_HIT                    ("TCP_HIT")
 #define  CNGX_CACHE_STATUS_MISS                   ("TCP_MISS")
@@ -88,7 +92,7 @@ extern "C"{
 /*nginx http options*/
 typedef struct
 {
-    uint32_t           cacheable_method:1;/*bool*/
+    uint32_t           cacheable_method:1;/*bit bool*/
     uint32_t           rsvd;
     
 }CNGX_OPTION;
@@ -187,6 +191,10 @@ EC_BOOL cngx_get_var_uint32_t(ngx_http_request_t *r, const char *key, uint32_t *
 
 EC_BOOL cngx_set_var_uint32_t(ngx_http_request_t *r, const char *key, const uint32_t val);
 
+EC_BOOL cngx_get_var_size(ngx_http_request_t *r, const char *key, ssize_t *val, const ssize_t def);
+
+EC_BOOL cngx_set_var_size(ngx_http_request_t *r, const char *key, const ssize_t val);
+
 EC_BOOL cngx_get_var_switch(ngx_http_request_t *r, const char *key, UINT32 *val, const UINT32 def);
 
 EC_BOOL cngx_set_var_switch(ngx_http_request_t *r, const char *key, const UINT32 val);
@@ -196,6 +204,8 @@ EC_BOOL cngx_get_var_str(ngx_http_request_t *r, const char *key, char **val, con
 EC_BOOL cngx_set_var_str(ngx_http_request_t *r, const char *key, const char *val);
 
 EC_BOOL cngx_del_var_str(ngx_http_request_t *r, const char *key);
+
+EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size);
 
 EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val);
 
@@ -215,13 +225,19 @@ EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r);
 
-EC_BOOL cngx_is_orig_force(ngx_http_request_t *r); 
+EC_BOOL cngx_is_direct_orig_switch_on(ngx_http_request_t *r);
+
+EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r); 
 
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_set_chunked(ngx_http_request_t *r);
 
 EC_BOOL cngx_set_keepalive(ngx_http_request_t *r);
+
+EC_BOOL cngx_get_flv_start(ngx_http_request_t *r, UINT32 *flv_start);
+
+EC_BOOL cngx_get_mp4_start_length(ngx_http_request_t *r, UINT32 *mp4_start, UINT32 *mp4_length);
 
 EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp_status, uint32_t *des_rsp_status, char **des_redirect_url);
 
@@ -244,6 +260,8 @@ EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v)
 EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status);
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status);
+
+EC_BOOL cngx_send_blocking(ngx_http_request_t *r);
 
 EC_BOOL cngx_send_header(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 

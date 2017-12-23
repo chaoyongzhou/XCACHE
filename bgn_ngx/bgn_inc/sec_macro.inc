@@ -153,8 +153,8 @@
 #define SEC_0143_CRFSC                      ((UINT32)(    143)) /*crfsdt                          */
 #define SEC_0144_CRFSCONHASH                ((UINT32)(    144)) /*crfsconhash                     */
 #define SEC_0145_CRFSCHTTP                  ((UINT32)(    145)) /*crfschttp                       */
-#define SEC_0146_XXXXXXXX                   ((UINT32)(    146)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxx   */
-#define SEC_0147_XXXXX                      ((UINT32)(    147)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxx    */
+#define SEC_0146_CFLV                       ((UINT32)(    146)) /*cflv                            */
+#define SEC_0147_CMP4                       ((UINT32)(    147)) /*cmp4                            */
 #define SEC_0148_CEXPAT                     ((UINT32)(    148)) /*cexpat                          */
 #define SEC_0149_CHTTP                      ((UINT32)(    149)) /*chttp                           */
 #define SEC_0150_CDNS                       ((UINT32)(    150)) /*cdhs                            */

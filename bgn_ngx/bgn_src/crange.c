@@ -133,7 +133,8 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
     return (EC_TRUE);
 }
 
-EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_length)
+/*filter [content_start, content_end] / content_length*/
+EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length)
 {
     CRANGE_SEG    *crange_seg;
 
@@ -142,7 +143,8 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_length)
         clist_clean(range_segs, (CLIST_DATA_DATA_CLEANER)crange_seg_free);
         return (EC_TRUE);
     }
-    
+
+    /*filter content_length*/
     while(NULL_PTR != (crange_seg = clist_last_data(range_segs)))
     {
         if(content_length <= CRANGE_SEG_E_OFFSET(crange_seg))
@@ -156,7 +158,7 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_length)
         }
     
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                               "dicard crange_seg %p: [%ld, %ld] / %ld\n", 
+                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_length)\n", 
                                                crange_seg,
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
@@ -165,7 +167,73 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_length)
         crange_seg_free(crange_seg);
     }
 
-    dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: content_length %ld, done\n", content_length);
+    /*filter content_end*/
+    while(content_end + 1 < content_length && NULL_PTR != (crange_seg = clist_last_data(range_segs)))
+    {
+        if(content_end <= CRANGE_SEG_E_OFFSET(crange_seg))
+        {
+            CRANGE_SEG_E_OFFSET(crange_seg) = content_end;
+        }
+        
+        if(CRANGE_SEG_S_OFFSET(crange_seg) <= CRANGE_SEG_E_OFFSET(crange_seg))
+        {
+            break;
+        }
+    
+        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
+                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_end)\n", 
+                                               crange_seg,
+                                               CRANGE_SEG_S_OFFSET(crange_seg),
+                                               CRANGE_SEG_E_OFFSET(crange_seg),
+                                               content_end);
+        clist_pop_back(range_segs);
+        crange_seg_free(crange_seg);
+    }
+
+    /*filter content_start*/
+    while(0 < content_start && NULL_PTR != (crange_seg = clist_first_data(range_segs)))
+    {
+        UINT32          s_offset;
+        UINT32          e_offset;
+
+        s_offset = (CRANGE_SEG_NO(crange_seg) - 1) * CRANGE_SEG_SIZE(crange_seg) + CRANGE_SEG_S_OFFSET(crange_seg);
+        e_offset = (CRANGE_SEG_NO(crange_seg) - 1) * CRANGE_SEG_SIZE(crange_seg) + CRANGE_SEG_E_OFFSET(crange_seg); 
+
+        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
+                                               "crange_seg %p: [%ld, %ld, %ld] => [%ld, %ld] (content_start %ld)\n", 
+                                               crange_seg,
+                                               CRANGE_SEG_NO(crange_seg),
+                                               CRANGE_SEG_S_OFFSET(crange_seg),
+                                               CRANGE_SEG_E_OFFSET(crange_seg),
+                                               s_offset, 
+                                               e_offset,
+                                               content_start);
+
+        if(s_offset >= content_start)
+        {
+            break;
+        }
+
+        if(s_offset <= content_start && content_start <= e_offset)
+        {
+            CRANGE_SEG_S_OFFSET(crange_seg) = (content_start % CRANGE_SEG_SIZE(crange_seg));
+            break;
+        }
+        
+        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
+                                               "dicard crange_seg %p: [%ld, %ld, %ld] / %ld (content_start)\n", 
+                                               crange_seg,
+                                               CRANGE_SEG_NO(crange_seg),
+                                               CRANGE_SEG_S_OFFSET(crange_seg),
+                                               CRANGE_SEG_E_OFFSET(crange_seg),
+                                               content_start);
+        clist_pop_front(range_segs);
+        crange_seg_free(crange_seg);
+    }    
+
+    dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
+                                           "[%ld, %ld] / %ld, done\n", 
+                                           content_start, content_end, content_length);
 
     return (EC_TRUE);
 }
@@ -370,9 +438,9 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
     return (EC_TRUE);
 }
 
-EC_BOOL crange_node_filter(CRANGE_NODE *crange_node, const UINT32 content_length)
+EC_BOOL crange_node_filter(CRANGE_NODE *crange_node, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length)
 {
-    return crange_segs_filter(CRANGE_NODE_RANGE_SEGS(crange_node), content_length);
+    return crange_segs_filter(CRANGE_NODE_RANGE_SEGS(crange_node), content_start, content_end, content_length);
 }
 
 EC_BOOL crange_node_range(CRANGE_NODE *crange_node, UINT32 *range_start, UINT32 *range_end)
@@ -410,7 +478,10 @@ CRANGE_MGR *crange_mgr_new()
 EC_BOOL crange_mgr_init(CRANGE_MGR *crange_mgr)
 {
     clist_init(CRANGE_MGR_RANGE_NODES(crange_mgr), MM_CRANGE_NODE, LOC_CRANGE_0007);
+
     cstring_init(CRANGE_MGR_BOUNDARY(crange_mgr), NULL_PTR);
+
+    CRANGE_MGR_BODY_SIZE(crange_mgr) = 0;
 
     return (EC_TRUE);
 }
@@ -418,7 +489,10 @@ EC_BOOL crange_mgr_init(CRANGE_MGR *crange_mgr)
 EC_BOOL crange_mgr_clean(CRANGE_MGR *crange_mgr)
 {
     clist_clean(CRANGE_MGR_RANGE_NODES(crange_mgr), (CLIST_DATA_DATA_CLEANER)crange_node_free);
+
     cstring_clean(CRANGE_MGR_BOUNDARY(crange_mgr));
+
+    CRANGE_MGR_BODY_SIZE(crange_mgr) = 0;
     
     return (EC_TRUE);
 }
@@ -515,6 +589,50 @@ EC_BOOL crange_mgr_add_node(CRANGE_MGR *crange_mgr, CRANGE_NODE *crange_node)
     {
         return (EC_FALSE);
     }
+    return (EC_TRUE);
+}
+
+EC_BOOL crange_mgr_add_range(CRANGE_MGR *crange_mgr, const UINT32 range_start, const UINT32 range_end, const UINT32 seg_size)
+{
+    CRANGE_NODE  *crange_node;
+
+    crange_node = crange_node_new();
+    if(NULL_PTR == crange_node)
+    {
+        dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_add_range: "
+                                               "new range_node failed\n");
+
+        return (EC_FALSE);
+    }
+
+    CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
+    CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
+    CRANGE_NODE_RANGE_START(crange_node)   = range_start;
+    CRANGE_NODE_RANGE_END(crange_node)     = range_end;
+    
+    if(EC_FALSE == crange_node_split(crange_node, seg_size))
+    {
+        dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_add_range: "
+                                               "split [%ld, %ld] / %ld into segs failed\n",
+                                               range_start, range_end, seg_size);
+
+        crange_node_free(crange_node);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crange_mgr_add_node(crange_mgr, (void *)crange_node))
+    {
+        dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_add_range: "
+                                               "add crange_node of [%ld, %ld] / %ld failed\n",
+                                               range_start, range_end, seg_size);
+
+        crange_node_free(crange_node);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_add_range: "
+                                           "split [%ld, %ld] / %ld into segs done\n",
+                                           range_start, range_end, seg_size);     
     return (EC_TRUE);
 }
 
@@ -663,7 +781,7 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
     return (EC_TRUE);
 }
 
-EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_mgr, const UINT32 content_length)
+EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_mgr, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length)
 {
     CLIST_DATA      *clist_data;
 
@@ -673,7 +791,7 @@ EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_mgr, const UINT32 content_length)
 
         crange_node = (CRANGE_NODE *)CLIST_DATA_DATA(clist_data);
 
-        if(EC_FALSE == crange_node_filter(crange_node, content_length))
+        if(EC_FALSE == crange_node_filter(crange_node, content_start, content_end, content_length))
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_filter: "
                                                     "filter crange_node %p (%ld:%s, %ld:%s) failed\n",

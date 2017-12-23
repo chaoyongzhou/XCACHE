@@ -1942,8 +1942,12 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
  
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_recv_rsp: sockfd %d is not connected\n",
-                           CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_recv_rsp: sockfd %d is not connected [RECV_COMPLETE : %s, srv:%s:%ld, tcpi stat: %s]\n",
+                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                           c_bit_bool_str(CHTTP_NODE_RECV_COMPLETE(chttp_node)),
+                           c_word_to_ipv4(CSOCKET_CNODE_IPADDR(csocket_cnode)), 
+                           CSOCKET_CNODE_SRVPORT(csocket_cnode),
+                           csocket_cnode_tcpi_stat_desc(csocket_cnode));
         return (EC_FALSE);
     }
 
@@ -2788,7 +2792,7 @@ EC_BOOL chttp_node_renew_header(CHTTP_NODE *chttp_node, const char *k, const cha
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_node_renew_header: v is null => header ['%s'] was deleted only\n");
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
  
     chttp_node_add_header(chttp_node, k, v);
@@ -2978,9 +2982,22 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
         /*cache*/
         if(0 < expires)
         {
-            char *expires_str;
+            char       *last_modified_str;
+            char       *expires_str;
 
-            expires_str = c_http_time(task_brd_default_get_time() + (time_t)expires);
+            time_t      last_modified_time;
+
+            if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
+            || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
+            {
+                last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
+            }
+            else
+            {
+                last_modified_time = task_brd_default_get_time();
+            }
+
+            expires_str = c_http_time(last_modified_time + (time_t)expires);
             chttp_node_renew_header(chttp_node, (const char *)"Expires", expires_str);
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_check_cacheable: [1.2] renew header: 'Expires':'%s'\n", expires_str);
         }
@@ -4706,7 +4723,8 @@ EC_BOOL chttp_req_set_server(CHTTP_REQ *chttp_req, const char *server)
     }
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: try to resolve host '%s'\n", fields[0]);
-    if(EC_FALSE == __chttp_req_resolve_host(fields[0], &ipaddr))
+    //if(EC_FALSE == __chttp_req_resolve_host(fields[0], &ipaddr))
+    if(EC_FALSE == c_dns_resolve(fields[0], &ipaddr))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_server: resolve host '%s' failed\n",
                             fields[0]);
@@ -4736,12 +4754,22 @@ EC_BOOL chttp_req_set_ipaddr(CHTTP_REQ *chttp_req, const char *ipaddr)
 {
     UINT32 ip;
 
+#if 0
     if(EC_FALSE == __chttp_req_resolve_host(ipaddr, &ip))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: resolve host '%s' failed\n",
                             ipaddr);
         return (EC_FALSE);
     }
+ #endif
+ #if 1
+    if(EC_FALSE == c_dns_resolve(ipaddr, &ip))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: resolve host '%s' failed\n",
+                            ipaddr);
+        return (EC_FALSE);
+    }
+ #endif
  
     CHTTP_REQ_IPADDR(chttp_req) = ip;
 
@@ -4835,7 +4863,7 @@ EC_BOOL chttp_req_renew_header(CHTTP_REQ *chttp_req, const char *k, const char *
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_req_renew_header: v is null => header ['%s'] was deleted only\n");
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
  
     chttp_req_add_header(chttp_req, k, v);
@@ -5043,7 +5071,7 @@ EC_BOOL chttp_rsp_renew_header(CHTTP_RSP *chttp_rsp, const char *k, const char *
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_rsp_renew_header: v is null => header ['%s'] was deleted only\n");
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
  
     chttp_rsp_add_header(chttp_rsp, k, v);
@@ -6891,9 +6919,23 @@ static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp
     {
         if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store))
         {
-            char *expires_str;
+            char       *last_modified_str;
+            char       *expires_str;
+
+            time_t      last_modified_time;
+
+            if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
+            || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
+            {
+                last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
+            }
+            else
+            {
+                last_modified_time = task_brd_default_get_time();
+            }
+            
             /*note: time_t unit is second but not mico-second*/
-            expires_str = c_http_time(task_brd_default_get_time() + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+            expires_str = c_http_time(last_modified_time + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
             chttp_node_renew_header(chttp_node, (const char *)"Expires", expires_str);
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: renew header: 'Expires':'%s'\n", expires_str);
         }
@@ -6903,9 +6945,23 @@ static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp
         if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)
         && EC_FALSE == chttp_node_has_header_key(chttp_node, (const char *)"Expires"))
         {
-            char *expires_str;
+            char       *last_modified_str;
+            char       *expires_str;
+
+            time_t      last_modified_time;
+
+            if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
+            || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
+            {
+                last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
+            }
+            else
+            {
+                last_modified_time = task_brd_default_get_time();
+            }
+            
             /*note: time_t unit is second but not mico-second*/
-            expires_str = c_http_time(task_brd_default_get_time() + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+            expires_str = c_http_time(last_modified_time + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
             chttp_node_add_header(chttp_node, (const char *)"Expires", expires_str);
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: add header: 'Expires':'%s'\n", expires_str);
         }

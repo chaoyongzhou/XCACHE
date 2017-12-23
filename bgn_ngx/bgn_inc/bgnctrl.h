@@ -57,6 +57,12 @@ extern "C"{
 /*CRFSGW Package Debug Switch*/
 #define CRFSGW_DEBUG_SWITCH SWITCH_ON
 
+/*CFLV Package Debug Switch*/
+#define CFLV_DEBUG_SWITCH SWITCH_ON
+
+/*CMP4 Package Debug Switch*/
+#define CMP4_DEBUG_SWITCH SWITCH_ON
+
 /*Encode/Decode Functions Debug Switch*/
 #define ENCODE_DEBUG_SWITCH SWITCH_ON
 

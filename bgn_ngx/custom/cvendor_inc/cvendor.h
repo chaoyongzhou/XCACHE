@@ -39,15 +39,17 @@ typedef struct
 
     UINT32               cache_seg_size;
     CSTRING              cache_path;
+    const char          *cache_status;  /*TCP_HIT, TCP_MISS, TCP_REFRESH_HIT, TCP_REFRESH_MISS*/
 
     ngx_http_request_t  *ngx_http_req;
     CNGX_OPTION          cngx_option;
-
+    
     /*--- parse from cngx http request ---*/
     uint32_t             cngx_debug_switch_on_flag          :1; /*if debug mode indicated in cngx http req*/
     uint32_t             cngx_range_exist_flag              :1; /*exist field 'Range' in request header*/
     uint32_t             cngx_range_multiple_flag           :1; /*multiple ranges in request header*/
     uint32_t             cngx_range_adjusted_flag           :1; /*if range is adjust or split*/
+    uint32_t             cngx_range_filtered_flag           :1; /*if range is adjust or split*/
     uint32_t             cngx_range_start_zero_endless_flag :1; /*range is "0-"*/
     uint32_t             cngx_use_gzip_flag                 :1; /*exist header 'Accept-Encoding':'gzip'*/
     uint32_t             cache_use_gzip_flag                :1; /*use gzip path for cache reading/writing*/
@@ -56,12 +58,11 @@ typedef struct
     uint32_t             orig_chunk_flag                    :1; /*orig is chunk*/
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
-    uint32_t             rsvd01                             :20;
+    uint32_t             rsvd01                             :19;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr; 
 
-    UINT32               cache_status;             /*CNGX_CACHE_STATUS_XXX*/
     UINT32               content_length;
 
     CSTRING              header_expires;   
@@ -85,6 +86,7 @@ typedef struct
 
 #define CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)                     ((cvendor_md)->cache_seg_size)
 #define CVENDOR_MD_CACHE_PATH(cvendor_md)                         (&((cvendor_md)->cache_path))
+#define CVENDOR_MD_CACHE_STATUS(cvendor_md)                       ((cvendor_md)->cache_status)
 
 #define CVENDOR_MD_NGX_HTTP_REQ(cvendor_md)                       ((cvendor_md)->ngx_http_req)
 #define CVENDOR_MD_CNGX_OPTION(cvendor_md)                        (&((cvendor_md)->cngx_option))
@@ -93,6 +95,7 @@ typedef struct
 #define CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)              ((cvendor_md)->cngx_range_exist_flag)
 #define CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_multiple_flag)
 #define CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_adjusted_flag)
+#define CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_filtered_flag)
 #define CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) ((cvendor_md)->cngx_range_start_zero_endless_flag)
 #define CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 ((cvendor_md)->cngx_use_gzip_flag)
 #define CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                ((cvendor_md)->cache_use_gzip_flag)
@@ -234,7 +237,7 @@ EC_BOOL cvendor_content_orig_header_out_cache_control_filter(const UINT32 cvendo
 
 EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id);
 
-EC_BOOL cvendor_content_orig_body_out_filter(const UINT32 cvendor_md_id);
+EC_BOOL cvendor_content_orig_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len);
 
 EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id);
 
@@ -256,7 +259,7 @@ EC_BOOL cvendor_content_cache_header_out_status_filter(const UINT32 cvendor_md_i
 
 EC_BOOL cvendor_content_cache_header_out_filter(const UINT32 cvendor_md_id);
 
-EC_BOOL cvendor_content_cache_body_out_filter(const UINT32 cvendor_md_id);
+EC_BOOL cvendor_content_cache_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len);
 
 EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg);
 

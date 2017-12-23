@@ -39,7 +39,9 @@ extern "C"{
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
 #define     MD_CRFSGW    ((UINT32) 18)
-#define     MD_END       ((UINT32) 19)
+#define     MD_CFLV      ((UINT32) 19)
+#define     MD_CMP4      ((UINT32) 20)
+#define     MD_END       ((UINT32) 21)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)
