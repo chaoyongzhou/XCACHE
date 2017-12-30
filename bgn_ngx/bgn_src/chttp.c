@@ -5044,6 +5044,11 @@ EC_BOOL chttp_rsp_add_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v)
     return cstrkv_mgr_add_kv_str(CHTTP_RSP_HEADER(chttp_rsp), k, v);
 }
 
+EC_BOOL chttp_rsp_add_header_chars(CHTTP_RSP *chttp_rsp, const char *k, const uint32_t klen, const char *v, const uint32_t vlen)
+{
+    return cstrkv_mgr_add_kv_chars(CHTTP_RSP_HEADER(chttp_rsp), k, klen, v, vlen);
+}
+
 char *chttp_rsp_get_header(const CHTTP_RSP *chttp_rsp, const char *k)
 {
     return cstrkv_mgr_get_val_str_ignore_case(CHTTP_RSP_HEADER(chttp_rsp), k);

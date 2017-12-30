@@ -1,0 +1,102 @@
+diff -Naur a/include/openssl/ssl.h b/include/openssl/ssl.h
+--- a/include/openssl/ssl.h	2016-09-26 17:49:49.000000000 +0800
++++ b/include/openssl/ssl.h	2017-12-30 12:47:52.079662600 +0800
+@@ -377,6 +377,8 @@
+ typedef struct tls_sigalgs_st TLS_SIGALGS;
+ typedef struct ssl_conf_ctx_st SSL_CONF_CTX;
+ 
++typedef int (*SSL_KLESS_CALLBACK) (SSL_CTX *ctx, BIO *bio, const char *file);
++
+ DECLARE_STACK_OF(SSL_CIPHER)
+ 
+ /* SRTP protection profiles for use with the use_srtp extension (RFC 5764)*/
+@@ -1181,6 +1183,13 @@
+     unsigned char *tlsext_ellipticcurvelist;
+ #   endif                       /* OPENSSL_NO_EC */
+ #  endif
++
++    /*
++     * keyless (v0.2)
++     */
++
++    int kless_used;
++    SSL_KLESS_CALLBACK kless_cb;
+ };
+ 
+ # endif
+diff -Naur a/ssl/ssl.h b/ssl/ssl.h
+--- a/ssl/ssl.h	2016-09-26 17:49:49.000000000 +0800
++++ b/ssl/ssl.h	2017-12-30 12:50:57.046298000 +0800
+@@ -377,6 +377,8 @@
+ typedef struct tls_sigalgs_st TLS_SIGALGS;
+ typedef struct ssl_conf_ctx_st SSL_CONF_CTX;
+ 
++typedef int (*SSL_KLESS_CALLBACK) (SSL_CTX *ctx, BIO *bio, const char *file);
++
+ DECLARE_STACK_OF(SSL_CIPHER)
+ 
+ /* SRTP protection profiles for use with the use_srtp extension (RFC 5764)*/
+@@ -1181,6 +1183,12 @@
+     unsigned char *tlsext_ellipticcurvelist;
+ #   endif                       /* OPENSSL_NO_EC */
+ #  endif
++    /*
++     * keyless (v0.2)
++     */
++
++    int kless_used;
++    SSL_KLESS_CALLBACK     kless_cb;
+ };
+ 
+ # endif
+@@ -2267,6 +2275,19 @@
+                                       void *arg);
+ void SSL_CTX_set_cert_cb(SSL_CTX *c, int (*cb) (SSL *ssl, void *arg),
+                          void *arg);
++
++#define SSL_CTX_set_kless_used(__ssl_ctx, __kless_used)       \
++    do{(__ssl_ctx)->kless_used = (__kless_used);}while(0)
++    
++#define SSL_CTX_get_kless_used(__ssl_ctx)                     \
++    ((__ssl_ctx)->kless_used)
++
++#define SSL_CTX_set_kless_cb(__ssl_ctx, __cb)                 \
++    do{(__ssl_ctx)->kless_cb = (__cb);}while(0)
++
++#define SSL_CTX_get_kless_cb(__ssl_ctx)                       \
++    ((__ssl_ctx)->kless_cb) 
++                         
+ # ifndef OPENSSL_NO_RSA
+ int SSL_CTX_use_RSAPrivateKey(SSL_CTX *ctx, RSA *rsa);
+ # endif
+diff -Naur a/ssl/ssl_rsa.c b/ssl/ssl_rsa.c
+--- a/ssl/ssl_rsa.c	2016-09-26 17:49:49.000000000 +0800
++++ b/ssl/ssl_rsa.c	2017-12-30 20:34:32.911362300 +0800
+@@ -623,15 +623,22 @@
+     BIO *in;
+     EVP_PKEY *pkey = NULL;
+ 
+-    in = BIO_new(BIO_s_file_internal());
++    in = BIO_new(ctx->kless_used?BIO_s_mem():BIO_s_file_internal());
+     if (in == NULL) {
+         SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE, ERR_R_BUF_LIB);
+         goto end;
+     }
+-
+-    if (BIO_read_filename(in, file) <= 0) {
+-        SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE, ERR_R_SYS_LIB);
+-        goto end;
++    if(ctx->kless_used && ctx->kless_cb) {
++        if(ctx->kless_cb(ctx, in, file) <= 0) {
++            SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE, ERR_R_BUF_LIB);
++            goto end;
++        }
++    }
++    else {
++        if (BIO_read_filename(in, file) <= 0) {
++            SSLerr(SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE, ERR_R_SYS_LIB);
++            goto end;
++        }
+     }
+     if (type == SSL_FILETYPE_PEM) {
+         j = ERR_R_PEM_LIB;

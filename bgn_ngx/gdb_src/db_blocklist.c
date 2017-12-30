@@ -30,7 +30,7 @@ gdbGetFreeBlockList(GDatabase *db, GdbFreeBlock **blocks, uint32_t *count)
     /* Seek to the start of the block list. */
     rawFileSeek(db->idxRawFile, DB_FREE_BLOCK_LIST_OFFSET, SEEK_SET);
     __offset = DB_FREE_BLOCK_LIST_OFFSET;
-    if (rawFileRead(db->idxRawFile, __offset, &db->freeBlockCount, sizeof(uint32_t), 1, LOC_DB_0059) != 1)
+    if (rawFileRead(db->idxRawFile, __offset, &db->freeBlockCount, sizeof(uint32_t), 1, LOC_DB_0116) != 1)
     {
         db->freeBlockCount = 0;
     }
@@ -50,11 +50,11 @@ gdbGetFreeBlockList(GDatabase *db, GdbFreeBlock **blocks, uint32_t *count)
     listSize = db->freeBlockCount * (sizeof(uint16_t) + sizeof(offset_t));
 
     /* Allocate the buffer. */
-    MEM_CHECK(buffer = (uint8_t *)SAFE_MALLOC(listSize, LOC_DB_0060));
+    MEM_CHECK(buffer = (uint8_t *)SAFE_MALLOC(listSize, LOC_DB_0117));
 
     /* Read in the list. */
     //rawFileSeek(db->idxRawFile, DB_FREE_BLOCK_LIST_OFFSET + sizeof(uint32_t), SEEK_SET);
-    if ((s = rawFileRead(db->idxRawFile, __offset, buffer, 1, listSize, LOC_DB_0061)) != listSize)
+    if ((s = rawFileRead(db->idxRawFile, __offset, buffer, 1, listSize, LOC_DB_0118)) != listSize)
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbGetFreeBlockList: Truncated block list.\n"
                           "Expected %d bytes, got %d bytes. Block list offset = %d\n"
@@ -64,7 +64,7 @@ gdbGetFreeBlockList(GDatabase *db, GdbFreeBlock **blocks, uint32_t *count)
         abort();
     }
 
-    MEM_CHECK(blockList = (GdbFreeBlock *)SAFE_MALLOC(db->freeBlockCount * sizeof(GdbFreeBlock), LOC_DB_0062));
+    MEM_CHECK(blockList = (GdbFreeBlock *)SAFE_MALLOC(db->freeBlockCount * sizeof(GdbFreeBlock), LOC_DB_0119));
 
     for (i = 0; i < db->freeBlockCount; i++)
     {
@@ -74,7 +74,7 @@ gdbGetFreeBlockList(GDatabase *db, GdbFreeBlock **blocks, uint32_t *count)
 
     *blocks = blockList;
 
-    SAFE_FREE(buffer, LOC_DB_0063);
+    SAFE_FREE(buffer, LOC_DB_0120);
 
     return 1;
 }
@@ -95,7 +95,7 @@ gdbWriteFreeBlockList(GDatabase *db, GdbFreeBlock *blocks, uint32_t count)
     listSize = sizeof(uint32_t) + count * (sizeof(uint16_t) + sizeof(offset_t));
 
     /* Allocate the buffer for the block list. */
-    MEM_CHECK(buffer = (uint8_t *)SAFE_MALLOC(listSize, LOC_DB_0064));
+    MEM_CHECK(buffer = (uint8_t *)SAFE_MALLOC(listSize, LOC_DB_0121));
 
     gdbPut32(buffer, &counter, count);
 
@@ -108,9 +108,9 @@ gdbWriteFreeBlockList(GDatabase *db, GdbFreeBlock *blocks, uint32_t count)
     rawFileSeek(db->idxRawFile, DB_FREE_BLOCK_LIST_OFFSET, SEEK_SET);
     __offset = DB_FREE_BLOCK_LIST_OFFSET;
 
-    rawFileWrite(db->idxRawFile, __offset, buffer, listSize, 1, LOC_DB_0065);
+    rawFileWrite(db->idxRawFile, __offset, buffer, listSize, 1, LOC_DB_0122);
 
-    SAFE_FREE(buffer, LOC_DB_0066);
+    SAFE_FREE(buffer, LOC_DB_0123);
 }
 
 void
@@ -120,7 +120,7 @@ gdbFreeBlockList(GdbFreeBlock *blocks)
     {
         return;
     }
-    SAFE_FREE(blocks, LOC_DB_0067);
+    SAFE_FREE(blocks, LOC_DB_0124);
 }
 
 #ifdef __cplusplus

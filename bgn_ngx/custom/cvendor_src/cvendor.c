@@ -21,15 +21,7 @@ extern "C"{
 
 #include "task.h"
 
-#include "csocket.h"
-
 #include "cmpie.h"
-
-#include "crb.h"
-
-#include "cload.h"
-
-#include "cbc.h"
 
 #include "crange.h"
 
@@ -37,10 +29,12 @@ extern "C"{
 
 #include "crfsmon.h"
 
-#include "cvendor.h"
+#include "chttp.h"
 
 #include "cngx.h"
-#include "chttp.h"
+#include "cngx_headers.h"
+
+#include "cvendor.h"
 
 #include "findex.inc"
 
@@ -1098,7 +1092,7 @@ EC_BOOL cvendor_filter_header_in_common(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
    
-    //ngx_http_request_t          *r;
+    ngx_http_request_t          *r;
    
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -1112,7 +1106,7 @@ EC_BOOL cvendor_filter_header_in_common(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     /*del debug headers*/
     chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_SWITCH_HDR);
@@ -1120,7 +1114,15 @@ EC_BOOL cvendor_filter_header_in_common(const UINT32 cvendor_md_id)
     chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_ERROR_HDR);
     chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_INFO_HDR);
     chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)CNGX_BGN_MOD_DBG_EXPIRE_HDR);
-       
+
+    if(EC_FALSE == cngx_headers_dir1_filter(r, CVENDOR_MD_CHTTP_REQ(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_in_common: "
+                                                "dir1 filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_in_common: "
+                                            "dir1 filter done\n");    
     return (EC_TRUE);
 }
 
@@ -1221,6 +1223,14 @@ EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_common: "
                                                 "merge header done\n");    
     }
+
+    if(EC_FALSE == cngx_headers_dir3_filter(r, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
+                                                "dir3 filter failed\n");
+        return (EC_FALSE);   
+    }
+    
     return (EC_TRUE);
 }
 
@@ -1753,6 +1763,10 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
    
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: enter\n");
+
+    cngx_headers_dir0_filter(r);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                            "dir0 filter done\n");
 
     /*priority: if set debug on when module starting, ignore switch in cngx http req header*/
     if(BIT_FALSE == CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md)
@@ -2442,31 +2456,7 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
                                             "filter range done\n");   
-#if 0
-    if(1 < crange_mgr_node_num(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
-    {
-        const char                  *k;
-        const char                  *v;
 
-        char                         header_buf[ 64 ];
-        
-        char                        *boundary_str;
-        uint32_t                     boundary_len;
-
-        crange_mgr_get_naked_boundary(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), &boundary_str, &boundary_len);
-
-        snprintf(header_buf, sizeof(header_buf), "multipart/byteranges; boundary=%.*s", 
-                                                 boundary_len, boundary_str);
-
-        k = (const char *)"Content-Type";   
-        v = (const char *)header_buf;
-        chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
-
-        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
-                                                "renew '%s' done\n",
-                                                k);         
-    }
-#endif
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
                                             "done\n");  
                                             
@@ -3046,9 +3036,9 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
 {
-    //CVENDOR_MD                  *cvendor_md;
+    CVENDOR_MD                  *cvendor_md;
    
-    //ngx_http_request_t          *r;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -3060,9 +3050,9 @@ EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
     
     if(EC_FALSE == cvendor_content_direct_send_request(cvendor_md_id))
     {
@@ -3072,6 +3062,15 @@ EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
     }   
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_procedure: "
                                             "send request done\n");
+
+    if(EC_FALSE == cngx_headers_dir2_filter(r, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_procedure: "
+                                                "dir2 filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_procedure: "
+                                            "dir2 filter done\n"); 
                                             
     if(EC_FALSE == cvendor_content_direct_send_response(cvendor_md_id))
     {
@@ -4155,18 +4154,6 @@ EC_BOOL cvendor_content_orig_header_out_status_filter(const UINT32 cvendor_md_id
                                             "CVENDOR_MD_CONTENT_LENGTH = %ld\n",
                                             CVENDOR_MD_CONTENT_LENGTH(cvendor_md));    
 
-#if 0
-    if(BIT_TRUE == CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md))
-    {
-        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
-        
-        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
-                                                "RANGE_START_ZERO_ENDLESS => del rsp header '%s' => response status = %ld [after]\n",
-                                                k,
-                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));    
-        return (EC_TRUE);
-    }
-#endif
     k = (const char *)"Content-Range";
     if(EC_TRUE == chttp_rsp_has_header_key(CVENDOR_MD_CHTTP_RSP(cvendor_md), k))
     {
@@ -4764,16 +4751,7 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
     }
     
     /*send body*/
-#if 0
-    /*send ahead body*/
-    if(EC_FALSE == cvendor_content_orig_send_ahead_body(cvendor_md_id))
-    {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
-                                                "send ahead body failed\n");
-                        
-        return (EC_FALSE);
-    }
-#endif    
+
     /*send one seg only*/
     if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
     && EC_FALSE == crange_mgr_is_empty(crange_mgr))
@@ -4837,6 +4815,8 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
 EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
     
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -4850,6 +4830,8 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);    
 
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    
     if(EC_FALSE == cvendor_content_orig_send_request(cvendor_md_id))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
@@ -4858,6 +4840,15 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
     }   
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
                                             "send request done\n");
+
+    if(EC_FALSE == cngx_headers_dir2_filter(r, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+                                                "dir2 filter failed\n");
+        return (EC_FALSE);   
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
+                                            "dir2 filter done\n");    
 
     /*301/302 redirect*/
     if(EC_TRUE == cvendor_is_redirect_rsp(cvendor_md_id))
@@ -6435,22 +6426,6 @@ EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
                                             "filter range done\n");   
 
-#if 0
-    if(do_log(SEC_0175_CVENDOR, 9))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
-                           "CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG          = %s\n",
-                           c_bit_bool_str(CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)));
-
-        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
-                           "CVENDOR_MD_CNGX_RANGE_EXIST_FLAG              = %s\n",
-                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)));
-
-        sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
-                           "CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG = %s\n",
-                           c_bit_bool_str(CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md)));
-    }
-#endif    
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
                                             "done\n");   
 
@@ -7984,6 +7959,7 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
 EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -7996,6 +7972,8 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     /*fetch header from cache*/
     do
@@ -8101,6 +8079,15 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                 "parse seg %ld done\n", 
                                                 seg_no);
+
+        if(EC_FALSE == cngx_headers_dir2_filter(r, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                    "dir2 filter failed\n");
+            return (EC_FALSE);   
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                "dir2 filter done\n"); 
 
         cbytes_clean(&seg_cbytes);
 

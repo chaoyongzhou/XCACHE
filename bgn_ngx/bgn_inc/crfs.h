@@ -256,12 +256,6 @@ EC_BOOL crfs_locked_file_clean(CRFS_LOCKED_FILE *crfs_locked_file);
 
 EC_BOOL crfs_locked_file_free(CRFS_LOCKED_FILE *crfs_locked_file);
 
-EC_BOOL crfs_locked_file_init_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file);
-
-EC_BOOL crfs_locked_file_clean_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file);
-
-EC_BOOL crfs_locked_file_free_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file);
-
 EC_BOOL crfs_locked_file_token_gen(CRFS_LOCKED_FILE *crfs_locked_file, const CSTRING *file_name);
 
 EC_BOOL crfs_locked_file_expire_set(CRFS_LOCKED_FILE *crfs_locked_file, const UINT32 expire_nsec);
@@ -281,12 +275,6 @@ EC_BOOL crfs_wait_file_init(CRFS_WAIT_FILE *crfs_wait_file);
 EC_BOOL crfs_wait_file_clean(CRFS_WAIT_FILE *crfs_wait_file);
 
 EC_BOOL crfs_wait_file_free(CRFS_WAIT_FILE *crfs_wait_file);
-
-EC_BOOL crfs_wait_file_init_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file);
-
-EC_BOOL crfs_wait_file_clean_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file);
-
-EC_BOOL crfs_wait_file_free_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file);
 
 EC_BOOL crfs_wait_file_name_set(CRFS_WAIT_FILE *crfs_wait_file, const CSTRING *file_name);
 

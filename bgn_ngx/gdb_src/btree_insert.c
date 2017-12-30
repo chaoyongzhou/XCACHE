@@ -47,7 +47,7 @@ __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
     {
         temp1                 = rootNode->keys[i];
         tempSize1             = rootNode->keySizes[i];
-        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0161);
+        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0136);
         rootNode->keySizes[i] = keyLen(*key);
         j = i;
 
@@ -78,7 +78,7 @@ __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
     }
     else
     {
-        temp1     = keyDup(*key, LOC_BTREE_0162);
+        temp1     = keyDup(*key, LOC_BTREE_0137);
         tempSize1 = keyLen(temp1);
 
         if (BTREE_IS_LEAF(rootNode))
@@ -95,8 +95,8 @@ __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
     else
         div = (uint32_t)(tree->order / 2);
 
-    keyFree(*key, LOC_BTREE_0163);
-    *key = keyDup(rootNode->keys[div], LOC_BTREE_0164);
+    keyFree(*key, LOC_BTREE_0138);
+    *key = keyDup(rootNode->keys[div], LOC_BTREE_0139);
 
     tempNode           = btreeNewNode(tree);
     tempNode->keyCount = tree->order - 1 - div;
@@ -134,7 +134,7 @@ __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
     {
         rootNode->keyCount = div;
 
-        keyFree(rootNode->keys[rootNode->keyCount], LOC_BTREE_0165);
+        keyFree(rootNode->keys[rootNode->keyCount], LOC_BTREE_0140);
         rootNode->keys[rootNode->keyCount]     = NULL;
         rootNode->keySizes[rootNode->keyCount] = 0;
     }
@@ -210,7 +210,7 @@ __addKey(BTree *tree, BTreeNode *rootNode, uint8_t **key, offset_t *filePos,
         temp1     = rootNode->keys[i];
         tempSize1 = rootNode->keySizes[i];
 
-        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0166);
+        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0141);
         rootNode->keySizes[i] = keyLen(*key);
 
         j = i;
@@ -242,7 +242,7 @@ __addKey(BTree *tree, BTreeNode *rootNode, uint8_t **key, offset_t *filePos,
     }
     else
     {
-        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0167);
+        rootNode->keys[i]     = keyDup(*key, LOC_BTREE_0142);
         rootNode->keySizes[i] = keyLen(*key);
 
         if (BTREE_IS_LEAF(rootNode))
@@ -345,7 +345,7 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
     sys_print(LOGSTDOUT,"\n");
 #endif
 
-    newKey = keyDup(key, LOC_BTREE_0168);
+    newKey = keyDup(key, LOC_BTREE_0143);
 
     success = 0;
     split = 0;
@@ -367,7 +367,7 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
 
         if (success == 0)
         {
-            keyFree(newKey, LOC_BTREE_0169);
+            keyFree(newKey, LOC_BTREE_0144);
             return (replaceDup ? GDB_SUCCESS : GDB_DUPLICATE);
         }
     }
@@ -378,7 +378,7 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
     {
         BTreeNode *node = btreeNewNode(tree);
 
-        node->keys[0]     = keyDup(newKey, LOC_BTREE_0170);
+        node->keys[0]     = keyDup(newKey, LOC_BTREE_0145);
         node->keySizes[0] = keyLen(newKey);
         node->keyCount    = 1;
 
@@ -406,7 +406,7 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
         btreeDestroyNode(node);
     }
 
-    keyFree(newKey, LOC_BTREE_0171);
+    keyFree(newKey, LOC_BTREE_0146);
 
     return GDB_SUCCESS;
 }

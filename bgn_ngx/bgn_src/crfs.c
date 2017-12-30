@@ -9089,26 +9089,6 @@ EC_BOOL crfs_wait_file_free(CRFS_WAIT_FILE *crfs_wait_file)
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_wait_file_init_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file)
-{
-    return crfs_wait_file_init(crfs_wait_file);
-}
-
-EC_BOOL crfs_wait_file_clean_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file)
-{
-    return crfs_wait_file_clean(crfs_wait_file);
-}
-
-EC_BOOL crfs_wait_file_free_0(const UINT32 md_id, CRFS_WAIT_FILE *crfs_wait_file)
-{
-    if(NULL_PTR != crfs_wait_file)
-    {
-        crfs_wait_file_clean(crfs_wait_file);
-        free_static_mem(MM_CRFS_WAIT_FILE, crfs_wait_file, LOC_CRFS_0318);
-    }
-    return (EC_TRUE);
-}
-
 int crfs_wait_file_cmp(const CRFS_WAIT_FILE *crfs_wait_file_1st, const CRFS_WAIT_FILE *crfs_wait_file_2nd)
 {
     return cstring_cmp(CRFS_WAIT_FILE_NAME(crfs_wait_file_1st), CRFS_WAIT_FILE_NAME(crfs_wait_file_2nd));
@@ -9584,7 +9564,7 @@ EC_BOOL crfs_file_notify(const UINT32 crfs_md_id, const CSTRING *file_path)
 CRFS_LOCKED_FILE *crfs_locked_file_new()
 {
     CRFS_LOCKED_FILE *crfs_locked_file;
-    alloc_static_mem(MM_CRFS_LOCKED_FILE, &crfs_locked_file, LOC_CRFS_0319);
+    alloc_static_mem(MM_CRFS_LOCKED_FILE, &crfs_locked_file, LOC_CRFS_0318);
     if(NULL_PTR != crfs_locked_file)
     {
         crfs_locked_file_init(crfs_locked_file);
@@ -9617,27 +9597,7 @@ EC_BOOL crfs_locked_file_free(CRFS_LOCKED_FILE *crfs_locked_file)
     if(NULL_PTR != crfs_locked_file)
     {
         crfs_locked_file_clean(crfs_locked_file);
-        free_static_mem(MM_CRFS_LOCKED_FILE, crfs_locked_file, LOC_CRFS_0320);
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_locked_file_init_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file)
-{
-    return crfs_locked_file_init(crfs_locked_file);
-}
-
-EC_BOOL crfs_locked_file_clean_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file)
-{
-    return crfs_locked_file_clean(crfs_locked_file);
-}
-
-EC_BOOL crfs_locked_file_free_0(const UINT32 md_id, CRFS_LOCKED_FILE *crfs_locked_file)
-{
-    if(NULL_PTR != crfs_locked_file)
-    {
-        crfs_locked_file_clean(crfs_locked_file);
-        free_static_mem(MM_CRFS_LOCKED_FILE, crfs_locked_file, LOC_CRFS_0321);
+        free_static_mem(MM_CRFS_LOCKED_FILE, crfs_locked_file, LOC_CRFS_0319);
     }
     return (EC_TRUE);
 }
@@ -9924,14 +9884,14 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
 
     cbytes_init(&token_cbyte);
 
-    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0322);
+    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0320);
     if(EC_FALSE == __crfs_file_lock(crfs_md_id, tcid, file_path, expire_nsec, &token_cbyte, locked_already))
     {
-        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0323);
+        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0321);
         return (EC_FALSE);
     }
 
-    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0324);
+    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0322);
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
     cstring_append_chars(token_str, auth_token_len, auth_token);
@@ -10047,15 +10007,15 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
         crfs_locked_files_print(crfs_md_id, LOGSTDOUT);
     }
 #endif
-    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0325);
+    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0323);
     if(EC_FALSE == __crfs_file_unlock(crfs_md_id, file_path, &token_cbyte))
     {
         cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
-        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0326);
+        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0324);
         return (EC_FALSE);
     }
 
-    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0327);
+    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0325);
 
     cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
@@ -10610,11 +10570,11 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0328);
+    CRFS_RDLOCK(crfs_md, LOC_CRFS_0326);
     crfsnp = crfsnp_mgr_open_np(CRFS_MD_NPP(crfs_md), crfsnp_id_t);
     if(NULL_PTR == crfsnp)
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0329);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0327);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_np_snapshot: open crfsnp %u failed\n", crfsnp_id_t);
      
         cstring_clean(&des_file);
@@ -10625,7 +10585,7 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
     offset = 0;
     if(EC_FALSE == c_file_flush(des_fd, &offset, CRFSNP_FSIZE(crfsnp), (const uint8_t *)CRFSNP_HDR(crfsnp)))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0330);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0328);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_np_snapshot: flush crfsnp %u to file %s failed\n",
                             crfsnp_id_t, (char *)cstring_get_str(&des_file));
 
@@ -10636,7 +10596,7 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
 
     if(offset != CRFSNP_FSIZE(crfsnp))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0331);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0329);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_np_snapshot: flush crfsnp %u to file %s failed due to completed size %u != fsize %u\n",
                             crfsnp_id_t, (char *)cstring_get_str(&des_file), offset, CRFSNP_FSIZE(crfsnp));
 
@@ -10645,7 +10605,7 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
         return (EC_FALSE);
     }
  
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0332);
+    CRFS_UNLOCK(crfs_md, LOC_CRFS_0330);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_np_snapshot: flush crfsnp %u to file %s done\n",
                         crfsnp_id_t, (char *)cstring_get_str(&des_file));
@@ -10767,11 +10727,11 @@ EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const 
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0333);
+    CRFS_RDLOCK(crfs_md, LOC_CRFS_0331);
     offset = 0;
     if(EC_FALSE == c_file_flush(des_fd, &offset, CPGD_FSIZE(cpgd), (const uint8_t *)CPGD_HEADER(cpgd)))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0334);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0332);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_disk_snapshot: flush disk to file %s failed\n",
                             (char *)cstring_get_str(&des_file));
 
@@ -10782,7 +10742,7 @@ EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const 
 
     if(offset != CPGD_FSIZE(cpgd))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0335);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0333);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_disk_snapshot: flush disk to file %s failed due to completed size %u != fsize %u\n",
                             (char *)cstring_get_str(&des_file), offset, CPGD_FSIZE(cpgd));
 
@@ -10791,7 +10751,7 @@ EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const 
         return (EC_FALSE);
     }
 
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0336);
+    CRFS_UNLOCK(crfs_md, LOC_CRFS_0334);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_disk_snapshot: flush disk to file %s done\n",
                         (char *)cstring_get_str(&des_file));
@@ -10911,11 +10871,11 @@ EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0337);
+    CRFS_RDLOCK(crfs_md, LOC_CRFS_0335);
     offset = 0;
     if(EC_FALSE == c_file_flush(des_fd, &offset, CPGV_FSIZE(cpgv), (const uint8_t *)CPGV_HEADER(cpgv)))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0338);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0336);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_vol_snapshot: flush dn to file %s failed\n",
                             (char *)cstring_get_str(&des_file));
 
@@ -10926,7 +10886,7 @@ EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
 
     if(offset != CPGV_FSIZE(cpgv))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0339);
+        CRFS_UNLOCK(crfs_md, LOC_CRFS_0337);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_vol_snapshot: flush dn to file %s failed due to completed size %u != fsize %u\n",
                             (char *)cstring_get_str(&des_file), offset, CPGV_FSIZE(cpgv));
 
@@ -10935,7 +10895,7 @@ EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
         return (EC_FALSE);
     }
 
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0340);
+    CRFS_UNLOCK(crfs_md, LOC_CRFS_0338);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_vol_snapshot: flush dn to file %s done\n",
                         (char *)cstring_get_str(&des_file));

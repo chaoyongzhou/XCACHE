@@ -1,9 +1,11 @@
 ################################################################################
 #
-# compile:
-#   make bgn 
+# Copyright (C) Chaoyong Zhou
+# Email: bgnvendor@163.com
+# QQ: 2796796
 #
 ################################################################################
+
 #ROOT_DIR = $(shell pwd)
 ROOT_DIR = .
 
@@ -17,6 +19,8 @@ TOOL_DIR = $(ROOT_DIR)/tool
 NGX_DIR = ../nginx
 NGX_MODULE_DIR = ../modules
 
+OPENSS_INC_DIR = /usr/local/xcache/depend/openssl/include/
+
 EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/core \
     -I $(NGX_DIR)/src/event \
@@ -24,7 +28,8 @@ EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/http \
     -I $(NGX_DIR)/src/http/modules \
     -I $(NGX_MODULE_DIR)/bgn-nginx-module-0.0.1 \
-    -I $(NGX_DIR)/objs
+    -I $(NGX_DIR)/objs	\
+	-I $(OPENSS_INC_DIR)
             
 EXT_LIB = `xml2-config --libs` -lm -lrt -lpthread -lpcre -lexpat -lz -lreadline -rdynamic -ldl
 

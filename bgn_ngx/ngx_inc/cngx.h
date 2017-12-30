@@ -333,5 +333,3 @@ EC_BOOL cngx_http_bgn_mod_dl_unload(const char *name, const uint32_t len);
 }
 #endif/*__cplusplus*/
 
-
-
