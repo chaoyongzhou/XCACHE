@@ -10,6 +10,7 @@ extern "C"{
 #include <openssl/err.h> 
 
 #include "type.h"
+#include "cstring.h"
 
 #define  SSL_SUCC          ((int) 1)
 
@@ -17,12 +18,15 @@ typedef struct _CSSL_NODE
 {
     UINT32                  type; /* server:0 or client:1 */
     SSL                    *ssl;
-    SSL_CTX                *ctx;    
+    SSL_CTX                *ctx;  
+
+    CSTRING                 ca_file;
 }CSSL_NODE;
 
 #define CSSL_NODE_TYPE(cssl_node)           ((cssl_node)->type)
 #define CSSL_NODE_SSL(cssl_node)            ((cssl_node)->ssl)
 #define CSSL_NODE_SSL_CTX(cssl_node)        ((cssl_node)->ctx)
+#define CSSL_NODE_CA_FILE(cssl_node)        (&((cssl_node)->ca_file))
 
 #define CSSL_NODE_SERVER_TYPE               ((UINT32) 0)                
 #define CSSL_NODE_CLIENT_TYPE               ((UINT32) 1)    

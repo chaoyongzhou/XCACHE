@@ -65,9 +65,11 @@ EC_BOOL cssl_node_init(CSSL_NODE *cssl_node)
  
     if(NULL_PTR != cssl_node)
     {
-        CSSL_NODE_TYPE(cssl_node)            = CSSL_NODE_UNKNOWN_TYPE;
+        CSSL_NODE_TYPE(cssl_node)           = CSSL_NODE_UNKNOWN_TYPE;
         CSSL_NODE_SSL(cssl_node)            = NULL_PTR;  
         CSSL_NODE_SSL_CTX(cssl_node)        = NULL_PTR;
+
+        cstring_init(CSSL_NODE_CA_FILE(cssl_node), NULL_PTR);
     }
  
     return (EC_TRUE);
@@ -85,10 +87,12 @@ EC_BOOL cssl_node_clean(CSSL_NODE *cssl_node)
         }
 
         if(NULL_PTR != CSSL_NODE_SSL_CTX(cssl_node))
-          {
-              SSL_CTX_free(CSSL_NODE_SSL_CTX(cssl_node));
-              CSSL_NODE_SSL_CTX(cssl_node) = NULL_PTR;
-          }
+        {
+            SSL_CTX_free(CSSL_NODE_SSL_CTX(cssl_node));
+            CSSL_NODE_SSL_CTX(cssl_node) = NULL_PTR;
+        }
+
+        cstring_clean(CSSL_NODE_CA_FILE(cssl_node));
 
         CSSL_NODE_TYPE(cssl_node) = CSSL_NODE_UNKNOWN_TYPE;
     }
@@ -207,7 +211,18 @@ EC_BOOL cssl_node_create_ctx(CSSL_NODE *cssl_node)
 
         SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL_PTR);
 
-        SSL_CTX_set_default_verify_paths(ctx);
+        if(EC_TRUE == cstring_is_empty(CSSL_NODE_CA_FILE(cssl_node)))
+        {
+            SSL_CTX_set_default_verify_paths(ctx);
+        }
+        else
+        {  
+            const char *ca_certificate;
+
+            ca_certificate = (const char *)cstring_get_str(CSSL_NODE_CA_FILE(cssl_node));
+            SSL_CTX_load_verify_locations(ctx, ca_certificate, NULL_PTR);
+        }
+      
         dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: set to verify peer\n");
 
         SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
@@ -312,7 +327,7 @@ static EC_BOOL __cssl_node_make_on_client(CSSL_NODE *cssl_node, const int sockfd
 }
 
 /*on client side*/
-CSSL_NODE * cssl_node_make_on_client(const int sockfd)
+CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file)
 {
     CSSL_NODE *cssl_node;
 
@@ -324,7 +339,11 @@ CSSL_NODE * cssl_node_make_on_client(const int sockfd)
     }
 
     CSSL_NODE_TYPE(cssl_node) = CSSL_NODE_CLIENT_TYPE;
-
+    if(NULL_PTR != ca_file)
+    {
+        cstring_append_str(CSSL_NODE_CA_FILE(cssl_node), (const UINT8 *)ca_file);
+    }
+    
     if(EC_FALSE == __cssl_node_make_on_client(cssl_node, sockfd))
     {
         dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_make_on_client: make cssl_node on client failed\n");

@@ -1830,7 +1830,7 @@ UINT32 print_static_mem_diag_info_of_type(LOG *log, const UINT32 type)
             /* do this node */
             pNode = &( pNodeBlock->pnodes[ node_idx ] );
 
-            if ( MM_NODE_USED == pNode->usedflag )
+            if ( MM_NODE_USED == pNode->usedflag)
             {
                 sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %lx\n",
                     type, pMan->name,

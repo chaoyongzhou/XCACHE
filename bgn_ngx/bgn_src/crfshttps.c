@@ -748,7 +748,7 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0007);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1030,7 +1030,7 @@ static UINT32 __crfshttps_convert_expires_str_to_nseconds(const char *expires_st
     if(1 == seg_num)
     {
         expires_nsec = c_str_to_word(fields[0]);
-        safe_free(str, LOC_CRFSHTTPS_0007);
+        safe_free(str, LOC_CRFSHTTPS_0008);
         return (expires_nsec);
     }
 
@@ -1046,11 +1046,11 @@ static UINT32 __crfshttps_convert_expires_str_to_nseconds(const char *expires_st
 
         expires_nsec = (expire_when - cur_time);
 
-        safe_free(str, LOC_CRFSHTTPS_0008);
+        safe_free(str, LOC_CRFSHTTPS_0009);
         return (expires_nsec);
     }
 
-    safe_free(str, LOC_CRFSHTTPS_0009);
+    safe_free(str, LOC_CRFSHTTPS_0010);
     return ((UINT32)0);
 }
 EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
@@ -1075,7 +1075,7 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0011);
 
     cstring_init(&token_cstr, NULL_PTR);
 
@@ -1341,7 +1341,7 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0012);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1570,7 +1570,7 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0013);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2579,7 +2579,7 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0014);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_setsmf_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2881,7 +2881,7 @@ EC_BOOL crfshttps_handle_setsmf_memc_post_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0015);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_setsmf_memc_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3157,7 +3157,7 @@ EC_BOOL crfshttps_handle_check_memc_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/checkmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0016);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_check_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3391,7 +3391,7 @@ EC_BOOL crfshttps_handle_getsmf_memc_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0017);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3706,7 +3706,7 @@ EC_BOOL crfshttps_handle_update_memc_post_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/updatememc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0018);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_update_memc_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3974,7 +3974,7 @@ EC_BOOL crfshttps_handle_dsmf_memc_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0019);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_dsmf_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4186,7 +4186,7 @@ EC_BOOL crfshttps_handle_ddir_memc_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddirmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0020);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_ddir_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4398,7 +4398,7 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0021);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_head_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4620,7 +4620,7 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0022);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_update_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4919,7 +4919,7 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0023);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5186,7 +5186,7 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0024);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5397,7 +5397,7 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0025);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5609,7 +5609,7 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sexpire");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0026);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7237,7 +7237,7 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/qtree");
 
     cstring_init(&path, NULL_PTR);
-    cstring_append_chars(&path, cache_len, cache_key);
+    cstring_append_chars(&path, cache_len, cache_key, LOC_CRFSHTTPS_0027);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
 
@@ -7283,7 +7283,7 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
         super_md_id = 0;
 
-        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSHTTPS_0010);
+        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSHTTPS_0028);
      
         if(EC_FALSE == crfs_qlist_tree(super_md_id, &path, path_cstr_vec))
         {
@@ -7297,8 +7297,8 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
             cstring_clean(&path);
          
-            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSHTTPS_0011);
-            cvector_free(path_cstr_vec, LOC_CRFSHTTPS_0012);
+            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSHTTPS_0029);
+            cvector_free(path_cstr_vec, LOC_CRFSHTTPS_0030);
 
             return (EC_TRUE);
         }
@@ -7342,7 +7342,7 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
         cstring_clean(&path);
 
-        cvector_free(path_cstr_vec, LOC_CRFSHTTPS_0013);
+        cvector_free(path_cstr_vec, LOC_CRFSHTTPS_0031);
 
         /* free json obj */
         json_object_put(rsp_body_obj);
@@ -7501,7 +7501,7 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_wait");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0032);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_wait_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7845,7 +7845,7 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0033);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8053,7 +8053,7 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0034);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8270,7 +8270,7 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0035);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8651,7 +8651,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTPS_0036);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 

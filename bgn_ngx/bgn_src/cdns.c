@@ -743,7 +743,7 @@ EC_BOOL cdns_parse_host(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t *
     }
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_host: count len = %ld\n", len);
 
-    cstring_expand_to(host, len);
+    cstring_expand_to(host, len, LOC_CDNS_0006);
 
     p = CSTRING_STR(host);
     BCOPY(data + 1, p, len);
@@ -1237,7 +1237,7 @@ EC_BOOL cdns_node_close(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
         dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_close: socket %d retore coroutine %p\n", sockfd, CDNS_NODE_CROUTINE_COND(cdns_node));
 
         CDNS_NODE_COROUTINE_RESTORE(cdns_node) = BIT_TRUE;
-        croutine_cond_release(CDNS_NODE_CROUTINE_COND(cdns_node), LOC_CDNS_0006);
+        croutine_cond_release(CDNS_NODE_CROUTINE_COND(cdns_node), LOC_CDNS_0007);
     }
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;/*trigger socket closing*/
@@ -1256,7 +1256,7 @@ CDNS_REQ *cdns_req_new()
 {
     CDNS_REQ *cdns_req;
 
-    alloc_static_mem(MM_CDNS_REQ, &cdns_req, LOC_CDNS_0007);
+    alloc_static_mem(MM_CDNS_REQ, &cdns_req, LOC_CDNS_0008);
     if(NULL_PTR == cdns_req)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_req_new: new cdns_req failed\n");
@@ -1266,7 +1266,7 @@ CDNS_REQ *cdns_req_new()
     if(EC_FALSE == cdns_req_init(cdns_req))
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_req_new: init cdns_req failed\n");
-        free_static_mem(MM_CDNS_REQ, cdns_req, LOC_CDNS_0008);
+        free_static_mem(MM_CDNS_REQ, cdns_req, LOC_CDNS_0009);
         return (NULL_PTR);
     }
 
@@ -1297,7 +1297,7 @@ EC_BOOL cdns_req_free(CDNS_REQ *cdns_req)
     if(NULL_PTR != cdns_req)
     {
         cdns_req_clean(cdns_req);
-        free_static_mem(MM_CDNS_REQ, cdns_req, LOC_CDNS_0009);
+        free_static_mem(MM_CDNS_REQ, cdns_req, LOC_CDNS_0010);
     }
  
     return (EC_TRUE);
@@ -1367,7 +1367,7 @@ CDNS_RSP *cdns_rsp_new()
 {
     CDNS_RSP *cdns_rsp;
 
-    alloc_static_mem(MM_CDNS_RSP, &cdns_rsp, LOC_CDNS_0010);
+    alloc_static_mem(MM_CDNS_RSP, &cdns_rsp, LOC_CDNS_0011);
     if(NULL_PTR == cdns_rsp)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_rsp_new: new cdns_rsp failed\n");
@@ -1377,7 +1377,7 @@ CDNS_RSP *cdns_rsp_new()
     if(EC_FALSE == cdns_rsp_init(cdns_rsp))
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_rsp_new: init cdns_rsp failed\n");
-        free_static_mem(MM_CDNS_RSP, cdns_rsp, LOC_CDNS_0011);
+        free_static_mem(MM_CDNS_RSP, cdns_rsp, LOC_CDNS_0012);
         return (NULL_PTR);
     }
 
@@ -1386,7 +1386,7 @@ CDNS_RSP *cdns_rsp_new()
 
 EC_BOOL cdns_rsp_init(CDNS_RSP *cdns_rsp)
 {
-    clist_init(cdns_rsp, MM_CDNS_RSP_NODE, LOC_CDNS_0012);
+    clist_init(cdns_rsp, MM_CDNS_RSP_NODE, LOC_CDNS_0013);
 
     return (EC_TRUE);
 }
@@ -1402,7 +1402,7 @@ EC_BOOL cdns_rsp_free(CDNS_RSP *cdns_rsp)
     if(NULL_PTR != cdns_rsp)
     {
         cdns_rsp_clean(cdns_rsp);
-        free_static_mem(MM_CDNS_RSP, cdns_rsp, LOC_CDNS_0013);
+        free_static_mem(MM_CDNS_RSP, cdns_rsp, LOC_CDNS_0014);
     }
  
     return (EC_TRUE);
@@ -1419,7 +1419,7 @@ CDNS_RSP_NODE *cdns_rsp_node_new()
 {
     CDNS_RSP_NODE *cdns_rsp_node;
 
-    alloc_static_mem(MM_CDNS_RSP_NODE, &cdns_rsp_node, LOC_CDNS_0014);
+    alloc_static_mem(MM_CDNS_RSP_NODE, &cdns_rsp_node, LOC_CDNS_0015);
     if(NULL_PTR == cdns_rsp_node)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_rsp_node_new: new cdns_rsp_node failed\n");
@@ -1429,7 +1429,7 @@ CDNS_RSP_NODE *cdns_rsp_node_new()
     if(EC_FALSE == cdns_rsp_node_init(cdns_rsp_node))
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_rsp_node_new: init cdns_rsp_node failed\n");
-        free_static_mem(MM_CDNS_RSP_NODE, cdns_rsp_node, LOC_CDNS_0015);
+        free_static_mem(MM_CDNS_RSP_NODE, cdns_rsp_node, LOC_CDNS_0016);
         return (NULL_PTR);
     }
 
@@ -1455,7 +1455,7 @@ EC_BOOL cdns_rsp_node_free(CDNS_RSP_NODE *cdns_rsp_node)
     if(NULL_PTR != cdns_rsp_node)
     {
         cdns_rsp_node_clean(cdns_rsp_node);
-        free_static_mem(MM_CDNS_RSP_NODE, cdns_rsp_node, LOC_CDNS_0016);
+        free_static_mem(MM_CDNS_RSP_NODE, cdns_rsp_node, LOC_CDNS_0017);
     }
  
     return (EC_TRUE);
@@ -1484,7 +1484,7 @@ EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp)
         return (EC_FALSE);
     }
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CDNS_0017);
+    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CDNS_0018);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_request: new croutine_cond failed\n");
@@ -1505,8 +1505,8 @@ EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp)
     CDNS_NODE_REQ(cdns_node) = (CDNS_REQ *)cdns_req;
     CDNS_NODE_RSP(cdns_node) = (CDNS_RSP *)cdns_rsp;
  
-    croutine_cond_reserve(croutine_cond, 1, LOC_CDNS_0018);
-    croutine_cond_wait(croutine_cond, LOC_CDNS_0019);
+    croutine_cond_reserve(croutine_cond, 1, LOC_CDNS_0019);
+    croutine_cond_wait(croutine_cond, LOC_CDNS_0020);
 
     __COROUTINE_CATCH_EXCEPTION() { /*exception*/
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error: cdns_request: coroutine was cancelled\n"); 

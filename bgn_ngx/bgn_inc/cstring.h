@@ -67,7 +67,7 @@ int cstring_ncmp(const CSTRING *cstring_src, const CSTRING *cstring_des, const U
 
 EC_BOOL cstring_expand(CSTRING *cstring, const UINT32 location);
 
-EC_BOOL cstring_expand_to(CSTRING *cstring, const UINT32 size);
+EC_BOOL cstring_expand_to(CSTRING *cstring, const UINT32 size, const UINT32 location);
 
 EC_BOOL cstring_set_capacity(CSTRING *cstring, const UINT32 capacity);
 
@@ -111,7 +111,7 @@ EC_BOOL cstring_erase_char(CSTRING *cstring, const UINT32 pos);
 
 EC_BOOL cstring_append_char(CSTRING *cstring, const UINT8 ch);
 
-EC_BOOL cstring_append_chars(CSTRING *cstring, const UINT32 ch_num, const UINT8 *chars);
+EC_BOOL cstring_append_chars(CSTRING *cstring, const UINT32 ch_num, const UINT8 *chars, const UINT32 location);
 
 EC_BOOL cstring_append_str(CSTRING *cstring, const UINT8 *str);
 

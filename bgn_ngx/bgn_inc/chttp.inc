@@ -783,6 +783,8 @@ typedef struct
     CSTRKV_MGR          param;
     CSTRKV_MGR          header;
 
+    CSTRING             ca_file; /*ca file name. used for https*/
+
     CBYTES              body;
 }CHTTP_REQ;
 
@@ -794,6 +796,7 @@ typedef struct
 #define CHTTP_REQ_URI(chttp_req)                    (&((chttp_req)->uri))
 #define CHTTP_REQ_PARAM(chttp_req)                  (&((chttp_req)->param))
 #define CHTTP_REQ_HEADER(chttp_req)                 (&((chttp_req)->header))
+#define CHTTP_REQ_CA_FILE(chttp_req)                (&((chttp_req)->ca_file))
 #define CHTTP_REQ_BODY(chttp_req)                   (&((chttp_req)->body))
 
 typedef struct

@@ -152,7 +152,7 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
         return (-1);
     }
 
-    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length);
+    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0001);
     cstrkv_mgr_add_kv(CHTTP_RSP_HEADER(chttp_rsp), cstrkv);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_field: "
@@ -184,7 +184,7 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
         return (-1);
     }
 
-    cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length);
+    cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0002);
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_value: "
                                             "chttp_rsp %p, Header value: '%.*s'\n", 
                                             chttp_rsp, (int)length, at);

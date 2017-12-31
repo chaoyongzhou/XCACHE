@@ -32,7 +32,7 @@ EC_BOOL cssl_node_create_ssl(CSSL_NODE *cssl_node);
 
 EC_BOOL cssl_node_bind_socket(CSSL_NODE *cssl_node, const int sockfd);
 
-CSSL_NODE * cssl_node_make_on_client(const int sockfd);
+CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file);
 
 CSSL_NODE * cssl_node_make_on_server(CSSL_NODE *cssl_node_srv, const int client_sockfd);
 

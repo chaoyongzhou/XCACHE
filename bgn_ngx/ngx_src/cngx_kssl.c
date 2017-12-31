@@ -309,6 +309,7 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
 {
     ngx_http_bgn_kssl_srv_conf_t    *kscf;
 
+    const char                      *kssl_ca_file;
     const char                      *kssl_server;
     int                              kssl_port;
     
@@ -317,12 +318,17 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     CBYTES                          *rsp_body;
 
     kscf = ngx_ssl_get_server_conf(ssl_ctx);
-    
+
+    kssl_ca_file         = (const char *)kscf->kssl_ca_file.data;
     kssl_server          = (const char *)kscf->kssl_server_ipaddr.data;
     kssl_port            = (int         )kscf->kssl_server_port;
     
     ASSERT(NULL_PTR != kssl_server);
 
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
+                                         "ca: %s\n",
+                                         kssl_ca_file); 
+                                         
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "server: %s\n",
                                          kssl_server); 
@@ -342,10 +348,15 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
 
     chttp_req_add_header(&chttp_req, (const char *)"Host"          , (const char *)"www.pki.com");
     chttp_req_add_header(&chttp_req, (const char *)"Accept"        , (const char *)"*/*");
-    chttp_req_add_header(&chttp_req, (const char *)"Connection"    , (const char *)"close"/*"keep-alive"*/);
+    chttp_req_add_header(&chttp_req, (const char *)"Connection"    , (const char *)/*"close"*/"keep-alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Type"  , (const char *)"application/x-www-form-urlencoded");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (const char *)"0");
 
+    if(NULL_PTR != kssl_ca_file)
+    {
+        chttp_req_set_ca_file(&chttp_req, kssl_ca_file);
+    }
+    
     if(EC_FALSE == chttps_request(&chttp_req, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_https_handler: "

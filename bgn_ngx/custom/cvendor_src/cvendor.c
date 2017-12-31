@@ -6091,7 +6091,7 @@ EC_BOOL cvendor_content_ims_header_out_not_304_filter(const UINT32 cvendor_md_id
         dbg_exit(MD_CVENDOR, cvendor_md_id_t);
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
-
+       
     if(EC_FALSE == cvendor_content_ims_header_out_not_304_last_modified_filter(cvendor_md_id, cvendor_md_id_t, status))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_filter: "
@@ -6102,7 +6102,7 @@ EC_BOOL cvendor_content_ims_header_out_not_304_filter(const UINT32 cvendor_md_id
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_out_not_304_filter: "
                                             "[status %u] last modified filter done\n",
                                             status);      
-
+   
     if(EC_FALSE == cvendor_content_ims_header_out_not_304_expires_filter(cvendor_md_id, cvendor_md_id_t, status))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_filter: "
@@ -6113,7 +6113,7 @@ EC_BOOL cvendor_content_ims_header_out_not_304_filter(const UINT32 cvendor_md_id
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_out_not_304_filter: "
                                             "[status %u] expires filter done\n",
                                             status); 
-
+   
     if(EC_FALSE == cvendor_content_ims_header_out_not_304_content_range_filter(cvendor_md_id, cvendor_md_id_t, status))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_filter: "
@@ -6326,6 +6326,7 @@ EC_BOOL cvendor_content_ims_procedure(const UINT32 cvendor_md_id)
                                                 "[status %u] filter done\n",
                                                 status);   
         cvendor_end(cvendor_md_id_t);
+        
         return (EC_TRUE);
     }
 
@@ -6333,6 +6334,7 @@ EC_BOOL cvendor_content_ims_procedure(const UINT32 cvendor_md_id)
                                             "ims rsp status = %u != %u => return false\n",
                                             status, CHTTP_NOT_MODIFIED); 
     cvendor_end(cvendor_md_id_t);
+ 
     return (EC_FALSE);
 }
 
@@ -8076,10 +8078,11 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
 
             return (EC_FALSE);
         }
+        cbytes_clean(&seg_cbytes);
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                 "parse seg %ld done\n", 
                                                 seg_no);
-
+        
         if(EC_FALSE == cngx_headers_dir2_filter(r, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
@@ -8088,8 +8091,6 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
         }
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                 "dir2 filter done\n"); 
-
-        cbytes_clean(&seg_cbytes);
 
         /*chunk*/
         if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)

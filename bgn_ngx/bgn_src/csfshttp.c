@@ -711,7 +711,7 @@ EC_BOOL csfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0007);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -980,7 +980,7 @@ static UINT32 __csfshttp_convert_expires_str_to_nseconds(const char *expires_str
     if(1 == seg_num)
     {
         expires_nsec = c_str_to_word(fields[0]);
-        safe_free(str, LOC_CSFSHTTP_0007);
+        safe_free(str, LOC_CSFSHTTP_0008);
         return (expires_nsec);
     }
 
@@ -996,11 +996,11 @@ static UINT32 __csfshttp_convert_expires_str_to_nseconds(const char *expires_str
 
         expires_nsec = (expire_when - cur_time);
 
-        safe_free(str, LOC_CSFSHTTP_0008);
+        safe_free(str, LOC_CSFSHTTP_0009);
         return (expires_nsec);
     }
 
-    safe_free(str, LOC_CSFSHTTP_0009);
+    safe_free(str, LOC_CSFSHTTP_0010);
     return ((UINT32)0);
 }
 EC_BOOL csfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
@@ -1025,7 +1025,7 @@ EC_BOOL csfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0011);
 
     cstring_init(&token_cstr, NULL_PTR);
 
@@ -1291,7 +1291,7 @@ EC_BOOL csfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0012);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1520,7 +1520,7 @@ EC_BOOL csfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0013);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2088,7 +2088,7 @@ EC_BOOL csfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0014);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_setsmf_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2385,7 +2385,7 @@ EC_BOOL csfshttp_handle_setsmf_memc_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0015);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_setsmf_memc_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2661,7 +2661,7 @@ EC_BOOL csfshttp_handle_check_memc_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/checkmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0016);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_check_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -2895,7 +2895,7 @@ EC_BOOL csfshttp_handle_getsmf_memc_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0017);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_getsmf_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3151,7 +3151,7 @@ EC_BOOL csfshttp_handle_update_memc_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/updatememc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0018);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_update_memc_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3419,7 +3419,7 @@ EC_BOOL csfshttp_handle_dsmf_memc_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmfmemc");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0019);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_dsmf_memc_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3631,7 +3631,7 @@ EC_BOOL csfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0020);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_getsmf_head_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3853,7 +3853,7 @@ EC_BOOL csfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0021);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_update_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4117,7 +4117,7 @@ EC_BOOL csfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0022);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4327,7 +4327,7 @@ EC_BOOL csfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0023);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4540,7 +4540,7 @@ EC_BOOL csfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sexpire");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0024);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5814,7 +5814,7 @@ EC_BOOL csfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_wait");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0025);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_file_wait_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6158,7 +6158,7 @@ EC_BOOL csfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0026);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6366,7 +6366,7 @@ EC_BOOL csfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0027);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6583,7 +6583,7 @@ EC_BOOL csfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0028);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6964,7 +6964,7 @@ EC_BOOL csfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CSFSHTTP_0029);
 
     dbg_log(SEC_0168_CSFSHTTP, 9)(LOGSTDOUT, "[DEBUG] csfshttp_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 

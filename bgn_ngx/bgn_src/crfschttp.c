@@ -283,7 +283,7 @@ static int __crfschttp_on_header_field(http_parser_t* http_parser, const char* a
         return (-1);
     }
 
-    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length);
+    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CRFSCHTTP_0001);
     cstrkv_mgr_add_kv(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), cstrkv);
 
     dbg_log(SEC_0145_CRFSCHTTP, 5)(LOGSTDOUT, "Header field: %.*s\n", (int)length, at);
@@ -305,7 +305,7 @@ static int __crfschttp_on_header_value(http_parser_t* http_parser, const char* a
         return (-1);
     }
 
-    cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length);
+    cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CRFSCHTTP_0002);
 
     dbg_log(SEC_0145_CRFSCHTTP, 5)(LOGSTDOUT, "Header value: %.*s\n", (int)length, at);
     return (0);
@@ -480,7 +480,7 @@ void crfschttp_csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 
 EC_BOOL crfschttp_csocket_cnode_defer_close_list_init()
 {
-    clist_init(&g_csocket_cnode_defer_close_list, MM_CSOCKET_CNODE, LOC_CRFSCHTTP_0001);
+    clist_init(&g_csocket_cnode_defer_close_list, MM_CSOCKET_CNODE, LOC_CRFSCHTTP_0003);
     return (EC_TRUE);
 }
 
@@ -492,12 +492,12 @@ EC_BOOL crfschttp_csocket_cnode_defer_close_list_push(CSOCKET_CNODE *csocket_cno
     cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
     CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
 
-    CLIST_LOCK(&g_csocket_cnode_defer_close_list, LOC_CRFSCHTTP_0002);
+    CLIST_LOCK(&g_csocket_cnode_defer_close_list, LOC_CRFSCHTTP_0004);
     if(NULL_PTR == clist_search_front_no_lock(&g_csocket_cnode_defer_close_list, (void *)csocket_cnode, NULL_PTR))
     {
         clist_push_back_no_lock(&g_csocket_cnode_defer_close_list, (void *)csocket_cnode);
     }
-    CLIST_UNLOCK(&g_csocket_cnode_defer_close_list, LOC_CRFSCHTTP_0003);
+    CLIST_UNLOCK(&g_csocket_cnode_defer_close_list, LOC_CRFSCHTTP_0005);
     return (EC_TRUE);
 }
 
@@ -591,7 +591,7 @@ void crfschttp_csocket_cnode_timeout(CSOCKET_CNODE *csocket_cnode)
 
 EC_BOOL crfschttp_defer_request_queue_init()
 {
-    cqueue_init(&g_crfschttp_defer_request_queue, MM_CRFSCHTTP_NODE, LOC_CRFSCHTTP_0004);
+    cqueue_init(&g_crfschttp_defer_request_queue, MM_CRFSCHTTP_NODE, LOC_CRFSCHTTP_0006);
 
     if(EC_FALSE == cepoll_set_loop_handler(task_brd_default_get_cepoll(),
                                             (const char *)"crfschttp_defer_launch",
@@ -1166,7 +1166,7 @@ EC_BOOL crfschttp_handle_renew_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0007);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_renew_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1231,7 +1231,7 @@ EC_BOOL crfschttp_handle_setsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0008);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_setsmf_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1336,7 +1336,7 @@ EC_BOOL crfschttp_handle_update_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0009);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_update_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1439,7 +1439,7 @@ EC_BOOL crfschttp_handle_put_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0010);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_put_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1566,7 +1566,7 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0011);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_post_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1778,14 +1778,14 @@ static EC_BOOL __crfschttp_handle_getrgf_request_fetch_path(CRFSCHTTP_NODE *crfs
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getrgf");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getrgf");
  
-    store_path = cstring_new(NULL_PTR, LOC_CRFSCHTTP_0005);
+    store_path = cstring_new(NULL_PTR, LOC_CRFSCHTTP_0012);
     if(NULL_PTR == store_path)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getrgf_request_fetch_path: node %p, new cstring for store path %.*s failed\n",
                             crfschttp_node, cache_len, cache_key);
         return (EC_FALSE);
     }
-    cstring_append_chars(store_path, cache_len, cache_key);
+    cstring_append_chars(store_path, cache_len, cache_key, LOC_CRFSCHTTP_0013);
     CRFSCHTTP_NODE_STORE_PATH(crfschttp_node) = store_path;
 
     return (EC_TRUE);
@@ -1968,7 +1968,7 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0014);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_getsmf_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -2084,7 +2084,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfsc
     {
         uint8_t *data_buff;
 
-        data_buff = safe_malloc(max_len, LOC_CRFSCHTTP_0006);
+        data_buff = safe_malloc(max_len, LOC_CRFSCHTTP_0015);
         if(NULL_PTR == data_buff)
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_read_body: node %p, malloc %ld bytes failed before read path %s from offset %ld\n",
@@ -2390,14 +2390,14 @@ static EC_BOOL __crfschttp_handle_getbgf_request_fetch_path(CRFSCHTTP_NODE *crfs
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getbgf");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getbgf");
  
-    store_path = cstring_new(NULL_PTR, LOC_CRFSCHTTP_0007);
+    store_path = cstring_new(NULL_PTR, LOC_CRFSCHTTP_0016);
     if(NULL_PTR == store_path)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_fetch_path: node %p, new cstring for store path %.*s failed\n",
                             crfschttp_node, cache_len, cache_key);
         return (EC_FALSE);
     }
-    cstring_append_chars(store_path, cache_len, cache_key);
+    cstring_append_chars(store_path, cache_len, cache_key, LOC_CRFSCHTTP_0017);
     CRFSCHTTP_NODE_STORE_PATH(crfschttp_node) = store_path;
 
     return (EC_TRUE);
@@ -2613,7 +2613,7 @@ EC_BOOL crfschttp_handle_dsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0018);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_dsmf_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -2664,7 +2664,7 @@ EC_BOOL crfschttp_handle_ddir_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
  
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0019);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_ddir_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -3614,7 +3614,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_FALSE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0008); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0020); 
      
         return (EC_TRUE);
     }
@@ -3650,7 +3650,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_TRUE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0009); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0021); 
      
         return (EC_TRUE);
     } 
@@ -3686,7 +3686,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_FALSE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0010); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0022); 
 
  
         return (EC_TRUE);
@@ -3719,7 +3719,7 @@ CRFSCHTTP_NODE *crfschttp_node_new(const uint32_t size)
     CRFSCHTTP_NODE *crfschttp_node;
 
     //dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_node_new: size = %d\n", size);
-    alloc_static_mem(MM_CRFSCHTTP_NODE, &crfschttp_node, LOC_CRFSCHTTP_0011);
+    alloc_static_mem(MM_CRFSCHTTP_NODE, &crfschttp_node, LOC_CRFSCHTTP_0023);
     if(NULL_PTR == crfschttp_node)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_node_new: new crfschttp_node failed\n");
@@ -3729,7 +3729,7 @@ CRFSCHTTP_NODE *crfschttp_node_new(const uint32_t size)
     if(EC_FALSE == crfschttp_node_init(crfschttp_node, size))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_node_new: init crfschttp_node failed\n");
-        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0012);
+        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0024);
         return (NULL_PTR);
     }
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_node_new: node %p, size = %d\n", crfschttp_node, size);
@@ -3860,7 +3860,7 @@ EC_BOOL crfschttp_node_clean(CRFSCHTTP_NODE *crfschttp_node)
     CRFSCHTTP_NODE_SEND_DATA_MORE(crfschttp_node) = NULL_PTR;
     if(NULL_PTR != CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node))
     {
-        safe_free(CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node), LOC_CRFSCHTTP_0013);
+        safe_free(CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node), LOC_CRFSCHTTP_0025);
         CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node) = NULL_PTR;
     }
     CRFSCHTTP_NODE_SEND_DATA_TOTAL_LEN(crfschttp_node) = 0;
@@ -3891,7 +3891,7 @@ EC_BOOL crfschttp_node_free(CRFSCHTTP_NODE *crfschttp_node)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "[DEBUG] crfschttp_node_free: node %p\n", crfschttp_node);
         crfschttp_node_clean(crfschttp_node);
-        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0014);
+        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0026);
     }
 
     return (EC_TRUE);
@@ -4029,7 +4029,7 @@ static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *crfschttp_nod
             cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
          
             cstring_init(&path_cstr, NULL_PTR);
-            cstring_append_chars(&path_cstr, cache_len, cache_key);         
+            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0027);         
          
             if(EC_TRUE == crfsc_is_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
@@ -4057,7 +4057,7 @@ static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *crfschttp_nod
             cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
          
             cstring_init(&path_cstr, NULL_PTR);
-            cstring_append_chars(&path_cstr, cache_len, cache_key);         
+            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0028);         
          
             if(EC_TRUE == crfsc_is_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
@@ -4361,7 +4361,7 @@ EC_BOOL crfschttp_recv_on_csocket_cnode_thread(CSOCKET_CNODE *csocket_cnode)
     cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
     CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
     
-    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0015); 
+    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0029); 
  
     return (EC_TRUE);
 }
@@ -4393,7 +4393,7 @@ EC_BOOL crfschttp_send_on_csocket_cnode_thread(CSOCKET_CNODE *csocket_cnode)
     cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT);
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
     
-    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0016); 
+    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0030); 
  
     return (EC_TRUE);
 }

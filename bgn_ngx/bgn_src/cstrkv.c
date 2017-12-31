@@ -161,9 +161,9 @@ EC_BOOL cstrkv_set_key_str(CSTRKV *cstrkv, const char *key)
     return (EC_TRUE);
 }
 
-EC_BOOL cstrkv_set_key_bytes(CSTRKV *cstrkv, const uint8_t *key, const uint32_t key_len)
+EC_BOOL cstrkv_set_key_bytes(CSTRKV *cstrkv, const uint8_t *key, const uint32_t key_len, const UINT32 location)
 {
-    cstring_append_chars(CSTRKV_KEY(cstrkv), key_len, key);
+    cstring_append_chars(CSTRKV_KEY(cstrkv), key_len, key, location);
     return (EC_TRUE);
 }
 
@@ -173,9 +173,9 @@ EC_BOOL cstrkv_set_val_str(CSTRKV *cstrkv, const char *val)
     return (EC_TRUE);
 }
 
-EC_BOOL cstrkv_set_val_bytes(CSTRKV *cstrkv, const uint8_t *val, const uint32_t val_len)
+EC_BOOL cstrkv_set_val_bytes(CSTRKV *cstrkv, const uint8_t *val, const uint32_t val_len, const UINT32 location)
 {
-    cstring_append_chars(CSTRKV_VAL(cstrkv), val_len, val);
+    cstring_append_chars(CSTRKV_VAL(cstrkv), val_len, val, location);
     return (EC_TRUE);
 }
 
@@ -238,31 +238,63 @@ UINT32  cstrkv_mgr_size(const CSTRKV_MGR *cstrkv_mgr)
 
 EC_BOOL cstrkv_mgr_del_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
-    clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp);
+    CSTRKV      *cstrkv_deleted;
+    
+    cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp);
+    if(NULL_PTR != cstrkv_deleted)
+    {
+        cstrkv_free(cstrkv_deleted);
+    }
     return (EC_TRUE);
 }
 
 EC_BOOL cstrkv_mgr_del_key_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
-    clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp_key);
+    CSTRKV      *cstrkv_deleted;
+    
+    cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp_key);
+    if(NULL_PTR != cstrkv_deleted)
+    {
+        cstrkv_free(cstrkv_deleted);
+    }
     return (EC_TRUE);
 }
 
 EC_BOOL cstrkv_mgr_del(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
-    clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp);
+    CSTRKV      *cstrkv_deleted;
+    
+    cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp);
+    if(NULL_PTR != cstrkv_deleted)
+    {
+        cstrkv_free(cstrkv_deleted);
+    }
     return (EC_TRUE);
 }
 
 EC_BOOL cstrkv_mgr_del_key(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
-    clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_key);
+    CSTRKV      *cstrkv_deleted;
+    
+    cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_key);
+    if(NULL_PTR != cstrkv_deleted)
+    {
+        cstrkv_free(cstrkv_deleted);
+    }
+    
     return (EC_TRUE);
 }
 
 EC_BOOL cstrkv_mgr_del_val(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
-    clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_val);
+    CSTRKV      *cstrkv_deleted;
+    
+    cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_val);
+    if(NULL_PTR != cstrkv_deleted)
+    {
+        cstrkv_free(cstrkv_deleted);
+    }
+    
     return (EC_TRUE);
 }
 
@@ -325,8 +357,8 @@ EC_BOOL cstrkv_mgr_add_kv_chars(CSTRKV_MGR *cstrkv_mgr, const char *key, const u
         return (EC_FALSE);
     }
 
-    cstring_append_chars(CSTRKV_KEY(cstrkv), klen, (const uint8_t *)key);
-    cstring_append_chars(CSTRKV_VAL(cstrkv), vlen, (const uint8_t *)val);
+    cstring_append_chars(CSTRKV_KEY(cstrkv), klen, (const uint8_t *)key, LOC_CSTRKV_0006);
+    cstring_append_chars(CSTRKV_VAL(cstrkv), vlen, (const uint8_t *)val, LOC_CSTRKV_0007);
 
     return cstrkv_mgr_add_kv(cstrkv_mgr, cstrkv);
 }

@@ -717,7 +717,7 @@ UINT32 cmpi_decode_cstring(const UINT32 comm, const UINT8 *in_buff, const UINT32
         return ((UINT32)0);
     }
 
-    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1))
+    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CMPIE_0003))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cstring: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
                         cstring->capacity, cstring->len, len + cstring->len + 1);
@@ -1062,7 +1062,7 @@ UINT32 cmpi_decode_log(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_
 
         if(NULL_PTR == LOG_CSTR(log))
         {
-            LOG_CSTR(log) = cstring_new(NULL_PTR, LOC_CMPIE_0003);
+            LOG_CSTR(log) = cstring_new(NULL_PTR, LOC_CMPIE_0004);
         }
         else
         {
@@ -1395,7 +1395,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
     {
         if(MM_UINT32 == type)
         {
-            cvector_clean(cvector, NULL_PTR, LOC_CMPIE_0004);
+            cvector_clean(cvector, NULL_PTR, LOC_CMPIE_0005);
         }
         else
         {
@@ -1410,7 +1410,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
                 data = cvector_get(cvector, pos);
                 data_free(CMPI_ANY_MODI, data);
             }
-            cvector_clean(cvector, NULL_PTR, LOC_CMPIE_0005);
+            cvector_clean(cvector, NULL_PTR, LOC_CMPIE_0006);
         }
     }
 #endif
@@ -1477,7 +1477,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
             data = cvector_get(cvector, pos);
             if(NULL_PTR == data)
             {
-                alloc_static_mem(type, &data, LOC_CMPIE_0006);
+                alloc_static_mem(type, &data, LOC_CMPIE_0007);
                 data_init(data);
                 cvector_set(cvector, pos, (void *)data);/*add new one*/
                 //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_cvector: [3] cvector %lx, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
@@ -1490,7 +1490,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
         {
             void * data;
 
-            alloc_static_mem(type, &data, LOC_CMPIE_0007);
+            alloc_static_mem(type, &data, LOC_CMPIE_0008);
             if(NULL_PTR == data)
             {
                 dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: [3] cvector %lx, size %ld, capacity %ld, pos = %ld failed to alloc\n",
@@ -2751,14 +2751,14 @@ UINT32 cmpi_encode_cload_mgr(const UINT32 comm, const CLOAD_MGR *cload_mgr, UINT
 
     cmpi_encode_uint32(comm, clist_size(cload_mgr), out_buff, out_buff_max_len, position);
 
-    CLIST_LOCK(cload_mgr, LOC_CMPIE_0008);
+    CLIST_LOCK(cload_mgr, LOC_CMPIE_0009);
     CLIST_LOOP_NEXT(cload_mgr, clist_data)
     {
         CLOAD_NODE *cload_node;
         cload_node = (CLOAD_NODE *)CLIST_DATA_DATA(clist_data);
         cmpi_encode_cload_node(comm, cload_node, out_buff, out_buff_max_len, position);
     }
-    CLIST_UNLOCK(cload_mgr, LOC_CMPIE_0009);
+    CLIST_UNLOCK(cload_mgr, LOC_CMPIE_0010);
     return ((UINT32)0);
 }
 
@@ -2768,14 +2768,14 @@ UINT32 cmpi_encode_cload_mgr_size(const UINT32 comm, const CLOAD_MGR *cload_mgr,
 
     cmpi_encode_uint32_size(comm, clist_size(cload_mgr), size);
 
-    CLIST_LOCK(cload_mgr, LOC_CMPIE_0010);
+    CLIST_LOCK(cload_mgr, LOC_CMPIE_0011);
     CLIST_LOOP_NEXT(cload_mgr, clist_data)
     {
         CLOAD_NODE *cload_node;
         cload_node = (CLOAD_NODE *)CLIST_DATA_DATA(clist_data);
         cmpi_encode_cload_node_size(comm, cload_node, size);
     }
-    CLIST_UNLOCK(cload_mgr, LOC_CMPIE_0011);
+    CLIST_UNLOCK(cload_mgr, LOC_CMPIE_0012);
     return ((UINT32)0);
 }
 
@@ -3018,7 +3018,7 @@ UINT32 cmpi_decode_cbytes(const UINT32 comm, const UINT8 *in_buff, const UINT32 
     if(NULL_PTR == CBYTES_BUF(cbytes))
     {
         //dbg_log(SEC_0035_CMPIE, 1)(LOGSTDOUT, "warn:cmpi_decode_cbytes: len %ld but buff is null\n", len);
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(len, LOC_CMPIE_0012);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(len, LOC_CMPIE_0013);
         CBYTES_LEN(cbytes) = len;
     }
     else
@@ -3292,7 +3292,7 @@ UINT32 cmpi_encode_clist(const UINT32 comm, const CLIST *clist, UINT8 *out_buff,
     }
 
     num = 0;
-    CLIST_LOCK(clist, LOC_CMPIE_0013);
+    CLIST_LOCK(clist, LOC_CMPIE_0014);
     CLIST_LOOP_NEXT(clist, clist_data)
     {
         void *data;
@@ -3300,7 +3300,7 @@ UINT32 cmpi_encode_clist(const UINT32 comm, const CLIST *clist, UINT8 *out_buff,
         data_encoder(comm, data, out_buff, out_buff_max_len, position);
         num ++;
     }
-    CLIST_UNLOCK(clist, LOC_CMPIE_0014);
+    CLIST_UNLOCK(clist, LOC_CMPIE_0015);
 
     /*check again*/
     if(size != num)
@@ -3352,27 +3352,27 @@ UINT32 cmpi_encode_clist_size(const UINT32 comm, const CLIST *clist, UINT32 *siz
     {
         CLIST_DATA *clist_data;
 
-        CLIST_LOCK(clist, LOC_CMPIE_0015);
+        CLIST_LOCK(clist, LOC_CMPIE_0016);
         CLIST_LOOP_NEXT(clist, clist_data)
         {
             void *data;
             data = CLIST_DATA_DATA(clist_data);
             data_encoder_size(comm, data, size);
         }
-        CLIST_UNLOCK(clist, LOC_CMPIE_0016);
+        CLIST_UNLOCK(clist, LOC_CMPIE_0017);
     }
     else/*non UINT32*/
     {
         CLIST_DATA *clist_data;
 
-        CLIST_LOCK(clist, LOC_CMPIE_0017);
+        CLIST_LOCK(clist, LOC_CMPIE_0018);
         CLIST_LOOP_NEXT(clist, clist_data)
         {
             void *data;
             data = CLIST_DATA_DATA(clist_data);
             data_encoder_size(comm, data, size);
         }
-        CLIST_UNLOCK(clist, LOC_CMPIE_0018);
+        CLIST_UNLOCK(clist, LOC_CMPIE_0019);
     }
 
     CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist_size: clist %lx: type = %ld, num = %ld, ==> size %ld\n",
@@ -3457,7 +3457,7 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
         {
             void * data;
 
-            alloc_static_mem(type, &data, LOC_CMPIE_0019);
+            alloc_static_mem(type, &data, LOC_CMPIE_0020);
             if(NULL_PTR == data)
             {
                 dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: [3] clist %lx, size %ld, pos = %ld failed to alloc\n",

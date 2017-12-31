@@ -397,7 +397,7 @@ EC_BOOL cstring_expand(CSTRING *cstring, const UINT32 location)
     return (EC_FALSE);
 }
 
-EC_BOOL cstring_expand_to(CSTRING *cstring, const UINT32 size)
+EC_BOOL cstring_expand_to(CSTRING *cstring, const UINT32 size, const UINT32 location)
 {
     UINT32 capacity;
     UINT8 *str;
@@ -412,11 +412,11 @@ EC_BOOL cstring_expand_to(CSTRING *cstring, const UINT32 size)
 
     if(0 == cstring->capacity)
     {
-        str = (UINT8 *)SAFE_MALLOC(capacity, LOC_CSTRING_0007);
+        str = (UINT8 *)SAFE_MALLOC(capacity, location);
     }
     else
     {
-        str = (UINT8 *)SAFE_REALLOC(cstring->str, cstring->capacity, capacity, LOC_CSTRING_0008);
+        str = (UINT8 *)SAFE_REALLOC(cstring->str, cstring->capacity, capacity, location);
     }
 
     if(str)
@@ -448,13 +448,13 @@ EC_BOOL cstring_set_capacity(CSTRING *cstring, const UINT32 capacity)
     UINT8 *str;
     if(0 != cstring->capacity && capacity != cstring->capacity)
     {
-        SAFE_FREE(cstring->str, LOC_CSTRING_0009);
+        SAFE_FREE(cstring->str, LOC_CSTRING_0007);
         cstring->str = (UINT8 *)0;
         cstring->capacity = 0;
     }
 
     cstring->len = 0;
-    str = (UINT8 *)SAFE_MALLOC(sizeof(UINT8) * capacity, LOC_CSTRING_0010);
+    str = (UINT8 *)SAFE_MALLOC(sizeof(UINT8) * capacity, LOC_CSTRING_0008);
     if(str)
     {
         cstring->str = str;
@@ -594,7 +594,7 @@ EC_BOOL cstring_get_cstr(const CSTRING *cstring_src, const UINT32 from, const UI
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cstring_expand_to(cstring_des, end_pos - beg_pos + 1))
+    if(EC_FALSE == cstring_expand_to(cstring_des, end_pos - beg_pos + 1, LOC_CSTRING_0009))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_get_cstr: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
                         cstring_des->capacity, cstring_des->len, end_pos - beg_pos + 1);
@@ -664,7 +664,7 @@ EC_BOOL cstring_set_chars(CSTRING *cstring, const UINT8 *pchs, const UINT32 len)
 
     cstring_clean(cstring);
 
-    cstring->str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0011);
+    cstring->str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0010);
     if(NULL_PTR == cstring->str)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_set_chars: failed to malloc memory %ld bytes\n", len);
@@ -694,7 +694,7 @@ CSTRING *cstring_make(const char *format, ...)
 
     va_list params;
 
-    cstring = cstring_new(NULL_PTR, LOC_CSTRING_0012);
+    cstring = cstring_new(NULL_PTR, LOC_CSTRING_0011);
     if(NULL_PTR == cstring)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_make: new cstring failed\n");
@@ -709,7 +709,7 @@ CSTRING *cstring_make(const char *format, ...)
 
     len = (UINT32)vsnprintf((char *)0, 0, format, params);
 
-    cstring_expand_to(cstring, len + cstring->len + 1);
+    cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0012);
 
     len = vsnprintf((char *)(cstring->str + cstring->len), cstring->capacity - cstring->len, format, ap);
     cstring->len += len;
@@ -825,12 +825,12 @@ EC_BOOL cstring_append_char(CSTRING *cstring, const UINT8 ch)
     return (EC_TRUE);
 }
 
-EC_BOOL cstring_append_chars(CSTRING *cstring, const UINT32 ch_num, const UINT8 *chars)
+EC_BOOL cstring_append_chars(CSTRING *cstring, const UINT32 ch_num, const UINT8 *chars, const UINT32 location)
 {
 //    UINT32 pos;
     if(cstring->len + ch_num >= cstring->capacity)
     {
-        if(EC_FALSE == cstring_expand_to(cstring, cstring->len + ch_num + 1))
+        if(EC_FALSE == cstring_expand_to(cstring, cstring->len + ch_num + 1, location))
         {
             dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_append_chars: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
                             cstring->capacity, cstring->len, cstring->len + ch_num + 1);
@@ -866,7 +866,7 @@ EC_BOOL cstring_append_str(CSTRING *cstring, const UINT8 *str)
 
     str_len = strlen((char *)str);
 
-    if(EC_FALSE == cstring_expand_to(cstring, cstring->len + str_len + 1))
+    if(EC_FALSE == cstring_expand_to(cstring, cstring->len + str_len + 1, LOC_CSTRING_0018))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_append_str: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
                         cstring->capacity, cstring->len, cstring->len + str_len + 1);
@@ -1048,7 +1048,7 @@ UINT32 cstring_fread(CSTRING *cstring, FILE *fp)
         if(cstring->len == cstring->capacity)
         {
             /*expand cstring to accept left bytes in file*/
-            if(EC_FALSE == cstring_expand(cstring, LOC_CSTRING_0018))
+            if(EC_FALSE == cstring_expand(cstring, LOC_CSTRING_0019))
             {
                 dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_fread: failed to expand cstring with capaciy %ld and len %ld\n",
                                 cstring->capacity, cstring->len);
@@ -1112,7 +1112,7 @@ EC_BOOL cstring_format(CSTRING *cstring, const char *format, ...)
 
     len = (UINT32)vsnprintf((char *)0, 0, format, params);
 
-    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1))
+    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0020))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_format: expand from %ld to %ld failed\n",
                     cstring->len, len + cstring->len + 1);
@@ -1139,7 +1139,7 @@ EC_BOOL cstring_vformat(CSTRING *cstring, const char *format, va_list ap)
 
     len = (UINT32)vsnprintf((char *)0, 0, format, params);
 
-    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1))
+    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0021))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_vformat: expand from %ld to %ld failed\n",
                     cstring->len, len + cstring->len + 1);
@@ -1158,7 +1158,7 @@ CSTRING * cstring_load0(int fd, UINT32 *offset)
     CSTRING *cstring;
     UINT8   *str;
 
-    cstring = cstring_new(NULL_PTR, LOC_CSTRING_0019);
+    cstring = cstring_new(NULL_PTR, LOC_CSTRING_0022);
     if(NULL_PTR == cstring)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: new cstring failed\n");
@@ -1177,7 +1177,7 @@ CSTRING * cstring_load0(int fd, UINT32 *offset)
         return (cstring);
     }
 
-    str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0020);
+    str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0023);
     if(NULL_PTR == str)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %u bytes failed\n", len + 1);
@@ -1188,7 +1188,7 @@ CSTRING * cstring_load0(int fd, UINT32 *offset)
     if(EC_FALSE == c_file_load(fd, offset, len, (UINT8 *)str))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %u bytes failed\n", len);
-        SAFE_FREE(str, LOC_CSTRING_0021);
+        SAFE_FREE(str, LOC_CSTRING_0024);
         cstring_free(cstring);
         return (NULL_PTR);
     }
@@ -1219,7 +1219,7 @@ EC_BOOL cstring_load(CSTRING *cstring, int fd, UINT32 *offset)
         return (EC_TRUE);
     }
 
-    str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0022);
+    str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0025);
     if(NULL_PTR == str)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %u bytes failed\n", len + 1);
@@ -1229,7 +1229,7 @@ EC_BOOL cstring_load(CSTRING *cstring, int fd, UINT32 *offset)
     if(EC_FALSE == c_file_load(fd, offset, len, (UINT8 *)str))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %u bytes failed\n", len);
-        SAFE_FREE(str, LOC_CSTRING_0023);
+        SAFE_FREE(str, LOC_CSTRING_0026);
         return (EC_FALSE);
     }
 
@@ -1414,7 +1414,7 @@ EC_BOOL cstring_regex(const CSTRING *cstring, const CSTRING *pattern, CVECTOR *c
         from = ovector[ 2 * idx ];
         to   = ovector[ 2 * idx + 1];
 
-        sub_cstring = cstring_new(NULL_PTR, LOC_CSTRING_0024);
+        sub_cstring = cstring_new(NULL_PTR, LOC_CSTRING_0027);
 
         cstring_get_cstr(cstring, from, to, sub_cstring);
 
