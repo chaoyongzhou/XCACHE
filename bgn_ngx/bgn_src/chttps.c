@@ -595,26 +595,28 @@ EC_BOOL chttps_node_init(CHTTPS_NODE *chttps_node, const UINT32 type)
     {
         dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_init: chttps_node: %p\n", chttps_node);
 
-        CHTTPS_NODE_STATUS(chttps_node)        = CHTTPS_NODE_STATUS_UNDEF;
+        CHTTPS_NODE_STATUS(chttps_node)                 = CHTTPS_NODE_STATUS_UNDEF;
 
-        CHTTPS_NODE_CSSL_NODE(chttps_node)     = NULL_PTR; /* initialize ssl */
-        CHTTPS_NODE_CA_FILE(chttps_node)       = NULL_PTR;
+        CHTTPS_NODE_CSSL_NODE(chttps_node)              = NULL_PTR; /* initialize ssl */
+        CHTTPS_NODE_CA_FILE(chttps_node)                = NULL_PTR;
+        CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node)       = NULL_PTR;
+        CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node)    = NULL_PTR;
      
-        CHTTPS_NODE_CSRV(chttps_node)          = NULL_PTR;
+        CHTTPS_NODE_CSRV(chttps_node)                   = NULL_PTR;
      
-        CHTTPS_NODE_CROUTINE_NODE(chttps_node) = NULL_PTR;
+        CHTTPS_NODE_CROUTINE_NODE(chttps_node)          = NULL_PTR;
 
-        CHTTPS_NODE_CROUTINE_COND(chttps_node) = NULL_PTR;
+        CHTTPS_NODE_CROUTINE_COND(chttps_node)          = NULL_PTR;
 
         CHTTPS_NODE_TYPE(chttps_node) = type;
 
-        CHTTPS_NODE_STATUS_CODE(chttps_node) = CHTTP_STATUS_NONE;
+        CHTTPS_NODE_STATUS_CODE(chttps_node)            = CHTTP_STATUS_NONE;
      
         __chttps_parser_init(CHTTPS_NODE_PARSER(chttps_node), type);
         __chttps_parser_setting_init(CHTTPS_NODE_SETTING(chttps_node));
 
-        CHTTPS_NODE_CSOCKET_CNODE(chttps_node)     = NULL_PTR;
-        CHTTPS_NODE_CQUEUE_DATA(chttps_node)       = NULL_PTR;
+        CHTTPS_NODE_CSOCKET_CNODE(chttps_node)          = NULL_PTR;
+        CHTTPS_NODE_CQUEUE_DATA(chttps_node)            = NULL_PTR;
 
         cbuffer_init(CHTTPS_NODE_URL(chttps_node) , 0);
         cbuffer_init(CHTTPS_NODE_HOST(chttps_node), 0);
@@ -669,6 +671,18 @@ EC_BOOL chttps_node_clean(CHTTPS_NODE *chttps_node)
             cstring_free(CHTTPS_NODE_CA_FILE(chttps_node));
             CHTTPS_NODE_CA_FILE(chttps_node) = NULL_PTR;
         }
+
+        if(NULL_PTR != CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node))
+        {
+            cstring_free(CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node));
+            CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node) = NULL_PTR;
+        } 
+
+        if(NULL_PTR != CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node))
+        {
+            cstring_free(CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node));
+            CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node) = NULL_PTR;
+        }         
 
         CHTTPS_NODE_CSRV(chttps_node) = NULL_PTR;
 
@@ -3906,17 +3920,14 @@ EC_BOOL chttps_node_handshake_on_client(CHTTPS_NODE *chttps_node, CSOCKET_CNODE 
     {
         CSSL_NODE   *cssl_node;
         const char  *ca_file;
+        const char  *client_cert_file;
+        const char  *client_privkey_file;
         
-        if(NULL_PTR != CHTTPS_NODE_CA_FILE(chttps_node))
-        {
-            ca_file = (const char *)cstring_get_str(CHTTPS_NODE_CA_FILE(chttps_node));
-        }
-        else
-        {
-            ca_file = NULL_PTR;
-        }
-
-        cssl_node = cssl_node_make_on_client(CSOCKET_CNODE_SOCKFD(csocket_cnode), ca_file);
+        ca_file             = (const char *)cstring_get_str(CHTTPS_NODE_CA_FILE(chttps_node));
+        client_cert_file    = (const char *)cstring_get_str(CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node));
+        client_privkey_file = (const char *)cstring_get_str(CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node));
+        
+        cssl_node = cssl_node_make_on_client(CSOCKET_CNODE_SOCKFD(csocket_cnode), ca_file, client_cert_file, client_privkey_file);
         if(NULL_PTR == cssl_node)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_handshake_on_client: new cssl_node failed\n");
@@ -4286,6 +4297,36 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         }
         CHTTPS_NODE_CA_FILE(chttps_node) = ca_file;
     }
+
+    /*set client certificate file and private key file*/
+    if(EC_FALSE == cstring_is_empty(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req)))
+    {
+        CSTRING         *client_cert_file;
+        client_cert_file = cstring_dup(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req));
+        if(NULL_PTR == client_cert_file)
+        {
+            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: dup client certificate file '%s' failed\n",
+                           (char *)cstring_get_str(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req)));
+         
+            chttps_node_free(chttps_node);
+            return (EC_FALSE);
+        }
+        CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node) = client_cert_file;
+    }    
+    if(EC_FALSE == cstring_is_empty(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req)))
+    {
+        CSTRING         *client_privkey_file;
+        client_privkey_file = cstring_dup(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req));
+        if(NULL_PTR == client_privkey_file)
+        {
+            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: dup client certificate file '%s' failed\n",
+                           (char *)cstring_get_str(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req)));
+         
+            chttps_node_free(chttps_node);
+            return (EC_FALSE);
+        }
+        CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node) = client_privkey_file;
+    }    
 
     croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0023);
     if(NULL_PTR == croutine_cond)

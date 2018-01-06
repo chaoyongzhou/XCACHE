@@ -7628,7 +7628,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     }
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
-//#if (SWITCH_ON == NGX_BGN_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH)
     if(EC_TRUE == task_brd_default_check_csrv_enabled())
     {
         if(EC_TRUE == chttp_defer_request_queue_init())
@@ -7640,7 +7640,7 @@ LOG * task_brd_default_init(int argc, char **argv)
             chttp_rest_list_push((const char *)CRFSHTTP_REST_API_NAME, crfshttp_commit_request);
         }
    }
-//#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
     return (log);
 }

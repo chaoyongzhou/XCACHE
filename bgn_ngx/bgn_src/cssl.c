@@ -70,6 +70,8 @@ EC_BOOL cssl_node_init(CSSL_NODE *cssl_node)
         CSSL_NODE_SSL_CTX(cssl_node)        = NULL_PTR;
 
         cstring_init(CSSL_NODE_CA_FILE(cssl_node), NULL_PTR);
+        cstring_init(CSSL_NODE_CLIENT_CERT_FILE(cssl_node), NULL_PTR);
+        cstring_init(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node), NULL_PTR);
     }
  
     return (EC_TRUE);
@@ -93,6 +95,8 @@ EC_BOOL cssl_node_clean(CSSL_NODE *cssl_node)
         }
 
         cstring_clean(CSSL_NODE_CA_FILE(cssl_node));
+        cstring_clean(CSSL_NODE_CLIENT_CERT_FILE(cssl_node));
+        cstring_clean(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node));
 
         CSSL_NODE_TYPE(cssl_node) = CSSL_NODE_UNKNOWN_TYPE;
     }
@@ -226,8 +230,43 @@ EC_BOOL cssl_node_create_ctx(CSSL_NODE *cssl_node)
         dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: set to verify peer\n");
 
         SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+
         CSSL_NODE_SSL_CTX(cssl_node) = ctx;
 
+        if(EC_FALSE == cstring_is_empty(CSSL_NODE_CLIENT_CERT_FILE(cssl_node))
+        && EC_FALSE == cstring_is_empty(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node)))
+        {
+            const char      *client_cert;
+            const char      *client_privkey;
+
+            client_cert     = (const char *)cstring_get_str(CSSL_NODE_CLIENT_CERT_FILE(cssl_node));
+            client_privkey  = (const char *)cstring_get_str(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node));
+            
+            if(EC_FALSE == cssl_node_load_certificate(cssl_node, client_cert))
+            {
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client certificate '%s' failed\n", 
+                                client_cert);
+                return (EC_FALSE);            
+            }
+
+            if(EC_FALSE == cssl_node_load_private_key(cssl_node, client_privkey))
+            {
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client private key '%s' failed\n", 
+                                client_privkey);
+                return (EC_FALSE);            
+            }
+            
+            if(EC_FALSE == cssl_node_check_private_key(cssl_node))
+            {
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: check client certificate '%s' and private key '%s' failed\n", 
+                                client_cert, client_privkey);
+                return (EC_FALSE);            
+            }
+
+            dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: check client certificate '%s' and private key '%s' done\n", 
+                            client_cert, client_privkey);            
+        }
+        
         dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: new client ctx done\n");
         return (EC_TRUE);
     }
@@ -327,7 +366,7 @@ static EC_BOOL __cssl_node_make_on_client(CSSL_NODE *cssl_node, const int sockfd
 }
 
 /*on client side*/
-CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file)
+CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file, const char *client_cert_file, const char *client_privkey_file)
 {
     CSSL_NODE *cssl_node;
 
@@ -343,6 +382,16 @@ CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file)
     {
         cstring_append_str(CSSL_NODE_CA_FILE(cssl_node), (const UINT8 *)ca_file);
     }
+
+    if(NULL_PTR != client_cert_file)
+    {
+        cstring_append_str(CSSL_NODE_CLIENT_CERT_FILE(cssl_node), (const UINT8 *)client_cert_file);
+    }
+
+    if(NULL_PTR != client_privkey_file)
+    {
+        cstring_append_str(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node), (const UINT8 *)client_privkey_file);
+    }    
     
     if(EC_FALSE == __cssl_node_make_on_client(cssl_node, sockfd))
     {

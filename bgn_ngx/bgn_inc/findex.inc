@@ -759,7 +759,33 @@
 #define                  FI_crfsmon_crfs_node_num  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 13))
 #define          FI_crfsmon_crfs_node_get_by_hash  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 14))
 
+#define              FI_ctdns_print_module_status  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 0))
+#define           FI_ctdns_free_module_static_mem  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 1))
+#define                            FI_ctdns_start  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 2))
+#define                              FI_ctdns_end  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 3))
+#define                         FI_ctdns_open_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 4))
+#define                        FI_ctdns_close_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 5))
+#define                       FI_ctdns_create_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 6))
+#define                           FI_ctdns_exists  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 7))
+#define                              FI_ctdns_set  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 8))
+#define                              FI_ctdns_get  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 9))
+#define                           FI_ctdns_delete  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 10))
+#define                        FI_ctdns_flush_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 11))
+#define                         FI_ctdns_tcid_num  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 12))
+#define                         FI_ctdns_show_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 13))
+#define                            FI_ctdns_flush  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 14))
 
+#define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
+#define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))
+#define                            FI_cdetect_start  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 2))
+#define                              FI_cdetect_end  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 3))
+#define                  FI_cdetect_show_orig_nodes  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 4))
+#define                   FI_cdetect_show_orig_node  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 5))
+#define                      FI_cdetect_dns_resolve  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 6))
+#define                     FI_cdetect_start_domain  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 7))
+#define                      FI_cdetect_stop_domain  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 8))
+#define                          FI_cdetect_process  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 9))
+#define                     FI_cdetect_process_loop  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 10))
 
 #endif/* _FINDEX_INC */
 

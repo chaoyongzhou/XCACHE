@@ -63,6 +63,12 @@ extern "C"{
 /*CMP4 Package Debug Switch*/
 #define CMP4_DEBUG_SWITCH SWITCH_ON
 
+/*CTDNS Package Debug Switch*/
+#define CTDNS_DEBUG_SWITCH SWITCH_ON
+
+/*CDETECT Package Debug Switch*/
+#define CDETECT_DEBUG_SWITCH SWITCH_ON
+
 /*Encode/Decode Functions Debug Switch*/
 #define ENCODE_DEBUG_SWITCH SWITCH_ON
 

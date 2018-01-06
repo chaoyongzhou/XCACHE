@@ -770,7 +770,7 @@ CRFSNP_MGR *crfsnp_mgr_create(const uint8_t crfsnp_model,
         const char *np_root_dir;
         CRFSNP *crfsnp;
 
-        np_root_dir = (const char *)cstring_get_str(crfsnp_db_root_dir);/*Oops! int the same dire*/
+        np_root_dir = (const char *)cstring_get_str(crfsnp_db_root_dir);/*Oops! int the same dir*/
         crfsnp = crfsnp_create(np_root_dir, crfsnp_id, crfsnp_model, crfsnp_2nd_chash_algo_id);
         if(NULL_PTR == crfsnp)
         {
@@ -789,7 +789,7 @@ CRFSNP_MGR *crfsnp_mgr_create(const uint8_t crfsnp_model,
         const char *np_root_dir;
         CRFSNP *des_crfsnp;
 
-        np_root_dir = (const char *)cstring_get_str(crfsnp_db_root_dir);/*Oops! int the same dire*/
+        np_root_dir = (const char *)cstring_get_str(crfsnp_db_root_dir);/*Oops! int the same dir*/
         des_crfsnp = crfsnp_clone(src_crfsnp, np_root_dir, crfsnp_id);
         if(NULL_PTR == des_crfsnp)
         {

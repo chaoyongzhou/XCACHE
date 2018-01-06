@@ -30,7 +30,7 @@ typedef struct
     uint32_t rb_used      : 1; /*CRFSNPRB_USED or CRFSNPRB_NOT_USED*/
         
     uint32_t rb_right_pos :31; /*value range: [0, 0x7FFFFFFF)*/
-    uint32_t rsvd1       : 1;
+    uint32_t rsvd1        : 1;
 
     uint32_t rb_left_pos  :31; /*value range: [0, 0x7FFFFFFF)*/
     uint32_t rb_color     : 1; /*CRFSNPRB_RED or CRFSNPRB_BLACK*/

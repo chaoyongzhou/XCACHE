@@ -41,7 +41,9 @@ extern "C"{
 #define     MD_CRFSGW    ((UINT32) 18)
 #define     MD_CFLV      ((UINT32) 19)
 #define     MD_CMP4      ((UINT32) 20)
-#define     MD_END       ((UINT32) 21)
+#define     MD_CTDNS     ((UINT32) 21)
+#define     MD_CDETECT   ((UINT32) 22)
+#define     MD_END       ((UINT32) 23)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)
@@ -281,6 +283,14 @@ extern "C"{
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #define                MM_CNGX_KSSL_NODE    ((UINT32)214)
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#define                  MM_CTDNSNP_ITEM    ((UINT32)215)
+#define                       MM_CTDNSNP    ((UINT32)216)
+#define                   MM_CTDNSNP_MGR    ((UINT32)217)
+
+#define             MM_CDETECT_ORIG_NODE    ((UINT32)218)
+#define               MM_CDETECT_IP_NODE    ((UINT32)219)
+
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)
 

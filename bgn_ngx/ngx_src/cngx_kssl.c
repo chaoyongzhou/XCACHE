@@ -309,9 +309,11 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
 {
     ngx_http_bgn_kssl_srv_conf_t    *kscf;
 
-    const char                      *kssl_ca_file;
+    const char                      *kssl_server_ca_file;
     const char                      *kssl_server;
     int                              kssl_port;
+    const char                      *kssl_client_certificate_file;
+    const char                      *kssl_client_private_key_file;
     
     CHTTP_REQ                        chttp_req;
     CHTTP_RSP                        chttp_rsp;
@@ -319,23 +321,34 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
 
     kscf = ngx_ssl_get_server_conf(ssl_ctx);
 
-    kssl_ca_file         = (const char *)kscf->kssl_ca_file.data;
-    kssl_server          = (const char *)kscf->kssl_server_ipaddr.data;
-    kssl_port            = (int         )kscf->kssl_server_port;
+    kssl_server_ca_file          = (const char *)kscf->kssl_server_ca_file.data;
+    kssl_server                  = (const char *)kscf->kssl_server_ipaddr.data;
+    kssl_port                    = (int         )kscf->kssl_server_port;
+
+    kssl_client_certificate_file = (const char *)kscf->kssl_client_certificate.data;
+    kssl_client_private_key_file = (const char *)kscf->kssl_client_certificate_key.data;
     
     ASSERT(NULL_PTR != kssl_server);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "ca: %s\n",
-                                         kssl_ca_file); 
+                                         kssl_server_ca_file); 
                                          
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "server: %s\n",
                                          kssl_server); 
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
-                                         "port: %d\n",
+                                         "server port: %d\n",
                                          kssl_port);     
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
+                                         "client certificate: %s\n",
+                                         kssl_client_certificate_file);   
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
+                                         "client private key: %s\n",
+                                         kssl_client_private_key_file);                                          
     
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -352,9 +365,19 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     chttp_req_add_header(&chttp_req, (const char *)"Content-Type"  , (const char *)"application/x-www-form-urlencoded");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (const char *)"0");
 
-    if(NULL_PTR != kssl_ca_file)
+    if(NULL_PTR != kssl_server_ca_file)
     {
-        chttp_req_set_ca_file(&chttp_req, kssl_ca_file);
+        chttp_req_set_ca_file(&chttp_req, kssl_server_ca_file);
+    }
+
+    if(NULL_PTR != kssl_client_certificate_file)
+    {
+        chttp_req_set_client_certificate_file(&chttp_req, kssl_client_certificate_file);
+    }
+
+    if(NULL_PTR != kssl_client_private_key_file)
+    {
+        chttp_req_set_client_private_key_file(&chttp_req, kssl_client_private_key_file);
     }
     
     if(EC_FALSE == chttps_request(&chttp_req, &chttp_rsp, NULL_PTR))

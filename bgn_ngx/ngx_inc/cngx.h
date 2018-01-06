@@ -67,14 +67,14 @@ extern "C"{
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
 #define  CNGX_VAR_DIRECT_ORIG_SWITCH              ("c_orig_direct_switch")      /*default: off*/ 
-#define  CNGX_VAR_ORIG_FORCE                      ("c_orig_force_switch")       /*default: off*/          
+#define  CNGX_VAR_ORIG_FORCE_SWITCH               ("c_orig_force_switch")       /*default: off*/          
 #define  CNGX_VAR_ORIG_REDIRECT_MAX_TIMES         ("c_orig_redirect_max_times") /*default: 3*/
 #define  CNGX_VAR_ORIG_REDIRECT_SPECIFIC          ("c_orig_redirect_specific")  /*default: null. format: <src status> => <des status> => <redirect url>[|...]*/
 #define  CNGX_VAR_ORIG_SERVER                     ("c_orig_server")             /*default: ngx.var.host or ngx.var.http_host*/
 #define  CNGX_VAR_ORIG_HOST                       ("c_orig_host")               /*default: ngx.var.http_host*/
 #define  CNGX_VAR_ORIG_PORT                       ("c_orig_port")               /*default: ngx.var.server_port*/
 #define  CNGX_VAR_ORIG_URI                        ("c_orig_uri")                /*default: ngx.var.request_uri*/
-#define  CNGX_VAR_ORIG_GZIP_SWITCH                ("c_orig_gzip_switch")        /*default: off*/
+//#define  CNGX_VAR_ORIG_GZIP_SWITCH                ("c_orig_gzip_switch")        /*default: off*/
 #define  CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC      ("c_orig_expires_override_nsec")
 #define  CNGX_VAR_ORIG_EXPIRES_CACHE_CODE         ("c_orig_expires_cache_code")
 

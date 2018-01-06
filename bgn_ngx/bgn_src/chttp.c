@@ -4537,6 +4537,8 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
     cstrkv_mgr_init(CHTTP_REQ_HEADER(chttp_req));
 
     cstring_init(CHTTP_REQ_CA_FILE(chttp_req), NULL_PTR);
+    cstring_init(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req), NULL_PTR);
+    cstring_init(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req), NULL_PTR);
 
     cbytes_init(CHTTP_REQ_BODY(chttp_req));
  
@@ -4545,7 +4547,6 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
 
 EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
 {
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_clean: chttp_req: %p\n", chttp_req);
     CHTTP_REQ_IPADDR(chttp_req) = CMPI_ERROR_IPADDR;
     CHTTP_REQ_PORT(chttp_req)   = CMPI_ERROR_SRVPORT;
 
@@ -4558,6 +4559,8 @@ EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
     cstrkv_mgr_clean(CHTTP_REQ_HEADER(chttp_req));
 
     cstring_clean(CHTTP_REQ_CA_FILE(chttp_req));
+    cstring_clean(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req));
+    cstring_clean(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req));
 
     cbytes_clean(CHTTP_REQ_BODY(chttp_req));
     return (EC_TRUE);
@@ -4891,9 +4894,19 @@ EC_BOOL chttp_req_renew_header(CHTTP_REQ *chttp_req, const char *k, const char *
     return (EC_TRUE);
 }
 
-EC_BOOL chttp_req_set_ca_file(CHTTP_REQ *chttp_req, const char *ca_fname)
+EC_BOOL chttp_req_set_ca_file(CHTTP_REQ *chttp_req, const char *fname)
 {
-    return cstring_append_str(CHTTP_REQ_CA_FILE(chttp_req), (const UINT8 *)ca_fname);
+    return cstring_append_str(CHTTP_REQ_CA_FILE(chttp_req), (const UINT8 *)fname);
+}
+
+EC_BOOL chttp_req_set_client_certificate_file(CHTTP_REQ *chttp_req, const char *fname)
+{
+    return cstring_append_str(CHTTP_REQ_CLIENT_CERT_FILE(chttp_req), (const UINT8 *)fname);
+}
+
+EC_BOOL chttp_req_set_client_private_key_file(CHTTP_REQ *chttp_req, const char *fname)
+{
+    return cstring_append_str(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req), (const UINT8 *)fname);
 }
 
 EC_BOOL chttp_req_set_body(CHTTP_REQ *chttp_req, const uint8_t *data, const uint32_t len)
@@ -4950,7 +4963,6 @@ CHTTP_RSP *chttp_rsp_new()
 }
 EC_BOOL chttp_rsp_init(CHTTP_RSP *chttp_rsp)
 {
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_init: chttp_rsp: %p\n", chttp_rsp);
     CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_STATUS_NONE;
  
     cstrkv_mgr_init(CHTTP_RSP_HEADER(chttp_rsp));
@@ -4962,7 +4974,6 @@ EC_BOOL chttp_rsp_init(CHTTP_RSP *chttp_rsp)
 
 EC_BOOL chttp_rsp_clean(CHTTP_RSP *chttp_rsp)
 {
-    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "[DEBUG] chttp_rsp_clean: chttp_rsp: %p\n", chttp_rsp);
     CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_STATUS_NONE;
  
     cstrkv_mgr_clean(CHTTP_RSP_HEADER(chttp_rsp));
@@ -4973,7 +4984,6 @@ EC_BOOL chttp_rsp_clean(CHTTP_RSP *chttp_rsp)
 
 EC_BOOL chttp_rsp_free(CHTTP_RSP *chttp_rsp)
 {
-    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "[DEBUG] chttp_rsp_free: chttp_rsp: %p\n", chttp_rsp);
     if(NULL_PTR != chttp_rsp)
     {
         chttp_rsp_clean(chttp_rsp);

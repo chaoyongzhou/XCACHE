@@ -1018,7 +1018,7 @@ EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r)
     const char                  *k;
     UINT32                       v;
     
-    k = (const char *)CNGX_VAR_ORIG_FORCE;
+    k = (const char *)CNGX_VAR_ORIG_FORCE_SWITCH;
     cngx_get_var_switch(r, k, &v, SWITCH_OFF);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_force_orig_switch_on: "

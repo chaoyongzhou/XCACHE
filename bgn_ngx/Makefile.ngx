@@ -19,7 +19,7 @@ TOOL_DIR = $(ROOT_DIR)/tool
 NGX_DIR = ../nginx
 NGX_MODULE_DIR = ../modules
 
-OPENSS_INC_DIR = /usr/local/xcache/depend/openssl/include/
+OPENSSL_INC_DIR = /usr/local/xcache/depend/openssl/include/
 
 EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/core \
@@ -29,7 +29,7 @@ EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/http/modules \
     -I $(NGX_MODULE_DIR)/bgn-nginx-module-0.0.1 \
     -I $(NGX_DIR)/objs	\
-	-I $(OPENSS_INC_DIR)
+	-I $(OPENSSL_INC_DIR)
             
 EXT_LIB = `xml2-config --libs` -lm -lrt -lpthread -lpcre -lexpat -lz -lreadline -rdynamic -ldl
 
@@ -205,10 +205,13 @@ CMACRO = \
          -DCSFSHTTP_SWITCH=SWITCH_OFF \
          -DCSFS_NP_CACHE_IN_MEM=SWITCH_OFF \
          -DCRFS_TRANS_MAX_TASK_NUM=128 \
+         -DCTDNSHTTP_SWITCH=SWITCH_OFF \
+         -DCTDNS_NP_CACHE_IN_MEM=SWITCH_OFF \
          -DCTASKS_SRV_ACCEPT_MAX_NUM=20 \
          -DCSRV_ACCEPT_MAX_NUM=20 \
          -DCRFS_MD5_SWITCH=SWITCH_OFF \
          -DCSFS_MD5_SWITCH=SWITCH_OFF \
+         -DCDETECTHTTP_SWITCH=SWITCH_OFF \
          -DLOAD_UPDATE_SWITCH=SWITCH_OFF \
          -DNGX_BGN_SWITCH=SWITCH_ON \
 

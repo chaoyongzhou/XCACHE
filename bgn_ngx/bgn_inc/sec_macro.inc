@@ -28,16 +28,16 @@
 #define SEC_0018_CRANGE                     ((UINT32)(     18)) /*crange                          */
 #define SEC_0019_TASKCFG                    ((UINT32)(     19)) /*taskcfg                         */
 #define SEC_0020_CMAP                       ((UINT32)(     20)) /*cmap                            */
-#define SEC_0021_XXXXXX                     ((UINT32)(     21)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  */
-#define SEC_0022_XXXXXX                     ((UINT32)(     22)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */
+#define SEC_0021_CTDNSNPRB                  ((UINT32)(     21)) /*ctdnsnprb                       */
+#define SEC_0022_CTDNSNP                    ((UINT32)(     22)) /*ctdnsnp                         */
 #define SEC_0023_CHFS                       ((UINT32)(     23)) /*chfs                            */
 #define SEC_0024_CRFSDN                     ((UINT32)(     24)) /*crfsdn                          */
 #define SEC_0025_CSESSION                   ((UINT32)(     25)) /*csession                        */
-#define SEC_0026_XXXXX                      ((UINT32)(     26)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxx    */
+#define SEC_0026_CTDNS                      ((UINT32)(     26)) /*ctdns                           */
 #define SEC_0027_IPV4POOL                   ((UINT32)(     27)) /*ipv4pool                        */
 #define SEC_0028_CMD5                       ((UINT32)(     28)) /*cmd5                            */
 #define SEC_0029_CSEM                       ((UINT32)(     29)) /*csem                            */
-#define SEC_0030_XXXXX                      ((UINT32)(     30)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0030_CTDNSNPMGR                 ((UINT32)(     30)) /*ctdnsnpmgr                      */
 #define SEC_0031_CRFS                       ((UINT32)(     31)) /*crfs                            */
 #define SEC_0032_CDSK                       ((UINT32)(     32)) /*cdsk                            */
 #define SEC_0033_CRBUFF                     ((UINT32)(     33)) /*crbuff                          */
@@ -50,12 +50,12 @@
 #define SEC_0040_CBLOOM                     ((UINT32)(     40)) /*cbloom                          */
 #define SEC_0041_CPGD                       ((UINT32)(     41)) /*cpgd                            */
 #define SEC_0042_CDBGCODE                   ((UINT32)(     42)) /*cdbgcode                        */
-#define SEC_0043_XXXX                       ((UINT32)(     43)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxx   */
+#define SEC_0043_CDETECT                    ((UINT32)(     43)) /*cdetect                         */
 #define SEC_0044_CLIST                      ((UINT32)(     44)) /*clist                           */
-#define SEC_0045_XXXXX                      ((UINT32)(     45)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+#define SEC_0045_CDETECTHTTP                ((UINT32)(     45)) /*cdetecthttp                     */
 #define SEC_0046_CXML                       ((UINT32)(     46)) /*cxml                            */
 #define SEC_0047_DEBUG                      ((UINT32)(     47)) /*debug                           */
-#define SEC_0048_XXXX                       ((UINT32)(     48)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */
+#define SEC_0048_CTDNSHTTP                  ((UINT32)(     48)) /*ctdnshttp                       */
 #define SEC_0049_CRFSHTTP                   ((UINT32)(     49)) /*crfshttp                        */
 #define SEC_0050_CBTREE                     ((UINT32)(     50)) /*cbtree                          */
 #define SEC_0051_XXXXXX                     ((UINT32)(     51)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */

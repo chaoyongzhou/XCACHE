@@ -38,9 +38,11 @@ struct _CSOCKET_CNODE;
 
 typedef struct _CHTTPS_NODE
 {
-    UINT32                    status;        /*ONGOING or IS_DONE*/
-    CSSL_NODE                *cssl_node;     /* for ssl */    
-    CSTRING                  *ca_file;       /* for ssl */
+    UINT32                    status;               /*ONGOING or IS_DONE*/
+    CSSL_NODE                *cssl_node;            /* for ssl */    
+    CSTRING                  *ca_file;              /* for ssl */
+    CSTRING                  *client_cert_file;     /* for ssl */
+    CSTRING                  *client_privkey_file;  /* for ssl */
 
     void                     *csrv;          /*mount point*/
     
@@ -90,6 +92,8 @@ typedef struct _CHTTPS_NODE
 #define CHTTPS_NODE_STATUS(chttps_node)                      ((chttps_node)->status)
 #define CHTTPS_NODE_CSSL_NODE(chttps_node)                   ((chttps_node)->cssl_node)
 #define CHTTPS_NODE_CA_FILE(chttps_node)                     ((chttps_node)->ca_file)
+#define CHTTPS_NODE_CLIENT_CERT_FILE(chttps_node)            ((chttps_node)->client_cert_file)
+#define CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node)         ((chttps_node)->client_privkey_file)
 
 #define CHTTPS_NODE_CSRV(chttps_node)                        ((chttps_node)->csrv)
 

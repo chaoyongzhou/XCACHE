@@ -287,6 +287,7 @@ EC_BOOL coroutine_pool_check_node_is_idle(const COROUTINE_POOL *coroutine_pool, 
 /*debug only*/
 EC_BOOL coroutine_pool_check_node_is_busy(const COROUTINE_POOL *coroutine_pool, const COROUTINE_NODE *coroutine_node);
 
+EC_BOOL coroutine_usleep(const UINT32 msec, const UINT32 location);
 
 #endif/*_COROUTINE_H*/
 

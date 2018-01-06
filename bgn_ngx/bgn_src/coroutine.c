@@ -2226,6 +2226,21 @@ void coroutine_pool_print(LOG *log, COROUTINE_POOL *coroutine_pool)
     return;
 }
 
+EC_BOOL coroutine_usleep(const UINT32 msec, const UINT32 location)
+{
+    COROUTINE_COND *coroutine_cond;
+
+    coroutine_cond = coroutine_cond_new(msec, location);
+    if(NULL_PTR == coroutine_cond)
+    {
+        return (EC_FALSE);
+    }
+    coroutine_cond_wait(coroutine_cond, location);
+
+    coroutine_cond_free(coroutine_cond, location);
+
+    return (EC_TRUE);
+}
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,8 @@ extern "C"{
 #include "crfsmon.h"
 #include "chfsmon.h"
 #include "csfsmon.h"
+#include "ctdns.h"
+#include "cdetect.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -64,6 +66,8 @@ extern "C"{
 #include "chfsmon.inc"
 #include "csfsmon.inc"
 #include "chttp.inc"
+#include "ctdns.inc"
+#include "cdetect.inc"
 #include "task.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
@@ -1079,7 +1083,10 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CHFSMON ,  &g_chfsmon_func_addr_list_len,   (FUNC_ADDR_NODE *)g_chfsmon_func_addr_list, FI_chfsmon_start , FI_chfsmon_end  , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CSFSMON ,  &g_csfsmon_func_addr_list_len,   (FUNC_ADDR_NODE *)g_csfsmon_func_addr_list, FI_csfsmon_start , FI_csfsmon_end  , ERR_FUNC_ID             , NULL_PTR                                   );
 
-
+    creg_func_addr_vec_add(func_addr_vec, MD_CTDNS   ,  &g_ctdns_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_ctdns_func_addr_list  , FI_ctdns_start   , FI_ctdns_end    , ERR_FUNC_ID             , NULL_PTR                                   );
+    
+    creg_func_addr_vec_add(func_addr_vec, MD_CDETECT ,  &g_cdetect_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cdetect_func_addr_list, FI_cdetect_start , FI_cdetect_end  , ERR_FUNC_ID             , NULL_PTR                                   );
+    
     return (EC_TRUE);
 }
 
