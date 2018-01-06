@@ -15,7 +15,7 @@ extern "C"{
 #include "cstring.h"
 
 #include "cvector.h"
-
+#include "chashalgo.h"
 #include "cbc.h"
 
 #include "cmisc.h"
@@ -261,7 +261,8 @@ EC_BOOL cdetect_orig_node_init(CDETECT_ORIG_NODE *cdetect_orig_node)
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
     CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
-
+    CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
+    
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_ACCESS_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node)  = NULL_PTR;
@@ -283,7 +284,8 @@ EC_BOOL cdetect_orig_node_clean(CDETECT_ORIG_NODE *cdetect_orig_node)
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
     CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
-
+    CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
+    
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_ACCESS_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node)  = NULL_PTR;
@@ -304,7 +306,8 @@ EC_BOOL cdetect_orig_node_clear(CDETECT_ORIG_NODE *cdetect_orig_node)
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
     CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
-
+    CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
+    
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_ACCESS_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node)  = NULL_PTR;
@@ -325,6 +328,16 @@ EC_BOOL cdetect_orig_node_free(CDETECT_ORIG_NODE *cdetect_orig_node)
 
 int cdetect_orig_node_cmp(const CDETECT_ORIG_NODE *cdetect_orig_node_1st, const CDETECT_ORIG_NODE *cdetect_orig_node_2nd)
 {
+    if(CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node_1st) > CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node_2nd))
+    {
+        return (1);
+    }
+
+    if(CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node_1st) < CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node_2nd))
+    {
+        return (-1);
+    }    
+    
     return cstring_cmp(CDETECT_ORIG_NODE_DOMAIN(cdetect_orig_node_1st), CDETECT_ORIG_NODE_DOMAIN(cdetect_orig_node_2nd));
 }
 
@@ -332,13 +345,14 @@ void cdetect_orig_node_print(LOG *log, const CDETECT_ORIG_NODE *cdetect_orig_nod
 {
     if(NULL_PTR != cdetect_orig_node)
     {
-        sys_log(log, "cdetect_orig_node_print %p: domain %s, url: %s, interval %u sec, stopping %u sec, ip list: \n",
-                        cdetect_orig_node,
-                        (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
-                        (char *)CDETECT_ORIG_NODE_URL_STR(cdetect_orig_node),
-                        CDETECT_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetect_orig_node),
-                        CDETECT_ORIG_NODE_DETECT_STOPPING_NSEC(cdetect_orig_node)
-                        );
+        sys_log(log, "cdetect_orig_node_print %p: domain %s (hash %u), url: %s, "
+                     "interval %u sec, stopping %u sec, ip list: \n",
+                     cdetect_orig_node,
+                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
+                     CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node),
+                     (char *)CDETECT_ORIG_NODE_URL_STR(cdetect_orig_node),
+                     CDETECT_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetect_orig_node),
+                     CDETECT_ORIG_NODE_DETECT_STOPPING_NSEC(cdetect_orig_node));
                         
         clist_print(log, CDETECT_ORIG_NODE_IP_NODES(cdetect_orig_node),(CLIST_DATA_DATA_PRINT)cdetect_ip_node_print_plain);
     }
@@ -519,16 +533,20 @@ EC_BOOL cdetect_show_orig_nodes(const UINT32 cdetect_md_id, LOG *log)
 
 CDETECT_ORIG_NODE *__cdetect_search_orig_node(const UINT32 cdetect_md_id, const CSTRING *domain)
 {
-    CDETECT_MD *cdetect_md;
+    CDETECT_MD                  *cdetect_md;
 
-    CRB_NODE   *crb_node;
+    CRB_NODE                    *crb_node;
 
-    CDETECT_ORIG_NODE cdetect_orig_node_t;
+    CDETECT_ORIG_NODE            cdetect_orig_node_t;
+    UINT32                       domain_hash;
 
     cdetect_md = CDETECT_MD_GET(cdetect_md_id);
 
+    domain_hash = CDETECT_ORIG_NODE_DOMAIN_HASH_ALGO(CSTRING_LEN(domain), CSTRING_STR(domain));
+    
     /*mount only*/
     cstring_set_str(CDETECT_ORIG_NODE_DOMAIN(&cdetect_orig_node_t), cstring_get_str(domain));
+    CDETECT_ORIG_NODE_DOMAIN_HASH(&cdetect_orig_node_t) = (uint32_t)domain_hash;
 
     crb_node = crb_tree_search_data(CDETECT_MD_ORIG_NODE_TREE(cdetect_md), (void *)&cdetect_orig_node_t);
     if(NULL_PTR == crb_node)
@@ -740,6 +758,7 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
     char                *segs[ 8 ];
     uint32_t             segs_num;
     uint32_t             idx;
+    UINT32               domain_hash;
     
     cdetect_md = CDETECT_MD_GET(cdetect_md_id);
 
@@ -769,6 +788,8 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
         return (EC_FALSE);
     }
 
+    domain_hash = CDETECT_ORIG_NODE_DOMAIN_HASH_ALGO(strlen(segs[ 0 ]), (const uint8_t *)segs[ 0 ]);
+    
     cstring_init(CDETECT_ORIG_NODE_DOMAIN(cdetect_orig_node), (const uint8_t *)segs[ 0 ]);
     if(EC_FALSE == __cdetect_parse_ip_nodes(CDETECT_ORIG_NODE_IP_NODES(cdetect_orig_node), segs[ 1 ]))
     {
@@ -787,7 +808,8 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node) = c_str_to_uint32_t(segs[ 5 ]);
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node) = c_str_to_uint32_t(segs[ 6 ]);
     CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)  = __cdetect_choice_strategy(segs[ 7 ]);
-
+    CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)      = (uint32_t)domain_hash;
+    
     crb_node = crb_tree_insert_data(CDETECT_MD_ORIG_NODE_TREE(cdetect_md), (void *)cdetect_orig_node);
     if(NULL_PTR == crb_node)
     {

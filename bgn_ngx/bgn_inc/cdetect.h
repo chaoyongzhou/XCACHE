@@ -17,7 +17,7 @@ extern "C"{
 #include "clist.h"
 #include "cvector.h"
 #include "crb.h"
-
+#include "chashalgo.h"
 #include "csocket.h"
 #include "cbtimer.h"
 #include "mod.inc"
@@ -54,6 +54,7 @@ typedef struct
 #define CDETECT_ORIG_NODE_NOT_DETECTING          ((uint32_t) 0)
 #define CDETECT_ORIG_NODE_IS_DETECTING           ((uint32_t) 1)
 
+#define CDETECT_ORIG_NODE_DOMAIN_HASH_ALGO       AP_hash
 
 typedef struct
 {
@@ -67,7 +68,7 @@ typedef struct
     uint32_t            status_reachable;      /*orig return such status means orig is reachable*/
     uint32_t            status_forbidden;      /*orig return such status means orig is forbidden*/
     uint32_t            choice_strategy;       /*strategy to select orig*/
-    uint32_t            rsvd01;         
+    uint32_t            domain_hash;           /*hash value of domain*/     
 
     ctime_t             last_detect_time;      /*last detect time by worker*/
     ctime_t             last_access_time;      /*last access time by client*/
@@ -89,6 +90,7 @@ typedef struct
 #define CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)         ((cdetect_orig_node)->status_reachable)
 #define CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)         ((cdetect_orig_node)->status_forbidden)
 #define CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)          ((cdetect_orig_node)->choice_strategy)
+#define CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)              ((cdetect_orig_node)->domain_hash)
 
 #define CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)         ((cdetect_orig_node)->last_detect_time)
 #define CDETECT_ORIG_NODE_LAST_ACCESS_TIME(cdetect_orig_node)         ((cdetect_orig_node)->last_access_time)
