@@ -146,6 +146,8 @@ EC_BOOL c_str_is_digit(const char *string);
 
 EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str);
 
+EC_BOOL c_char_is_in(const char ch, const char *chars, const uint32_t len);
+
 char *c_str_skip_space(const char *start, const char *end);
 
 char *c_str_ltrim(char *str, const char ch);
@@ -153,6 +155,18 @@ char *c_str_ltrim(char *str, const char ch);
 char *c_str_rtrim(char *str, const char ch);
 
 char *c_str_trim(char *str, const char ch);
+
+char *c_str_ltrim_chars(char *str, const char *chars, const uint32_t len);
+
+char *c_str_rtrim_chars(char *str, const char *chars, const uint32_t len);
+
+char *c_str_trim_chars(char *str, const char *chars, const uint32_t len);
+
+char *c_str_ltrim_space(char *str);
+
+char *c_str_rtrim_space(char *str);
+
+char *c_str_trim_space(char *str);
 
 char *c_str_del(char *str, const char ch);
 

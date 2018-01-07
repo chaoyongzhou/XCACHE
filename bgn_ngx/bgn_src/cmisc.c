@@ -1320,6 +1320,20 @@ EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str)
     return (EC_FALSE);
 }
 
+EC_BOOL c_char_is_in(const char ch, const char *chars, const uint32_t len)
+{
+    uint32_t  idx;
+    
+    for(idx = 0; idx < len; idx ++)
+    {
+        if(ch == chars[ idx ])
+        {
+            return (EC_TRUE);
+        }
+    }
+    return (EC_FALSE);
+}
+
 char *c_str_skip_space(const char *start, const char *end)
 {
     const char *cur;
@@ -1381,6 +1395,106 @@ char *c_str_trim(char *str, const char ch)
 {
     c_str_ltrim(str, ch);
     c_str_rtrim(str, ch);
+
+    return (str);
+}
+
+char *c_str_ltrim_chars(char *str, const char *chars, const uint32_t len)
+{
+    char *t;
+ 
+    for(t = str; '\0' != (*t) && EC_TRUE == c_char_is_in(*t, chars, len); t ++ )
+    {
+        /*do nothing*/
+    }
+
+    if(str != t)
+    {
+        char *s;
+        for(s = str; '\0' != (*t);)
+        {
+            (*s ++) = (*t ++);
+        }
+
+        (*s) = '\0';
+    }
+
+    return (str);
+}
+
+char *c_str_rtrim_chars(char *str, const char *chars, const uint32_t len)
+{
+    char *t;
+
+    for(t = str; '\0' != (*t); t ++)
+    {
+        /*do nothing*/
+    }
+ 
+    for(-- t; t >= str && EC_TRUE == c_char_is_in(*t, chars, len); t -- )
+    {
+        /*do nothing*/
+    }
+
+    (* ++ t) = '\0';
+
+    return (str);
+}
+
+char *c_str_trim_chars(char *str, const char *chars, const uint32_t len)
+{
+    c_str_ltrim_chars(str, chars, len);
+    c_str_rtrim_chars(str, chars, len);
+
+    return (str);
+}
+
+char *c_str_ltrim_space(char *str)
+{
+    char *t;
+ 
+    for(t = str; '\0' != (*t) && 0 != isspace(*t); t ++ )
+    {
+        /*do nothing*/
+    }
+
+    if(str != t)
+    {
+        char *s;
+        for(s = str; '\0' != (*t);)
+        {
+            (*s ++) = (*t ++);
+        }
+
+        (*s) = '\0';
+    }
+
+    return (str);
+}
+
+char *c_str_rtrim_space(char *str)
+{
+    char *t;
+
+    for(t = str; '\0' != (*t); t ++)
+    {
+        /*do nothing*/
+    }
+ 
+    for(-- t; t >= str && 0 != isspace(*t); t -- )
+    {
+        /*do nothing*/
+    }
+
+    (* ++ t) = '\0';
+
+    return (str);
+}
+
+char *c_str_trim_space(char *str)
+{
+    c_str_ltrim_space(str);
+    c_str_rtrim_space(str);
 
     return (str);
 }

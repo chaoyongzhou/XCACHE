@@ -665,7 +665,7 @@ static EC_BOOL __cdetect_parse_ip_node(CLIST *cdetect_ip_nodes, char *ip)
     {
         CDETECT_IP_NODE     *cdetect_ip_node;
 
-        c_str_trim(segs[ 0 ], ' ');
+        c_str_trim_space(segs[ 0 ]);
         if(EC_FALSE == c_ipv4_is_ok(segs[ 0 ]))
         {
             dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_parse_ip_node: "
@@ -695,8 +695,8 @@ static EC_BOOL __cdetect_parse_ip_node(CLIST *cdetect_ip_nodes, char *ip)
     {
         CDETECT_IP_NODE     *cdetect_ip_node;
 
-        c_str_trim(segs[ 0 ], ' ');
-        c_str_trim(segs[ 1 ], ' ');
+        c_str_trim_space(segs[ 0 ]);
+        c_str_trim_space(segs[ 1 ]);
         
         if(EC_FALSE == c_ipv4_is_ok(segs[ 0 ]))
         {
@@ -736,7 +736,7 @@ static EC_BOOL __cdetect_parse_ip_nodes(CLIST *cdetect_ip_nodes, char *ips)
    
     for(idx = 0; idx < segs_num; idx ++)
     {
-        c_str_trim(segs[ idx ], ' ');
+        c_str_trim_space(segs[ idx ]);
         if(EC_FALSE == __cdetect_parse_ip_node(cdetect_ip_nodes, segs[ idx ]))
         {
             dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_parse_ip_nodes: "
@@ -775,9 +775,7 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
 
     for(idx = 0; idx < segs_num; idx ++)
     {
-        c_str_trim(segs[ idx ], ' ');
-        c_str_trim(segs[ idx ], '\r');
-        c_str_trim(segs[ idx ], '\n');
+        c_str_trim_space(segs[ idx ]);
     }
 
     cdetect_orig_node = cdetect_orig_node_new();
