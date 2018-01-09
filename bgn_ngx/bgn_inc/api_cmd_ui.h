@@ -469,15 +469,18 @@ EC_BOOL api_cmd_ui_csfs_show_cached_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_csfs_show_specific_np(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_ctdns_open(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_ctdns_close(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_ctdns_get(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_start(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_end(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_get_tcid(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_get_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_set_no_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_set_has_service(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_ctdns_search(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_search_tcid(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_search_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_count_tcid_num(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_delete(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cdetect_show_orig_nodes(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param);

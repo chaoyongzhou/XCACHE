@@ -46,7 +46,7 @@
 #define SEC_0036_CRFSNGX                    ((UINT32)(     36)) /*crfsngx                         */
 #define SEC_0037_CSBUFF                     ((UINT32)(     37)) /*csbuff                          */
 #define SEC_0038_CRB                        ((UINT32)(     38)) /*crb                             */
-#define SEC_0039_XXXXX                      ((UINT32)(     39)) /*xxxxxx                          */
+#define SEC_0039_CTDNSSVRB                  ((UINT32)(     39)) /*ctdnssvrb                       */
 #define SEC_0040_CBLOOM                     ((UINT32)(     40)) /*cbloom                          */
 #define SEC_0041_CPGD                       ((UINT32)(     41)) /*cpgd                            */
 #define SEC_0042_CDBGCODE                   ((UINT32)(     42)) /*cdbgcode                        */
@@ -58,11 +58,11 @@
 #define SEC_0048_CTDNSHTTP                  ((UINT32)(     48)) /*ctdnshttp                       */
 #define SEC_0049_CRFSHTTP                   ((UINT32)(     49)) /*crfshttp                        */
 #define SEC_0050_CBTREE                     ((UINT32)(     50)) /*cbtree                          */
-#define SEC_0051_XXXXXX                     ((UINT32)(     51)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0051_CTDNSSV                    ((UINT32)(     51)) /*ctdnssv                         */
 #define SEC_0052_CPARACFG                   ((UINT32)(     52)) /*cparacfg                        */
 #define SEC_0053_CSOCKET                    ((UINT32)(     53)) /*csocket                         */
 #define SEC_0054_CBGT                       ((UINT32)(     54)) /*cbgt                            */
-#define SEC_0055_XXXXXX                     ((UINT32)(     55)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0055_CTDNSSVMGR                 ((UINT32)(     55)) /*ctdnssvmgr                      */
 #define SEC_0056_CDFS                       ((UINT32)(     56)) /*cdfs                            */
 #define SEC_0057_TASKCFGCHK                 ((UINT32)(     57)) /*taskcfgchk                      */
 #define SEC_0058_CDFSNP                     ((UINT32)(     58)) /*cdfsnp                          */

@@ -28,7 +28,7 @@ typedef struct
     CSTRING          ctdnsnp_db_root_dir;           /*ctdnsnp database root dir*/
 
     uint8_t          ctdnsnp_model;                  /*ctdnsnp model, e.g, CTDNSNP_001G_MODEL*/
-    uint8_t          ctdnsnp_2nd_chash_algo_id;
+    uint8_t          rsvd0;
     uint16_t         rsvd1;
     uint32_t         ctdnsnp_item_max_num;
     uint32_t         ctdnsnp_max_num;                /*max np num*/
@@ -40,7 +40,6 @@ typedef struct
 #define CTDNSNP_MGR_DB_ROOT_DIR_STR(ctdnsnp_mgr)                (cstring_get_str(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr)))
 
 #define CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr)                        ((ctdnsnp_mgr)->ctdnsnp_model)
-#define CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr)            ((ctdnsnp_mgr)->ctdnsnp_2nd_chash_algo_id)
 #define CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)                 ((ctdnsnp_mgr)->ctdnsnp_item_max_num)
 #define CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)                      ((ctdnsnp_mgr)->ctdnsnp_max_num)
 #define CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr)                          (&((ctdnsnp_mgr)->ctdnsnp_vec))
@@ -84,7 +83,6 @@ CTDNSNP_ITEM *ctdnsnp_mgr_search_item(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tci
 
 CTDNSNP_MGR *ctdnsnp_mgr_create(const uint8_t ctdnsnp_model,
                                 const uint32_t ctdnsnp_max_num,
-                                const uint8_t  ctdnsnp_2nd_chash_algo_id,
                                 const CSTRING *ctdnsnp_db_root_dir);
 
 EC_BOOL ctdnsnp_mgr_exist(const CSTRING *ctdnsnp_db_root_dir);
@@ -95,9 +93,9 @@ EC_BOOL ctdnsnp_mgr_close(CTDNSNP_MGR *ctdnsnp_mgr);
 
 EC_BOOL ctdnsnp_mgr_find(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid);
 
-EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT32 ipaddr, const uint32_t klen, const uint8_t *key);
+EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
-EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipaddr, uint32_t *klen, uint8_t **key);
+EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port);
 
 EC_BOOL ctdnsnp_mgr_delete(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid);
 

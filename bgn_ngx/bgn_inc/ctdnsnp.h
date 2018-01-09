@@ -40,15 +40,11 @@ EC_BOOL ctdnsnp_item_clone(const CTDNSNP_ITEM *ctdnsnp_item_src, CTDNSNP_ITEM *c
 
 EC_BOOL ctdnsnp_item_free(CTDNSNP_ITEM *ctdnsnp_item);
 
-EC_BOOL ctdnsnp_item_set_key(CTDNSNP_ITEM *ctdnsnp_item, const uint32_t klen, const uint8_t *key);
-
 void ctdnsnp_item_print(LOG *log, const CTDNSNP_ITEM *ctdnsnp_item);
 
 EC_BOOL ctdnsnp_item_load(CTDNSNP *ctdnsnp, uint32_t *offset, CTDNSNP_ITEM *ctdnsnp_item);
 
 EC_BOOL ctdnsnp_item_flush(CTDNSNP *ctdnsnp, uint32_t *offset, const CTDNSNP_ITEM *ctdnsnp_item);
-
-EC_BOOL ctdnsnp_item_is_key(const CTDNSNP_ITEM *ctdnsnp_item, const uint32_t klen, const uint8_t *key);
 
 EC_BOOL ctdnsnp_item_is_tcid(const CTDNSNP_ITEM *ctdnsnp_item, const UINT32 tcid);
 
@@ -64,7 +60,7 @@ CTDNSNP_ITEM *ctdnsnp_item_left(const CTDNSNP *ctdnsnp, const CTDNSNP_ITEM *ctdn
 
 CTDNSNP_ITEM *ctdnsnp_item_right(const CTDNSNP *ctdnsnp, const CTDNSNP_ITEM *ctdnsnp_item);
 
-EC_BOOL ctdnsnp_header_init(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const uint8_t model, const uint8_t first_chash_algo_id, const uint8_t second_chash_algo_id);
+EC_BOOL ctdnsnp_header_init(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const uint8_t model);
 
 EC_BOOL ctdnsnp_header_clean(CTDNSNP_HEADER *ctdnsnp_header);
 
@@ -96,13 +92,13 @@ uint32_t ctdnsnp_search_no_lock(CTDNSNP *ctdns, const UINT32 tcid);
 
 uint32_t ctdnsnp_search(CTDNSNP *ctdns, const UINT32 tcid);
 
-uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdns, const UINT32 tcid, const UINT32 ipaddr, const uint32_t klen, const uint8_t *key);
+uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdns, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
-uint32_t ctdnsnp_insert(CTDNSNP *ctdns, const UINT32 tcid, const UINT32 ipaddr, const uint32_t klen, const uint8_t *key);
+uint32_t ctdnsnp_insert(CTDNSNP *ctdns, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
 CTDNSNP_ITEM *ctdnsnp_fetch(const CTDNSNP *ctdnsnp, const uint32_t node_pos);
 
-CTDNSNP_ITEM *ctdnsnp_set(CTDNSNP *ctdns, const UINT32 tcid, const UINT32 ipaddr, const uint32_t klen, const uint8_t *key);
+CTDNSNP_ITEM *ctdnsnp_set(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
 CTDNSNP_ITEM *ctdnsnp_get(CTDNSNP *ctdns, const UINT32 tcid);
 
@@ -116,18 +112,11 @@ EC_BOOL ctdnsnp_sync(CTDNSNP *ctdnsnp);
 
 CTDNSNP *ctdnsnp_clone(CTDNSNP *src_ctdnsnp, const char *np_root_dir, const uint32_t des_np_id);
 
-CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8_t np_model, const uint8_t hash_2nd_algo_id);
+CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8_t np_model);
 
 EC_BOOL ctdnsnp_show_item(LOG *log, const CTDNSNP *ctdnsnp, const uint32_t node_pos);
 
 EC_BOOL ctdnsnp_tcid_num(const CTDNSNP *ctdns, UINT32 *tcid_num);
-
-CTDNSNP *ctdnsnp_mem_create(const uint32_t np_id, const uint8_t np_model, const uint8_t hash_2nd_algo_id);
-
-EC_BOOL ctdnsnp_mem_clean(CTDNSNP *ctdnsnp);
-
-EC_BOOL ctdnsnp_mem_free(CTDNSNP *ctdnsnp);
-
 
 
 #endif/* _CTDNSNP_H */

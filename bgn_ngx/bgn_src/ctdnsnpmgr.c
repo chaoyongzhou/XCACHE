@@ -46,7 +46,6 @@ EC_BOOL ctdnsnp_mgr_init(CTDNSNP_MGR *ctdnsnp_mgr)
     cstring_init(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr), NULL_PTR); 
 
     CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr) = CTDNSNP_ERR_MODEL;
-    CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr) = (uint8_t)CHASH_ERR_ALGO_ID;
     CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)      = 0;
     CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)           = 0;
 
@@ -60,7 +59,6 @@ EC_BOOL ctdnsnp_mgr_clean(CTDNSNP_MGR *ctdnsnp_mgr)
     cstring_clean(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr)); 
 
     CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr) = CTDNSNP_ERR_MODEL;
-    CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr) = (uint8_t)CHASH_ERR_ALGO_ID;
     CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)      = 0;
     CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)           = 0;
 
@@ -155,7 +153,7 @@ EC_BOOL ctdnsnp_mgr_close_np_all(CTDNSNP_MGR *ctdnsnp_mgr)
     {
         if(EC_FALSE == ctdnsnp_mgr_close_np(ctdnsnp_mgr, ctdnsnp_id))
         {
-            dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_close_np_all: close np %u ffailed\n",
+            dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_close_np_all: close np %u failed\n",
                             ctdnsnp_id);
         }
     }
@@ -191,15 +189,6 @@ static EC_BOOL __ctdnsnp_mgr_load_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_f
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_load_db: load np model failed\n");
         return (EC_FALSE);
     }
-
-    /*CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID*/
-    ctdnsnp_mgr_db_size   = sizeof(uint8_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr)); 
-    if(EC_FALSE == c_file_load(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
-    {
-        dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_load_db: load 2nd chash algo id failed\n");
-        return (EC_FALSE);
-    }  
 
     /*CTDNSNP_MGR_NP_ITEM_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
@@ -244,15 +233,6 @@ static EC_BOOL __ctdnsnp_mgr_flush_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_flush_db: flush np model failed");
         return (EC_FALSE);
     }
-
-    /*CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID*/
-    ctdnsnp_mgr_db_size   = sizeof(uint8_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr)); 
-    if(EC_FALSE == c_file_flush(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
-    {
-        dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_flush_db: flush 2nd chash algo id failed");
-        return (EC_FALSE);
-    }  
  
     /*CTDNSNP_MGR_NP_ITEM_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
@@ -421,7 +401,6 @@ void ctdnsnp_mgr_print_db(LOG *log, const CTDNSNP_MGR *ctdnsnp_mgr)
 
     sys_log(log, "ctdnsnp mgr db root dir  : %s\n", (char *)CTDNSNP_MGR_DB_ROOT_DIR_STR(ctdnsnp_mgr));
     sys_log(log, "ctdnsnp model            : %u\n", CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr));
-    sys_log(log, "ctdnsnp hash algo id     : %u\n", CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr));
     sys_log(log, "ctdnsnp item max num     : %u\n", CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr));
     sys_log(log, "ctdnsnp max num          : %u\n", CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr));
 
@@ -635,7 +614,6 @@ CTDNSNP_ITEM *ctdnsnp_mgr_search_item(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tci
 
 CTDNSNP_MGR *ctdnsnp_mgr_create(const uint8_t ctdnsnp_model,
                                 const uint32_t ctdnsnp_max_num,
-                                const uint8_t  ctdnsnp_2nd_chash_algo_id,
                                 const CSTRING *ctdnsnp_db_root_dir)
 {
     CTDNSNP     *src_ctdnsnp;
@@ -652,7 +630,6 @@ CTDNSNP_MGR *ctdnsnp_mgr_create(const uint8_t ctdnsnp_model,
     ctdnsnp_mgr = ctdnsnp_mgr_new();
 
     CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr)                = ctdnsnp_model;
-    CTDNSNP_MGR_NP_2ND_CHASH_ALGO_ID(ctdnsnp_mgr)    = ctdnsnp_2nd_chash_algo_id;
     CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)         = ctdnsnp_item_max_num;
     CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)              = ctdnsnp_max_num;
 
@@ -665,7 +642,7 @@ CTDNSNP_MGR *ctdnsnp_mgr_create(const uint8_t ctdnsnp_model,
         CTDNSNP *ctdnsnp;
 
         np_root_dir = (const char *)cstring_get_str(ctdnsnp_db_root_dir);/*Oops! int the same dire*/
-        ctdnsnp = ctdnsnp_create(np_root_dir, ctdnsnp_id, ctdnsnp_model, ctdnsnp_2nd_chash_algo_id);
+        ctdnsnp = ctdnsnp_create(np_root_dir, ctdnsnp_id, ctdnsnp_model);
         if(NULL_PTR == ctdnsnp)
         {
             dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_create: create np %u failed\n", ctdnsnp_id);
@@ -772,7 +749,7 @@ EC_BOOL ctdnsnp_mgr_find(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
     return ctdnsnp_mgr_search(ctdnsnp_mgr, tcid, NULL_PTR);
 }
 
-EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT32 ipaddr, const uint32_t klen, const uint8_t *key)
+EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port)
 {
     CTDNSNP *ctdnsnp;
     CTDNSNP_ITEM *ctdnsnp_item;
@@ -785,16 +762,15 @@ EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT3
         return (EC_FALSE);
     }
 
-    ctdnsnp_item = ctdnsnp_set(ctdnsnp, tcid, ipaddr, klen, key);
+    ctdnsnp_item = ctdnsnp_set(ctdnsnp, tcid, ipaddr, port);
     if(NULL_PTR == ctdnsnp_item)
     {
-        dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_set: set (tcid %s, ip %s, key %.*s) to np %u failed\n",
-                            c_word_to_ipv4(tcid),c_word_to_ipv4(ipaddr), klen, key,
+        dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_set: set (tcid %s, ip %s) to np %u failed\n",
+                            c_word_to_ipv4(tcid),c_word_to_ipv4(ipaddr),
                             ctdnsnp_id);
         return (EC_FALSE);
     }
 
-   
     if(do_log(SEC_0030_CTDNSNPMGR, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] ctdnsnp_mgr_set: set item done:\n");
@@ -803,7 +779,7 @@ EC_BOOL ctdnsnp_mgr_set(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, const UINT3
     return (EC_TRUE);
 }
 
-EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipaddr, uint32_t *klen, uint8_t **key)
+EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port)
 {
     CTDNSNP *ctdnsnp;
     uint32_t ctdnsnp_id;
@@ -822,20 +798,8 @@ EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipa
         CTDNSNP_ITEM *ctdnsnp_item;
 
         ctdnsnp_item = ctdnsnp_fetch(ctdnsnp, node_pos);
-        if(NULL_PTR != ipaddr)
-        {
-            (*ipaddr) = CTDNSNP_ITEM_IPADDR(ctdnsnp_item);
-        }
-
-        if(NULL_PTR != klen)
-        {
-            (*klen) = CTDNSNP_ITEM_KLEN(ctdnsnp_item);
-        }
-
-        if(NULL_PTR != key)
-        {
-            (*key) = CTDNSNP_ITEM_KEY(ctdnsnp_item);
-        }
+        (*ipaddr) = CTDNSNP_ITEM_IPADDR(ctdnsnp_item);
+        (*port) = CTDNSNP_ITEM_PORT(ctdnsnp_item);
         
         return (EC_TRUE);
     }

@@ -190,7 +190,7 @@ EC_BOOL crfsnp_mgr_close_np_all(CRFSNP_MGR *crfsnp_mgr)
     {
         if(EC_FALSE == crfsnp_mgr_close_np(crfsnp_mgr, crfsnp_id))
         {
-            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_close_np_all: close np %u ffailed\n",
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_close_np_all: close np %u failed\n",
                             crfsnp_id);
         }
     }

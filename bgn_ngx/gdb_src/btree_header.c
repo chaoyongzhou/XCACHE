@@ -18,7 +18,7 @@ btreeReadHeader(GdbBlock *block, const uint8_t *buffer, void *extra)
     BTree *tree;
     uint32_t counter = 0;
 
-    MEM_CHECK(tree = (BTree *)SAFE_MALLOC(sizeof(BTree), LOC_BTREE_0001));
+    MEM_CHECK(tree = (BTree *)SAFE_MALLOC(sizeof(BTree), LOC_BTREE_0143));
     memset(tree, 0, sizeof(BTree));
 
     tree->block = block;
@@ -31,7 +31,7 @@ btreeReadHeader(GdbBlock *block, const uint8_t *buffer, void *extra)
     tree->minLeaf = (tree->order / 2);
     tree->minInt  = ((tree->order + 1) / 2) - 1;
 
-    BTREE_CRWLOCK_INIT(tree, LOC_BTREE_0002);
+    BTREE_CRWLOCK_INIT(tree, LOC_BTREE_0144);
     return tree;
 }
 
@@ -45,7 +45,7 @@ btreeWriteHeader(GdbBlock *block, uint8_t **buffer, uint32_t *size)
 
     *size = BTREE_HEADER_DATA_SIZE;
 
-    MEM_CHECK(*buffer = (uint8_t *)SAFE_MALLOC(BTREE_HEADER_DATA_SIZE, LOC_BTREE_0003));
+    MEM_CHECK(*buffer = (uint8_t *)SAFE_MALLOC(BTREE_HEADER_DATA_SIZE, LOC_BTREE_0145));
 
     gdbPut8(*buffer,  &counter, tree->order);
     gdbPut32(*buffer, &counter, tree->size);
@@ -58,7 +58,7 @@ btreeCreateHeader(GdbBlock *block, void *extra)
 {
     BTree *tree;
 
-    MEM_CHECK(tree = (BTree *)SAFE_MALLOC(sizeof(BTree), LOC_BTREE_0004));
+    MEM_CHECK(tree = (BTree *)SAFE_MALLOC(sizeof(BTree), LOC_BTREE_0146));
     memset(tree, 0, sizeof(BTree));
 
     tree->block = block;
@@ -67,7 +67,7 @@ btreeCreateHeader(GdbBlock *block, void *extra)
     tree->minLeaf = (tree->order / 2);
     tree->minInt  = ((tree->order + 1) / 2) - 1;
 
-    BTREE_CRWLOCK_INIT(tree, LOC_BTREE_0005);
+    BTREE_CRWLOCK_INIT(tree, LOC_BTREE_0147);
 
     return tree;
 }
@@ -77,8 +77,8 @@ btreeDestroyHeader(void *tree)
 {
     if (NULL != tree)
     {
-        BTREE_CRWLOCK_CLEAN((BTree *)tree, LOC_BTREE_0006);
-        SAFE_FREE(tree, LOC_BTREE_0007);
+        BTREE_CRWLOCK_CLEAN((BTree *)tree, LOC_BTREE_0148);
+        SAFE_FREE(tree, LOC_BTREE_0149);
     }
     return;
 }
@@ -106,7 +106,7 @@ btreeSetRootNode(BTree *tree, offset_t offset)
     offset = gdb_hton_offset(offset);
     //dbg_log(SEC_0130_BTREE, 9)(LOGSTDOUT, "[DEBUG] btreeSetRootNode: btree %lx, fp %lx, __offset %d, root offset %d => %d\n", tree, fp, __offset, tree->root, offset);
 
-    rawFileWrite(fp, __offset, &offset, sizeof(offset_t), 1, LOC_BTREE_0008);
+    rawFileWrite(fp, __offset, &offset, sizeof(offset_t), 1, LOC_BTREE_0150);
 }
 
 void
@@ -131,7 +131,7 @@ btreeSetLeftLeaf(BTree *tree, offset_t offset)
 
     offset = gdb_hton_offset(offset);
 
-    rawFileWrite(fp, __offset, &offset, sizeof(offset_t), 1, LOC_BTREE_0009);
+    rawFileWrite(fp, __offset, &offset, sizeof(offset_t), 1, LOC_BTREE_0151);
 }
 
 void
@@ -156,7 +156,7 @@ btreeSetTreeSize(BTree *tree, uint32_t size)
 
     size = gdb_hton_uint32(size);
 
-    rawFileWrite(fp, __offset, &size, sizeof(uint32_t), 1, LOC_BTREE_0010);
+    rawFileWrite(fp, __offset, &size, sizeof(uint32_t), 1, LOC_BTREE_0152);
 }
 
 offset_t
@@ -178,7 +178,7 @@ btreeGetRootNode(BTree *tree)
 
     rawFileSeek(fp, block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_ROOT_OFFSET, SEEK_SET);
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_ROOT_OFFSET;
-    if (rawFileRead(fp, __offset, &root_offset, sizeof(offset_t), 1, LOC_BTREE_0011) != 1)
+    if (rawFileRead(fp, __offset, &root_offset, sizeof(offset_t), 1, LOC_BTREE_0153) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeGetRootNode: B+Tree: Unable to read the root node offset at block offset %d\n",
                             block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_ROOT_OFFSET);
@@ -210,7 +210,7 @@ btreeGetLeftLeaf(BTree *tree)
 
     rawFileSeek(fp, block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_LEFT_LEAF_OFFSET, SEEK_SET);
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_LEFT_LEAF_OFFSET;
-    if (rawFileRead(fp, __offset, &leaf_offset, sizeof(offset_t), 1, LOC_BTREE_0012) != 1)
+    if (rawFileRead(fp, __offset, &leaf_offset, sizeof(offset_t), 1, LOC_BTREE_0154) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeGetLeftLeaf: B+Tree: Unable to read the left leaf offset at %d\n",
                             block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_LEFT_LEAF_OFFSET);
@@ -241,7 +241,7 @@ btreeGetTreeSize(BTree *tree)
 
     rawFileSeek(fp, block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_SIZE_OFFSET, SEEK_SET);
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_SIZE_OFFSET;
-    if (rawFileRead(fp, __offset, &tree_size, sizeof(uint32_t), 1, LOC_BTREE_0013) != 1)
+    if (rawFileRead(fp, __offset, &tree_size, sizeof(uint32_t), 1, LOC_BTREE_0155) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeGetTreeSize: B+Tree: Unable to read the tree size at offset (%d) at %d\n",
                             block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_SIZE_OFFSET);
@@ -275,14 +275,14 @@ void btreeDebug0(BTree *tree, const word_t location)
     fp = block->db->idxRawFile;
 
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_ORDER_OFFSET;
-    if (rawFileRead(fp, __offset, &order, sizeof(uint8_t), 1, LOC_BTREE_0014) != 1)
+    if (rawFileRead(fp, __offset, &order, sizeof(uint8_t), 1, LOC_BTREE_0156) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDebug: B+Tree: Unable to read the tree order at offset (%d) at %d\n", __offset);
         exit(1);
     }
 
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_SIZE_OFFSET;
-    if (rawFileRead(fp, __offset, &size, sizeof(uint32_t), 1, LOC_BTREE_0015) != 1)
+    if (rawFileRead(fp, __offset, &size, sizeof(uint32_t), 1, LOC_BTREE_0157) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDebug: B+Tree: Unable to read the tree size at offset (%d) at %d\n", __offset);
         exit(1);
@@ -290,7 +290,7 @@ void btreeDebug0(BTree *tree, const word_t location)
     size = gdb_ntoh_uint32(size);
 
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_ROOT_OFFSET;
-    if (rawFileRead(fp, __offset, &root, sizeof(offset_t), 1, LOC_BTREE_0016) != 1)
+    if (rawFileRead(fp, __offset, &root, sizeof(offset_t), 1, LOC_BTREE_0158) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDebug: B+Tree: Unable to read the tree root offset at offset (%d) at %d\n", __offset);
         exit(1);
@@ -298,7 +298,7 @@ void btreeDebug0(BTree *tree, const word_t location)
     root = gdb_ntoh_offset(root);
 
     __offset = block->offset + GDB_BLOCK_HEADER_SIZE + BTREE_LEFT_LEAF_OFFSET;
-    if (rawFileRead(fp, __offset, &leftLeaf, sizeof(offset_t), 1, LOC_BTREE_0017) != 1)
+    if (rawFileRead(fp, __offset, &leftLeaf, sizeof(offset_t), 1, LOC_BTREE_0159) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDebug: B+Tree: Unable to read the tree left leaf offset at offset (%d) at %d\n", __offset);
         exit(1);
@@ -306,7 +306,7 @@ void btreeDebug0(BTree *tree, const word_t location)
     leftLeaf = gdb_ntoh_offset(leftLeaf);
 
     __offset = DB_FREE_BLOCK_LIST_OFFSET;
-    if (rawFileRead(fp, __offset, &freeBlockCount, sizeof(uint32_t), 1, LOC_BTREE_0018) != 1)
+    if (rawFileRead(fp, __offset, &freeBlockCount, sizeof(uint32_t), 1, LOC_BTREE_0160) != 1)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDebug: B+Tree: Unable to read the freeBlockCount at offset (%d) at %d\n", __offset);
         exit(1);

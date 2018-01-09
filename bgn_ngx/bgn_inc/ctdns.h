@@ -26,8 +26,9 @@ extern "C"{
 #include "ctdnsnp.h"
 #include "ctdnsnpmgr.h"
 
+#include "ctdnssv.h"
+#include "ctdnssvmgr.h"
 
-#define CTDNS_MAX_MODI                       ((UINT32)32)
 
 typedef struct
 {
@@ -35,12 +36,21 @@ typedef struct
     UINT32               usedcounter;
     EC_BOOL              terminate_flag;
 
-    CTDNSNP_MGR         *ctdnsnpmgr;/*namespace pool*/
+    CSTRING              root_dir;
+
+    CTDNSNP_MGR         *ctdnsnpmgr;
+
+    CTDNSSV_MGR         *ctdnssvmgr;
 
 }CTDNS_MD;
 
 #define CTDNS_MD_TERMINATE_FLAG(ctdns_md)    ((ctdns_md)->terminate_flag)
+
+#define CTDNS_MD_ROOT_DIR(ctdns_md)          (&((ctdns_md)->root_dir))
+#define CTDNS_MD_ROOT_DIR_STR(ctdns_md)      (cstring_get_str(CTDNS_MD_ROOT_DIR(ctdns_md)))
+
 #define CTDNS_MD_NPP(ctdns_md)               ((ctdns_md)->ctdnsnpmgr)
+#define CTDNS_MD_SVP(ctdns_md)               ((ctdns_md)->ctdnssvmgr)
 
 
 /**
@@ -104,7 +114,6 @@ EC_BOOL ctdns_close_npp(const UINT32 ctdns_md_id);
 EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
                              const UINT32 ctdnsnp_model,
                              const UINT32 ctdnsnp_max_num,
-                             const UINT32 ctdnsnp_2nd_chash_algo_id,
                              const CSTRING *ctdnsnp_db_root_dir);
 
 /**
@@ -112,21 +121,34 @@ EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
 *  check existing of a tcid
 *
 **/
-EC_BOOL ctdns_exists(const UINT32 ctdns_md_id, const UINT32 tcid);
+EC_BOOL ctdns_exists_tcid(const UINT32 ctdns_md_id, const UINT32 tcid);
+
+EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_name);
+
+EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
+
+EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
+EC_BOOL ctdns_delete_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid);
+
+EC_BOOL ctdns_delete_tcid_from_all_service(const UINT32 ctdns_md_id, const UINT32 tcid);
+
 
 /**
 *
 *  set a tcid
 *
 **/
-EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const CBYTES *key_cbytes);
+EC_BOOL ctdns_set_no_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
+
+EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
 
 /**
 *
 *  get a tcid
 *
 **/
-EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, CBYTES *key_cbytes);
+EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port);
 
 
 /**
@@ -145,6 +167,13 @@ EC_BOOL ctdns_flush_npp(const UINT32 ctdns_md_id);
 
 /**
 *
+*  flush service pool
+*
+**/
+EC_BOOL ctdns_flush_svp(const UINT32 ctdns_md_id);
+
+/**
+*
 *  count tcid num
 *
 **/
@@ -152,12 +181,19 @@ EC_BOOL ctdns_tcid_num(const UINT32 ctdns_md_id, UINT32 *tcid_num);
 
 /**
 *
-*  show name node pool info if it is npp
+*  show name node pool info
 *
 *
 **/
 EC_BOOL ctdns_show_npp(const UINT32 ctdns_md_id, LOG *log);
 
+/**
+*
+*  show service pool info
+*
+*
+**/
+EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log);
 
 
 #endif /*_CTDNS_H*/

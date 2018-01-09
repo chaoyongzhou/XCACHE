@@ -102,7 +102,7 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id, const UINT32 ctdnsnp_model, const UINT32 ctdnsnp_max_num, const UINT32 ctdnsnp_2nd_chash_algo_id,  const CSTRING *ctdnsnp_db_root_dir); -- */
+/* -- EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id, const UINT32 ctdnsnp_model, const UINT32 ctdnsnp_max_num, const CSTRING *ctdnsnp_db_root_dir); -- */
 /*func module     */     MD_CTDNS,
 /*func logic addr */     (UINT32)ctdns_create_npp,
 /*func beg addr   */     0,
@@ -111,29 +111,73 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func name       */     "ctdns_create_npp",
 /*func index      */     FI_ctdns_create_npp,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL ctdns_exists(const UINT32 ctdns_md_id, const UINT32 tcid); -- */
+/* -- EC_BOOL ctdns_exists_tcid(const UINT32 ctdns_md_id, const UINT32 tcid); -- */
 /*func module     */     MD_CTDNS,
-/*func logic addr */     (UINT32)ctdns_exists,
+/*func logic addr */     (UINT32)ctdns_exists_tcid,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "ctdns_exists",
-/*func index      */     FI_ctdns_exists,
+/*func name       */     "ctdns_exists_tcid",
+/*func index      */     FI_ctdns_exists_tcid,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     2,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
 /*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
-
 {
-/* -- EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const CBYTES *key_cbytes); -- */
+/* -- EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_name); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_exists_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_exists_service",
+/*func index      */     FI_ctdns_exists_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_set_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_set_service",
+/*func index      */     FI_ctdns_set_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_set_no_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_set_no_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_set_no_service",
+/*func index      */     FI_ctdns_set_no_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name); -- */
 /*func module     */     MD_CTDNS,
 /*func logic addr */     (UINT32)ctdns_set,
 /*func beg addr   */     0,
@@ -142,13 +186,13 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func name       */     "ctdns_set",
 /*func index      */     FI_ctdns_set,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, CBYTES *key_cbytes); -- */
+/* -- EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port); -- */
 /*func module     */     MD_CTDNS,
 /*func logic addr */     (UINT32)ctdns_get,
 /*func beg addr   */     0,
@@ -159,7 +203,7 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     4,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_CBYTES_ptr, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_UINT32_ptr, },
 /*func para val   */     0, 0, {0},
 },
 {
@@ -186,6 +230,21 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func addr offset*/     0,
 /*func name       */     "ctdns_flush_npp",
 /*func index      */     FI_ctdns_flush_npp,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_flush_svp(const UINT32 ctdns_md_id); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_flush_svp,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_flush_svp",
+/*func index      */     FI_ctdns_flush_svp,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     1,
 /*func para direct*/     {E_DIRECT_IN,},
@@ -223,6 +282,21 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
+/* -- EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_show_svp,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_show_svp",
+/*func index      */     FI_ctdns_show_svp,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IO,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_LOG_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
 /* -- EC_BOOL ctdns_flush(const UINT32 ctdns_md_id); -- */
 /*func module     */     MD_CTDNS,
 /*func logic addr */     (UINT32)ctdns_flush,
@@ -237,7 +311,51 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
-
+{
+/* -- EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_finger_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_finger_service",
+/*func index      */     FI_ctdns_finger_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CTDNSSV_NODE_MGR_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_delete_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_delete_tcid_from_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_delete_tcid_from_service",
+/*func index      */     FI_ctdns_delete_tcid_from_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL ctdns_delete_tcid_from_all_service(const UINT32 ctdns_md_id, const UINT32 tcid); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_delete_tcid_from_all_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_delete_tcid_from_all_service",
+/*func index      */     FI_ctdns_delete_tcid_from_all_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_ctdns_func_addr_list_len = sizeof(g_ctdns_func_addr_list)/sizeof(g_ctdns_func_addr_list[0]);

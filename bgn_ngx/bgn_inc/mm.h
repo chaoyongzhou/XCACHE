@@ -287,9 +287,14 @@ extern "C"{
 #define                  MM_CTDNSNP_ITEM    ((UINT32)215)
 #define                       MM_CTDNSNP    ((UINT32)216)
 #define                   MM_CTDNSNP_MGR    ((UINT32)217)
+#define                  MM_CTDNSSV_ITEM    ((UINT32)218)
+#define                  MM_CTDNSSV_NODE    ((UINT32)219)
+#define              MM_CTDNSSV_NODE_MGR    ((UINT32)220)
+#define                   MM_CTDNSSV_MGR    ((UINT32)221)
+#define                       MM_CTDNSSV    ((UINT32)222)
 
-#define             MM_CDETECT_ORIG_NODE    ((UINT32)218)
-#define               MM_CDETECT_IP_NODE    ((UINT32)219)
+#define             MM_CDETECT_ORIG_NODE    ((UINT32)223)
+#define               MM_CDETECT_IP_NODE    ((UINT32)224)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

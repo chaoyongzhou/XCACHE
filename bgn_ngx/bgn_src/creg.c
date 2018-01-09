@@ -41,6 +41,7 @@ extern "C"{
 #include "csfsmon.h"
 #include "ctdns.h"
 #include "cdetect.h"
+#include "ctdnssv.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -68,6 +69,7 @@ extern "C"{
 #include "chttp.inc"
 #include "ctdns.inc"
 #include "cdetect.inc"
+#include "ctdnssv.inc"
 #include "task.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
@@ -947,6 +949,30 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_csfs_node,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_csfs_node_size
     );  
+    creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CTDNSSV_NODE_MGR_ptr,
+        /* type_sizeof            */sizeof(CTDNSSV_NODE_MGR),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CTDNSSV_NODE_MGR,
+        /* init_type_func         */(UINT32)ctdnssv_node_mgr_init,
+        /* clean_type_func        */(UINT32)ctdnssv_node_mgr_clean,
+        /* free_type_func         */(UINT32)ctdnssv_node_mgr_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_ctdnssv_node_mgr,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_ctdnssv_node_mgr,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_ctdnssv_node_mgr_size
+    );    
+    creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CTDNSSV_NODE_ptr,
+        /* type_sizeof            */sizeof(CTDNSSV_NODE),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CTDNSSV_NODE,
+        /* init_type_func         */(UINT32)ctdnssv_node_init,
+        /* clean_type_func        */(UINT32)ctdnssv_node_clean,
+        /* free_type_func         */(UINT32)ctdnssv_node_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_ctdnssv_node,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_ctdnssv_node,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_ctdnssv_node_size
+    );    
     return (EC_TRUE);
 }
 

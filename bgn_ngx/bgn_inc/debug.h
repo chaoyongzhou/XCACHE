@@ -103,6 +103,8 @@ extern "C"{
 #define              e_dbg_CSFS_NODE_ptr    ((UINT32) 72)
 #define            e_dbg_CSFSNP_ITEM_ptr    ((UINT32) 73)
 #define           e_dbg_CSFSNP_FNODE_ptr    ((UINT32) 74)
+#define       e_dbg_CTDNSSV_NODE_MGR_ptr    ((UINT32) 75)
+#define           e_dbg_CTDNSSV_NODE_ptr    ((UINT32) 76)
 #define                   e_dbg_type_end    ((UINT32)128)
 
 /* description of E_DBG_TYPE */

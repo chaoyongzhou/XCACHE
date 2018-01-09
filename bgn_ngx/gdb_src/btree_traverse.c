@@ -65,7 +65,7 @@ btreeInitTraversal(const BTree *tree)
     {
         return NULL;
     }
-    MEM_CHECK(trav = (BTreeTraversal *)SAFE_MALLOC(sizeof(BTreeTraversal), LOC_BTREE_0147));
+    MEM_CHECK(trav = (BTreeTraversal *)SAFE_MALLOC(sizeof(BTreeTraversal), LOC_BTREE_0172));
     memset(trav, 0, sizeof(BTreeTraversal));
 
     trav->tree = (BTree *)tree;
@@ -85,7 +85,7 @@ btreeDestroyTraversal(BTreeTraversal *trav)
         btreeDestroyNode(trav->node);
         trav->node = NULL;
     }
-    SAFE_FREE(trav, LOC_BTREE_0148);
+    SAFE_FREE(trav, LOC_BTREE_0173);
 
     return NULL;
 }
@@ -284,7 +284,7 @@ uint8_t btreeCollectAllOffset(BTree *tree, offset_t **offset_list, uint32_t *off
         return 0;
     }
 
-    offset_ptr = (offset_t *)SAFE_MALLOC(tree->size * sizeof(offset_t), LOC_BTREE_0149);
+    offset_ptr = (offset_t *)SAFE_MALLOC(tree->size * sizeof(offset_t), LOC_BTREE_0174);
     if(NULL == offset_ptr)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeCollectAllOffset: alloc %ld offset_t failed\n", tree->size);

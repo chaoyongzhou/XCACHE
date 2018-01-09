@@ -71,6 +71,8 @@ extern "C"{
 #include "cstrkv.h"
 #include "chttp.h"
 
+#include "ctdnssv.h"
+
 
 //#define CMPI_DBG(x) sys_log x
 #define CMPI_DBG(x) do{}while(0)
@@ -6867,6 +6869,168 @@ UINT32 cmpi_decode_csfs_node(const UINT32 comm, const UINT8 *in_buff, const UINT
     return ((UINT32)0);
 }
 
+
+#endif
+
+#if 1
+
+UINT32 cmpi_encode_ctdnssv_node(const UINT32 comm, const CTDNSSV_NODE *ctdnssv_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == ctdnssv_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node: ctdnssv_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32(comm, CTDNSSV_NODE_TCID(ctdnssv_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CTDNSSV_NODE_IPADDR(ctdnssv_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CTDNSSV_NODE_PORT(ctdnssv_node), out_buff, out_buff_max_len, position);
+ 
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_ctdnssv_node_size(const UINT32 comm, const CTDNSSV_NODE *ctdnssv_node, UINT32 *size)
+{
+    cmpi_encode_uint32_size(comm, CTDNSSV_NODE_TCID(ctdnssv_node), size);
+    cmpi_encode_uint32_size(comm, CTDNSSV_NODE_IPADDR(ctdnssv_node), size);
+    cmpi_encode_uint32_size(comm, CTDNSSV_NODE_PORT(ctdnssv_node), size);
+ 
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_ctdnssv_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CTDNSSV_NODE *ctdnssv_node)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == ctdnssv_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node: ctdnssv_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CTDNSSV_NODE_TCID(ctdnssv_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CTDNSSV_NODE_IPADDR(ctdnssv_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CTDNSSV_NODE_PORT(ctdnssv_node));
+
+    return ((UINT32)0);
+}
+
+
+UINT32 cmpi_encode_ctdnssv_node_mgr(const UINT32 comm, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    UINT32           size;
+    CLIST_DATA      *clist_data;
+    
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == ctdnssv_node_mgr )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node_mgr: ctdnssv_node_mgr is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node_mgr: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_ctdnssv_node_mgr: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    size = clist_size(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr));
+
+    cmpi_encode_uint32(comm, size, out_buff, out_buff_max_len, position);
+    CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+    {
+        CTDNSSV_NODE *ctdnssv_node;
+
+        ctdnssv_node = CLIST_DATA_DATA(clist_data);
+        cmpi_encode_ctdnssv_node(comm, ctdnssv_node, out_buff, out_buff_max_len, position);
+    }
+ 
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_ctdnssv_node_mgr_size(const UINT32 comm, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr, UINT32 *size)
+{
+    CLIST_DATA      *clist_data;
+    
+    cmpi_encode_uint32_size(comm, (UINT32)0, size);
+    CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+    {
+        CTDNSSV_NODE *ctdnssv_node;
+
+        ctdnssv_node = CLIST_DATA_DATA(clist_data);
+        cmpi_encode_ctdnssv_node_size(comm, ctdnssv_node, size);
+    }
+    
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_ctdnssv_node_mgr(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+{
+    UINT32          size;
+    UINT32          idx;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node_mgr: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node_mgr: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == ctdnssv_node_mgr )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node_mgr: ctdnssv_node_mgr is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &size);
+    for(idx = 0; idx < size; idx ++)
+    {
+        CTDNSSV_NODE *ctdnssv_node;
+        
+        ctdnssv_node = ctdnssv_node_new();
+        if(NULL_PTR == ctdnssv_node)
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_ctdnssv_node_mgr: no memory\n");
+            return ((UINT32)-1);
+        }
+
+        cmpi_decode_ctdnssv_node(comm, in_buff, in_buff_max_len, position, ctdnssv_node);
+        clist_push_back(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), (void *)ctdnssv_node);
+    }
+    return ((UINT32)0);
+}
 
 #endif
 

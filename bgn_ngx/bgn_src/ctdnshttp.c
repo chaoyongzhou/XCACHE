@@ -538,7 +538,7 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
 
     CSOCKET_CNODE * csocket_cnode;
     UINT32          ipaddr;
-    CBYTES          key_cbytes;    
+    UINT32          port;    
 
     tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
     if(NULL_PTR == tcid_str)
@@ -555,10 +555,8 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
     }
     
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-
-    cbytes_init(&key_cbytes);
-
-    if(EC_FALSE == ctdns_get(CSOCKET_CNODE_MODI(csocket_cnode), c_ipv4_to_word(tcid_str), &ipaddr, &key_cbytes))
+   
+    if(EC_FALSE == ctdns_get(CSOCKET_CNODE_MODI(csocket_cnode), c_ipv4_to_word(tcid_str), &ipaddr, &port))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_gettcid_get_request: not found tcid '%s'\n", tcid_str);
 
@@ -568,7 +566,6 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
                          
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
-        cbytes_clean(&key_cbytes);
         return (EC_TRUE);        
     }
 
@@ -584,11 +581,7 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
     /*prepare response header*/
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"tcid", tcid_str);
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"ip", c_word_to_ipv4(ipaddr));
-
-    cstrkv_mgr_add_kv_chars(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"service", strlen("service"), 
-                                   (const char *)CBYTES_BUF(&key_cbytes), (uint32_t)CBYTES_LEN(&key_cbytes));
-
-    cbytes_clean(&key_cbytes);
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port", c_word_to_ipv4(port));
 
     return (EC_TRUE);
 }
@@ -716,15 +709,17 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     CSOCKET_CNODE * csocket_cnode;
     const char    * tcid_str;
     const char    * ipaddr_str;
-    const char    * key_str;
+    const char    * port_str;
+    const char    * service_str;
 
-    CBYTES          key_cbytes;
+    CSTRING         service_cstr;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-    tcid_str   = chttp_node_get_header(chttp_node, (const char *)"tcid");
-    ipaddr_str = chttp_node_get_header(chttp_node, (const char *)"ip");
-    key_str    = chttp_node_get_header(chttp_node, (const char *)"service");
+    tcid_str    = chttp_node_get_header(chttp_node, (const char *)"tcid");
+    ipaddr_str  = chttp_node_get_header(chttp_node, (const char *)"ip");
+    port_str    = chttp_node_get_header(chttp_node, (const char *)"port");
+    service_str = chttp_node_get_header(chttp_node, (const char *)"service");
 
     if(NULL_PTR == tcid_str)
     {
@@ -750,37 +745,54 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
      
         return (EC_TRUE);
-    }        
+    }     
 
-    cbytes_init(&key_cbytes);
-
-    if(NULL_PTR != key_str)
+    if(NULL_PTR == port_str)
     {
-        cbytes_mount(&key_cbytes, strlen(key_str), (const UINT8 *)key_str);
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: tcid '%s', port absence\n", tcid_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: tcid '%s', port absence", tcid_str);
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }     
+
+    cstring_init(&service_cstr, NULL_PTR);
+
+    if(NULL_PTR != service_str)
+    {
+        cstring_set_str(&service_cstr, (const UINT8 *)service_str);
     }
 
-    if(EC_FALSE == ctdns_set(CSOCKET_CNODE_MODI(csocket_cnode), c_ipv4_to_word(tcid_str), c_ipv4_to_word(ipaddr_str), &key_cbytes))
+    if(EC_FALSE == ctdns_set(CSOCKET_CNODE_MODI(csocket_cnode), 
+                             c_ipv4_to_word(tcid_str), 
+                             c_ipv4_to_word(ipaddr_str), 
+                             c_str_to_word(port_str),
+                             &service_cstr))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', key '%s') failed\n", 
-                        tcid_str, ipaddr_str, key_str);
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', port '%s', service '%s') failed\n", 
+                        tcid_str, ipaddr_str, port_str, service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', key '%s') failed", 
-                        tcid_str, ipaddr_str, key_str);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', port '%s', service '%s') failed", 
+                        tcid_str, ipaddr_str, port_str, service_str);
                          
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
      
         return (EC_TRUE);
     }
    
-    dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', key '%s') done\n",
-                        tcid_str, ipaddr_str, key_str); 
+    dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', port '%s', service '%s') done\n",
+                        tcid_str, ipaddr_str, port_str, service_str); 
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', key '%s') done", 
-                        tcid_str, ipaddr_str, key_str);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_settcid_get_request: set (tcid '%s', ip '%s', port '%s', service '%s') done", 
+                        tcid_str, ipaddr_str, port_str, service_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 

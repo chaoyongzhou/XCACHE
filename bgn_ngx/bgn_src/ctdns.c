@@ -127,15 +127,6 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
         return (CMPI_ERROR_MODI);
     }
 
-    /*check validity*/
-    if(CTDNS_MAX_MODI < ctdns_md_id) /*limited to 2-digital*/
-    {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_start: ctdns_md_id %ld overflow\n", ctdns_md_id);
-
-        cbc_md_free(MD_CTDNS, ctdns_md_id);
-        return (CMPI_ERROR_MODI);
-    }
-
     ctdns_dir = cstring_make("%s/tdns%02ld", (char *)cstring_get_str(ctdns_root_dir), ctdns_md_id);
     if(NULL_PTR == ctdns_dir)
     {
@@ -203,6 +194,17 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
     }
 
     cstring_free(ctdnsnp_root_dir); 
+
+    if(EC_TRUE  == ret && NULL_PTR != ctdns_root_dir)
+    {
+        CTDNS_MD_SVP(ctdns_md) = ctdnssv_mgr_open(ctdns_root_dir);
+        if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+        {
+            dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_start: open svp from root dir %s failed\n",
+                               (char *)cstring_get_str(ctdns_root_dir));
+            ret = EC_FALSE;
+        }    
+    }
  
     if(EC_FALSE == ret)
     {
@@ -211,7 +213,13 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
             ctdnsnp_mgr_close(CTDNS_MD_NPP(ctdns_md));
             CTDNS_MD_NPP(ctdns_md) = NULL_PTR;
         }
-     
+
+        if(NULL_PTR != CTDNS_MD_SVP(ctdns_md))
+        {
+            ctdnssv_mgr_close(CTDNS_MD_SVP(ctdns_md));
+            CTDNS_MD_SVP(ctdns_md) = NULL_PTR;
+        }
+        
         cbc_md_free(MD_CTDNS, ctdns_md_id);
 
         return (CMPI_ERROR_MODI);
@@ -313,6 +321,12 @@ void ctdns_end(const UINT32 ctdns_md_id)
         CTDNS_MD_NPP(ctdns_md) = NULL_PTR;
     }
 
+    if(NULL_PTR != CTDNS_MD_SVP(ctdns_md))
+    {
+        ctdnssv_mgr_close(CTDNS_MD_SVP(ctdns_md));
+        CTDNS_MD_SVP(ctdns_md) = NULL_PTR;
+    }    
+
     /* free module : */
     //ctdns_free_module_static_mem(ctdns_md_id);
 
@@ -346,6 +360,12 @@ EC_BOOL ctdns_flush(const UINT32 ctdns_md_id)
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush: flush npp failed!\n");
         return (EC_FALSE); 
     }
+
+    if(EC_FALSE == ctdns_flush_svp(ctdns_md_id))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush: flush svp failed!\n");
+        return (EC_FALSE); 
+    }    
     
     dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "[DEBUG] ctdns_flush: flush done\n");
     return (EC_TRUE);
@@ -450,7 +470,6 @@ EC_BOOL ctdns_close_npp(const UINT32 ctdns_md_id)
 EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
                              const UINT32 ctdnsnp_model,
                              const UINT32 ctdnsnp_max_num,
-                             const UINT32 ctdnsnp_2nd_chash_algo_id,
                              const CSTRING *ctdnsnp_db_root_dir)
 {
     CTDNS_MD *ctdns_md;
@@ -485,15 +504,8 @@ EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_check_is_uint8_t(ctdnsnp_2nd_chash_algo_id))
-    {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_create_npp: ctdnsnp_2nd_chash_algo_id %u is invalid\n", ctdnsnp_2nd_chash_algo_id);
-        return (EC_FALSE);
-    } 
-
     CTDNS_MD_NPP(ctdns_md) = ctdnsnp_mgr_create((uint8_t ) ctdnsnp_model,
                                              (uint32_t) ctdnsnp_max_num,
-                                             (uint8_t ) ctdnsnp_2nd_chash_algo_id,
                                              ctdnsnp_db_root_dir);
     if(NULL_PTR == CTDNS_MD_NPP(ctdns_md))
     {
@@ -509,7 +521,7 @@ EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
 *  check existing of a tcid
 *
 **/
-EC_BOOL ctdns_exists(const UINT32 ctdns_md_id, const UINT32 tcid)
+EC_BOOL ctdns_exists_tcid(const UINT32 ctdns_md_id, const UINT32 tcid)
 { 
     CTDNS_MD      *ctdns_md;
     
@@ -517,7 +529,7 @@ EC_BOOL ctdns_exists(const UINT32 ctdns_md_id, const UINT32 tcid)
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:ctdns_exists: ctdns module #0x%lx not started.\n",
+                "error:ctdns_exists_tcid: ctdns module #0x%lx not started.\n",
                 ctdns_md_id);
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
@@ -527,24 +539,156 @@ EC_BOOL ctdns_exists(const UINT32 ctdns_md_id, const UINT32 tcid)
 
     if(NULL_PTR == CTDNS_MD_NPP(ctdns_md))
     {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_exists: npp was not open\n");
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_exists_tcid: npp was not open\n");
         return (EC_FALSE);
     }
     
     return ctdnsnp_mgr_find(CTDNS_MD_NPP(ctdns_md), tcid);
 }
 
+EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_name)
+{
+    CTDNS_MD      *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_exists_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_exists(CTDNS_MD_SVP(ctdns_md), service_name);
+}
+
+EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name)
+{
+    CTDNS_MD                  *ctdns_md;
+    
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_set_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_set(CTDNS_MD_SVP(ctdns_md), tcid, ipaddr, port, service_name);
+}
+
+EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+{
+    CTDNS_MD                  *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_finger_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_get(CTDNS_MD_SVP(ctdns_md), service_name, max_num, ctdnssv_node_mgr);
+}
+
+EC_BOOL ctdns_delete_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid)
+{
+    CTDNS_MD                  *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_delete_tcid_from_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_delete_one(CTDNS_MD_SVP(ctdns_md), service_name, tcid); /*delete tcid from service*/
+}
+
+EC_BOOL ctdns_delete_tcid_from_all_service(const UINT32 ctdns_md_id, const UINT32 tcid)
+{
+    CTDNS_MD                  *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_delete_tcid_from_all_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_delete(CTDNS_MD_SVP(ctdns_md), tcid);
+}
+
+
 /**
 *
 *  set a tcid
 *
 **/
-EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const CBYTES *key_cbytes)
+EC_BOOL ctdns_set_no_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port)
 {
     CTDNS_MD      *ctdns_md;
+    
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_set_no_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
 
-    const uint8_t *key;
-    uint32_t       klen;
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_NPP(ctdns_md))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set_no_service: npp was not open\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == ctdnsnp_mgr_set(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, port))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set_no_service: set (tcid %s, ip %s, port %ld) failed\n",
+                         c_word_to_ipv4(tcid),
+                         c_word_to_ipv4(ipaddr),
+                         port);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_set_no_service: set (tcid %s, ip %s, port %ld) done\n",
+                     c_word_to_ipv4(tcid),
+                     c_word_to_ipv4(ipaddr),
+                     port);
+                     
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name)
+{
+    CTDNS_MD      *ctdns_md;
     
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
@@ -563,16 +707,39 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipad
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: npp was not open\n");
         return (EC_FALSE);
     }
-    
-    if(NULL_PTR == key_cbytes)
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
     {
-        return ctdnsnp_mgr_set(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, 0, NULL_PTR);
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: svp was not open\n");
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == ctdnsnp_mgr_set(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, port))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: set (tcid %s, ip %s, port %ld) failed\n",
+                         c_word_to_ipv4(tcid),
+                         c_word_to_ipv4(ipaddr),
+                         port);
+        return (EC_FALSE);
     }
 
-    klen = (uint32_t)CBYTES_LEN(key_cbytes);
-    key  = CBYTES_BUF(key_cbytes);
-    
-    return ctdnsnp_mgr_set(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, klen, key);
+    if(EC_FALSE == ctdnssv_mgr_set(CTDNS_MD_SVP(ctdns_md), tcid, ipaddr, port, service_name))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: set (tcid %s, ip %s, port %ld) to service '%s' failed\n",
+                         c_word_to_ipv4(tcid),
+                         c_word_to_ipv4(ipaddr),
+                         port,
+                         (char *)cstring_get_str(service_name));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_set: set (tcid %s, ip %s, port %ld) to service '%s' done\n",
+                     c_word_to_ipv4(tcid),
+                     c_word_to_ipv4(ipaddr),
+                     port,
+                     (char *)cstring_get_str(service_name));   
+                     
+    return (EC_TRUE);
 }
 
 /**
@@ -580,12 +747,9 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipad
 *  get a tcid
 *
 **/
-EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, CBYTES *key_cbytes)
+EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port)
 {
     CTDNS_MD      *ctdns_md;
-    
-    uint8_t       *key;
-    uint32_t       klen;
     
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
@@ -604,18 +768,8 @@ EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, C
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_get: npp was not open\n");
         return (EC_FALSE);
     }
-    
-    if(EC_FALSE == ctdnsnp_mgr_get(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, &klen, &key))
-    {
-        return (EC_FALSE);
-    }
 
-    if(NULL_PTR == key_cbytes)
-    {
-        return (EC_TRUE);
-    }
-
-    return cbytes_append(key_cbytes, key, klen);
+    return ctdnsnp_mgr_get(CTDNS_MD_NPP(ctdns_md), tcid, ipaddr, port);
 }
 
 
@@ -644,6 +798,14 @@ EC_BOOL ctdns_delete(const UINT32 ctdns_md_id, const UINT32 tcid)
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_delete: no npp\n");
         return (EC_FALSE);
     }
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_delete: no svp\n");
+        return (EC_FALSE);
+    }    
+
+    ctdnssv_mgr_delete(CTDNS_MD_SVP(ctdns_md), tcid);
     
     return ctdnsnp_mgr_delete(CTDNS_MD_NPP(ctdns_md), tcid);
 }
@@ -686,6 +848,42 @@ EC_BOOL ctdns_flush_npp(const UINT32 ctdns_md_id)
 
 /**
 *
+*  flush service pool
+*
+**/
+EC_BOOL ctdns_flush_svp(const UINT32 ctdns_md_id)
+{
+    CTDNS_MD *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_flush_svp: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+    {
+        dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "warn:ctdns_flush_svp: svp was not open\n");
+        return (EC_TRUE);
+    }
+ 
+    if(EC_FALSE == ctdnssv_mgr_flush(CTDNS_MD_SVP(ctdns_md)))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush_svp: flush failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "[DEBUG] ctdns_flush_svp: flush done\n");
+    return (EC_TRUE);
+}
+
+/**
+*
 *  count tcid num
 *
 **/
@@ -716,7 +914,7 @@ EC_BOOL ctdns_tcid_num(const UINT32 ctdns_md_id, UINT32 *tcid_num)
 
 /**
 *
-*  show name node pool info if it is npp
+*  show name node pool info
 *
 *
 **/
@@ -747,6 +945,38 @@ EC_BOOL ctdns_show_npp(const UINT32 ctdns_md_id, LOG *log)
     return (EC_TRUE);
 }
 
+/**
+*
+*  show service pool info
+*
+*
+**/
+EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log)
+{
+    CTDNS_MD *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_show_svp: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+    {
+        sys_log(log, "(null)\n");
+        return (EC_TRUE);
+    }
+
+    ctdnssv_mgr_print(log, CTDNS_MD_SVP(ctdns_md));
+ 
+    return (EC_TRUE);
+}
 
 #ifdef __cplusplus
 }
