@@ -122,6 +122,21 @@ DESCRIPTION
        SIGEMT  is  not  specified  in POSIX 1003.1-2001, but neverthless appears on most other Unices, where its default action is typically to terminate the process
        with a core dump.
 *********************************************************************************************************************************************************************/
+CSIG *csig_new()
+{
+    CSIG  *csig;
+
+    csig = safe_malloc(sizeof(CSIG), LOC_CSIG_0001);
+    if(NULL_PTR == csig)
+    {
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_new: no memory\n");
+        return (NULL_PTR);
+    }
+
+    csig_init(csig);
+
+    return (csig);
+}
 
 EC_BOOL csig_init(CSIG *csig)
 {
@@ -315,7 +330,7 @@ EC_BOOL csig_takeover(CSIG *csig)
     csig_register(SIGHUP , csig_ignore    , CSIG_HANDLE_DEFER);/*when user terminal hup*/
     csig_register(SIGINT , csig_interrupt , CSIG_HANDLE_DEFER);/*CTRL + C*/
     csig_register(SIGTERM, csig_terminate , CSIG_HANDLE_DEFER);/*terminate process, defer, kill -15*/
-
+ 
     csig_register(SIGFPE , csig_core_dump , CSIG_HANDLE_NOW  );
     csig_register(SIGILL , csig_core_dump , CSIG_HANDLE_NOW  );
     csig_register(SIGQUIT, csig_os_default, CSIG_HANDLE_NOW  ); /*CTRL + \, default is to create core file*/
@@ -664,7 +679,7 @@ void csig_core_dump(int signo)
         for(;;)
         {
             dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_core_dump: wait for gdb ...\n");
-            c_sleep(300, LOC_CSIG_0001);
+            c_sleep(300, LOC_CSIG_0002);
         }
     }
     abort();

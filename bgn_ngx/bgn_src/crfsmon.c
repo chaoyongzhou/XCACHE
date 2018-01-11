@@ -68,7 +68,7 @@ void crfsmon_print_module_status(const UINT32 crfsmon_md_id, LOG *log)
 
         if ( NULL_PTR != crfsmon_md && 0 < crfsmon_md->usedcounter )
         {
-            sys_log(log,"CRFSMON Module # %u : %u refered\n",
+            sys_log(log,"CRFSMON Module # %ld : %ld refered\n",
                     this_crfsmon_md_id,
                     crfsmon_md->usedcounter);
         }
@@ -158,7 +158,7 @@ UINT32 crfsmon_start()
                                        
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsmon_end, crfsmon_md_id);
 
-    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_start: start CRFSMON module #%u\n", crfsmon_md_id);
+    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_start: start CRFSMON module #%ld\n", crfsmon_md_id);
 
     return ( crfsmon_md_id );
 }
@@ -181,7 +181,7 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
     if(NULL_PTR == crfsmon_md)
     {
-        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_end: crfsmon_md_id = %u not exist.\n", crfsmon_md_id);
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_end: crfsmon_md_id = %ld not exist.\n", crfsmon_md_id);
         dbg_exit(MD_CRFSMON, crfsmon_md_id);
     }
  
@@ -194,7 +194,7 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
 
     if ( 0 == crfsmon_md->usedcounter )
     {
-        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_end: crfsmon_md_id = %u is not started.\n", crfsmon_md_id);
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_end: crfsmon_md_id = %ld is not started.\n", crfsmon_md_id);
         dbg_exit(MD_CRFSMON, crfsmon_md_id);
     }
 
@@ -219,7 +219,7 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
 
     crfsmon_md->usedcounter = 0;
 
-    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "crfsmon_end: stop CRFSMON module #%u\n", crfsmon_md_id);
+    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "crfsmon_end: stop CRFSMON module #%ld\n", crfsmon_md_id);
     cbc_md_free(MD_CRFSMON, crfsmon_md_id);
 
     return ;

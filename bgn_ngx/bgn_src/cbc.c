@@ -83,7 +83,7 @@ EC_BOOL cbc_md_reg(const UINT32 md_type, const UINT32 md_capaciy)
     md_cindex = (CINDEX *)carray_get_no_lock(g_cbc, md_type);
     if(NULL_PTR != md_cindex)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_md_reg: md_type %ld has already registered\n", md_type);
+        dbg_log(SEC_0091_CBC, 9)(LOGSTDOUT, "[DEBUG] cbc_md_reg: md_type %ld has already registered\n", md_type);
         CARRAY_UNLOCK(g_cbc, LOC_CBC_0006);
         return (EC_FALSE);
     }

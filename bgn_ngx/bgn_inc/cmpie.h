@@ -53,6 +53,7 @@ extern "C"{
 #include "chttp.inc"
 
 #include "ctdnssv.h"
+#include "cp2p.h"
 
 UINT32 cmpi_encode_uint8(const UINT32 comm, const UINT8 num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_uint8_ptr(const UINT32 comm, const UINT8 *num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
@@ -410,6 +411,10 @@ UINT32 cmpi_decode_ctdnssv_node(const UINT32 comm, const UINT8 *in_buff, const U
 UINT32 cmpi_encode_ctdnssv_node_mgr(const UINT32 comm, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_ctdnssv_node_mgr_size(const UINT32 comm, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr, UINT32 *size);
 UINT32 cmpi_decode_ctdnssv_node_mgr(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
+UINT32 cmpi_encode_cp2p_file(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_cp2p_file_size(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT32 *size);
+UINT32 cmpi_decode_cp2p_file(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CP2P_FILE *cp2p_file);
 
 
 #endif/*_CMPIE_H*/

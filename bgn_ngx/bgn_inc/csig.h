@@ -28,7 +28,7 @@ extern "C"{
 #define CSIG_SHELL_CMD_OUTPUT_BUFF_SIZE (1024)
 
 #define CSIG_MAX_NUM          (256)
-#define CSIG_ATEXIT_MAX_NUM   (1024)
+#define CSIG_ATEXIT_MAX_NUM   (20480)
 
 #define CSIG_HANDLE_UNDEF ((uint32_t) 0)
 #define CSIG_HANDLE_NOW   ((uint32_t) 1)
@@ -60,6 +60,8 @@ typedef struct
     int         atexit_queue_len;
     CSIG_ATEXIT atexit_queue[CSIG_ATEXIT_MAX_NUM];
 }CSIG;
+
+CSIG *csig_new();
 
 EC_BOOL csig_init(CSIG *csig);
 

@@ -68,7 +68,7 @@ void csfsmon_print_module_status(const UINT32 csfsmon_md_id, LOG *log)
 
         if ( NULL_PTR != csfsmon_md && 0 < csfsmon_md->usedcounter )
         {
-            sys_log(log,"CSFSMON Module # %u : %u refered\n",
+            sys_log(log,"CSFSMON Module # %ld : %ld refered\n",
                     this_csfsmon_md_id,
                     csfsmon_md->usedcounter);
         }
@@ -148,7 +148,7 @@ UINT32 csfsmon_start()
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)csfsmon_end, csfsmon_md_id);
 
-    dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "[DEBUG] csfsmon_start: start CSFSMON module #%u\n", csfsmon_md_id);
+    dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "[DEBUG] csfsmon_start: start CSFSMON module #%ld\n", csfsmon_md_id);
 
     return ( csfsmon_md_id );
 }
@@ -167,7 +167,7 @@ void csfsmon_end(const UINT32 csfsmon_md_id)
     csfsmon_md = CSFSMON_MD_GET(csfsmon_md_id);
     if(NULL_PTR == csfsmon_md)
     {
-        dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "error:csfsmon_end: csfsmon_md_id = %u not exist.\n", csfsmon_md_id);
+        dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "error:csfsmon_end: csfsmon_md_id = %ld not exist.\n", csfsmon_md_id);
         dbg_exit(MD_CSFSMON, csfsmon_md_id);
     }
  
@@ -180,7 +180,7 @@ void csfsmon_end(const UINT32 csfsmon_md_id)
 
     if ( 0 == csfsmon_md->usedcounter )
     {
-        dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "error:csfsmon_end: csfsmon_md_id = %u is not started.\n", csfsmon_md_id);
+        dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "error:csfsmon_end: csfsmon_md_id = %ld is not started.\n", csfsmon_md_id);
         dbg_exit(MD_CSFSMON, csfsmon_md_id);
     }
 
@@ -196,7 +196,7 @@ void csfsmon_end(const UINT32 csfsmon_md_id)
 
     csfsmon_md->usedcounter = 0;
 
-    dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "csfsmon_end: stop CSFSMON module #%u\n", csfsmon_md_id);
+    dbg_log(SEC_0169_CSFSMON, 0)(LOGSTDOUT, "csfsmon_end: stop CSFSMON module #%ld\n", csfsmon_md_id);
     cbc_md_free(MD_CSFSMON, csfsmon_md_id);
 
     return ;

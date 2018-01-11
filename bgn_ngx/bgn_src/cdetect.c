@@ -56,7 +56,7 @@ void cdetect_print_module_status(const UINT32 cdetect_md_id, LOG *log)
 
         if ( NULL_PTR != cdetect_md && 0 < cdetect_md->usedcounter )
         {
-            sys_log(log,"CDETECT Module # %u : %u refered\n",
+            sys_log(log,"CDETECT Module # %ld : %ld refered\n",
                     this_cdetect_md_id,
                     cdetect_md->usedcounter);
         }
@@ -145,7 +145,7 @@ UINT32 cdetect_start(const CSTRING *cdetect_conf_file)
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cdetect_end, cdetect_md_id);
 
     dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "[DEBUG] cdetect_start: "
-                                            "start CDETECT module #%u\n", 
+                                            "start CDETECT module #%ld\n", 
                                             cdetect_md_id);
 
     if(EC_FALSE == cdetect_load_conf(cdetect_md_id, cdetect_conf_file))
@@ -200,7 +200,7 @@ void cdetect_end(const UINT32 cdetect_md_id)
     if(NULL_PTR == cdetect_md)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_end: "
-                                                "cdetect_md_id = %u not exist.\n", 
+                                                "cdetect_md_id = %ld not exist.\n", 
                                                 cdetect_md_id);
         dbg_exit(MD_CDETECT, cdetect_md_id);
     }
@@ -215,7 +215,7 @@ void cdetect_end(const UINT32 cdetect_md_id)
     if ( 0 == cdetect_md->usedcounter )
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_end: "
-                                                "cdetect_md_id = %u is not started.\n", 
+                                                "cdetect_md_id = %ld is not started.\n", 
                                                 cdetect_md_id);
         dbg_exit(MD_CDETECT, cdetect_md_id);
     }
@@ -230,7 +230,7 @@ void cdetect_end(const UINT32 cdetect_md_id)
 
     cdetect_md->usedcounter = 0;
 
-    dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "cdetect_end: stop CDETECT module #%u\n", cdetect_md_id);
+    dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "cdetect_end: stop CDETECT module #%ld\n", cdetect_md_id);
     cbc_md_free(MD_CDETECT, cdetect_md_id);
 
     return ;

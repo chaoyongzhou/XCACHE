@@ -413,7 +413,7 @@ CTHREAD_ID cthread_create(const UINT32 flag, const UINT32 start_routine_addr, co
     return (cthread_id);
 }
 
-CTHREAD_ID cthread_new(const UINT32 flag, const UINT32 start_routine_addr, const UINT32 core_id, const UINT32 para_num, ...)
+CTHREAD_ID cthread_new(const UINT32 flag, const char *name, const UINT32 start_routine_addr, const UINT32 core_id, const UINT32 para_num, ...)
 {
     CTHREAD_ID cthread_id;
 
@@ -421,7 +421,7 @@ CTHREAD_ID cthread_new(const UINT32 flag, const UINT32 start_routine_addr, const
 
     va_list para_list;
 
-    dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "[DEBUG] cthread_new: enter\n");
+    dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "[DEBUG] cthread_new: %s\n", name);
 
     cthread_check_tcid_offset();/*assert!*/
 

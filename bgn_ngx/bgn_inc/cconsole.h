@@ -23,6 +23,10 @@ extern "C"{
 #include "cmisc.h"
 #include "log.h"
 
+EC_BOOL cconsole_catach_signals_disable();
+
+EC_BOOL cconsole_catach_signals_enable();
+
 EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, uint32_t *len);
 
 EC_BOOL cconsole_cmd_add_history(const char *cmd);

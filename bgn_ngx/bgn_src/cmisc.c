@@ -23,6 +23,7 @@ extern "C"{
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <ctype.h>
 
 #include <memory.h>
 #include <ucontext.h>
@@ -47,6 +48,8 @@ extern "C"{
 #include "cmd5.h"
 
 #include "ccode.h"
+#include "chttp.h"
+#include "ctdnshttp.h"
 
 #define CMISC_BUFF_NUM ((UINT32) 256)
 #define CMISC_BUFF_LEN ((UINT32) 128)
@@ -1942,14 +1945,20 @@ EC_BOOL c_hex_str_to_bytes(const char *str, UINT8 **bytes, UINT32 *len)
     return (EC_TRUE);
 }
 
-char *c_md5_to_hex_str(const uint8_t *md5, char *str, const uint32_t max_len)
+char *c_md5_to_hex_str(const uint8_t *md5)
 { 
     uint32_t byte_pos;
     uint32_t char_pos;
     uint32_t end_pos;
 
-    ASSERT(3 <= max_len);
-    end_pos  = max_len - 3;
+    char *str;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0044);
+    str = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0045);
+
+    end_pos  = CMISC_BUFF_LEN - 3;
     char_pos = 0;
     for(byte_pos = 0; byte_pos < CMD5_DIGEST_LEN && char_pos < end_pos; byte_pos ++)
     {
@@ -2019,7 +2028,7 @@ char *c_dirname(const char *path_name)
     }    
 
     len = strlen(path_name);
-    dir_name = safe_malloc(len + 1, LOC_CMISC_0044);
+    dir_name = safe_malloc(len + 1, LOC_CMISC_0046);
 
     end = path_name + len - 1;
     while(end > path_name && '/' == (*end)) { end --; }
@@ -2055,7 +2064,7 @@ char *c_dirname(const char *path_name)
         if(2 < count)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dirname: invalid path '%s'\n", path_name);
-            safe_free(dir_name, LOC_CMISC_0045);
+            safe_free(dir_name, LOC_CMISC_0047);
             return (NULL_PTR);
         }
 
@@ -2071,7 +2080,7 @@ char *c_dirname(const char *path_name)
 
     if(des == dir_name)
     {
-        safe_free(dir_name, LOC_CMISC_0046);
+        safe_free(dir_name, LOC_CMISC_0048);
         return (NULL_PTR);
     }
 
@@ -2153,7 +2162,7 @@ EC_BOOL c_basedir_create(const char *file_name)
         return (EC_FALSE);
     }
     ret      = c_dir_create(dir_name);
-    safe_free(dir_name, LOC_CMISC_0047);
+    safe_free(dir_name, LOC_CMISC_0049);
     return (ret);
 }
 
@@ -2201,7 +2210,7 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
     if(NULL_PTR == cmd_output)
     {
         cmd_osize   = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
-        cmd_ostream = (char *)SAFE_MALLOC(cmd_osize, LOC_CMISC_0048);
+        cmd_ostream = (char *)SAFE_MALLOC(cmd_osize, LOC_CMISC_0050);
     }
     else
     {
@@ -2225,7 +2234,7 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
 
     if(cmd_ostream != cmd_output)
     {
-        SAFE_FREE(cmd_ostream, LOC_CMISC_0049);
+        SAFE_FREE(cmd_ostream, LOC_CMISC_0051);
     }
     //dbg_log(SEC_0013_CMISC, 5)(LOGSTDNULL, "exec_shell end: %s\n", cmd_output);
     return (EC_TRUE);
@@ -2577,6 +2586,49 @@ EC_BOOL c_file_truncate(int fd, const UINT32 fsize)
     return (EC_TRUE);
 }
 
+EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
+{
+    UINT32  fsize;
+    CBYTES *content;
+    UINT32  offset;
+
+    if(EC_FALSE == c_file_size(fd, &fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: size of file failed\n");
+        return (EC_FALSE);
+    }
+
+    content = cbytes_new(fsize);
+    if(NULL_PTR == content)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: new cbytes with %ld bytes failed\n", fsize);
+        return (EC_FALSE);
+    }
+
+    offset = 0;
+    if(EC_FALSE == c_file_load(fd, &offset, fsize, CBYTES_BUF(content)))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: read file failed\n");
+        cbytes_free(content);
+        return (EC_FALSE);
+    }
+    CBYTES_LEN(content) = offset;
+
+    if(offset != fsize)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: expect %ld but read %ld bytes\n", 
+                        fsize, offset);
+        cbytes_free(content);
+        return (EC_FALSE);
+    }
+
+    cmd5_sum((uint32_t)fsize, CBYTES_BUF(content), digest);
+
+    cbytes_free(content);
+    
+    return (EC_TRUE);
+}
+
 EC_BOOL c_file_unlink(const char *filename)
 {
     if (NULL_PTR == filename)
@@ -2667,7 +2719,7 @@ void c_history_push(char **history, const int max, int *size, const char *str)
 
     if(NULL_PTR != history[ 0 ])
     {
-        safe_free(history[ 0 ], LOC_CMISC_0050);
+        safe_free(history[ 0 ], LOC_CMISC_0052);
         history[ 0 ] = NULL_PTR;
     }
 
@@ -2686,7 +2738,7 @@ void c_history_clean(char **history, const int max, const int size)
 
     for(pos = 0; pos < DMIN(max, size); pos ++)
     {
-        safe_free(history[ pos ], LOC_CMISC_0051);
+        safe_free(history[ pos ], LOC_CMISC_0053);
     }
     return;
 }
@@ -2894,10 +2946,10 @@ int c_file_close(int fd)
 CTM *c_localtime_r(const time_t *timestamp)
 {
     CTM *ptime;
-    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0052);
+    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0054);
     ptime = &(g_tm_tbl[g_tm_idx]);
     g_tm_idx = ((g_tm_idx + 1) % (CMISC_TM_NUM));
-    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0053);
+    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0055);
 
     if(NULL_PTR != timestamp)
     {
@@ -3344,6 +3396,491 @@ EC_BOOL c_mutex_init(pthread_mutex_t *mutex, const UINT32 flag, const UINT32 loc
     return (EC_FALSE);
 }
 #endif /*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
+
+#if 1
+EC_BOOL c_mutex_attr_set(CMUTEX_ATTR  *mutex_attr, const UINT32 flag, const UINT32 location)
+{
+    int ret_val;
+
+    ret_val = pthread_mutexattr_init(mutex_attr);
+    if( 0 != ret_val )
+    {
+        switch( ret_val )
+        {
+            case ENOMEM:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - ENOMEM: Insufficient memory to create the mutex attributes object, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+            default:
+            {
+                /* Unknown error */
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - UNKNOWN: Error detected when mutexattr init, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+        }
+
+        return (ret_val);
+    }
+
+    if(CMUTEX_PROCESS_PRIVATE & flag)
+    {
+        ret_val = pthread_mutexattr_setpshared(mutex_attr, PTHREAD_PROCESS_PRIVATE);
+        if( 0 != ret_val )
+        {
+            switch( ret_val )
+            {
+                case EINVAL:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - EINVAL: value specified for argument -pshared- is INCORRECT, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+
+                default:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - UNKNOWN: error detected when setpshared, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+            }
+
+            return (ret_val);
+        }
+    }
+
+    if(CMUTEX_PROCESS_SHARED & flag)
+    {
+        ret_val = pthread_mutexattr_setpshared(mutex_attr, PTHREAD_PROCESS_SHARED);
+        if( 0 != ret_val )
+        {
+            switch( ret_val )
+            {
+                case EINVAL:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - EINVAL: value specified for argument -pshared- is INCORRECT, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+
+                default:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - UNKNOWN: error detected when setpshared, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+            }
+
+            return (ret_val);
+        }
+    }
+
+    if(CMUTEX_TIMED_NP & flag)
+    {
+        /*Initialize the mutex attribute called 'type' to PTHREAD_MUTEX_RECURSIVE_NP,
+        so that a thread can recursively lock a mutex if needed. */
+        ret_val = pthread_mutexattr_settype(mutex_attr, PTHREAD_MUTEX_TIMED_NP);
+        if( 0 != ret_val )
+        {
+            switch( ret_val )
+            {
+                case EINVAL:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - EINVAL: value specified for argument -type- is INCORRECT, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+
+                default:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - UNKNOWN: error detected when settype, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+            }
+
+            return (ret_val);
+        }
+    } 
+
+    //if(CMUTEX_RECURSIVE_NP & flag)
+    else
+    {
+        /*Initialize the mutex attribute called 'type' to PTHREAD_MUTEX_RECURSIVE_NP,
+        so that a thread can recursively lock a mutex if needed. */
+        ret_val = pthread_mutexattr_settype(mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP);
+        if( 0 != ret_val )
+        {
+            switch( ret_val )
+            {
+                case EINVAL:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - EINVAL: value specified for argument -type- is INCORRECT, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+
+                default:
+                {
+                    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mutex_attr_set - UNKNOWN: error detected when settype, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                    break;
+                }
+            }
+
+            return (ret_val);
+        }
+    }
+
+    //pthread_mutexattr_setprotocol(mutex_attr, PTHREAD_PRIO_NONE);
+
+    return (ret_val);
+
+}
+CCOND *c_cond_new(const UINT32 location)
+{
+    CCOND      *ccond;
+
+    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0056);
+    if(NULL_PTR == ccond)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to alloc CCOND, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (NULL_PTR);
+    }
+
+    if(EC_FALSE == c_cond_init(ccond, location))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        SAFE_FREE(ccond, LOC_CMISC_0057);
+        return (NULL_PTR);
+    }
+
+    CCOND_INIT_LOCATION(ccond);
+    CCOND_SET_LOCATION(ccond, CCOND_OP_NEW, location);
+
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND] new %p, location %ld\n", ccond, location);
+    return (ccond);
+}
+
+EC_BOOL c_cond_init(CCOND *ccond, const UINT32 location)
+{
+    CMUTEX_ATTR mutex_attr;
+    int ret_val;
+
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] init %p, location %ld\n", CTHREAD_GET_TID(), ccond, location);
+    CCOND_SET_LOCATION(ccond, CCOND_OP_INIT, location);
+
+    ret_val = c_mutex_attr_set(&mutex_attr, CMUTEX_PROCESS_PRIVATE | CMUTEX_RECURSIVE_NP, location);
+    if( 0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init: failed to set mutex attribute\n");
+        return (EC_FALSE);
+    }
+
+    ret_val = pthread_cond_init(CCOND_VAR(ccond), NULL_PTR);
+    if(0 != ret_val)
+    {
+        switch(ret_val)
+        {
+            case EINVAL:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EINVAL: cmutex NOT an initialized object, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EBUSY:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EBUSY: failed to lock cmutex due to busy, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            default:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - UNKNOWN: error detected, errno %d, errstr %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+        }
+        return (EC_FALSE);
+    }
+
+    ret_val = pthread_mutex_init(CCOND_MUTEX(ccond), &mutex_attr);
+    if( 0 != ret_val )
+    {
+        switch( ret_val )
+        {
+            case EAGAIN:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EAGAIN: System resources(other than memory) are unavailable, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EPERM:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EPERM: Doesn't have privilige to perform this operation, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EINVAL:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EINVAL: mutex_attr doesn't refer a valid condition variable attribute object, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EFAULT:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - EFAULT: Mutex or mutex_attr is an invalid pointer, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case ENOMEM:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - ENOMEM: Insufficient memory exists to initialize the mutex, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            default:
+            {
+                /* Unknown error */
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_init - UNKNOWN: Error detected when mutex init, error no: %d, called at %s:%ld\n", ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+        }
+
+        return (EC_FALSE);
+    }
+
+    CCOND_COUNTER(ccond) = 0;
+    return (EC_TRUE);
+}
+
+void c_cond_free(CCOND *ccond, const UINT32 location)
+{
+    CCOND_SET_LOCATION(ccond, CCOND_OP_FREE, location);
+    c_cond_clean(ccond, LOC_CMISC_0058);
+
+    SAFE_FREE(ccond, LOC_CMISC_0059);
+}
+
+EC_BOOL c_cond_clean(CCOND *ccond, const UINT32 location)
+{
+    int ret_val;
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_CLEAN, location);
+
+    ret_val = pthread_mutex_destroy(CCOND_MUTEX(ccond));
+    if( 0 != ret_val )
+    {
+        switch( ret_val )
+        {
+            case EINVAL:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - EINVAL: ccond %p mutex doesn't refer to an initialized mutex, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EBUSY:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - EBUSY: ccond %p mutex is locked or in use by another thread, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            default:
+            {
+                /* Unknown error */
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - UNKNOWN: ccond %p mutex detect error, error no: %d, called at %s:%ld\n", ccond, ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+        }
+    }
+
+    ret_val = pthread_cond_destroy(CCOND_VAR(ccond));
+    if( 0 != ret_val )
+    {
+        switch( ret_val )
+        {
+            case EINVAL:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - EINVAL: ccond %p var doesn't refer to an initialized cond var, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            case EBUSY:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - EBUSY: ccond %p var is locked or in use by another thread, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+
+            default:
+            {
+                /* Unknown error */
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_clean - UNKNOWN: ccond %p var detect error, error no: %d, called at %s:%ld\n", ccond, ret_val, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+                break;
+            }
+        }
+    }
+
+    CCOND_COUNTER(ccond) = 0;
+    return (EC_TRUE);
+}
+
+EC_BOOL c_cond_wait(CCOND *ccond, const UINT32 location)
+{
+    int ret_val;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_wait: ccond %p: wait at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+ 
+#if 1
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_wait: failed to lock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+#endif
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_WAIT, location);
+
+    /*when reserved*/
+    while(0 < CCOND_COUNTER(ccond))
+    {
+        ret_val = pthread_cond_wait(CCOND_VAR(ccond), CCOND_MUTEX(ccond));
+        if(0 != ret_val)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_wait: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+    }
+#if 1
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_wait: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+ #endif
+    return (EC_TRUE);
+}
+
+EC_BOOL c_cond_reserve(CCOND *ccond, const UINT32 counter, const UINT32 location)
+{
+    int ret_val;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_reserve: ccond %p: reserve at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_reserve: failed to lock mutex of ccond %p with counter %ld, called at %s:%ld\n", ccond, counter, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_RESERVE, location);
+
+    CCOND_COUNTER(ccond) += counter;
+
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_reserve: failed to unlock mutex of ccond %p with counter %ld, called at %s:%ld\n", ccond, counter, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_cond_release(CCOND *ccond, const UINT32 location)
+{
+    int ret_val;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_release: ccond %p: release at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release: failed to lock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_RELEASE, location);
+
+    if(0 < CCOND_COUNTER(ccond))
+    {
+        -- CCOND_COUNTER(ccond);
+    }
+
+    if(0 == CCOND_COUNTER(ccond))
+    {
+        ret_val = pthread_cond_signal(CCOND_VAR(ccond));
+        if(0 != ret_val)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+    } 
+
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL c_cond_release_all(CCOND *ccond, const UINT32 location)
+{
+    int ret_val;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_release_all: ccond %p: release at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release_all: failed to lock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_RELEASE, location);
+
+    -- CCOND_COUNTER(ccond);
+
+    if(0 == CCOND_COUNTER(ccond))
+    {
+        ret_val = pthread_cond_broadcast(CCOND_VAR(ccond));/*broadcast to all*/
+        if(0 != ret_val)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release_all: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+    }
+
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release_all: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+/*spy on the current times*/
+UINT32 c_cond_spy(CCOND *ccond, const UINT32 location)
+{
+    UINT32 times;
+    int ret_val;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_spy: ccond %p: spy at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_spy: failed to lock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (ERR_CCOND_TIMES);
+    }
+
+    times = CCOND_COUNTER(ccond);
+
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_spy: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (ERR_CCOND_TIMES);
+    }
+    return (times);
+}
+
+#endif
+
 
 #define __X86          (1)
 #define __IA64         (2)
@@ -3872,10 +4409,10 @@ char *c_http_time(time_t t)
     char *str_cache;
     CTM  ctm;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0054);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0060);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0055);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0061);
  
     c_gmtime(t, &ctm);
 
@@ -4002,6 +4539,95 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                             idx, host_name, inet_ntoa(addr));
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
+{
+    CHTTP_REQ    chttp_req;
+    CHTTP_RSP    chttp_rsp;
+    
+    char        *tcid_str;
+    char        *ipv4_str;
+    char        *port_str;
+ 
+    chttp_req_init(&chttp_req);
+    chttp_rsp_init(&chttp_rsp);
+
+    chttp_req_set_server(&chttp_req, (const char *)CTDNSHTTP_SERVER_DEFAULT);
+    chttp_req_set_method(&chttp_req, (const char *)"GET");
+
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)(CTDNSHTTP_REST_API_NAME"/get"));
+
+    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(tcid));
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
+ 
+    if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s' failed\n",
+                        c_word_to_ipv4(tcid));
+                     
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+     
+        return (EC_FALSE);
+    }
+    chttp_req_clean(&chttp_req);
+
+    if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s' => status %u\n",
+                        c_word_to_ipv4(tcid),
+                        CHTTP_RSP_STATUS(&chttp_rsp));    
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    tcid_str = chttp_rsp_get_header(&chttp_rsp, (const char *)"tcid");
+    ipv4_str = chttp_rsp_get_header(&chttp_rsp, (const char *)"ip");
+    port_str = chttp_rsp_get_header(&chttp_rsp, (const char *)"port");
+
+    if(NULL_PTR == tcid_str)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'tcid' header\n",
+                        c_word_to_ipv4(tcid));    
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == ipv4_str)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'ip' header\n",
+                        c_word_to_ipv4(tcid));    
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }    
+
+    if(NULL_PTR == port_str)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'port' header\n",
+                        c_word_to_ipv4(tcid));    
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }     
+
+    if(c_ipv4_to_word(tcid_str) != tcid)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp tcid '%s' mismatched\n",
+                        c_word_to_ipv4(tcid), tcid_str);    
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    (*ipv4) = c_ipv4_to_word(ipv4_str);
+    (*port) = c_str_to_word(port_str);
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_tdns_resolve: tdns resolve tcid '%s' => ip '%s', port %ld\n",
+                    c_word_to_ipv4(tcid), ipv4_str, port_str); 
+                    
+    chttp_rsp_clean(&chttp_rsp);
 
     return (EC_TRUE);
 }

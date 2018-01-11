@@ -1176,9 +1176,11 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
 
         LOG_DEVICE_TYPE(log) = LOG_NULL_DEVICE;
 
-        c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0017);
-        LOG_FILE_CMUTEX(log) = NULL_PTR;
-
+        if(NULL_PTR != LOG_FILE_CMUTEX(log))
+        {
+            c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0017);
+            LOG_FILE_CMUTEX(log) = NULL_PTR;
+        }
         return (EC_FALSE);
     }
 

@@ -29,6 +29,17 @@ extern "C"{
 
 #include "cconsole.h"
 
+EC_BOOL cconsole_catach_signals_disable()
+{
+    rl_catch_signals = 0;
+    return (EC_TRUE);
+}
+
+EC_BOOL cconsole_catach_signals_enable()
+{
+    rl_catch_signals = 1;
+    return (EC_TRUE);
+}
 
 EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, uint32_t *len)
 {

@@ -539,7 +539,7 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
         task_node = csocket_fetch_task_node(csocket_cnode);
         if(NULL_PTR == task_node)
         {
-            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: fetch nothing\n");
+            //dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: fetch nothing\n");
             break;
         }
 
@@ -593,12 +593,15 @@ EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     
     if(NULL_PTR == task_node)
     {   
-        /*clear WR event*/
-        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT); 
-        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-        
-        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_isend: sockfd %d del WR event done\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        if(BIT_TRUE == CSOCKET_CNODE_WRITING(csocket_cnode))
+        {
+            /*clear WR event*/
+            cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT); 
+            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+            
+            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_isend: sockfd %d del WR event done\n",
+                                CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        }
         return (EC_TRUE);
     }
 
@@ -1622,11 +1625,23 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_add_csocket_cnode: new tasks_node failed\n");
         return (EC_FALSE);
     }
+    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: new tasks_node %p (tcid %s, ip %s, port %ld)\n",
+                                          tasks_node,
+                                          TASKS_NODE_TCID_STR(tasks_node),
+                                          TASKS_NODE_SRVIPADDR_STR(tasks_node),
+                                          TASKS_NODE_SRVPORT(tasks_node));
 
     /*note: when reach here, tasks_node and csocket_cnode always match*/
     tasks_node_set_callback(tasks_node, csocket_cnode);
                                      
     cvector_push(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);/*add csocket_cnode to tasks_node*/
+
+    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: add sockfd %d to tasks_node %p (tcid %s, ip %s, port %ld)\n",
+                                          CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                          tasks_node,
+                                          TASKS_NODE_TCID_STR(tasks_node),
+                                          TASKS_NODE_SRVIPADDR_STR(tasks_node),
+                                          TASKS_NODE_SRVPORT(tasks_node));
 
     cvector_push(TASKS_WORKER_NODES(tasks_worker), (void *)tasks_node);           /*add tasks_node to tasks_work   */
 
@@ -2712,7 +2727,7 @@ EC_BOOL tasks_handshake_complete(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
     
     tasks_monitor = TASKS_CFG_MONITOR(tasks_cfg);
     tasks_worker  = TASKS_CFG_WORKER(tasks_cfg);
-
+                                         
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         /*move monitor to worker*/
@@ -2730,10 +2745,7 @@ EC_BOOL tasks_handshake_complete(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
     }
 
     if(EC_TRUE == cvector_is_empty(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)))
-    {
-        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[DEBUG] tasks_handshake_complete: sockfd %d, free tasks_node %p\n", 
-                                               CSOCKET_CNODE_SOCKFD(csocket_cnode), tasks_node);
-                                               
+    { 
         cvector_delete(TASKS_MONITOR_NODES(tasks_monitor), (void *)tasks_node);
         tasks_node_free(tasks_node);
     }

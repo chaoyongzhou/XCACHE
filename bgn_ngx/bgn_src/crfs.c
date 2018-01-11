@@ -161,7 +161,7 @@ void crfs_print_module_status(const UINT32 crfs_md_id, LOG *log)
 
         if ( NULL_PTR != crfs_md && 0 < crfs_md->usedcounter )
         {
-            sys_log(log,"CRFS Module # %u : %u refered\n",
+            sys_log(log,"CRFS Module # %ld : %ld refered\n",
                     this_crfs_md_id,
                     crfs_md->usedcounter);
         }
@@ -418,7 +418,7 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
 
     __crfs_collect_neighbors(crfs_md_id);
 
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%u\n", crfs_md_id);
+    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%ld\n", crfs_md_id);
 
     CRFS_INIT_LOCK(crfs_md, LOC_CRFS_0002);
     CRFS_LOCKED_FILES_INIT_LOCK(crfs_md, LOC_CRFS_0003);
@@ -436,6 +436,7 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
         for(flush_thread_idx = 0; flush_thread_idx < CRFS_DN_DEFER_WRITE_THREAD_NUM; flush_thread_idx ++)
         {
             cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
+                    (const char *)"crfsdn_flush_cache_nodes",    
                     (UINT32)crfsdn_flush_cache_nodes,
                     (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                     (UINT32)2,/*para num*/
@@ -498,7 +499,7 @@ void crfs_end(const UINT32 crfs_md_id)
     crfs_md = CRFS_MD_GET(crfs_md_id);
     if(NULL_PTR == crfs_md)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_end: crfs_md_id = %u not exist.\n", crfs_md_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_end: crfs_md_id = %ld not exist.\n", crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
  
@@ -511,7 +512,7 @@ void crfs_end(const UINT32 crfs_md_id)
 
     if ( 0 == crfs_md->usedcounter )
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_end: crfs_md_id = %u is not started.\n", crfs_md_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_end: crfs_md_id = %ld is not started.\n", crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
     
@@ -587,7 +588,7 @@ void crfs_end(const UINT32 crfs_md_id)
     CRFS_CLEAN_LOCK(crfs_md, LOC_CRFS_0005);
     CRFS_LOCKED_FILES_CLEAN_LOCK(crfs_md, LOC_CRFS_0006);
 
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "crfs_end: stop CRFS module #%u\n", crfs_md_id);
+    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "crfs_end: stop CRFS module #%ld\n", crfs_md_id);
     cbc_md_free(MD_CRFS, crfs_md_id);
 
     return ;
@@ -974,7 +975,7 @@ static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id)
     crfs_md = CRFS_MD_GET(crfs_md_id);
     if(NULL_PTR == crfs_md)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_collect_neighbors: crfs_md_id = %u not exist.\n", crfs_md_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_collect_neighbors: crfs_md_id = %ld not exist.\n", crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 
@@ -7885,6 +7886,9 @@ EC_BOOL crfs_file_size(const UINT32 crfs_md_id, const CSTRING *path_cstr, uint64
         return (EC_FALSE);
     }
     crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0245); 
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_size: file %s, size %ld\n", 
+                             (char *)cstring_get_str(path_cstr),
+                             (*file_size));
     return (EC_TRUE);
 }
 
@@ -8048,6 +8052,9 @@ EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5
         return (EC_FALSE);
     }
     crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0254); 
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_md5sum: file %s, md5 %s\n", 
+                             (char *)cstring_get_str(path_cstr),
+                             cmd5_digest_hex_str(md5sum));
     return (EC_TRUE);
 }
 

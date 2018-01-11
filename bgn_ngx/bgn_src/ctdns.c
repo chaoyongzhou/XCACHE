@@ -66,7 +66,7 @@ void ctdns_print_module_status(const UINT32 ctdns_md_id, LOG *log)
 
         if ( NULL_PTR != ctdns_md && 0 < ctdns_md->usedcounter )
         {
-            sys_log(log,"CTDNS Module # %u : %u refered\n",
+            sys_log(log,"CTDNS Module # %ld : %ld refered\n",
                     this_ctdns_md_id,
                     ctdns_md->usedcounter);
         }
@@ -229,7 +229,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)ctdns_end, ctdns_md_id);
 
-    dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: start CTDNS module #%u\n", ctdns_md_id);
+    dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: start CTDNS module #%ld\n", ctdns_md_id);
 
     if(SWITCH_ON == CTDNSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
@@ -284,7 +284,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
     ctdns_md = CTDNS_MD_GET(ctdns_md_id);
     if(NULL_PTR == ctdns_md)
     {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %u not exist.\n", ctdns_md_id);
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %ld not exist.\n", ctdns_md_id);
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
  
@@ -297,7 +297,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
 
     if ( 0 == ctdns_md->usedcounter )
     {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %u is not started.\n", ctdns_md_id);
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %ld is not started.\n", ctdns_md_id);
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
     
@@ -332,7 +332,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
 
     ctdns_md->usedcounter = 0;
 
-    dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "ctdns_end: stop CTDNS module #%u\n", ctdns_md_id);
+    dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "ctdns_end: stop CTDNS module #%ld\n", ctdns_md_id);
     cbc_md_free(MD_CTDNS, ctdns_md_id);
 
     return ;

@@ -16,7 +16,7 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 
-#include "csocket.h"
+#include "csocket.inc"
 
 #include "cssl.h"
 

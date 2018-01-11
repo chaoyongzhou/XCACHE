@@ -204,7 +204,7 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
             char             *service_fname;
             UINT32            service_fname_len;
 
-            service_fname_len = strlen(root_dir) + 1 + d_name_len + sizeof(CTDNSSV_POSTFIX);
+            service_fname_len = strlen(root_dir) + 1 + d_name_len + 1;
             service_fname     = safe_malloc(service_fname_len, LOC_CTDNSSVMGR_0004);
             if(NULL_PTR == service_fname)
             {
@@ -214,7 +214,7 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
                 closedir(dir);
                 return (EC_FALSE);
             }
-            snprintf(service_fname, service_fname_len, "%s/%s%s", root_dir, ptr->d_name, CTDNSSV_POSTFIX);
+            snprintf(service_fname, service_fname_len, "%s/%s", root_dir, ptr->d_name);
 
             ctdnssv = ctdnssv_open(service_fname);
             if(NULL_PTR == ctdnssv)

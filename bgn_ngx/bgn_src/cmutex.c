@@ -678,7 +678,7 @@ CCOND *ccond_new(const UINT32 location)
 
     if(EC_FALSE == ccond_init(ccond, location))
     {
-        cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_init: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_new: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         SAFE_FREE(ccond, LOC_CMUTEX_0006);
         return (NULL_PTR);
     }

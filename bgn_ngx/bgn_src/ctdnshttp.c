@@ -581,7 +581,7 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
     /*prepare response header*/
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"tcid", tcid_str);
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"ip", c_word_to_ipv4(ipaddr));
-    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port", c_word_to_ipv4(port));
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port", c_word_to_str(port));
 
     return (EC_TRUE);
 }

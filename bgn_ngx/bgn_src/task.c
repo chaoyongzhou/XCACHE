@@ -5939,13 +5939,14 @@ EC_BOOL task_brd_start_bcast_dhcp_udp_server(TASK_BRD *task_brd)
 
     core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
     TASK_BRD_BCAST_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
-                                                        (UINT32)dhcp_server_do,
-                                                        (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
-                                                        (UINT32)3,/*para num*/
-                                                        (UINT32)BCAST_DHCP_NETCARD_STR(bcast_dhcp_cfg),
-                                                        (UINT32)MCAST_CFG_IPADDR(mcast_cfg),
-                                                        (UINT32)MCAST_CFG_PORT(mcast_cfg)
-                                                        );
+                                                (const char *)"dhcp_server_do",    
+                                                (UINT32)dhcp_server_do,
+                                                (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                (UINT32)3,/*para num*/
+                                                (UINT32)BCAST_DHCP_NETCARD_STR(bcast_dhcp_cfg),
+                                                (UINT32)MCAST_CFG_IPADDR(mcast_cfg),
+                                                (UINT32)MCAST_CFG_PORT(mcast_cfg)
+                                                );
     dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_start_bcast_dhcp_udp_server: dhcp_server_do thread %u\n", TASK_BRD_BCAST_CTHREAD_ID(task_brd));
     return (EC_TRUE);
 }
@@ -7248,7 +7249,12 @@ LOG * task_brd_default_init(int argc, char **argv)
     task_brd_init(task_brd, sys_cfg_xml_fname_cstr, basic_cfg_xml_fname_cstr, script_fname_cstr, log_path_cstr, ssl_path_cstr);
  
     /*taskover some signals*/
-    csig_init(TASK_BRD_CSIG(task_brd));
+    TASK_BRD_CSIG(task_brd) = csig_new();
+    if(NULL_PTR == TASK_BRD_CSIG(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: new csig failed\n");
+        task_brd_default_abort();    
+    }
     csig_takeover(TASK_BRD_CSIG(task_brd));
 
     /*set os or process limite*/
@@ -7513,8 +7519,10 @@ LOG * task_brd_default_init(int argc, char **argv)
     core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
+#if 0
 #if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                                                        (const char *)"do_slave_enhanced",   
                                                         (UINT32)do_slave_enhanced,
                                                         (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                                                         (UINT32)1,/*para num*/
@@ -7523,23 +7531,10 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_default_int: do_slave_enhanced thread %u\n", TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd));
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
-
- 
-#if 0
-#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
-    TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
-                                                        (UINT32)coroutine_pool_run,
-                                                        (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
-                                                        (UINT32)1,/*para num*/
-                                                        (UINT32)TASK_BRD_CROUTINE_POOL(task_brd)
-                                                        );
-
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_default_int: coroutine_pool_run thread %u\n", TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd));
-#endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 #endif
-
 #if (SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                                                        (const char *)"do_slave",  
                                                         (UINT32)do_slave,
                                                         (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                                                         (UINT32)1,/*para num*/
@@ -7579,11 +7574,12 @@ LOG * task_brd_default_init(int argc, char **argv)
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
 #if (SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     TASK_BRD_DO_CBTIMER_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
-                                                            (UINT32)task_brd_cbtimer_do,
-                                                            (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num),/*core #*/
-                                                            (UINT32)1,/*para num*/
-                                                            (UINT32)task_brd
-                                                            );
+                                                    (const char *)"task_brd_cbtimer_do", 
+                                                    (UINT32)task_brd_cbtimer_do,
+                                                    (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num),/*core #*/
+                                                    (UINT32)1,/*para num*/
+                                                    (UINT32)task_brd
+                                                    );
 #endif/*(SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
     if(SWITCH_ON == RANK_HEARTBEAT_FWD_SWITCH)
     {
@@ -7609,7 +7605,31 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*set cmd runner*/
     if (EC_TRUE == task_brd_check_is_dbg_tcid(this_tcid) && CMPI_DBG_RANK == this_rank)
     {
-        task_brd_default_add_runner(this_tcid, this_rank, (const char *)"do_cmd_default", (TASK_RUNNER_FUNC)do_cmd_default, NULL_PTR);
+        CROUTINE_NODE  *croutine_node;
+
+        /*init ccond before thread and coroutine*/
+        api_cmd_ui_init_ccond();
+
+        /*[coroutine] command handler*/
+        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd),
+                                           (UINT32)do_cmd_default, 0);
+        if(NULL_PTR == croutine_node)
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:task_brd_default_int: croutine load for 'do_cmd_default' failed\n");
+            task_brd_default_abort();/*abort !*/ 
+        }
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_TASK_0138); 
+
+        /*[thread] readline thread to get command from console*/
+        cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
+                    (const char *)"api_cmd_ui_task", 
+                    (UINT32)api_cmd_ui_task,
+                    (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num),/*core #*/
+                    (UINT32)0/*para num*/
+                    );
+                    
+        //task_brd_default_add_runner(this_tcid, this_rank, (const char *)"do_cmd_default", (TASK_RUNNER_FUNC)do_cmd_default, NULL_PTR);
+        task_brd_default_add_runner(this_tcid, this_rank, (const char *)"do_slave_enhanced", (TASK_RUNNER_FUNC)do_slave_enhanced, task_brd);
     }
     /*set monitor runner*/
     else if (EC_TRUE == task_brd_check_is_monitor_tcid(this_tcid) && CMPI_MON_RANK == this_rank)
@@ -8129,7 +8149,7 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
         {
             CLIST_DATA *clist_data;
 
-            CLIST_LOCK(task_mgr_list, LOC_TASK_0138);
+            CLIST_LOCK(task_mgr_list, LOC_TASK_0139);
             CLIST_LOOP_NEXT(task_mgr_list, clist_data)
             {
                 TASK_MGR *cur_task_mgr;
@@ -8142,11 +8162,11 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                     clist_insert_front_no_lock(task_mgr_list, clist_data, (void *)task_mgr);
                     TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
 
-                    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0139);
+                    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0140);
                     return (EC_TRUE);
                 }
             }
-            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0140);
+            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0141);
 
             /*if not find a lower priority task_mgr, add to tail*/
             clist_push_back(task_mgr_list, (void *)task_mgr);
@@ -8201,9 +8221,9 @@ EC_BOOL task_brd_mod_mgr_rmv(TASK_BRD *task_brd, MOD_MGR *mod_mgr)
 
 UINT32 task_brd_seqno_gen(TASK_BRD *task_brd, UINT32 *seqno_new)
 {
-    TASK_BRD_SEQNO_CMUTEX_LOCK(task_brd, LOC_TASK_0141);
+    TASK_BRD_SEQNO_CMUTEX_LOCK(task_brd, LOC_TASK_0142);
     (*seqno_new) = ++ TASK_BRD_SEQNO(task_brd);
-    TASK_BRD_SEQNO_CMUTEX_UNLOCK(task_brd, LOC_TASK_0142);
+    TASK_BRD_SEQNO_CMUTEX_UNLOCK(task_brd, LOC_TASK_0143);
     return (0);
 }
 
@@ -8221,7 +8241,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
     cstack_clean(TASK_BRD_TASK_MGR_STACK(task_brd), NULL_PTR);
 
     /*clean FUNC_ADDR_MGR table*/
-    cvector_clean(TASK_BRD_MD_NODE_TBL(task_brd), NULL_PTR, LOC_TASK_0143);
+    cvector_clean(TASK_BRD_MD_NODE_TBL(task_brd), NULL_PTR, LOC_TASK_0144);
 
     creg_type_conv_vec_clean(TASK_BRD_TYPE_CONV_VEC(task_brd));
     creg_func_addr_vec_clean(TASK_BRD_FUNC_ADDR_VEC(task_brd));
@@ -8240,7 +8260,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
     task_brd_rank_load_tbl_clean(task_brd);
 
     /*broken tcid table clean*/
-    cvector_clean(TASK_BRD_BROKEN_TCID_TBL(task_brd), NULL_PTR, LOC_TASK_0144);
+    cvector_clean(TASK_BRD_BROKEN_TCID_TBL(task_brd), NULL_PTR, LOC_TASK_0145);
 
     /*mod mgr list clean*/
     clist_clean(TASK_BRD_MOD_MGR_LIST(task_brd), (CLIST_DATA_DATA_CLEANER)mod_mgr_free);
@@ -8317,7 +8337,7 @@ EC_BOOL task_brd_free(TASK_BRD *task_brd)
     if(NULL_PTR != task_brd)
     {
         task_brd_clean(task_brd);
-        SAFE_FREE(task_brd, LOC_TASK_0145);
+        SAFE_FREE(task_brd, LOC_TASK_0146);
     }
     return (EC_TRUE);
 }
@@ -8426,7 +8446,7 @@ EC_BOOL task_brd_cbtimer_register(TASK_BRD *task_brd, const UINT32 expire_nsec, 
         return (EC_FALSE);
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new((UINT8 *)func_addr_node->func_name, LOC_TASK_0146);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new((UINT8 *)func_addr_node->func_name, LOC_TASK_0147);
 
     CBTIMER_NODE_EXPIRE_NSEC(cbtimer_node)   = expire_nsec;
     CBTIMER_NODE_TIMEOUT_NSEC(cbtimer_node)  = timeout_nsec;
@@ -8473,7 +8493,7 @@ EC_BOOL task_brd_cbtimer_add(TASK_BRD *task_brd, const UINT8 *name,
         return (EC_FALSE);
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(name, LOC_TASK_0147);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(name, LOC_TASK_0148);
     if(NULL_PTR == CBTIMER_NODE_NAME(cbtimer_node))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_cbtimer_add: new name cstring failed\n");
@@ -8522,7 +8542,7 @@ EC_BOOL task_brd_cbtimer_do(TASK_BRD *task_brd)
         //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG]task_brd_cbtimer_do: working\n");
         if(EC_FALSE == cbtimer_handle(TASK_BRD_CBTIMER_LIST(task_brd)))
         {
-            c_sleep(3, LOC_TASK_0148);
+            c_sleep(3, LOC_TASK_0149);
         }
     }
     return (EC_TRUE);
@@ -8667,7 +8687,7 @@ EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_r
 
     task_mgr_list = (CLIST *)TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0149);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0150);
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
     {
         TASK_MGR *task_mgr;
@@ -8676,11 +8696,11 @@ EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_r
         if( TASK_RSP_SEQNO(task_rsp) == TASK_MGR_SEQNO(task_mgr))
         {
             *task_mgr_ret = task_mgr;
-            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0150);
+            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0151);
             return (EC_TRUE);
         }
     }
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0151);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0152);
     return (EC_FALSE);
 }
 
@@ -9033,7 +9053,7 @@ EC_BOOL task_brd_to_send_queue_handle(TASK_BRD *task_brd)
 {
     CLIST_DATA *clist_data;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0152);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0153);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), clist_data)
     {
         TASK_NODE    *task_node;
@@ -9089,7 +9109,7 @@ EC_BOOL task_brd_to_send_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0153);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0154);
     return (EC_TRUE);
 }
 
@@ -9099,7 +9119,7 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
 
     //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_sending_queue_handle: check sending queue ....\n");
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0154);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0155);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), clist_data)
     {
         TASK_NODE    *task_node;
@@ -9178,7 +9198,7 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0155);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0156);
     return (EC_TRUE);
 }
  
@@ -9332,7 +9352,7 @@ UINT32 task_rsp_decode_thread(TASK_BRD *task_brd, TASK_NODE *task_node)
     {
         if(NULL_PTR != task_mgr)
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0156);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0157);
             task_rsp_discard_dbg_info(task_mgr, task_rsp);
         }
 
@@ -9344,12 +9364,12 @@ UINT32 task_rsp_decode_thread(TASK_BRD *task_brd, TASK_NODE *task_node)
 
         if(EC_TRUE == ret_val_check_succ_flag)
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC, task_rsp, LOC_TASK_0157);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC, task_rsp, LOC_TASK_0158);
             task_rsp_succ_dbg_info(task_mgr, task_rsp);
         }
         else
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0158);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0159);
             task_rsp_fail_dbg_info(task_mgr, task_rsp);
         }
     }
@@ -9549,7 +9569,7 @@ void task_brd_recving_queue_print(LOG *log, TASK_BRD *task_brd)
     CLIST_DATA  *clist_data;
     UINT32 idx;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0159);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0160);
 
     idx = 0;
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), clist_data)
@@ -9565,13 +9585,13 @@ void task_brd_recving_queue_print(LOG *log, TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0160);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0161);
     return;
 }
 
 EC_BOOL task_brd_recving_queue_handle(TASK_BRD *task_brd)
 {
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0161);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0162);
 
     for(;;)
     {
@@ -9586,7 +9606,7 @@ EC_BOOL task_brd_recving_queue_handle(TASK_BRD *task_brd)
         task_brd_recving_node_handle_not_load_thread(task_brd, task_node);
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0162);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0163);
     return (EC_TRUE);
 }
 
@@ -9657,7 +9677,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
 {
     CLIST_DATA *clist_data;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0163);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0164);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), clist_data)
     {
         TASK_NODE  *task_node;
@@ -9726,7 +9746,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
                     clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), clist_data_rmv);             
                     //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: try to set thread loaded %lx to busy\n", TASK_REQ_CTHREAD_NODE(task_req));
                     //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: set thread loaded %lx to busy done\n", TASK_REQ_CTHREAD_NODE(task_req));
-                    CROUTINE_NODE_COND_RELEASE(TASK_REQ_CTHREAD_NODE(task_req), LOC_TASK_0164);
+                    CROUTINE_NODE_COND_RELEASE(TASK_REQ_CTHREAD_NODE(task_req), LOC_TASK_0165);
                 }
 #endif/*(SWITCH_ON == TASK_REQ_HANDLE_THREAD_SWITCH)*/
 
@@ -9796,7 +9816,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0165);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0166);
     return (EC_TRUE);
 }
 
@@ -9856,7 +9876,7 @@ EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0166);
+    CLIST_LOCK(task_queue, LOC_TASK_0167);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -9873,7 +9893,7 @@ EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr)
         task_req_encode(task_req);
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0167);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0168);
     return (EC_TRUE);
 }
 
@@ -9884,7 +9904,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0168);
+    CLIST_LOCK(task_queue, LOC_TASK_0169);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -9922,7 +9942,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             if(EC_TRUE == task_mgr_is_timeout(task_mgr))
             {
                 /*the first version: count timeout req on discard req num*/
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0169);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0170);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
                 load_set_when_task_req_is_sent(task_brd, TASK_NODE_REQ(task_node));/*decrease rank load after sent out if not need rsp*/
@@ -9941,7 +9961,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                                 TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEQNO(task_req), TASK_REQ_SUB_SEQNO(task_req),
                                 TASK_REQ_FUNC_ID(task_req)
                                 );
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0170);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0171);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
                 continue;
@@ -9954,7 +9974,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
             if(EC_FALSE == task_req_isend(task_brd, task_req))
             {
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0171);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0172);
              
                 TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -9982,7 +10002,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             if(EC_TRUE == task_mgr_is_timeout(task_mgr))
             {
                 /*the first version: count timeout req on discard req num*/
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0172);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0173);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
                 load_set_when_task_req_is_sent(task_brd, TASK_NODE_REQ(task_node));/*decrease rank load after sent out if not need rsp*/
@@ -10008,7 +10028,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                 task_node_buff_free(task_node); /*okay, free buff as early as possible*/
                 TASK_NODE_STATUS(task_node) = TASK_REQ_IS_SENT;
 
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0173);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0174);
 
                 if(TASK_NOT_NEED_RSP_FLAG == TASK_MGR_NEED_RSP_FLAG(task_mgr))
                 {
@@ -10021,21 +10041,21 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
         if( TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node) )
         {
-            TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0174);
+            TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0175);
             if(TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node)/*double check for thread safe*/
             && EC_TRUE == task_mgr_is_timeout(task_mgr)
             )
             {
-                TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0175);
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0176);
+                TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0176);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0177);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
             }
-            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0177);
+            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0178);
         }
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0178);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0179);
     return (EC_TRUE);
 }
 
@@ -10048,7 +10068,7 @@ EC_BOOL task_mgr_check(TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0179);
+    CLIST_LOCK(task_queue, LOC_TASK_0180);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -10095,7 +10115,7 @@ EC_BOOL task_mgr_check(TASK_MGR *task_mgr)
             continue;
         }
     }
-    CLIST_UNLOCK(task_queue, LOC_TASK_0180);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0181);
     dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "to_send %ld, sending %ld, recving %ld, is_sent %ld, is_recv %ld, discard %ld, timeout %ld\n",
                         count[0], count[1], count[2], count[3], count[4], count[5], count[6]);
     return (EC_TRUE);
@@ -10115,7 +10135,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
 
     task_req_num = clist_size(TASK_MGR_QUEUE(task_mgr));
 
-    TASK_MGR_CRWLOCK_RDLOCK(task_mgr, LOC_TASK_0181);
+    TASK_MGR_CRWLOCK_RDLOCK(task_mgr, LOC_TASK_0182);
     need_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_NEED);
     succ_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC);
     fail_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL);
@@ -10124,7 +10144,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
     discard_req_num = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD);
     timeout_req_num = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT);
 
-    TASK_MGR_CRWLOCK_UNLOCK(task_mgr, LOC_TASK_0182);
+    TASK_MGR_CRWLOCK_UNLOCK(task_mgr, LOC_TASK_0183);
 
     if(TASK_NOT_NEED_RSP_FLAG == TASK_MGR_NEED_RSP_FLAG(task_mgr) && TASK_NEED_NONE_RSP == need_rsp_num)
     {
@@ -10214,7 +10234,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0183);
+    CLIST_LOCK(task_queue, LOC_TASK_0184);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10249,7 +10269,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
             TASK_NODE_STATUS(task_node) = TASK_REQ_TO_SEND;
 
             /*rollback num of sent req of task mgr when reschedule happen*/
-            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0184);
+            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0185);
 
             task_req = TASK_NODE_REQ(task_node);
 
@@ -10266,12 +10286,12 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
         else
         {
             /*return false and caller should free task_mgr*/
-            CLIST_UNLOCK(task_queue, LOC_TASK_0185);
+            CLIST_UNLOCK(task_queue, LOC_TASK_0186);
             return (EC_FALSE);
         }
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0186);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0187);
     return (EC_TRUE);
 }
 
@@ -10282,7 +10302,7 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0187);
+    CLIST_LOCK(task_queue, LOC_TASK_0188);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10311,7 +10331,7 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
         {
             TASK_REQ *task_req;
 
-            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0188);
+            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0189);
 
             TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10327,13 +10347,13 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
             continue;
         }
 
-        TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0189);
+        TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0190);
         if(TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node))
         {
             TASK_REQ *task_req;
 
-            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0190);
-            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0191);
+            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0191);
+            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0192);
 
             TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10347,13 +10367,13 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
                             TASK_REQ_FUNC_ID(task_req)
                             );
 
-            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0192);
+            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0193);
             continue;
         }
-        TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0193);
+        TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0194);
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0194);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0195);
     return (EC_TRUE);
 }
 
@@ -10368,7 +10388,7 @@ EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr)
 
     idx = 0;
 
-    CLIST_LOCK(task_queue, LOC_TASK_0195);
+    CLIST_LOCK(task_queue, LOC_TASK_0196);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10397,7 +10417,7 @@ EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr)
         idx ++;
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0196);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0197);
     return (EC_TRUE);
 }
 
@@ -10408,7 +10428,7 @@ void task_brd_send_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0197);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0198);
 
     /*handle one of existing task req and task rsp*/
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
@@ -10421,7 +10441,7 @@ void task_brd_send_task_mgr_list(TASK_BRD *task_brd)
         task_mgr_send(task_brd, task_mgr);
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0198);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0199);
     return;
 }
 
@@ -10432,7 +10452,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0199);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0200);
 
     /*handle one of existing task req and task rsp*/
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
@@ -10463,7 +10483,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
 
             if(EC_TRUE == TASK_MGR_JMP_FLAG(task_mgr))
             {
-                TASK_MGR_CCOND_RELEASE(task_mgr, LOC_TASK_0200);
+                TASK_MGR_CCOND_RELEASE(task_mgr, LOC_TASK_0201);
             }
             else
             {
@@ -10474,7 +10494,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0201);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0202);
     return;
 }
 
@@ -10485,7 +10505,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_AGING_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0202);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0203);
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
     {
         TASK_MGR *task_mgr;
@@ -10519,7 +10539,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0203);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0204);
     return;
 }
 
@@ -10634,7 +10654,7 @@ EC_BOOL task_brd_heartbeat(TASK_BRD *task_brd)
         if(update_heartbeat_interval > elapsed_time_from_last_update)
         {
             //sched_yield();
-            c_sleep(1, LOC_TASK_0204);/*fuck, maybe can use timer to trigger*/
+            c_sleep(1, LOC_TASK_0205);/*fuck, maybe can use timer to trigger*/
             continue;
         }
 
@@ -10761,7 +10781,7 @@ EC_BOOL task_brd_cload_stat_update(TASK_BRD *task_brd)
         if(cload_stat_update_interval > elapsed_time_from_last_update)
         {
             //sched_yield();
-            c_sleep(1, LOC_TASK_0205);/*fuck, maybe can use timer to trigger*/
+            c_sleep(1, LOC_TASK_0206);/*fuck, maybe can use timer to trigger*/
             continue;
         }
 
@@ -11167,33 +11187,33 @@ EC_BOOL task_brd_default_start_runner()
 
 EC_BOOL task_brd_reset_cmutex_all(TASK_BRD *task_brd)
 {
-    TASK_BRD_SEQNO_CMUTEX_INT(task_brd, LOC_TASK_0206);
+    TASK_BRD_SEQNO_CMUTEX_INT(task_brd, LOC_TASK_0207);
 
-    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_IDLE_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0207);
-    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_BUSY_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0208);
+    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_IDLE_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0208);
+    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_BUSY_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0209);
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
-    cmutex_init(CTHREAD_POOL_WORKER_CMUTEX(TASK_REQ_CTHREAD_POOL(task_brd)), CMUTEX_PROCESS_PRIVATE, LOC_TASK_0209);
+    cmutex_init(CTHREAD_POOL_WORKER_CMUTEX(TASK_REQ_CTHREAD_POOL(task_brd)), CMUTEX_PROCESS_PRIVATE, LOC_TASK_0210);
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
-    CVECTOR_INIT_LOCK(TASK_BRD_MD_NODE_TBL(task_brd), LOC_TASK_0210);
+    CVECTOR_INIT_LOCK(TASK_BRD_MD_NODE_TBL(task_brd), LOC_TASK_0211);
 
-    CLIST_INIT_LOCK(TASK_BRD_CLOAD_MGR(task_brd), LOC_TASK_0211);
-    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_TASK_0212);
-    CLIST_INIT_LOCK(TASK_BRD_MOD_MGR_LIST(task_brd), LOC_TASK_0213);
+    CLIST_INIT_LOCK(TASK_BRD_CLOAD_MGR(task_brd), LOC_TASK_0212);
+    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_TASK_0213);
+    CLIST_INIT_LOCK(TASK_BRD_MOD_MGR_LIST(task_brd), LOC_TASK_0214);
 
-    CLIST_INIT_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0214);
+    CLIST_INIT_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0215);
 
-    CLIST_INIT_LOCK(TASK_BRD_CONTEXT_LIST(task_brd), LOC_TASK_0215);
-    CLIST_INIT_LOCK(TASK_BRD_REPORT_LIST(task_brd), LOC_TASK_0216);
+    CLIST_INIT_LOCK(TASK_BRD_CONTEXT_LIST(task_brd), LOC_TASK_0216);
+    CLIST_INIT_LOCK(TASK_BRD_REPORT_LIST(task_brd), LOC_TASK_0217);
 
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0217);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0218);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0219);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0220);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0218);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0219);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0220);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0221);
 
-    CVECTOR_INIT_LOCK(TASK_BRD_RANK_TBL(task_brd), LOC_TASK_0221);
-    CLIST_INIT_LOCK(TASK_BRD_CBTIMER_LIST(task_brd), LOC_TASK_0222);
+    CVECTOR_INIT_LOCK(TASK_BRD_RANK_TBL(task_brd), LOC_TASK_0222);
+    CLIST_INIT_LOCK(TASK_BRD_CBTIMER_LIST(task_brd), LOC_TASK_0223);
 
     return (EC_TRUE);
 }
@@ -11231,7 +11251,7 @@ EC_BOOL task_brd_default_reg_md(
 
 EC_BOOL task_brd_default_reg_mm(const UINT32 mm_type, const char *mm_name, const UINT32 block_num, const UINT32 type_size)
 {
-    if(EC_FALSE == creg_static_mem_tbl_add(mm_type, mm_name, block_num, type_size, LOC_TASK_0223))
+    if(EC_FALSE == creg_static_mem_tbl_add(mm_type, mm_name, block_num, type_size, LOC_TASK_0224))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_reg_mm: register mm %ld to static_mem_tbl failed\n", mm_type);
         return (EC_FALSE);
@@ -11497,7 +11517,7 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
             if(EC_TRUE == slow_down_flag)
             {
                 g_do_slave_usleep_counter ++;
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0224);
+                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0225);
             }
         }
     }
@@ -11637,11 +11657,11 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
             {
                 not_slow_down_max_times = 0; /*reset*/
              
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec beg\n", TASK_SLOW_DOWN_MSEC);
+                //dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec beg\n", TASK_SLOW_DOWN_MSEC);
                 cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
                 /*if slow_down happen, update task_brd time*/
                 task_brd_update_time(task_brd);
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec end\n", TASK_SLOW_DOWN_MSEC);
+                //dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec end\n", TASK_SLOW_DOWN_MSEC);
             }
             else
             {
@@ -11658,7 +11678,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
             if(EC_TRUE == slow_down_flag)
             {
                 g_do_slave_usleep_counter ++;
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0225);
+                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0226);
                 /*if slow_down happen, update task_brd time*/
                 task_brd_update_time(task_brd);
             }
@@ -11689,6 +11709,7 @@ EC_BOOL do_slave_thread_default()
     core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
 
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                                                        (const char *)"do_slave", 
                                                         (UINT32)do_slave,
                                                         (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                                                         (UINT32)1,/*para num*/
@@ -11720,6 +11741,7 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
         /*boot do_slave thread automatically*/
         core_max_num = sysconf(_SC_NPROCESSORS_ONLN);/*get available core num at present. only useful when CTHREAD_CORE_SWITCH is ON*/
         TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                                                            (const char *)"do_slave", 
                                                             (UINT32)do_slave,
                                                             (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                                                             (UINT32)1,/*para num*/
@@ -11752,6 +11774,7 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
         /*boot do_slave thread automatically*/
         core_max_num = sysconf(_SC_NPROCESSORS_ONLN);/*get available core num at present. only useful when CTHREAD_CORE_SWITCH is ON*/
         TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                                                            (const char *)"do_slave_enhanced", 
                                                             (UINT32)do_slave_enhanced,
                                                             (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                                                             (UINT32)1,/*para num*/
@@ -11773,10 +11796,12 @@ EC_BOOL do_slave_default()
 
     return do_slave(task_brd);
 }
-EC_BOOL do_cmd_default(void *arg)
+
+/*coroutine to handle a command when it is ready*/
+EC_BOOL do_cmd_default()
 {
     CMD_ELEM_VEC *cmd_elem_vec;
-    CMD_TREE *cmd_tree;
+    CMD_TREE     *cmd_tree;
     CMD_HELP_VEC *cmd_help_vec;
 
     TASK_BRD *task_brd;
@@ -11785,22 +11810,11 @@ EC_BOOL do_cmd_default(void *arg)
 
     cmd_elem_vec = api_cmd_elem_vec_new();
     cmd_help_vec = api_cmd_help_vec_new();
-    cmd_tree = api_cmd_tree_new();
+    cmd_tree     = api_cmd_tree_new();
 
     api_cmd_ui_init(cmd_elem_vec, cmd_tree, cmd_help_vec);
 
-    if(NULL_PTR == TASK_BRD_SCRIPT_FNAME(task_brd))
-    {
-        api_cmd_ui_task(cmd_tree, cmd_help_vec);
-     
-        api_cmd_elem_vec_free(cmd_elem_vec);
-        api_cmd_help_vec_free(cmd_help_vec);
-        api_cmd_tree_free(cmd_tree);
-
-        sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
-        print_static_mem_status(LOGCONSOLE);
-    }
-    else
+    if(NULL_PTR != TASK_BRD_SCRIPT_FNAME(task_brd))
     {
         api_cmd_ui_do_script(cmd_tree, cmd_help_vec, (char *)TASK_BRD_SCRIPT_FNAME_STR(task_brd));
 
@@ -11811,9 +11825,31 @@ EC_BOOL do_cmd_default(void *arg)
         sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
         print_static_mem_status(LOGCONSOLE);
 
-        task_brd_set_abort_default();
+        task_brd_set_abort_default();  
+        return (EC_TRUE);
     }
 
+    for(;;)
+    {
+        //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_cmd_default: check\n");
+        if(EC_TRUE == api_cmd_ui_readline_is_disabled())/*when command is ready*/
+        {                             
+            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_cmd_default: readline is disabled\n");
+            api_cmd_ui_task_once(cmd_tree, cmd_help_vec);
+            
+            api_cmd_ui_readline_set_enabled();
+        }
+
+        __COROUTINE_WAIT();
+    }
+
+    api_cmd_elem_vec_free(cmd_elem_vec);
+    api_cmd_help_vec_free(cmd_help_vec);
+    api_cmd_tree_free(cmd_tree);
+
+    sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
+    print_static_mem_status(LOGCONSOLE);
+    
     return (EC_TRUE);
 }
 
@@ -11929,7 +11965,7 @@ UINT32 task_bcast(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT3
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0226);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0227);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
 
@@ -12025,7 +12061,7 @@ UINT32 task_act(const MOD_MGR *src_mod_mgr, MOD_MGR **des_mod_mgr, const UINT32 
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0227);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0228);
 
         /*recv_mod_node will be updated during load balancing before send*/
         mod_node_alloc(&recv_mod_node);
@@ -12143,7 +12179,7 @@ UINT32 task_dea(MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32 task_p
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0228);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0229);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
         mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
@@ -12238,11 +12274,11 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
     task_mgr_encode(task_brd, task_mgr);
-    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0229);
+    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0230);
 
     task_brd_task_mgr_add(task_brd, task_mgr);
 
-    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0230);
+    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0231);
 
     /*when reach here, task is done*/
  
@@ -12320,7 +12356,7 @@ TASK_MGR * task_new(const MOD_MGR *mod_mgr, const UINT32 task_prio, const UINT32
     task_brd = task_brd_default_get();
     task_brd_seqno_gen(task_brd, &task_seqno);
 
-    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0231);
+    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0232);
     task_mgr_init(task_seqno, task_prio, task_need_rsp_flag, task_need_rsp_num, mod_mgr, task_mgr);
 
     /*task_brd_task_mgr_add(task_brd, task_mgr);*/
@@ -12358,7 +12394,7 @@ UINT32 task_super_inc(TASK_MGR *task_mgr, const MOD_NODE  *send_mod_node, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0232);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0233);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12431,7 +12467,7 @@ UINT32 task_super_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0233);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0234);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12505,7 +12541,7 @@ UINT32 task_super_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0234);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0235);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12582,7 +12618,7 @@ UINT32 task_p2p_inc(TASK_MGR *task_mgr, const UINT32 modi, const MOD_NODE *recv_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0235);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0236);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12703,7 +12739,7 @@ UINT32 task_p2p(const UINT32 modi, const UINT32 time_to_live, const UINT32 task_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0236);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0237);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12781,7 +12817,7 @@ UINT32 task_p2p_no_wait(const UINT32 modi, const UINT32 time_to_live, const UINT
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0237);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0238);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12855,7 +12891,7 @@ UINT32 task_inc(TASK_MGR *task_mgr,const void * func_retval_addr, const UINT32 f
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0238);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0239);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -12924,7 +12960,7 @@ UINT32 task_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0239);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0240);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -12996,7 +13032,7 @@ UINT32 task_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, cons
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0240);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0241);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -13085,7 +13121,7 @@ UINT32 task_pos_inc(TASK_MGR *task_mgr, const UINT32 recv_mod_node_pos, const vo
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0241);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13172,7 +13208,7 @@ UINT32 task_pos_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UI
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13261,7 +13297,7 @@ UINT32 task_pos_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13352,7 +13388,7 @@ UINT32 task_tcid_inc(TASK_MGR *task_mgr, const UINT32 recv_tcid, const void * fu
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13433,7 +13469,7 @@ UINT32 task_tcid_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const U
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13515,7 +13551,7 @@ UINT32 task_tcid_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live,
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0247);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));

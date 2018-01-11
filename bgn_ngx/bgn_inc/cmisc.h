@@ -27,6 +27,7 @@ extern "C"{
 #include "type.h"
 #include "clist.h"
 #include "cvector.h"
+#include "cmd5.h"
 
 
 /*time value of year, month, day, hour, minute, second. tm is CTM type*/
@@ -195,7 +196,7 @@ char *c_bytes_to_hex_str(const UINT8 *bytes, const UINT32 len);
 
 EC_BOOL c_hex_str_to_bytes(const char *str, UINT8 **bytes, UINT32 *len);
 
-char *c_md5_to_hex_str(const uint8_t *md5, char *str, const uint32_t max_len);
+char *c_md5_to_hex_str(const uint8_t *md5);
 
 uint32_t c_md5_to_hex_chars(const uint8_t *md5, char *chars, const uint32_t max_len);
 
@@ -238,6 +239,8 @@ EC_BOOL c_file_pos_b(int fd, uint64_t *fpos);
 EC_BOOL c_file_access(const char *pathname, int mode);
 
 EC_BOOL c_file_truncate(int fd, const UINT32 fsize);
+
+EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ]);
 
 EC_BOOL c_file_unlink(const char *filename);
 
@@ -312,6 +315,28 @@ EC_BOOL c_mutex_lock(pthread_mutex_t *mutex, const UINT32 location);
 
 EC_BOOL c_mutex_unlock(pthread_mutex_t *mutex, const UINT32 location);
 
+EC_BOOL c_mutex_attr_set(CMUTEX_ATTR  *mutex_attr, const UINT32 flag, const UINT32 location);
+
+CCOND *c_cond_new(const UINT32 location);
+
+EC_BOOL c_cond_init(CCOND *ccond, const UINT32 location);
+
+void c_cond_free(CCOND *ccond, const UINT32 location);
+
+EC_BOOL c_cond_clean(CCOND *ccond, const UINT32 location);
+
+EC_BOOL c_cond_wait(CCOND *ccond, const UINT32 location);
+
+EC_BOOL c_cond_reserve(CCOND *ccond, const UINT32 counter, const UINT32 location);
+
+EC_BOOL c_cond_release(CCOND *ccond, const UINT32 location);
+
+EC_BOOL c_cond_release_all(CCOND *ccond, const UINT32 location);
+
+/*spy on the current times*/
+UINT32 c_cond_spy(CCOND *ccond, const UINT32 location);
+
+
 void c_backtrace_print(LOG *log, ucontext_t *ucontext);
 
 void c_backtrace_dump(LOG *log);
@@ -343,6 +368,8 @@ char *c_get_day_time_str();
 
 /*note: host_name is domain or ipv4 string*/
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4);
+
+EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port);
 
 #endif /*_CMISC_H*/
 

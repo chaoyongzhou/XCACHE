@@ -70,7 +70,7 @@ EC_BOOL crfsnp_fnode_cmp(const CRFSNP_FNODE *crfsnp_fnode_1st, const CRFSNP_FNOD
 
 EC_BOOL crfsnp_fnode_import(const CRFSNP_FNODE *crfsnp_fnode_src, CRFSNP_FNODE *crfsnp_fnode_des);
 
-char *crfsnp_fnode_md5sum_str(const CRFSNP_FNODE *crfsnp_fnode, uint8_t *md5str, const uint32_t max_len);
+char *crfsnp_fnode_md5sum_str(const CRFSNP_FNODE *crfsnp_fnode);
 
 uint32_t crfsnp_fnode_count_replica(const CRFSNP_FNODE *crfsnp_fnode);
 

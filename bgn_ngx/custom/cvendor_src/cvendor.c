@@ -7743,7 +7743,8 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
     }
     
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
-    {        UINT32      seg_no;
+    {
+        UINT32      seg_no;
 
         seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
 

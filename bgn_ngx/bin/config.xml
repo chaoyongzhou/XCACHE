@@ -316,7 +316,7 @@
       <logConfig logLevel="all:0"/>
     </paraConfig>
     <paraConfig tcid="0.0.0.64" rank="0">
-      <threadConfig maxReqThreadNum="4" maxRspThreadNum="32" maxStackSize="65536" stackGuardSize="4096" taskSlowDownMsec="3"/>
+      <threadConfig maxReqThreadNum="4" maxRspThreadNum="32" maxStackSize="65536" stackGuardSize="4096" taskSlowDownMsec="3" taskNotSlowDownMaxTimes="1"/>
       <logConfig logLevel="all:0"/>
     </paraConfig>
     <paraConfig tcid="0.0.0.65" rank="0">

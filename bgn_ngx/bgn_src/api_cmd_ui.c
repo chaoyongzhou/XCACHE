@@ -66,6 +66,7 @@ extern "C"{
 
 #include "cconsole.h"
 #include "ctdns.h"
+#include "cp2p.h"
 
 #include "api_cmd.inc"
 #include "api_cmd.h"
@@ -76,6 +77,7 @@ static char     api_cmd_line_buff[ API_CMD_LINE_BUFF_SIZE ];
 static uint32_t api_cmd_line_buff_size = sizeof(api_cmd_line_buff) / sizeof(api_cmd_line_buff[0]);
 
 static const char *api_cmd_prompt = "bgn> ";
+static CCOND      *api_cmd_ccond  = NULL_PTR;
 
 EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec)
 {
@@ -363,7 +365,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show specific np <id> on tcid <tcid> at <console|log>"); 
 #endif
 
-#if 0
+#if 1
     api_cmd_help_vec_create(cmd_help_vec, "tdns create"  , "tdns create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns start"   , "tdns start from root <dir> on tcid <tcid>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns end"     , "tdns end on tcid <tcid>");
@@ -384,6 +386,10 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "detect process", "detect loop process <num> tasks on tcid <tcid> at <console|log>");
 #endif
 
+#if 1
+    api_cmd_help_vec_create(cmd_help_vec, "p2p upload"    , "p2p upload <src file> to <ngx_conf> <des file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p download"  , "p2p notify <tcid> download <ngx_conf> <src file> to <des file> on tcid <tcid> at <console|log>");
+#endif
 
 #if 0
     api_cmd_help_vec_create(cmd_help_vec, "session add"   , "session add name <name> expire <nsec> on tcid <tcid> rank <rank> modi <modi> at <console|log>");
@@ -825,6 +831,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdetect_process        , "detect process %n tasks on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdetect_process_loop   , "detect loop process %n tasks on tcid %t at %s", rank, tcid, where);
 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_upload            , "p2p upload %s to %s %s on tcid %t at %s", where, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_download_notify   , "p2p notify %t download %s %s to %s on tcid %t at %s", tcid, where, where, where, tcid, where);
+
     api_cmd_comm_define(cmd_tree, api_cmd_ui_download_file         , "download file %s to %s from tcid %t at %s", where, where, tcid, where); 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_upload_file           , "upload file %s to %s on tcid %t at %s", where, where, tcid, where); 
 
@@ -917,60 +926,175 @@ void api_cmd_ui_do_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *cm
     return;
 }
 
-EC_BOOL api_cmd_ui_task(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec)
+EC_BOOL api_cmd_ui_task_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec)
 {   
+    char        *cmd;
+
+    cmd = (char *)api_cmd_line_buff;
+
+    api_cmd_ui_do_once(cmd_tree, cmd_help_vec, (char *)cmd);
+   
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_clear_cmd()
+{
+    char        *cmd;
+    
+    cmd = (char *)api_cmd_line_buff;
+
+    cmd[ 0 ] = '\0';
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_get_cmd()
+{
     const char  *prompt;
     char        *cmd;
     uint32_t     size;
 
+    uint32_t     len;
+    EC_BOOL      ret;
+    
     prompt = api_cmd_prompt;
     cmd    = (char *)api_cmd_line_buff;
     size   = api_cmd_line_buff_size;
+    
+    ret = cconsole_cmd_get(prompt, cmd, size, &len);
+    
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_get_cmd: quit console due to get cmd failed\n");
+        csig_stop(SIGHUP);
+        return (EC_FALSE);
+    }
 
+    if(EC_AGAIN == ret)
+    {
+        return (EC_TRUE);
+    }
+    
+    /*quit*/
+    if(EC_TRUE == c_str_is_in(cmd, (const char *)":", (const char *)"exit:quit"))
+    {
+        dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_get_cmd: quit console by cmd\n");
+        csig_stop(SIGHUP);
+        return (EC_FALSE);
+    }
+    
+    /*add command to history*/
+    cconsole_cmd_add_history(cmd);
+
+    /*show history commands*/
+    if(EC_TRUE == c_str_is_in(cmd, (const char *)":", (const char *)"history:his"))
+    {
+        cconsole_cmd_print_history(LOGCONSOLE);
+        return (EC_TRUE);
+    }
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_init_ccond()
+{
+    api_cmd_ccond = c_cond_new(LOC_API_0055);
+    if(NULL_PTR == api_cmd_ccond)
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_clean_ccond()
+{
+    if(NULL_PTR != api_cmd_ccond)
+    {
+        c_cond_free(api_cmd_ccond, LOC_API_0056);
+        api_cmd_ccond = NULL_PTR;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_readline_is_disabled()
+{
+    if(NULL_PTR != api_cmd_ccond)
+    {
+        if(0 < c_cond_spy(api_cmd_ccond, LOC_API_0057))
+        {
+            return (EC_TRUE);
+        }
+
+        return (EC_FALSE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL api_cmd_ui_readline_is_enabled()
+{
+    if(NULL_PTR != api_cmd_ccond)
+    {
+        if(0 == c_cond_spy(api_cmd_ccond, LOC_API_0058))
+        {
+            return (EC_TRUE);
+        }
+
+        return (EC_FALSE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL api_cmd_ui_readline_set_disabled()
+{
+    if(NULL_PTR != api_cmd_ccond)
+    {
+        c_cond_reserve(api_cmd_ccond, 1, LOC_API_0059);
+        c_cond_wait(api_cmd_ccond, LOC_API_0060);
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL api_cmd_ui_readline_set_enabled()
+{
+    if(NULL_PTR != api_cmd_ccond)
+    {
+        c_cond_release(api_cmd_ccond, LOC_API_0061);
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL api_cmd_ui_task_preface()
+{
     sys_print(LOGCONSOLE, "%32s------------------------------------------------------------\n", "");
     sys_print(LOGCONSOLE, "%32s|                                                          |\n", "");
     sys_print(LOGCONSOLE, "%32s|                WELCOME TO BGN CONSOLE UTILITY            |\n", "");
     sys_print(LOGCONSOLE, "%32s|                                                          |\n", "");
     sys_print(LOGCONSOLE, "%32s------------------------------------------------------------\n", "");
+
+    return (EC_TRUE);
+}
+
+/*readline thread to get a command from console*/
+EC_BOOL api_cmd_ui_task()
+{ 
+    cconsole_catach_signals_disable();
     
+    api_cmd_ui_task_preface();
+
     for(;;)
     {
-        uint32_t     len;
-        EC_BOOL      ret;
-
-        ret = cconsole_cmd_get(prompt, cmd, size, &len);
-        
-        if(EC_FALSE == ret)
+        dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_task: enter\n");
+        if(EC_TRUE == api_cmd_ui_readline_is_enabled())
         {
-            dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_task: quit console due to get cmd failed\n");
-            csig_stop(SIGHUP);
-            break;
+            dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_task: readline is enabled\n");
+            api_cmd_ui_clear_cmd();
+            api_cmd_ui_get_cmd();
+            dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_task: readline set disabled\n");
+            api_cmd_ui_readline_set_disabled();
         }
-
-        if(EC_AGAIN == ret)
-        {
-            continue;
-        }
-        
-        /*quit*/
-        if(EC_TRUE == c_str_is_in(cmd, (const char *)":", (const char *)"exit:quit"))
-        {
-            dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_task: quit console by cmd\n");
-            csig_stop(SIGHUP);
-            break;
-        }
-        
-        /*add command to history*/
-        cconsole_cmd_add_history(cmd);
-
-        /*show history commands*/
-        if(EC_TRUE == c_str_is_in(cmd, (const char *)":", (const char *)"history:his"))
-        {
-            cconsole_cmd_print_history(LOGCONSOLE);
-            continue;
-        }
-        
-        api_cmd_ui_do_once(cmd_tree, cmd_help_vec, (char *)cmd);
     }
 
     cconsole_cmd_clear_history();
@@ -1002,16 +1126,16 @@ static LOG *api_cmd_ui_get_log(const CSTRING *where)
 {
     if(0 == strcmp("log", (char *)cstring_get_str(where)))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGSTDOUT\n");
+        dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGSTDOUT\n");
         return (LOGSTDOUT);
     }
 
     if(0 == strcmp("console", (char *)cstring_get_str(where)))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGCONSOLE\n");
+        dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGCONSOLE\n");
         return (LOGCONSOLE);
     }
-    sys_log(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGSTDNULL\n");
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_get_log: return LOGSTDNULL\n");
     return (LOGSTDNULL);
 }
 
@@ -1159,7 +1283,7 @@ EC_BOOL api_cmd_ui_show_sys_cfg(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0055);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0062);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1190,7 +1314,7 @@ EC_BOOL api_cmd_ui_show_sys_cfg(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0056);
+    cvector_free(report_vec, LOC_API_0063);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1222,7 +1346,7 @@ EC_BOOL api_cmd_ui_show_sys_cfg_all(CMD_PARA_VEC * param)
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_show_sys_cfg_all end ----------------------------------\n");
     }
 #endif
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0057);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0064);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1253,7 +1377,7 @@ EC_BOOL api_cmd_ui_show_sys_cfg_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0058);
+    cvector_free(report_vec, LOC_API_0065);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1295,7 +1419,7 @@ EC_BOOL api_cmd_ui_show_mem(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0059);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0066);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1326,7 +1450,7 @@ EC_BOOL api_cmd_ui_show_mem(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0060);
+    cvector_free(report_vec, LOC_API_0067);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1359,7 +1483,7 @@ EC_BOOL api_cmd_ui_show_mem_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0061);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0068);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1390,7 +1514,7 @@ EC_BOOL api_cmd_ui_show_mem_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0062);
+    cvector_free(report_vec, LOC_API_0069);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1434,7 +1558,7 @@ EC_BOOL api_cmd_ui_show_mem_of_type(CMD_PARA_VEC * param)
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_show_mem_of_type end ----------------------------------\n");
     }
 #endif
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0063);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0070);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1465,7 +1589,7 @@ EC_BOOL api_cmd_ui_show_mem_of_type(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0064);
+    cvector_free(report_vec, LOC_API_0071);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1499,7 +1623,7 @@ EC_BOOL api_cmd_ui_show_mem_all_of_type(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0065);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0072);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1530,7 +1654,7 @@ EC_BOOL api_cmd_ui_show_mem_all_of_type(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0066);
+    cvector_free(report_vec, LOC_API_0073);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1571,7 +1695,7 @@ EC_BOOL api_cmd_ui_diag_mem(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0067);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0074);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1602,7 +1726,7 @@ EC_BOOL api_cmd_ui_diag_mem(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0068);
+    cvector_free(report_vec, LOC_API_0075);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1634,7 +1758,7 @@ EC_BOOL api_cmd_ui_diag_mem_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0069);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0076);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1665,7 +1789,7 @@ EC_BOOL api_cmd_ui_diag_mem_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0070);
+    cvector_free(report_vec, LOC_API_0077);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1709,7 +1833,7 @@ EC_BOOL api_cmd_ui_diag_mem_of_type(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0071);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0078);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1740,7 +1864,7 @@ EC_BOOL api_cmd_ui_diag_mem_of_type(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0072);
+    cvector_free(report_vec, LOC_API_0079);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1773,7 +1897,7 @@ EC_BOOL api_cmd_ui_diag_mem_all_of_type(CMD_PARA_VEC * param)
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_diag_mem_all_of_type end ----------------------------------\n");
     }
 #endif
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0073);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0080);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -1804,7 +1928,7 @@ EC_BOOL api_cmd_ui_diag_mem_all_of_type(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0074);
+    cvector_free(report_vec, LOC_API_0081);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -1997,7 +2121,7 @@ EC_BOOL api_cmd_ui_show_log_level(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0075);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0082);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2028,7 +2152,7 @@ EC_BOOL api_cmd_ui_show_log_level(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0076);
+    cvector_free(report_vec, LOC_API_0083);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2061,7 +2185,7 @@ EC_BOOL api_cmd_ui_show_log_level_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0077);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0084);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2092,7 +2216,7 @@ EC_BOOL api_cmd_ui_show_log_level_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0078);
+    cvector_free(report_vec, LOC_API_0085);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2136,7 +2260,7 @@ EC_BOOL api_cmd_ui_set_log_level_tab(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0079);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0086);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2144,7 +2268,7 @@ EC_BOOL api_cmd_ui_set_log_level_tab(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0080);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0087);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2172,10 +2296,10 @@ EC_BOOL api_cmd_ui_set_log_level_tab(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0081);
+        free_static_mem(MM_UINT32, ret, LOC_API_0088);
     }
 
-    cvector_free(report_vec, LOC_API_0082);
+    cvector_free(report_vec, LOC_API_0089);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2211,7 +2335,7 @@ EC_BOOL api_cmd_ui_set_log_level_tab_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0083);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0090);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2219,7 +2343,7 @@ EC_BOOL api_cmd_ui_set_log_level_tab_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0084);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0091);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2247,10 +2371,10 @@ EC_BOOL api_cmd_ui_set_log_level_tab_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0085);
+        free_static_mem(MM_UINT32, ret, LOC_API_0092);
     }
 
-    cvector_free(report_vec, LOC_API_0086);
+    cvector_free(report_vec, LOC_API_0093);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2296,7 +2420,7 @@ EC_BOOL api_cmd_ui_set_log_level_sec(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0087);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0094);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2304,7 +2428,7 @@ EC_BOOL api_cmd_ui_set_log_level_sec(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0088);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0095);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2332,10 +2456,10 @@ EC_BOOL api_cmd_ui_set_log_level_sec(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0089);
+        free_static_mem(MM_UINT32, ret, LOC_API_0096);
     }
 
-    cvector_free(report_vec, LOC_API_0090);
+    cvector_free(report_vec, LOC_API_0097);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2375,7 +2499,7 @@ EC_BOOL api_cmd_ui_set_log_level_sec_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0091);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0098);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2383,7 +2507,7 @@ EC_BOOL api_cmd_ui_set_log_level_sec_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0092);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0099);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2411,10 +2535,10 @@ EC_BOOL api_cmd_ui_set_log_level_sec_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0093);
+        free_static_mem(MM_UINT32, ret, LOC_API_0100);
     }
 
-    cvector_free(report_vec, LOC_API_0094);
+    cvector_free(report_vec, LOC_API_0101);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2458,97 +2582,6 @@ EC_BOOL api_cmd_ui_say_hello(CMD_PARA_VEC * param)
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello end ----------------------------------\n");
-    }
-#endif
-
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0095);
-    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0096); 
-
-    task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
-    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
-    {
-        UINT32 *ret;
-        CSTRING *cstring;
-     
-        cstring = cstring_new(NULL_PTR, LOC_API_0097);
-        cvector_push(hello_vec, (void *)cstring);
-
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0098);
-        cvector_push(report_vec, (void *)ret);
-
-        (*ret) = EC_FALSE;
-        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_say_hello, CMPI_ERROR_MODI, des_tcid, des_rank, cstring);
-    }
-    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-    des_log = api_cmd_ui_get_log(where);
-
-    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
-    {
-        MOD_NODE *mod_node;
-        UINT32   *ret;
-        CSTRING  *cstring;
-
-        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
-        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
-        cstring = (CSTRING *)cvector_get(hello_vec, remote_mod_node_idx);
-        if(EC_TRUE == (*ret))
-        {
-            sys_log(des_log, "[rank_%s_%ld][SUCC] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node), cstring_get_str(cstring));
-        }
-        else
-        {
-            sys_log(des_log, "[rank_%s_%ld][FAIL]\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
-        }
-
-        cvector_set(hello_vec, remote_mod_node_idx, NULL_PTR);
-        cstring_free(cstring);
-
-        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0099);
-     
-    }
-
-    cvector_free(hello_vec, LOC_API_0100);
-    cvector_free(report_vec, LOC_API_0101);
-    mod_mgr_free(mod_mgr);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
-{
-    MOD_MGR  *mod_mgr;
-    TASK_MGR *task_mgr;
-    UINT32    des_tcid;
-    UINT32    des_rank;
-    CSTRING  *where;
-
-    UINT32 remote_mod_node_num;
-    UINT32 remote_mod_node_idx;
-
-    CVECTOR *report_vec;
-    CVECTOR *hello_vec;
-    LOG   *des_log;
-
-    api_cmd_para_vec_get_tcid(param   , 0, &des_tcid);
-    api_cmd_para_vec_get_uint32(param , 1, &des_rank);
-    api_cmd_para_vec_get_cstring(param, 2, &where);
-
-    /*say hello to tcid %t rank %n on tcid %t rank %n at %s*/
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "say hello to tcid %s rank %ld on all at %s\n",
-                        c_word_to_ipv4(des_tcid),
-                        des_rank,
-                        (char *)cstring_get_str(where));
-
-    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
-#if 1
-    if(do_log(SEC_0010_API, 5))
-    {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello_all beg ----------------------------------\n");
-        mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello_all end ----------------------------------\n");
     }
 #endif
 
@@ -2608,6 +2641,97 @@ EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
+EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+    UINT32    des_tcid;
+    UINT32    des_rank;
+    CSTRING  *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    CVECTOR *hello_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param   , 0, &des_tcid);
+    api_cmd_para_vec_get_uint32(param , 1, &des_rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    /*say hello to tcid %t rank %n on tcid %t rank %n at %s*/
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "say hello to tcid %s rank %ld on all at %s\n",
+                        c_word_to_ipv4(des_tcid),
+                        des_rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_say_hello_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0109);
+    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0110); 
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+        CSTRING *cstring;
+     
+        cstring = cstring_new(NULL_PTR, LOC_API_0111);
+        cvector_push(hello_vec, (void *)cstring);
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0112);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_say_hello, CMPI_ERROR_MODI, des_tcid, des_rank, cstring);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32   *ret;
+        CSTRING  *cstring;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+        cstring = (CSTRING *)cvector_get(hello_vec, remote_mod_node_idx);
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld][SUCC] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node), cstring_get_str(cstring));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld][FAIL]\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(hello_vec, remote_mod_node_idx, NULL_PTR);
+        cstring_free(cstring);
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0113);
+     
+    }
+
+    cvector_free(hello_vec, LOC_API_0114);
+    cvector_free(report_vec, LOC_API_0115);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
 {
     MOD_MGR  *mod_mgr;
@@ -2651,7 +2775,7 @@ EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0109);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0116);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2659,7 +2783,7 @@ EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
      
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0110);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0117);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2686,11 +2810,11 @@ EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0111);
+        free_static_mem(MM_UINT32, ret, LOC_API_0118);
      
     }
 
-    cvector_free(report_vec, LOC_API_0112);
+    cvector_free(report_vec, LOC_API_0119);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2733,7 +2857,7 @@ EC_BOOL api_cmd_ui_say_hello_loop_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0113);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0120);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2741,7 +2865,7 @@ EC_BOOL api_cmd_ui_say_hello_loop_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
      
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0114);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0121);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2768,10 +2892,10 @@ EC_BOOL api_cmd_ui_say_hello_loop_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0115);     
+        free_static_mem(MM_UINT32, ret, LOC_API_0122);     
     }
 
-    cvector_free(report_vec, LOC_API_0116);
+    cvector_free(report_vec, LOC_API_0123);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -2943,7 +3067,7 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
                         log_index,
                         (char *)cstring_get_str(where));
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0117);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0124);
  
     mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
 
@@ -2953,7 +3077,7 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0118);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0125);
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
@@ -2982,10 +3106,10 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0119);
+        free_static_mem(MM_UINT32, ret, LOC_API_0126);
     }
 
-    cvector_free(report_vec, LOC_API_0120); 
+    cvector_free(report_vec, LOC_API_0127); 
 
     mod_mgr_free(mod_mgr);
 
@@ -3327,7 +3451,7 @@ EC_BOOL api_cmd_ui_show_queue(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0121);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0128);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3358,7 +3482,7 @@ EC_BOOL api_cmd_ui_show_queue(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0122);
+    cvector_free(report_vec, LOC_API_0129);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3391,7 +3515,7 @@ EC_BOOL api_cmd_ui_show_queue_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0123);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0130);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3422,7 +3546,7 @@ EC_BOOL api_cmd_ui_show_queue_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0124);
+    cvector_free(report_vec, LOC_API_0131);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3463,7 +3587,7 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0125);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0132);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3494,7 +3618,7 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0126);
+    cvector_free(report_vec, LOC_API_0133);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3527,7 +3651,7 @@ EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0127);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0134);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3558,7 +3682,7 @@ EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0128);
+    cvector_free(report_vec, LOC_API_0135);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3594,7 +3718,7 @@ EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0129);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0136);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3625,7 +3749,7 @@ EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0130);
+    cvector_free(report_vec, LOC_API_0137);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3658,7 +3782,7 @@ EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0131);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0138);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3689,7 +3813,7 @@ EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0132);
+    cvector_free(report_vec, LOC_API_0139);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3729,7 +3853,7 @@ EC_BOOL api_cmd_ui_show_thread(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0133);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0140);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3760,7 +3884,7 @@ EC_BOOL api_cmd_ui_show_thread(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0134);
+    cvector_free(report_vec, LOC_API_0141);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3792,7 +3916,7 @@ EC_BOOL api_cmd_ui_show_thread_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0135);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0142);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3823,7 +3947,7 @@ EC_BOOL api_cmd_ui_show_thread_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0136);
+    cvector_free(report_vec, LOC_API_0143);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3861,7 +3985,7 @@ EC_BOOL api_cmd_ui_show_route(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0137);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0144);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3892,7 +4016,7 @@ EC_BOOL api_cmd_ui_show_route(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0138);
+    cvector_free(report_vec, LOC_API_0145);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3924,7 +4048,7 @@ EC_BOOL api_cmd_ui_show_route_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0139);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0146);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -3955,7 +4079,7 @@ EC_BOOL api_cmd_ui_show_route_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0140);
+    cvector_free(report_vec, LOC_API_0147);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -3996,7 +4120,7 @@ EC_BOOL api_cmd_ui_show_rank_node(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0141);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0148);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4027,7 +4151,7 @@ EC_BOOL api_cmd_ui_show_rank_node(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0142);
+    cvector_free(report_vec, LOC_API_0149);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4059,7 +4183,7 @@ EC_BOOL api_cmd_ui_show_rank_node_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0143);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0150);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4090,7 +4214,7 @@ EC_BOOL api_cmd_ui_show_rank_node_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0144);
+    cvector_free(report_vec, LOC_API_0151);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4131,7 +4255,7 @@ EC_BOOL api_cmd_ui_show_rank_load(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0145);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0152);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4162,7 +4286,7 @@ EC_BOOL api_cmd_ui_show_rank_load(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0146);
+    cvector_free(report_vec, LOC_API_0153);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4194,7 +4318,7 @@ EC_BOOL api_cmd_ui_show_rank_load_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0147);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0154);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4225,7 +4349,7 @@ EC_BOOL api_cmd_ui_show_rank_load_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0148);
+    cvector_free(report_vec, LOC_API_0155);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4502,7 +4626,7 @@ EC_BOOL api_cmd_ui_show_taskcomm(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0149);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0156);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4534,7 +4658,7 @@ EC_BOOL api_cmd_ui_show_taskcomm(CMD_PARA_VEC * param)
         taskc_mgr_free(taskc_mgr);
     }
 
-    cvector_free(report_vec, LOC_API_0150);
+    cvector_free(report_vec, LOC_API_0157);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4568,7 +4692,7 @@ EC_BOOL api_cmd_ui_show_taskcomm_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0151);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0158);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4600,7 +4724,7 @@ EC_BOOL api_cmd_ui_show_taskcomm_all(CMD_PARA_VEC * param)
         taskc_mgr_free(taskc_mgr);
     }
 
-    cvector_free(report_vec, LOC_API_0152);
+    cvector_free(report_vec, LOC_API_0159);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -4804,7 +4928,7 @@ EC_BOOL api_cmd_ui_run_shell(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    //cmd_line = cstring_new(NULL_PTR, LOC_API_0153);
+    //cmd_line = cstring_new(NULL_PTR, LOC_API_0160);
 
     api_cmd_para_vec_get_cstring(param, 0, &cmd_line);
     api_cmd_para_vec_get_tcid(param, 1, &tcid);
@@ -4822,7 +4946,7 @@ EC_BOOL api_cmd_ui_run_shell(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0154);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0161);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4856,7 +4980,7 @@ EC_BOOL api_cmd_ui_run_shell(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0155);
+    cvector_free(report_vec, LOC_API_0162);
     mod_mgr_free(mod_mgr);
 
     //cstring_free(cmd_line);
@@ -4878,7 +5002,7 @@ EC_BOOL api_cmd_ui_run_shell_all(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    //cmd_line = cstring_new(NULL_PTR, LOC_API_0156);
+    //cmd_line = cstring_new(NULL_PTR, LOC_API_0163);
     api_cmd_para_vec_get_cstring(param, 0, &cmd_line);
     api_cmd_para_vec_get_cstring(param, 1, &where);
 
@@ -4894,7 +5018,7 @@ EC_BOOL api_cmd_ui_run_shell_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0157);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0164);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -4928,7 +5052,7 @@ EC_BOOL api_cmd_ui_run_shell_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0158);
+    cvector_free(report_vec, LOC_API_0165);
     mod_mgr_free(mod_mgr);
 
     //cstring_free(cmd_line);
@@ -5168,7 +5292,7 @@ EC_BOOL api_cmd_ui_sync_taskcomm_from_local(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_CVECTOR, LOC_API_0159);
+    report_vec = cvector_new(0, MM_CVECTOR, LOC_API_0166);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -5176,7 +5300,7 @@ EC_BOOL api_cmd_ui_sync_taskcomm_from_local(CMD_PARA_VEC * param)
     {
         CVECTOR *mod_node_vec;
 
-        mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_API_0160);
+        mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_API_0167);
         cvector_push(report_vec, (void *)mod_node_vec);
 
         task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_sync_taskcomm_from_local, CMPI_ERROR_MODI, hops, remotes, time_to_live, mod_node_vec);
@@ -5197,11 +5321,11 @@ EC_BOOL api_cmd_ui_sync_taskcomm_from_local(CMD_PARA_VEC * param)
         cvector_print(des_log, mod_node_vec, (CVECTOR_DATA_PRINT)mod_node_print);
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        cvector_clean(mod_node_vec, (CVECTOR_DATA_CLEANER)mod_node_free, LOC_API_0161);
-        cvector_free(mod_node_vec, LOC_API_0162);
+        cvector_clean(mod_node_vec, (CVECTOR_DATA_CLEANER)mod_node_free, LOC_API_0168);
+        cvector_free(mod_node_vec, LOC_API_0169);
     }
 
-    cvector_free(report_vec, LOC_API_0163);
+    cvector_free(report_vec, LOC_API_0170);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -5692,7 +5816,7 @@ EC_BOOL api_cmd_ui_cdfs_close_npp_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0164);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0171);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -5701,7 +5825,7 @@ EC_BOOL api_cmd_ui_cdfs_close_npp_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0165);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0172);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -5730,10 +5854,10 @@ EC_BOOL api_cmd_ui_cdfs_close_npp_all(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0166);
+        free_static_mem(MM_UINT32, ret, LOC_API_0173);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0167);
+    cvector_free_no_lock(report_vec, LOC_API_0174);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -5769,7 +5893,7 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0168);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0175);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -5778,7 +5902,7 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0169);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0176);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -5807,10 +5931,10 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp_all(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0170);
+        free_static_mem(MM_UINT32, ret, LOC_API_0177);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0171);
+    cvector_free_no_lock(report_vec, LOC_API_0178);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -6071,7 +6195,7 @@ EC_BOOL api_cmd_ui_cdfs_close_dn_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0172);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0179);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -6080,7 +6204,7 @@ EC_BOOL api_cmd_ui_cdfs_close_dn_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0173);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0180);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -6109,10 +6233,10 @@ EC_BOOL api_cmd_ui_cdfs_close_dn_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0174);
+        free_static_mem(MM_UINT32, ret, LOC_API_0181);
     }
 
-    cvector_free(report_vec, LOC_API_0175);
+    cvector_free(report_vec, LOC_API_0182);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -6148,7 +6272,7 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0176);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0183);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -6157,7 +6281,7 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0177);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0184);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -6186,10 +6310,10 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0178);
+        free_static_mem(MM_UINT32, ret, LOC_API_0185);
     }
 
-    cvector_free(report_vec, LOC_API_0179);
+    cvector_free(report_vec, LOC_API_0186);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -6526,7 +6650,7 @@ EC_BOOL api_cmd_ui_cdfs_mkdir_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0180);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0187);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -6535,7 +6659,7 @@ EC_BOOL api_cmd_ui_cdfs_mkdir_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0181);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0188);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -6564,10 +6688,10 @@ EC_BOOL api_cmd_ui_cdfs_mkdir_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0182);
+        free_static_mem(MM_UINT32, ret, LOC_API_0189);
     }
 
-    cvector_free(report_vec, LOC_API_0183);
+    cvector_free(report_vec, LOC_API_0190);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -6666,7 +6790,7 @@ EC_BOOL api_cmd_ui_cdfs_qdir(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    cdfsnp_item_vec = cvector_new(0, MM_CDFSNP_ITEM, LOC_API_0184);
+    cdfsnp_item_vec = cvector_new(0, MM_CDFSNP_ITEM, LOC_API_0191);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, cdfsnp_tcid, &ret, FI_cdfs_qdir, CMPI_ERROR_MODI, dir_name, cdfsnp_item_vec);
@@ -6685,8 +6809,8 @@ EC_BOOL api_cmd_ui_cdfs_qdir(CMD_PARA_VEC * param)
         cvector_print(des_log, cdfsnp_item_vec, (CVECTOR_DATA_PRINT)cdfsnp_item_print);
     }
 
-    cvector_clean(cdfsnp_item_vec, (CVECTOR_DATA_CLEANER)cdfsnp_item_free, LOC_API_0185);
-    cvector_free(cdfsnp_item_vec, LOC_API_0186);
+    cvector_clean(cdfsnp_item_vec, (CVECTOR_DATA_CLEANER)cdfsnp_item_free, LOC_API_0192);
+    cvector_free(cdfsnp_item_vec, LOC_API_0193);
 
     mod_mgr_free(mod_mgr);
 
@@ -6728,7 +6852,7 @@ EC_BOOL api_cmd_ui_cdfs_qlist_path(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0187);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0194);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, cdfsnp_tcid, &ret, FI_cdfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -6773,8 +6897,8 @@ EC_BOOL api_cmd_ui_cdfs_qlist_path(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0188);
-    cvector_free(path_cstr_vec, LOC_API_0189);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0195);
+    cvector_free(path_cstr_vec, LOC_API_0196);
 
     mod_mgr_free(mod_mgr);
 
@@ -6816,7 +6940,7 @@ EC_BOOL api_cmd_ui_cdfs_qlist_seg(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0190);
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0197);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, cdfsnp_tcid, &ret, FI_cdfs_qlist_seg, CMPI_ERROR_MODI, path, seg_cstr_vec);
@@ -6861,8 +6985,8 @@ EC_BOOL api_cmd_ui_cdfs_qlist_seg(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0191);
-    cvector_free(seg_cstr_vec, LOC_API_0192);
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0198);
+    cvector_free(seg_cstr_vec, LOC_API_0199);
 
     mod_mgr_free(mod_mgr);
 
@@ -6904,7 +7028,7 @@ EC_BOOL api_cmd_ui_cdfs_qcount_files(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0193);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0200);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, cdfsnp_tcid, &ret, FI_cdfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -6971,8 +7095,8 @@ EC_BOOL api_cmd_ui_cdfs_qcount_files(CMD_PARA_VEC * param)
         sys_log(des_log, "total file num %ld\n", total_file_num);
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0194);
-    cvector_free(path_cstr_vec, LOC_API_0195);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0201);
+    cvector_free(path_cstr_vec, LOC_API_0202);
 
     mod_mgr_free(mod_mgr);
 
@@ -7014,7 +7138,7 @@ EC_BOOL api_cmd_ui_cdfs_qsize_files(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0196);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0203);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, cdfsnp_tcid, &ret, FI_cdfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -7081,8 +7205,8 @@ EC_BOOL api_cmd_ui_cdfs_qsize_files(CMD_PARA_VEC * param)
         sys_log(des_log, "total file size %ld\n", total_file_size);
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0197);
-    cvector_free(path_cstr_vec, LOC_API_0198);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0204);
+    cvector_free(path_cstr_vec, LOC_API_0205);
 
     mod_mgr_free(mod_mgr);
 
@@ -7179,7 +7303,7 @@ EC_BOOL api_cmd_ui_cdfs_qblock(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0199);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0206);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7211,7 +7335,7 @@ EC_BOOL api_cmd_ui_cdfs_qblock(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0200);
+    cvector_free(report_vec, LOC_API_0207);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7345,7 +7469,7 @@ EC_BOOL api_cmd_ui_cdfs_flush_npp_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0201);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0208);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7354,7 +7478,7 @@ EC_BOOL api_cmd_ui_cdfs_flush_npp_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0202);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0209);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -7383,10 +7507,10 @@ EC_BOOL api_cmd_ui_cdfs_flush_npp_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0203);
+        free_static_mem(MM_UINT32, ret, LOC_API_0210);
     }
 
-    cvector_free(report_vec, LOC_API_0204);
+    cvector_free(report_vec, LOC_API_0211);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7422,7 +7546,7 @@ EC_BOOL api_cmd_ui_cdfs_flush_dn_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0205);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0212);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7431,7 +7555,7 @@ EC_BOOL api_cmd_ui_cdfs_flush_dn_all(CMD_PARA_VEC * param)
         MOD_NODE  *mod_node;
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0206);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0213);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -7460,10 +7584,10 @@ EC_BOOL api_cmd_ui_cdfs_flush_dn_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0207);
+        free_static_mem(MM_UINT32, ret, LOC_API_0214);
     }
 
-    cvector_free(report_vec, LOC_API_0208);
+    cvector_free(report_vec, LOC_API_0215);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7562,7 +7686,7 @@ EC_BOOL api_cmd_ui_cdfs_add_npp_to_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0209);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0216);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7570,7 +7694,7 @@ EC_BOOL api_cmd_ui_cdfs_add_npp_to_all(CMD_PARA_VEC * param)
     {
         UINT32  *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0210);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0217);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -7598,10 +7722,10 @@ EC_BOOL api_cmd_ui_cdfs_add_npp_to_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0211);
+        free_static_mem(MM_UINT32, ret, LOC_API_0218);
     }
 
-    cvector_free(report_vec, LOC_API_0212);
+    cvector_free(report_vec, LOC_API_0219);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7700,7 +7824,7 @@ EC_BOOL api_cmd_ui_cdfs_add_dn_to_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0213);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0220);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7708,7 +7832,7 @@ EC_BOOL api_cmd_ui_cdfs_add_dn_to_all(CMD_PARA_VEC * param)
     {
         UINT32  *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0214);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0221);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -7736,10 +7860,10 @@ EC_BOOL api_cmd_ui_cdfs_add_dn_to_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0215);
+        free_static_mem(MM_UINT32, ret, LOC_API_0222);
     }
 
-    cvector_free(report_vec, LOC_API_0216);
+    cvector_free(report_vec, LOC_API_0223);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7838,7 +7962,7 @@ EC_BOOL api_cmd_ui_cdfs_reg_npp_to_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0217);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0224);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7846,7 +7970,7 @@ EC_BOOL api_cmd_ui_cdfs_reg_npp_to_all(CMD_PARA_VEC * param)
     {
         UINT32  *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0218);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0225);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -7874,10 +7998,10 @@ EC_BOOL api_cmd_ui_cdfs_reg_npp_to_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0219);
+        free_static_mem(MM_UINT32, ret, LOC_API_0226);
     }
 
-    cvector_free(report_vec, LOC_API_0220);
+    cvector_free(report_vec, LOC_API_0227);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -7976,7 +8100,7 @@ EC_BOOL api_cmd_ui_cdfs_reg_dn_to_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0221);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0228);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -7984,7 +8108,7 @@ EC_BOOL api_cmd_ui_cdfs_reg_dn_to_all(CMD_PARA_VEC * param)
     {
         UINT32  *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0222);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0229);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -8012,10 +8136,10 @@ EC_BOOL api_cmd_ui_cdfs_reg_dn_to_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0223);
+        free_static_mem(MM_UINT32, ret, LOC_API_0230);
     }
 
-    cvector_free(report_vec, LOC_API_0224);
+    cvector_free(report_vec, LOC_API_0231);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8164,7 +8288,7 @@ EC_BOOL api_cmd_ui_cdfs_list_npp_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0225);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0232);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -8196,7 +8320,7 @@ EC_BOOL api_cmd_ui_cdfs_list_npp_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0226);
+    cvector_free(report_vec, LOC_API_0233);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8235,7 +8359,7 @@ EC_BOOL api_cmd_ui_cdfs_list_dn_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0227);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0234);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -8267,7 +8391,7 @@ EC_BOOL api_cmd_ui_cdfs_list_dn_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0228);
+    cvector_free(report_vec, LOC_API_0235);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8580,7 +8704,7 @@ EC_BOOL api_cmd_ui_cdfs_make_snapshot_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0229);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0236);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -8588,7 +8712,7 @@ EC_BOOL api_cmd_ui_cdfs_make_snapshot_all(CMD_PARA_VEC * param)
     {
         EC_BOOL *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0230);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0237);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -8616,10 +8740,10 @@ EC_BOOL api_cmd_ui_cdfs_make_snapshot_all(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0231);
+        free_static_mem(MM_UINT32, ret, LOC_API_0238);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0232);
+    cvector_free_no_lock(report_vec, LOC_API_0239);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8769,7 +8893,7 @@ EC_BOOL api_cmd_ui_cdfs_show_npp_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0233);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0240);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -8801,7 +8925,7 @@ EC_BOOL api_cmd_ui_cdfs_show_npp_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0234);
+    cvector_free(report_vec, LOC_API_0241);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8840,7 +8964,7 @@ EC_BOOL api_cmd_ui_cdfs_show_dn_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0235);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0242);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -8872,7 +8996,7 @@ EC_BOOL api_cmd_ui_cdfs_show_dn_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0236);
+    cvector_free(report_vec, LOC_API_0243);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -8989,7 +9113,7 @@ EC_BOOL api_cmd_ui_cdfs_show_cached_np_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0237);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0244);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9021,7 +9145,7 @@ EC_BOOL api_cmd_ui_cdfs_show_cached_np_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0238);
+    cvector_free(report_vec, LOC_API_0245);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9239,7 +9363,7 @@ EC_BOOL api_cmd_ui_cbgt_show_module(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0239);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0246);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9270,7 +9394,7 @@ EC_BOOL api_cmd_ui_cbgt_show_module(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0240);
+    cvector_free(report_vec, LOC_API_0247);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9306,7 +9430,7 @@ EC_BOOL api_cmd_ui_cbgt_show_module_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0241);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0248);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9337,7 +9461,7 @@ EC_BOOL api_cmd_ui_cbgt_show_module_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0242);
+    cvector_free(report_vec, LOC_API_0249);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9382,7 +9506,7 @@ EC_BOOL api_cmd_ui_cbgt_flush(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0243);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0250);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9390,7 +9514,7 @@ EC_BOOL api_cmd_ui_cbgt_flush(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0244);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0251);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -9418,11 +9542,11 @@ EC_BOOL api_cmd_ui_cbgt_flush(CMD_PARA_VEC * param)
             sys_log(des_log, "[rank_%s_%ld_%ld] FAILED\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),MOD_NODE_MODI(mod_node));
         }
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0245);
+        free_static_mem(MM_UINT32, ret, LOC_API_0252);
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
     }
 
-    cvector_free(report_vec, LOC_API_0246);
+    cvector_free(report_vec, LOC_API_0253);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9458,7 +9582,7 @@ EC_BOOL api_cmd_ui_cbgt_flush_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0247);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0254);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9466,7 +9590,7 @@ EC_BOOL api_cmd_ui_cbgt_flush_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0248);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0255);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -9493,11 +9617,11 @@ EC_BOOL api_cmd_ui_cbgt_flush_all(CMD_PARA_VEC * param)
             sys_log(des_log, "[rank_%s_%ld_%ld][FAIL]\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),MOD_NODE_MODI(mod_node));
         }
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0249);
+        free_static_mem(MM_UINT32, ret, LOC_API_0256);
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0250);
+    cvector_free_no_lock(report_vec, LOC_API_0257);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9540,7 +9664,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_module(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0251);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0258);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9571,7 +9695,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_module(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0252);
+    cvector_free(report_vec, LOC_API_0259);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9607,7 +9731,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_module_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0253);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0260);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9638,7 +9762,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_module_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0254);
+    cvector_free(report_vec, LOC_API_0261);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9681,7 +9805,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_depth_module(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0255);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0262);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9712,7 +9836,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_depth_module(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0256);
+    cvector_free(report_vec, LOC_API_0263);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9748,7 +9872,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_depth_module_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0257);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0264);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9779,7 +9903,7 @@ EC_BOOL api_cmd_ui_cbgt_traversal_depth_module_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0258);
+    cvector_free(report_vec, LOC_API_0265);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9928,7 +10052,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_module(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0259);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0266);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -9959,7 +10083,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_module(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0260);
+    cvector_free(report_vec, LOC_API_0267);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -9995,7 +10119,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_module_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0261);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0268);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -10026,7 +10150,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_module_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0262);
+    cvector_free(report_vec, LOC_API_0269);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -10069,7 +10193,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0263);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0270);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -10100,7 +10224,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0264);
+    cvector_free(report_vec, LOC_API_0271);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -10136,7 +10260,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0265);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0272);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -10167,7 +10291,7 @@ EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0266);
+    cvector_free(report_vec, LOC_API_0273);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -10211,7 +10335,7 @@ EC_BOOL api_cmd_ui_cbgt_print_status(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0267);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0274);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -10242,7 +10366,7 @@ EC_BOOL api_cmd_ui_cbgt_print_status(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0268);
+    cvector_free(report_vec, LOC_API_0275);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -10278,7 +10402,7 @@ EC_BOOL api_cmd_ui_cbgt_print_status_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0269);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0276);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -10309,7 +10433,7 @@ EC_BOOL api_cmd_ui_cbgt_print_status_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0270);
+    cvector_free(report_vec, LOC_API_0277);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -10449,7 +10573,7 @@ EC_BOOL api_cmd_ui_cbgt_create_user_table(CMD_PARA_VEC * param)
     cbytes_mount(&user_table_name_bytes, cstring_get_len(user_table_name), cstring_get_str(user_table_name));
 
     field_num = c_str_split((char *)cstring_get_str(user_table_colfs), ":;,", fields, sizeof(fields)/sizeof(fields[0]));
-    colfs_vec = cvector_new(0, MM_CBYTES, LOC_API_0271);
+    colfs_vec = cvector_new(0, MM_CBYTES, LOC_API_0278);
     if(NULL_PTR == colfs_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_create_user_table: new cvector failed\n");
@@ -10466,7 +10590,7 @@ EC_BOOL api_cmd_ui_cbgt_create_user_table(CMD_PARA_VEC * param)
         {
             dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_create_user_table: new cbytes failed\n");
             cvector_loop_front(colfs_vec, (CVECTOR_DATA_HANDLER)cbytes_umount_only);
-            cvector_clean(colfs_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0272);
+            cvector_clean(colfs_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0279);
             cvector_free(colfs_vec, 0);
             return (EC_TRUE);
         }
@@ -10494,7 +10618,7 @@ EC_BOOL api_cmd_ui_cbgt_create_user_table(CMD_PARA_VEC * param)
     }
 
     cvector_loop_front(colfs_vec, (CVECTOR_DATA_HANDLER)cbytes_umount_only);
-    cvector_clean(colfs_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0273);
+    cvector_clean(colfs_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0280);
     cvector_free(colfs_vec, 0);
 
     return (EC_TRUE);
@@ -11338,20 +11462,20 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_user(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_cached_user: colf pattern: %s\n", fields[1]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_cached_user: colq pattern: %s\n", fields[2]);
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0274);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0281);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_user: new cstring for row_regex_cstr failed\n");
         return (EC_TRUE);
     }
-    colf_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0275);
+    colf_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0282);
     if(NULL_PTR == colf_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_user: new cstring for colf_regex_cstr failed\n");
         cstring_free(row_regex_cstr);
         return (EC_TRUE);
     }
-    colq_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0276);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0283);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_user: new cstring for colq_regex_cstr failed\n");
@@ -11360,7 +11484,7 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_user(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0277);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0284);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_user: new ret kv vec failed\n");
@@ -11401,8 +11525,8 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_user(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0278);
-    cvector_free(ret_kv_vec, LOC_API_0279);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0285);
+    cvector_free(ret_kv_vec, LOC_API_0286);
 
     cstring_free(row_regex_cstr);
     cstring_free(colf_regex_cstr);
@@ -11474,20 +11598,20 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_user(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_all_user: colf pattern: %s\n", fields[1]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_all_user: colq pattern: %s\n", fields[2]);
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0280);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0287);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_user: new cstring for row_regex_cstr failed\n");
         return (EC_TRUE);
     }
-    colf_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0281);
+    colf_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0288);
     if(NULL_PTR == colf_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_user: new cstring for colf_regex_cstr failed\n");
         cstring_free(row_regex_cstr);
         return (EC_TRUE);
     }
-    colq_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0282);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0289);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_user: new cstring for colq_regex_cstr failed\n");
@@ -11496,7 +11620,7 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_user(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0283);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0290);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_user: new ret kv vec failed\n");
@@ -11537,8 +11661,8 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_user(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0284);
-    cvector_free(ret_kv_vec, LOC_API_0285);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0291);
+    cvector_free(ret_kv_vec, LOC_API_0292);
 
     cstring_free(row_regex_cstr);
     cstring_free(colf_regex_cstr);
@@ -11621,14 +11745,14 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_colf(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_cached_colf: row  pattern: %s\n", fields[0]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_cached_colf: colq pattern: %s\n", fields[1]);
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0286);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0293);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_colf: new cstring for row_regex_cstr failed\n");
         return (EC_TRUE);
     }
 
-    colq_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0287);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0294);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_colf: new cstring for colq_regex_cstr failed\n");
@@ -11636,7 +11760,7 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_colf(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0288);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0295);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_cached_colf: new ret kv vec failed\n");
@@ -11676,8 +11800,8 @@ EC_BOOL api_cmd_ui_cbgt_select_in_cached_colf(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0289);
-    cvector_free(ret_kv_vec, LOC_API_0290);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0296);
+    cvector_free(ret_kv_vec, LOC_API_0297);
 
     cstring_free(row_regex_cstr);
     cstring_free(colq_regex_cstr);
@@ -11759,14 +11883,14 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_colf(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_all_colf: row  pattern: %s\n", fields[0]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_in_all_colf: colq pattern: %s\n", fields[1]);
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0291);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0298);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_colf: new cstring for row_regex_cstr failed\n");
         return (EC_TRUE);
     }
 
-    colq_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0292);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[1], LOC_API_0299);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_colf: new cstring for colq_regex_cstr failed\n");
@@ -11774,7 +11898,7 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_colf(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0293);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0300);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_in_all_colf: new ret kv vec failed\n");
@@ -11814,8 +11938,8 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_colf(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0294);
-    cvector_free(ret_kv_vec, LOC_API_0295);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0301);
+    cvector_free(ret_kv_vec, LOC_API_0302);
 
     cstring_free(row_regex_cstr);
     cstring_free(colq_regex_cstr);
@@ -11881,14 +12005,14 @@ EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_cached: colf  pattern: %s\n", fields[2]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_cached: colq  pattern: %s\n", fields[3]);
 
-    table_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0296);
+    table_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0303);
     if(NULL_PTR == table_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_cached: new cstring for table_regex_cstr failed\n");
         return (EC_TRUE);
     }
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[1], LOC_API_0297);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[1], LOC_API_0304);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_cached: new cstring for row_regex_cstr failed\n");
@@ -11896,7 +12020,7 @@ EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    colf_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0298);
+    colf_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0305);
     if(NULL_PTR == colf_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_cached: new cstring for colf_regex_cstr failed\n");
@@ -11905,7 +12029,7 @@ EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    colq_regex_cstr = cstring_new((UINT8 *)fields[3], LOC_API_0299);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[3], LOC_API_0306);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_cached: new cstring for colq_regex_cstr failed\n");
@@ -11915,7 +12039,7 @@ EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0300);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0307);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_cached: new ret kv vec failed\n");
@@ -11957,8 +12081,8 @@ EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0301);
-    cvector_free(ret_kv_vec, LOC_API_0302);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0308);
+    cvector_free(ret_kv_vec, LOC_API_0309);
 
     cstring_free(table_regex_cstr);
     cstring_free(row_regex_cstr);
@@ -12025,14 +12149,14 @@ EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_all: colf  pattern: %s\n", fields[2]);
     dbg_log(SEC_0010_API, 0)(LOGCONSOLE, "[DEBUG]api_cmd_ui_cbgt_select_all: colq  pattern: %s\n", fields[3]);
 
-    table_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0303);
+    table_regex_cstr  = cstring_new((UINT8 *)fields[0], LOC_API_0310);
     if(NULL_PTR == table_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_all: new cstring for table_regex_cstr failed\n");
         return (EC_TRUE);
     }
 
-    row_regex_cstr  = cstring_new((UINT8 *)fields[1], LOC_API_0304);
+    row_regex_cstr  = cstring_new((UINT8 *)fields[1], LOC_API_0311);
     if(NULL_PTR == row_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_all: new cstring for row_regex_cstr failed\n");
@@ -12040,7 +12164,7 @@ EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    colf_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0305);
+    colf_regex_cstr = cstring_new((UINT8 *)fields[2], LOC_API_0312);
     if(NULL_PTR == colf_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_all: new cstring for colf_regex_cstr failed\n");
@@ -12049,7 +12173,7 @@ EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    colq_regex_cstr = cstring_new((UINT8 *)fields[3], LOC_API_0306);
+    colq_regex_cstr = cstring_new((UINT8 *)fields[3], LOC_API_0313);
     if(NULL_PTR == colq_regex_cstr)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_all: new cstring for colq_regex_cstr failed\n");
@@ -12059,7 +12183,7 @@ EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param)
         return (EC_TRUE);
     }
 
-    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0307);
+    ret_kv_vec = cvector_new(0, MM_CBYTES, LOC_API_0314);
     if(NULL_PTR == ret_kv_vec)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_select_all: new ret kv vec failed\n");
@@ -12101,8 +12225,8 @@ EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param)
         kvPrintHs(des_log, cbytes_buf(kv_bytes));
     }
 
-    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0308);
-    cvector_free(ret_kv_vec, LOC_API_0309);
+    cvector_clean(ret_kv_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_API_0315);
+    cvector_free(ret_kv_vec, LOC_API_0316);
 
     cstring_free(table_regex_cstr);
     cstring_free(row_regex_cstr);
@@ -12194,7 +12318,7 @@ EC_BOOL api_cmd_ui_csession_add(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0310);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0317);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12202,7 +12326,7 @@ EC_BOOL api_cmd_ui_csession_add(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0311);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0318);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12230,10 +12354,10 @@ EC_BOOL api_cmd_ui_csession_add(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0312);
+        free_static_mem(MM_UINT32, ret, LOC_API_0319);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0313);
+    cvector_free_no_lock(report_vec, LOC_API_0320);
 
     mod_mgr_free(mod_mgr);
 
@@ -12280,7 +12404,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0314);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0321);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12288,7 +12412,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0315);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0322);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12316,10 +12440,10 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0316);
+        free_static_mem(MM_UINT32, ret, LOC_API_0323);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0317);
+    cvector_free_no_lock(report_vec, LOC_API_0324);
 
     mod_mgr_free(mod_mgr);
 
@@ -12366,7 +12490,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0318);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0325);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12374,7 +12498,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0319);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0326);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12402,10 +12526,10 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0320);
+        free_static_mem(MM_UINT32, ret, LOC_API_0327);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0321);
+    cvector_free_no_lock(report_vec, LOC_API_0328);
 
     mod_mgr_free(mod_mgr);
 
@@ -12452,7 +12576,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name_regex(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0322);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0329);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12460,7 +12584,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name_regex(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0323);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0330);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12488,10 +12612,10 @@ EC_BOOL api_cmd_ui_csession_rmv_by_name_regex(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0324);
+        free_static_mem(MM_UINT32, ret, LOC_API_0331);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0325);
+    cvector_free_no_lock(report_vec, LOC_API_0332);
 
     mod_mgr_free(mod_mgr);
 
@@ -12538,7 +12662,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id_regex(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0326);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0333);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12546,7 +12670,7 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id_regex(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0327);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0334);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12574,10 +12698,10 @@ EC_BOOL api_cmd_ui_csession_rmv_by_id_regex(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0328);
+        free_static_mem(MM_UINT32, ret, LOC_API_0335);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0329);
+    cvector_free_no_lock(report_vec, LOC_API_0336);
 
     mod_mgr_free(mod_mgr);
 
@@ -12632,7 +12756,7 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0330);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0337);
     cbytes_init(&val_cbytes);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -12640,7 +12764,7 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
         UINT32    *ret;
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0331);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0338);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
      
@@ -12669,10 +12793,10 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0332);
+        free_static_mem(MM_UINT32, ret, LOC_API_0339);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0333);
+    cvector_free_no_lock(report_vec, LOC_API_0340);
 
     mod_mgr_free(mod_mgr);
 
@@ -12727,7 +12851,7 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0334);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0341);
     cbytes_init(&val_cbytes);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -12736,7 +12860,7 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
     {
         UINT32    *ret;
      
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0335);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0342);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -12765,10 +12889,10 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0336);
+        free_static_mem(MM_UINT32, ret, LOC_API_0343);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0337);
+    cvector_free_no_lock(report_vec, LOC_API_0344);
 
     mod_mgr_free(mod_mgr);
 
@@ -12819,8 +12943,8 @@ EC_BOOL api_cmd_ui_csession_get_by_name(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0338);
-    csession_item_list_vec = cvector_new(0, MM_CLIST, LOC_API_0339);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0345);
+    csession_item_list_vec = cvector_new(0, MM_CLIST, LOC_API_0346);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12829,11 +12953,11 @@ EC_BOOL api_cmd_ui_csession_get_by_name(CMD_PARA_VEC * param)
         UINT32    *ret;
         CLIST     *csession_item_list;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0340);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0347);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        csession_item_list = clist_new(MM_CSESSION_ITEM, LOC_API_0341);
+        csession_item_list = clist_new(MM_CSESSION_ITEM, LOC_API_0348);
         cvector_push_no_lock(csession_item_list_vec, (void *)csession_item_list);
 
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_get_by_name, CMPI_ERROR_MODI, session_name, key, csession_item_list);
@@ -12863,14 +12987,14 @@ EC_BOOL api_cmd_ui_csession_get_by_name(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0342);
+        free_static_mem(MM_UINT32, ret, LOC_API_0349);
 
         cvector_set_no_lock(csession_item_list_vec, remote_mod_node_idx, NULL_PTR);
-        clist_free(csession_item_list, LOC_API_0343);
+        clist_free(csession_item_list, LOC_API_0350);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0344);
-    cvector_free_no_lock(csession_item_list_vec, LOC_API_0345);
+    cvector_free_no_lock(report_vec, LOC_API_0351);
+    cvector_free_no_lock(csession_item_list_vec, LOC_API_0352);
 
     mod_mgr_free(mod_mgr);
 
@@ -12921,8 +13045,8 @@ EC_BOOL api_cmd_ui_csession_get_by_id(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0346);
-    csession_item_list_vec = cvector_new(0, MM_CLIST, LOC_API_0347);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0353);
+    csession_item_list_vec = cvector_new(0, MM_CLIST, LOC_API_0354);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -12931,11 +13055,11 @@ EC_BOOL api_cmd_ui_csession_get_by_id(CMD_PARA_VEC * param)
         UINT32    *ret;
         CLIST     *csession_item_list;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0348);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0355);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        csession_item_list = clist_new(MM_CSESSION_ITEM, LOC_API_0349);
+        csession_item_list = clist_new(MM_CSESSION_ITEM, LOC_API_0356);
         cvector_push_no_lock(csession_item_list_vec, (void *)csession_item_list);
 
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_get_by_id, CMPI_ERROR_MODI, session_id, key, csession_item_list);
@@ -12965,14 +13089,14 @@ EC_BOOL api_cmd_ui_csession_get_by_id(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0350);
+        free_static_mem(MM_UINT32, ret, LOC_API_0357);
 
         cvector_set_no_lock(csession_item_list_vec, remote_mod_node_idx, NULL_PTR);
-        clist_free(csession_item_list, LOC_API_0351);
+        clist_free(csession_item_list, LOC_API_0358);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0352);
-    cvector_free_no_lock(csession_item_list_vec, LOC_API_0353);
+    cvector_free_no_lock(report_vec, LOC_API_0359);
+    cvector_free_no_lock(csession_item_list_vec, LOC_API_0360);
 
     mod_mgr_free(mod_mgr);
 
@@ -13024,8 +13148,8 @@ EC_BOOL api_cmd_ui_csession_get_by_name_regex(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0354);
-    csession_node_list_vec = cvector_new(0, MM_CLIST, LOC_API_0355);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0361);
+    csession_node_list_vec = cvector_new(0, MM_CLIST, LOC_API_0362);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13034,11 +13158,11 @@ EC_BOOL api_cmd_ui_csession_get_by_name_regex(CMD_PARA_VEC * param)
         UINT32    *ret;
         CLIST     *csession_node_list;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0356);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0363);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        csession_node_list = clist_new(MM_CSESSION_NODE, LOC_API_0357);
+        csession_node_list = clist_new(MM_CSESSION_NODE, LOC_API_0364);
         cvector_push_no_lock(csession_node_list_vec, (void *)csession_node_list);
 
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_get_by_name_regex, CMPI_ERROR_MODI, session_name, key, csession_node_list);
@@ -13068,14 +13192,14 @@ EC_BOOL api_cmd_ui_csession_get_by_name_regex(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0358);
+        free_static_mem(MM_UINT32, ret, LOC_API_0365);
 
         cvector_set_no_lock(csession_node_list_vec, remote_mod_node_idx, NULL_PTR);
-        clist_free(csession_node_list, LOC_API_0359);
+        clist_free(csession_node_list, LOC_API_0366);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0360);
-    cvector_free_no_lock(csession_node_list_vec, LOC_API_0361);
+    cvector_free_no_lock(report_vec, LOC_API_0367);
+    cvector_free_no_lock(csession_node_list_vec, LOC_API_0368);
 
     mod_mgr_free(mod_mgr);
 
@@ -13126,8 +13250,8 @@ EC_BOOL api_cmd_ui_csession_get_by_id_regex(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0362);
-    csession_node_list_vec = cvector_new(0, MM_CLIST, LOC_API_0363);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0369);
+    csession_node_list_vec = cvector_new(0, MM_CLIST, LOC_API_0370);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13136,11 +13260,11 @@ EC_BOOL api_cmd_ui_csession_get_by_id_regex(CMD_PARA_VEC * param)
         UINT32    *ret;
         CLIST     *csession_node_list;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0364);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0371);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        csession_node_list = clist_new(MM_CSESSION_NODE, LOC_API_0365);
+        csession_node_list = clist_new(MM_CSESSION_NODE, LOC_API_0372);
         cvector_push_no_lock(csession_node_list_vec, (void *)csession_node_list);
 
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_get_by_id_regex, CMPI_ERROR_MODI, session_id, key, csession_node_list);
@@ -13170,14 +13294,14 @@ EC_BOOL api_cmd_ui_csession_get_by_id_regex(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0366);
+        free_static_mem(MM_UINT32, ret, LOC_API_0373);
 
         cvector_set_no_lock(csession_node_list_vec, remote_mod_node_idx, NULL_PTR);
-        clist_free(csession_node_list, LOC_API_0367);
+        clist_free(csession_node_list, LOC_API_0374);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0368);
-    cvector_free_no_lock(csession_node_list_vec, LOC_API_0369);
+    cvector_free_no_lock(report_vec, LOC_API_0375);
+    cvector_free_no_lock(csession_node_list_vec, LOC_API_0376);
 
     mod_mgr_free(mod_mgr);
 
@@ -13222,7 +13346,7 @@ EC_BOOL api_cmd_ui_csession_show(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0370);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0377);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13254,7 +13378,7 @@ EC_BOOL api_cmd_ui_csession_show(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free_no_lock(report_vec, LOC_API_0371);
+    cvector_free_no_lock(report_vec, LOC_API_0378);
 
     mod_mgr_free(mod_mgr);
 
@@ -13463,7 +13587,7 @@ EC_BOOL api_cmd_ui_cdfs_write_files(CMD_PARA_VEC * param)
         CSTRING *file_name;
         EC_BOOL  ret;
 
-        file_name = cstring_new(NULL_PTR, LOC_API_0372);
+        file_name = cstring_new(NULL_PTR, LOC_API_0379);
         cstring_format(file_name, "%s/%ld.dat", (char *)cstring_get_str(dir_name), file_pos);
 
         ret = EC_FALSE;
@@ -13529,8 +13653,8 @@ EC_BOOL api_cmd_ui_exec_download(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0373);
-    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0374);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0380);
+    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0381);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13539,7 +13663,7 @@ EC_BOOL api_cmd_ui_exec_download(CMD_PARA_VEC * param)
         UINT32 *ret;
         CBYTES *cbytes;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0375);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0382);
         cbytes = cbytes_new(0);
 
         cvector_push(report_vec, (void *)ret);
@@ -13575,12 +13699,12 @@ EC_BOOL api_cmd_ui_exec_download(CMD_PARA_VEC * param)
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         cvector_set(fcontent_vec, remote_mod_node_idx, NULL_PTR);
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0376);
+        free_static_mem(MM_UINT32, ret, LOC_API_0383);
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0377);
-    cvector_free(fcontent_vec, LOC_API_0378);
+    cvector_free(report_vec, LOC_API_0384);
+    cvector_free(fcontent_vec, LOC_API_0385);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -13619,8 +13743,8 @@ EC_BOOL api_cmd_ui_exec_download_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0379);
-    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0380);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0386);
+    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0387);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13629,7 +13753,7 @@ EC_BOOL api_cmd_ui_exec_download_all(CMD_PARA_VEC * param)
         UINT32 *ret;
         CBYTES *cbytes;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0381);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0388);
         cbytes = cbytes_new(0);
 
         cvector_push(report_vec, (void *)ret);
@@ -13665,12 +13789,12 @@ EC_BOOL api_cmd_ui_exec_download_all(CMD_PARA_VEC * param)
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         cvector_set(fcontent_vec, remote_mod_node_idx, NULL_PTR);
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0382);
+        free_static_mem(MM_UINT32, ret, LOC_API_0389);
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0383);
-    cvector_free(fcontent_vec, LOC_API_0384);
+    cvector_free(report_vec, LOC_API_0390);
+    cvector_free(fcontent_vec, LOC_API_0391);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -13715,8 +13839,8 @@ EC_BOOL api_cmd_ui_exec_upload(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0385);
-    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0386);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0392);
+    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0393);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13725,7 +13849,7 @@ EC_BOOL api_cmd_ui_exec_upload(CMD_PARA_VEC * param)
         UINT32 *ret;
         CBYTES *cbytes;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0387);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0394);
         cbytes = cbytes_new(0);
         cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent));
 
@@ -13762,14 +13886,14 @@ EC_BOOL api_cmd_ui_exec_upload(CMD_PARA_VEC * param)
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         cvector_set(fcontent_vec, remote_mod_node_idx, NULL_PTR);
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0388);
+        free_static_mem(MM_UINT32, ret, LOC_API_0395);
 
         cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0389);
-    cvector_free(fcontent_vec, LOC_API_0390);
+    cvector_free(report_vec, LOC_API_0396);
+    cvector_free(fcontent_vec, LOC_API_0397);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -13811,8 +13935,8 @@ EC_BOOL api_cmd_ui_exec_upload_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0391);
-    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0392);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0398);
+    fcontent_vec = cvector_new(0, MM_CBYTES, LOC_API_0399);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13821,7 +13945,7 @@ EC_BOOL api_cmd_ui_exec_upload_all(CMD_PARA_VEC * param)
         UINT32 *ret;
         CBYTES *cbytes;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0393);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0400);
         cbytes = cbytes_new(0);
         cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent));
 
@@ -13858,14 +13982,14 @@ EC_BOOL api_cmd_ui_exec_upload_all(CMD_PARA_VEC * param)
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         cvector_set(fcontent_vec, remote_mod_node_idx, NULL_PTR);
 
-        free_static_mem(MM_UINT32, ret, LOC_API_0394);
+        free_static_mem(MM_UINT32, ret, LOC_API_0401);
 
         cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0395);
-    cvector_free(fcontent_vec, LOC_API_0396);
+    cvector_free(report_vec, LOC_API_0402);
+    cvector_free(fcontent_vec, LOC_API_0403);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -13907,7 +14031,7 @@ EC_BOOL api_cmd_ui_exec_shell(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_CBYTES, LOC_API_0397);
+    report_vec = cvector_new(0, MM_CBYTES, LOC_API_0404);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -13947,7 +14071,7 @@ EC_BOOL api_cmd_ui_exec_shell(CMD_PARA_VEC * param)
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0398);
+    cvector_free(report_vec, LOC_API_0405);
     mod_mgr_free(mod_mgr);
     return (EC_TRUE);
 }
@@ -13984,7 +14108,7 @@ EC_BOOL api_cmd_ui_exec_shell_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_CBYTES, LOC_API_0399);
+    report_vec = cvector_new(0, MM_CBYTES, LOC_API_0406);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14024,7 +14148,7 @@ EC_BOOL api_cmd_ui_exec_shell_all(CMD_PARA_VEC * param)
         cbytes_free(cbytes);
     }
 
-    cvector_free(report_vec, LOC_API_0400);
+    cvector_free(report_vec, LOC_API_0407);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14059,7 +14183,7 @@ EC_BOOL api_cmd_ui_show_version(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0401);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0408);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14090,7 +14214,7 @@ EC_BOOL api_cmd_ui_show_version(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0402);
+    cvector_free(report_vec, LOC_API_0409);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14122,7 +14246,7 @@ EC_BOOL api_cmd_ui_show_version_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0403);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0410);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14153,7 +14277,7 @@ EC_BOOL api_cmd_ui_show_version_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0404);
+    cvector_free(report_vec, LOC_API_0411);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14188,7 +14312,7 @@ EC_BOOL api_cmd_ui_show_vendor(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0405);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0412);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14219,7 +14343,7 @@ EC_BOOL api_cmd_ui_show_vendor(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0406);
+    cvector_free(report_vec, LOC_API_0413);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14251,7 +14375,7 @@ EC_BOOL api_cmd_ui_show_vendor_all(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_LOG, LOC_API_0407);
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0414);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14282,7 +14406,7 @@ EC_BOOL api_cmd_ui_show_vendor_all(CMD_PARA_VEC * param)
         log_cstr_close(log);
     }
 
-    cvector_free(report_vec, LOC_API_0408);
+    cvector_free(report_vec, LOC_API_0415);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14320,7 +14444,7 @@ EC_BOOL api_cmd_ui_start_mcast_udp_server(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0409);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0416);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14328,7 +14452,7 @@ EC_BOOL api_cmd_ui_start_mcast_udp_server(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0410);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0417);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -14356,10 +14480,10 @@ EC_BOOL api_cmd_ui_start_mcast_udp_server(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0411);
+        free_static_mem(MM_UINT32, ret, LOC_API_0418);
     }
 
-    cvector_free(report_vec, LOC_API_0412);
+    cvector_free(report_vec, LOC_API_0419);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14397,7 +14521,7 @@ EC_BOOL api_cmd_ui_stop_mcast_udp_server(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0413);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0420);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14405,7 +14529,7 @@ EC_BOOL api_cmd_ui_stop_mcast_udp_server(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0414);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0421);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -14433,10 +14557,10 @@ EC_BOOL api_cmd_ui_stop_mcast_udp_server(CMD_PARA_VEC * param)
         }
 
         cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0415);
+        free_static_mem(MM_UINT32, ret, LOC_API_0422);
     }
 
-    cvector_free(report_vec, LOC_API_0416);
+    cvector_free(report_vec, LOC_API_0423);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -14474,7 +14598,7 @@ EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param)
     }
 #endif
 
-    report_vec = cvector_new(0, MM_UINT32, LOC_API_0417);
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0424);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -14482,7 +14606,7 @@ EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_API_0418);
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0425);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
@@ -14510,10 +14634,10 @@ EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0419);
+        free_static_mem(MM_UINT32, ret, LOC_API_0426);
     }
 
-    cvector_free(report_vec, LOC_API_0420);
+    cvector_free(report_vec, LOC_API_0427);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -15459,7 +15583,7 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     //content_max_len = (CPGB_CACHE_MAX_BYTE_SIZE / 2) - 7;
     content_max_len = CPGB_CACHE_MAX_BYTE_SIZE;
 
-    content = safe_malloc(content_max_len, LOC_API_0421);     
+    content = safe_malloc(content_max_len, LOC_API_0428);     
     ASSERT(NULL_PTR != content);
  
     cbytes = cbytes_new(0);
@@ -15506,7 +15630,7 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     }
 
     cbytes_free(cbytes);
-    safe_free(content, LOC_API_0422);
+    safe_free(content, LOC_API_0429);
     c_file_close(fd);
 
     return (EC_TRUE);
@@ -15883,7 +16007,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_path_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0423);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0430);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_path_of_np, CMPI_ERROR_MODI, path, crfsnp_id, path_cstr_vec);
@@ -15928,8 +16052,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_path_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0424);
-    cvector_free(path_cstr_vec, LOC_API_0425);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0431);
+    cvector_free(path_cstr_vec, LOC_API_0432);
 
     mod_mgr_free(mod_mgr);
 
@@ -15977,7 +16101,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0426);
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0433);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_seg_of_np, CMPI_ERROR_MODI, path, crfsnp_id, seg_cstr_vec);
@@ -16022,8 +16146,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0427);
-    cvector_free(seg_cstr_vec, LOC_API_0428);
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0434);
+    cvector_free(seg_cstr_vec, LOC_API_0435);
 
     mod_mgr_free(mod_mgr);
 
@@ -16068,7 +16192,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_path(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0429);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0436);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -16113,8 +16237,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_path(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0430);
-    cvector_free(path_cstr_vec, LOC_API_0431);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0437);
+    cvector_free(path_cstr_vec, LOC_API_0438);
 
     mod_mgr_free(mod_mgr);
 
@@ -16159,7 +16283,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0432);
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0439);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_seg, CMPI_ERROR_MODI, path, seg_cstr_vec);
@@ -16204,8 +16328,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0433);
-    cvector_free(seg_cstr_vec, LOC_API_0434);
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0440);
+    cvector_free(seg_cstr_vec, LOC_API_0441);
 
     mod_mgr_free(mod_mgr);
 
@@ -16253,7 +16377,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    tree_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0435);
+    tree_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0442);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_tree_of_np, CMPI_ERROR_MODI, crfsnp_id, path, tree_cstr_vec);
@@ -16298,8 +16422,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(tree_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0436);
-    cvector_free(tree_cstr_vec, LOC_API_0437);
+    cvector_clean(tree_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0443);
+    cvector_free(tree_cstr_vec, LOC_API_0444);
 
     mod_mgr_free(mod_mgr);
 
@@ -16344,7 +16468,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0438);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0445);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_tree, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -16389,8 +16513,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0439);
-    cvector_free(path_cstr_vec, LOC_API_0440);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0446);
+    cvector_free(path_cstr_vec, LOC_API_0447);
 
     mod_mgr_free(mod_mgr);
 
@@ -17632,8 +17756,6 @@ EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param)
     EC_BOOL   ret;
     CMD5_DIGEST md5sum;
 
-    char md5str[34];
-
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &fname);
     api_cmd_para_vec_get_tcid(param    , 2, &crfsnp_tcid);
@@ -17667,7 +17789,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param)
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname),
-                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum), md5str, sizeof(md5str))
+                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
                            );
     }
     else
@@ -17695,8 +17817,6 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
 
     EC_BOOL   ret;
     CMD5_DIGEST md5sum;
-
-    char md5str[34];
 
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &fname);
@@ -17734,7 +17854,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
                            CMPI_CRFS_RANK,      
                            (char *)cstring_get_str(fname),
                            seg_no,
-                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum), md5str, sizeof(md5str))
+                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
                            );
     }
     else
@@ -19394,7 +19514,7 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     //content_max_len = (CPGB_CACHE_MAX_BYTE_SIZE / 2) - 7;
     content_max_len = CPGB_CACHE_MAX_BYTE_SIZE;
 
-    content = safe_malloc(content_max_len, LOC_API_0441);     
+    content = safe_malloc(content_max_len, LOC_API_0448);     
     ASSERT(NULL_PTR != content);
  
     cbytes = cbytes_new(0);
@@ -19441,7 +19561,7 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     }
 
     cbytes_free(cbytes);
-    safe_free(content, LOC_API_0442);
+    safe_free(content, LOC_API_0449);
     c_file_close(fd);
 
     return (EC_TRUE);
@@ -19846,8 +19966,6 @@ EC_BOOL api_cmd_ui_crfsc_md5sum(CMD_PARA_VEC * param)
     EC_BOOL   ret;
     CMD5_DIGEST md5sum;
 
-    char md5str[34];
-
     api_cmd_para_vec_get_cstring(param , 0, &fname);
     api_cmd_para_vec_get_tcid(param    , 1, &crfscnp_tcid);
     api_cmd_para_vec_get_cstring(param , 2, &where);
@@ -19879,7 +19997,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum(CMD_PARA_VEC * param)
                            c_word_to_ipv4(crfscnp_tcid),
                            CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname),
-                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum), md5str, sizeof(md5str))
+                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
                            );
     }
     else
@@ -19906,8 +20024,6 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
 
     EC_BOOL   ret;
     CMD5_DIGEST md5sum;
-
-    char md5str[34];
 
     api_cmd_para_vec_get_cstring(param , 0, &fname);
     api_cmd_para_vec_get_uint32(param  , 1, &seg_no);
@@ -19943,7 +20059,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
                            CMPI_CRFSC_RANK,      
                            (char *)cstring_get_str(fname),
                            seg_no,
-                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum), md5str, sizeof(md5str))
+                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
                            );
     }
     else
@@ -23442,6 +23558,153 @@ EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param)
 
     sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     
+    return (EC_TRUE);
+}
+#endif
+
+#if 1
+EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param)
+{
+    CSTRING *src_file;
+    CSTRING *service;
+    CSTRING *des_file;
+    
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &src_file);
+    api_cmd_para_vec_get_cstring(param , 1, &service);
+    api_cmd_para_vec_get_cstring(param , 2, &des_file);
+    api_cmd_para_vec_get_tcid(param    , 3, &tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*p2p upload <src file> to <ngx_conf> <des file> on tcid <tcid> at <where>*/
+    /*p2p upload %s to %s %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_upload: p2p upload %s to %s %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(src_file),
+                        (char *)cstring_get_str(service),
+                        (char *)cstring_get_str(des_file),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cp2p_upload_file, CMPI_ERROR_MODI, src_file, service, des_file);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param)
+{
+    UINT32   des_tcid;
+    CSTRING *service;
+    CSTRING *src_file;
+    CSTRING *des_file;
+    
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   recv_mod_node;
+    CP2P_FILE  cp2p_file;
+    CSTRING    rfs_file_path;
+    
+    LOG       *des_log;
+
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &des_tcid);
+    api_cmd_para_vec_get_cstring(param , 1, &service);
+    api_cmd_para_vec_get_cstring(param , 2, &src_file);
+    api_cmd_para_vec_get_cstring(param , 3, &des_file);
+    api_cmd_para_vec_get_tcid(param    , 4, &tcid);
+    api_cmd_para_vec_get_cstring(param , 5, &where);
+
+    /*p2p notify <tcid> download <ngx_conf> <src file> to <des file> on tcid <tcid> at <where>*/
+    /*p2p notify %t download %s %s to %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_download_notify: "
+                        "p2p notify tcid %s download %s %s to %s on tcid %s at %s\n",
+                        c_word_to_ipv4(des_tcid),
+                        (char *)cstring_get_str(service),
+                        (char *)cstring_get_str(src_file),
+                        (char *)cstring_get_str(des_file),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+   
+    cp2p_file_init(&cp2p_file);
+    cstring_clone(service , CP2P_SERVICE_NAME(&cp2p_file));
+    cstring_clone(src_file, CP2P_SRC_FILE_NAME(&cp2p_file));
+    cstring_clone(des_file, CP2P_DES_FILE_NAME(&cp2p_file));
+    ret = EC_FALSE;
+
+    cstring_init(&rfs_file_path, NULL_PTR);
+    cstring_format(&rfs_file_path, "/%s%s", CP2P_SERVICE_NAME_STR(&cp2p_file), CP2P_SRC_FILE_NAME_STR(&cp2p_file));  
+
+    MOD_NODE_TCID(&recv_mod_node) = tcid;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;
+    
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &(CP2P_SRC_FILE_SIZE(&cp2p_file)));    
+    ASSERT(EC_TRUE == ret);
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_SRC_FILE_MD5(&cp2p_file));    
+    ASSERT(EC_TRUE == ret);  
+
+    cstring_clean(&rfs_file_path);
+
+    MOD_NODE_TCID(&recv_mod_node) = des_tcid;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;
+    
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_cp2p_download_notify, CMPI_ERROR_MODI, tcid, &cp2p_file);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    
+    cp2p_file_clean(&cp2p_file);
+
     return (EC_TRUE);
 }
 #endif

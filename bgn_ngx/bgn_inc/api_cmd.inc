@@ -133,6 +133,16 @@ typedef struct
 #define CMD_HELP_ABBR(this_cmd_help)        ((this_cmd_help)->cmd_help_abbr)
 #define CMD_HELP_SYNTAX(this_cmd_help)      ((this_cmd_help)->cmd_help_syntax)
 
+typedef struct
+{
+    CMD_TREE        *cmd_tree;
+    CMD_HELP_VEC    *cmd_help_vec;
+}CMD_ARG;
+
+#define CMD_ARG_TREE(cmd_arg)               ((cmd_arg)->cmd_tree)
+#define CMD_ARG_HELP_VEC(cmd_arg)           ((cmd_arg)->cmd_help_vec)
+
+
 #endif/*_API_CMD_INC*/
 
 #ifdef __cplusplus

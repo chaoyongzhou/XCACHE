@@ -45,6 +45,15 @@ void taskc_node_print(LOG *log, const TASKC_NODE *taskc_node)
     return;
 }
 
+void taskc_node_print_plain(LOG *log, const TASKC_NODE *taskc_node)
+{
+    sys_print(log, "tcid %s, comm %ld, size %ld\n",
+                  TASKC_NODE_TCID_STR(taskc_node),
+                  TASKC_NODE_COMM(taskc_node),
+                  TASKC_NODE_SIZE(taskc_node));
+    return;
+}
+
 void taskc_node_sprint(CSTRING *cstring, const TASKC_NODE *taskc_node)
 {
     cstring_format(cstring, "tcid %s, comm %ld, size %ld\n",
@@ -163,7 +172,7 @@ void taskc_mgr_print(LOG *log, const TASKC_MGR *taskc_mgr)
 
     taskc_node_list = (CLIST *)TASKC_MGR_NODE_LIST(taskc_mgr);
 
-    clist_print(log, taskc_node_list, (CLIST_DATA_DATA_PRINT)taskc_node_print);
+    clist_print(log, taskc_node_list, (CLIST_DATA_DATA_PRINT)taskc_node_print_plain);
     return;
 }
 

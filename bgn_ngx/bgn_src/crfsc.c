@@ -101,7 +101,7 @@ void crfsc_print_module_status(const UINT32 crfsc_md_id, LOG *log)
 
         if ( NULL_PTR != crfsc_md && 0 < crfsc_md->usedcounter )
         {
-            sys_log(log,"CRFS Module # %u : %u refered\n",
+            sys_log(log,"CRFS Module # %ld : %ld refered\n",
                     this_crfsc_md_id,
                     crfsc_md->usedcounter);
         }
@@ -265,7 +265,7 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsc_end, crfsc_md_id);
 
-    dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_start: start CRFSC module #%u\n", crfsc_md_id);
+    dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_start: start CRFSC module #%ld\n", crfsc_md_id);
 
     CRFSC_INIT_LOCK(crfsc_md, LOC_CRFSC_0004);
 
@@ -312,7 +312,7 @@ void crfsc_end(const UINT32 crfsc_md_id)
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
     if(NULL_PTR == crfsc_md)
     {
-        dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: crfsc_md_id = %u not exist.\n", crfsc_md_id);
+        dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: crfsc_md_id = %ld not exist.\n", crfsc_md_id);
         dbg_exit(MD_CRFSC, crfsc_md_id);
     }
  
@@ -325,7 +325,7 @@ void crfsc_end(const UINT32 crfsc_md_id)
 
     if ( 0 == crfsc_md->usedcounter )
     {
-        dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: crfsc_md_id = %u is not started.\n", crfsc_md_id);
+        dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: crfsc_md_id = %ld is not started.\n", crfsc_md_id);
         dbg_exit(MD_CRFSC, crfsc_md_id);
     }
 
@@ -352,7 +352,7 @@ void crfsc_end(const UINT32 crfsc_md_id)
     crfsc_md->usedcounter = 0;
     CRFSC_CLEAN_LOCK(crfsc_md, LOC_CRFSC_0006);
 
-    dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_end: stop CRFSC module #%u\n", crfsc_md_id);
+    dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_end: stop CRFSC module #%ld\n", crfsc_md_id);
     cbc_md_free(MD_CRFSC, crfsc_md_id);
 
     return ;

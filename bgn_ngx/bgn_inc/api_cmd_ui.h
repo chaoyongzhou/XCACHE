@@ -29,7 +29,27 @@ extern "C"{
 
 EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec);
 
-EC_BOOL api_cmd_ui_task(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec);
+EC_BOOL api_cmd_ui_task_preface();
+
+EC_BOOL api_cmd_ui_init_ccond();
+
+EC_BOOL api_cmd_ui_clean_ccond();
+
+EC_BOOL api_cmd_ui_readline_is_disabled();
+
+EC_BOOL api_cmd_ui_readline_is_enabled();
+
+EC_BOOL api_cmd_ui_readline_set_disabled();
+
+EC_BOOL api_cmd_ui_readline_set_enabled();
+
+EC_BOOL api_cmd_ui_clear_cmd();
+
+EC_BOOL api_cmd_ui_get_cmd();
+
+EC_BOOL api_cmd_ui_task_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec);
+
+EC_BOOL api_cmd_ui_task();
 
 void    api_cmd_ui_do_script(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *script_name);
 void    api_cmd_ui_do_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *cmd_line);
@@ -487,6 +507,9 @@ EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_dns_resolve(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);

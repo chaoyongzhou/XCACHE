@@ -69,6 +69,9 @@ extern "C"{
 /*CDETECT Package Debug Switch*/
 #define CDETECT_DEBUG_SWITCH SWITCH_ON
 
+/*CP2P Package Debug Switch*/
+#define CP2P_DEBUG_SWITCH SWITCH_ON
+
 /*Encode/Decode Functions Debug Switch*/
 #define ENCODE_DEBUG_SWITCH SWITCH_ON
 

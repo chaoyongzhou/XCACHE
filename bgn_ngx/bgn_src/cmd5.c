@@ -293,13 +293,31 @@ EC_BOOL cmd5_digest_free(CMD5_DIGEST *cmd5_digest)
     return (EC_TRUE);
 }
 
-EC_BOOL cmd5_digest_cmp(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd)
+EC_BOOL cmd5_digest_is_equal(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd)
 {
     if(0 == BCMP(CMD5_DIGEST_SUM(cmd5_digest_1st), CMD5_DIGEST_SUM(cmd5_digest_2nd), CMD5_DIGEST_LEN))
     {
         return (EC_TRUE);
     }
     return (EC_FALSE);
+}
+
+int cmd5_digest_cmp(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd)
+{
+    return BCMP(CMD5_DIGEST_SUM(cmd5_digest_1st), CMD5_DIGEST_SUM(cmd5_digest_2nd), CMD5_DIGEST_LEN);
+}
+
+char *cmd5_digest_hex_str(const CMD5_DIGEST *cmd5_digest)
+{
+    return c_md5_to_hex_str(CMD5_DIGEST_SUM(cmd5_digest));
+}
+
+void cmd5_digest_print(LOG *log, const CMD5_DIGEST *cmd5_digest)
+{
+    sys_print(log, "cmd5_digest_print: cmd5_digest %p: %s\n",
+                   cmd5_digest,
+                   cmd5_digest_hex_str(cmd5_digest));
+    return;
 }
 
 #ifdef __cplusplus

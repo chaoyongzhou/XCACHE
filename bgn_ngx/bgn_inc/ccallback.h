@@ -37,12 +37,20 @@ typedef struct
     CLIST               callback_nodes;     /*item is CCALLBACK_NODE*/
     CCALLBACK_RUNNER    callback_runner;
     CCALLBACK_FILTER    callback_filter;
+
+    uint32_t            loop_flag :1;/*for debug*/
+    uint32_t            reset_flag:1;
+    uint32_t            rsvd01:30;
+    uint32_t            rsvd02;
+    
 }CCALLBACK_LIST;
 
 #define CCALLBACK_LIST_NAME(ccallback_list)         ((ccallback_list)->name)
 #define CCALLBACK_LIST_NODES(ccallback_list)        (&((ccallback_list)->callback_nodes))
 #define CCALLBACK_LIST_RUNNER(ccallback_list)       ((ccallback_list)->callback_runner)
 #define CCALLBACK_LIST_FILTER(ccallback_list)       ((ccallback_list)->callback_filter)
+#define CCALLBACK_LIST_LOOP_FLAG(ccallback_list)    ((ccallback_list)->loop_flag)
+#define CCALLBACK_LIST_RESET_FLAG(ccallback_list)   ((ccallback_list)->reset_flag)
 
 CCALLBACK_NODE *ccallback_node_new();
 

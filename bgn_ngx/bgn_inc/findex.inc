@@ -795,5 +795,19 @@
 #define                          FI_cdetect_process  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 9))
 #define                     FI_cdetect_process_loop  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 10))
 
+#define                 FI_cp2p_print_module_status  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 0))
+#define              FI_cp2p_free_module_static_mem  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 1))
+#define                               FI_cp2p_start  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 2))
+#define                                 FI_cp2p_end  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 3))
+#define                FI_cp2p_download_file_exists  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 4))
+#define                    FI_cp2p_download_file_ep  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 5))
+#define                       FI_cp2p_download_file  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 6))
+#define                 FI_cp2p_download_completion  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 7))
+#define                     FI_cp2p_download_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 8))
+#define                  FI_cp2p_download_broadcast  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 9))
+#define                         FI_cp2p_upload_file  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 10))
+
+
+
 #endif/* _FINDEX_INC */
 

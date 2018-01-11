@@ -43,6 +43,8 @@ EC_BOOL taskc_node_cmp_tcid(const TASKC_NODE *taskc_node_1, TASKC_NODE *taskc_no
 
 void    taskc_node_print(LOG *log, const TASKC_NODE *taskc_node);
 
+void    taskc_node_print_plain(LOG *log, const TASKC_NODE *taskc_node);
+
 void    taskc_node_sprint(CSTRING *cstring, const TASKC_NODE *taskc_node);
 
 TASKC_NODE *taskc_node_new();

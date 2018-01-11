@@ -428,7 +428,7 @@ typedef struct _TASK_BRD
 
     CEPOLL      *cepoll;
     
-    CSIG         csig;
+    CSIG        *csig;
     CSTRING     *sys_cfg_xml_fname_cstr;
     CSTRING     *basic_cfg_xml_fname_cstr;
     CSTRING     *script_fname_cstr; /*for console and dbg*/
@@ -872,7 +872,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_CTMV(task_brd)                            (&((task_brd)->ctmv))
 #define TASK_BRD_TIME_STR(task_brd)                        ((task_brd)->time_str)
 #define TASK_BRD_CEPOLL(task_brd)                          ((task_brd)->cepoll)
-#define TASK_BRD_CSIG(task_brd)                            (&((task_brd)->csig))
+#define TASK_BRD_CSIG(task_brd)                            ((task_brd)->csig)
 #define TASK_BRD_TASK_MGR_STACK(task_brd)                  (&((task_brd)->task_mgr_stack))
 #define TASK_BRD_TASK_MGR_STACK_INIT(task_brd, location)   (cstack_init(TASK_BRD_TASK_MGR_STACK(task_brd), MM_IGNORE, location))
 #define TASK_BRD_STACK_MGR_STACK_PUSH(task_brd, task_mgr)  (cstack_push(TASK_BRD_TASK_MGR_STACK(task_brd), task_mgr))

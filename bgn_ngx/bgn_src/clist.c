@@ -626,7 +626,7 @@ void clist_print(LOG *log, const CLIST *clist, void (*print)(LOG *, const void *
     {
         data = CLIST_DATA_DATA(clist_data);
 
-        sys_log(log, "No. %ld: [%p]", pos ++, clist_data);
+        sys_log(log, "No. %ld: [%p] ", pos ++, clist_data);
 
         if(0 != print)
         {

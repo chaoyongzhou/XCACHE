@@ -56,7 +56,12 @@ EC_BOOL cmd5_digest_clean(CMD5_DIGEST *cmd5_digest);
 
 EC_BOOL cmd5_digest_free(CMD5_DIGEST *cmd5_digest);
 
-EC_BOOL cmd5_digest_cmp(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd);
+EC_BOOL cmd5_digest_is_equal(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd);
+int     cmd5_digest_cmp(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd);
+
+char   *cmd5_digest_hex_str(const CMD5_DIGEST *cmd5_digest);
+
+void    cmd5_digest_print(LOG *log, const CMD5_DIGEST *cmd5_digest);
 
 #endif /* _CMD5_H */
 

@@ -74,7 +74,7 @@ void chfs_print_module_status(const UINT32 chfs_md_id, LOG *log)
 
         if ( NULL_PTR != chfs_md && 0 < chfs_md->usedcounter )
         {
-            sys_log(log,"CHFS Module # %u : %u refered\n",
+            sys_log(log,"CHFS Module # %ld : %ld refered\n",
                     this_chfs_md_id,
                     chfs_md->usedcounter);
         }
@@ -276,7 +276,7 @@ UINT32 chfs_start(const CSTRING *chfsnp_root_basedir, const CSTRING *crfsdn_root
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)chfs_end, chfs_md_id);
 
-    dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "chfs_start: start CHFS module #%u\n", chfs_md_id);
+    dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "chfs_start: start CHFS module #%ld\n", chfs_md_id);
 
     CHFS_INIT_LOCK(chfs_md, LOC_CHFS_0001);
 
@@ -293,6 +293,7 @@ UINT32 chfs_start(const CSTRING *chfsnp_root_basedir, const CSTRING *crfsdn_root
         for(flush_thread_idx = 0; flush_thread_idx < CHFS_DN_DEFER_WRITE_THREAD_NUM; flush_thread_idx ++)
         {
             cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
+                    (const char *)"crfsdn_flush_cache_nodes",
                     (UINT32)crfsdn_flush_cache_nodes,
                     (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
                     (UINT32)2,/*para num*/
@@ -353,7 +354,7 @@ void chfs_end(const UINT32 chfs_md_id)
     chfs_md = CHFS_MD_GET(chfs_md_id);
     if(NULL_PTR == chfs_md)
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT,"error:chfs_end: chfs_md_id = %u not exist.\n", chfs_md_id);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT,"error:chfs_end: chfs_md_id = %ld not exist.\n", chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
     /* if the module is occupied by others,then decrease counter only */
@@ -365,7 +366,7 @@ void chfs_end(const UINT32 chfs_md_id)
 
     if ( 0 == chfs_md->usedcounter )
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT,"error:chfs_end: chfs_md_id = %u is not started.\n", chfs_md_id);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT,"error:chfs_end: chfs_md_id = %ld is not started.\n", chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
 #if 0
@@ -420,7 +421,7 @@ void chfs_end(const UINT32 chfs_md_id)
     chfs_md->usedcounter = 0;
     CHFS_CLEAN_LOCK(chfs_md, LOC_CHFS_0002);
 
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_end: stop CHFS module #%u\n", chfs_md_id);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_end: stop CHFS module #%ld\n", chfs_md_id);
     cbc_md_free(MD_CHFS, chfs_md_id);
 
     return ;

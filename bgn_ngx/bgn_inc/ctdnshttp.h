@@ -27,10 +27,11 @@ extern "C"{
 
 #include "http_parser.h"
 
-#define CTDNSHTTP_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
-//#define CTDNSHTTP_KEEPALIVE_SWITCH     CONN_KEEPALIVE_SWITCH
+#define CTDNSHTTP_SOCKET_TIMEOUT_NSEC      CONN_TIMEOUT_NSEC
 
-#define CTDNSHTTP_REST_API_NAME            ("/tdns")
+#define CTDNSHTTP_REST_API_NAME            "/tdns"
+
+#define CTDNSHTTP_SERVER_DEFAULT           "y.pooapp.net:2100"
 
 EC_BOOL ctdnshttp_log_start();
 

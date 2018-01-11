@@ -68,7 +68,7 @@ void csfs_print_module_status(const UINT32 csfs_md_id, LOG *log)
 
         if ( NULL_PTR != csfs_md && 0 < csfs_md->usedcounter )
         {
-            sys_log(log,"CSFS Module # %u : %u refered\n",
+            sys_log(log,"CSFS Module # %ld : %ld refered\n",
                     this_csfs_md_id,
                     csfs_md->usedcounter);
         }
@@ -267,7 +267,7 @@ UINT32 csfs_start(const CSTRING *csfsnp_root_basedir, const CSTRING *csfsdn_root
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)csfs_end, csfs_md_id);
 
-    dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "csfs_start: start CSFS module #%u\n", csfs_md_id);
+    dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "csfs_start: start CSFS module #%ld\n", csfs_md_id);
 
     CSFS_INIT_LOCK(csfs_md, LOC_CSFS_0001);
 
@@ -321,7 +321,7 @@ void csfs_end(const UINT32 csfs_md_id)
     csfs_md = CSFS_MD_GET(csfs_md_id);
     if(NULL_PTR == csfs_md)
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT,"error:csfs_end: csfs_md_id = %u not exist.\n", csfs_md_id);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT,"error:csfs_end: csfs_md_id = %ld not exist.\n", csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
     /* if the module is occupied by others,then decrease counter only */
@@ -333,7 +333,7 @@ void csfs_end(const UINT32 csfs_md_id)
 
     if ( 0 == csfs_md->usedcounter )
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT,"error:csfs_end: csfs_md_id = %u is not started.\n", csfs_md_id);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT,"error:csfs_end: csfs_md_id = %ld is not started.\n", csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
 
@@ -389,7 +389,7 @@ void csfs_end(const UINT32 csfs_md_id)
     csfs_md->usedcounter = 0;
     CSFS_CLEAN_LOCK(csfs_md, LOC_CSFS_0002);
 
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_end: stop CSFS module #%u\n", csfs_md_id);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_end: stop CSFS module #%ld\n", csfs_md_id);
     cbc_md_free(MD_CSFS, csfs_md_id);
 
     return ;
