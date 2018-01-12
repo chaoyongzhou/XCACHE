@@ -491,6 +491,9 @@ EC_BOOL api_cmd_ui_csfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_start(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_end(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_config_tcid(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_reserve_tcid(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_release_tcid(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_get_tcid(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_get_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_set_no_service(CMD_PARA_VEC * param);
@@ -498,6 +501,7 @@ EC_BOOL api_cmd_ui_ctdns_set_has_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_search_tcid(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_search_service(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_count_tcid_num(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_count_node_num(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_delete(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param);
@@ -510,6 +514,8 @@ EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);

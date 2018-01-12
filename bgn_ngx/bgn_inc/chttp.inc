@@ -62,9 +62,6 @@ extern "C"{
 
 #define CHTTP_STORE_ERR_LAST_MODIFIED ((uint64_t)(~((uint64_t)0)))
 
-#define CHTTP_RFS_PREFIX           "/rfs"
-#define CHTTP_SFS_PREFIX           "/sfs"
-
 /*store recved data to storage*/
 typedef struct
 {

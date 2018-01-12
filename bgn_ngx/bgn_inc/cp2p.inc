@@ -176,7 +176,36 @@ FUNC_ADDR_NODE g_cp2p_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
-
+{
+/* -- EC_BOOL cp2p_execute_cmd(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd); -- */
+/*func module     */     MD_CP2P,
+/*func logic addr */     (UINT32)cp2p_execute_cmd,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cp2p_execute_cmd",
+/*func index      */     FI_cp2p_execute_cmd,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CP2P_CMD_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cp2p_deliver_cmd(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd); -- */
+/*func module     */     MD_CP2P,
+/*func logic addr */     (UINT32)cp2p_deliver_cmd,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cp2p_deliver_cmd",
+/*func index      */     FI_cp2p_deliver_cmd,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CP2P_CMD_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cp2p_func_addr_list_len = sizeof(g_cp2p_func_addr_list)/sizeof(g_cp2p_func_addr_list[0]);

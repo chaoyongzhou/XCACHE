@@ -114,6 +114,8 @@ UINT32 cdfs_start(const UINT32 cdfsnp_min_num)
     TASK_BRD *task_brd;
 
     task_brd = task_brd_default_get();
+
+    cbc_md_reg(MD_CDFS    , 32);
  
     /*check rank validity*/
     if(CMPI_CDFS_RANK != TASK_BRD_RANK(task_brd))

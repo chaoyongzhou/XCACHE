@@ -125,7 +125,9 @@ UINT32 chfs_start(const CSTRING *chfsnp_root_basedir, const CSTRING *crfsdn_root
     EC_BOOL   ret;
 
     task_brd = task_brd_default_get();
- 
+
+    cbc_md_reg(MD_CHFS    , 32);
+    
     chfs_md_id = cbc_md_new(MD_CHFS, sizeof(CHFS_MD));
     if(CMPI_ERROR_MODI == chfs_md_id)
     {

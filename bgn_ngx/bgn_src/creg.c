@@ -986,6 +986,18 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cp2p_file,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cp2p_file,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cp2p_file_size
+    );  
+    creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CP2P_CMD_ptr,
+        /* type_sizeof            */sizeof(CP2P_CMD),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CP2P_CMD,
+        /* init_type_func         */(UINT32)cp2p_cmd_init,
+        /* clean_type_func        */(UINT32)cp2p_cmd_clean,
+        /* free_type_func         */(UINT32)cp2p_cmd_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cp2p_cmd,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cp2p_cmd,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cp2p_cmd_size
     );      
     return (EC_TRUE);
 }

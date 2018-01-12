@@ -24,7 +24,7 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
-#define CP2P_NODES_MAX_NUM          ((UINT32)10240)        
+#define CP2P_NODES_MAX_NUM          ((UINT32)1024)        
 
 typedef struct
 {
@@ -50,15 +50,27 @@ typedef struct
     CSTRING              des_file_name; /*full path*/
 }CP2P_FILE;
 
-#define CP2P_SERVICE_NAME(cp2p_file)            (&((cp2p_file)->service_name))
-#define CP2P_SRC_FILE_NAME(cp2p_file)           (&((cp2p_file)->src_file_name))
-#define CP2P_SRC_FILE_SIZE(cp2p_file)           ((cp2p_file)->src_file_size)
-#define CP2P_SRC_FILE_MD5(cp2p_file)            (&((cp2p_file)->src_file_md5))
-#define CP2P_DES_FILE_NAME(cp2p_file)           (&((cp2p_file)->des_file_name))
+#define CP2P_FILE_SERVICE_NAME(cp2p_file)       (&((cp2p_file)->service_name))
+#define CP2P_FILE_SRC_NAME(cp2p_file)           (&((cp2p_file)->src_file_name))
+#define CP2P_FILE_SRC_SIZE(cp2p_file)           ((cp2p_file)->src_file_size)
+#define CP2P_FILE_SRC_MD5(cp2p_file)            (&((cp2p_file)->src_file_md5))
+#define CP2P_FILE_DES_NAME(cp2p_file)           (&((cp2p_file)->des_file_name))
 
-#define CP2P_SERVICE_NAME_STR(cp2p_file)        (cstring_get_str(CP2P_SERVICE_NAME(cp2p_file)))
-#define CP2P_SRC_FILE_NAME_STR(cp2p_file)       (cstring_get_str(CP2P_SRC_FILE_NAME(cp2p_file)))
-#define CP2P_DES_FILE_NAME_STR(cp2p_file)       (cstring_get_str(CP2P_DES_FILE_NAME(cp2p_file)))
+#define CP2P_FILE_SERVICE_NAME_STR(cp2p_file)   (cstring_get_str(CP2P_FILE_SERVICE_NAME(cp2p_file)))
+#define CP2P_FILE_SRC_NAME_STR(cp2p_file)       (cstring_get_str(CP2P_FILE_SRC_NAME(cp2p_file)))
+#define CP2P_FILE_DES_NAME_STR(cp2p_file)       (cstring_get_str(CP2P_FILE_DES_NAME(cp2p_file)))
+
+typedef struct
+{
+    CSTRING              service_name;
+    CSTRING              command_line;
+}CP2P_CMD;
+
+#define CP2P_CMD_SERVICE_NAME(cp2p_cmd)         (&((cp2p_cmd)->service_name))
+#define CP2P_CMD_COMMAND_LINE(cp2p_cmd)         (&((cp2p_cmd)->command_line))
+
+#define CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd)     (cstring_get_str(CP2P_CMD_SERVICE_NAME(cp2p_cmd)))
+#define CP2P_CMD_COMMAND_LINE_STR(cp2p_cmd)     (cstring_get_str(CP2P_CMD_COMMAND_LINE(cp2p_cmd)))
 
 /**
 *   for test only
@@ -154,6 +166,34 @@ EC_BOOL cp2p_download_broadcast(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_f
 *
 **/
 EC_BOOL cp2p_upload_file(const UINT32 cp2p_md_id, const CSTRING *src_file, const CSTRING *service_name, const CSTRING *des_file);
+
+/*------------------------------------------------ interface of command execution ------------------------------------------------*/
+CP2P_CMD *cp2p_cmd_new();
+
+EC_BOOL cp2p_cmd_init(CP2P_CMD *cp2p_cmd);
+
+EC_BOOL cp2p_cmd_clean(CP2P_CMD *cp2p_cmd);
+
+EC_BOOL cp2p_cmd_free(CP2P_CMD *cp2p_cmd);
+
+int cp2p_cmd_cmp(const CP2P_CMD *cp2p_cmd_1st, const CP2P_CMD *cp2p_cmd_2nd);
+
+void cp2p_cmd_print(LOG *log, const CP2P_CMD *cp2p_cmd);
+
+/**
+*
+*  execute command
+*
+*
+**/
+EC_BOOL cp2p_execute_cmd(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
+
+/**
+*
+*  deliver command
+*
+**/
+EC_BOOL cp2p_deliver_cmd(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
 
 #endif /*_CP2P_H*/
 

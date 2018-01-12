@@ -26,11 +26,9 @@ extern "C"{
 
 #include "http_parser.h"
 
-#define CSFSHTTP_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
-//#define CSFSHTTP_KEEPALIVE_SWITCH     CONN_KEEPALIVE_SWITCH
+#define CSFSHTTP_SOCKET_TIMEOUT_NSEC       CONN_TIMEOUT_NSEC
 
-
-#define CSFSHTTP_REST_API_NAME            ("/sfs")
+#define CSFSHTTP_REST_API_NAME             "/sfs"
 
 EC_BOOL csfshttp_log_start();
 

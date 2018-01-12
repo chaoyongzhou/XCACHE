@@ -48,6 +48,7 @@ extern "C"{
 #include "cbtimer.h"
 #include "crfsmon.h"
 #include "chttp.h"
+#include "crfshttp.h"
 
 #include "findex.inc"
 
@@ -3004,6 +3005,58 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
     }
 
     return;
+}
+
+/**
+*
+* try to connect
+*
+**/
+EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid)
+{
+    TASK_BRD  *task_brd;
+
+    UINT32     des_ipv4;
+    UINT32     des_port;
+    
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_connect: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    task_brd = task_brd_default_get();
+
+    if(CMPI_FWD_RANK != TASK_BRD_RANK(task_brd))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: current rank %ld is not fwd rank\n", TASK_BRD_RANK(task_brd));
+        return (EC_FALSE);
+    }
+
+    if(des_tcid == TASK_BRD_TCID(task_brd))
+    {
+        return (EC_TRUE);
+    }
+
+    if(EC_FALSE == c_tdns_resolve(des_tcid, &des_ipv4, &des_port))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n", 
+                            c_word_to_ipv4(des_tcid));
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, (UINT32)CSOCKET_CNODE_NUM))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: register to (tcid '%s', ip '%s', port %ld) failed\n", 
+                            c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
 }
 
 /**
@@ -7000,7 +7053,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"POST");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/update");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/update");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -7346,7 +7399,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/unlock_notify_req");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_notify_req");
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_unlock_notify: req uri '%.*s' done\n",
@@ -7411,7 +7464,7 @@ static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 t
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/unlock_req");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_req");
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_http: req uri '%.*s'\n",
@@ -7521,7 +7574,7 @@ static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/file_wait");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -7611,7 +7664,7 @@ static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const UINT32 store_
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/getsmf");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -7767,7 +7820,7 @@ static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_sr
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/file_wait");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -7855,7 +7908,7 @@ static EC_BOOL __super_read_data(const UINT32 super_md_id, const UINT32 store_sr
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/getsmf");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -8007,7 +8060,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/renew_header");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8077,7 +8130,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/renew_header");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8169,7 +8222,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/file_notify");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_notify");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8231,7 +8284,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/ddir");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/ddir");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8293,7 +8346,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/dsmf");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/dsmf");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");

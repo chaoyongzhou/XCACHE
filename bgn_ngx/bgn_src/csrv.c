@@ -258,18 +258,6 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0112_CSRV, 1)(LOGSTDOUT, "csrv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        if(0/*SWITCH_ON == CONN_KEEPALIVE_SWITCH*/)/*Jan 25,2017: csrv is for http connection*/
-        {
-            if(EC_FALSE == csocket_enable_keepalive(client_conn_sockfd))
-            {
-                dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_accept_once:sockfd %d enable keepalive failed, ignore!\n", client_conn_sockfd);
-            }
-            else
-            {
-                dbg_log(SEC_0112_CSRV, 9)(LOGSTDOUT, "[DEBUG] csrv_accept_once:set sockfd %d keepalive done\n", client_conn_sockfd);
-            }
-        }
-
         csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {

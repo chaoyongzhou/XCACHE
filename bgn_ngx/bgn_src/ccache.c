@@ -24,6 +24,8 @@ extern "C"{
 
 #include "chttp.h"
 
+#include "crfshttp.h"
+
 #include "ccache.h"
 
 #include "findex.inc"
@@ -519,7 +521,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"POST");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/update");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/update");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -611,7 +613,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CHTTP_RFS_PREFIX"/renew_header");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), file_path);
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -727,7 +729,7 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/file_notify");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_notify");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -869,7 +871,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/lock_req");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/lock_req");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -1012,7 +1014,7 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/unlock_req");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_req");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -1100,7 +1102,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_rsp_init(&chttp_rsp);
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/getsmf");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: uri '%.*s'\n",
@@ -1257,7 +1259,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     chttp_rsp_init(&chttp_rsp);
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/dsmf");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/dsmf");
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_http: uri '%.*s'\n",
@@ -1353,7 +1355,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_rsp_init(&chttp_rsp);
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/file_wait");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_http: uri '%.*s'\n",
@@ -1532,7 +1534,7 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     chttp_rsp_init(&chttp_rsp);
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/file_wait");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_ready_over_http: uri '%.*s'\n",
@@ -1655,7 +1657,7 @@ EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UI
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CHTTP_RFS_PREFIX"/wait_header");
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/wait_header");
     cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
 
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);

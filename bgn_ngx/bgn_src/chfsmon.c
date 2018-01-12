@@ -118,7 +118,9 @@ UINT32 chfsmon_start()
     TASK_BRD   *task_brd;
 
     task_brd = task_brd_default_get();
- 
+
+    cbc_md_reg(MD_CHFSMON , 32);
+    
     chfsmon_md_id = cbc_md_new(MD_CHFSMON, sizeof(CHFSMON_MD));
     if(CMPI_ERROR_MODI == chfsmon_md_id)
     {

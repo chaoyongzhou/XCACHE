@@ -156,6 +156,7 @@
 #define                      FI_super_set_billing  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  137))
 #define               FI_super_http_request_merge  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  138))
 #define                 FI_super_store_after_ddir  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  139))
+#define                          FI_super_connect  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  140))
 
 #define               FI_cdfs_print_module_status  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  0))
 #define            FI_cdfs_free_module_static_mem  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  1))
@@ -776,12 +777,18 @@
 #define                          FI_ctdns_flush_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 14))
 #define                          FI_ctdns_flush_svp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 15))
 #define                           FI_ctdns_tcid_num  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 16))
-#define                           FI_ctdns_show_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 17))
-#define                           FI_ctdns_show_svp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 18))
-#define                              FI_ctdns_flush  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 19))
-#define                     FI_ctdns_finger_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 20))
-#define           FI_ctdns_delete_tcid_from_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 21))
-#define       FI_ctdns_delete_tcid_from_all_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 22))
+#define                           FI_ctdns_node_num  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 17))
+#define                           FI_ctdns_show_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 18))
+#define                           FI_ctdns_show_svp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 19))
+#define                              FI_ctdns_flush  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 20))
+#define                     FI_ctdns_finger_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 21))
+#define           FI_ctdns_delete_tcid_from_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 22))
+#define       FI_ctdns_delete_tcid_from_all_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 23))
+#define          FI_ctdns_reserve_tcid_from_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 24))
+#define            FI_ctdns_release_tcid_to_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 25))
+#define                        FI_ctdns_config_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 26))
+#define                       FI_ctdns_reserve_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 27))
+#define                       FI_ctdns_release_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 28))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))
@@ -806,6 +813,8 @@
 #define                     FI_cp2p_download_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 8))
 #define                  FI_cp2p_download_broadcast  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 9))
 #define                         FI_cp2p_upload_file  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 10))
+#define                         FI_cp2p_execute_cmd  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 11))
+#define                         FI_cp2p_deliver_cmd  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 12))
 
 
 

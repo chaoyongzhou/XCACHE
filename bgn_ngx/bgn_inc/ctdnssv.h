@@ -121,6 +121,8 @@ CTDNSSV_ITEM *ctdnssv_get(CTDNSSV *ctdnssv, const UINT32 tcid);
 
 EC_BOOL ctdnssv_finger(CTDNSSV *ctdnssv, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
+EC_BOOL ctdnssv_pop(CTDNSSV *ctdnssv, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port);
+
 EC_BOOL ctdnssv_show_item(LOG *log, const CTDNSSV *ctdnssv, const uint32_t node_pos);
 
 EC_BOOL ctdnssv_node_num(const CTDNSSV *ctdnssv, UINT32 *node_num);

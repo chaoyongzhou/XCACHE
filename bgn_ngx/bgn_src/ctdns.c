@@ -603,6 +603,47 @@ EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     return ctdnssv_mgr_get(CTDNS_MD_SVP(ctdns_md), service_name, max_num, ctdnssv_node_mgr);
 }
 
+EC_BOOL ctdns_reserve_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, UINT32 *tcid, UINT32 *port)
+{
+    CTDNS_MD                  *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_reserve_tcid_from_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    return ctdnssv_mgr_pop(CTDNS_MD_SVP(ctdns_md), service_name, tcid, NULL_PTR, port);
+}
+
+EC_BOOL ctdns_release_tcid_to_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port)
+{
+    CTDNS_MD                  *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_release_tcid_to_service: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    /*delete tcid from npp and svp*/
+    ctdns_delete(ctdns_md_id, tcid);
+
+    return ctdns_config_tcid(ctdns_md_id, service_name, tcid, port);
+}
+
 EC_BOOL ctdns_delete_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid)
 {
     CTDNS_MD                  *ctdns_md;
@@ -699,6 +740,9 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipad
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
 #endif/*CTDNS_DEBUG_SWITCH*/
+
+    ASSERT(NULL_PTR != service_name);
+    ASSERT(EC_FALSE == cstring_is_empty(service_name));
 
     ctdns_md = CTDNS_MD_GET(ctdns_md_id);
 
@@ -910,6 +954,156 @@ EC_BOOL ctdns_tcid_num(const UINT32 ctdns_md_id, UINT32 *tcid_num)
     }
 
     return ctdnsnp_mgr_tcid_num(CTDNS_MD_NPP(ctdns_md), tcid_num);
+}
+
+/**
+*
+*  count node num fo specific service
+*
+**/
+EC_BOOL ctdns_node_num(const UINT32 ctdns_md_id, const CSTRING *service_name, UINT32 *tcid_num)
+{
+    CTDNS_MD      *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_node_num: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+    {
+        dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "warn:ctdns_node_num: svp was not open\n");
+        return (EC_FALSE);
+    }
+
+    return ctdnssv_mgr_node_num_of_sp(CTDNS_MD_SVP(ctdns_md), service_name, tcid_num);
+}
+
+/**
+*
+*  config a free tcid which is not used by anyone
+*
+**/
+EC_BOOL ctdns_config_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port)
+{
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_config_tcid: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    if(EC_TRUE == ctdns_exists_tcid(ctdns_md_id, tcid))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_config_tcid: tcid '%s' already exists\n",
+                                              c_word_to_ipv4(tcid));
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == ctdns_set_service(ctdns_md_id, tcid, CMPI_ERROR_IPADDR, port, service_name))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_config_tcid: config tcid '%s' port %ld to service '%s' failed\n",
+                                              c_word_to_ipv4(tcid), port,
+                                              (char *)cstring_get_str(service_name));    
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_config_tcid: config tcid '%s' port %ld to service '%s' done\n",
+                                          c_word_to_ipv4(tcid), port,
+                                          (char *)cstring_get_str(service_name));    
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  reserve a tcid to use from specific service
+*
+**/
+EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 ipaddr, UINT32 *tcid, UINT32 *port)
+{
+    UINT32      reserved_tcid;
+    UINT32      reserved_port;
+    
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_reserve_tcid: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    if(EC_FALSE == ctdns_reserve_tcid_from_service(ctdns_md_id, service_name, &reserved_tcid, &reserved_port))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_reserve_tcid: reserve tcid from service '%s' failed\n",
+                                              (char *)cstring_get_str(service_name));
+        return (EC_FALSE);
+    }
+#if 0
+    if(EC_FALSE == ctdns_set(ctdns_md_id, reserved_tcid, ipaddr, reserved_port, service_name))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_reserve_tcid: set (tcid %s, ip %s, port %ld) to service '%s' failed\n",
+                                              c_word_to_ipv4(reserved_tcid),
+                                              c_word_to_ipv4(ipaddr),
+                                              reserved_port,
+                                              (char *)cstring_get_str(service_name));
+
+        ctdns_release_tcid_to_service(ctdns_md_id, service_name, reserved_tcid, reserved_port);
+        return (EC_FALSE);
+    }
+#endif
+    (*tcid) = reserved_tcid;
+    (*port) = reserved_port;
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_reserve_tcid: reserve tcid '%s' port %ld from service '%s' done\n",
+                                          c_word_to_ipv4(*tcid), (*port),
+                                          (char *)cstring_get_str(service_name));    
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  release a used tcid to unused from specific service
+*
+**/
+EC_BOOL ctdns_release_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port)
+{   
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_release_tcid: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    if(EC_FALSE == ctdns_release_tcid_to_service(ctdns_md_id, service_name, tcid, port))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_release_tcid: release tcid '%s' port %ld to service '%s' failed\n",
+                                              c_word_to_ipv4(tcid), port, 
+                                              (char *)cstring_get_str(service_name));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_release_tcid: release tcid '%s' port %ld to service '%s' done\n",
+                                          c_word_to_ipv4(tcid), port,
+                                          (char *)cstring_get_str(service_name));    
+
+    return (EC_TRUE);
 }
 
 /**

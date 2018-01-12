@@ -443,6 +443,21 @@ EC_BOOL ctdnssv_mgr_get(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, c
     return ctdnssv_finger(ctdnssv, max_num, ctdnssv_node_mgr);
 }
 
+EC_BOOL ctdnssv_mgr_pop(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port)
+{
+    CTDNSSV *ctdnssv;
+
+    ctdnssv = ctdnssv_mgr_open_sp(ctdnssv_mgr, service_name);
+    if(NULL_PTR == ctdnssv)
+    {
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_pop: no sp '%s'\n", 
+                        (const char *)cstring_get_str(service_name));
+        return (EC_FALSE);
+    }
+
+    return ctdnssv_pop(ctdnssv, tcid, ipaddr, port);
+}
+
 EC_BOOL ctdnssv_mgr_delete_one(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, const UINT32 tcid)
 {
     CTDNSSV           *ctdnssv;

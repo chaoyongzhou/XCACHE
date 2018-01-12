@@ -369,12 +369,16 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "tdns create"  , "tdns create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns start"   , "tdns start from root <dir> on tcid <tcid>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns end"     , "tdns end on tcid <tcid>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns config"  , "tdns config service <service> tcid <tcid> port <port> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns reserve" , "tdns reserve service <service> ip <ip> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns release" , "tdns release service <service> tcid <tcid> port <port> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns get"     , "tdns get tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns get"     , "tdns get service <service> max nodes <num> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns set"     , "tdns set tcid <tcid> ip <ip> port <port> [service <service>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns delete"  , "tdns delete tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns search"  , "tdns search tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count tcid num on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count service <service > node num on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns show"    , "tdns show <npp|svp> on tcid <tcid> at <console|log>");
 #endif
 
@@ -387,8 +391,10 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 #endif
 
 #if 1
-    api_cmd_help_vec_create(cmd_help_vec, "p2p upload"    , "p2p upload <src file> to <ngx_conf> <des file> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "p2p download"  , "p2p notify <tcid> download <ngx_conf> <src file> to <des file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p file"    , "p2p upload <src file> to <ngx_conf> <des file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p file"    , "p2p notify <tcid> download <ngx_conf> <src file> to <des file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p cmd"     , "p2p execute <service> <cmd> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p cmd"     , "p2p deliver <service> <cmd> on tcid <tcid> at <console|log>");
 #endif
 
 #if 0
@@ -814,6 +820,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_create_npp       , "tdns create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_start            , "tdns start from root %s on tcid %t", where, where, tcid);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_end              , "tdns end on tcid %t", tcid);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_config_tcid      , "tdns config service %s tcid %t port %n on tcid %t at %s", where, tcid, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_reserve_tcid     , "tdns reserve service %s ip %t on tcid %t at %s", where, tcid, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_release_tcid     , "tdns release service %s tcid %t port %n on tcid %t at %s", where, tcid, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_get_tcid         , "tdns get tcid %t on tcid %t at %s", tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_get_service      , "tdns get service %s max nodes %n on tcid %t at %s", where, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_set_no_service   , "tdns set tcid %t ip %t port %n on tcid %t at %s", tcid, tcid, rank, tcid, where);
@@ -824,6 +833,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_npp         , "tdns show npp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_svp         , "tdns show svp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_count_tcid_num   , "tdns count tcid num on tcid %t at %s", tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_count_node_num   , "tdns count service %s node num on tcid %t at %s", where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdetect_show_orig_nodes, "detect show orig nodes on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdetect_show_orig_node , "detect show orig node %s on tcid %t at %s", where, tcid, where);
@@ -833,6 +843,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_upload            , "p2p upload %s to %s %s on tcid %t at %s", where, where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_download_notify   , "p2p notify %t download %s %s to %s on tcid %t at %s", tcid, where, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_execute_cmd       , "p2p execute %s %s on tcid %t at %s", where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_deliver_cmd       , "p2p deliver %s %s on tcid %t at %s", where, where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_download_file         , "download file %s to %s from tcid %t at %s", where, where, tcid, where); 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_upload_file           , "upload file %s to %s on tcid %t at %s", where, where, tcid, where); 
@@ -1119,6 +1131,33 @@ static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const UINT32 incl
     taskc_mgr_free(taskc_mgr);
 
     mod_mgr_excl(excl_tcid, CMPI_ANY_COMM, excl_rank, modi, mod_mgr);
+
+    if(0 == MOD_MGR_REMOTE_NUM(mod_mgr))
+    {
+        UINT32      incl_ipv4;
+        UINT32      incl_port;
+        
+        if(EC_TRUE == c_tdns_resolve(incl_tcid, &incl_ipv4, &incl_port))
+        {
+            MOD_NODE   *remote_mod_node;
+            
+            dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_gen_mod_mgr: "
+                                                "tdns resolve '%s' => ip '%s', port %ld\n",
+                                                c_word_to_ipv4(incl_tcid),
+                                                c_word_to_ipv4(incl_ipv4),
+                                                incl_port);
+            
+            mod_node_alloc(&remote_mod_node);
+
+            MOD_NODE_TCID(remote_mod_node) = incl_tcid;
+            MOD_NODE_COMM(remote_mod_node) = CMPI_ANY_COMM;
+            MOD_NODE_RANK(remote_mod_node) = incl_rank;
+            MOD_NODE_MODI(remote_mod_node) = modi;
+
+            cvector_push(MOD_MGR_REMOTE_LIST(mod_mgr), remote_mod_node);   
+        }
+    }
+    
     return (mod_mgr);
 }
 
@@ -22808,6 +22847,189 @@ EC_BOOL api_cmd_ui_ctdns_end(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
+EC_BOOL api_cmd_ui_ctdns_config_tcid(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   tcid;
+    UINT32   port;
+    UINT32   ctdnsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_tcid(param    , 1, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 2, &port);
+    api_cmd_para_vec_get_tcid(param    , 3, &ctdnsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*tdns config service <service> tcid <tcid> port <port> on tcid <tcid> at <console|log>*/
+    /*tdns config service %s tcid %t port %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_config_tcid: "
+                       "tdns config service %s tcid %s port %ld on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        c_word_to_ipv4(tcid),
+                        port,
+                        c_word_to_ipv4(ctdnsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_config_tcid, CMPI_ERROR_MODI, service, tcid, port);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld done\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(tcid),
+                         port);                    
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld failed\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(tcid),
+                         port);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ctdns_reserve_tcid(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   ipaddr;
+    UINT32   ctdnsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+
+    UINT32     tcid;
+    UINT32     port;
+    
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_ipaddr(param  , 1, &ipaddr);
+    api_cmd_para_vec_get_tcid(param    , 2, &ctdnsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*tdns reserve service <service> ip <ip> on tcid <tcid> at <console|log>*/
+    /*tdns reserve service %s ip %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_reserve_tcid: "
+                       "tdns reserve service %s ip %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        c_word_to_ipv4(ipaddr),
+                        c_word_to_ipv4(ctdnsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_reserve_tcid, CMPI_ERROR_MODI, service, ipaddr, &tcid, &port);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => tcid %s port %ld done\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(ipaddr),
+                         c_word_to_ipv4(tcid),
+                         port);                    
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => failed\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(ipaddr));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ctdns_release_tcid(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   tcid;
+    UINT32   port;    
+    UINT32   ctdnsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_tcid(param    , 1, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 2, &port);
+    api_cmd_para_vec_get_tcid(param    , 3, &ctdnsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*tdns release service <service> tcid <tcid> port <port> on tcid <tcid> at <console|log>*/
+    /*tdns release service %s tcid %t port %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_release_tcid: "
+                       "tdns release service %s tcid %s port %ld on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        c_word_to_ipv4(tcid),
+                        port,
+                        c_word_to_ipv4(ctdnsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_release_tcid, CMPI_ERROR_MODI, service, tcid, port);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => done\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(tcid),
+                         port);                    
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => failed\n", 
+                         (char *)cstring_get_str(service),
+                         c_word_to_ipv4(tcid),
+                         port);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL api_cmd_ui_ctdns_get_tcid(CMD_PARA_VEC * param)
 {
     UINT32   tcid;
@@ -23169,11 +23391,61 @@ EC_BOOL api_cmd_ui_ctdns_count_tcid_num(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] count tcid num: %ld\n", tcid_num);
+        sys_log(des_log, "[SUCC] tcid num: %ld\n", tcid_num);
     }
     else
     {
-        sys_log(des_log, "[FAIL] count tcid num\n");
+        sys_log(des_log, "[FAIL] tcid num\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ctdns_count_node_num(CMD_PARA_VEC * param)
+{
+    UINT32   ctdnsnp_tcid;
+    CSTRING *service;
+    CSTRING *where;
+
+    UINT32   node_num;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_tcid(param    , 1, &ctdnsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*tdns count service <service> node num on tcid <tcid> at <console|log>*/
+    /*tdns count service %s node num on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_count_node_num: "
+                        "tdns count service %s node num on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        c_word_to_ipv4(ctdnsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_node_num, CMPI_ERROR_MODI, service, &node_num);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] node num: %ld\n", node_num);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] node num\n");
     }
 
     return (EC_TRUE);
@@ -23655,13 +23927,13 @@ EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(where));
    
     cp2p_file_init(&cp2p_file);
-    cstring_clone(service , CP2P_SERVICE_NAME(&cp2p_file));
-    cstring_clone(src_file, CP2P_SRC_FILE_NAME(&cp2p_file));
-    cstring_clone(des_file, CP2P_DES_FILE_NAME(&cp2p_file));
+    cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
+    cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
+    cstring_clone(des_file, CP2P_FILE_DES_NAME(&cp2p_file));
     ret = EC_FALSE;
 
     cstring_init(&rfs_file_path, NULL_PTR);
-    cstring_format(&rfs_file_path, "/%s%s", CP2P_SERVICE_NAME_STR(&cp2p_file), CP2P_SRC_FILE_NAME_STR(&cp2p_file));  
+    cstring_format(&rfs_file_path, "/%s%s", CP2P_FILE_SERVICE_NAME_STR(&cp2p_file), CP2P_FILE_SRC_NAME_STR(&cp2p_file));  
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
@@ -23671,13 +23943,13 @@ EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &(CP2P_SRC_FILE_SIZE(&cp2p_file)));    
+             FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &(CP2P_FILE_SRC_SIZE(&cp2p_file)));    
     ASSERT(EC_TRUE == ret);
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_SRC_FILE_MD5(&cp2p_file));    
+             FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_FILE_SRC_MD5(&cp2p_file));    
     ASSERT(EC_TRUE == ret);  
 
     cstring_clean(&rfs_file_path);
@@ -23707,6 +23979,127 @@ EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param)
 
     return (EC_TRUE);
 }
+
+EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    CSTRING *command;
+    
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   recv_mod_node;
+    CP2P_CMD   cp2p_cmd;
+    
+    LOG       *des_log;
+
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_cstring(param , 1, &command);
+    api_cmd_para_vec_get_tcid(param    , 2, &tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*p2p execute <service> <cmd> on tcid <tcid> at <where>*/
+    /*p2p execute %s %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_execute_cmd: "
+                        "p2p execute %s %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        (char *)cstring_get_str(command),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+   
+    cp2p_cmd_init(&cp2p_cmd);
+    cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
+    cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&recv_mod_node) = tcid;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;
+    
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_cp2p_execute_cmd, CMPI_ERROR_MODI, &cp2p_cmd);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    
+    cp2p_cmd_clean(&cp2p_cmd);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    CSTRING *command;
+    
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   recv_mod_node;
+    CP2P_CMD   cp2p_cmd;
+    
+    LOG       *des_log;
+
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_cstring(param , 1, &command);
+    api_cmd_para_vec_get_tcid(param    , 2, &tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*p2p deliver <service> <cmd> on tcid <tcid> at <where>*/
+    /*p2p deliver %s %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_deliver_cmd: "
+                        "p2p deliver %s %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        (char *)cstring_get_str(command),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+   
+    cp2p_cmd_init(&cp2p_cmd);
+    cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
+    cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&recv_mod_node) = tcid;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;
+    
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_cp2p_deliver_cmd, CMPI_ERROR_MODI, &cp2p_cmd);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
+    }
+    
+    cp2p_cmd_clean(&cp2p_cmd);
+
+    return (EC_TRUE);
+}
+
 #endif
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)

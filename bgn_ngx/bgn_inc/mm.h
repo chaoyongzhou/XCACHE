@@ -297,6 +297,7 @@ extern "C"{
 #define             MM_CDETECT_ORIG_NODE    ((UINT32)223)
 #define               MM_CDETECT_IP_NODE    ((UINT32)224)
 #define                     MM_CP2P_FILE    ((UINT32)225)
+#define                      MM_CP2P_CMD    ((UINT32)226)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

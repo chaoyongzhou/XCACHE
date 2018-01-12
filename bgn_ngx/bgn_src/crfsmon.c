@@ -118,6 +118,8 @@ UINT32 crfsmon_start()
     TASK_BRD   *task_brd;
 
     task_brd = task_brd_default_get();
+
+    cbc_md_reg(MD_CRFSMON , 32);
  
     crfsmon_md_id = cbc_md_new(MD_CRFSMON, sizeof(CRFSMON_MD));
     if(CMPI_ERROR_MODI == crfsmon_md_id)

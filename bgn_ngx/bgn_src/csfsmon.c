@@ -118,6 +118,8 @@ UINT32 csfsmon_start()
     TASK_BRD   *task_brd;
 
     task_brd = task_brd_default_get();
+
+    cbc_md_reg(MD_CSFSMON , 32);
  
     csfsmon_md_id = cbc_md_new(MD_CSFSMON, sizeof(CSFSMON_MD));
     if(CMPI_ERROR_MODI == csfsmon_md_id)

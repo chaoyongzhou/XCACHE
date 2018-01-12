@@ -28,7 +28,6 @@ extern "C"{
 #include "http_parser.h"
 
 #define CRFSHTTPS_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
-//#define CRFSHTTPS_KEEPALIVE_SWITCH     CONN_KEEPALIVE_SWITCH
 
 #define CRFSHTTPS_REST_API_NAME            ("/rfs")
 

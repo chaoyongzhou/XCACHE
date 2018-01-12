@@ -119,6 +119,8 @@ UINT32 csfs_start(const CSTRING *csfsnp_root_basedir, const CSTRING *csfsdn_root
     EC_BOOL   ret;
 
     task_brd = task_brd_default_get();
+
+    cbc_md_reg(MD_CSFS    , 32);
  
     csfs_md_id = cbc_md_new(MD_CSFS, sizeof(CSFS_MD));
     if(CMPI_ERROR_MODI == csfs_md_id)
@@ -1955,7 +1957,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_SFS_PREFIX"/cond_wakeup");
+    cstring_append_str(uri, (uint8_t *)CSFSHTTP_REST_API_NAME"/cond_wakeup");
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_wait_file_owner_wakeup: req uri '%.*s' done\n",

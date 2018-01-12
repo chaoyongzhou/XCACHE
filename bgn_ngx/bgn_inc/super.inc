@@ -2019,6 +2019,20 @@ FUNC_ADDR_NODE g_super_func_addr_list[ ] = {
 /*func para type  */    {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_CSTRING_ptr,e_dbg_CHTTP_STORE_ptr, },
 /*func para val   */     0, 0, {0},
 },
+{
+/*func module     */     MD_SUPER,
+/*func logic addr */     (UINT32)super_connect,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "super_connect",
+/*func index      */     FI_super_connect,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_super_func_addr_list_len = sizeof(g_super_func_addr_list)/sizeof(g_super_func_addr_list[0]);

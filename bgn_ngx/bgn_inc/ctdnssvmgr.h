@@ -22,7 +22,7 @@ extern "C"{
 
 typedef struct
 {
-    CSTRING          ctdnssv_sp_root_dir;            /*ctdnssv database root dir*/
+    CSTRING          ctdnssv_sp_root_dir;        /*ctdnssv database root dir*/
 
     CLIST            ctdnssv_list;               /*item is CTDNSSV*/
 }CTDNSSV_MGR;
@@ -75,6 +75,8 @@ EC_BOOL ctdnssv_mgr_exists(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name
 EC_BOOL ctdnssv_mgr_set(CTDNSSV_MGR *ctdnssv_mgr, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
 
 EC_BOOL ctdnssv_mgr_get(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
+EC_BOOL ctdnssv_mgr_pop(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port);
 
 EC_BOOL ctdnssv_mgr_delete_one(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, const UINT32 tcid);
 

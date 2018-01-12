@@ -1355,10 +1355,10 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
         {
             continue;
         }
-
+#if 0
         dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_search_tasks_node_by_tcid: cmp tcid: %s <---> %s\n",
                         c_word_to_ipv4(tcid), c_word_to_ipv4(TASKS_NODE_TCID(tasks_node)));
-
+#endif
         if(tcid == TASKS_NODE_TCID(tasks_node))
         {
             CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0035);
@@ -1875,6 +1875,12 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
     tasks_node = tasks_worker_search_tasks_node_by_tcid(tasks_worker, des_tcid);
     if(NULL_PTR == tasks_node)
     {
+        if(TASK_REQ_SENDAGN == TASK_NODE_STATUS(task_node))
+        {
+            /*do not trigger connecting to avoid task flooding*/
+            return (EC_AGAIN);
+        }
+        
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: des_tcid %s does not exist when (tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld)\n",
                         c_word_to_ipv4(des_tcid),
                         TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
@@ -1889,6 +1895,24 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
                         TASK_NODE_SEND_TCID(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEQNO(task_node), TASK_NODE_SUB_SEQNO(task_node),
                         TASK_NODE_FUNC_ID(task_node)
                         );
+        
+        if(TDNS_RESOLVE_SWITCH == SWITCH_ON)
+        {
+            MOD_NODE        recv_mod_node;
+            
+            MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
+            MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
+            MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+    
+            task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                             &recv_mod_node, 
+                             NULL_PTR, 
+                             FI_super_connect, CMPI_ERROR_MODI, des_tcid);
+
+            return (EC_AGAIN);
+        }
+        
         return (EC_FALSE);
     }
 

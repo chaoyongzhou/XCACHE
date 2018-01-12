@@ -106,6 +106,7 @@ extern "C"{
 #define       e_dbg_CTDNSSV_NODE_MGR_ptr    ((UINT32) 75)
 #define           e_dbg_CTDNSSV_NODE_ptr    ((UINT32) 76)
 #define              e_dbg_CP2P_FILE_ptr    ((UINT32) 77)
+#define               e_dbg_CP2P_CMD_ptr    ((UINT32) 78)
 #define                   e_dbg_type_end    ((UINT32)128)
 
 /* description of E_DBG_TYPE */

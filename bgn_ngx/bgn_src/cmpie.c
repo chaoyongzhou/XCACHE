@@ -7057,22 +7057,22 @@ UINT32 cmpi_encode_cp2p_file(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
-    cmpi_encode_cstring(comm, CP2P_SERVICE_NAME(cp2p_file), out_buff, out_buff_max_len, position);
-    cmpi_encode_cstring(comm, CP2P_SRC_FILE_NAME(cp2p_file), out_buff, out_buff_max_len, position);
-    cmpi_encode_cstring(comm, CP2P_DES_FILE_NAME(cp2p_file), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32(comm, CP2P_SRC_FILE_SIZE(cp2p_file), out_buff, out_buff_max_len, position);
-    cmpi_encode_cmd5_digest(comm, CP2P_SRC_FILE_MD5(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_cstring(comm, CP2P_FILE_SERVICE_NAME(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_cstring(comm, CP2P_FILE_SRC_NAME(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_cstring(comm, CP2P_FILE_DES_NAME(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CP2P_FILE_SRC_SIZE(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_cmd5_digest(comm, CP2P_FILE_SRC_MD5(cp2p_file), out_buff, out_buff_max_len, position);
  
     return ((UINT32)0);
 }
 
 UINT32 cmpi_encode_cp2p_file_size(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT32 *size)
 {
-    cmpi_encode_cstring_size(comm, CP2P_SERVICE_NAME(cp2p_file), size);
-    cmpi_encode_cstring_size(comm, CP2P_SRC_FILE_NAME(cp2p_file), size);
-    cmpi_encode_cstring_size(comm, CP2P_DES_FILE_NAME(cp2p_file), size);
-    cmpi_encode_uint32_size(comm, CP2P_SRC_FILE_SIZE(cp2p_file), size);
-    cmpi_encode_cmd5_digest_size(comm, CP2P_SRC_FILE_MD5(cp2p_file), size);
+    cmpi_encode_cstring_size(comm, CP2P_FILE_SERVICE_NAME(cp2p_file), size);
+    cmpi_encode_cstring_size(comm, CP2P_FILE_SRC_NAME(cp2p_file), size);
+    cmpi_encode_cstring_size(comm, CP2P_FILE_DES_NAME(cp2p_file), size);
+    cmpi_encode_uint32_size(comm, CP2P_FILE_SRC_SIZE(cp2p_file), size);
+    cmpi_encode_cmd5_digest_size(comm, CP2P_FILE_SRC_MD5(cp2p_file), size);
  
     return ((UINT32)0);
 }
@@ -7097,11 +7097,75 @@ UINT32 cmpi_decode_cp2p_file(const UINT32 comm, const UINT8 *in_buff, const UINT
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
-    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_SERVICE_NAME(cp2p_file));
-    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_SRC_FILE_NAME(cp2p_file));
-    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_DES_FILE_NAME(cp2p_file));
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CP2P_SRC_FILE_SIZE(cp2p_file)));
-    cmpi_decode_cmd5_digest(comm, in_buff, in_buff_max_len, position, CP2P_SRC_FILE_MD5(cp2p_file));
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_FILE_SERVICE_NAME(cp2p_file));
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_FILE_SRC_NAME(cp2p_file));
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_FILE_DES_NAME(cp2p_file));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CP2P_FILE_SRC_SIZE(cp2p_file)));
+    cmpi_decode_cmd5_digest(comm, in_buff, in_buff_max_len, position, CP2P_FILE_SRC_MD5(cp2p_file));
+
+    return ((UINT32)0);
+}
+
+#endif
+
+#if 1
+
+UINT32 cmpi_encode_cp2p_cmd(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cp2p_cmd )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cp2p_cmd: cp2p_cmd is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cp2p_cmd: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cp2p_cmd: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_cstring(comm, CP2P_CMD_SERVICE_NAME(cp2p_cmd), out_buff, out_buff_max_len, position);
+    cmpi_encode_cstring(comm, CP2P_CMD_COMMAND_LINE(cp2p_cmd), out_buff, out_buff_max_len, position);
+ 
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cp2p_cmd_size(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UINT32 *size)
+{
+    cmpi_encode_cstring_size(comm, CP2P_CMD_SERVICE_NAME(cp2p_cmd), size);
+    cmpi_encode_cstring_size(comm, CP2P_CMD_COMMAND_LINE(cp2p_cmd), size);
+ 
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cp2p_cmd(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CP2P_CMD *cp2p_cmd)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cp2p_cmd: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cp2p_cmd: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cp2p_cmd )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cp2p_cmd: cp2p_cmd is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_CMD_SERVICE_NAME(cp2p_cmd));
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_CMD_COMMAND_LINE(cp2p_cmd));
 
     return ((UINT32)0);
 }

@@ -27,10 +27,9 @@ extern "C"{
 
 #include "http_parser.h"
 
-#define CRFSHTTP_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
-//#define CRFSHTTP_KEEPALIVE_SWITCH     CONN_KEEPALIVE_SWITCH
+#define CRFSHTTP_SOCKET_TIMEOUT_NSEC      CONN_TIMEOUT_NSEC
 
-#define CRFSHTTP_REST_API_NAME            ("/rfs")
+#define CRFSHTTP_REST_API_NAME            "/rfs"
 
 EC_BOOL crfshttp_log_start();
 

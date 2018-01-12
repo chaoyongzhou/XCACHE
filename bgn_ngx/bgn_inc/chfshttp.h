@@ -27,7 +27,6 @@ extern "C"{
 #include "http_parser.h"
 
 #define CHFSHTTP_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
-//#define CHFSHTTP_KEEPALIVE_SWITCH     CONN_KEEPALIVE_SWITCH
 
 #define CHFSHTTP_REST_API_NAME            ("/hfs")
 

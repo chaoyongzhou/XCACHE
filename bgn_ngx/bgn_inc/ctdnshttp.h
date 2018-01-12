@@ -69,6 +69,24 @@ EC_BOOL ctdnshttp_handle_deltcid_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_make_deltcid_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_deltcid_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL ctdnshttp_is_http_get_configtcid(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_configtcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_configtcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_configtcid_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL ctdnshttp_is_http_get_reservetcid(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_reservetcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_reservetcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_reservetcid_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL ctdnshttp_is_http_get_releasetcid(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_releasetcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_releasetcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_releasetcid_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL ctdnshttp_is_http_get_flush(const CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_flush_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_handle_flush_get_request(CHTTP_NODE *chttp_node);

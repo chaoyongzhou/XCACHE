@@ -129,6 +129,10 @@ EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UIN
 
 EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
+EC_BOOL ctdns_reserve_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, UINT32 *tcid, UINT32 *port);
+
+EC_BOOL ctdns_release_tcid_to_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port);
+
 EC_BOOL ctdns_delete_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid);
 
 EC_BOOL ctdns_delete_tcid_from_all_service(const UINT32 ctdns_md_id, const UINT32 tcid);
@@ -178,6 +182,34 @@ EC_BOOL ctdns_flush_svp(const UINT32 ctdns_md_id);
 *
 **/
 EC_BOOL ctdns_tcid_num(const UINT32 ctdns_md_id, UINT32 *tcid_num);
+
+/**
+*
+*  count node num fo specific service
+*
+**/
+EC_BOOL ctdns_node_num(const UINT32 ctdns_md_id, const CSTRING *service_name, UINT32 *tcid_num);
+
+/**
+*
+*  config a free tcid which is not used by anyone
+*
+**/
+EC_BOOL ctdns_config_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port);
+
+/**
+*
+*  reserve a tcid to use from specific service
+*
+**/
+EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 ipaddr, UINT32 *tcid, UINT32 *port); 
+
+/**
+*
+*  release a used tcid to unused from specific service
+*
+**/
+EC_BOOL ctdns_release_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port);
 
 /**
 *

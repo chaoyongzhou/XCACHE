@@ -1069,6 +1069,42 @@ EC_BOOL ctdnssv_finger(CTDNSSV *ctdnssv, const UINT32 max_num, CTDNSSV_NODE_MGR 
     return __ctdnssv_finger(ctdnssv, CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool), &left_num, ctdnssv_node_mgr);
 }
 
+EC_BOOL ctdnssv_pop(CTDNSSV *ctdnssv, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port)
+{
+    CTDNSSVRB_POOL  *ctdnssv_pool;
+    CTDNSSV_ITEM    *ctdnssv_item;
+    uint32_t         node_pos;
+
+    ctdnssv_pool = CTDNSSV_NODES_POOL(ctdnssv);
+
+    node_pos = CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool);
+    if(CTDNSSVRB_ERR_POS == node_pos)
+    {
+        return (EC_FALSE);
+    }
+
+    ctdnssv_item = ctdnssv_fetch(ctdnssv, node_pos);
+
+    if(NULL_PTR != tcid)
+    {
+        (*tcid) = CTDNSSV_ITEM_TCID(ctdnssv_item);
+    }
+
+    if(NULL_PTR != ipaddr)
+    {
+        (*ipaddr) = CTDNSSV_ITEM_IPADDR(ctdnssv_item);
+    }
+
+    if(NULL_PTR != port)
+    {
+        (*port) = CTDNSSV_ITEM_PORT(ctdnssv_item);
+    }
+    
+    ctdnssvrb_tree_delete(ctdnssv_pool, &(CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool)), node_pos);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL ctdnssv_show_item(LOG *log, const CTDNSSV *ctdnssv, const uint32_t node_pos)
 {
     const CTDNSSVRB_POOL *pool;

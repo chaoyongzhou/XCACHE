@@ -107,6 +107,8 @@ typedef struct
     CSTRING   ssl_certificate_file_name_cstr;
     CSTRING   ssl_private_key_file_name_cstr;
 
+    UINT32    tdns_resolve_switch           ; /*TDNS_RESOLVE_SWITCH*/
+
     UINT32    log_level_tab[ SEC_NONE_END ] ;
 }CPARACFG;
 
@@ -190,6 +192,8 @@ typedef struct
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_certificate_file_name_cstr))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_private_key_file_name_cstr))
 
+#define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                      ((cparacfg)->tdns_resolve_switch)
+
 #define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)))
@@ -214,6 +218,9 @@ typedef struct
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
+
+#define CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)))
+
 
 #define MEM_BUFF_128B ( 128      )
 #define MEM_BUFF_512B ( 512      )
@@ -273,8 +280,8 @@ typedef struct
 #define CTHREAD_STACK_GUARD_SIZE_008M ( 8388608 )
 
 /*------------------------------------------------- default value definition BEG -------------------------------------------------*/
-#define CPARACFG_TASK_REQ_THREAD_MAX_NUM_DEF                     16
-#define CPARACFG_TASK_RSP_THREAD_MAX_NUM_DEF                     5
+#define CPARACFG_TASK_REQ_THREAD_MAX_NUM_DEF                     512
+#define CPARACFG_TASK_RSP_THREAD_MAX_NUM_DEF                     32
 #define CPARACFG_CTHREAD_STACK_MAX_SIZE_DEF                      CTHREAD_STACK_MAX_SIZE_064K
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE_DEF                    CTHREAD_STACK_GUARD_SIZE_004K
 
@@ -308,8 +315,6 @@ typedef struct
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_DEF              SWITCH_OFF
 
 #define CPARACFG_CONSOLE_TERM_SWITCH_DEF                         SWITCH_OFF
-
-//#define CPARACFG_CONN_KEEPALIVE_SWITCH_DEF                       SWITCH_ON
 
 #define CPARACFG_CONN_TIMEOUT_NSEC_DEF                           20
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP_DEF                    1024
@@ -347,6 +352,8 @@ typedef struct
 #define CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR_DEF              ((uint8_t *)"certificate.pem")
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR_DEF              ((uint8_t *)"private_key.pem")
+
+#define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_ON
 
 #define CPARACFG_SET_DEFAULT(cparacfg, macro_name)  \
             macro_name(cparacfg)  = macro_name##_DEF
@@ -392,7 +399,6 @@ typedef struct
 #define    CSOCKET_RECV_ONCE_MAX_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE)
 #define    CSOCKET_CNODE_NUM                             CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_CNODE_NUM)
 
-//#define    CONN_KEEPALIVE_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CONN_KEEPALIVE_SWITCH, SWITCH_ON)
 #define    CONN_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CONN_TIMEOUT_NSEC)
 #define    CONN_TIMEOUT_MAX_NUM_PER_LOOP                 CPARACFG_DEFAULT_MAP(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP)
 #define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
@@ -429,6 +435,8 @@ typedef struct
 
 #define    SSL_CERTIFICATE_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR)
 #define    SSL_PRIVATE_KEY_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR)
+
+#define    TDNS_RESOLVE_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_SWITCH)
 
 #endif/*_CPARACFG_INC*/
 

@@ -70,7 +70,7 @@ extern "C"{
 #define                 TASK_REQ_IS_RECV    ((UINT32)  1010)
 #define                 TASK_REQ_DISCARD    ((UINT32)  1020)
 #define                 TASK_REQ_TIMEOUT    ((UINT32)  1040)
-#define                 TASK_REQ_SENDNXT    ((UINT32)  1080) /*send again when tcid broken happen*/
+#define                 TASK_REQ_SENDAGN    ((UINT32)  1080) /*send again when tcid broken happen*/
 
 #define                 TASK_RSP_TO_SEND    ((UINT32)  2001)
 #define                 TASK_RSP_SENDING    ((UINT32)  2002)

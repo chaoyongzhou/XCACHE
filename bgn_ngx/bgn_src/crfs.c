@@ -216,6 +216,8 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
     CSTRING *crfsdn_root_dir; 
 
     task_brd = task_brd_default_get();
+
+    cbc_md_reg(MD_CRFS, 32);
  
     crfs_md_id = cbc_md_new(MD_CRFS, sizeof(CRFS_MD));
     if(CMPI_ERROR_MODI == crfs_md_id)
@@ -9219,7 +9221,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CHTTP_RFS_PREFIX"/cond_wakeup");
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/cond_wakeup");
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_wakeup: req uri '%.*s' done\n",
