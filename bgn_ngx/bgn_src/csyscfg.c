@@ -1066,31 +1066,30 @@ void paras_cfg_print_xml(LOG *log, const CVECTOR *paras_cfg, const UINT32 level)
     UINT32 pos;
 
     num = cvector_size(paras_cfg);
-    if(0 == num)
+    if(0 < num)
     {
-        return;
-    }
+        c_ident_print(log, level);
+        sys_print(log, "<parasConfig>\n");
 
-    c_ident_print(log, level);
-    sys_print(log, "<parasConfig>\n");
-
-    CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0025);
-    for(pos = 0; pos < num; pos ++)
-    {
-        CPARACFG *cparacfg;
-
-        cparacfg = (CPARACFG *)cvector_get_no_lock(paras_cfg, pos);
-        if(NULL_PTR == cparacfg)
+        CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0025);
+        for(pos = 0; pos < num; pos ++)
         {
-            continue;
+            CPARACFG *cparacfg;
+
+            cparacfg = (CPARACFG *)cvector_get_no_lock(paras_cfg, pos);
+            if(NULL_PTR == cparacfg)
+            {
+                continue;
+            }
+
+            cparacfg_print_xml(log, cparacfg, level + 1);
         }
+        CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0026);
 
-        cparacfg_print_xml(log, cparacfg, level + 1);
+        c_ident_print(log, level);
+        sys_print(log, "</parasConfig>\n");
     }
-    CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0026);
 
-    c_ident_print(log, level);
-    sys_print(log, "</parasConfig>\n");
     return;
 }
 
@@ -1910,13 +1909,16 @@ EC_BOOL sys_cfg_flush_xml(const SYS_CFG *sys_cfg, const CSTRING *sys_cfg_xml_cst
 
 void sys_cfg_cluster_cfg_vec_print_xml(LOG *log, const CVECTOR *cluster_cfg_vec, const UINT32 level)
 {
-    c_ident_print(log, level);
-    sys_print(log, "<clusters>\n");
+    if(EC_FALSE == cvector_is_empty(cluster_cfg_vec))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<clusters>\n");
 
-    cvector_print_level(log, cluster_cfg_vec, level + 1, (CVECTOR_DATA_LEVEL_PRINT)cluster_cfg_print_xml);
+        cvector_print_level(log, cluster_cfg_vec, level + 1, (CVECTOR_DATA_LEVEL_PRINT)cluster_cfg_print_xml);
 
-    c_ident_print(log, level);
-    sys_print(log, "</clusters>\n");
+        c_ident_print(log, level);
+        sys_print(log, "</clusters>\n");
+    }
     return;
 }
 

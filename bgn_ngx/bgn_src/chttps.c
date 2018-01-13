@@ -3806,12 +3806,15 @@ EC_BOOL chttps_node_set_socket_epoll(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *cs
 EC_BOOL chttps_node_connect(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const UINT32 port)
 {
     CSOCKET_CNODE *csocket_cnode;
+    CCONNP_MGR    *cconnp_mgr;
 
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_connect: connect server %s:%ld >>>\n",
                         c_word_to_ipv4(ipaddr), port); 
 
-    csocket_cnode = cconnp_mgr_reserve(task_brd_default_get_http_cconnp_mgr(), CMPI_ANY_TCID, ipaddr, port);
-    if(NULL_PTR != csocket_cnode)
+    cconnp_mgr = task_brd_default_get_http_cconnp_mgr();
+    
+    if(NULL_PTR != cconnp_mgr && 
+    NULL_PTR != (csocket_cnode = cconnp_mgr_reserve(cconnp_mgr, CMPI_ANY_TCID, ipaddr, port)))
     {
         /*optimize for the latest loaed config*/
         csocket_optimize(CSOCKET_CNODE_SOCKFD(csocket_cnode));

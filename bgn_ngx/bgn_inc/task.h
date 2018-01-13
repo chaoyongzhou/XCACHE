@@ -268,6 +268,8 @@ EC_BOOL task_brd_wait_sys_config(TASK_BRD *task_brd, const UINT32 udp_mcast_ipad
 
 EC_BOOL task_brd_wait_config(TASK_BRD *task_brd, const CSTRING *bcast_dhcp_netcard_cstr, UINT32 *this_tcid);
 
+EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid);
+
 EC_BOOL task_brd_is_bcast_dhcp_server(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_is_auto_bcast_dhcp_udp_server(TASK_BRD *task_brd);

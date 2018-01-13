@@ -31,7 +31,12 @@ extern "C"{
 
 #define CTDNSHTTP_REST_API_NAME            "/tdns"
 
-#define CTDNSHTTP_SERVER_DEFAULT           "y.pooapp.net:2100"
+#define CTDNSHTTP_HOST_DEFAULT             "y.pooapp.net"
+#define CTDNSHTTP_PORT_DEFAULT             "2100"
+#define CTDNSHTTP_SERVER_DEFAULT           CTDNSHTTP_HOST_DEFAULT":"CTDNSHTTP_PORT_DEFAULT
+
+#define CTDNSHTTP_EDGE_POOL_NAME           "edge.pool"
+#define CTDNSHTTP_EDGE_SERVICE_NAME        "edge.cluster"
 
 EC_BOOL ctdnshttp_log_start();
 

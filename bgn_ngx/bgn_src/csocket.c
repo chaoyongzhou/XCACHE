@@ -195,6 +195,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
+    CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
 
     CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_SEND_ONCE_MAX_SIZE;
     CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_RECV_ONCE_MAX_SIZE;
@@ -533,7 +534,10 @@ EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+    {
+        cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    }
     csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
     csocket_cnode_free(csocket_cnode);
     return (EC_TRUE);
@@ -575,18 +579,28 @@ void csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode)
 {
     if(NULL_PTR != csocket_cnode)
     {
-        int sockfd;
+        int      sockfd;
+        uint32_t nonblock;
+        
 
         sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode); /*csocket_cnode will be clean up, save sockfd at first*/
 
-        cepoll_del_all(task_brd_default_get_cepoll(), sockfd);
-        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;        
+        nonblock = CSOCKET_CNODE_NONBLOCK(csocket_cnode);
 
+        if(BIT_TRUE == nonblock)
+        {
+            cepoll_del_all(task_brd_default_get_cepoll(), sockfd);
+            CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;        
+        }
+        
         csocket_cnode_callback_when_close(csocket_cnode);
         csocket_cnode_close(csocket_cnode);
 
-        cepoll_clear_node(task_brd_default_get_cepoll(), sockfd);
+        if(BIT_TRUE == nonblock)
+        {
+            cepoll_clear_node(task_brd_default_get_cepoll(), sockfd);
+        }
     }
     return;
 }

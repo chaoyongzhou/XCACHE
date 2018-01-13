@@ -393,7 +393,7 @@ EC_BOOL chttp_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *cs
 
 EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT32 port);
+EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mode, const UINT32 ipaddr, const UINT32 port);
 
 EC_BOOL chttp_node_disconnect(CHTTP_NODE *chttp_node);
 
@@ -422,6 +422,12 @@ EC_BOOL chttp_node_renew_content_length(CHTTP_NODE *chttp_node, CHTTP_STORE *cht
 
 EC_BOOL chttp_node_set_billing(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);
 
+/*-------------------------------------------------------------------------------------------------------------------------------------------\
+ *
+ * Block Http Flow
+ *
+\*-------------------------------------------------------------------------------------------------------------------------------------------*/
+EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------\
  *

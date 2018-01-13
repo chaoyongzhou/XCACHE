@@ -87,6 +87,8 @@ extern "C"{
 #include "chfshttp.h"
 #include "csfshttp.h"
 
+#include "cagent.h"
+
 #include "findex.inc"
 
 
@@ -5762,6 +5764,193 @@ EC_BOOL task_brd_wait_sys_config(TASK_BRD *task_brd, const UINT32 udp_mcast_ipad
     return (EC_TRUE);
 }
 
+UINT32 task_brd_finger_ip_from_netcards(TASK_BRD *task_brd, const CSET *cnetcard_set)
+{
+    CSET_DATA       *cset_data;
+    
+    UINT32           ipaddr; /*host ipaddr for internet*/
+    UINT32           ipaddr_priv_a;/*class A*/
+    UINT32           ipaddr_priv_b;/*class B*/
+    UINT32           ipaddr_priv_c;/*class C*/
+    
+    ipaddr        = CMPI_ERROR_IPADDR;
+    ipaddr_priv_a = CMPI_ERROR_IPADDR;
+    ipaddr_priv_b = CMPI_ERROR_IPADDR;
+    ipaddr_priv_c = CMPI_ERROR_IPADDR;
+
+    CSET_LOOP_NEXT(cnetcard_set, cset_data)
+    {
+        CNETCARD *cnetcard;
+
+        cnetcard = CSET_DATA_DATA(cset_data);
+
+        /*ignore private ip addr*/
+        if(c_ipv4_to_word("10.0.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("10.255.255.255"))
+        {
+            ipaddr_priv_a = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }
+
+        if(c_ipv4_to_word("172.16.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("172.131.255.255"))
+        {
+            ipaddr_priv_b = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }    
+
+        if(c_ipv4_to_word("192.168.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("192.168.255.255"))
+        {
+            ipaddr_priv_c = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }
+
+        if(c_ipv4_to_word("127.0.0.1") == CNETCARD_IPV4VAL(cnetcard))
+        {
+            continue;
+        }        
+
+        ipaddr = CNETCARD_IPV4VAL(cnetcard);
+        break; /*terminate*/
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_a)
+    {
+        ipaddr = ipaddr_priv_a;
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-A ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_b)
+    {
+        ipaddr = ipaddr_priv_b;
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-B ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }   
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_c)
+    {
+        ipaddr = ipaddr_priv_c;
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-C ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }         
+
+    ipaddr = c_ipv4_to_word("127.0.0.1");
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect none ip, reset to '%s'\n",
+                    c_word_to_ipv4(ipaddr));   
+                    
+    return(ipaddr);
+}
+
+EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
+{
+    CAGENT          *cagent;
+    UINT32           ipaddr; /*host ipaddr for internet*/
+
+    char            *fname;
+
+    CSET_DATA       *cset_data;
+
+    if(EC_FALSE == task_brd_collect_netcards(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: collect netcards failed\n");
+        return (EC_FALSE);
+    }
+
+    ipaddr = task_brd_finger_ip_from_netcards(task_brd, TASK_BRD_NETCARDS(task_brd));
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: finger ip '%s'\n",
+                    c_word_to_ipv4(ipaddr)); 
+    
+    cagent = cagent_new();
+    if(NULL_PTR == cagent)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: new cagent failed\n");
+        return (EC_FALSE);
+    }
+
+    cstring_append_str(CAGENT_TDNS_HOST(cagent), (const UINT8 *)CTDNSHTTP_HOST_DEFAULT);
+    CAGENT_TDNS_PORT(cagent) = c_str_to_word((char *)CTDNSHTTP_PORT_DEFAULT);
+
+    if(EC_FALSE == cagent_reserve_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, c_word_to_ipv4(ipaddr)))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: reserve tcid failed\n");
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: reserve tcid '%s' done\n",
+                    c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)));
+
+    fname = TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
+    if(EC_FALSE == cagent_gen_config_xml(cagent, fname))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: generate '%s' failed\n", fname);
+
+        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
+                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == task_brd_load(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: load config failed\n");
+
+        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
+                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == cagent_set_service(cagent, (const char *)CTDNSHTTP_EDGE_SERVICE_NAME, 
+                                      c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                      c_word_to_ipv4(ipaddr), 
+                                      c_word_to_str(CAGENT_RESERVED_PORT(cagent))))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: "
+                                             "service '%s', tcid '%s', ip '%s', port %ld failed\n",
+                                             (const char *)CTDNSHTTP_EDGE_SERVICE_NAME,
+                                             c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                             c_word_to_ipv4(ipaddr), 
+                                             CAGENT_RESERVED_PORT(cagent));
+                                             
+        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
+                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: "
+                                         "service '%s', tcid '%s', ip '%s', port %ld done\n",
+                                         (const char *)CTDNSHTTP_EDGE_SERVICE_NAME,
+                                         c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                         c_word_to_ipv4(ipaddr), 
+                                         CAGENT_RESERVED_PORT(cagent));    
+
+    (*this_tcid) = CAGENT_RESERVED_TCID(cagent);
+
+    cagent_free(cagent);
+    return (EC_TRUE);
+}
+
 EC_BOOL task_brd_wait_config(TASK_BRD *task_brd, const CSTRING *bcast_dhcp_netcard_cstr, UINT32 *this_tcid)
 {
     UINT32 udp_mcast_ipaddr;
@@ -7210,6 +7399,8 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*prepare stdout,stderr, stdin devices*/
     log_start();
 
+    log_level_set_sector(149,9);
+
     this_comm = CMPI_COMM_WORLD;
     this_size = CMPI_MIN_SIZE;      /*default*/
     this_tcid = CMPI_ERROR_TCID;    /*default*/
@@ -7272,12 +7463,24 @@ LOG * task_brd_default_init(int argc, char **argv)
     if(NULL_PTR == TASK_BRD_SYS_CFG_FNAME(task_brd )
     || EC_FALSE == c_file_access((char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd), F_OK | R_OK))
     {
-        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_init: %s not accessible\n", (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd));
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_init: %s not accessible\n", 
+                                             (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd));
 
-        if(EC_FALSE == task_brd_wait_config(task_brd, bcast_dhcp_netcard_cstr, &this_tcid))
+        if(SWITCH_ON == TDNS_RESOLVE_SWITCH)
         {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: wait config failed\n");
-            task_brd_default_abort();
+            if(EC_FALSE == task_brd_pull_config(task_brd, &this_tcid))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: pull config failed\n");
+                task_brd_default_abort();
+            }
+        }
+        else
+        {
+            if(EC_FALSE == task_brd_wait_config(task_brd, bcast_dhcp_netcard_cstr, &this_tcid))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: wait config failed\n");
+                task_brd_default_abort();
+            }
         }
     }
     else
@@ -7302,6 +7505,25 @@ LOG * task_brd_default_init(int argc, char **argv)
             task_brd_default_abort();
         }
 #endif     
+        /*if tcid not appear in cmd line ...*/
+        if(CMPI_ERROR_TCID == this_tcid)
+        {
+            SYS_CFG    *sys_cfg;
+            TASK_CFG   *task_cfg;
+            TASKS_CFG  *tasks_cfg;
+
+            sys_cfg  = TASK_BRD_SYS_CFG(task_brd);
+            task_cfg = SYS_CFG_TASK_CFG(sys_cfg);
+            
+            if(1 != cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: obscure tcid\n");
+                task_brd_default_abort();            
+            }
+
+            tasks_cfg = cvector_get(TASK_CFG_TASKS_CFG_VEC(task_cfg), 0);
+            this_tcid = TASKS_CFG_TCID(tasks_cfg);
+        }
     }
 
     /*adjust reg type if necessary*/

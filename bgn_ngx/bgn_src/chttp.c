@@ -165,10 +165,13 @@ static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_recv_complete: sockfd %d, [type: HANDLE REQ]\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
- 
-        /*note: http request is ready now. stop read from socket to prevent recving during handling request*/
-        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
-        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+
+        if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+        {
+            /*note: http request is ready now. stop read from socket to prevent recving during handling request*/
+            cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
+            CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        }
         
         if(BIT_TRUE == CHTTP_NODE_HEADER_COMPLETE(chttp_node))
         {
@@ -195,9 +198,12 @@ static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_recv_complete: sockfd %d, [type: HANDLE RSP]\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
-        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
-        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
- 
+        if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+        {
+            cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
+            CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        }
+        
         if(NULL_PTR != CHTTP_NODE_CROUTINE_COND(chttp_node) && BIT_FALSE == CHTTP_NODE_COROUTINE_RESTORE(chttp_node))
         {
             CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_TRUE;
@@ -215,10 +221,13 @@ static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_recv_complete: sockfd %d, [type: HANDLE CHECK]\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
-                     
-        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
-        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-     
+
+        if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+        {
+            cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
+            CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        }
+        
         if(NULL_PTR != CHTTP_NODE_CROUTINE_COND(chttp_node) && BIT_FALSE == CHTTP_NODE_COROUTINE_RESTORE(chttp_node))
         {
             CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_TRUE;
@@ -232,10 +241,12 @@ static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_recv_complete: sockfd %d, [type: HANDLE: unknown 0x%lx]\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_NODE_TYPE(chttp_node));
 
-    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-            
+    if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+    {
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+    }        
     return (EC_FALSE);
 }
 
@@ -1925,17 +1936,19 @@ EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_req: sockfd %d had sent out all req data\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));  
 
-    cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT);
-    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-                                     
-    cepoll_set_event(task_brd_default_get_cepoll(), 
-                     CSOCKET_CNODE_SOCKFD(csocket_cnode), 
-                     CEPOLL_RD_EVENT,
-                     (const char *)"csocket_cnode_irecv",
-                     (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv, 
-                     (void *)csocket_cnode);
-    CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-    
+    if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+    {
+        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT);
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+                                         
+        cepoll_set_event(task_brd_default_get_cepoll(), 
+                         CSOCKET_CNODE_SOCKFD(csocket_cnode), 
+                         CEPOLL_RD_EVENT,
+                         (const char *)"csocket_cnode_irecv",
+                         (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv, 
+                         (void *)csocket_cnode);
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
+    }
     return (EC_TRUE);
 }
 
@@ -1994,6 +2007,13 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);                         
     }
+
+    if(EC_AGAIN == ret && BIT_FALSE == CSOCKET_CNODE_NONBLOCK(csocket_cnode)) /*block mode*/
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_recv_rsp: parse on sockfd %d again\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        return chttp_node_recv_rsp(chttp_node, csocket_cnode);                            
+    }    
 
     if(BIT_TRUE == CHTTP_NODE_RECV_COMPLETE(chttp_node))
     {
@@ -2588,7 +2608,12 @@ EC_BOOL chttp_node_recv(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
      
         if(EC_TRUE == csocket_cnode_is_connected(csocket_cnode))
         {
-            return (EC_DONE);/*no more data to recv*/
+            if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+            {
+                return (EC_DONE);/*no more data to recv*/
+            }
+            /*block mode*/
+            return (EC_TRUE);/*no more data to recv*/
         }
      
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT,
@@ -3496,12 +3521,25 @@ EC_BOOL chttp_parse(CHTTP_NODE *chttp_node)
     http_parser_settings_t   *http_parser_setting;
     CBUFFER                  *http_in_buffer;
 
+    CSOCKET_CNODE            *csocket_cnode;
+
     uint32_t parsed_len;
    
     http_parser         = CHTTP_NODE_PARSER(chttp_node);
     http_parser_setting = CHTTP_NODE_SETTING(chttp_node);
     http_in_buffer      = CHTTP_NODE_IN_BUF(chttp_node);
 
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    if(0 == CBUFFER_USED(http_in_buffer) 
+    && s_start_req_or_res <= http_parser->state 
+    && s_message_done > http_parser->state)
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse: sockfd %d, http state %s, used %u  => again\n", 
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), CBUFFER_USED(http_in_buffer));    
+        return (EC_AGAIN);                
+    }
+    
     ASSERT(0 < CBUFFER_USED(http_in_buffer)); /*Nov 15, 2017*/
  
     parsed_len = http_parser_execute(http_parser, http_parser_setting, (char *)CBUFFER_DATA(http_in_buffer) , CBUFFER_USED(http_in_buffer));
@@ -6299,14 +6337,17 @@ EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csock
     return (EC_FALSE);
 }
 
-EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT32 port)
+EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mode, const UINT32 ipaddr, const UINT32 port)
 {
     CSOCKET_CNODE *csocket_cnode;
+    CCONNP_MGR    *cconnp_mgr;
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_connect: connect server %s:%ld >>>\n",
                         c_word_to_ipv4(ipaddr), port); 
-    csocket_cnode = cconnp_mgr_reserve(task_brd_default_get_http_cconnp_mgr(), CMPI_ANY_TCID, ipaddr, port);
-    if(NULL_PTR != csocket_cnode)
+
+    cconnp_mgr = task_brd_default_get_http_cconnp_mgr();                        
+    if(NULL_PTR != cconnp_mgr 
+    && NULL_PTR != (csocket_cnode = cconnp_mgr_reserve(cconnp_mgr, CMPI_ANY_TCID, ipaddr, port)))
     {
         /*optimize for the latest loaded config*/
         csocket_optimize(CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -6315,7 +6356,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UI
     {
         int sockfd;
      
-        if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd ))
+        if(EC_FALSE == csocket_connect( ipaddr, port , csocket_block_mode, &sockfd ))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect: connect server %s:%ld failed\n",
                                 c_word_to_ipv4(ipaddr), port);
@@ -6351,19 +6392,27 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UI
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE; /*push it to connection pool after used*/
     }
 
-    /*set connection pool callback*/
-    csocket_cnode_push_close_callback(csocket_cnode, 
-                                 (const char *)"cconnp_mgr_release", 
-                                 (UINT32)task_brd_default_get_http_cconnp_mgr(), 
-                                 (UINT32)cconnp_mgr_release);
+    if(CSOCKET_IS_BLOCK_MODE == csocket_block_mode)
+    {
+        CSOCKET_CNODE_NONBLOCK(csocket_cnode) = BIT_FALSE;
+    }
 
-    csocket_cnode_push_complete_callback(csocket_cnode, 
-                                 (const char *)"cconnp_mgr_release", 
-                                 (UINT32)task_brd_default_get_http_cconnp_mgr(), 
-                                 (UINT32)cconnp_mgr_release);
+    if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode)
+    {
+        /*set connection pool callback*/
+        csocket_cnode_push_close_callback(csocket_cnode, 
+                                     (const char *)"cconnp_mgr_release", 
+                                     (UINT32)task_brd_default_get_http_cconnp_mgr(), 
+                                     (UINT32)cconnp_mgr_release);
+
+        csocket_cnode_push_complete_callback(csocket_cnode, 
+                                     (const char *)"cconnp_mgr_release", 
+                                     (UINT32)task_brd_default_get_http_cconnp_mgr(), 
+                                     (UINT32)cconnp_mgr_release);
+    }
     /* mount */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = csocket_cnode;
-                
+    
     return (EC_TRUE);
 }
 
@@ -7745,6 +7794,236 @@ EC_BOOL chttp_node_set_billing(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
     return (EC_TRUE);
 }
 
+/*-------------------------------------------------------------------------------------------------------------------------------------------\
+ *
+ * Block Http Flow
+ *
+\*-------------------------------------------------------------------------------------------------------------------------------------------*/
+
+EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+{
+    CHTTP_NODE    *chttp_node;
+    CSOCKET_CNODE *csocket_cnode;
+    uint64_t       rsp_body_len;
+    UINT8         *data;
+    UINT32         data_len;
+    EC_BOOL        ret;
+
+    chttp_node = chttp_node_new(CHTTP_TYPE_DO_CLT_RSP);
+    if(NULL_PTR == chttp_node)
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: new chttp_node failed\n");
+        return (EC_FALSE);
+    }
+
+    CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node); /*record start time*/
+
+    if(EC_FALSE == chttp_node_connect(chttp_node, CSOCKET_IS_BLOCK_MODE, 
+                            CHTTP_REQ_IPADDR(chttp_req), CHTTP_REQ_PORT(chttp_req)))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: connect server %s:%ld failed\n",
+                            CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
+        
+        chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+        chttp_node_free(chttp_node);
+        return (EC_FALSE);
+    }
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    chttp_node_init_parser(chttp_node);
+
+    chttp_node_set_parse_callback(chttp_node);
+
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        chttp_req_print_plain(LOGSTDOUT, chttp_req);
+    }
+    
+    if(EC_FALSE == chttp_node_encode_req_header(chttp_node, 
+                            CHTTP_REQ_METHOD(chttp_req), CHTTP_REQ_URI(chttp_req), 
+                            CHTTP_REQ_PARAM(chttp_req), CHTTP_REQ_HEADER(chttp_req))
+     )
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: encode header failed\n");
+
+        /*unbind csocket_cnode and chttp_node*/
+        CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+        /*close http connection*/
+        csocket_cnode_close(csocket_cnode);
+        
+        chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+        chttp_node_free(chttp_node);
+        return (EC_FALSE);
+    }
+    
+    if(EC_FALSE == chttp_node_encode_req_body(chttp_node, CHTTP_REQ_BODY(chttp_req)))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: encode body failed\n");
+
+        /*unbind csocket_cnode and chttp_node*/
+        CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+        /*close http connection*/
+        csocket_cnode_close(csocket_cnode);
+        
+        chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+        chttp_node_free(chttp_node);
+        return (EC_FALSE);
+    }
+
+    for(;;)
+    {
+        ret = chttp_node_send_req(chttp_node, csocket_cnode);
+        if(EC_AGAIN != ret)
+        {
+            break;
+        }
+    }
+
+    if(EC_TRUE == ret || EC_DONE == ret)
+    {
+        ret = chttp_node_recv_rsp(chttp_node, csocket_cnode);
+    }
+   
+    /**
+     *  when come back, check CHTTP_NODE_RECV_COMPLETE flag. 
+     *  if false, exception happened. and return false
+     **/
+    if(EC_FALSE == ret/*BIT_FALSE == CHTTP_NODE_RECV_COMPLETE(chttp_node)*/)/*exception happened*/
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: exception happened\n");
+
+        chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+
+        /*socket should not be used by others ...*/
+        if(NULL_PTR != CHTTP_NODE_CSOCKET_CNODE(chttp_node))
+        {
+            /*unbind csocket_cnode and chttp_node*/
+            CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+            /*close http connection*/
+            csocket_cnode_close(csocket_cnode);
+        }
+        
+        chttp_node_free(chttp_node);
+        return (EC_FALSE);
+    }
+    
+    if(NULL_PTR != CHTTP_NODE_CSOCKET_CNODE(chttp_node)) 
+    {
+        /*unbind csocket_cnode and chttp_node*/
+        CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+        dbg_log(SEC_0149_CHTTP, 5)(LOGSTDOUT, "[DEBUG] chttp_request_block: try close socket %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        /*close http connection*/
+        csocket_cnode_close(csocket_cnode);
+    }
+
+    /*get and check body len/content-length*/
+    /*rsp_body_len = chttp_node_recv_len(chttp_node);*/
+    rsp_body_len = CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
+    if(0 < rsp_body_len && 0 < CHTTP_NODE_CONTENT_LENGTH(chttp_node))
+    {
+        uint64_t content_len;
+        content_len = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
+        
+        if(content_len != rsp_body_len)
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: body len %"PRId64" != content len %"PRId64"\n", 
+                            rsp_body_len, content_len);
+
+            chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+            chttp_node_free(chttp_node);
+            return (EC_FALSE);
+        }
+    }
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_block: body len %"PRId64", content len %"PRId64"\n", 
+                    rsp_body_len, CHTTP_NODE_CONTENT_LENGTH(chttp_node));    
+
+    /*handover http response*/
+    CHTTP_RSP_STATUS(chttp_rsp) = (uint32_t)CHTTP_NODE_STATUS_CODE(chttp_node);
+
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: before handover, chttp_node: %p\n", chttp_node);
+        chttp_node_print(LOGSTDOUT, chttp_node);
+    }
+
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: before handover, chttp_rsp: %p\n", chttp_rsp);
+        chttp_rsp_print(LOGSTDOUT, chttp_rsp);
+    } 
+    
+    cstrkv_mgr_handover(CHTTP_NODE_HEADER_IN_KVS(chttp_node), CHTTP_RSP_HEADER(chttp_rsp));
+
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: after handover, chttp_node: %p\n", chttp_node);
+        chttp_node_print(LOGSTDOUT, chttp_node);
+    }
+    
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: after handover, chttp_rsp: \n");
+        chttp_rsp_print(LOGSTDOUT, chttp_rsp);
+    } 
+  
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: chttp_rsp: %p\n", chttp_rsp);
+        chttp_rsp_print(LOGSTDOUT, chttp_rsp);
+    }    
+
+    /*Transfer-Encoding: chunked*/
+    if(0 == CHTTP_NODE_CONTENT_LENGTH(chttp_node) && EC_TRUE == chttp_rsp_is_chunked(chttp_rsp))
+    {
+        CSTRKV *cstrkv;
+        
+        cstrkv = cstrkv_new((const char *)"Content-Length", c_word_to_str((UINT32)CHTTP_NODE_BODY_PARSED_LEN(chttp_node)));
+        if(NULL_PTR == cstrkv)
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: new cstrkv for chunked rsp failed\n");
+            /*ignore this exception*/
+        }
+        else
+        {
+            cstrkv_mgr_add_kv(CHTTP_RSP_HEADER(chttp_rsp), cstrkv);
+        }
+        
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_block: add %s:%s to rsp\n",
+                        (char *)CSTRKV_KEY_STR(cstrkv), (char *)CSTRKV_VAL_STR(cstrkv));
+    }
+
+    /*dump body*/
+    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: dump response body failed\n");
+
+        cstrkv_mgr_clean(CHTTP_RSP_HEADER(chttp_rsp));
+
+        chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+        chttp_node_free(chttp_node);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_block: dump response body len %ld\n", data_len);
+    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data);
+
+    if(do_log(SEC_0149_CHTTP, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_request_block: chttp_rsp: %p\n", chttp_rsp);
+        chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
+    } 
+
+    chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
+    chttp_node_free(chttp_node);
+
+    return (EC_TRUE);
+}
+
+
 /*basic http flow*/
 
 EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
@@ -7792,7 +8071,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node); /*record start time*/
 
-    if(EC_FALSE == chttp_node_connect(chttp_node, CHTTP_REQ_IPADDR(chttp_req), CHTTP_REQ_PORT(chttp_req)))
+    if(EC_FALSE == chttp_node_connect(chttp_node, CSOCKET_IS_NONBLOCK_MODE, CHTTP_REQ_IPADDR(chttp_req), CHTTP_REQ_PORT(chttp_req)))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));

@@ -42,7 +42,7 @@ CNGX_KSSL_NODE *cngx_kssl_node_new()
 {
     CNGX_KSSL_NODE *cngx_kssl_node;
     
-    alloc_static_mem(MM_CNGX_KSSL_NODE, &cngx_kssl_node, LOC_CNGX_0040);
+    alloc_static_mem(MM_CNGX_KSSL_NODE, &cngx_kssl_node, LOC_CNGX_0001);
     if(NULL_PTR != cngx_kssl_node)
     {
         cngx_kssl_node_init(cngx_kssl_node);
@@ -75,7 +75,7 @@ EC_BOOL cngx_kssl_node_free(CNGX_KSSL_NODE *cngx_kssl_node)
     if(NULL_PTR != cngx_kssl_node)
     {
         cngx_kssl_node_clean(cngx_kssl_node);
-        free_static_mem(MM_CNGX_KSSL_NODE, cngx_kssl_node, LOC_CNGX_0041);
+        free_static_mem(MM_CNGX_KSSL_NODE, cngx_kssl_node, LOC_CNGX_0002);
     }
     return (EC_TRUE);
 }

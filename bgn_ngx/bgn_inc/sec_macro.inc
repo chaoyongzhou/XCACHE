@@ -67,7 +67,7 @@
 #define SEC_0057_TASKCFGCHK                 ((UINT32)(     57)) /*taskcfgchk                      */
 #define SEC_0058_CDFSNP                     ((UINT32)(     58)) /*cdfsnp                          */
 #define SEC_0059_CP2P                       ((UINT32)(     59)) /*cp2p                            */
-#define SEC_0060_XXXXXXX                    ((UINT32)(     60)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0060_CAGENT                     ((UINT32)(     60)) /*cagent                          */
 #define SEC_0061_CHASHDB                    ((UINT32)(     61)) /*chashdb                         */
 #define SEC_0062_CROUTINE                   ((UINT32)(     62)) /*croutine                        */
 #define SEC_0063_XXXXX                      ((UINT32)(     63)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
