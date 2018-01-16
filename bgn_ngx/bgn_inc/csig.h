@@ -22,13 +22,14 @@ extern "C"{
 #include <signal.h>
 
 #include "type.h"
+#include "clistbase.h"
 
 
 #define CSIG_SHELL_CMD_LINE_BUFF_SIZE   (1024)
 #define CSIG_SHELL_CMD_OUTPUT_BUFF_SIZE (1024)
 
 #define CSIG_MAX_NUM          (256)
-#define CSIG_ATEXIT_MAX_NUM   (20480)
+#define CSIG_ATEXIT_MAX_NUM   (1024)
 
 #define CSIG_HANDLE_UNDEF ((uint32_t) 0)
 #define CSIG_HANDLE_NOW   ((uint32_t) 1)
@@ -37,10 +38,13 @@ extern "C"{
 typedef EC_BOOL (*CSIG_ATEXIT_HANDLER)(UINT32);
 
 typedef struct
-{
+{   
+    CLISTBASE_NODE       node;
+    
     CSIG_ATEXIT_HANDLER  handler;
     UINT32               arg;
 }CSIG_ATEXIT;
+
 
 typedef struct
 {
@@ -51,14 +55,16 @@ typedef struct
 
 typedef struct
 {
-    int signal_queue_len;            /* length of signal queue, <= MAX_SIGNAL (1 entry per signal max) */
-    int signal_queue[ CSIG_MAX_NUM ];/* in-order queue of received signals */
+    int             signal_queue_len;            /* length of signal queue, <= MAX_SIGNAL (1 entry per signal max) */
+    int             signal_queue[ CSIG_MAX_NUM ];/* in-order queue of received signals */
 
-    CSIG_ACTION signal_action[ CSIG_MAX_NUM ];
-    sigset_t    blocked_sig;    
+    CSIG_ACTION     signal_action[ CSIG_MAX_NUM ];
+    sigset_t        blocked_sig;    
 
-    int         atexit_queue_len;
-    CSIG_ATEXIT atexit_queue[CSIG_ATEXIT_MAX_NUM];
+    CSIG_ATEXIT     atexit_table[CSIG_ATEXIT_MAX_NUM];
+
+    CLISTBASE       atexit_free_list;
+    CLISTBASE       atexit_used_list;
 }CSIG;
 
 CSIG *csig_new();

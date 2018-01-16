@@ -148,12 +148,12 @@ UINT32 crfsmon_start()
 
     crfsmon_md->usedcounter = 1;
 
-    tasks_cfg_push_add_worker_callback(TASK_BRD_TASKS_CFG(task_brd), 
+    tasks_cfg_push_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
                                        (const char *)"crfsmon_callback_when_add", 
                                        crfsmon_md_id, 
                                        (UINT32)crfsmon_callback_when_add);
 
-    tasks_cfg_push_del_worker_callback(TASK_BRD_TASKS_CFG(task_brd), 
+    tasks_cfg_push_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
                                        (const char *)"crfsmon_callback_when_del", 
                                        crfsmon_md_id, 
                                        (UINT32)crfsmon_callback_when_del);
@@ -207,12 +207,12 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
         CRFSMON_MD_CRFSCONHASH(crfsmon_md) = NULL_PTR;
     }
 
-    tasks_cfg_erase_add_worker_callback(TASK_BRD_TASKS_CFG(task_brd), 
+    tasks_cfg_erase_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
                                       (const char *)"crfsmon_callback_when_add", 
                                       crfsmon_md_id, 
                                       (UINT32)crfsmon_callback_when_add);
 
-    tasks_cfg_erase_del_worker_callback(TASK_BRD_TASKS_CFG(task_brd), 
+    tasks_cfg_erase_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
                                       (const char *)"crfsmon_callback_when_del", 
                                       crfsmon_md_id, 
                                       (UINT32)crfsmon_callback_when_del);

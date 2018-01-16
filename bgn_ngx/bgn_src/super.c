@@ -648,7 +648,7 @@ UINT32 super_incl_taskc_node(const UINT32 super_md_id, const UINT32 ipaddr, cons
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     if(do_log(SEC_0117_SUPER, 5))
     {
@@ -695,7 +695,7 @@ UINT32 super_excl_taskc_node(const UINT32 super_md_id, const UINT32 tcid, const 
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg    = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg    = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker = TASKS_CFG_WORKER(tasks_cfg);
 
     if(do_log(SEC_0117_SUPER, 5))
@@ -768,7 +768,7 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *des_taskc_mgr)
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg    = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg    = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker = TASKS_CFG_WORKER(tasks_cfg);
 
     CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0022);
@@ -838,7 +838,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg    = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg    = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker = TASKS_CFG_WORKER(tasks_cfg);
 
     task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -941,7 +941,7 @@ EC_BOOL super_check_tcid_connected(const UINT32 super_md_id, const UINT32 tcid)
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         TASKS_CFG *tasks_cfg;
-        tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
         return tasks_worker_check_connected_by_tcid(TASKS_CFG_WORKER(tasks_cfg), tcid);
     }
 
@@ -977,7 +977,7 @@ EC_BOOL super_check_ipaddr_connected(const UINT32 super_md_id, const UINT32 ipad
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         TASKS_CFG *tasks_cfg;
-        tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
         return tasks_worker_check_connected_by_ipaddr(TASKS_CFG_WORKER(tasks_cfg), ipaddr);
     }
 
@@ -1311,7 +1311,7 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
         TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
-        tasks_srv_end(TASK_BRD_TASKS_CFG(task_brd));
+        tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
  
         csig_stop(SIGHUP);
     }
@@ -1323,7 +1323,7 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
         TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
-        tasks_srv_end(TASK_BRD_TASKS_CFG(task_brd));
+        tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
         return;
     }
 
@@ -1335,7 +1335,7 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
         TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
-        tasks_srv_end(TASK_BRD_TASKS_CFG(task_brd));
+        tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_ON == NGX_BGN_SWITCH) 
@@ -1765,7 +1765,7 @@ void super_sync_taskcomm(const UINT32 super_md_id, const UINT32 src_tcid, const 
         return;
     }
 
-    local_tasks_cfg      = TASK_BRD_TASKS_CFG(task_brd);
+    local_tasks_cfg      = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     remote_tasks_cfg_vec = TASK_CFG_TASKS_CFG_VEC(local_task_cfg);
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -1924,7 +1924,7 @@ void super_sync_taskcomm_from_local(const UINT32 super_md_id, const UINT32 max_h
 
     task_brd = task_brd_default_get();
 
-    local_tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     super_sync_taskcomm(TASK_BRD_SUPER_MD_ID(task_brd),
                         TASKS_CFG_TCID(local_tasks_cfg), TASKS_CFG_MASKI(local_tasks_cfg), TASKS_CFG_MASKE(local_tasks_cfg),
@@ -2439,7 +2439,7 @@ void super_show_work_client(const UINT32 super_md_id, LOG *log)
         TASKS_CFG *tasks_cfg;
         UINT32 index;
 
-        tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
         index     = 0;
 
         //dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "===================================== working clients beg: =====================================\n");
@@ -2502,7 +2502,7 @@ void super_show_route_table(const UINT32 super_md_id, LOG *log)
 #endif/*SUPER_DEBUG_SWITCH*/
 
     task_brd = task_brd_default_get();
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0049);
     if(EC_TRUE == cvector_is_empty(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)))
@@ -2951,7 +2951,7 @@ void super_add_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
         TASKS_CFG *local_tasks_cfg;
         TASKR_CFG *taskr_cfg;
 
-        local_tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
         taskr_cfg = taskr_cfg_new();
         taskr_cfg_set(taskr_cfg, des_tcid, maskr, next_tcid);
@@ -2991,7 +2991,7 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
         TASKS_CFG *local_tasks_cfg;
         TASKR_CFG *taskr_cfg;
 
-        local_tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
         taskr_cfg = taskr_cfg_new();
         taskr_cfg_set(taskr_cfg, des_tcid, maskr, next_tcid);

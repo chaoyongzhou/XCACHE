@@ -1315,6 +1315,33 @@ CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, con
     return (NULL_PTR);
 }
 
+/*return the first one which is matched*/
+TASKS_CFG *sys_cfg_search_tasks_cfg_by_role_from_cluster(const SYS_CFG *sys_cfg, const char *cluster_name, const char *role)
+{
+    CLUSTER_CFG             *cluster_cfg;
+    UINT32                   cluster_node_pos;
+    CLUSTER_NODE_CFG        *cluster_node_cfg;
+    
+    cluster_cfg = sys_cfg_get_cluster_cfg_by_name_str(sys_cfg, cluster_name);
+    if(NULL_PTR == cluster_cfg)
+    {
+        return (NULL_PTR);
+    }
+
+    cluster_node_pos = cvector_search_front(CLUSTER_CFG_NODES(cluster_cfg), (void *)role, 
+                (CVECTOR_DATA_CMP)cluster_node_cfg_check_role_str);
+
+    if(CVECTOR_ERR_POS == cluster_node_pos)
+    {
+        return (NULL_PTR);
+    }
+
+    cluster_node_cfg = cvector_get(CLUSTER_CFG_NODES(cluster_cfg), cluster_node_pos);
+
+    return sys_cfg_search_tasks_cfg(sys_cfg, CLUSTER_NODE_CFG_TCID(cluster_node_cfg), 
+                                    CMPI_ANY_MASK, CMPI_ANY_MASK);
+}
+
 TASKS_CFG *sys_cfg_search_tasks_cfg(const SYS_CFG *sys_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske)
 {
     return task_cfg_searchs(SYS_CFG_TASK_CFG((SYS_CFG *)sys_cfg), tcid, maski, maske);

@@ -142,6 +142,8 @@ EC_BOOL csocket_cnode_iclose(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL csocket_cnode_itimeout(CSOCKET_CNODE *csocket_cnode);
 
+EC_BOOL csocket_cnode_is_nonblock(const CSOCKET_CNODE *csocket_cnode);
+
 EC_BOOL csocket_cnode_is_connected(const CSOCKET_CNODE *csocket_cnode);
 
 void    csocket_cnode_print(LOG *log, const CSOCKET_CNODE *csocket_cnode);
@@ -190,7 +192,7 @@ EC_BOOL csocket_enable_keepalive(int sockfd);
 
 EC_BOOL csocket_disable_keepalive(int sockfd);
 
-EC_BOOL csocket_optimize(int sockfd);
+EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode);
 
 EC_BOOL csocket_udp_optimize(int sockfd);
 
@@ -210,7 +212,7 @@ EC_BOOL csocket_is_connected(const int sockfd);
 
 EC_BOOL csocket_is_closed(const int sockfd);
 
-EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode, UINT32 *client_ipaddr);
+EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode, UINT32 *client_ipaddr, UINT32 *client_port);
 
 EC_BOOL csocket_get_peer_port(const int sockfd, UINT32 *peer_port);
 

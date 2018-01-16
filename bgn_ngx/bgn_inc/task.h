@@ -212,6 +212,10 @@ char *task_brd_default_get_time_str();
 
 CEPOLL *task_brd_default_get_cepoll();
 
+EC_BOOL task_brd_default_has_detect();
+
+TASKS_CFG *task_brd_default_get_detect();
+
 EC_BOOL task_brd_default_set_ngx_exiting();
 
 EC_BOOL task_brd_default_is_ngx_exiting();
@@ -267,6 +271,8 @@ EC_BOOL task_brd_wait_basic_config(TASK_BRD *task_brd, const CSTRING *bcast_dhcp
 EC_BOOL task_brd_wait_sys_config(TASK_BRD *task_brd, const UINT32 udp_mcast_ipaddr, const UINT32 udp_mcast_port);
 
 EC_BOOL task_brd_wait_config(TASK_BRD *task_brd, const CSTRING *bcast_dhcp_netcard_cstr, UINT32 *this_tcid);
+
+EC_BOOL task_brd_make_config(TASK_BRD *task_brd, const UINT32 this_tcid);
 
 EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid);
 

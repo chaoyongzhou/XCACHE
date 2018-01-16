@@ -227,6 +227,21 @@ EC_BOOL ctdns_show_npp(const UINT32 ctdns_md_id, LOG *log);
 **/
 EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log);
 
+/**
+*
+*  check this TDNS has namenode
+*
+*
+**/
+EC_BOOL ctdns_has_npp(const UINT32 ctdns_md_id);
+
+/**
+*
+*  check this TDNS has service pool
+*
+*
+**/
+EC_BOOL ctdns_has_svp(const UINT32 ctdns_md_id);
 
 #endif /*_CTDNS_H*/
 

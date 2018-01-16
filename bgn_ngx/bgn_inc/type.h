@@ -31,6 +31,7 @@ extern "C"{
 #include <pthread.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "bgnctrl.h"
 #include "typeconst.h"

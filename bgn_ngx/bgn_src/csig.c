@@ -122,6 +122,16 @@ DESCRIPTION
        SIGEMT  is  not  specified  in POSIX 1003.1-2001, but neverthless appears on most other Unices, where its default action is typically to terminate the process
        with a core dump.
 *********************************************************************************************************************************************************************/
+static EC_BOOL __csig_atexit_cmp(CSIG_ATEXIT *csig_atexit_1st, CSIG_ATEXIT *csig_atexit_2nd)
+{
+    if(csig_atexit_1st->handler == csig_atexit_2nd->handler
+    && csig_atexit_1st->arg     == csig_atexit_2nd->arg)
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
 CSIG *csig_new()
 {
     CSIG  *csig;
@@ -140,8 +150,8 @@ CSIG *csig_new()
 
 EC_BOOL csig_init(CSIG *csig)
 {
-    int signo;
-    int idx;
+    int      signo;
+    int      idx;
 
     csig->signal_queue_len = 0;
     for(idx = 0; idx < CSIG_MAX_NUM; idx ++)
@@ -158,13 +168,43 @@ EC_BOOL csig_init(CSIG *csig)
  
     sigfillset(&(csig->blocked_sig));
 
-    csig->atexit_queue_len = 0;
+    /*init atexit table and list data table*/
+    for(idx = 0; idx < CSIG_ATEXIT_MAX_NUM; idx ++)
+    {   
+        CSIG_ATEXIT     *csig_atexit;
+        CLISTBASE_NODE  *clistbase_node;
+
+        csig_atexit = &(csig->atexit_table[ idx ]);
+        csig_atexit->handler = NULL_PTR;
+        csig_atexit->arg     = NULL_PTR;
+
+        clistbase_node = &(csig_atexit->node);
+
+        ASSERT((void *)csig_atexit == (void *)clistbase_node);
+        CLISTBASE_NODE_INIT(clistbase_node);
+
+        dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_init: "
+                                             "[%d] bind: clistbase_node: %p, csig_atexit: %p\n",
+                                             idx, clistbase_node, csig_atexit);
+    }
+    
+    /*init free list and used list*/
+    clistbase_init(&(csig->atexit_free_list));
+    clistbase_init(&(csig->atexit_used_list));
+
+    /*setup free list*/
     for(idx = 0; idx < CSIG_ATEXIT_MAX_NUM; idx ++)
     {
-        csig->atexit_queue[ idx ].handler = NULL_PTR;
-        csig->atexit_queue[ idx ].arg     = NULL_PTR;
-    }
+        CSIG_ATEXIT     *csig_atexit;
+        
+        csig_atexit = &(csig->atexit_table[ idx ]);
+        clistbase_push_back(&(csig->atexit_free_list), (void *)csig_atexit);
 
+        dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_init: "
+                                             "[%d] push free: csig_atexit: %p\n",
+                                             idx, csig_atexit);        
+    }
+    
     return (EC_TRUE);
 }
 
@@ -273,9 +313,9 @@ void csigaction_register(int signo, void (*handler)(int))
 
 EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 {
-    TASK_BRD *task_brd;
-    CSIG     *csig;
-    int       idx;
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+    CSIG_ATEXIT     *csig_atexit;
 
     if(NULL_PTR == atexit_handler)
     {
@@ -285,39 +325,59 @@ EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
- 
-    idx = csig->atexit_queue_len ++;
 
-    if(CSIG_ATEXIT_MAX_NUM <= idx)
+    csig_atexit = clistbase_pop_front(&(csig->atexit_free_list));
+    if(NULL_PTR == csig_atexit)
     {
-        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_atexit_register: atexit queue is already full\n");
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_atexit_register: atexit table is already full\n");
         return (EC_FALSE);
     }
 
-    csig->atexit_queue[ idx ].handler = atexit_handler;
-    csig->atexit_queue[ idx ].arg     = arg;
+    //ASSERT((void *)csig_atexit == (void *)&(csig_atexit->node));
+
+    dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_atexit_register: pop free: "
+                                         "csig_atexit: %p, clistbase_node: %p\n",
+                                         csig_atexit, &(csig_atexit->node));    
+                       
+    csig_atexit->handler = atexit_handler;
+    csig_atexit->arg     = arg;
+
+    clistbase_push_back(&(csig->atexit_used_list), (void *)csig_atexit);
  
     return (EC_TRUE);
 }
 
 EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 {
-    TASK_BRD *task_brd;
-    CSIG     *csig;
- 
-    int idx;
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+
+    CSIG_ATEXIT      csig_atexit_tmp;
+    CSIG_ATEXIT     *csig_atexit_searched;
+    CLISTBASE_NODE  *clistbase_node_searched;
  
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd); 
- 
-    for(idx = 0; idx < csig->atexit_queue_len && CSIG_ATEXIT_MAX_NUM > idx; idx ++)
+
+    csig_atexit_tmp.handler = atexit_handler;
+    csig_atexit_tmp.arg     = arg;
+
+    clistbase_node_searched = clistbase_search_back(&(csig->atexit_used_list), (void *)&csig_atexit_tmp, 
+                            (CLISTBASE_NODE_DATA_CMP)__csig_atexit_cmp);
+
+    if(NULL_PTR == clistbase_node_searched)
     {
-        if(atexit_handler == csig->atexit_queue[ idx ].handler && arg == csig->atexit_queue[ idx ].arg)
-        {
-            csig->atexit_queue[ idx ].handler = NULL_PTR;
-            csig->atexit_queue[ idx ].arg     = 0;
-        }
+        return (EC_TRUE);
     }
+
+    clistbase_erase(&(csig->atexit_used_list), clistbase_node_searched);
+
+    csig_atexit_searched = CLISTBASE_NODE_DATA(clistbase_node_searched);
+    csig_atexit_searched->handler = NULL_PTR;
+    csig_atexit_searched->arg     = 0;
+
+    clistbase_push_back(&(csig->atexit_free_list), (void *)clistbase_node_searched);
+    
     return (EC_TRUE);
 }
 
@@ -438,7 +498,7 @@ static void __csig_print_queue(LOG *log)
     CSIG_ACTION *csig_action;
 
     task_brd = task_brd_default_get();
-    csig = TASK_BRD_CSIG(task_brd);
+    csig     = TASK_BRD_CSIG(task_brd);
 
     for(cur_pos = 0; cur_pos < csig->signal_queue_len; cur_pos++)
     {
@@ -471,25 +531,31 @@ void csig_print_queue(LOG *log)
 
 static void __csig_atexit_process_queue()
 {
-    TASK_BRD *task_brd;
-    CSIG     *csig;
- 
-    int idx;
- 
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+    CSIG_ATEXIT     *csig_atexit;
+  
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd); 
- 
-    for(idx = 0; idx < csig->atexit_queue_len && CSIG_ATEXIT_MAX_NUM > idx; idx ++)
-    {
-        if(NULL_PTR == csig->atexit_queue[ idx ].handler)
-        {
-            continue;
-        }
-     
-        csig->atexit_queue[ idx ].handler(csig->atexit_queue[ idx ].arg);
-    }
 
-    csig->atexit_queue_len = 0;
+    while(NULL_PTR != (csig_atexit = clistbase_pop_back(&(csig->atexit_used_list))))
+    {
+        CSIG_ATEXIT_HANDLER  handler;
+        UINT32               arg;
+    
+        if(NULL_PTR != csig_atexit->handler)
+        {
+            handler = csig_atexit->handler;
+            arg     = csig_atexit->arg;
+
+            csig_atexit->handler = NULL_PTR;
+            csig_atexit->arg     = 0;
+
+            handler(arg);        
+        }
+
+        clistbase_push_back(&(csig->atexit_free_list), (void *)csig_atexit);
+    }
 
     return;
 }
@@ -500,9 +566,9 @@ void csig_atexit_process_queue()
     CSIG        *csig;
 
     task_brd = task_brd_default_get();
-    csig = TASK_BRD_CSIG(task_brd);
+    csig     = TASK_BRD_CSIG(task_brd);
  
-    if (0 < csig->atexit_queue_len)
+    if (EC_FALSE == clistbase_is_empty(&(csig->atexit_used_list)))
     {
         __csig_atexit_process_queue();
     }

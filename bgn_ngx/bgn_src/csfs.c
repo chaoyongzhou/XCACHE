@@ -320,6 +320,8 @@ void csfs_end(const UINT32 csfs_md_id)
 {
     CSFS_MD *csfs_md;
 
+    csig_atexit_unregister((CSIG_ATEXIT_HANDLER)csfs_end, csfs_md_id);
+
     csfs_md = CSFS_MD_GET(csfs_md_id);
     if(NULL_PTR == csfs_md)
     {

@@ -1340,13 +1340,13 @@ EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
                              c_ipv4_to_word(ipaddr_str), &tcid, &port))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_reservetcid_get_request: "
-                                                  "reservice tcid for ip '%s' from service '%s' failed\n", 
+                                                  "reserve tcid for ip '%s' from service '%s' failed\n", 
                                                   ipaddr_str, service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_reservetcid_get_request: "
-                                                  "reservice tcid for ip '%s' from service '%s' failed", 
+                                                  "reserve tcid for ip '%s' from service '%s' failed", 
                                                   ipaddr_str, service_str);
                          
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -1356,14 +1356,14 @@ EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
 
 
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_reservetcid_get_request: "
-                                              "reservice tcid '%s' port %ld for ip '%s'from service '%s' done\n", 
+                                              "reserve tcid '%s' port %ld for ip '%s'from service '%s' done\n", 
                                               c_word_to_ipv4(tcid), port,
                                               ipaddr_str, service_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_reservetcid_get_request: "
-                                              "reservice tcid '%s' port %ld for ip '%s' from service '%s' done", 
+                                              "reserve tcid '%s' port %ld for ip '%s' from service '%s' done", 
                                               c_word_to_ipv4(tcid), port,
                                               ipaddr_str, service_str);
 

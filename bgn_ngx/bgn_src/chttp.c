@@ -1903,7 +1903,7 @@ EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
      
         return (EC_FALSE);
     }
-    
+
     if(EC_FALSE == chttp_node_send(chttp_node, csocket_cnode))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_req: sockfd %d send req failed\n",
@@ -4016,10 +4016,11 @@ EC_BOOL chttp_srv_bind_modi(CSRV *csrv, const UINT32 modi)
 EC_BOOL chttp_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
 {
     UINT32  client_ipaddr; 
+    UINT32  client_port;
     EC_BOOL ret;
     int     client_conn_sockfd; 
 
-    ret = csocket_accept(CSRV_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr));
+    ret = csocket_accept(CSRV_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
     if(EC_TRUE == ret)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -6350,7 +6351,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
     && NULL_PTR != (csocket_cnode = cconnp_mgr_reserve(cconnp_mgr, CMPI_ANY_TCID, ipaddr, port)))
     {
         /*optimize for the latest loaded config*/
-        csocket_optimize(CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        csocket_optimize(CSOCKET_CNODE_SOCKFD(csocket_cnode), csocket_block_mode);
     }
     else
     {
@@ -7830,6 +7831,7 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
     }
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    
     chttp_node_init_parser(chttp_node);
 
     chttp_node_set_parse_callback(chttp_node);

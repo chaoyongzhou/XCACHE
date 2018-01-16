@@ -668,6 +668,16 @@ EC_BOOL csocket_cnode_cmp(const CSOCKET_CNODE *csocket_cnode_1, const CSOCKET_CN
     return (EC_TRUE);
 }
 
+EC_BOOL csocket_cnode_is_nonblock(const CSOCKET_CNODE *csocket_cnode)
+{
+    if(EC_FALSE == csocket_is_nonblock(CSOCKET_CNODE_SOCKFD(csocket_cnode)))
+    {
+        //ASSERT(BIT_FALSE == CSOCKET_CNODE_NONBLOCK(csocket_cnode));
+        return (EC_FALSE);
+    }
+    //ASSERT(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode));
+    return (EC_TRUE);
+}
 
 EC_BOOL csocket_cnode_is_connected(const CSOCKET_CNODE *csocket_cnode)
 {
@@ -1105,7 +1115,7 @@ EC_BOOL csocket_disable_keepalive(int sockfd)
     return (ret);
 }
 
-EC_BOOL csocket_optimize(int sockfd)
+EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
 {
     EC_BOOL ret;
 
@@ -1244,12 +1254,19 @@ EC_BOOL csocket_optimize(int sockfd)
     }
 
     /* optimization 8: set NONBLOCK*/
-    if(1)
+    if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode)
     {
         int flag;
 
         flag = fcntl(sockfd, F_GETFL, 0);
         fcntl(sockfd, F_SETFL, O_NONBLOCK | flag);
+    }
+    else
+    {
+        int flag;
+
+        flag = fcntl(sockfd, F_GETFL, 0);
+        fcntl(sockfd, F_SETFL, (~O_NONBLOCK) & flag);  
     }
 
     /*optimization 9: disable linger, i.e., send close socket, stop sending/recving at once*/
@@ -1501,7 +1518,7 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
     csocket_srv_addr_init( srv_ipaddr, srv_port, &srv_addr);
 
     /* note: optimization must before listen at server side*/
-    if(EC_FALSE == csocket_optimize(sockfd))
+    if(EC_FALSE == csocket_optimize(sockfd, CSOCKET_IS_NONBLOCK_MODE))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_listen: sockfd %d failed in some optimization\n", sockfd);
     }
@@ -1528,7 +1545,7 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
     return ( EC_TRUE );
 }
 
-EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode, UINT32 *client_ipaddr)
+EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode, UINT32 *client_ipaddr, UINT32 *client_port)
 {
     int new_sockfd;
 
@@ -1541,9 +1558,8 @@ EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csoc
     {
         return (EC_FALSE);
     }
-    //csocket_is_nonblock(new_sockfd);
 
-    if(EC_FALSE == csocket_optimize(new_sockfd))
+    if(EC_FALSE == csocket_optimize(new_sockfd, csocket_block_mode))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_accept: optimize sockfd %d failed\n", new_sockfd);
     } 
@@ -1554,6 +1570,7 @@ EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csoc
     } 
  
     (*client_ipaddr) = c_ipv4_to_word((char *)c_inet_ntos(&(sockaddr_in.sin_addr)));
+    (*client_port)   = c_inet_ntohs(sockaddr_in.sin_port);
     (*conn_sockfd) = new_sockfd;
 
     return (EC_TRUE);
@@ -2635,9 +2652,9 @@ EC_BOOL csocket_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, const U
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_connect: socket error\n");
         return ( EC_FALSE );
     }
-
+    
     /* note: optimization must before connect at server side*/
-    if(EC_FALSE == csocket_optimize(sockfd))
+    if(EC_FALSE == csocket_optimize(sockfd, csocket_block_mode))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_connect: sockfd %d failed in some optimization\n", sockfd);
     }
@@ -3171,6 +3188,10 @@ EC_BOOL csocket_write(const int sockfd, const UINT32 once_max_size, const UINT8 
         once_sent_len = DMIN(once_max_size, once_sent_len);
 
         sent_num = write(sockfd, (void *)(out_buff + (*pos)), once_sent_len);
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_write: "
+                            "sockfd %d sent_num = %ld, tcpi %s, nonblock: %s\n", 
+                            sockfd, sent_num, csocket_tcpi_stat_desc(sockfd),
+                            c_bool_str(csocket_is_nonblock(sockfd)));
         if(0 > sent_num)
         {
             return csocket_no_ierror(sockfd);
@@ -3475,9 +3496,6 @@ EC_BOOL csocket_irecv_task_node(CSOCKET_CNODE *csocket_cnode, TASK_NODE *task_no
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);
     }
-
-    /*debug*/
-    //csocket_is_nonblock(CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     if(EC_FALSE == csocket_cnode_recv(csocket_cnode,
                                   TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node))))
@@ -3968,7 +3986,6 @@ EC_BOOL csocket_unix_accept(const int srv_sockfd, int *conn_sockfd, const UINT32
     {
         return (EC_FALSE);
     }
-    //csocket_is_nonblock(new_sockfd);
 
     if(EC_FALSE == csocket_unix_optimize(new_sockfd))
     {

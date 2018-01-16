@@ -195,7 +195,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
 
     cstring_free(ctdnsnp_root_dir); 
 
-    if(EC_TRUE  == ret && NULL_PTR != ctdns_root_dir)
+    if(EC_TRUE == ret && NULL_PTR != ctdns_root_dir)
     {
         CTDNS_MD_SVP(ctdns_md) = ctdnssv_mgr_open(ctdns_root_dir);
         if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
@@ -1169,6 +1169,66 @@ EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log)
 
     ctdnssv_mgr_print(log, CTDNS_MD_SVP(ctdns_md));
  
+    return (EC_TRUE);
+}
+
+/**
+*
+*  check this TDNS has namenode
+*
+*
+**/
+EC_BOOL ctdns_has_npp(const UINT32 ctdns_md_id)
+{
+    CTDNS_MD *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_has_npp: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_NPP(ctdns_md))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  check this TDNS has service pool
+*
+*
+**/
+EC_BOOL ctdns_has_svp(const UINT32 ctdns_md_id)
+{
+    CTDNS_MD *ctdns_md;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_has_svp: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
+    {
+        return (EC_FALSE);
+    }
+
     return (EC_TRUE);
 }
 

@@ -150,7 +150,6 @@ UINT32 cdetect_start(const CSTRING *cdetect_conf_file)
 
     if(EC_FALSE == cdetect_load_conf(cdetect_md_id, cdetect_conf_file))
     {
-        csig_atexit_unregister((CSIG_ATEXIT_HANDLER)cdetect_end, cdetect_md_id);
         cdetect_end(cdetect_md_id);
         return (CMPI_ERROR_MODI);
     }
@@ -748,7 +747,7 @@ static EC_BOOL __cdetect_parse_ip_nodes(CLIST *cdetect_ip_nodes, char *ips)
     return (EC_TRUE);
 }
 
-/*format: domain | ip[:...] | url | interval nsec | stopping nsec | reachable status | forbidden status | strategy */
+/*format: domain | ip[:port][,...] | url | interval nsec | stopping nsec | reachable status | forbidden status | strategy */
 static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdetect_conf_start, char *cdetect_conf_end)
 {
     CDETECT_MD          *cdetect_md;
@@ -756,20 +755,53 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
     CRB_NODE            *crb_node;
     
     char                *segs[ 8 ];
+    char                *p;
     uint32_t             segs_num;
     uint32_t             idx;
     UINT32               domain_hash;
     
     cdetect_md = CDETECT_MD_GET(cdetect_md_id);
 
-    segs_num = sizeof(segs)/sizeof(segs[ 0 ]);
+    /*locate the first char which is not space*/
+    
+    for(p = cdetect_conf_start;isspace(*p); p ++) 
+    {
+        /*do nothing*/
+    }                               
+    
+    if('\0' == (*p))
+    {
+        dbg_log(SEC_0043_CDETECT, 6)(LOGSTDOUT, "[DEBUG] __cdetect_parse_conf_line: "
+                                                "skip empty line '%.*s'\n",
+                                                (cdetect_conf_end - cdetect_conf_start), 
+                                                cdetect_conf_start);      
+        /*skip empty line*/
+        return (EC_TRUE);
+    }
+    
+    if('#' == (*p))
+    {
+        /*skip commented line*/
+        dbg_log(SEC_0043_CDETECT, 6)(LOGSTDOUT, "[DEBUG] __cdetect_parse_conf_line: "
+                                                "skip commented line '%.*s'\n",
+                                                (cdetect_conf_end - cdetect_conf_start), 
+                                                cdetect_conf_start);          
+        return (EC_TRUE);
+    }
 
+    dbg_log(SEC_0043_CDETECT, 6)(LOGSTDOUT, "[DEBUG] __cdetect_parse_conf_line: "
+                                            "handle line '%.*s'\n",
+                                            (cdetect_conf_end - cdetect_conf_start), 
+                                            cdetect_conf_start);      
+    
+    segs_num = sizeof(segs)/sizeof(segs[ 0 ]);
     if(segs_num != c_str_split(cdetect_conf_start, (const char *)"|", segs, segs_num))
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_parse_conf_line: "
-                                                "unable to split '%.*s' into 4 segs\n",
+                                                "unable to split '%.*s' into %u segs\n",
                                                 (cdetect_conf_end - cdetect_conf_start), 
-                                                cdetect_conf_start);    
+                                                cdetect_conf_start,
+                                                segs_num);    
         return (EC_FALSE);
     }
 
@@ -798,14 +830,22 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
         cdetect_orig_node_free(cdetect_orig_node);                
         return (EC_FALSE);
     }
-    cstring_init(CDETECT_ORIG_NODE_URL(cdetect_orig_node), (const uint8_t *)segs[ 2 ]);
 
+    if(0 != STRCMP(segs[ 2 ], "-"))/*url is not configured*/
+    {
+        cstring_init(CDETECT_ORIG_NODE_URL(cdetect_orig_node), (const uint8_t *)segs[ 2 ]);
+    }
+    
     CDETECT_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetect_orig_node) = c_str_to_uint32_t(segs[ 3 ]);
     CDETECT_ORIG_NODE_DETECT_STOPPING_NSEC(cdetect_orig_node) = c_str_to_uint32_t(segs[ 4 ]);
     
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node) = c_str_to_uint32_t(segs[ 5 ]);
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node) = c_str_to_uint32_t(segs[ 6 ]);
-    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)  = __cdetect_choice_strategy(segs[ 7 ]);
+
+    if(0 != STRCMP(segs[ 7 ], "-")) /*strategy is not configured*/
+    {
+        CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)  = __cdetect_choice_strategy(segs[ 7 ]);
+    }
     CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)      = (uint32_t)domain_hash;
     
     crb_node = crb_tree_insert_data(CDETECT_MD_ORIG_NODE_TREE(cdetect_md), (void *)cdetect_orig_node);
@@ -863,7 +903,13 @@ static EC_BOOL __cdetect_parse_conf_file(const UINT32 cdetect_md_id, char *cdete
         }
 
         *(cdetect_conf_line_end - 1) = '\0'; /*insert string terminator*/
-        
+
+        dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "error:__cdetect_parse_conf_file: "
+                                                "to parse line %u# '%.*s' failed\n",
+                                                cdetect_conf_line_no, 
+                                                (cdetect_conf_line_end - cdetect_conf_line_start), 
+                                                cdetect_conf_line_start);
+                                                
         if(EC_FALSE == __cdetect_parse_conf_line(cdetect_md_id, cdetect_conf_line_start, cdetect_conf_line_end))
         {
             dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_parse_conf_file: "
@@ -1227,7 +1273,8 @@ EC_BOOL cdetect_dns_resolve(const UINT32 cdetect_md_id, const CSTRING *domain, U
     }
 
     /*add to detect due to the domain is accessed*/
-    if(NULL_PTR == CDETECT_ORIG_NODE_DETECT_ORIG_NODE(cdetect_orig_node))
+    if(NULL_PTR == CDETECT_ORIG_NODE_DETECT_ORIG_NODE(cdetect_orig_node)
+    && EC_FALSE == cstring_is_empty(CDETECT_ORIG_NODE_URL(cdetect_orig_node)))
     {
         CDETECT_ORIG_NODE_DETECT_ORIG_NODE(cdetect_orig_node) = 
                     clist_push_back(CDETECT_MD_DETECT_NODE_LIST(cdetect_md), (void *)cdetect_orig_node);
@@ -1238,6 +1285,10 @@ EC_BOOL cdetect_dns_resolve(const UINT32 cdetect_md_id, const CSTRING *domain, U
         return (EC_FALSE);
     }
 
+    dbg_log(SEC_0043_CDETECT, 5)(LOGSTDOUT, "[DEBUG] cdetect_dns_resolve: "
+                                            "domain '%s' => ip '%s'\n",
+                                            (char *)cstring_get_str(domain),
+                                            c_word_to_ipv4(*ipaddr)); 
     return (EC_TRUE);
 }
 

@@ -789,6 +789,8 @@
 #define                        FI_ctdns_config_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 26))
 #define                       FI_ctdns_reserve_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 27))
 #define                       FI_ctdns_release_tcid  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 28))
+#define                            FI_ctdns_has_npp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 29))
+#define                            FI_ctdns_has_svp  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 30))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))

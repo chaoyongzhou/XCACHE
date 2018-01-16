@@ -353,6 +353,8 @@ void chfs_end(const UINT32 chfs_md_id)
 {
     CHFS_MD *chfs_md;
 
+    csig_atexit_unregister((CSIG_ATEXIT_HANDLER)chfs_end, chfs_md_id);
+    
     chfs_md = CHFS_MD_GET(chfs_md_id);
     if(NULL_PTR == chfs_md)
     {

@@ -256,6 +256,12 @@ EC_BOOL log_clean(LOG *log);
 
 EC_BOOL log_free(LOG *log);
 
+LOG *log_open(const char *fname, const char *mode);
+
+EC_BOOL log_close(LOG *log);
+
+EC_BOOL log_set_level(const char *level_cfg);
+
 void echo_msg(const char * format, ...);/*for debug only*/
 
 #endif/* _LOG_H */

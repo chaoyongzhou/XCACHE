@@ -279,10 +279,11 @@ EC_BOOL cagent_gen_config_xml(const CAGENT *cagent, const char *fname)
 {
     SYS_CFG     *sys_cfg;
     TASKS_CFG   *tasks_cfg;
+#if 0    
     CPARACFG    *cparacfg;
     
     LOG         *log;
-
+#endif
     sys_cfg = sys_cfg_new();
     if(NULL_PTR == sys_cfg)
     {

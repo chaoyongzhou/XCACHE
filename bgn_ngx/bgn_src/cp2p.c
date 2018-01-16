@@ -146,6 +146,66 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
     }
     CP2P_MD_CRFS_MODI(cp2p_md) = crfs_md_id;
 
+    /* create rfs np and dn */
+    if(EC_FALSE == crfs_is_npp_and_dn(crfs_md_id))
+    {
+        CSTRING     *crfsnp_db_root_dir;
+        CSTRING     *crfsdn_db_root_dir;
+        UINT32       crfsnp_max_num;
+        UINT32       crfs_disk_no;
+
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs\n");
+
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs npp\n");
+        
+        crfsnp_db_root_dir = cstring_make("%s/rfs%02ld", (char *)cstring_get_str(crfs_root_dir), crfs_md_id);
+        if(NULL_PTR == crfsnp_db_root_dir)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: new crfsnp_db_root_dir failed\n");
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+
+        crfsnp_max_num = 1;
+        if(EC_FALSE == crfs_create_npp(crfs_md_id, CRFSNP_128M_MODEL, crfsnp_max_num, 
+                                       CHASH_RS_ALGO_ID, crfsnp_db_root_dir))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create rfs npp failed\n");
+            cstring_free(crfsnp_db_root_dir);
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+        cstring_free(crfsnp_db_root_dir);
+
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs dn\n");
+
+        crfsdn_db_root_dir = cstring_make("%s/rfs%02ld", (char *)cstring_get_str(crfs_root_dir), crfs_md_id);
+        if(NULL_PTR == crfsdn_db_root_dir)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: new crfsdn_db_root_dir failed\n");
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }      
+
+        if(EC_FALSE == crfs_create_dn(crfs_md_id, crfsdn_db_root_dir))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create rfs dn failed\n");
+            cstring_free(crfsdn_db_root_dir);
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+        cstring_free(crfsdn_db_root_dir);
+
+        crfs_disk_no = 0;
+        if(EC_FALSE == crfs_add_disk(crfs_md_id, crfs_disk_no))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: add rfs disk failed\n");
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs done\n");
+    }
+
     ctdns_md_id = ctdns_start(ctdns_root_dir);
     if(CMPI_ERROR_MODI == ctdns_md_id)
     {
@@ -154,6 +214,33 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
         return (CMPI_ERROR_MODI);
     }
     CP2P_MD_CTDNS_MODI(cp2p_md) = ctdns_md_id;    
+
+    /* create tdns np */
+    if(EC_FALSE == ctdns_has_npp(ctdns_md_id))
+    {
+        CSTRING    *ctdnsnp_db_root_dir;
+        UINT32      ctdnsnp_max_num;
+
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create tdns\n");
+
+        ctdnsnp_db_root_dir = cstring_make("%s/tdns%02ld", (char *)cstring_get_str(ctdns_root_dir), ctdns_md_id);
+        if(NULL_PTR == ctdnsnp_db_root_dir)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: new ctdnsnp_db_root_dir failed\n");
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+        
+        ctdnsnp_max_num = 1;
+        if(EC_FALSE == ctdns_create_npp(ctdns_md_id, CTDNSNP_128M_MODEL, ctdnsnp_max_num, ctdnsnp_db_root_dir))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: creat tdns np failed\n");
+            cstring_free(ctdnsnp_db_root_dir);
+            cp2p_end(cp2p_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+        cstring_free(ctdnsnp_db_root_dir);
+    }
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cp2p_end, cp2p_md_id);
 

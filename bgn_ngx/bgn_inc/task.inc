@@ -437,9 +437,10 @@ typedef struct _TASK_BRD
 
     CSET        *netcard_set;
     
-    SYS_CFG     *sys_cfg;   /*sys config of config.xml*/
-    CPARACFG    *cparacfg;  /*only for current communicator which is a pointer to one cparacfg in sys_cfg*/
-    TASKS_CFG   *tasks_cfg; /*local tasks cfg which is a pointer to one tasks_cfg in sys_cfg*/
+    SYS_CFG     *sys_cfg;         /*sys config of config.xml*/
+    CPARACFG    *cparacfg;        /*only for current communicator which is a pointer to one cparacfg in sys_cfg*/
+    TASKS_CFG   *local_tasks_cfg; /*local tasks cfg which is a pointer to one tasks_cfg in sys_cfg*/
+    TASKS_CFG   *detect_tasks_cfg;/*DETECT tasks cfg*/
     IPV4_POOL   *ipv4_pool;
 
     int          udp_srv_sockfd;
@@ -929,7 +930,8 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_SYS_CFG(task_brd)                           ((task_brd)->sys_cfg)
 #define TASK_BRD_REG_TYPE(task_brd)                          ((task_brd)->reg_type)
 #define TASK_BRD_CPARACFG(task_brd)                          ((task_brd)->cparacfg)
-#define TASK_BRD_TASKS_CFG(task_brd)                         ((task_brd)->tasks_cfg)
+#define TASK_BRD_LOCAL_TASKS_CFG(task_brd)                   ((task_brd)->local_tasks_cfg)
+#define TASK_BRD_DETECT_TASKS_CFG(task_brd)                  ((task_brd)->detect_tasks_cfg)
 #define TASK_BRD_UDP_SRV_SOCKFD(task_brd)                    ((task_brd)->udp_srv_sockfd)
 #define TASK_BRD_RECV_TASK_MGR_LIST(task_brd)                (&((task_brd)->recv_task_mgr_list))
 #define TASK_BRD_AGING_TASK_MGR_LIST(task_brd)               (&((task_brd)->aging_task_mgr_list))

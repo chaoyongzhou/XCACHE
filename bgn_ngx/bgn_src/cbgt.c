@@ -791,7 +791,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
 
     if(CBGT_TYPE_ROOT_SERVER == server_type)
     {
-        sys_cfg_collect_hsbgt_root_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), tcid_vec);
+        sys_cfg_collect_hsbgt_root_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), tcid_vec);
     }
 
     if(
@@ -800,12 +800,12 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
     || CBGT_TYPE_USER_SERVER == server_type
     )
     {
-        sys_cfg_collect_hsbgt_table_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), tcid_vec);
+        sys_cfg_collect_hsbgt_table_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), tcid_vec);
     }
 
 #if 0
  
-    cluster_vec = TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd));
+    cluster_vec = TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
     CVECTOR_LOCK(cluster_vec, LOC_CBGT_0002);
     for(cluster_cfg_pos = 0; cluster_cfg_pos < cvector_size(cluster_vec); cluster_cfg_pos ++)
     {

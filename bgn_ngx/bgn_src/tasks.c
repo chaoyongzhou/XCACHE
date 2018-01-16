@@ -121,11 +121,12 @@ EC_BOOL tasks_srv_end(TASKS_CFG *tasks_cfg)
 EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag)
 {
     UINT32          client_ipaddr;
+    UINT32          client_port;
 
     EC_BOOL         ret;
     int             client_conn_sockfd;
 
-    ret = csocket_accept( TASKS_CFG_SRVSOCKFD(tasks_cfg), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr));
+    ret = csocket_accept( TASKS_CFG_SRVSOCKFD(tasks_cfg), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
     if(EC_TRUE == ret)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -658,7 +659,7 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     ASSERT(NULL_PTR != tasks_node);
 
     task_brd        = task_brd_default_get();
-    tasks_cfg       = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg       = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker    = TASKS_CFG_WORKER(tasks_cfg); 
     broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
 
@@ -2747,7 +2748,7 @@ EC_BOOL tasks_handshake_complete(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
     }
 
     task_brd      = task_brd_default_get();
-    tasks_cfg     = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg     = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     
     tasks_monitor = TASKS_CFG_MONITOR(tasks_cfg);
     tasks_worker  = TASKS_CFG_WORKER(tasks_cfg);
@@ -2799,7 +2800,7 @@ EC_BOOL tasks_handshake_shutdown(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
             TASKS_WORKER     *tasks_worker;    
 
             task_brd      = task_brd_default_get();
-            tasks_cfg     = TASK_BRD_TASKS_CFG(task_brd);
+            tasks_cfg     = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
             
             tasks_monitor = TASKS_CFG_MONITOR(tasks_cfg);
             tasks_worker  = TASKS_CFG_WORKER(tasks_cfg);    

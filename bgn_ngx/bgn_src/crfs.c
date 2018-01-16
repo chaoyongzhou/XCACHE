@@ -895,7 +895,7 @@ static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, co
     CLUSTER_CFG *cluster_cfg;
 
     task_brd = task_brd_default_get();
-    local_tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     cluster_cfg = sys_cfg_get_cluster_cfg_by_id(TASK_BRD_SYS_CFG(task_brd), cluster_id);
     if(NULL_PTR == cluster_cfg)
@@ -937,11 +937,11 @@ static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, co
             }
 
             /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
-            if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
+            if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+            && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+            && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+            && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+            && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
             )
             {
                 continue;
@@ -982,7 +982,7 @@ static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id)
     }
 
     task_brd  = task_brd_default_get();
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     if(NULL_PTR != tasks_cfg)
     {

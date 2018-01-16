@@ -700,7 +700,7 @@ EC_BOOL cdfs_collect_dn_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfsdn_tcid_v
 
     task_brd = task_brd_default_get();
 
-    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)),  cdfsdn_tcid_vec);
+    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)),  cdfsdn_tcid_vec);
 
     return (EC_TRUE);
 }
@@ -722,7 +722,7 @@ EC_BOOL cdfs_collect_npp_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfsnpp_tcid
 
     task_brd = task_brd_default_get();
 
-    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfsnpp_tcid_vec);
+    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfsnpp_tcid_vec);
 
     return (EC_TRUE);
 }
@@ -744,8 +744,8 @@ EC_BOOL cdfs_collect_cluster_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfs_clu
 
     task_brd = task_brd_default_get();
 
-    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfs_cluster_tcid_vec);
-    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfs_cluster_tcid_vec);
+    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfs_cluster_tcid_vec);
+    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfs_cluster_tcid_vec);
     return (EC_TRUE);
 }
 
@@ -766,9 +766,9 @@ EC_BOOL cdfs_collect_all_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfs_all_tci
 
     task_brd = task_brd_default_get();
 
-    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
-    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
-    sys_cfg_collect_hsdfs_client_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
+    sys_cfg_collect_hsdfs_np_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
+    sys_cfg_collect_hsdfs_dn_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
+    sys_cfg_collect_hsdfs_client_tcid_vec(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), cdfs_all_tcid_vec);
     return (EC_TRUE);
 }
 

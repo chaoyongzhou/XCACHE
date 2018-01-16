@@ -247,10 +247,11 @@ EC_BOOL csrv_set_close_handler(CSRV *csrv, const char *name, CSRV_CLOSE_HANDLER_
 EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
 {
     UINT32  client_ipaddr; 
+    UINT32  client_port;
     EC_BOOL ret;
     int     client_conn_sockfd; 
 
-    ret = csocket_accept(CSRV_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr));
+    ret = csocket_accept(CSRV_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
 
     if(EC_TRUE == ret)
     {

@@ -713,7 +713,7 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
         }
         else
         {
-            return tasks_worker_isend_node(TASKS_CFG_WORKER(TASK_BRD_TASKS_CFG(task_brd)), TASK_NODE_RECV_TCID(task_node), TAG_TASK_FWD, task_node);
+            return tasks_worker_isend_node(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), TASK_NODE_RECV_TCID(task_node), TAG_TASK_FWD, task_node);
         }
     }
     else
@@ -922,6 +922,34 @@ CEPOLL *task_brd_default_get_cepoll()
         return (NULL_PTR);
     }
     return TASK_BRD_CEPOLL(task_brd);
+}
+
+EC_BOOL task_brd_default_has_detect()
+{
+    TASK_BRD *task_brd;
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR == task_brd)
+    {
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == TASK_BRD_DETECT_TASKS_CFG(task_brd))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+TASKS_CFG *task_brd_default_get_detect()
+{
+    TASK_BRD *task_brd;
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR == task_brd)
+    {
+        return (NULL_PTR);
+    }
+    return TASK_BRD_DETECT_TASKS_CFG(task_brd);
 }
 
 EC_BOOL task_brd_default_set_ngx_exiting()
@@ -3460,7 +3488,6 @@ EC_BOOL task_rsp_is_timeout(const TASK_RSP *task_rsp)
     return (EC_FALSE);
 }
 
-
 EC_BOOL task_rsp_md_mod_mgr_get(TASK_BRD *task_brd, TASK_RSP *task_rsp, MOD_MGR **mod_mgr)
 {
     TASK_FUNC *task_rsp_func;
@@ -5514,22 +5541,23 @@ EC_BOOL task_brd_init(TASK_BRD *task_brd,
     /*update task_brd time*/
     task_brd_update_time(task_brd);
 
-    TASK_BRD_CEPOLL(task_brd) = NULL_PTR;
+    TASK_BRD_CEPOLL(task_brd)               = NULL_PTR;
 
-    TASK_BRD_SYS_CFG_FNAME(task_brd)   = sys_cfg_xml_fname_cstr;
-    TASK_BRD_BASIC_CFG_FNAME(task_brd) = basic_cfg_xml_fname_cstr;
-    TASK_BRD_SCRIPT_FNAME(task_brd)    = script_fname_cstr;
-    TASK_BRD_LOG_PATH(task_brd)        = log_path_cstr;
-    TASK_BRD_SSL_PATH(task_brd)        = ssl_path_cstr;
+    TASK_BRD_SYS_CFG_FNAME(task_brd)        = sys_cfg_xml_fname_cstr;
+    TASK_BRD_BASIC_CFG_FNAME(task_brd)      = basic_cfg_xml_fname_cstr;
+    TASK_BRD_SCRIPT_FNAME(task_brd)         = script_fname_cstr;
+    TASK_BRD_LOG_PATH(task_brd)             = log_path_cstr;
+    TASK_BRD_SSL_PATH(task_brd)             = ssl_path_cstr;
  
-    TASK_BRD_NETCARDS(task_brd)       = NULL_PTR;
-    TASK_BRD_IPV4_POOL(task_brd)      = NULL_PTR;
+    TASK_BRD_NETCARDS(task_brd)             = NULL_PTR;
+    TASK_BRD_IPV4_POOL(task_brd)            = NULL_PTR;
 
-    TASK_BRD_SYS_CFG(task_brd)        = NULL_PTR;
-    TASK_BRD_CPARACFG(task_brd)       = NULL_PTR;
-    TASK_BRD_TASKS_CFG(task_brd)      = NULL_PTR;
-    TASK_BRD_UDP_SRV_SOCKFD(task_brd) = CMPI_ERROR_SOCKFD;
-    TASK_BRD_REG_TYPE(task_brd)       = TASK_REGISTER_ALL_SERVER;
+    TASK_BRD_SYS_CFG(task_brd)              = NULL_PTR;
+    TASK_BRD_CPARACFG(task_brd)             = NULL_PTR;
+    TASK_BRD_LOCAL_TASKS_CFG(task_brd)      = NULL_PTR;
+    TASK_BRD_DETECT_TASKS_CFG(task_brd)     = NULL_PTR;
+    TASK_BRD_UDP_SRV_SOCKFD(task_brd)       = CMPI_ERROR_SOCKFD;
+    TASK_BRD_REG_TYPE(task_brd)             = TASK_REGISTER_ALL_SERVER;
 
     TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, LOC_TASK_0104);
     TASK_BRD_ARGING_TASK_MGR_LIST_INIT(task_brd, LOC_TASK_0105);
@@ -5549,7 +5577,7 @@ EC_BOOL task_brd_init(TASK_BRD *task_brd,
     TASK_BRD_DO_CBTIMER_CTHREAD_ID(task_brd) = ERR_CTHREAD_ID;
     TASK_BRD_BCAST_CTHREAD_ID(task_brd)      = ERR_CTHREAD_ID;
 
-    TASK_BRD_SUPER_MD_ID(task_brd)   = CMPI_ERROR_MODI;
+    TASK_BRD_SUPER_MD_ID(task_brd)           = CMPI_ERROR_MODI;
 
     TASK_BRD_FWD_CCOND_INIT(task_brd, LOC_TASK_0107);
 
@@ -5854,14 +5882,51 @@ UINT32 task_brd_finger_ip_from_netcards(TASK_BRD *task_brd, const CSET *cnetcard
     return(ipaddr);
 }
 
+EC_BOOL task_brd_make_config(TASK_BRD *task_brd, const UINT32 this_tcid)
+{
+    CAGENT          *cagent;
+    char            *fname;
+
+    cagent = cagent_new();
+    if(NULL_PTR == cagent)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_make_config: new cagent failed\n");
+        return (EC_FALSE);
+    }
+
+    CAGENT_RESERVED_TCID(cagent) = this_tcid;
+
+    fname = (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
+    if(EC_FALSE == cagent_gen_config_xml(cagent, fname))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_make_config: generate '%s' failed\n", fname);
+
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == task_brd_load(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_make_config: load config failed\n");
+        
+        cagent_free(cagent);
+        return (EC_FALSE);
+    }    
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_make_config: "
+                                         "make config of tcid '%s' done\n",
+                                         c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)));    
+
+    cagent_free(cagent);
+    return (EC_TRUE);
+}
+
 EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
 {
     CAGENT          *cagent;
     UINT32           ipaddr; /*host ipaddr for internet*/
 
     char            *fname;
-
-    CSET_DATA       *cset_data;
 
     if(EC_FALSE == task_brd_collect_netcards(task_brd))
     {
@@ -5893,7 +5958,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: reserve tcid '%s' done\n",
                     c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)));
 
-    fname = TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
+    fname = (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
     if(EC_FALSE == cagent_gen_config_xml(cagent, fname))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: generate '%s' failed\n", fname);
@@ -6591,31 +6656,47 @@ EC_BOOL task_brd_parse_tcid_from_netcards(TASK_BRD *task_brd, const CSET *cnetca
 
 EC_BOOL task_brd_shortcut_config(TASK_BRD *task_brd)
 {
-    TASK_BRD_TASKS_CFG(task_brd) = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), TASK_BRD_TCID(task_brd), CMPI_ANY_MASK, CMPI_ANY_MASK);
-    if(NULL_PTR == TASK_BRD_TASKS_CFG(task_brd))
+    /*local tasks cfg*/
+    TASK_BRD_LOCAL_TASKS_CFG(task_brd) = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), TASK_BRD_TCID(task_brd), CMPI_ANY_MASK, CMPI_ANY_MASK);
+    if(NULL_PTR == TASK_BRD_LOCAL_TASKS_CFG(task_brd))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_shortcut_config: not searched tasks cfg for tcid %s failed\n",
                             TASK_BRD_TCID_STR(task_brd));
         return (EC_FALSE);
     }
 
+    /*para cfg of current tcid and rank*/
     TASK_BRD_CPARACFG(task_brd) = sys_cfg_search_cparacfg(TASK_BRD_SYS_CFG(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
-    if(NULL_PTR != TASK_BRD_CPARACFG(task_brd))
-    {
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_shortcut_config: not searched paracfg for tcid %s rank %ld, try to get default setting\n",
-                        TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd));
-
-    TASK_BRD_CPARACFG(task_brd) = cparacfg_new(TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
     if(NULL_PTR == TASK_BRD_CPARACFG(task_brd))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_shortcut_config: get default paracfg for tcid %s rank %ld failed\n",
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_shortcut_config: not searched paracfg for tcid %s rank %ld, try to get default setting\n",
                             TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd));
-        return (EC_FALSE);
+
+        TASK_BRD_CPARACFG(task_brd) = cparacfg_new(TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
+        if(NULL_PTR == TASK_BRD_CPARACFG(task_brd))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_shortcut_config: get default paracfg for tcid %s rank %ld failed\n",
+                                TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd));
+            return (EC_FALSE);
+        }
     }
 
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    /*DETECT tasks cfg*/
+    TASK_BRD_DETECT_TASKS_CFG(task_brd) = sys_cfg_search_tasks_cfg_by_role_from_cluster(
+                                                            TASK_BRD_SYS_CFG(task_brd), 
+                                                            (const char *)"detect-ngx", 
+                                                            (const char *)"master");
+    if(NULL_PTR != TASK_BRD_DETECT_TASKS_CFG(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_shortcut_config: found DETECT tcid: %s\n",
+                            TASKS_CFG_TCID_STR(TASK_BRD_DETECT_TASKS_CFG(task_brd)));    
+    }
+    else
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "warn:task_brd_shortcut_config: not found 'master' in cluster 'detect-ngx' for DETECT\n");    
+    }
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     return (EC_TRUE);
 }
 
@@ -6623,7 +6704,7 @@ EC_BOOL task_brd_shortcut_config(TASK_BRD *task_brd)
 EC_BOOL task_brd_http_connp_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port)
 {
     CCONNP *cconnp;
-    if(TASKS_CFG_TCID(TASK_BRD_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
+    if(TASKS_CFG_TCID(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
     {
         return (EC_TRUE);
     }
@@ -6785,7 +6866,7 @@ EC_BOOL task_brd_http_connp_cluster(TASK_BRD *task_brd)
     CVECTOR    *cluster_vec;
     EC_BOOL     ret;
 
-    tasks_cfg   = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg   = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     cluster_vec = TASKS_CFG_CLUSTER_VEC(tasks_cfg);
     if(EC_FALSE == cvector_loop(cluster_vec, &ret, NULL_PTR,
                         (UINT32)2,
@@ -6806,16 +6887,16 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
     UINT32 csocket_cnode_idx;
     UINT32 conn_count;
 
-    if(TASKS_CFG_TCID(TASK_BRD_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
+    if(TASKS_CFG_TCID(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
     {
         return (EC_TRUE);
     }
 
-    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: tasks_cfg %lx of task_brd\n", TASK_BRD_TASKS_CFG(task_brd));
-    //tasks_cfg_print(LOGSTDOUT, TASK_BRD_TASKS_CFG(task_brd));
+    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: tasks_cfg %lx of task_brd\n", TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+    //tasks_cfg_print(LOGSTDOUT, TASK_BRD_LOCAL_TASKS_CFG(task_brd));
 
-    conn_count = tasks_worker_count(TASKS_CFG_WORKER(TASK_BRD_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port)
-               + tasks_monitor_count(TASKS_CFG_MONITOR(TASK_BRD_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port);
+    conn_count = tasks_worker_count(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port)
+               + tasks_monitor_count(TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port);
 
     /*setup multi sockets to remote taskcomm*/
     for(csocket_cnode_idx = conn_count; csocket_cnode_idx < conn_num; csocket_cnode_idx ++)
@@ -6823,7 +6904,7 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
         dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG]task_brd_register_one: try to register to remote tasks tcid %s srvipaddr %s srvport %ld\n",
                             c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
 
-        if(EC_FALSE == tasks_monitor_open(TASKS_CFG_MONITOR(TASK_BRD_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port))
+        if(EC_FALSE == tasks_monitor_open(TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port))
         {
             dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_one: register to remote tasks tcid %s srvipaddr %s srvport %ld failed\n",
                                 c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
@@ -6848,11 +6929,11 @@ EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid)
     }
 
     /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
-    if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
+    if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
     )
     {
         return (EC_TRUE);
@@ -7177,11 +7258,11 @@ EC_BOOL task_brd_register_udp_server(TASK_BRD *task_brd)
     }
 
     /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
-    if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
-    && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_TASKS_CFG(task_brd), remote_tasks_cfg)
+    if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
     )
     {
         return (EC_FALSE);
@@ -7205,7 +7286,7 @@ EC_BOOL task_brd_register_cluster(TASK_BRD *task_brd)
     CVECTOR    *cluster_vec;
     EC_BOOL     ret;
 
-    tasks_cfg   = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg   = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     cluster_vec = TASKS_CFG_CLUSTER_VEC(tasks_cfg);
     if(EC_FALSE == cvector_loop(cluster_vec, &ret, NULL_PTR,
                         (UINT32)2,
@@ -7399,7 +7480,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*prepare stdout,stderr, stdin devices*/
     log_start();
 
-    log_level_set_sector(149,9);
+    log_set_level((const char *)"53:9,149:9");
 
     this_comm = CMPI_COMM_WORLD;
     this_size = CMPI_MIN_SIZE;      /*default*/
@@ -7466,7 +7547,15 @@ LOG * task_brd_default_init(int argc, char **argv)
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_init: %s not accessible\n", 
                                              (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd));
 
-        if(SWITCH_ON == TDNS_RESOLVE_SWITCH)
+        if(CMPI_ERROR_TCID != this_tcid)
+        {
+            if(EC_FALSE == task_brd_make_config(task_brd, this_tcid))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: make config failed\n");
+                task_brd_default_abort();
+            }
+        }
+        else if(SWITCH_ON == TDNS_RESOLVE_SWITCH)
         {
             if(EC_FALSE == task_brd_pull_config(task_brd, &this_tcid))
             {
@@ -7638,7 +7727,7 @@ LOG * task_brd_default_init(int argc, char **argv)
             task_brd_default_abort();/*abort !*/
         }
 
-        tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
         TASK_BRD_IPADDR(task_brd) = TASKS_CFG_SRVIPADDR(tasks_cfg);
         TASK_BRD_PORT(task_brd)   = TASKS_CFG_SRVPORT(tasks_cfg);
@@ -7673,7 +7762,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     {
         TASKS_CFG *tasks_cfg;
      
-        tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
         /**
         note:
@@ -7762,7 +7851,7 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif/* (SWITCH_OFF == NGX_BGN_SWITCH)*/
 
     /*register to remote servers before current taskcomm is ready*/
-    /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_TASKS_CFG(task_brd))*/
+    /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd))*/
     if (CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         task_brd_register_cluster(task_brd);
@@ -8071,7 +8160,7 @@ EC_BOOL task_brd_default_check_csrv_enabled()
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd_default_get());
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
     if(CMPI_ERROR_SRVPORT == TASKS_CFG_CSRVPORT(tasks_cfg))
     {
         return (EC_FALSE);
@@ -8083,7 +8172,7 @@ EC_BOOL task_brd_default_check_ssrv_enabled()
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd_default_get());
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
     if(CMPI_ERROR_SRVPORT == TASKS_CFG_SSRVPORT(tasks_cfg))
     {
         return (EC_FALSE);
@@ -8095,7 +8184,7 @@ UINT32 task_brd_default_get_srv_ipaddr()
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd_default_get());
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
     return TASKS_CFG_SRVIPADDR(tasks_cfg);
 }
 
@@ -8103,7 +8192,7 @@ UINT32 task_brd_default_get_csrv_port()
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd_default_get());
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
     return TASKS_CFG_CSRVPORT(tasks_cfg);
 }
 
@@ -8111,7 +8200,7 @@ UINT32 task_brd_default_get_ssrv_port()
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd_default_get());
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
     return TASKS_CFG_SSRVPORT(tasks_cfg);
 }
 
@@ -8135,7 +8224,7 @@ CSTRING *task_brd_default_get_hsdfs_np_root_dir()
     TASK_BRD *task_brd;
 
     task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsdfs_np_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)));
+    return sys_cfg_collect_hsdfs_np_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
 }
 
 CSTRING *task_brd_default_get_hsdfs_dn_root_dir()
@@ -8143,7 +8232,7 @@ CSTRING *task_brd_default_get_hsdfs_dn_root_dir()
     TASK_BRD *task_brd;
 
     task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsdfs_dn_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)));
+    return sys_cfg_collect_hsdfs_dn_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
 }
 
 CSTRING *task_brd_default_get_hsbgt_root_table_dir()
@@ -8151,7 +8240,7 @@ CSTRING *task_brd_default_get_hsbgt_root_table_dir()
     TASK_BRD *task_brd;
 
     task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsbgt_root_table_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_TASKS_CFG(task_brd)));
+    return sys_cfg_collect_hsbgt_root_table_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
 }
 
 EC_BOOL task_brd_default_check_validity()
@@ -8247,7 +8336,7 @@ EC_BOOL task_brd_sync_mod_nodes(const TASK_BRD *task_brd, const UINT32 max_hops,
     {
         TASKS_CFG *local_tasks_cfg;
 
-        local_tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+        local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
         super_sync_taskcomm(TASK_BRD_SUPER_MD_ID(task_brd),
                             TASKS_CFG_TCID(local_tasks_cfg), TASKS_CFG_MASKI(local_tasks_cfg), TASKS_CFG_MASKE(local_tasks_cfg),
@@ -8510,7 +8599,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
 
     if(NULL_PTR != TASK_BRD_CSRV(task_brd))
     {
-        tasks_srv_end(TASK_BRD_TASKS_CFG(task_brd));
+        tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
         TASK_BRD_CSRV(task_brd) = NULL_PTR;
     }
 
@@ -8563,7 +8652,7 @@ UINT32 task_brd_get_tcid_by_ipaddr(const TASK_BRD *task_brd, const UINT32 ipaddr
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     return tasks_worker_search_tcid_by_ipaddr(TASKS_CFG_WORKER(tasks_cfg), ipaddr);
 }
 
@@ -8571,7 +8660,7 @@ EC_BOOL task_brd_collect_tcid(const TASK_BRD *task_brd, CVECTOR *tcid_vec)
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     return tasks_worker_collect_tcid(TASKS_CFG_WORKER(tasks_cfg), tcid_vec);
 }
 
@@ -8579,7 +8668,7 @@ EC_BOOL task_brd_collect_ipaddr(const TASK_BRD *task_brd, CVECTOR *ipaddr_vec)
 {
     TASKS_CFG *tasks_cfg;
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     return tasks_worker_collect_ipaddr(TASKS_CFG_WORKER(tasks_cfg), ipaddr_vec);
 }
 
@@ -11267,7 +11356,7 @@ EC_BOOL task_brd_default_stop_srvs()
 
     task_brd_stop_http_srv(task_brd);
 
-    tasks_cfg = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_srv_end(tasks_cfg);
  
     return (EC_TRUE);
@@ -11681,7 +11770,7 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
 
     TASK_BRD_DO_SLAVE_PID(task_brd) = CTHREAD_GET_TID();
 
-    tasks_cfg   = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg   = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_monitor_empty_flag = EC_FALSE;
  
     for(;;)
@@ -11798,7 +11887,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         TASK_BRD_DO_SLAVE_PID(task_brd) = CTHREAD_GET_TID();
     }
 
-    tasks_cfg   = TASK_BRD_TASKS_CFG(task_brd);
+    tasks_cfg   = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd);
 
@@ -11843,7 +11932,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
 #if 0
         /*register to remote servers before current taskcomm is ready*/
-        /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_TASKS_CFG(task_brd))*/
+        /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd))*/
         if (EC_FALSE == task_brd_register_cluster_flag && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
         {
             task_brd_register_cluster(task_brd);
@@ -12076,8 +12165,8 @@ EC_BOOL do_cmd_default()
         api_cmd_help_vec_free(cmd_help_vec);
         api_cmd_tree_free(cmd_tree);
 
-        sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
-        print_static_mem_status(LOGCONSOLE);
+        //sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
+        //print_static_mem_status(LOGCONSOLE);
 
         task_brd_set_abort_default();  
         return (EC_TRUE);
@@ -12101,8 +12190,8 @@ EC_BOOL do_cmd_default()
     api_cmd_help_vec_free(cmd_help_vec);
     api_cmd_tree_free(cmd_tree);
 
-    sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
-    print_static_mem_status(LOGCONSOLE);
+    //sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
+    //print_static_mem_status(LOGCONSOLE);
     
     return (EC_TRUE);
 }

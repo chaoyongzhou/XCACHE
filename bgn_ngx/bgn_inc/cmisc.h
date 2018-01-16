@@ -96,6 +96,8 @@ uint64_t c_str_to_uint64_t(const char *str);
 
 int c_long_to_str_buf(const long num, char *buf);
 
+#define c_inet_ntohs(num)   (ntohs(num))
+
 char *c_inet_ntos(const struct in_addr *in);
 
 EC_BOOL c_inet_ston(const char *ipv4_str, struct in_addr *in);
@@ -365,6 +367,8 @@ UINT32 c_hash_strlow(const uint8_t *src, const uint32_t slen, uint8_t **des);
 CTMV *c_get_day_time();
 
 char *c_get_day_time_str();
+
+EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
 
 /*note: host_name is domain or ipv4 string*/
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4);

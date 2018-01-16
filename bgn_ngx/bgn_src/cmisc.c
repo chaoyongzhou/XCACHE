@@ -43,13 +43,16 @@ extern "C"{
 
 #include "mm.h"
 #include "log.h"
-
+#include "cmpic.inc"
 #include "cmisc.h"
 #include "cmd5.h"
+#include "task.h"
 
 #include "ccode.h"
 #include "chttp.h"
 #include "ctdnshttp.h"
+
+#include "findex.inc"
 
 #define CMISC_BUFF_NUM ((UINT32) 256)
 #define CMISC_BUFF_LEN ((UINT32) 128)
@@ -4503,11 +4506,62 @@ char *c_get_day_time_str()
     return (time_str);
 }
 
+EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
+{   
+    TASKS_CFG         *detect_tasks_cfg;
+
+    CSTRING            domain;
+
+    MOD_NODE           recv_mod_node;
+    EC_BOOL            ret;
+    
+    if(EC_TRUE == c_ipv4_is_ok(host_name))
+    {
+        (*ipv4)  = c_ipv4_to_word(host_name);
+        return (EC_TRUE);
+    }
+
+    cstring_set_str(&domain, (const UINT8 *)host_name);/*mount only*/
+
+    detect_tasks_cfg = task_brd_default_get_detect();
+
+    MOD_NODE_TCID(&recv_mod_node) = TASKS_CFG_TCID(detect_tasks_cfg);
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cdetect_md_id = 0*/
+    
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
+             &ret,
+             FI_cdetect_dns_resolve, CMPI_ERROR_MODI, &domain, ipv4);
+             
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve_by_detect: detect resolve '%s' on tcid '%s' failed\n",
+                    (char *)cstring_get_str(&domain), 
+                    TASKS_CFG_TCID_STR(detect_tasks_cfg));    
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve_by_detect: detect resolve '%s' on tcid '%s': %s\n",
+                (char *)cstring_get_str(&domain), 
+                TASKS_CFG_TCID_STR(detect_tasks_cfg),
+                c_word_to_ipv4(*ipv4));      
+    return (EC_TRUE);
+}
+
 /*note: host_name is domain or ipv4 string*/
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
 {
     struct hostent *host;
     char           *ipv4_str;
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    if(EC_TRUE == task_brd_default_has_detect())
+    {
+        return c_dns_resolve_by_detect(host_name, ipv4);
+    }
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
     host = gethostbyname(host_name);
     if(NULL_PTR == host)

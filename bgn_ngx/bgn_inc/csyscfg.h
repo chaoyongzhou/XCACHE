@@ -164,6 +164,9 @@ EC_BOOL sys_cfg_load(SYS_CFG *sys_cfg, const char *xml_fname);
 
 CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, const UINT32 rank);
 
+/*return the first one which is matched*/
+TASKS_CFG *sys_cfg_search_tasks_cfg_by_role_from_cluster(const SYS_CFG *sys_cfg, const char *cluster_name, const char *role);
+
 TASKS_CFG *sys_cfg_search_tasks_cfg(const SYS_CFG *sys_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske);
 
 TASKS_CFG *sys_cfg_search_tasks_cfg_by_ip(const SYS_CFG *sys_cfg, const UINT32 ipaddr, const UINT32 port);
