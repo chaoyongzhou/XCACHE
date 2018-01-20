@@ -76,7 +76,7 @@ EC_BOOL tasks_srv_start(TASKS_CFG *tasks_cfg)
                       (CEPOLL_EVENT_HANDLER)tasks_srv_accept,
                       (void *)tasks_cfg); 
 
-    dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "tasks_srv_start: start server %s:%ld:%d\n",
+    dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "tasks_srv_start: start server %s:%ld:%d\n",
                     TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
                     TASKS_CFG_SRVPORT(tasks_cfg),
                     TASKS_CFG_SRVSOCKFD(tasks_cfg));
@@ -133,7 +133,7 @@ EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag)
 
         dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "[DEBUG] tasks_srv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_srv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
@@ -141,6 +141,10 @@ EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag)
             //return (EC_FALSE);
             return (EC_TRUE); /*ignore error*/
         }
+
+        CSOCKET_CNODE_SOCKFD(csocket_cnode) = client_conn_sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode) = client_ipaddr;
 
         /*server does not know which taskComm this client belongs to*/
         tasks_monitor_add_csocket_cnode(TASKS_CFG_MONITOR(tasks_cfg), csocket_cnode);
@@ -2329,9 +2333,11 @@ UINT32 tasks_monitor_count(const TASKS_MONITOR *tasks_monitor, const UINT32 tcid
 EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, const UINT32 srv_ipaddr, const UINT32 srv_port)
 {
     CSOCKET_CNODE   *csocket_cnode;
+    UINT32           client_ipaddr;
+    UINT32           client_port;
     int              client_sockfd;
 
-    if(EC_FALSE == csocket_client_start(srv_ipaddr, srv_port, CSOCKET_IS_NONBLOCK_MODE, &client_sockfd))
+    if(EC_FALSE == csocket_client_start(srv_ipaddr, srv_port, CSOCKET_IS_NONBLOCK_MODE, &client_sockfd, &client_ipaddr, &client_port))
     {
         dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "error:tasks_monitor_open: failed to connect server %s:%ld\n",
                         c_word_to_ipv4(srv_ipaddr), srv_port);
@@ -2352,13 +2358,21 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
         csocket_tcpi_stat_print(LOGSTDOUT, client_sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new(tcid, client_sockfd, CSOCKET_TYPE_TCP, srv_ipaddr, srv_port);/*client save remote server ipaddr and srvport info*/
+    csocket_cnode = csocket_cnode_new();/*client save remote server ipaddr and srvport info*/
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_monitor_open:new csocket cnode failed\n");
         csocket_client_end(client_sockfd);
         return (EC_FALSE);
     }
+    
+    CSOCKET_CNODE_TCID(csocket_cnode  )         = tcid;
+    CSOCKET_CNODE_SOCKFD(csocket_cnode)         = client_sockfd;
+    CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+    CSOCKET_CNODE_IPADDR(csocket_cnode)         = srv_ipaddr;
+    CSOCKET_CNODE_SRVPORT(csocket_cnode)        = srv_port;
+    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)  = client_ipaddr;
+    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;
 
     tasks_monitor_add_csocket_cnode(tasks_monitor, csocket_cnode);
 

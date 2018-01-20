@@ -284,6 +284,15 @@ EC_BOOL cmd5_digest_clean(CMD5_DIGEST *cmd5_digest)
     return (EC_TRUE);
 }
 
+EC_BOOL cmd5_digest_clone(const CMD5_DIGEST *cmd5_digest_src, CMD5_DIGEST *cmd5_digest_des)
+{
+    if(NULL_PTR != cmd5_digest_src && NULL_PTR != cmd5_digest_des)
+    {
+        BCOPY(CMD5_DIGEST_SUM(cmd5_digest_src), CMD5_DIGEST_SUM(cmd5_digest_des), CMD5_DIGEST_LEN);
+    }
+    return (EC_TRUE);
+}
+
 EC_BOOL cmd5_digest_free(CMD5_DIGEST *cmd5_digest)
 {
     if(NULL_PTR != cmd5_digest)

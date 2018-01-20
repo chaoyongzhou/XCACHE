@@ -30,6 +30,10 @@ extern "C"{
 #include "ctdnssvmgr.h"
 
 
+/*if ping elapsed time <= 10, accept it as edge node*/
+#define CTDNS_EDGE_PING_MAX_NSEC    ((UINT32) 10)
+#define CTDNS_EDGE_PING_MAX_MSEC    (CTDNS_EDGE_PING_MAX_NSEC * 1000)
+
 typedef struct
 {
     /* used counter >= 0 */
@@ -145,7 +149,7 @@ EC_BOOL ctdns_delete_tcid_from_all_service(const UINT32 ctdns_md_id, const UINT3
 **/
 EC_BOOL ctdns_set_no_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
-EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
+EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
 
 /**
 *
@@ -242,6 +246,30 @@ EC_BOOL ctdns_has_npp(const UINT32 ctdns_md_id);
 *
 **/
 EC_BOOL ctdns_has_svp(const UINT32 ctdns_md_id);
+
+/**
+*
+*  ping tcid and record the elapsed msec
+*
+*
+**/
+EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port, UINT32 *elapsed_msec);
+
+/**
+*
+*  online reporting
+*
+*
+**/
+EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid);
+
+/**
+*
+*  detect nodes alive of service
+*
+*
+**/
+EC_BOOL ctdns_detect(const UINT32 ctdns_md_id, const CSTRING *service_name);
 
 #endif /*_CTDNS_H*/
 

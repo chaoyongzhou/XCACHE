@@ -259,13 +259,17 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0112_CSRV, 1)(LOGSTDOUT, "csrv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
             csocket_close(client_conn_sockfd);
             return (EC_FALSE);
         }
+
+        CSOCKET_CNODE_SOCKFD(csocket_cnode) = client_conn_sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode) = client_ipaddr;
 
         if(NULL_PTR != CSRV_ADD_CSOCKET_CNODE(csrv))
         {

@@ -406,6 +406,11 @@ EC_BOOL ctdnssv_node_mgr_free(CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
     return (EC_TRUE);
 }
 
+EC_BOOL ctdnssv_node_mgr_is_empty(const CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+{
+    return clist_is_empty(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr));
+}
+
 void ctdnssv_node_mgr_print(LOG *log, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
     sys_print(log, "ctdnssv_node_mgr %p: nodes:\n",

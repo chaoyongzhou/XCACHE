@@ -7062,6 +7062,7 @@ UINT32 cmpi_encode_cp2p_file(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT
     cmpi_encode_cstring(comm, CP2P_FILE_DES_NAME(cp2p_file), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CP2P_FILE_SRC_SIZE(cp2p_file), out_buff, out_buff_max_len, position);
     cmpi_encode_cmd5_digest(comm, CP2P_FILE_SRC_MD5(cp2p_file), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CP2P_FILE_REPORT_TCID(cp2p_file), out_buff, out_buff_max_len, position);
  
     return ((UINT32)0);
 }
@@ -7073,6 +7074,7 @@ UINT32 cmpi_encode_cp2p_file_size(const UINT32 comm, const CP2P_FILE *cp2p_file,
     cmpi_encode_cstring_size(comm, CP2P_FILE_DES_NAME(cp2p_file), size);
     cmpi_encode_uint32_size(comm, CP2P_FILE_SRC_SIZE(cp2p_file), size);
     cmpi_encode_cmd5_digest_size(comm, CP2P_FILE_SRC_MD5(cp2p_file), size);
+    cmpi_encode_uint32_size(comm, CP2P_FILE_REPORT_TCID(cp2p_file), size);
  
     return ((UINT32)0);
 }
@@ -7102,6 +7104,7 @@ UINT32 cmpi_decode_cp2p_file(const UINT32 comm, const UINT8 *in_buff, const UINT
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CP2P_FILE_DES_NAME(cp2p_file));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CP2P_FILE_SRC_SIZE(cp2p_file)));
     cmpi_decode_cmd5_digest(comm, in_buff, in_buff_max_len, position, CP2P_FILE_SRC_MD5(cp2p_file));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CP2P_FILE_REPORT_TCID(cp2p_file)));
 
     return ((UINT32)0);
 }

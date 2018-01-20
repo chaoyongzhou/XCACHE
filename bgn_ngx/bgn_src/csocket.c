@@ -197,6 +197,9 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
 
+    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
+    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
+
     CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_SEND_ONCE_MAX_SIZE;
     CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_RECV_ONCE_MAX_SIZE;
 
@@ -263,6 +266,9 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
 
+    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
+    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
+    
     CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = 0;
     CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = 0;
 
@@ -286,7 +292,7 @@ void csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode)
     return;
 }
 
-CSOCKET_CNODE * csocket_cnode_new(const UINT32 tcid, const int sockfd, const uint32_t type, const UINT32 ipaddr, const UINT32 srvport)
+CSOCKET_CNODE * csocket_cnode_new()
 {
     CSOCKET_CNODE *csocket_cnode;
 
@@ -298,15 +304,6 @@ CSOCKET_CNODE * csocket_cnode_new(const UINT32 tcid, const int sockfd, const uin
     }
 
     csocket_cnode_init(csocket_cnode);
-
-    CSOCKET_CNODE_TCID(csocket_cnode  ) = tcid           ;
-    CSOCKET_CNODE_COMM(csocket_cnode  ) = CMPI_ERROR_COMM;
-    CSOCKET_CNODE_SIZE(csocket_cnode  ) = 0              ;
-    CSOCKET_CNODE_SOCKFD(csocket_cnode) = sockfd         ;
-    CSOCKET_CNODE_TYPE(csocket_cnode )  = type           ;
-
-    CSOCKET_CNODE_IPADDR(csocket_cnode) = ipaddr;
-    CSOCKET_CNODE_SRVPORT(csocket_cnode)= srvport;
 
     CSOCKET_CNODE_SET_CONNECTED(csocket_cnode);
 
@@ -550,7 +547,7 @@ CSOCKET_CNODE * csocket_cnode_unix_new(const UINT32 tcid, const int sockfd, cons
     alloc_static_mem(MM_CSOCKET_CNODE, &csocket_cnode, LOC_CSOCKET_0003);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_cnode_new: failed to alloc CSOCKET_CNODE\n");
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_cnode_unix_new: failed to alloc CSOCKET_CNODE\n");
         return (NULL_PTR);
     }
 
@@ -1527,7 +1524,8 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
 
     if ( 0 !=  bind( sockfd, (struct sockaddr *)&srv_addr, sizeof( srv_addr ) ) )
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_listen: bind failed, errno = %d, errstr = %s\n", errno, strerror(errno));
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_listen: bind %s:%ld failed, errno = %d, errstr = %s\n", 
+                    c_word_to_ipv4(srv_ipaddr), srv_port, errno, strerror(errno));
         close(sockfd);
         return ( EC_FALSE );
     }
@@ -1571,7 +1569,7 @@ EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csoc
  
     (*client_ipaddr) = c_ipv4_to_word((char *)c_inet_ntos(&(sockaddr_in.sin_addr)));
     (*client_port)   = c_inet_ntohs(sockaddr_in.sin_port);
-    (*conn_sockfd) = new_sockfd;
+    (*conn_sockfd)   = new_sockfd;
 
     return (EC_TRUE);
 }
@@ -2568,20 +2566,31 @@ EC_BOOL csocket_recv_confirm(const int sockfd)
     return (EC_FALSE);
 }
 
-/*get local ipaddr of sockfd*/
-EC_BOOL csocket_name(const int sockfd, CSTRING *ipaddr)
+/*get local ipaddr and port of sockfd*/
+EC_BOOL csocket_ipaddr_and_port(const int sockfd, UINT32 *ipaddr, UINT32 *port)
 {
     struct sockaddr_in sockaddr_in;
-    socklen_t sockaddr_len;
+    socklen_t          sockaddr_len;
 
     sockaddr_len = sizeof(struct sockaddr_in);
+    BSET(&sockaddr_in, 0, sockaddr_len);
+    
     if(0 != getsockname(sockfd, (struct sockaddr *)&(sockaddr_in), &(sockaddr_len)))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_name: failed to get ipaddr of sockfd %d\n", sockfd);
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_ipaddr_and_port: getsockname of sockfd %d failed\n", sockfd);
         return (EC_FALSE);
     }
 
-    cstring_init(ipaddr, (UINT8 *)c_inet_ntos(&(sockaddr_in.sin_addr)));
+    if(NULL_PTR != ipaddr)
+    {
+        (*ipaddr) = c_ipv4_to_word((char *)c_inet_ntos(&(sockaddr_in.sin_addr)));
+    }
+
+    if(NULL_PTR != port)
+    {
+        (*port)   = c_inet_ntohs(sockaddr_in.sin_port);
+    }
+    
     return (EC_TRUE);
 }
 
@@ -2632,10 +2641,10 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
     return (EC_TRUE);
 }
 
-EC_BOOL csocket_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd )
+EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd, UINT32 *client_ipaddr, UINT32 *client_port)
 {
     struct sockaddr_in srv_addr;
-
+    
     int sockfd;
 
     /* initialize the ip addr and port of server */
@@ -2758,7 +2767,9 @@ EC_BOOL csocket_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, const U
         return ( EC_FALSE );
     }
 
-    *client_sockfd = sockfd;
+    (*client_sockfd) = sockfd;
+
+    csocket_ipaddr_and_port(sockfd, client_ipaddr, client_port);
     return ( EC_TRUE );
 }
 
@@ -3541,9 +3552,9 @@ EC_BOOL csocket_srv_end(const int srv_sockfd)
     return (EC_TRUE);
 }
 
-EC_BOOL csocket_client_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd )
+EC_BOOL csocket_client_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd, UINT32 *client_ipaddr, UINT32 *client_port )
 {
-    if(EC_FALSE == csocket_connect( srv_ipaddr, srv_port , csocket_block_mode, client_sockfd ))
+    if(EC_FALSE == csocket_connect( srv_ipaddr, srv_port , csocket_block_mode, client_sockfd, client_ipaddr, client_port ))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDNULL, "error:csocket_client_start: client failed to connect server %s:%ld\n",
                             c_word_to_ipv4(srv_ipaddr), srv_port);

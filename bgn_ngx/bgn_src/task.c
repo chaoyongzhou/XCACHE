@@ -91,6 +91,7 @@ extern "C"{
 
 #include "findex.inc"
 
+extern char** environ;
 
 #if 1
 #define TASK_ASSERT(should_be_condition, loc_str) do{\
@@ -5525,12 +5526,15 @@ EC_BOOL task_brd_default_free()
 
 /*note: 1. here does not initialize task_brd->mod_mgr_default*/
 /*note: 2. here has no communication with other processes*/
-EC_BOOL task_brd_init(TASK_BRD *task_brd,
-                        CSTRING *sys_cfg_xml_fname_cstr,
-                        CSTRING *basic_cfg_xml_fname_cstr,
-                        CSTRING *script_fname_cstr,
-                        CSTRING *log_path_cstr,
-                        CSTRING *ssl_path_cstr)
+EC_BOOL task_brd_init(TASK_BRD          *task_brd,
+                        const int          argc,
+                        char             **argv,
+                        const UINT32       network_level,
+                        CSTRING           *sys_cfg_xml_fname_cstr,
+                        CSTRING           *basic_cfg_xml_fname_cstr,
+                        CSTRING           *script_fname_cstr,
+                        CSTRING           *log_path_cstr,
+                        CSTRING           *ssl_path_cstr)
 {
     UINT32 seqno;
 
@@ -5540,6 +5544,11 @@ EC_BOOL task_brd_init(TASK_BRD *task_brd,
 
     /*update task_brd time*/
     task_brd_update_time(task_brd);
+
+    TASK_BRD_SAVED_ARGC(task_brd)           = argc;
+    TASK_BRD_SAVED_ARGV(task_brd)           = (const char **)argv;
+
+    TASK_BRD_NETWORK_LEVEL(task_brd)        = network_level;
 
     TASK_BRD_CEPOLL(task_brd)               = NULL_PTR;
 
@@ -5792,96 +5801,6 @@ EC_BOOL task_brd_wait_sys_config(TASK_BRD *task_brd, const UINT32 udp_mcast_ipad
     return (EC_TRUE);
 }
 
-UINT32 task_brd_finger_ip_from_netcards(TASK_BRD *task_brd, const CSET *cnetcard_set)
-{
-    CSET_DATA       *cset_data;
-    
-    UINT32           ipaddr; /*host ipaddr for internet*/
-    UINT32           ipaddr_priv_a;/*class A*/
-    UINT32           ipaddr_priv_b;/*class B*/
-    UINT32           ipaddr_priv_c;/*class C*/
-    
-    ipaddr        = CMPI_ERROR_IPADDR;
-    ipaddr_priv_a = CMPI_ERROR_IPADDR;
-    ipaddr_priv_b = CMPI_ERROR_IPADDR;
-    ipaddr_priv_c = CMPI_ERROR_IPADDR;
-
-    CSET_LOOP_NEXT(cnetcard_set, cset_data)
-    {
-        CNETCARD *cnetcard;
-
-        cnetcard = CSET_DATA_DATA(cset_data);
-
-        /*ignore private ip addr*/
-        if(c_ipv4_to_word("10.0.0.0") <= CNETCARD_IPV4VAL(cnetcard)
-        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("10.255.255.255"))
-        {
-            ipaddr_priv_a = CNETCARD_IPV4VAL(cnetcard);
-            continue;
-        }
-
-        if(c_ipv4_to_word("172.16.0.0") <= CNETCARD_IPV4VAL(cnetcard)
-        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("172.131.255.255"))
-        {
-            ipaddr_priv_b = CNETCARD_IPV4VAL(cnetcard);
-            continue;
-        }    
-
-        if(c_ipv4_to_word("192.168.0.0") <= CNETCARD_IPV4VAL(cnetcard)
-        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("192.168.255.255"))
-        {
-            ipaddr_priv_c = CNETCARD_IPV4VAL(cnetcard);
-            continue;
-        }
-
-        if(c_ipv4_to_word("127.0.0.1") == CNETCARD_IPV4VAL(cnetcard))
-        {
-            continue;
-        }        
-
-        ipaddr = CNETCARD_IPV4VAL(cnetcard);
-        break; /*terminate*/
-    }
-
-    if(CMPI_ERROR_IPADDR != ipaddr)
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
-        return(ipaddr);
-    }
-
-    if(CMPI_ERROR_IPADDR != ipaddr_priv_a)
-    {
-        ipaddr = ipaddr_priv_a;
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-A ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
-        return(ipaddr);
-    }
-
-    if(CMPI_ERROR_IPADDR != ipaddr_priv_b)
-    {
-        ipaddr = ipaddr_priv_b;
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-B ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
-        return(ipaddr);
-    }   
-
-    if(CMPI_ERROR_IPADDR != ipaddr_priv_c)
-    {
-        ipaddr = ipaddr_priv_c;
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect private class-C ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
-        return(ipaddr);
-    }         
-
-    ipaddr = c_ipv4_to_word("127.0.0.1");
-
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_finger_ip_from_netcards: collect none ip, reset to '%s'\n",
-                    c_word_to_ipv4(ipaddr));   
-                    
-    return(ipaddr);
-}
-
 EC_BOOL task_brd_make_config(TASK_BRD *task_brd, const UINT32 this_tcid)
 {
     CAGENT          *cagent;
@@ -5921,12 +5840,10 @@ EC_BOOL task_brd_make_config(TASK_BRD *task_brd, const UINT32 this_tcid)
     return (EC_TRUE);
 }
 
-EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
+EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this_ipaddr, UINT32 *this_port)
 {
     CAGENT          *cagent;
     UINT32           ipaddr; /*host ipaddr for internet*/
-
-    char            *fname;
 
     if(EC_FALSE == task_brd_collect_netcards(task_brd))
     {
@@ -5934,7 +5851,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
         return (EC_FALSE);
     }
 
-    ipaddr = task_brd_finger_ip_from_netcards(task_brd, TASK_BRD_NETCARDS(task_brd));
+    ipaddr = c_finger_ip_from_netcards(TASK_BRD_NETCARDS(task_brd));
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: finger ip '%s'\n",
                     c_word_to_ipv4(ipaddr)); 
     
@@ -5948,7 +5865,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
     cstring_append_str(CAGENT_TDNS_HOST(cagent), (const UINT8 *)CTDNSHTTP_HOST_DEFAULT);
     CAGENT_TDNS_PORT(cagent) = c_str_to_word((char *)CTDNSHTTP_PORT_DEFAULT);
 
-    if(EC_FALSE == cagent_reserve_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, c_word_to_ipv4(ipaddr)))
+    if(EC_FALSE == cagent_reserve_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, c_word_to_ipv4(ipaddr)))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: reserve tcid failed\n");
         cagent_free(cagent);
@@ -5958,59 +5875,93 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid)
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: reserve tcid '%s' done\n",
                     c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)));
 
-    fname = (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
-    if(EC_FALSE == cagent_gen_config_xml(cagent, fname))
+    if(NULL_PTR == TASK_BRD_SYS_CFG_FNAME(task_brd )
+    || EC_FALSE == c_file_access((char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd), F_OK | R_OK))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: generate '%s' failed\n", fname);
+        SYS_CFG     *sys_cfg;
 
-        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
-                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+        sys_cfg = cagent_gen_config(cagent);
+        if(NULL_PTR == sys_cfg)
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: gen conf failed\n");
 
-        cagent_free(cagent);
-        return (EC_FALSE);
+            cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
+                                c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+
+            cagent_free(cagent);
+            return (EC_FALSE);
+        }   
+        TASK_BRD_SYS_CFG(task_brd) = sys_cfg;
+    }
+    else
+    {
+        char            *fname;
+        
+        fname = (char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd);
+        if(EC_FALSE == cagent_gen_config_xml(cagent, fname))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: generate '%s' failed\n", fname);
+
+            cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
+                                c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+
+            cagent_free(cagent);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == task_brd_load(task_brd))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: load config failed\n");
+
+            cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
+                                c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+
+            cagent_free(cagent);
+            return (EC_FALSE);
+        }    
     }
 
-    if(EC_FALSE == task_brd_load(task_brd))
+    if(0 < TASK_BRD_NETWORK_LEVEL(task_brd))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: load config failed\n");
+        UINT32  network_level;
 
-        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
-                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+        network_level = TASK_BRD_NETWORK_LEVEL(task_brd) - 1; /*target upper network*/
+        
+        if(EC_FALSE == cagent_set_service(cagent, 
+                                          c_word_to_str(network_level),
+                                          (const char *)CTDNSHTTP_EDGES_SERVICE_NAME, 
+                                          c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                          c_word_to_ipv4(ipaddr), 
+                                          CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: "
+                                                 "service '%s', tcid '%s', ip '%s' failed\n",
+                                                 (const char *)CTDNSHTTP_EDGES_SERVICE_NAME,
+                                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                                 c_word_to_ipv4(ipaddr));
+                                                 
+            cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
+                                c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
 
-        cagent_free(cagent);
-        return (EC_FALSE);
-    }    
-
-    if(EC_FALSE == cagent_set_service(cagent, (const char *)CTDNSHTTP_EDGE_SERVICE_NAME, 
-                                      c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                      c_word_to_ipv4(ipaddr), 
-                                      c_word_to_str(CAGENT_RESERVED_PORT(cagent))))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: "
-                                             "service '%s', tcid '%s', ip '%s', port %ld failed\n",
-                                             (const char *)CTDNSHTTP_EDGE_SERVICE_NAME,
-                                             c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                             c_word_to_ipv4(ipaddr), 
-                                             CAGENT_RESERVED_PORT(cagent));
-                                             
-        cagent_release_tcid(cagent, (const char *)CTDNSHTTP_EDGE_POOL_NAME, 
-                            c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                            c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
-
-        cagent_free(cagent);
-        return (EC_FALSE);
+            cagent_free(cagent);
+            return (EC_FALSE);
+        }
     }
 
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: "
                                          "service '%s', tcid '%s', ip '%s', port %ld done\n",
-                                         (const char *)CTDNSHTTP_EDGE_SERVICE_NAME,
+                                         (const char *)CTDNSHTTP_EDGES_SERVICE_NAME,
                                          c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
                                          c_word_to_ipv4(ipaddr), 
                                          CAGENT_RESERVED_PORT(cagent));    
 
-    (*this_tcid) = CAGENT_RESERVED_TCID(cagent);
+    (*this_tcid)   = CAGENT_RESERVED_TCID(cagent);
+    (*this_ipaddr) = CAGENT_LOCAL_IPADDR(cagent);
+    (*this_port)   = CAGENT_LOCAL_PORT(cagent);
 
     cagent_free(cagent);
     return (EC_TRUE);
@@ -6342,22 +6293,7 @@ EC_BOOL task_brd_collect_netcards(TASK_BRD *task_brd)
 {
     if(NULL_PTR == TASK_BRD_NETCARDS(task_brd))
     {
-        CSET *cnetcard_set;
-
-        cnetcard_set = cset_new(MM_IGNORE, LOC_TASK_0110);
-        if(NULL_PTR == cnetcard_set)
-        {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_collect_netcards: new cset failed\n");
-            return (EC_FALSE);
-        }
-
-        if(0 != cnetcard_collect(cnetcard_set, CDEVICE_NETCARD_MAX_NUM))
-        {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_collect_netcards: collect netcards info failed\n");
-            return (EC_FALSE);
-        }
-
-        TASK_BRD_NETCARDS(task_brd) = cnetcard_set;
+        TASK_BRD_NETCARDS(task_brd) = c_collect_netcards();
         //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_collect_netcards: netcards:\n");
         //cset_print(LOGSTDOUT, cnetcard_set, (CSET_DATA_PRINT)cnetcard_print);
     }
@@ -6436,7 +6372,48 @@ EC_BOOL task_brd_write_pidfile(const char *pidfile, const pid_t pid)
     return (EC_TRUE);
 }
 
+EC_BOOL task_brd_reset_tcid_args(int argc, char **argv, const UINT32 tcid)
+{
+    int idx;
+
+    for(idx = 0; idx < argc; idx ++)
+    {
+        if(0 == strcasecmp(argv[idx], "-tcid") && idx + 1 < argc)
+        {
+            char       *tcid_str;
+            char       *tcid_arg;
+            
+            uint32_t    tcid_str_len;
+            uint32_t    tcid_arg_len;
+            
+            tcid_str = c_word_to_ipv4(tcid);
+            tcid_arg = argv[idx + 1];
+            
+            tcid_str_len = strlen(tcid_str);
+            tcid_arg_len = strlen(tcid_arg);
+           
+            if(tcid_arg_len < tcid_str_len)
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_reset_tcid_args: "
+                                                     "insufficent tcid len:  tcid '%s', arg '%s'\n",
+                                                     tcid_str, tcid_arg);
+                return (EC_FALSE);
+            }
+
+            BSET(tcid_arg, ' ', tcid_arg_len + 1);
+            BCOPY(tcid_str, tcid_arg, tcid_str_len + 1);
+            
+            return (EC_TRUE);
+        }
+    }
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_reset_tcid_args: "
+                                         "not found arg 'tcid'\n");
+    return (EC_FALSE);    
+}
+  
 EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, UINT32 *reg_type,
+                                    UINT32   *network_level,
                                     CSTRING **sys_cfg_xml_fname_cstr,
                                     CSTRING **basic_cfg_xml_fname_cstr,
                                     CSTRING **script_fname_cstr,
@@ -6454,6 +6431,12 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
 
     for(idx = 0; idx < argc; idx ++)
     {
+        if(0 == strcasecmp(argv[idx], "-network_level") && idx + 1 < argc)
+        {
+            (*network_level) = atol(argv[idx + 1]);
+            continue;
+        }
+        
         if(0 == strcasecmp(argv[idx], "-np") && idx + 1 < argc)
         {
             //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "size = %s\n", argv[idx + 1]);
@@ -6464,7 +6447,10 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
         if(0 == strcasecmp(argv[idx], "-tcid") && idx + 1 < argc)
         {
             //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "tcid = %s\n", argv[idx + 1]);
-            (*tcid) = c_ipv4_to_word(argv[idx + 1]);
+            if(0 != strcasecmp(argv[idx + 1], "255.255.255.255"))
+            {
+                (*tcid) = c_ipv4_to_word(argv[idx + 1]);
+            }
             continue;
         }
 
@@ -6502,37 +6488,37 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
 
         if(0 == strcasecmp(argv[idx], "-sconfig") && idx + 1 < argc)
         {
-            (*sys_cfg_xml_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0111);
+            (*sys_cfg_xml_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0110);
             continue;
         }
 
         if(0 == strcasecmp(argv[idx], "-bconfig") && idx + 1 < argc)
         {
-            (*basic_cfg_xml_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0112);
+            (*basic_cfg_xml_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0111);
             continue;
         }
 
         if(0 == strcasecmp(argv[idx], "-script") && idx + 1 < argc)
         {
-            (*script_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0113);
+            (*script_fname_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0112);
             continue;
         }     
 
         if(0 == strcasecmp(argv[idx], "-eth") && idx + 1 < argc)
         {
-            (*bcast_dhcp_netcard_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0114);
+            (*bcast_dhcp_netcard_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0113);
             continue;
         }
 
         if(0 == strcasecmp(argv[idx], "-logp") && idx + 1 < argc)
         {
-            (*log_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0115);
+            (*log_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0114);
             continue;
         }
 
         if(0 == strcasecmp(argv[idx], "-pidfile") && idx + 1 < argc)/*optional*/
         {
-            (*pid_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0116);
+            (*pid_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0115);
             continue;
         }
 
@@ -6544,20 +6530,20 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
      
         if(0 == strcasecmp(argv[idx], "-console") && idx + 1 < argc)
         {
-            (*console_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0117);
+            (*console_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0116);
             continue;
         }
         if(0 == strcasecmp(argv[idx], "-ssl") && idx + 1 < argc)
         {
-            (*ssl_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0118);
+            (*ssl_path_cstr) = cstring_new((UINT8 *)argv[idx + 1], LOC_TASK_0117);
             continue;
         }     
     }
-#if 1
+
     if(NULL_PTR == (*sys_cfg_xml_fname_cstr))
     {
         /*set default sysconfig xml info*/
-        (*sys_cfg_xml_fname_cstr) = cstring_new((UINT8 *)"config.xml", LOC_TASK_0119);
+        (*sys_cfg_xml_fname_cstr) = cstring_new((UINT8 *)"config.xml", LOC_TASK_0118);
         if(NULL_PTR == (*sys_cfg_xml_fname_cstr))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args:new default config xml failed\n");
@@ -6568,7 +6554,7 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
     if(NULL_PTR == (*basic_cfg_xml_fname_cstr))
     {
         /*set default basic xml info*/
-        (*basic_cfg_xml_fname_cstr) = cstring_new((UINT8 *)"basic.xml", LOC_TASK_0120);
+        (*basic_cfg_xml_fname_cstr) = cstring_new((UINT8 *)"basic.xml", LOC_TASK_0119);
         if(NULL_PTR == (*basic_cfg_xml_fname_cstr))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args:new basic config xml failed\n");
@@ -6579,7 +6565,7 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
     if(NULL_PTR == (*bcast_dhcp_netcard_cstr))
     {
         /*set default basic xml info*/
-        (*bcast_dhcp_netcard_cstr) = cstring_new((UINT8 *)"eth0", LOC_TASK_0121);
+        (*bcast_dhcp_netcard_cstr) = cstring_new((UINT8 *)"eth0", LOC_TASK_0120);
         if(NULL_PTR == (*bcast_dhcp_netcard_cstr))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args:new bcast dhcp netcard string failed\n");
@@ -6590,7 +6576,7 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
     if(NULL_PTR == (*log_path_cstr))
     {
         /*set default log path*/
-        (*log_path_cstr) = cstring_new((UINT8 *)"./", LOC_TASK_0122);
+        (*log_path_cstr) = cstring_new((UINT8 *)"./", LOC_TASK_0121);
         if(NULL_PTR == (*log_path_cstr))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args:new default log path failed\n");
@@ -6601,32 +6587,14 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
     if(NULL_PTR == (*ssl_path_cstr))
     {
         /*set default log path*/
-        (*ssl_path_cstr) = cstring_new((UINT8 *)"./", LOC_TASK_0123);
+        (*ssl_path_cstr) = cstring_new((UINT8 *)"./", LOC_TASK_0122);
         if(NULL_PTR == (*ssl_path_cstr))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args:new default ssl path failed\n");
             return (EC_FALSE);
         }
     } 
-#endif
 
-#if 1
-    if(NULL_PTR == (*sys_cfg_xml_fname_cstr))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args: not specific -sconfig parameter\n");
-        return (EC_FALSE);
-    }
-    if(NULL_PTR == (*basic_cfg_xml_fname_cstr))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args: not specific -bconfig parameter\n");
-        return (EC_FALSE);
-    }
-    if(NULL_PTR == (*log_path_cstr))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_parse_args: not specific -logp parameter\n");
-        return (EC_FALSE);
-    }
-#endif
     return (EC_TRUE);
 }
 
@@ -6773,7 +6741,7 @@ EC_BOOL task_brd_http_connp_role_str(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cf
  
     cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
  
-    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0124);
+    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0123);
     for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
     {
         CLUSTER_NODE_CFG *cluster_node_cfg;
@@ -6802,7 +6770,7 @@ EC_BOOL task_brd_http_connp_role_str(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cf
 
         task_brd_http_connp_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));   
     }
-    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0125);
+    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0124);
 
     return (EC_TRUE);
 }
@@ -6983,7 +6951,7 @@ EC_BOOL task_brd_register_all(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
  
     cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
  
-    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0126);
+    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0125);
     for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
     {
         CLUSTER_NODE_CFG *cluster_node_cfg;
@@ -6996,7 +6964,7 @@ EC_BOOL task_brd_register_all(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
 
         task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));
     }
-    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0127);
+    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0126);
 
     return (EC_TRUE);
 }
@@ -7008,7 +6976,7 @@ EC_BOOL task_brd_register_role_str(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg,
  
     cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
  
-    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0128);
+    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0127);
     for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
     {
         CLUSTER_NODE_CFG *cluster_node_cfg;
@@ -7037,7 +7005,7 @@ EC_BOOL task_brd_register_role_str(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg,
 
         task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));   
     }
-    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0129);
+    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0128);
 
     return (EC_TRUE);
 }
@@ -7049,7 +7017,7 @@ EC_BOOL task_brd_register_role_str_and_group_cstr(TASK_BRD *task_brd, CLUSTER_CF
  
     cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
  
-    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0130);
+    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0129);
     for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
     {
         CLUSTER_NODE_CFG *cluster_node_cfg;
@@ -7088,7 +7056,7 @@ EC_BOOL task_brd_register_role_str_and_group_cstr(TASK_BRD *task_brd, CLUSTER_CF
 
         task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));
     }
-    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0131);
+    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0130);
 
     return (EC_TRUE);
 }
@@ -7455,12 +7423,16 @@ LOG * task_brd_default_init(int argc, char **argv)
     UINT32 this_comm;
     UINT32 this_rank;
     UINT32 this_size;
+    UINT32 this_ipaddr;
+    UINT32 this_port;
     UINT32 reg_type;
 
     UINT32 core_max_num;
 
     LOG     *log;
     CSTRING *log_file_name;
+
+    UINT32   network_level;
 
     CSTRING *sys_cfg_xml_fname_cstr;
     CSTRING *basic_cfg_xml_fname_cstr;
@@ -7473,7 +7445,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     EC_BOOL  daemon_flag;
 
     init_host_endian();
-    cmisc_init(LOC_TASK_0132);
+    cmisc_init(LOC_TASK_0131);
 
     init_static_mem();
 
@@ -7482,11 +7454,14 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     log_set_level((const char *)"53:9,149:9");
 
-    this_comm = CMPI_COMM_WORLD;
-    this_size = CMPI_MIN_SIZE;      /*default*/
-    this_tcid = CMPI_ERROR_TCID;    /*default*/
-    reg_type  = TASK_REGISTER_ALL_SERVER;/*default*/
+    this_comm   = CMPI_COMM_WORLD;
+    this_size   = CMPI_MIN_SIZE;      /*default*/
+    this_tcid   = CMPI_ERROR_TCID;
+    this_ipaddr = CMPI_ERROR_IPADDR;
+    this_port   = CMPI_ERROR_CLNTPORT;
+    reg_type    = TASK_REGISTER_ALL_SERVER;/*default*/
 
+    network_level            = CMPI_TOP_NETWORK;
     sys_cfg_xml_fname_cstr   = NULL_PTR;
     basic_cfg_xml_fname_cstr = NULL_PTR;
     script_fname_cstr        = NULL_PTR;
@@ -7498,6 +7473,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     daemon_flag              = EC_FALSE;
 
     if(EC_FALSE == task_brd_parse_args(argc, argv, &this_size, &this_tcid, &reg_type,
+                                        &network_level,
                                         &sys_cfg_xml_fname_cstr,
                                         &basic_cfg_xml_fname_cstr,
                                         &script_fname_cstr,
@@ -7524,7 +7500,15 @@ LOG * task_brd_default_init(int argc, char **argv)
     }
 
     task_brd = task_brd_default_new();
-    task_brd_init(task_brd, sys_cfg_xml_fname_cstr, basic_cfg_xml_fname_cstr, script_fname_cstr, log_path_cstr, ssl_path_cstr);
+    task_brd_init(task_brd, 
+                  argc,
+                  argv,
+                  network_level,
+                  sys_cfg_xml_fname_cstr, 
+                  basic_cfg_xml_fname_cstr, 
+                  script_fname_cstr, 
+                  log_path_cstr, 
+                  ssl_path_cstr);
  
     /*taskover some signals*/
     TASK_BRD_CSIG(task_brd) = csig_new();
@@ -7556,10 +7540,16 @@ LOG * task_brd_default_init(int argc, char **argv)
             }
         }
         else if(SWITCH_ON == TDNS_RESOLVE_SWITCH)
-        {
-            if(EC_FALSE == task_brd_pull_config(task_brd, &this_tcid))
+        {   
+            if(EC_FALSE == task_brd_pull_config(task_brd, &this_tcid, &this_ipaddr, &this_port))
             {
                 dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: pull config failed\n");
+                task_brd_default_abort();
+            }
+
+            if(EC_FALSE == task_brd_reset_tcid_args(argc, argv, this_tcid))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: reset tcid args failed\n");
                 task_brd_default_abort();
             }
         }
@@ -7631,7 +7621,7 @@ LOG * task_brd_default_init(int argc, char **argv)
      **/
 
     /*open log and redirect LOGSTDOUT & LOGSTDERR log to it*/
-    log_file_name = cstring_new(NULL_PTR, LOC_TASK_0133);
+    log_file_name = cstring_new(NULL_PTR, LOC_TASK_0132);
     cstring_format(log_file_name, "%s/rank_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
     log = log_file_open((char *)cstring_get_str(log_file_name), /*"a+"*/"w+",
                         this_tcid, this_rank,
@@ -7711,7 +7701,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     //sys_log(LOGSTDOUT, "current paraconfig:\n");
     //cparacfg_print_xml(log, TASK_BRD_CPARACFG(task_brd), 0);
 
-    TASK_BRD_FWD_CCOND_RESERVE(task_brd, 1, LOC_TASK_0134);
+    TASK_BRD_FWD_CCOND_RESERVE(task_brd, 1, LOC_TASK_0133);
 
     /*set shortcut of task_brd ip and port*/
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
@@ -7728,7 +7718,25 @@ LOG * task_brd_default_init(int argc, char **argv)
         }
 
         tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
-
+#if 1
+        if(CMPI_ERROR_IPADDR != this_ipaddr && TASKS_CFG_SRVIPADDR(tasks_cfg) != this_ipaddr)
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: reset srvipaddr %s => %s\n",
+                            c_word_to_ipv4(TASKS_CFG_SRVIPADDR(tasks_cfg)), 
+                            c_word_to_ipv4(this_ipaddr));
+                            
+            TASKS_CFG_SRVIPADDR(tasks_cfg) = this_ipaddr;
+        }
+#endif
+        if(CMPI_ERROR_CLNTPORT != this_port && TASKS_CFG_SRVPORT(tasks_cfg) != this_port)
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: reset srvport %ld => %ld\n",
+                            TASKS_CFG_SRVPORT(tasks_cfg), 
+                            this_port);
+                            
+            TASKS_CFG_SRVPORT(tasks_cfg) = this_port;
+        }
+        
         TASK_BRD_IPADDR(task_brd) = TASKS_CFG_SRVIPADDR(tasks_cfg);
         TASK_BRD_PORT(task_brd)   = TASKS_CFG_SRVPORT(tasks_cfg);
     }
@@ -7770,6 +7778,9 @@ LOG * task_brd_default_init(int argc, char **argv)
             finger out the port info from TASKS_CFG_SRVPORT but from TASKS_CFG_SRVSOCKFD
         **/
 
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: srv %s:%ld\n",
+                                             c_word_to_ipv4(TASKS_CFG_SRVIPADDR(tasks_cfg)),
+                                             TASKS_CFG_SRVPORT(tasks_cfg));
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
         if(CMPI_ERROR_IPADDR != TASKS_CFG_SRVIPADDR(tasks_cfg)
         && CMPI_ERROR_SRVPORT != TASKS_CFG_SRVPORT(tasks_cfg)
@@ -7788,7 +7799,7 @@ LOG * task_brd_default_init(int argc, char **argv)
            && EC_FALSE == tasks_srv_start(tasks_cfg))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
-            c_usleep(1, LOC_TASK_0135);
+            c_usleep(1, LOC_TASK_0134);
         }
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     }
@@ -7866,7 +7877,7 @@ LOG * task_brd_default_init(int argc, char **argv)
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "              super_incl_taskc_node finished                      \n");
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "======================================================================\n");
 
-        TASK_BRD_FWD_CCOND_RELEASE_ALL(task_brd, LOC_TASK_0136);
+        TASK_BRD_FWD_CCOND_RELEASE_ALL(task_brd, LOC_TASK_0135);
     }
 
     if(CMPI_FWD_RANK != TASK_BRD_RANK(task_brd))
@@ -7874,7 +7885,7 @@ LOG * task_brd_default_init(int argc, char **argv)
         /*non fwd rank waiting until fwd rank ready*/
         /*sending task to fwd rank, when response come back, fwd rank must be ready*/
         task_brd_wait_proc_ready(task_brd, TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), CMPI_FWD_RANK);
-        TASK_BRD_FWD_CCOND_RELEASE_ALL(task_brd, LOC_TASK_0137);
+        TASK_BRD_FWD_CCOND_RELEASE_ALL(task_brd, LOC_TASK_0136);
     }
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
@@ -7924,7 +7935,7 @@ LOG * task_brd_default_init(int argc, char **argv)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:task_brd_default_int: croutine load for 'do_cmd_default' failed\n");
             task_brd_default_abort();/*abort !*/ 
         }
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_TASK_0138); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_TASK_0137); 
 
         /*[thread] readline thread to get command from console*/
         cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
@@ -8204,6 +8215,11 @@ UINT32 task_brd_default_get_ssrv_port()
     return TASKS_CFG_SSRVPORT(tasks_cfg);
 }
 
+UINT32 task_brd_default_get_network_level()
+{
+    return TASK_BRD_NETWORK_LEVEL(task_brd_default_get());
+}
+
 UINT32 task_brd_default_get_crfsmon_id()
 {
     return TASK_BRD_CRFSMON_ID(task_brd_default_get());
@@ -8455,7 +8471,7 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
         {
             CLIST_DATA *clist_data;
 
-            CLIST_LOCK(task_mgr_list, LOC_TASK_0139);
+            CLIST_LOCK(task_mgr_list, LOC_TASK_0138);
             CLIST_LOOP_NEXT(task_mgr_list, clist_data)
             {
                 TASK_MGR *cur_task_mgr;
@@ -8468,11 +8484,11 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                     clist_insert_front_no_lock(task_mgr_list, clist_data, (void *)task_mgr);
                     TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
 
-                    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0140);
+                    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0139);
                     return (EC_TRUE);
                 }
             }
-            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0141);
+            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0140);
 
             /*if not find a lower priority task_mgr, add to tail*/
             clist_push_back(task_mgr_list, (void *)task_mgr);
@@ -8527,9 +8543,9 @@ EC_BOOL task_brd_mod_mgr_rmv(TASK_BRD *task_brd, MOD_MGR *mod_mgr)
 
 UINT32 task_brd_seqno_gen(TASK_BRD *task_brd, UINT32 *seqno_new)
 {
-    TASK_BRD_SEQNO_CMUTEX_LOCK(task_brd, LOC_TASK_0142);
+    TASK_BRD_SEQNO_CMUTEX_LOCK(task_brd, LOC_TASK_0141);
     (*seqno_new) = ++ TASK_BRD_SEQNO(task_brd);
-    TASK_BRD_SEQNO_CMUTEX_UNLOCK(task_brd, LOC_TASK_0143);
+    TASK_BRD_SEQNO_CMUTEX_UNLOCK(task_brd, LOC_TASK_0142);
     return (0);
 }
 
@@ -8547,7 +8563,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
     cstack_clean(TASK_BRD_TASK_MGR_STACK(task_brd), NULL_PTR);
 
     /*clean FUNC_ADDR_MGR table*/
-    cvector_clean(TASK_BRD_MD_NODE_TBL(task_brd), NULL_PTR, LOC_TASK_0144);
+    cvector_clean(TASK_BRD_MD_NODE_TBL(task_brd), NULL_PTR, LOC_TASK_0143);
 
     creg_type_conv_vec_clean(TASK_BRD_TYPE_CONV_VEC(task_brd));
     creg_func_addr_vec_clean(TASK_BRD_FUNC_ADDR_VEC(task_brd));
@@ -8566,7 +8582,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
     task_brd_rank_load_tbl_clean(task_brd);
 
     /*broken tcid table clean*/
-    cvector_clean(TASK_BRD_BROKEN_TCID_TBL(task_brd), NULL_PTR, LOC_TASK_0145);
+    cvector_clean(TASK_BRD_BROKEN_TCID_TBL(task_brd), NULL_PTR, LOC_TASK_0144);
 
     /*mod mgr list clean*/
     clist_clean(TASK_BRD_MOD_MGR_LIST(task_brd), (CLIST_DATA_DATA_CLEANER)mod_mgr_free);
@@ -8643,7 +8659,7 @@ EC_BOOL task_brd_free(TASK_BRD *task_brd)
     if(NULL_PTR != task_brd)
     {
         task_brd_clean(task_brd);
-        SAFE_FREE(task_brd, LOC_TASK_0146);
+        SAFE_FREE(task_brd, LOC_TASK_0145);
     }
     return (EC_TRUE);
 }
@@ -8752,7 +8768,7 @@ EC_BOOL task_brd_cbtimer_register(TASK_BRD *task_brd, const UINT32 expire_nsec, 
         return (EC_FALSE);
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new((UINT8 *)func_addr_node->func_name, LOC_TASK_0147);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new((UINT8 *)func_addr_node->func_name, LOC_TASK_0146);
 
     CBTIMER_NODE_EXPIRE_NSEC(cbtimer_node)   = expire_nsec;
     CBTIMER_NODE_TIMEOUT_NSEC(cbtimer_node)  = timeout_nsec;
@@ -8799,7 +8815,7 @@ EC_BOOL task_brd_cbtimer_add(TASK_BRD *task_brd, const UINT8 *name,
         return (EC_FALSE);
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(name, LOC_TASK_0148);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(name, LOC_TASK_0147);
     if(NULL_PTR == CBTIMER_NODE_NAME(cbtimer_node))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_cbtimer_add: new name cstring failed\n");
@@ -8848,7 +8864,7 @@ EC_BOOL task_brd_cbtimer_do(TASK_BRD *task_brd)
         //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG]task_brd_cbtimer_do: working\n");
         if(EC_FALSE == cbtimer_handle(TASK_BRD_CBTIMER_LIST(task_brd)))
         {
-            c_sleep(3, LOC_TASK_0149);
+            c_sleep(3, LOC_TASK_0148);
         }
     }
     return (EC_TRUE);
@@ -8993,7 +9009,7 @@ EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_r
 
     task_mgr_list = (CLIST *)TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0150);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0149);
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
     {
         TASK_MGR *task_mgr;
@@ -9002,11 +9018,11 @@ EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_r
         if( TASK_RSP_SEQNO(task_rsp) == TASK_MGR_SEQNO(task_mgr))
         {
             *task_mgr_ret = task_mgr;
-            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0151);
+            CLIST_UNLOCK(task_mgr_list, LOC_TASK_0150);
             return (EC_TRUE);
         }
     }
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0152);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0151);
     return (EC_FALSE);
 }
 
@@ -9359,7 +9375,7 @@ EC_BOOL task_brd_to_send_queue_handle(TASK_BRD *task_brd)
 {
     CLIST_DATA *clist_data;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0153);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0152);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), clist_data)
     {
         TASK_NODE    *task_node;
@@ -9415,7 +9431,7 @@ EC_BOOL task_brd_to_send_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0154);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0153);
     return (EC_TRUE);
 }
 
@@ -9425,7 +9441,7 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
 
     //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_sending_queue_handle: check sending queue ....\n");
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0155);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0154);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), clist_data)
     {
         TASK_NODE    *task_node;
@@ -9504,7 +9520,7 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0156);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0155);
     return (EC_TRUE);
 }
  
@@ -9658,7 +9674,7 @@ UINT32 task_rsp_decode_thread(TASK_BRD *task_brd, TASK_NODE *task_node)
     {
         if(NULL_PTR != task_mgr)
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0157);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0156);
             task_rsp_discard_dbg_info(task_mgr, task_rsp);
         }
 
@@ -9670,12 +9686,12 @@ UINT32 task_rsp_decode_thread(TASK_BRD *task_brd, TASK_NODE *task_node)
 
         if(EC_TRUE == ret_val_check_succ_flag)
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC, task_rsp, LOC_TASK_0158);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC, task_rsp, LOC_TASK_0157);
             task_rsp_succ_dbg_info(task_mgr, task_rsp);
         }
         else
         {
-            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0159);
+            TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0158);
             task_rsp_fail_dbg_info(task_mgr, task_rsp);
         }
     }
@@ -9875,7 +9891,7 @@ void task_brd_recving_queue_print(LOG *log, TASK_BRD *task_brd)
     CLIST_DATA  *clist_data;
     UINT32 idx;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0160);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0159);
 
     idx = 0;
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), clist_data)
@@ -9891,13 +9907,13 @@ void task_brd_recving_queue_print(LOG *log, TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0161);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0160);
     return;
 }
 
 EC_BOOL task_brd_recving_queue_handle(TASK_BRD *task_brd)
 {
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0162);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0161);
 
     for(;;)
     {
@@ -9912,7 +9928,7 @@ EC_BOOL task_brd_recving_queue_handle(TASK_BRD *task_brd)
         task_brd_recving_node_handle_not_load_thread(task_brd, task_node);
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0163);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0162);
     return (EC_TRUE);
 }
 
@@ -9983,7 +9999,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
 {
     CLIST_DATA *clist_data;
 
-    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0164);
+    CLIST_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0163);
     CLIST_LOOP_NEXT(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), clist_data)
     {
         TASK_NODE  *task_node;
@@ -10052,7 +10068,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
                     clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), clist_data_rmv);             
                     //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: try to set thread loaded %lx to busy\n", TASK_REQ_CTHREAD_NODE(task_req));
                     //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: set thread loaded %lx to busy done\n", TASK_REQ_CTHREAD_NODE(task_req));
-                    CROUTINE_NODE_COND_RELEASE(TASK_REQ_CTHREAD_NODE(task_req), LOC_TASK_0165);
+                    CROUTINE_NODE_COND_RELEASE(TASK_REQ_CTHREAD_NODE(task_req), LOC_TASK_0164);
                 }
 #endif/*(SWITCH_ON == TASK_REQ_HANDLE_THREAD_SWITCH)*/
 
@@ -10122,7 +10138,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0166);
+    CLIST_UNLOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0165);
     return (EC_TRUE);
 }
 
@@ -10182,7 +10198,7 @@ EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0167);
+    CLIST_LOCK(task_queue, LOC_TASK_0166);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -10199,7 +10215,7 @@ EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr)
         task_req_encode(task_req);
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0168);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0167);
     return (EC_TRUE);
 }
 
@@ -10210,7 +10226,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0169);
+    CLIST_LOCK(task_queue, LOC_TASK_0168);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -10249,7 +10265,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             if(EC_TRUE == task_mgr_is_timeout(task_mgr))
             {
                 /*the first version: count timeout req on discard req num*/
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0170);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0169);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
                 load_set_when_task_req_is_sent(task_brd, TASK_NODE_REQ(task_node));/*decrease rank load after sent out if not need rsp*/
@@ -10268,7 +10284,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                                 TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEQNO(task_req), TASK_REQ_SUB_SEQNO(task_req),
                                 TASK_REQ_FUNC_ID(task_req)
                                 );
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0171);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0170);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
                 continue;
@@ -10282,7 +10298,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             ret = task_req_isend(task_brd, task_req);
             if(EC_FALSE == ret)
             {
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0172);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0171);
              
                 TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10326,7 +10342,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             if(EC_TRUE == task_mgr_is_timeout(task_mgr))
             {
                 /*the first version: count timeout req on discard req num*/
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0173);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0172);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
                 load_set_when_task_req_is_sent(task_brd, TASK_NODE_REQ(task_node));/*decrease rank load after sent out if not need rsp*/
@@ -10337,7 +10353,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             ret = task_req_isend(task_brd, task_req);
             if(EC_FALSE == ret)
             {
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0174);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_TASK_0173);
              
                 TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10371,7 +10387,7 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                 task_node_buff_free(task_node); /*okay, free buff as early as possible*/
                 TASK_NODE_STATUS(task_node) = TASK_REQ_IS_SENT;
 
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0175);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0174);
 
                 if(TASK_NOT_NEED_RSP_FLAG == TASK_MGR_NEED_RSP_FLAG(task_mgr))
                 {
@@ -10384,21 +10400,21 @@ EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 
         if( TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node) )
         {
-            TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0176);
+            TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0175);
             if(TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node)/*double check for thread safe*/
             && EC_TRUE == task_mgr_is_timeout(task_mgr)
             )
             {
-                TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0177);
-                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0178);
+                TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0176);
+                TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT, TASK_NODE_REQ(task_node), LOC_TASK_0177);
 
                 TASK_NODE_STATUS(task_node) = TASK_REQ_TIMEOUT;
             }
-            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0179);
+            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0178);
         }
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0180);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0179);
     return (EC_TRUE);
 }
 
@@ -10411,7 +10427,7 @@ EC_BOOL task_mgr_check(TASK_MGR *task_mgr)
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0181);
+    CLIST_LOCK(task_queue, LOC_TASK_0180);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE    *task_node;
@@ -10458,7 +10474,7 @@ EC_BOOL task_mgr_check(TASK_MGR *task_mgr)
             continue;
         }
     }
-    CLIST_UNLOCK(task_queue, LOC_TASK_0182);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0181);
     dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "to_send %ld, sending %ld, recving %ld, is_sent %ld, is_recv %ld, discard %ld, timeout %ld\n",
                         count[0], count[1], count[2], count[3], count[4], count[5], count[6]);
     return (EC_TRUE);
@@ -10478,7 +10494,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
 
     task_req_num = clist_size(TASK_MGR_QUEUE(task_mgr));
 
-    TASK_MGR_CRWLOCK_RDLOCK(task_mgr, LOC_TASK_0183);
+    TASK_MGR_CRWLOCK_RDLOCK(task_mgr, LOC_TASK_0182);
     need_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_NEED);
     succ_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC);
     fail_rsp_num    = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL);
@@ -10487,7 +10503,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
     discard_req_num = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD);
     timeout_req_num = TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_REQ_TIMEOUT);
 
-    TASK_MGR_CRWLOCK_UNLOCK(task_mgr, LOC_TASK_0184);
+    TASK_MGR_CRWLOCK_UNLOCK(task_mgr, LOC_TASK_0183);
 
     if(TASK_NOT_NEED_RSP_FLAG == TASK_MGR_NEED_RSP_FLAG(task_mgr) && TASK_NEED_NONE_RSP == need_rsp_num)
     {
@@ -10577,7 +10593,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0185);
+    CLIST_LOCK(task_queue, LOC_TASK_0184);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10612,7 +10628,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
             TASK_NODE_STATUS(task_node) = TASK_REQ_TO_SEND;
 
             /*rollback num of sent req of task mgr when reschedule happen*/
-            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0186);
+            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0185);
 
             task_req = TASK_NODE_REQ(task_node);
 
@@ -10629,12 +10645,12 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
         else
         {
             /*return false and caller should free task_mgr*/
-            CLIST_UNLOCK(task_queue, LOC_TASK_0187);
+            CLIST_UNLOCK(task_queue, LOC_TASK_0186);
             return (EC_FALSE);
         }
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0188);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0187);
     return (EC_TRUE);
 }
 
@@ -10645,7 +10661,7 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
 
     task_queue = TASK_MGR_QUEUE(task_mgr);
 
-    CLIST_LOCK(task_queue, LOC_TASK_0189);
+    CLIST_LOCK(task_queue, LOC_TASK_0188);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10674,7 +10690,7 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
         {
             TASK_REQ *task_req;
 
-            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0190);
+            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0189);
 
             TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10690,13 +10706,13 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
             continue;
         }
 
-        TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0191);
+        TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0190);
         if(TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node))
         {
             TASK_REQ *task_req;
 
-            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0192);
-            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0193);
+            TASK_MGR_COUNTER_DEC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_IS_SENT, TASK_NODE_REQ(task_node), LOC_TASK_0191);
+            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0192);
 
             TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
 
@@ -10710,13 +10726,13 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
                             TASK_REQ_FUNC_ID(task_req)
                             );
 
-            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0194);
+            TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0193);
             continue;
         }
-        TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0195);
+        TASK_NODE_CMUTEX_UNLOCK(task_node, LOC_TASK_0194);
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0196);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0195);
     return (EC_TRUE);
 }
 
@@ -10731,7 +10747,7 @@ EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr)
 
     idx = 0;
 
-    CLIST_LOCK(task_queue, LOC_TASK_0197);
+    CLIST_LOCK(task_queue, LOC_TASK_0196);
     CLIST_LOOP_NEXT(task_queue, clist_data)
     {
         TASK_NODE  *task_node;
@@ -10760,7 +10776,7 @@ EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr)
         idx ++;
     }
 
-    CLIST_UNLOCK(task_queue, LOC_TASK_0198);
+    CLIST_UNLOCK(task_queue, LOC_TASK_0197);
     return (EC_TRUE);
 }
 
@@ -10771,7 +10787,7 @@ void task_brd_send_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0199);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0198);
 
     /*handle one of existing task req and task rsp*/
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
@@ -10784,7 +10800,7 @@ void task_brd_send_task_mgr_list(TASK_BRD *task_brd)
         task_mgr_send(task_brd, task_mgr);
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0200);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0199);
     return;
 }
 
@@ -10795,7 +10811,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0201);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0200);
 
     /*handle one of existing task req and task rsp*/
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
@@ -10826,7 +10842,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
 
             if(EC_TRUE == TASK_MGR_JMP_FLAG(task_mgr))
             {
-                TASK_MGR_CCOND_RELEASE(task_mgr, LOC_TASK_0202);
+                TASK_MGR_CCOND_RELEASE(task_mgr, LOC_TASK_0201);
             }
             else
             {
@@ -10837,7 +10853,7 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0203);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0202);
     return;
 }
 
@@ -10848,7 +10864,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
 
     task_mgr_list = TASK_BRD_AGING_TASK_MGR_LIST(task_brd);
 
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0204);
+    CLIST_LOCK(task_mgr_list, LOC_TASK_0203);
     CLIST_LOOP_NEXT(task_mgr_list, clist_data)
     {
         TASK_MGR *task_mgr;
@@ -10882,7 +10898,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
         }
     }
 
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0205);
+    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0204);
     return;
 }
 
@@ -10997,7 +11013,7 @@ EC_BOOL task_brd_heartbeat(TASK_BRD *task_brd)
         if(update_heartbeat_interval > elapsed_time_from_last_update)
         {
             //sched_yield();
-            c_sleep(1, LOC_TASK_0206);/*fuck, maybe can use timer to trigger*/
+            c_sleep(1, LOC_TASK_0205);/*fuck, maybe can use timer to trigger*/
             continue;
         }
 
@@ -11124,7 +11140,7 @@ EC_BOOL task_brd_cload_stat_update(TASK_BRD *task_brd)
         if(cload_stat_update_interval > elapsed_time_from_last_update)
         {
             //sched_yield();
-            c_sleep(1, LOC_TASK_0207);/*fuck, maybe can use timer to trigger*/
+            c_sleep(1, LOC_TASK_0206);/*fuck, maybe can use timer to trigger*/
             continue;
         }
 
@@ -11530,33 +11546,33 @@ EC_BOOL task_brd_default_start_runner()
 
 EC_BOOL task_brd_reset_cmutex_all(TASK_BRD *task_brd)
 {
-    TASK_BRD_SEQNO_CMUTEX_INT(task_brd, LOC_TASK_0208);
+    TASK_BRD_SEQNO_CMUTEX_INT(task_brd, LOC_TASK_0207);
 
-    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_IDLE_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0209);
-    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_BUSY_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0210);
+    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_IDLE_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0208);
+    CLIST_INIT_LOCK(CTHREAD_POOL_WORKER_BUSY_LIST(TASK_REQ_CTHREAD_POOL(task_brd)), LOC_TASK_0209);
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
-    cmutex_init(CTHREAD_POOL_WORKER_CMUTEX(TASK_REQ_CTHREAD_POOL(task_brd)), CMUTEX_PROCESS_PRIVATE, LOC_TASK_0211);
+    cmutex_init(CTHREAD_POOL_WORKER_CMUTEX(TASK_REQ_CTHREAD_POOL(task_brd)), CMUTEX_PROCESS_PRIVATE, LOC_TASK_0210);
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
-    CVECTOR_INIT_LOCK(TASK_BRD_MD_NODE_TBL(task_brd), LOC_TASK_0212);
+    CVECTOR_INIT_LOCK(TASK_BRD_MD_NODE_TBL(task_brd), LOC_TASK_0211);
 
-    CLIST_INIT_LOCK(TASK_BRD_CLOAD_MGR(task_brd), LOC_TASK_0213);
-    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_TASK_0214);
-    CLIST_INIT_LOCK(TASK_BRD_MOD_MGR_LIST(task_brd), LOC_TASK_0215);
+    CLIST_INIT_LOCK(TASK_BRD_CLOAD_MGR(task_brd), LOC_TASK_0212);
+    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_TASK_0213);
+    CLIST_INIT_LOCK(TASK_BRD_MOD_MGR_LIST(task_brd), LOC_TASK_0214);
 
-    CLIST_INIT_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0216);
+    CLIST_INIT_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0215);
 
-    CLIST_INIT_LOCK(TASK_BRD_CONTEXT_LIST(task_brd), LOC_TASK_0217);
-    CLIST_INIT_LOCK(TASK_BRD_REPORT_LIST(task_brd), LOC_TASK_0218);
+    CLIST_INIT_LOCK(TASK_BRD_CONTEXT_LIST(task_brd), LOC_TASK_0216);
+    CLIST_INIT_LOCK(TASK_BRD_REPORT_LIST(task_brd), LOC_TASK_0217);
 
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0219);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0220);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0221);
-    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0222);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), LOC_TASK_0218);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), LOC_TASK_0219);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), LOC_TASK_0220);
+    CLIST_INIT_LOCK(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), LOC_TASK_0221);
 
-    CVECTOR_INIT_LOCK(TASK_BRD_RANK_TBL(task_brd), LOC_TASK_0223);
-    CLIST_INIT_LOCK(TASK_BRD_CBTIMER_LIST(task_brd), LOC_TASK_0224);
+    CVECTOR_INIT_LOCK(TASK_BRD_RANK_TBL(task_brd), LOC_TASK_0222);
+    CLIST_INIT_LOCK(TASK_BRD_CBTIMER_LIST(task_brd), LOC_TASK_0223);
 
     return (EC_TRUE);
 }
@@ -11594,7 +11610,7 @@ EC_BOOL task_brd_default_reg_md(
 
 EC_BOOL task_brd_default_reg_mm(const UINT32 mm_type, const char *mm_name, const UINT32 block_num, const UINT32 type_size)
 {
-    if(EC_FALSE == creg_static_mem_tbl_add(mm_type, mm_name, block_num, type_size, LOC_TASK_0225))
+    if(EC_FALSE == creg_static_mem_tbl_add(mm_type, mm_name, block_num, type_size, LOC_TASK_0224))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_reg_mm: register mm %ld to static_mem_tbl failed\n", mm_type);
         return (EC_FALSE);
@@ -11860,7 +11876,7 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
             if(EC_TRUE == slow_down_flag)
             {
                 g_do_slave_usleep_counter ++;
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0226);
+                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0225);
             }
         }
     }
@@ -12021,7 +12037,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
             if(EC_TRUE == slow_down_flag)
             {
                 g_do_slave_usleep_counter ++;
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0227);
+                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0226);
                 /*if slow_down happen, update task_brd time*/
                 task_brd_update_time(task_brd);
             }
@@ -12308,7 +12324,7 @@ UINT32 task_bcast(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT3
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0228);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0227);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
 
@@ -12404,7 +12420,7 @@ UINT32 task_act(const MOD_MGR *src_mod_mgr, MOD_MGR **des_mod_mgr, const UINT32 
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0229);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0228);
 
         /*recv_mod_node will be updated during load balancing before send*/
         mod_node_alloc(&recv_mod_node);
@@ -12522,7 +12538,7 @@ UINT32 task_dea(MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32 task_p
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0230);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0229);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
         mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
@@ -12617,11 +12633,11 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
     task_mgr_encode(task_brd, task_mgr);
-    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0231);
+    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0230);
 
     task_brd_task_mgr_add(task_brd, task_mgr);
 
-    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0232);
+    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0231);
 
     /*when reach here, task is done*/
  
@@ -12699,7 +12715,7 @@ TASK_MGR * task_new(const MOD_MGR *mod_mgr, const UINT32 task_prio, const UINT32
     task_brd = task_brd_default_get();
     task_brd_seqno_gen(task_brd, &task_seqno);
 
-    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0233);
+    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0232);
     task_mgr_init(task_seqno, task_prio, task_need_rsp_flag, task_need_rsp_num, mod_mgr, task_mgr);
 
     /*task_brd_task_mgr_add(task_brd, task_mgr);*/
@@ -12737,7 +12753,7 @@ UINT32 task_super_inc(TASK_MGR *task_mgr, const MOD_NODE  *send_mod_node, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0234);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0233);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12810,7 +12826,7 @@ UINT32 task_super_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0235);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0234);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12884,7 +12900,7 @@ UINT32 task_super_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0236);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0235);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -12961,7 +12977,7 @@ UINT32 task_p2p_inc(TASK_MGR *task_mgr, const UINT32 modi, const MOD_NODE *recv_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0237);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0236);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13082,7 +13098,7 @@ UINT32 task_p2p(const UINT32 modi, const UINT32 time_to_live, const UINT32 task_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0238);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0237);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13160,7 +13176,7 @@ UINT32 task_p2p_no_wait(const UINT32 modi, const UINT32 time_to_live, const UINT
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0239);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0238);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13234,7 +13250,7 @@ UINT32 task_inc(TASK_MGR *task_mgr,const void * func_retval_addr, const UINT32 f
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0240);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0239);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -13303,7 +13319,7 @@ UINT32 task_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0241);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0240);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -13375,7 +13391,7 @@ UINT32 task_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, cons
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0241);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -13464,7 +13480,7 @@ UINT32 task_pos_inc(TASK_MGR *task_mgr, const UINT32 recv_mod_node_pos, const vo
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13551,7 +13567,7 @@ UINT32 task_pos_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UI
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13640,7 +13656,7 @@ UINT32 task_pos_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13731,7 +13747,7 @@ UINT32 task_tcid_inc(TASK_MGR *task_mgr, const UINT32 recv_tcid, const void * fu
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13812,7 +13828,7 @@ UINT32 task_tcid_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const U
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0247);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13894,7 +13910,7 @@ UINT32 task_tcid_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live,
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0248);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0247);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));

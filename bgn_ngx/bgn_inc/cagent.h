@@ -33,12 +33,19 @@ typedef struct
 
     UINT32          reserved_tcid;
     UINT32          reserved_port;
+
+    UINT32          local_ipaddr;
+    UINT32          local_port; /*client socket port sending http request*/
 }CAGENT;
 
 #define CAGENT_TDNS_HOST(cagent)                (&((cagent)->tdns_host))
 #define CAGENT_TDNS_PORT(cagent)                ((cagent)->tdns_port)
+
 #define CAGENT_RESERVED_TCID(cagent)            ((cagent)->reserved_tcid)
 #define CAGENT_RESERVED_PORT(cagent)            ((cagent)->reserved_port)
+
+#define CAGENT_LOCAL_IPADDR(cagent)             ((cagent)->local_ipaddr)
+#define CAGENT_LOCAL_PORT(cagent)               ((cagent)->local_port)
 
 #define CAGENT_TDNS_HOST_STR(cagent)            (cstring_get_str(CAGENT_TDNS_HOST(cagent)))
 
@@ -61,7 +68,9 @@ EC_BOOL cagent_check_config_xml(const CAGENT *cagent, const char *fname);
 
 EC_BOOL cagent_gen_config_xml(const CAGENT *cagent, const char *fname);
 
-EC_BOOL cagent_set_service(CAGENT *cagent, const char *service, const char *tcid, const char *ipaddr, const char *port);
+SYS_CFG *cagent_gen_config(const CAGENT *cagent);
+
+EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char *service, const char *tcid, const char *ipaddr, const char *port);
 
 EC_BOOL cagent_check_p2p(const CAGENT *cagent);
 

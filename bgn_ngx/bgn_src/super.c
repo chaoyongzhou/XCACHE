@@ -657,8 +657,13 @@ UINT32 super_incl_taskc_node(const UINT32 super_md_id, const UINT32 ipaddr, cons
     }
 
     csocket_cnode = csocket_cnode_new(taskc_id, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
-    CSOCKET_CNODE_COMM(csocket_cnode) = taskc_comm;
-    CSOCKET_CNODE_SIZE(csocket_cnode) = taskc_size;
+    CSOCKET_CNODE_TCID(csocket_cnode  ) = taskc_id;
+    CSOCKET_CNODE_SOCKFD(csocket_cnode) = sockfd;
+    CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
+    CSOCKET_CNODE_IPADDR(csocket_cnode) = ipaddr;
+    CSOCKET_CNODE_SRVPORT(csocket_cnode)= port;
+    CSOCKET_CNODE_COMM(csocket_cnode)   = taskc_comm;
+    CSOCKET_CNODE_SIZE(csocket_cnode)   = taskc_size;
 
     tasks_worker_add_csocket_cnode(TASKS_CFG_WORKER(tasks_cfg), csocket_cnode);
 
@@ -3048,6 +3053,9 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid)
                             c_word_to_ipv4(des_tcid));
         return (EC_FALSE);
     }
+
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n", 
+                        c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);    
 
     if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, (UINT32)CSOCKET_CNODE_NUM))
     {

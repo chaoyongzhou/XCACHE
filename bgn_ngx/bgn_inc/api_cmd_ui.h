@@ -512,8 +512,19 @@ EC_BOOL api_cmd_ui_cdetect_dns_resolve(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_cp2p_load(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cp2p_download_notify(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_push(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_pull(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_delete(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_delete_subnet(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_delete_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_flush(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param);
 

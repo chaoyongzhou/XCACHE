@@ -33,10 +33,12 @@ extern "C"{
 
 #define CTDNSHTTP_HOST_DEFAULT             "y.pooapp.net"
 #define CTDNSHTTP_PORT_DEFAULT             "2100"
+#define CTDNSBGN_PORT_DEFAULT              "2000"
 #define CTDNSHTTP_SERVER_DEFAULT           CTDNSHTTP_HOST_DEFAULT":"CTDNSHTTP_PORT_DEFAULT
 
-#define CTDNSHTTP_EDGE_POOL_NAME           "edge.pool"
-#define CTDNSHTTP_EDGE_SERVICE_NAME        "edge.cluster"
+#define CTDNSHTTP_NODES_SERVICE_NAME       "p2p.nodes" /*on T-DNS server*/
+#define CTDNSHTTP_EDGES_SERVICE_NAME       "p2p.edges" /*on each P2P node*/
+#define CTDNSHTTP_UPPER_SERVICE_NAME       "p2p.upper" /*on each P2P node*/
 
 EC_BOOL ctdnshttp_log_start();
 
@@ -97,6 +99,19 @@ EC_BOOL ctdnshttp_commit_flush_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_handle_flush_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_make_flush_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_flush_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL ctdnshttp_is_http_get_ping(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_ping_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_ping_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_ping_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL ctdnshttp_is_http_get_online(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_online_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_online_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node);
+
 
 #endif /*_CTDNSHTTP_H*/
 

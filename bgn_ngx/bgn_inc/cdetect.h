@@ -46,7 +46,7 @@ typedef struct
 #define CDETECT_ORIG_NODE_CHOICE_ERR             ((uint32_t)   0)
 #define CDETECT_ORIG_NODE_CHOICE_RRB             ((uint32_t)   1) /*round-robbin*/
 #define CDETECT_ORIG_NODE_CHOICE_FAST            ((uint32_t)   2) /*lowest time-cost*/
-#define CDETECT_ORIG_NODE_CHOICE_RECENT          ((uint32_t)   3) /*recent/last accessed*/
+#define CDETECT_ORIG_NODE_CHOICE_LATEST          ((uint32_t)   3) /*latest accessed*/
 #define CDETECT_ORIG_NODE_CHOICE_MS              ((uint32_t)   4) /*master-slave*/
 
 #define CDETECT_ORIG_NODE_MAX_IP_NODES           (64)

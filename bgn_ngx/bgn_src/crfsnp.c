@@ -4928,7 +4928,7 @@ EC_BOOL crfsnp_file_md5sum(CRFSNP *crfsnp, const uint32_t path_len, const uint8_
             crfsnp_fnode_print(LOGSTDOUT, crfsnp_fnode);
         }
 
-        BCOPY(CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_SUM(md5sum), CMD5_DIGEST_LEN);;
+        BCOPY(CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_SUM(md5sum), CMD5_DIGEST_LEN);
         return (EC_TRUE);
     }
 

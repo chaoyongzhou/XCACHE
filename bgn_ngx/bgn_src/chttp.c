@@ -4028,13 +4028,18 @@ EC_BOOL chttp_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_srv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_srv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
             csocket_close(client_conn_sockfd);
             return (EC_FALSE);
         }
+
+        CSOCKET_CNODE_SOCKFD(csocket_cnode)         = client_conn_sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode)         = client_ipaddr;
+        CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;
 
         chttp_node = chttp_node_new(CHTTP_TYPE_DO_SRV_REQ);
         if(NULL_PTR == chttp_node)
@@ -5008,6 +5013,9 @@ EC_BOOL chttp_rsp_init(CHTTP_RSP *chttp_rsp)
 
     cbytes_init(CHTTP_RSP_BODY(chttp_rsp)); 
 
+    CHTTP_RSP_CLIENT_IPADDR(chttp_rsp) = CMPI_ERROR_IPADDR;
+    CHTTP_RSP_CLIENT_PORT(chttp_rsp)   = CMPI_ERROR_CLNTPORT;
+
     return (EC_TRUE);
 }
 
@@ -5018,6 +5026,9 @@ EC_BOOL chttp_rsp_clean(CHTTP_RSP *chttp_rsp)
     cstrkv_mgr_clean(CHTTP_RSP_HEADER(chttp_rsp));
 
     cbytes_clean(CHTTP_RSP_BODY(chttp_rsp));
+
+    CHTTP_RSP_CLIENT_IPADDR(chttp_rsp) = CMPI_ERROR_IPADDR;
+    CHTTP_RSP_CLIENT_PORT(chttp_rsp) = CMPI_ERROR_CLNTPORT;
     return (EC_TRUE);
 }
 
@@ -6355,9 +6366,11 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
     }
     else
     {
-        int sockfd;
+        UINT32  client_ipaddr;
+        UINT32  client_port;
+        int     sockfd;
      
-        if(EC_FALSE == csocket_connect( ipaddr, port , csocket_block_mode, &sockfd ))
+        if(EC_FALSE == csocket_connect(ipaddr, port , csocket_block_mode, &sockfd, &client_ipaddr, &client_port))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect: connect server %s:%ld failed\n",
                                 c_word_to_ipv4(ipaddr), port);
@@ -6381,7 +6394,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
             csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
         }
 
-        csocket_cnode = csocket_cnode_new(CMPI_ANY_TCID, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
+        csocket_cnode = csocket_cnode_new();
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect:new csocket cnode for sockfd %d to server %s:%ld failed\n",
@@ -6389,6 +6402,13 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
             csocket_close(sockfd);
             return (EC_FALSE);
         }
+        CSOCKET_CNODE_TCID(csocket_cnode)           = CMPI_ANY_TCID;
+        CSOCKET_CNODE_SOCKFD(csocket_cnode)         = sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode)         = ipaddr;
+        CSOCKET_CNODE_SRVPORT(csocket_cnode)        = port;
+        CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)  = client_ipaddr;
+        CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE; /*push it to connection pool after used*/
     }
@@ -6426,7 +6446,7 @@ EC_BOOL chttp_node_disconnect(CHTTP_NODE *chttp_node)
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        /*unmount*/
+        /*umount*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
         dbg_log(SEC_0149_CHTTP, 5)(LOGSTDOUT, "[DEBUG] chttp_node_disconnect: close sockfd %d\n", 
@@ -7831,6 +7851,9 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
     }
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    CHTTP_RSP_CLIENT_IPADDR(chttp_rsp) = CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode);
+    CHTTP_RSP_CLIENT_PORT(chttp_rsp)   = CSOCKET_CNODE_CLIENT_PORT(csocket_cnode);
     
     chttp_node_init_parser(chttp_node);
 
@@ -8096,7 +8119,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         
-        /*unmount csocket_cnode and chttp_node*/
+        /*umount csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
         
         /*close http connection*/
@@ -8117,7 +8140,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        /*unmount csocket_cnode and chttp_node*/
+        /*umount csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
         
         /*close http connection*/
@@ -8129,6 +8152,9 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
+
+    CHTTP_RSP_CLIENT_IPADDR(chttp_rsp) = CSOCKET_CNODE_CLIENT_IPADDR(CHTTP_NODE_CSOCKET_CNODE(chttp_node));
+    CHTTP_RSP_CLIENT_PORT(chttp_rsp)   = CSOCKET_CNODE_CLIENT_PORT(CHTTP_NODE_CSOCKET_CNODE(chttp_node));
 
     chttp_node_init_parser(chttp_node);
 
@@ -8256,9 +8282,11 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 EC_BOOL chttp_node_check(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT32 port)
 {
     CSOCKET_CNODE *csocket_cnode;
+    UINT32         client_ipaddr;
+    UINT32         client_port;
     int            sockfd;
     
-    if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd ))
+    if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd, &client_ipaddr, &client_port ))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_check: connect server %s:%ld failed\n",
                             c_word_to_ipv4(ipaddr), port);
@@ -8282,7 +8310,7 @@ EC_BOOL chttp_node_check(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT
         csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
+    csocket_cnode = csocket_cnode_new();
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_check:new csocket cnode for sockfd %d to server %s:%ld failed\n",
@@ -8290,6 +8318,13 @@ EC_BOOL chttp_node_check(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT
         csocket_close(sockfd);
         return (EC_FALSE);
     }  
+
+    CSOCKET_CNODE_SOCKFD(csocket_cnode)         = sockfd;
+    CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+    CSOCKET_CNODE_IPADDR(csocket_cnode)         = ipaddr;
+    CSOCKET_CNODE_SRVPORT(csocket_cnode)        = port;
+    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)  = client_ipaddr;
+    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;
 
     /* mount */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node) = csocket_cnode;

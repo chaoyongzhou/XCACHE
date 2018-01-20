@@ -47,6 +47,8 @@ extern "C"{
 #include "cmisc.h"
 #include "cmd5.h"
 #include "task.h"
+#include "cset.h"
+#include "cdevice.h"
 
 #include "ccode.h"
 #include "chttp.h"
@@ -2430,6 +2432,83 @@ EC_BOOL c_file_read(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     return (EC_TRUE);
 }
 
+CBYTES *c_file_load_whole(const char *file_name)
+{
+    UINT32            file_size;
+    CBYTES           *file_content;
+    UINT32            file_offset;
+
+    int               file_fd;
+    
+    if(EC_FALSE == c_file_access(file_name, F_OK))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                              "file '%s' not exist\n",
+                                              file_name);     
+        return (NULL_PTR);
+    }
+    
+    file_fd = c_file_open(file_name, O_RDONLY, 0666);
+    if(ERR_FD == file_fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                              "open file '%s' failed\n",
+                                              file_name);    
+        return (NULL_PTR);        
+    }
+
+    if(EC_FALSE == c_file_size(file_fd, &file_size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                              "size of file '%s' failed\n",
+                                              file_name);    
+        c_file_close(file_fd);
+        return (NULL_PTR);        
+    }
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_load_whole: "
+                                          "file '%s', size %ld\n",
+                                          file_name,
+                                          file_size);      
+
+    file_content = cbytes_new(file_size);
+    if(NULL_PTR == file_content)
+    {
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                             "new cbytes with size %ld failed\n",
+                                             file_size);    
+        c_file_close(file_fd);
+        return (NULL_PTR);        
+    }    
+
+    file_offset = 0;
+
+    if(EC_FALSE == c_file_load(file_fd, &file_offset, file_size, CBYTES_BUF(file_content)))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                              "load file '%s' failed\n",
+                                              file_name);    
+        cbytes_free(file_content);
+        c_file_close(file_fd);
+        return (NULL_PTR);        
+    }
+
+    if(file_offset != file_size)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+                                              "load file '%s', expect %ld but read %ld bytes\n",
+                                              file_name,
+                                              file_size,
+                                              file_offset);    
+        cbytes_free(file_content);
+        c_file_close(file_fd);
+        return (NULL_PTR);        
+    }
+    c_file_close(file_fd);
+
+    return (file_content);
+}
+
 EC_BOOL c_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
 {
     UINT32 csize;/*write completed size*/
@@ -4684,6 +4763,117 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     chttp_rsp_clean(&chttp_rsp);
 
     return (EC_TRUE);
+}
+
+UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
+{
+    CSET_DATA       *cset_data;
+    
+    UINT32           ipaddr; /*host ipaddr for internet*/
+    UINT32           ipaddr_priv_a;/*class A*/
+    UINT32           ipaddr_priv_b;/*class B*/
+    UINT32           ipaddr_priv_c;/*class C*/
+    
+    ipaddr        = CMPI_ERROR_IPADDR;
+    ipaddr_priv_a = CMPI_ERROR_IPADDR;
+    ipaddr_priv_b = CMPI_ERROR_IPADDR;
+    ipaddr_priv_c = CMPI_ERROR_IPADDR;
+
+    CSET_LOOP_NEXT(cnetcard_set, cset_data)
+    {
+        CNETCARD *cnetcard;
+
+        cnetcard = CSET_DATA_DATA(cset_data);
+
+        /*ignore private ip addr*/
+        if(c_ipv4_to_word("10.0.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("10.255.255.255"))
+        {
+            ipaddr_priv_a = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }
+
+        if(c_ipv4_to_word("172.16.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("172.131.255.255"))
+        {
+            ipaddr_priv_b = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }    
+
+        if(c_ipv4_to_word("192.168.0.0") <= CNETCARD_IPV4VAL(cnetcard)
+        && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("192.168.255.255"))
+        {
+            ipaddr_priv_c = CNETCARD_IPV4VAL(cnetcard);
+            continue;
+        }
+
+        if(c_ipv4_to_word("127.0.0.1") == CNETCARD_IPV4VAL(cnetcard))
+        {
+            continue;
+        }        
+
+        ipaddr = CNETCARD_IPV4VAL(cnetcard);
+        break; /*terminate*/
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_a)
+    {
+        ipaddr = ipaddr_priv_a;
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-A ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_b)
+    {
+        ipaddr = ipaddr_priv_b;
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-B ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }   
+
+    if(CMPI_ERROR_IPADDR != ipaddr_priv_c)
+    {
+        ipaddr = ipaddr_priv_c;
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-C ip '%s'\n",
+                        c_word_to_ipv4(ipaddr));        
+        return(ipaddr);
+    }         
+
+    ipaddr = c_ipv4_to_word("127.0.0.1");
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect none ip, reset to '%s'\n",
+                    c_word_to_ipv4(ipaddr));   
+                    
+    return(ipaddr);
+}
+
+CSET * c_collect_netcards()
+{
+    CSET *cnetcard_set;
+
+    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0062);
+    if(NULL_PTR == cnetcard_set)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: new cset failed\n");
+        return (NULL_PTR);
+    }
+
+    if(0 != cnetcard_collect(cnetcard_set, CDEVICE_NETCARD_MAX_NUM))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: collect netcards info failed\n");
+        cset_free(cnetcard_set, LOC_CMISC_0063);
+        return (NULL_PTR);
+    }
+
+    return (cnetcard_set);
 }
 
 #ifdef __cplusplus

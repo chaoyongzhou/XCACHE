@@ -24,6 +24,10 @@ extern "C"{
 #define CMPI_REAL           ((UINT32)(11))
 
 #if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
+#define CMPI_TOP_NETWORK    ((UINT32)(  0))
+#define CMPI_ANY_NETWORK    ((UINT32)( -1))
+#define CMPI_ERROR_NETWORK  ((UINT32)( -13))
+
 #define CMPI_ANY_TCID       ((UINT32)( -1))
 #define CMPI_ANY_MASK       ((UINT32)( -1))
 #define CMPI_ANY_COMM       (CMPI_COMM_NULL)
@@ -52,6 +56,10 @@ extern "C"{
 
 #if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
                             /*    new setting    *//*old setting*/
+#define CMPI_TOP_NETWORK    ((UINT32)(  0))/*((UINT32)(  0))*/  
+#define CMPI_ANY_NETWORK    ((UINT32)(0x0000FFFE))/*((UINT32)( -1))*/  
+#define CMPI_ERROR_NETWORK  ((UINT32)(0x0000FFF3))/*((UINT32)( -13))*/  
+
 #define CMPI_ANY_TCID       ((UINT32)(0xFFFFFFFF))/*((UINT32)( -1))*/
 #define CMPI_ANY_MASK       ((UINT32)(0xFFFFFFFF))/*((UINT32)( -1))*/
 #define CMPI_ANY_COMM       (CMPI_COMM_NULL)

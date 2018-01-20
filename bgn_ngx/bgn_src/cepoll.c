@@ -62,7 +62,7 @@ scenario 7. loop request handling but something wrong happen,
             then return EC_FALSE to trigger shutdown, and important, one must umount
             the request from the defer request list
 scenario 8. read/write partial data and cannot continue, e.g., peer close the socket,
-            then timeout found and triggered, and important, one must unmount
+            then timeout found and triggered, and important, one must umount
             the request from the defer request list
 ****************************************************************************************/
 

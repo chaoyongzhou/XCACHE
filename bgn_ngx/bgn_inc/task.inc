@@ -421,6 +421,13 @@ typedef EC_BOOL (*TASK_BRD_EXTRA_CLEANER)(void *);
 /*task board*/
 typedef struct _TASK_BRD
 {
+    int          rsvd01;
+
+    int          saved_argc;
+    const char **saved_argv;
+
+    UINT32       network_level;/*default is L0. e.g., 0 (L0), 1 (L1), ...*/
+    
     CTIMET       ctime;/*current task_brd time on wall*/
     CTM          ctm;  /*current task_brd time on wall*/
     CTMV         ctmv;
@@ -444,7 +451,7 @@ typedef struct _TASK_BRD
     IPV4_POOL   *ipv4_pool;
 
     int          udp_srv_sockfd;
-    int          rsvd;
+    int          rsvd02;
     
     UINT32       reg_type;
     
@@ -868,6 +875,11 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 
 
 /*---------------------------------------- interface of task board ----------------------------------------------*/
+#define TASK_BRD_SAVED_ARGC(task_brd)                      ((task_brd)->saved_argc)
+#define TASK_BRD_SAVED_ARGV(task_brd)                      ((task_brd)->saved_argv)
+
+#define TASK_BRD_NETWORK_LEVEL(task_brd)                   ((task_brd)->network_level)
+
 #define TASK_BRD_CTIME(task_brd)                           ((task_brd)->ctime)
 #define TASK_BRD_CTM(task_brd)                             (&((task_brd)->ctm))
 #define TASK_BRD_CTMV(task_brd)                            (&((task_brd)->ctmv))

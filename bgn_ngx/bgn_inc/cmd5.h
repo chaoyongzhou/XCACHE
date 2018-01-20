@@ -54,6 +54,8 @@ EC_BOOL cmd5_digest_init(CMD5_DIGEST *cmd5_digest);
 
 EC_BOOL cmd5_digest_clean(CMD5_DIGEST *cmd5_digest);
 
+EC_BOOL cmd5_digest_clone(const CMD5_DIGEST *cmd5_digest_src, CMD5_DIGEST *cmd5_digest_des);
+
 EC_BOOL cmd5_digest_free(CMD5_DIGEST *cmd5_digest);
 
 EC_BOOL cmd5_digest_is_equal(const CMD5_DIGEST *cmd5_digest_1st, const CMD5_DIGEST *cmd5_digest_2nd);

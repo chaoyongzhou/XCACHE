@@ -382,7 +382,7 @@ EC_BOOL cdns_node_disconnect(CDNS_NODE *cdns_node)
 
         csocket_cnode = CDNS_NODE_CSOCKET_CNODE(cdns_node);
 
-        /*unmount*/
+        /*umount*/
         CDNS_NODE_CSOCKET_CNODE(cdns_node) = NULL_PTR;
         
         cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -476,7 +476,7 @@ EC_BOOL cdns_node_create(CDNS_NODE *cdns_node, const CDNS_REQ * cdns_req)
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_create: socket %d created for udp server %s:%ld\n",
                         sockfd, c_word_to_ipv4(ipaddr), port);
 
-    csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, sockfd, CSOCKET_TYPE_UDP, ipaddr, port);
+    csocket_cnode = csocket_cnode_new();
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_node_create:new csocket cnode for socket %d to server %s:%ld failed\n",
@@ -484,6 +484,11 @@ EC_BOOL cdns_node_create(CDNS_NODE *cdns_node, const CDNS_REQ * cdns_req)
         csocket_close(sockfd);
         return (EC_FALSE);
     }
+
+    CSOCKET_CNODE_SOCKFD(csocket_cnode) = sockfd;
+    CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_UDP;
+    CSOCKET_CNODE_IPADDR(csocket_cnode) = ipaddr;
+    CSOCKET_CNODE_SRVPORT(csocket_cnode)= port;    
 
     if(EC_FALSE == cdns_make_req(cdns_node, cdns_req))
     {
@@ -1242,7 +1247,7 @@ EC_BOOL cdns_node_close(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;/*trigger socket closing*/
  
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_close: release cdns_node and unmount socket %d done\n", sockfd);
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_close: release cdns_node and umount socket %d done\n", sockfd);
     return (EC_TRUE);
 }
 
@@ -1531,7 +1536,7 @@ EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp)
 
     cdns_node_disconnect(cdns_node);
 
-    /*unmount cdns_req and cdns_rsp from cdns_node*/
+    /*umount cdns_req and cdns_rsp from cdns_node*/
     CDNS_NODE_REQ(cdns_node) = NULL_PTR;
     CDNS_NODE_RSP(cdns_node) = NULL_PTR; 
 

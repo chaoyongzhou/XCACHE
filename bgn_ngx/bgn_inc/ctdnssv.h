@@ -69,6 +69,8 @@ EC_BOOL ctdnssv_node_mgr_clean(CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
 EC_BOOL ctdnssv_node_mgr_free(CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
+EC_BOOL ctdnssv_node_mgr_is_empty(const CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
 void ctdnssv_node_mgr_print(LOG *log, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
 EC_BOOL ctdnssv_header_load(CTDNSSV *ctdnssv, uint32_t *offset, CTDNSSV_HEADER *ctdnssv_header);

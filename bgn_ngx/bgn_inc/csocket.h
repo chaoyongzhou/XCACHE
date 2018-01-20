@@ -50,7 +50,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode);
 
 void    csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode);
 
-CSOCKET_CNODE * csocket_cnode_new(const UINT32 tcid, const int sockfd, const uint32_t type, const UINT32 ipaddr, const UINT32 srvport);
+CSOCKET_CNODE * csocket_cnode_new();
 
 EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode);
 
@@ -198,9 +198,9 @@ EC_BOOL csocket_udp_optimize(int sockfd);
 
 EC_BOOL csocket_listen(const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv_sockfd);
 
-EC_BOOL csocket_name(const int sockfd, CSTRING *ipaddr);
+EC_BOOL csocket_ipaddr_and_port(const int sockfd, UINT32 *ipaddr, UINT32 *port);
 
-EC_BOOL csocket_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd );
+EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd, UINT32 *client_ipaddr, UINT32 *client_port);
 
 UINT32  csocket_state(const int sockfd);
 
@@ -305,7 +305,7 @@ EC_BOOL csocket_srv_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const
 
 EC_BOOL csocket_srv_end(const int srv_sockfd);
 
-EC_BOOL csocket_client_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd );
+EC_BOOL csocket_client_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd, UINT32 *client_ipaddr, UINT32 *client_port );
 
 EC_BOOL csocket_client_end(const int client_sockfd);
 

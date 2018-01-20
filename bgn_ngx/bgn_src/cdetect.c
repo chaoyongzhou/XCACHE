@@ -259,7 +259,7 @@ EC_BOOL cdetect_orig_node_init(CDETECT_ORIG_NODE *cdetect_orig_node)
 
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
-    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
+    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_LATEST;/*default*/
     CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
     
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
@@ -282,7 +282,7 @@ EC_BOOL cdetect_orig_node_clean(CDETECT_ORIG_NODE *cdetect_orig_node)
 
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
-    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
+    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_LATEST;/*default*/
     CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
     
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
@@ -304,7 +304,7 @@ EC_BOOL cdetect_orig_node_clear(CDETECT_ORIG_NODE *cdetect_orig_node)
 
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
-    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_RECENT;/*default*/
+    CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_LATEST;/*default*/
     CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
     
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
@@ -608,9 +608,9 @@ static uint32_t __cdetect_choice_strategy(const char *choice_stragety)
         return (CDETECT_ORIG_NODE_CHOICE_FAST);
     }   
 
-    if(EC_TRUE == c_str_is_in(choice_stragety, (const char *)":", (const char *)"RECENT"))
+    if(EC_TRUE == c_str_is_in(choice_stragety, (const char *)":", (const char *)"LATEST"))
     {
-        return (CDETECT_ORIG_NODE_CHOICE_RECENT);
+        return (CDETECT_ORIG_NODE_CHOICE_LATEST);
     } 
 
     if(EC_TRUE == c_str_is_in(choice_stragety, (const char *)":", (const char *)"MS"))
@@ -633,9 +633,9 @@ static const char * __cdetect_choice_strategy_to_str(const uint32_t choice_strag
         return (const char *)"FAST";
     }   
 
-    if(CDETECT_ORIG_NODE_CHOICE_RECENT == choice_stragety)
+    if(CDETECT_ORIG_NODE_CHOICE_LATEST == choice_stragety)
     {
-        return (const char *)"RECENT";
+        return (const char *)"LATEST";
     }  
 
     if(CDETECT_ORIG_NODE_CHOICE_MS == choice_stragety)
@@ -1124,26 +1124,26 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_fast(CDETECT_ORIG_NODE *cd
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_recent(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+static EC_BOOL __cdetect_dns_resolve_orig_node_choice_latest(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {   
     CLIST_DATA          *clist_data;
-    CLIST_DATA          *clist_data_recent;
+    CLIST_DATA          *clist_data_latest;
 
-    clist_data_recent = CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node);
-    if(NULL_PTR != clist_data_recent)
+    clist_data_latest = CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node);
+    if(NULL_PTR != clist_data_latest)
     {
         CDETECT_IP_NODE     *cdetect_ip_node;
 
-        clist_data_recent = CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node);
-        cdetect_ip_node   = (CDETECT_IP_NODE *)CLIST_DATA_DATA(clist_data_recent);  
+        clist_data_latest = CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node);
+        cdetect_ip_node   = (CDETECT_IP_NODE *)CLIST_DATA_DATA(clist_data_latest);  
 
         if(CDETECT_IP_NODE_STATUS_REACHABLE == CDETECT_IP_NODE_STATUS(cdetect_ip_node))
         {
-            /*the recent ip.*/
+            /*the latest ip.*/
             (*ipaddr) = CDETECT_IP_NODE_IPADDR(cdetect_ip_node);
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_dns_resolve_orig_node_choice_recent: "
-                                                    "[RECENT] domain '%s' => ip '%s'\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_dns_resolve_orig_node_choice_latest: "
+                                                    "[LATEST] domain '%s' => ip '%s'\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node)
                                 );      
@@ -1155,7 +1155,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_recent(CDETECT_ORIG_NODE *
     {
         CDETECT_IP_NODE     *cdetect_ip_node;
 
-        if(clist_data == clist_data_recent)
+        if(clist_data == clist_data_latest)
         {
             continue;
         }
@@ -1166,8 +1166,8 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_recent(CDETECT_ORIG_NODE *
             /*the reachable ip.*/
             (*ipaddr) = CDETECT_IP_NODE_IPADDR(cdetect_ip_node);
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_dns_resolve_orig_node_choice_recent: "
-                                                    "[RECENT] domain '%s' => reachable ip '%s'\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_dns_resolve_orig_node_choice_latest: "
+                                                    "[LATEST] domain '%s' => reachable ip '%s'\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node)
                                 );        
@@ -1218,8 +1218,8 @@ static EC_BOOL __cdetect_dns_resolve_orig_node(CDETECT_ORIG_NODE *cdetect_orig_n
         return (EC_TRUE);
     } 
 
-    if(CDETECT_ORIG_NODE_CHOICE_RECENT == CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)
-    && EC_TRUE == __cdetect_dns_resolve_orig_node_choice_recent(cdetect_orig_node, ipaddr))
+    if(CDETECT_ORIG_NODE_CHOICE_LATEST == CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)
+    && EC_TRUE == __cdetect_dns_resolve_orig_node_choice_latest(cdetect_orig_node, ipaddr))
     {
         return (EC_TRUE);
     } 
@@ -1592,7 +1592,7 @@ static EC_BOOL __cdetect_start_orig_node_choice_fast(CDETECT_ORIG_NODE   *cdetec
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
+static EC_BOOL __cdetect_start_orig_node_choice_latest(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
 {
     CLIST_DATA      *clist_data;
 
@@ -1611,8 +1611,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
                                          detect_task_num,
                                          &status))
         {
-            dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "warn:__cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] detect (domain '%s', ip '%s', port '%ld') failed\n",
+            dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "warn:__cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));      
@@ -1624,8 +1624,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
         {
             CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_REACHABLE;
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] (domain '%s', ip '%s', port '%ld') reachable\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] (domain '%s', ip '%s', port '%ld') reachable\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));                 
@@ -1636,8 +1636,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
         {
             CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_FORBIDDEN;
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] (domain '%s', ip '%s', port '%ld') forbidden\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] (domain '%s', ip '%s', port '%ld') forbidden\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));                 
@@ -1646,8 +1646,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
 
         CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_ERR;
 
-        dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                "[RECENT] (domain '%s', ip '%s', port '%ld') unknown %u\n",
+        dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                "[LATEST] (domain '%s', ip '%s', port '%ld') unknown %u\n",
                                                 (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                 CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                 CDETECT_IP_NODE_PORT(cdetect_ip_node),
@@ -1675,8 +1675,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
                                          detect_task_num,
                                          &status))
         {
-            dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "warn:__cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] detect (domain '%s', ip '%s', port '%ld') failed\n",
+            dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "warn:__cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));      
@@ -1688,8 +1688,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
         {
             CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_REACHABLE;
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] (domain '%s', ip '%s', port '%ld') reachable\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] (domain '%s', ip '%s', port '%ld') reachable\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));                 
@@ -1702,8 +1702,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
         {
             CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_FORBIDDEN;
 
-            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                    "[RECENT] (domain '%s', ip '%s', port '%ld') forbidden\n",
+            dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                    "[LATEST] (domain '%s', ip '%s', port '%ld') forbidden\n",
                                                     (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                     CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                     CDETECT_IP_NODE_PORT(cdetect_ip_node));                 
@@ -1712,8 +1712,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
 
         CDETECT_IP_NODE_STATUS(cdetect_ip_node) = CDETECT_IP_NODE_STATUS_ERR;
 
-        dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_recent: "
-                                                "[RECENT] (domain '%s', ip '%s', port '%ld') unknown %u\n",
+        dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] __cdetect_start_orig_node_choice_latest: "
+                                                "[LATEST] (domain '%s', ip '%s', port '%ld') unknown %u\n",
                                                 (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node),
                                                 CDETECT_IP_NODE_IPADDR_STR(cdetect_ip_node),
                                                 CDETECT_IP_NODE_PORT(cdetect_ip_node),
@@ -1722,8 +1722,8 @@ static EC_BOOL __cdetect_start_orig_node_choice_recent(CDETECT_ORIG_NODE   *cdet
 
     CDETECT_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetect_orig_node) = NULL_PTR; /*clean*/
 
-    dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_start_orig_node_choice_recent: "
-                                            "[RECENT] detect domain '%s' failed\n",
+    dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:__cdetect_start_orig_node_choice_latest: "
+                                            "[LATEST] detect domain '%s' failed\n",
                                             (char *)CDETECT_ORIG_NODE_DOMAIN_STR(cdetect_orig_node)); 
     /*none succ*/
     return (EC_FALSE);
@@ -1783,9 +1783,9 @@ EC_BOOL cdetect_start_domain(const UINT32 cdetect_md_id, const CSTRING *domain)
         return __cdetect_start_orig_node_choice_fast(cdetect_orig_node, &(CDETECT_MD_DETECT_TASK_NUM(cdetect_md)));
     }    
 
-    if(CDETECT_ORIG_NODE_CHOICE_RECENT == CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node))
+    if(CDETECT_ORIG_NODE_CHOICE_LATEST == CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node))
     {
-        return __cdetect_start_orig_node_choice_recent(cdetect_orig_node, &(CDETECT_MD_DETECT_TASK_NUM(cdetect_md)));
+        return __cdetect_start_orig_node_choice_latest(cdetect_orig_node, &(CDETECT_MD_DETECT_TASK_NUM(cdetect_md)));
     }    
 
     dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_start_domain: "

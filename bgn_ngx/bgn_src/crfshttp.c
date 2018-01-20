@@ -601,7 +601,7 @@ EC_BOOL crfshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
             
-            /* unmount */
+            /* umount */
             CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
             CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;

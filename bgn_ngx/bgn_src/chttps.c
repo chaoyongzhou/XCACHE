@@ -2085,13 +2085,17 @@ EC_BOOL chttps_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0157_CHTTPS, 1)(LOGSTDOUT, "[DEBUG] chttps_srv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_srv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
             csocket_close(client_conn_sockfd);
             return (EC_FALSE);
         }
+
+        CSOCKET_CNODE_SOCKFD(csocket_cnode) = client_conn_sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode) = client_ipaddr;
 
         chttps_node = chttps_node_new(CHTTP_TYPE_DO_SRV_REQ);
         if(NULL_PTR == chttps_node)
@@ -2338,7 +2342,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
             return (EC_TRUE);
         }
 
-        /* unmount */
+        /* umount */
         CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
 
         /*free*/
@@ -2355,7 +2359,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTPS_NODE_TYPE(chttps_node))/*on client side*/
     {
-        /* unmount */
+        /* umount */
         CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
 
         /**
@@ -2374,7 +2378,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTPS_NODE_TYPE(chttps_node))/*on client side*/
     {
-        /*not unmount*/
+        /*not umount*/
      
         /**
          * not free chttps_node but release ccond
@@ -2391,7 +2395,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
  
     /*should never reacher here!*/
 
-    /* unmount */
+    /* umount */
     CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
 
     dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_close:should never reach here, release chttps_node and try to close socket %d\n", sockfd);
@@ -3822,9 +3826,11 @@ EC_BOOL chttps_node_connect(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const
     }
     else
     {
-        int sockfd;
+        UINT32         client_ipaddr;
+        UINT32         client_port;
+        int            sockfd;
      
-        if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd ))
+        if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd, &client_ipaddr, &client_port ))
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_connect: connect server %s:%ld failed\n",
                                 c_word_to_ipv4(ipaddr), port);
@@ -3848,7 +3854,7 @@ EC_BOOL chttps_node_connect(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const
             csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
         }
 
-        csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
+        csocket_cnode = csocket_cnode_new();
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_connect:new csocket cnode for socket %d to server %s:%ld failed\n",
@@ -3856,6 +3862,13 @@ EC_BOOL chttps_node_connect(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const
             csocket_close(sockfd);
             return (EC_FALSE);
         }     
+
+        CSOCKET_CNODE_SOCKFD(csocket_cnode)         = sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode)         = ipaddr;
+        CSOCKET_CNODE_SRVPORT(csocket_cnode)        = port;  
+        CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)  = client_ipaddr;  
+        CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;  
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE; /*push it to connection pool after used*/
     }
@@ -3885,7 +3898,7 @@ EC_BOOL chttps_node_disconnect(CHTTPS_NODE *chttps_node)
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 
-        /*unmount csocket_cnode and chttps_node*/
+        /*umount csocket_cnode and chttps_node*/
         CHTTPS_NODE_CSOCKET_CNODE(chttps_node)    = NULL_PTR;
 
         dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_disconnect: close socket %d\n", 
@@ -4365,7 +4378,7 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: encode header failed\n");
 
-        /*unmount csocket_cnode and chttps_node*/
+        /*umount csocket_cnode and chttps_node*/
         CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
 
         /*close http connection*/
@@ -4384,7 +4397,7 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: encode body failed\n");
 
-        /*unmount csocket_cnode and chttps_node*/
+        /*umount csocket_cnode and chttps_node*/
         CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
 
         /*close http connection*/
@@ -4549,9 +4562,11 @@ EC_BOOL chttps_node_icheck(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnod
 EC_BOOL chttps_node_check(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const UINT32 port)
 {
     CSOCKET_CNODE *csocket_cnode;
-    int sockfd;
+    UINT32         client_ipaddr;
+    UINT32         client_port;
+    int            sockfd;
  
-    if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd ))
+    if(EC_FALSE == csocket_connect( ipaddr, port , CSOCKET_IS_NONBLOCK_MODE, &sockfd, &client_ipaddr, &client_port ))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_check: connect server %s:%ld failed\n",
                             c_word_to_ipv4(ipaddr), port);
@@ -4575,14 +4590,21 @@ EC_BOOL chttps_node_check(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const U
         csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new(CMPI_ERROR_TCID, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
+    csocket_cnode = csocket_cnode_new();
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_check:new csocket cnode for socket %d to server %s:%ld failed\n",
                         sockfd, c_word_to_ipv4(ipaddr), port);
         csocket_close(sockfd);
         return (EC_FALSE);
-    }     
+    }    
+
+    CSOCKET_CNODE_SOCKFD(csocket_cnode)         = sockfd;
+    CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+    CSOCKET_CNODE_IPADDR(csocket_cnode)         = ipaddr;
+    CSOCKET_CNODE_SRVPORT(csocket_cnode)        = port; 
+    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)  = client_ipaddr; 
+    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port; 
 
     /* mount */
     CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = csocket_cnode;

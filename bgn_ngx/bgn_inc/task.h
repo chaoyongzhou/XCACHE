@@ -274,7 +274,7 @@ EC_BOOL task_brd_wait_config(TASK_BRD *task_brd, const CSTRING *bcast_dhcp_netca
 
 EC_BOOL task_brd_make_config(TASK_BRD *task_brd, const UINT32 this_tcid);
 
-EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid);
+EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this_ipaddr, UINT32 *this_port);
 
 EC_BOOL task_brd_is_bcast_dhcp_server(TASK_BRD *task_brd);
 
@@ -315,6 +315,8 @@ UINT32  task_brd_default_get_srv_ipaddr();
 UINT32  task_brd_default_get_csrv_port();
 
 UINT32  task_brd_default_get_ssrv_port();
+
+UINT32  task_brd_default_get_network_level();
 
 UINT32  task_brd_default_get_crfsmon_id();
 UINT32  task_brd_default_get_chfsmon_id();
@@ -391,12 +393,15 @@ TASK_BRD * task_brd_default_new();
 
 EC_BOOL task_brd_default_free();
 
-EC_BOOL task_brd_init(TASK_BRD *task_brd,
-                        CSTRING * sys_cfg_xml_fname_cstr,
-                        CSTRING *basic_cfg_xml_fname_cstr,
-                        CSTRING *script_fname_cstr,
-                        CSTRING *log_path_cstr,
-                        CSTRING *ssl_path_cstr);
+EC_BOOL task_brd_init(TASK_BRD          *task_brd,
+                        const int          argc,
+                        char             **argv,
+                        const UINT32       network_level,
+                        CSTRING           *sys_cfg_xml_fname_cstr,
+                        CSTRING           *basic_cfg_xml_fname_cstr,
+                        CSTRING           *script_fname_cstr,
+                        CSTRING           *log_path_cstr,
+                        CSTRING           *ssl_path_cstr);
 
 UINT32  task_brd_get_tcid_by_ipaddr(const TASK_BRD *task_brd, const UINT32 ipaddr);
 

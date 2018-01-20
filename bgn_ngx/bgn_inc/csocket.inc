@@ -173,6 +173,9 @@ typedef struct _CSOCKET_CNODE
     uint32_t            nonblock:1;
     uint32_t            rsvd   :9;
 
+    UINT32              client_ipaddr;
+    UINT32              client_port;
+
     UINT32              send_once_max_size;
     UINT32              recv_once_max_size;
 
@@ -213,6 +216,9 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_SOCKFD(csocket_cnode)                  ((csocket_cnode)->sockfd)
 #define CSOCKET_CNODE_TYPE(csocket_cnode)                    ((csocket_cnode)->type)
 #define CSOCKET_CNODE_UNIX(csocket_cnode)                    ((csocket_cnode)->unix_domain)
+
+#define CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)           ((csocket_cnode)->client_ipaddr)
+#define CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)             ((csocket_cnode)->client_port)
 
 #define CSOCKET_CNODE_WRITING(csocket_cnode)                 ((csocket_cnode)->writing)
 #define CSOCKET_CNODE_READING(csocket_cnode)                 ((csocket_cnode)->reading)

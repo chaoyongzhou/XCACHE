@@ -185,7 +185,7 @@ void api_ui_add_to_new_node_list(API_UI_CNODE** start_ptr, API_UI_NODE** node_pt
         start_ptr = &((*start_ptr)->next);
     }
 
-    (*start_ptr) = (API_UI_CNODE*) api_ui_malloc(sizeof(API_UI_CNODE), LOC_API_0001);
+    (*start_ptr) = (API_UI_CNODE*) api_ui_malloc(sizeof(API_UI_CNODE), LOC_API_0407);
 
     if ((*start_ptr) != NULL_PTR)
     {
@@ -241,7 +241,7 @@ API_UI_ERR api_ui_cleanup(API_UI_ERR err, char* copy_cmd_str, API_UI_CNODE* new_
             }
 
             *(tmp_ptr->node_ptr) = node->right;
-            api_ui_free(node, LOC_API_0002);
+            api_ui_free(node, LOC_API_0408);
 
             tmp_ptr = tmp_ptr->next;
         }
@@ -251,11 +251,11 @@ API_UI_ERR api_ui_cleanup(API_UI_ERR err, char* copy_cmd_str, API_UI_CNODE* new_
     {
         tmp_ptr = new_node_list;
         new_node_list = tmp_ptr->next;
-        api_ui_free(tmp_ptr, LOC_API_0003);
+        api_ui_free(tmp_ptr, LOC_API_0409);
     }
 
     /* Free the copy of the command string */
-    api_ui_free(copy_cmd_str, LOC_API_0004);
+    api_ui_free(copy_cmd_str, LOC_API_0410);
 
     return err;
 }
@@ -285,7 +285,7 @@ API_UI_ELEM* api_ui_create_elem(const char* word, const char* help, API_UI_ELEM_
 
     size = strlen(word) + 1; /* Don't forget '\0' */
 
-    copy_word = (char*) api_ui_malloc(sizeof(char) * size, LOC_API_0005);
+    copy_word = (char*) api_ui_malloc(sizeof(char) * size, LOC_API_0411);
 
     if (NULL_PTR == copy_word)
     {
@@ -295,7 +295,7 @@ API_UI_ELEM* api_ui_create_elem(const char* word, const char* help, API_UI_ELEM_
 
     strcpy(copy_word,word);
 
-    returnValue = (API_UI_ELEM*) api_ui_malloc(sizeof(API_UI_ELEM), LOC_API_0006);
+    returnValue = (API_UI_ELEM*) api_ui_malloc(sizeof(API_UI_ELEM), LOC_API_0412);
 
     if (NULL_PTR == returnValue)
     {
@@ -334,7 +334,7 @@ API_UI_NODE* api_ui_create_node(API_UI_ELEM* element, API_UI_SECURITY_LEVEL sl)
 {
     API_UI_NODE* new_node;
 
-    new_node = (API_UI_NODE*)api_ui_malloc(sizeof(API_UI_NODE), LOC_API_0007);
+    new_node = (API_UI_NODE*)api_ui_malloc(sizeof(API_UI_NODE), LOC_API_0413);
 
     if (new_node != NULL_PTR)
     {
@@ -365,8 +365,8 @@ API_UI_NODE* api_ui_create_node(API_UI_ELEM* element, API_UI_SECURITY_LEVEL sl)
  *---------------------------------------------------------------------------*/
 void api_ui_delete_elem(API_UI_ELEM* element)
 {
-    api_ui_free((void*)element->word, LOC_API_0008);
-    api_ui_free(element, LOC_API_0009);
+    api_ui_free((void*)element->word, LOC_API_0414);
+    api_ui_free(element, LOC_API_0415);
 }
 
 /*---------------------------------------------------------------------------
@@ -766,7 +766,7 @@ API_UI_ERR api_ui_common_define (API_UI_SECURITY_LEVEL sl, API_UI_HANDLER handle
     API_UI_CNODE* new_node_list = NULL_PTR;
 
     /* Copy the cmd_str */
-    copy = (char*) api_ui_malloc(sizeof(char) * (strlen(cmd_str) + 1), LOC_API_0010);
+    copy = (char*) api_ui_malloc(sizeof(char) * (strlen(cmd_str) + 1), LOC_API_0416);
 
     if (NULL_PTR == copy)
     {

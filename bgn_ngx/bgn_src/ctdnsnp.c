@@ -744,7 +744,18 @@ uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT3
         CTDNSNP_ITEM *ctdnsnp_item;
 
         ctdnsnp_item = ctdnsnp_fetch(ctdnsnp, node_pos);
+
+        /*update*/
+        if(tcid == CTDNSNP_ITEM_TCID(ctdnsnp_item))
+        {
+            CTDNSNP_ITEM_IPADDR(ctdnsnp_item) = ipaddr;
+            CTDNSNP_ITEM_PORT(ctdnsnp_item)   = (uint32_t)port;        
+            return (node_pos);
+        }
         
+        return (CTDNSNPRB_ERR_POS);
+        
+#if 0        
         if(tcid == CTDNSNP_ITEM_TCID(ctdnsnp_item)
         && ipaddr == CTDNSNP_ITEM_IPADDR(ctdnsnp_item)
         && (uint32_t)port == CTDNSNP_ITEM_PORT(ctdnsnp_item))
@@ -753,6 +764,7 @@ uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT3
         }
         
         return (CTDNSNPRB_ERR_POS);
+#endif        
     }
 
     return (CTDNSNPRB_ERR_POS);

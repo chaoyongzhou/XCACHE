@@ -67,7 +67,7 @@ void api_ui_cp_add_history(API_UI_INSTANCE* instance, API_UI_ELEM* element)
 
     traverse = &(instance->history);
 
-    new_node = (API_UI_HISTORY*) api_ui_malloc(sizeof(API_UI_HISTORY), LOC_API_0442);
+    new_node = (API_UI_HISTORY*) api_ui_malloc(sizeof(API_UI_HISTORY), LOC_API_0399);
 
     if (new_node != NULL)
     {
@@ -111,7 +111,7 @@ void api_ui_cp_add_param(API_UI_INSTANCE* instance, API_UI_ELEM* element, char* 
 
     traverse = &(instance->params);
 
-    new_node = (API_UI_PARAM*) api_ui_malloc(sizeof(API_UI_PARAM), LOC_API_0443);
+    new_node = (API_UI_PARAM*) api_ui_malloc(sizeof(API_UI_PARAM), LOC_API_0400);
 
     if (new_node != NULL)
     {
@@ -129,7 +129,7 @@ void api_ui_cp_add_param(API_UI_INSTANCE* instance, API_UI_ELEM* element, char* 
                 new_node->type = API_UI_PARAM_TYPE_STR;
 
                 string_length = strlen(word) + 1; /* Don't forget about '\0' */
-                new_node->x.str = (char*)api_ui_malloc(sizeof(char)*string_length, LOC_API_0444);
+                new_node->x.str = (char*)api_ui_malloc(sizeof(char)*string_length, LOC_API_0401);
                 if (new_node->x.str != NULL)
                 {
                     strcpy(new_node->x.str,word);
@@ -191,13 +191,13 @@ void api_ui_cp_cleanup(API_UI_INSTANCE* instance)
     {
         if (instance->params->type == API_UI_PARAM_TYPE_STR)
         {
-            api_ui_free(instance->params->x.str, LOC_API_0445);
+            api_ui_free(instance->params->x.str, LOC_API_0402);
         }
 
         tmp_params = instance->params;
         instance->params = tmp_params->next;
 
-        api_ui_free(tmp_params, LOC_API_0446);
+        api_ui_free(tmp_params, LOC_API_0403);
     }
 #if 0
     /* Free up the history linked list */
@@ -206,11 +206,11 @@ void api_ui_cp_cleanup(API_UI_INSTANCE* instance)
         tmp_history = instance->history;
         instance->history = tmp_history->next;
 
-        api_ui_free(tmp_history, LOC_API_0447);
+        api_ui_free(tmp_history, LOC_API_0404);
     }
 #endif
     /* Free up the actual instance */
-    api_ui_free(instance, LOC_API_0448);
+    api_ui_free(instance, LOC_API_0405);
 
     return;
 }
@@ -465,7 +465,7 @@ API_UI_INSTANCE* api_ui_cp_init(EC_BOOL interactive)
 {
     API_UI_INSTANCE* retValue;
 
-    retValue = (API_UI_INSTANCE*) api_ui_malloc(sizeof(API_UI_INSTANCE), LOC_API_0449);
+    retValue = (API_UI_INSTANCE*) api_ui_malloc(sizeof(API_UI_INSTANCE), LOC_API_0406);
 
     if (retValue != NULL)
     {

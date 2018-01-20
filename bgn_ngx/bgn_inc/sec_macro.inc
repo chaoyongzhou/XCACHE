@@ -70,7 +70,7 @@
 #define SEC_0060_CAGENT                     ((UINT32)(     60)) /*cagent                          */
 #define SEC_0061_CHASHDB                    ((UINT32)(     61)) /*chashdb                         */
 #define SEC_0062_CROUTINE                   ((UINT32)(     62)) /*croutine                        */
-#define SEC_0063_XXXXX                      ((UINT32)(     63)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0063_CPING                      ((UINT32)(     63)) /*cping                           */
 #define SEC_0064_CHASHALGO                  ((UINT32)(     64)) /*chashalgo                       */
 #define SEC_0065_CHFSNPMGR                  ((UINT32)(     65)) /*chfsnpmgr                       */
 #define SEC_0066_MM                         ((UINT32)(     66)) /*mm                              */

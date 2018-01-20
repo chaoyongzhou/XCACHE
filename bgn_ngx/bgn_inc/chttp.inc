@@ -806,11 +806,17 @@ typedef struct
     uint32_t    rsvd;
     CSTRKV_MGR  header;
     CBYTES      body;
+
+    /*client socket ipaddr and port*/
+    UINT32      client_ipaddr;
+    UINT32      client_port;
 }CHTTP_RSP;
 
-#define CHTTP_RSP_STATUS(chttp_rsp)     ((chttp_rsp)->status)
-#define CHTTP_RSP_HEADER(chttp_rsp)     (&((chttp_rsp)->header))
-#define CHTTP_RSP_BODY(chttp_rsp)       (&((chttp_rsp)->body))
+#define CHTTP_RSP_STATUS(chttp_rsp)                 ((chttp_rsp)->status)
+#define CHTTP_RSP_HEADER(chttp_rsp)                 (&((chttp_rsp)->header))
+#define CHTTP_RSP_BODY(chttp_rsp)                   (&((chttp_rsp)->body))
+#define CHTTP_RSP_CLIENT_IPADDR(chttp_rsp)          ((chttp_rsp)->client_ipaddr)
+#define CHTTP_RSP_CLIENT_PORT(chttp_rsp)            ((chttp_rsp)->client_port)
 
 /*restful api */
 typedef struct

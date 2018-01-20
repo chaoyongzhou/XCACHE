@@ -27,6 +27,7 @@ extern "C"{
 #include "type.h"
 #include "clist.h"
 #include "cvector.h"
+#include "cset.h"
 #include "cmd5.h"
 
 
@@ -224,6 +225,8 @@ EC_BOOL c_file_load(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
 EC_BOOL c_file_read(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
+CBYTES *c_file_load_whole(const char *file_name);
+
 EC_BOOL c_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
 
 EC_BOOL c_file_ppad(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 ch);
@@ -374,6 +377,10 @@ EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4);
 
 EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port);
+
+UINT32  c_finger_ip_from_netcards(const CSET *cnetcard_set);
+
+CSET * c_collect_netcards();
 
 #endif /*_CMISC_H*/
 
