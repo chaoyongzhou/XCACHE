@@ -13,28 +13,27 @@ RUN cd /etc/yum.repos.d/ && rm -f *                                            \
 RUN echo 'export LC_ALL="en_US.UTF-8"' >> /etc/profile
 
 # dependency packages
-#RUN yum -y install which
-# install ifconfig
-#RUN yum -y install net-tools.x86_64
-# install service
 RUN yum -y install initscripts
 # install crontabs
 RUN yum -y install crontabs
-# install named
-RUN yum -y install bind 
-
-RUN curl -svo /home/named.tar.gz http://www.test.com/named.tar.gz -x 47.93.112.38:80
-RUN cd /home/ && tar zxvf named.tar.gz
-RUN cd /home/ && rm -f /etc/named.conf && cp named/named.conf /etc/
-RUN cd /home/ && rm -f /var/named/cache.zone && cp named/cache.zone /var/named/
-RUN /usr/sbin/rndc-confgen -a -r /dev/urandom && chmod 644 /etc/rndc.key
-
-# RFS installation
-RUN curl -svo /home/rfs-5.7.4.5-R.x86_64.rpm http://www.test.com/rfs-5.7.4.5-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/rfs-5.7.4.5-R.x86_64.rpm
 
 # XCACHE installation
-RUN curl -svo /home/XCACHE-NGX_BGN_5.7.4.5-R.x86_64.rpm http://www.test.com/XCACHE-NGX_BGN_5.7.4.5-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/XCACHE-NGX_BGN_5.7.4.5-R.x86_64.rpm
+RUN curl -svo /home/xcache-5.7.4.7-R.x86_64.rpm http://www.test.com/xcache-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/xcache-5.7.4.7-R.x86_64.rpm
 
-CMD  bash -x /usr/local/rfs/bin/rfs_init.sh > /data/proclog/log/rfs/rfs_init.log 2>&1 && service named start && service rfs start && service xcache start && tail -f /var/log/yum.log 
+# RFS installation
+RUN curl -svo /home/rfs-5.7.4.7-R.x86_64.rpm http://www.test.com/rfs-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/rfs-5.7.4.7-R.x86_64.rpm
+
+# DETECT installation
+RUN curl -svo /home/detect-5.7.4.7-R.x86_64.rpm http://www.test.com/detect-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/detect-5.7.4.7-R.x86_64.rpm
+
+# P2P installation
+RUN curl -svo /home/p2p-2-5.7.4.7-R.x86_64.rpm http://www.test.com/p2p-2-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/p2p-2-5.7.4.7-R.x86_64.rpm
+
+# Bash Script
+RUN curl -svo /home/xcache_run.sh http://www.test.com/xcache_run.sh -x 47.93.112.38:80
+
+CMD bash /home/xcache_run.sh > /data/proclog/xcache_run.log 
