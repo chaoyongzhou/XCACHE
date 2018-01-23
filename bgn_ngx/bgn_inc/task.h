@@ -296,6 +296,20 @@ EC_BOOL task_brd_status_mcast_udp_server(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_load(TASK_BRD *task_brd);
 
+const char * task_brd_parse_arg(int argc, const char **argv, const char *tag);
+
+EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, UINT32 *reg_type,
+                                    UINT32   *network_level,
+                                    CSTRING **sys_cfg_xml_fname_cstr,
+                                    CSTRING **basic_cfg_xml_fname_cstr,
+                                    CSTRING **script_fname_cstr,
+                                    CSTRING **bcast_dhcp_netcard_cstr,
+                                    CSTRING **log_path_cstr,
+                                    CSTRING **pid_path_cstr,
+                                    CSTRING **console_path_cstr,
+                                    CSTRING **ssl_path_cstr,
+                                    EC_BOOL  *daemon_flag);
+
 EC_BOOL task_brd_collect_netcards(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_parse_tcid_from_netcards(TASK_BRD *task_brd, const CSET *cnetcard_set, UINT32 *tcid);

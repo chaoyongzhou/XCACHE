@@ -36,7 +36,7 @@
     <tasks tcid="10.10.9.27"  maski="16" maske="16" srvipaddr="127.0.0.1" srvport="927" csrvport="967" cluster="1,3,4"/>
     <tasks tcid="10.10.9.28"  maski="16" maske="16" srvipaddr="127.0.0.1" srvport="928" csrvport="968" cluster="1,3,4"/>
     <tasks tcid="10.10.9.29"  maski="16" maske="16" srvipaddr="127.0.0.1" srvport="929" csrvport="969" cluster="1,3,4"/>
-    <tasks tcid="10.10.10.10"  maski="16" maske="16" srvipaddr="127.0.0.1" srvport="2000" csrvport="2100" cluster="1,4"/>
+    <tasks tcid="10.10.10.10"  maski="16" maske="16" srvipaddr="127.0.0.1" srvport="3000" csrvport="3100" cluster="1,4"/>
     <tasks tcid="0.0.0.64"  maski="32" maske="32" srvipaddr="127.0.0.1" srvport="600" cluster="1,2"/>
     <tasks tcid="0.0.0.65"  maski="32" maske="32" srvipaddr="127.0.0.1" srvport="700" cluster="2"/>
   </taskConfig>

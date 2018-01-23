@@ -19,7 +19,35 @@ TOOL_DIR = $(ROOT_DIR)/tool
 NGX_DIR = ../nginx
 NGX_MODULE_DIR = ../modules
 
-OPENSSL_INC_DIR = /usr/local/xcache/depend/openssl/include/
+OPENSSL_DIR ?= /usr/local/xcache/depend/openssl
+OPENSSL_INC_DIR = $(OPENSSL_DIR)/include
+OPENSSL_LIB_DIR = $(OPENSSL_DIR)/lib
+OPENSSL_INC = -I $(OPENSSL_INC_DIR) 
+OPENSSL_LIB = -Wl,-rpath,$(OPENSSL_LIB_DIR) -L $(OPENSSL_LIB_DIR) -lssl -L $(OPENSSL_LIB_DIR) -lcrypto
+
+PCRE_DIR ?= /usr/local/xcache/depend/pcre
+PCRE_INC_DIR = $(PCRE_DIR)/include
+PCRE_LIB_DIR = $(PCRE_DIR)/lib
+PCRE_INC = -I $(PCRE_INC_DIR)
+PCRE_LIB = -Wl,-rpath,$(PCRE_LIB_DIR) -L $(PCRE_LIB_DIR) -lpcre
+
+XML2_DIR ?= /usr/local/xcache/depend/xml2
+XML2_INC_DIR = $(XML2_DIR)/include
+XML2_LIB_DIR = $(XML2_DIR)/lib
+XML2_INC = -I $(XML2_INC_DIR)
+XML2_LIB = -Wl,-rpath,$(XML2_LIB_DIR) -L $(XML2_LIB_DIR) -lxml2
+
+EXPAT_DIR ?= /usr/local/xcache/depend/expat
+EXPAT_INC_DIR = $(EXPAT_DIR)/include
+EXPAT_LIB_DIR = $(EXPAT_DIR)/lib
+EXPAT_INC = -I $(EXPAT_INC_DIR)
+EXPAT_LIB = -Wl,-rpath,$(EXPAT_LIB_DIR) -L $(EXPAT_LIB_DIR) -lexpat
+
+READLINE_DIR ?= /usr/local/xcache/depend/readline
+READLINE_INC_DIR = $(READLINE_DIR)/include
+READLINE_LIB_DIR = $(READLINE_DIR)/lib
+READLINE_INC = -I $(READLINE_INC_DIR)
+READLINE_LIB = -Wl,-rpath,$(READLINE_LIB_DIR) -L $(READLINE_LIB_DIR) -lreadline
 
 EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/core \
@@ -31,7 +59,7 @@ EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/objs	\
 	-I $(OPENSSL_INC_DIR)
             
-EXT_LIB = `xml2-config --libs` -lm -lrt -lpthread -lpcre -lexpat -lz -lreadline -rdynamic -ldl
+EXT_LIB = $(XML2_LIB) -lm -lrt -lpthread $(PCRE_LIB) $(EXPAT_LIB) -lz $(READLINE_LIB) -rdynamic -ldl
 
 
 BGN_SRC  = $(ROOT_DIR)/bgn_src

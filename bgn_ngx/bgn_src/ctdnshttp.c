@@ -732,11 +732,13 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     const char    * level_str;/*network level*/
     const char    * tcid_str;
     const char    * ipaddr_str;
-    //const char    * port_str;
+    const char    * port_str;
     const char    * service_str;
 
     UINT32          client_ipaddr;
     UINT32          client_port;
+
+    UINT32          reserved_port;
 
     CSTRING         service_cstr;
 
@@ -747,7 +749,7 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     level_str   = chttp_node_get_header(chttp_node, (const char *)"level");
     tcid_str    = chttp_node_get_header(chttp_node, (const char *)"tcid");
     ipaddr_str  = chttp_node_get_header(chttp_node, (const char *)"ip");
-    //port_str    = chttp_node_get_header(chttp_node, (const char *)"port");
+    port_str    = chttp_node_get_header(chttp_node, (const char *)"port");
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     
     if(NULL_PTR == tcid_str)
@@ -775,7 +777,7 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
      
         return (EC_TRUE);
     }     
-#if 0
+
     if(NULL_PTR == port_str)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: tcid '%s', port absence\n", tcid_str);
@@ -788,9 +790,18 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
      
         return (EC_TRUE);
     }     
-#endif
+
     dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: (tcid '%s', ip '%s'), client '%s:%ld'\n",
                     tcid_str, ipaddr_str, c_word_to_ipv4(client_ipaddr), client_port);
+
+    reserved_port = c_str_to_word(port_str);
+    if(CMPI_ERROR_SRVPORT != reserved_port)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: (tcid '%s', ip '%s'), reset client port %ld => %ld\n",
+                        tcid_str, ipaddr_str, c_word_to_ipv4(client_ipaddr), client_port, reserved_port);        
+
+        client_port = reserved_port; /*used reserved port as client port*/
+    }
 
     if(NULL_PTR == service_str)
     {
@@ -2016,6 +2027,9 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
       
     char          * network_str;
     char          * tcid_str;
+    char          * service_name_str;
+
+    CSTRING         service_name;
 
     MOD_NODE        recv_mod_node;
 
@@ -2071,6 +2085,21 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
+    service_name_str = chttp_node_get_header(chttp_node, (const char *)"service");
+    if(NULL_PTR == service_name_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_online_get_request: no service in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: no service in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }   
+    cstring_set_str(&service_name, (const UINT8 *)service_name_str); /*mount only*/
+  
     MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
@@ -2079,14 +2108,15 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
              NULL_PTR,
-             FI_ctdns_online, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str));
+             FI_ctdns_online, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str), &service_name);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_online_get_request: "
-                                              "network %s, tcid '%s' report online", 
+                                              "network %s, tcid '%s', service '%s', report online", 
                                               network_str,
-                                              tcid_str);
+                                              tcid_str,
+                                              service_name_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     return (EC_TRUE);

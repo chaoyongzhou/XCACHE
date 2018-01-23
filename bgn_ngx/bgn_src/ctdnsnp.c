@@ -31,6 +31,10 @@ extern "C"{
 #include "findex.inc"
 
 static CTDNSNP_CFG g_ctdnsnp_cfg_tbl[] = {
+    {(const char *)"512K", (const char *)"CTDNSNP_512K_MODEL", CTDNSNP_512K_CFG_FILE_SIZE,  CTDNSNP_512K_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"1M"  , (const char *)"CTDNSNP_001M_MODEL", CTDNSNP_001M_CFG_FILE_SIZE,  CTDNSNP_001M_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"2M"  , (const char *)"CTDNSNP_002M_MODEL", CTDNSNP_002M_CFG_FILE_SIZE,  CTDNSNP_002M_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"4M"  , (const char *)"CTDNSNP_004M_MODEL", CTDNSNP_004M_CFG_FILE_SIZE,  CTDNSNP_004M_CFG_ITEM_MAX_NUM, 0 },
     {(const char *)"8M"  , (const char *)"CTDNSNP_008M_MODEL", CTDNSNP_008M_CFG_FILE_SIZE,  CTDNSNP_008M_CFG_ITEM_MAX_NUM, 0 },
     {(const char *)"16M" , (const char *)"CTDNSNP_016M_MODEL", CTDNSNP_016M_CFG_FILE_SIZE,  CTDNSNP_016M_CFG_ITEM_MAX_NUM, 0 },
     {(const char *)"32M" , (const char *)"CTDNSNP_032M_MODEL", CTDNSNP_032M_CFG_FILE_SIZE,  CTDNSNP_032M_CFG_ITEM_MAX_NUM, 0 },

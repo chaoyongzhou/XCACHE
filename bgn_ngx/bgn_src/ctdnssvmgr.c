@@ -22,6 +22,7 @@ extern "C"{
 
 #include "ctdnssv.h"
 #include "ctdnssvmgr.h"
+#include "ctdnshttp.h"
 
 CTDNSSV_MGR *ctdnssv_mgr_new()
 {
@@ -145,10 +146,20 @@ EC_BOOL ctdnssv_mgr_close_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_na
 CTDNSSV *ctdnssv_mgr_create_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name)
 {
     CTDNSSV         *ctdnssv;
+    uint8_t          ctdnssv_sp_model;
+
+    if(EC_TRUE == cstring_is_str(service_name, (const UINT8 *)CTDNSHTTP_NODES_SERVICE_NAME))
+    {
+        ctdnssv_sp_model = CTDNSSV_032M_MODEL;
+    }
+    else
+    {
+        ctdnssv_sp_model = CTDNSSV_512K_MODEL;
+    }
     
     ctdnssv = ctdnssv_create((char *)CTDNSSV_MGR_SP_ROOT_DIR_STR(ctdnssv_mgr), 
                              (char *)cstring_get_str(service_name), 
-                             CTDNSSV_SP_MODEL_DEFAULT);
+                             ctdnssv_sp_model);
 
     if(NULL_PTR == ctdnssv)
     {
@@ -331,20 +342,6 @@ EC_BOOL ctdnssv_mgr_show_sp(LOG *log, CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *s
     }
 
     return (EC_TRUE);
-}
-
-CTDNSSV_MGR *ctdnssv_mgr_create(const CSTRING *ctdnssv_sp_root_dir)
-{
-    CTDNSSV_MGR *ctdnssv_mgr;
-    uint32_t     ctdnssv_item_max_num;
-
-    ctdnssv_model_item_max_num(CTDNSSV_SP_MODEL_DEFAULT, &ctdnssv_item_max_num);
-
-    ctdnssv_mgr = ctdnssv_mgr_new();
-
-    cstring_clone(ctdnssv_sp_root_dir, CTDNSSV_MGR_SP_ROOT_DIR(ctdnssv_mgr));
-
-    return (ctdnssv_mgr);
 }
 
 CTDNSSV_MGR * ctdnssv_mgr_open(const CSTRING *ctdnssv_sp_root_dir)

@@ -18,8 +18,6 @@ extern "C"{
 
 #include "ctdnssv.h"
 
-#define CTDNSSV_SP_MODEL_DEFAULT                (CTDNSSV_032M_MODEL)
-
 typedef struct
 {
     CSTRING          ctdnssv_sp_root_dir;        /*ctdnssv database root dir*/
@@ -63,8 +61,6 @@ EC_BOOL ctdnssv_mgr_sync_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_nam
 EC_BOOL ctdnssv_mgr_flush(CTDNSSV_MGR *ctdnssv_mgr);
 
 EC_BOOL ctdnssv_mgr_show_sp(LOG *log, CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name);
-
-CTDNSSV_MGR *ctdnssv_mgr_create(const CSTRING *ctdnssv_sp_root_dir);
 
 CTDNSSV_MGR * ctdnssv_mgr_open(const CSTRING *ctdnssv_sp_root_dir);
 

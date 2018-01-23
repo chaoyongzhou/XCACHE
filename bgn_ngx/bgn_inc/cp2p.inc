@@ -312,7 +312,22 @@ FUNC_ADDR_NODE g_cp2p_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd); -- */
+/* -- EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd); -- */
+/*func module     */     MD_CP2P,
+/*func logic addr */     (UINT32)cp2p_cmd_deliver_notify,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cp2p_cmd_deliver_notify",
+/*func index      */     FI_cp2p_cmd_deliver_notify,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CP2P_CMD_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd); -- */
 /*func module     */     MD_CP2P,
 /*func logic addr */     (UINT32)cp2p_cmd_deliver,
 /*func beg addr   */     0,
@@ -321,13 +336,13 @@ FUNC_ADDR_NODE g_cp2p_func_addr_list[ ] = {
 /*func name       */     "cp2p_cmd_deliver",
 /*func index      */     FI_cp2p_cmd_deliver,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     2,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CP2P_CMD_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CP2P_CMD_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id); -- */
+/* -- EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name); -- */
 /*func module     */     MD_CP2P,
 /*func logic addr */     (UINT32)cp2p_online_report,
 /*func beg addr   */     0,
@@ -336,9 +351,9 @@ FUNC_ADDR_NODE g_cp2p_func_addr_list[ ] = {
 /*func name       */     "cp2p_online_report",
 /*func index      */     FI_cp2p_online_report,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     1,
-/*func para direct*/     {E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,},
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 };

@@ -27,16 +27,20 @@ extern "C"{
 
 #include "ctdnsnprb.h"
 
-#define CTDNSNP_008M_MODEL   ((uint8_t) 0)
-#define CTDNSNP_016M_MODEL   ((uint8_t) 1)
-#define CTDNSNP_032M_MODEL   ((uint8_t) 2)
-#define CTDNSNP_064M_MODEL   ((uint8_t) 3)
-#define CTDNSNP_128M_MODEL   ((uint8_t) 4)
-#define CTDNSNP_256M_MODEL   ((uint8_t) 5)
-#define CTDNSNP_512M_MODEL   ((uint8_t) 6)
-#define CTDNSNP_001G_MODEL   ((uint8_t) 7)
-#define CTDNSNP_002G_MODEL   ((uint8_t) 8)
-#define CTDNSNP_004G_MODEL   ((uint8_t) 9)
+#define CTDNSNP_512K_MODEL   ((uint8_t) 0)
+#define CTDNSNP_001M_MODEL   ((uint8_t) 1)
+#define CTDNSNP_002M_MODEL   ((uint8_t) 2)
+#define CTDNSNP_004M_MODEL   ((uint8_t) 3)
+#define CTDNSNP_008M_MODEL   ((uint8_t) 4)
+#define CTDNSNP_016M_MODEL   ((uint8_t) 5)
+#define CTDNSNP_032M_MODEL   ((uint8_t) 6)
+#define CTDNSNP_064M_MODEL   ((uint8_t) 7)
+#define CTDNSNP_128M_MODEL   ((uint8_t) 8)
+#define CTDNSNP_256M_MODEL   ((uint8_t) 9)
+#define CTDNSNP_512M_MODEL   ((uint8_t)10)
+#define CTDNSNP_001G_MODEL   ((uint8_t)11)
+#define CTDNSNP_002G_MODEL   ((uint8_t)12)
+#define CTDNSNP_004G_MODEL   ((uint8_t)13)
 
 
 typedef struct
@@ -70,6 +74,18 @@ typedef struct
 /*where delta = 4096, i.e., 4096 * 512B = 2MB, less than 1MB is bitmap of deleted items, left is other members or reserved bytes*/
 #define CTDNSNP_ITEM_BIT_SIZE             (5)
 #define CTDNSNP_ITEM_SIZEOF               (1 << CTDNSNP_ITEM_BIT_SIZE) /*it must be 32B*/
+
+#define CTDNSNP_512K_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 19))
+#define CTDNSNP_512K_CFG_ITEM_MAX_NUM     ((CTDNSNP_512K_CFG_FILE_SIZE >> CTDNSNP_ITEM_BIT_SIZE) - (2048*4))
+
+#define CTDNSNP_001M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 20))
+#define CTDNSNP_001M_CFG_ITEM_MAX_NUM     ((CTDNSNP_001M_CFG_FILE_SIZE >> CTDNSNP_ITEM_BIT_SIZE) - (2048*4))
+
+#define CTDNSNP_002M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 21))
+#define CTDNSNP_002M_CFG_ITEM_MAX_NUM     ((CTDNSNP_002M_CFG_FILE_SIZE >> CTDNSNP_ITEM_BIT_SIZE) - (2048*4))
+
+#define CTDNSNP_004M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 22))
+#define CTDNSNP_004M_CFG_ITEM_MAX_NUM     ((CTDNSNP_004M_CFG_FILE_SIZE >> CTDNSNP_ITEM_BIT_SIZE) - (2048*4))
 
 #define CTDNSNP_008M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 23))
 #define CTDNSNP_008M_CFG_ITEM_MAX_NUM     ((CTDNSNP_008M_CFG_FILE_SIZE >> CTDNSNP_ITEM_BIT_SIZE) - (2048*4))

@@ -527,6 +527,8 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);

@@ -794,6 +794,8 @@
 #define                               FI_ctdns_ping  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 31))
 #define                             FI_ctdns_online  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 32))
 #define                             FI_ctdns_detect  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 33))
+#define                FI_ctdns_finger_edge_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 34))
+#define               FI_ctdns_finger_upper_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 35))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))
@@ -827,8 +829,9 @@
 #define                           FI_cp2p_file_load  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 17))
 #define                         FI_cp2p_file_upload  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 18))
 #define                         FI_cp2p_cmd_execute  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 19))
-#define                         FI_cp2p_cmd_deliver  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 20))
-#define                       FI_cp2p_online_report  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 21))
+#define                  FI_cp2p_cmd_deliver_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 20))
+#define                         FI_cp2p_cmd_deliver  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 21))
+#define                       FI_cp2p_online_report  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 22))
 
 
 

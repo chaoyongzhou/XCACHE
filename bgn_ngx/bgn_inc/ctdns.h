@@ -57,6 +57,9 @@ typedef struct
 #define CTDNS_MD_SVP(ctdns_md)               ((ctdns_md)->ctdnssvmgr)
 
 
+CSTRING *ctdns_gen_upper_service_name(const CSTRING *service_name);
+CSTRING *ctdns_gen_edge_service_name(const CSTRING *service_name);
+
 /**
 *   for test only
 *
@@ -132,6 +135,10 @@ EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_na
 EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
 
 EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
+EC_BOOL ctdns_finger_edge_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
+
+EC_BOOL ctdns_finger_upper_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
 EC_BOOL ctdns_reserve_tcid_from_service(const UINT32 ctdns_md_id, const CSTRING *service_name, UINT32 *tcid, UINT32 *port);
 
@@ -261,7 +268,9 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
 *
 *
 **/
-EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid);
+EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
+
+EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
 
 /**
 *

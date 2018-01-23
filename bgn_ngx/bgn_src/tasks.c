@@ -587,6 +587,14 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
         return (EC_FALSE); 
     }
 
+    if(EC_FALSE == CSOCKET_CNODE_IS_CONNECTED(csocket_cnode))
+    {
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: sockfd %d RD was set to disconnected\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+                         
+        return (EC_FALSE); 
+    }
+
     return (EC_TRUE);
 }
 
@@ -2634,6 +2642,14 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
                                     CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
                 return (EC_FALSE);
             }
+
+            if(EC_FALSE == CSOCKET_CNODE_IS_CONNECTED(csocket_cnode))
+            {
+                dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_handshake_irecv_on_csocket_cnode: sockfd %d was set to disconnected\n",
+                                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
+                                 
+                return (EC_FALSE); 
+            }            
 
             return (EC_TRUE);
         }

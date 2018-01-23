@@ -279,10 +279,17 @@ EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
 
 /**
 *
+*  notify edges under current network to deliver p2p cmd
+*
+**/
+EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd); 
+
+/**
+*
 *  deliver command
 *
 **/
-EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
+EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd);
 
 /*------------------------------------------------ interface of reporter ------------------------------------------------*/
 /**
@@ -290,7 +297,7 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
 *  report p2p online
 *
 **/
-EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id);
+EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name);
 
 #endif /*_CP2P_H*/
 

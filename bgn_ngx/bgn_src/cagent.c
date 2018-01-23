@@ -382,7 +382,7 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
     chttp_req_add_header(&chttp_req, (const char *)"service", service);
     chttp_req_add_header(&chttp_req, (const char *)"tcid", tcid);
     chttp_req_add_header(&chttp_req, (const char *)"ip", ipaddr); /*my ip*/
-    //chttp_req_add_header(&chttp_req, (const char *)"port", port);
+    chttp_req_add_header(&chttp_req, (const char *)"port", port);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)CAGENT_TDNS_HOST_STR(cagent));
     chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");

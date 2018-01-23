@@ -88,6 +88,7 @@ extern "C"{
 #include "csfshttp.h"
 
 #include "cagent.h"
+#include "ctdns.h"
 
 #include "findex.inc"
 
@@ -5844,10 +5845,31 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
 {
     CAGENT          *cagent;
     UINT32           ipaddr; /*host ipaddr for internet*/
+    const char      *service_name_str;
+    CSTRING          service_name;
+    CSTRING         *edge_service_name;
+
+    service_name_str = task_brd_parse_arg(TASK_BRD_SAVED_ARGC(task_brd), 
+                                          TASK_BRD_SAVED_ARGV(task_brd),
+                                          (const char *)"-p2p_service");
+    if(NULL_PTR == service_name_str)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: arg 'p2p_service' absence\n");
+        return (EC_FALSE);
+    }
+    cstring_set_str(&service_name, (const UINT8 *)service_name_str);
+
+    edge_service_name = ctdns_gen_edge_service_name(&service_name);
+    if(NULL_PTR == edge_service_name)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: gen edge service name failed\n");
+        return (EC_FALSE);
+    }    
 
     if(EC_FALSE == task_brd_collect_netcards(task_brd))
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: collect netcards failed\n");
+        cstring_free(edge_service_name);
         return (EC_FALSE);
     }
 
@@ -5859,6 +5881,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
     if(NULL_PTR == cagent)
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: new cagent failed\n");
+        cstring_free(edge_service_name);
         return (EC_FALSE);
     }
 
@@ -5869,6 +5892,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
     {
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: reserve tcid failed\n");
         cagent_free(cagent);
+        cstring_free(edge_service_name);
         return (EC_FALSE);
     }
 
@@ -5887,9 +5911,10 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
 
             cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+                                c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
 
             cagent_free(cagent);
+            cstring_free(edge_service_name);
             return (EC_FALSE);
         }   
         TASK_BRD_SYS_CFG(task_brd) = sys_cfg;
@@ -5905,9 +5930,10 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
 
             cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+                                c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
 
             cagent_free(cagent);
+            cstring_free(edge_service_name);
             return (EC_FALSE);
         }
 
@@ -5917,9 +5943,10 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
 
             cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+                                c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
 
             cagent_free(cagent);
+            cstring_free(edge_service_name);
             return (EC_FALSE);
         }    
     }
@@ -5932,38 +5959,47 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
         
         if(EC_FALSE == cagent_set_service(cagent, 
                                           c_word_to_str(network_level),
-                                          (const char *)CTDNSHTTP_EDGES_SERVICE_NAME, 
+                                          (char *)cstring_get_str(edge_service_name), 
                                           c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
                                           c_word_to_ipv4(ipaddr), 
-                                          CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/))
+                                          c_word_to_str(CAGENT_RESERVED_PORT(cagent))))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: "
                                                  "service '%s', tcid '%s', ip '%s' failed\n",
-                                                 (const char *)CTDNSHTTP_EDGES_SERVICE_NAME,
+                                                 cstring_get_str(edge_service_name),
                                                  c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
                                                  c_word_to_ipv4(ipaddr));
                                                  
             cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                                CMPI_ERROR_SRVPORT/*c_word_to_str(CAGENT_RESERVED_PORT(cagent))*/);
+                                c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
 
             cagent_free(cagent);
+            cstring_free(edge_service_name);
             return (EC_FALSE);
         }
     }
 
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: "
                                          "service '%s', tcid '%s', ip '%s', port %ld done\n",
-                                         (const char *)CTDNSHTTP_EDGES_SERVICE_NAME,
+                                         cstring_get_str(edge_service_name),
                                          c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
                                          c_word_to_ipv4(ipaddr), 
                                          CAGENT_RESERVED_PORT(cagent));    
 
     (*this_tcid)   = CAGENT_RESERVED_TCID(cagent);
     (*this_ipaddr) = CAGENT_LOCAL_IPADDR(cagent);
-    (*this_port)   = CAGENT_LOCAL_PORT(cagent);
 
+    if(CMPI_ERROR_SRVPORT == CAGENT_RESERVED_PORT(cagent))
+    {
+        (*this_port)   = CAGENT_LOCAL_PORT(cagent);
+    }
+    else
+    {
+        (*this_port)   = CAGENT_RESERVED_PORT(cagent);
+    }
     cagent_free(cagent);
+    cstring_free(edge_service_name);
     return (EC_TRUE);
 }
 
@@ -6410,6 +6446,21 @@ EC_BOOL task_brd_reset_tcid_args(int argc, char **argv, const UINT32 tcid)
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_reset_tcid_args: "
                                          "not found arg 'tcid'\n");
     return (EC_FALSE);    
+}
+
+const char * task_brd_parse_arg(int argc, const char **argv, const char *tag)
+{
+    int idx;
+
+    for(idx = 0; idx < argc; idx ++)
+    {
+        if(0 == strcasecmp(argv[idx], tag) && idx + 1 < argc)
+        {
+            return (argv[idx + 1]);
+        }
+    }
+
+    return (NULL_PTR);
 }
   
 EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, UINT32 *reg_type,

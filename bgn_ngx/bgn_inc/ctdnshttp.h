@@ -37,8 +37,6 @@ extern "C"{
 #define CTDNSHTTP_SERVER_DEFAULT           CTDNSHTTP_HOST_DEFAULT":"CTDNSHTTP_PORT_DEFAULT
 
 #define CTDNSHTTP_NODES_SERVICE_NAME       "p2p.nodes" /*on T-DNS server*/
-#define CTDNSHTTP_EDGES_SERVICE_NAME       "p2p.edges" /*on each P2P node*/
-#define CTDNSHTTP_UPPER_SERVICE_NAME       "p2p.upper" /*on each P2P node*/
 
 EC_BOOL ctdnshttp_log_start();
 

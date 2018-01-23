@@ -224,6 +224,7 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
     if(EC_FALSE == ctdns_has_npp(ctdns_md_id))
     {
         CSTRING    *ctdnsnp_db_root_dir;
+        UINT32      ctdnsnp_model;
         UINT32      ctdnsnp_max_num;
 
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create tdns\n");
@@ -235,9 +236,10 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
             cp2p_end(cp2p_md_id);
             return (CMPI_ERROR_MODI);
         }
-        
+
+        ctdnsnp_model   = CTDNSNP_032M_MODEL;
         ctdnsnp_max_num = 1;
-        if(EC_FALSE == ctdns_create_npp(ctdns_md_id, CTDNSNP_128M_MODEL, ctdnsnp_max_num, ctdnsnp_db_root_dir))
+        if(EC_FALSE == ctdns_create_npp(ctdns_md_id, ctdnsnp_model, ctdnsnp_max_num, ctdnsnp_db_root_dir))
         {
             dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: creat tdns np failed\n");
             cstring_free(ctdnsnp_db_root_dir);
@@ -698,8 +700,6 @@ EC_BOOL cp2p_file_push_notify(const UINT32 cp2p_md_id, const UINT32 des_network,
 {
     CP2P_MD          *cp2p_md;
 
-    CSTRING           service_name;
-
     TASK_MGR         *task_mgr;
     
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
@@ -725,18 +725,15 @@ EC_BOOL cp2p_file_push_notify(const UINT32 cp2p_md_id, const UINT32 des_network,
                                              "new ctdnssv_node_mgr failed\n");    
         return (EC_FALSE);
     }
-
-    /*mount only*/
-    cstring_set_str(&service_name, (const UINT8 *)CTDNSHTTP_EDGES_SERVICE_NAME);
     
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                        &service_name, 
+    if(EC_FALSE == ctdns_finger_edge_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                        CP2P_FILE_SERVICE_NAME(cp2p_file), 
                                         CP2P_NODES_MAX_NUM, 
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_push_notify: "
                                              "finger service '%s' failed\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -744,8 +741,8 @@ EC_BOOL cp2p_file_push_notify(const UINT32 cp2p_md_id, const UINT32 des_network,
     if(EC_TRUE == ctdnssv_node_mgr_is_empty(ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_push_notify: "
-                                             "no upper node for service '%s'\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "no edge node for service '%s'\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -769,7 +766,7 @@ EC_BOOL cp2p_file_push_notify(const UINT32 cp2p_md_id, const UINT32 des_network,
             dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_push_notify: "
                                                  "notify service '%s' edge node '%s' to push p2p file "
                                                  "to network %ld, des tcid '%s'\n",
-                                                 (char *)cstring_get_str(&service_name),
+                                                 (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file),
                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                  des_network,
                                                  c_word_to_ipv4(des_tcid)); 
@@ -797,8 +794,6 @@ EC_BOOL cp2p_file_flush_notify(const UINT32 cp2p_md_id, const UINT32 des_network
 {
     CP2P_MD          *cp2p_md;
 
-    CSTRING           service_name;
-
     TASK_MGR         *task_mgr;
     
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
@@ -824,18 +819,15 @@ EC_BOOL cp2p_file_flush_notify(const UINT32 cp2p_md_id, const UINT32 des_network
                                              "new ctdnssv_node_mgr failed\n");    
         return (EC_FALSE);
     }
-
-    /*mount only*/
-    cstring_set_str(&service_name, (const UINT8 *)CTDNSHTTP_EDGES_SERVICE_NAME);
     
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                        &service_name, 
-                                        CP2P_NODES_MAX_NUM, 
-                                        ctdnssv_node_mgr))
+    if(EC_FALSE == ctdns_finger_edge_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                             CP2P_FILE_SERVICE_NAME(cp2p_file), 
+                                             CP2P_NODES_MAX_NUM, 
+                                             ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush_notify: "
-                                             "finger service '%s' failed\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "finger edge service '%s' failed\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -844,7 +836,7 @@ EC_BOOL cp2p_file_flush_notify(const UINT32 cp2p_md_id, const UINT32 des_network
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush_notify: "
                                              "no upper node for service '%s'\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -868,7 +860,7 @@ EC_BOOL cp2p_file_flush_notify(const UINT32 cp2p_md_id, const UINT32 des_network
             dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_flush_notify: "
                                                  "notify service '%s' edge node '%s' to flush p2p file "
                                                  "to network %ld, des tcid '%s'\n",
-                                                 (char *)cstring_get_str(&service_name),
+                                                 (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file),
                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                  des_network,
                                                  c_word_to_ipv4(des_tcid)); 
@@ -896,8 +888,6 @@ EC_BOOL cp2p_file_report_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
 {
     CP2P_MD          *cp2p_md;
 
-    CSTRING           service_name;
-
     TASK_MGR         *task_mgr;
     
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
@@ -923,18 +913,15 @@ EC_BOOL cp2p_file_report_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
                                              "new ctdnssv_node_mgr failed\n");    
         return (EC_FALSE);
     }
-
-    /*mount only*/
-    cstring_set_str(&service_name, (const UINT8 *)CTDNSHTTP_UPPER_SERVICE_NAME);
     
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                        &service_name, 
+    if(EC_FALSE == ctdns_finger_upper_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                        CP2P_FILE_SERVICE_NAME(cp2p_file), 
                                         CP2P_NODES_MAX_NUM, 
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_report_notify: "
-                                             "finger service '%s' failed\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "finger upper service '%s' failed\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -943,7 +930,7 @@ EC_BOOL cp2p_file_report_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_report_notify: "
                                              "no upper node for service '%s'\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -967,7 +954,7 @@ EC_BOOL cp2p_file_report_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
             dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_report_notify: "
                                                  "notify service '%s' upper node '%s' to report p2p file "
                                                  "which is ready on network %ld, des tcid '%s'\n",
-                                                 (char *)cstring_get_str(&service_name),
+                                                 (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file),
                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                  des_network,
                                                  c_word_to_ipv4(des_tcid)); 
@@ -995,8 +982,6 @@ EC_BOOL cp2p_file_delete_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
 {
     CP2P_MD          *cp2p_md;
 
-    CSTRING           service_name;
-
     TASK_MGR         *task_mgr;
     
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
@@ -1023,17 +1008,14 @@ EC_BOOL cp2p_file_delete_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
         return (EC_FALSE);
     }
 
-    /*mount only*/
-    cstring_set_str(&service_name, (const UINT8 *)CTDNSHTTP_EDGES_SERVICE_NAME);
-    
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                        &service_name, 
+    if(EC_FALSE == ctdns_finger_edge_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                        CP2P_FILE_SERVICE_NAME(cp2p_file), 
                                         CP2P_NODES_MAX_NUM, 
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_delete_notify: "
-                                             "finger service '%s' failed\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "finger edge service '%s' failed\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -1041,8 +1023,8 @@ EC_BOOL cp2p_file_delete_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
     if(EC_TRUE == ctdnssv_node_mgr_is_empty(ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_delete_notify: "
-                                             "no upper node for service '%s'\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "no edge node for service '%s'\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_TRUE);
     }
@@ -1066,7 +1048,7 @@ EC_BOOL cp2p_file_delete_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
             dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_delete_notify: "
                                                  "notify service '%s' edge node '%s' to delete p2p file "
                                                  "which is on network %ld, des tcid '%s'\n",
-                                                 (char *)cstring_get_str(&service_name),
+                                                 (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file),
                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                  des_network,
                                                  c_word_to_ipv4(des_tcid)); 
@@ -1198,9 +1180,6 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
                                          "downloaded '%s' storing is OK\n", 
                                          (char *)cstring_get_str(file_path));      
     
-    cstring_free(file_path);
-    cbytes_free(file_content);
-
     if(do_log(SEC_0059_CP2P, 9))
     {
         dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_download: "
@@ -1209,6 +1188,9 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
                                              c_word_to_ipv4(src_tcid));      
         cp2p_file_print(LOGSTDOUT, cp2p_file);
     }
+
+    cstring_free(file_path);
+    cbytes_free(file_content);    
 
     return (EC_TRUE);
 }
@@ -1270,15 +1252,17 @@ EC_BOOL cp2p_file_push(const UINT32 cp2p_md_id, const UINT32 des_network, const 
             return (EC_FALSE);
         }
     }    
-
-    /*CMPI_TOP_NETWORK + 1 < CP2P_MD_NETWORK_LEVEL(cp2p_md)*/
-
-    /*anyway, pull it*/
-    if(EC_FALSE == cp2p_file_pull(cp2p_md_id, cp2p_file))
+    else
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_push: "
-                                             "pull file failed\n");    
-        return (EC_FALSE);
+        /*CMPI_TOP_NETWORK + 1 < CP2P_MD_NETWORK_LEVEL(cp2p_md)*/
+
+        /*anyway, pull it*/
+        if(EC_FALSE == cp2p_file_pull(cp2p_md_id, cp2p_file))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_push: "
+                                                 "pull file failed\n");    
+            return (EC_FALSE);
+        }
     }
 
     if(CMPI_ANY_NETWORK == des_network
@@ -1288,7 +1272,7 @@ EC_BOOL cp2p_file_push(const UINT32 cp2p_md_id, const UINT32 des_network, const 
         return cp2p_file_push_notify(cp2p_md_id, des_network, des_tcid, cp2p_file);
     }
 
-    /*now reach the specific networ*/
+    /*now reach the specific network*/
 
     if(CMPI_ANY_TCID == des_tcid)
     {
@@ -1325,8 +1309,6 @@ EC_BOOL cp2p_file_push(const UINT32 cp2p_md_id, const UINT32 des_network, const 
 EC_BOOL cp2p_file_pull(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
 {
     CP2P_MD          *cp2p_md;
-
-    CSTRING           service_name;
     
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
     CLIST_DATA       *clist_data;
@@ -1364,18 +1346,15 @@ EC_BOOL cp2p_file_pull(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
                                              "new ctdnssv_node_mgr failed\n");    
         return (EC_FALSE);
     }
-
-    /*mount only*/
-    cstring_set_str(&service_name, (const UINT8 *)CTDNSHTTP_UPPER_SERVICE_NAME);
     
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                        &service_name, 
+    if(EC_FALSE == ctdns_finger_upper_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                        CP2P_FILE_SERVICE_NAME(cp2p_file), 
                                         CP2P_NODES_MAX_NUM, 
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_pull: "
-                                             "finger service '%s' failed\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             "finger upper service '%s' failed\n",
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -1384,7 +1363,7 @@ EC_BOOL cp2p_file_pull(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_pull: "
                                              "no upper node for service '%s'\n",
-                                             (char *)cstring_get_str(&service_name));    
+                                             (char *)CP2P_FILE_SERVICE_NAME_STR(cp2p_file));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -1561,33 +1540,50 @@ EC_BOOL cp2p_file_flush(const UINT32 cp2p_md_id, const UINT32 des_network, const
 
     cp2p_md = CP2P_MD_GET(cp2p_md_id);
 
-    if(CP2P_MD_NETWORK_LEVEL(cp2p_md) > des_network)
+    if(CMPI_ANY_NETWORK != des_network)
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush: "
-                                             "cur network level %ld > des_network %ld\n",
-                                             CP2P_MD_NETWORK_LEVEL(cp2p_md),
-                                             des_network);    
-        return (EC_FALSE);
+        if(CP2P_MD_NETWORK_LEVEL(cp2p_md) > des_network)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush: "
+                                                 "cur network level %ld > des_network %ld\n",
+                                                 CP2P_MD_NETWORK_LEVEL(cp2p_md),
+                                                 des_network);    
+            return (EC_FALSE);
+        }
+
+        if(CP2P_MD_NETWORK_LEVEL(cp2p_md) < des_network)
+        {
+            /*notify edges of current network to flush*/   
+            return cp2p_file_flush_notify(cp2p_md_id, des_network, des_tcid, cp2p_file);
+        }    
+
+        /*now reach the specific network*/
+
+        if(CMPI_ANY_TCID != des_tcid
+        && CP2P_MD_NETWORK_TCID(cp2p_md) != des_tcid)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush: "
+                                                 "here tcid '%s' != des_tcid '%s'\n",
+                                                 c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)),
+                                                 c_word_to_ipv4(des_tcid));    
+            return (EC_FALSE);
+        }
     }
-
-    if(CP2P_MD_NETWORK_LEVEL(cp2p_md) < des_network)
+    else
     {
-        /*notify edges of current network to flush*/   
-        return cp2p_file_flush_notify(cp2p_md_id, des_network, des_tcid, cp2p_file);
-    }    
+        /*now reach the specific network*/
 
-    /*now reach the specific networ*/
-
-    if(CMPI_ANY_TCID != des_tcid
-    && CP2P_MD_NETWORK_TCID(cp2p_md) != des_tcid)
-    {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush: "
-                                             "here tcid '%s' != des_tcid '%s'\n",
-                                             c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)),
-                                             c_word_to_ipv4(des_tcid));    
-        return (EC_FALSE);
+        if(CMPI_ANY_TCID != des_tcid
+        && CP2P_MD_NETWORK_TCID(cp2p_md) != des_tcid)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_flush: "
+                                                 "here tcid '%s' != des_tcid '%s'\n",
+                                                 c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)),
+                                                 c_word_to_ipv4(des_tcid));    
+                                                 
+            return cp2p_file_flush_notify(cp2p_md_id, des_network, des_tcid, cp2p_file); 
+        }    
     }
-
     /*now flush*/
 
     des_file_path = CP2P_FILE_DES_NAME(cp2p_file);
@@ -1622,7 +1618,13 @@ EC_BOOL cp2p_file_flush(const UINT32 cp2p_md_id, const UINT32 des_network, const
                                              des_network,
                                              c_word_to_ipv4(des_tcid));
         cp2p_file_print(LOGSTDOUT, cp2p_file);
-    }   
+    }     
+
+    if(CMPI_ANY_NETWORK == des_network)
+    {
+        /*notify edges of current network to flush*/ 
+        return cp2p_file_flush_notify(cp2p_md_id, des_network, des_tcid, cp2p_file);    
+    }
         
     return (EC_TRUE);
 }
@@ -1756,7 +1758,6 @@ EC_BOOL cp2p_file_upload(const UINT32 cp2p_md_id, const CBYTES *src_file_content
 
     CSTRING          *des_file_path;
     UINT32            des_file_expire_nsec;
-    int               src_file_fd;
     
 #if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
@@ -2013,7 +2014,7 @@ EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
     
     super_exec_shell(super_md_id, CP2P_CMD_COMMAND_LINE(cp2p_cmd), &result_cbytes);
 
-    dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_execute: service %s, cmd:  \"%s\", output len %ld\n", 
+    dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_execute: service %s, cmd: \"%s\", output len %ld\n", 
                                          (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd),
                                          (char *)CP2P_CMD_COMMAND_LINE_STR(cp2p_cmd), 
                                           cbytes_len(&result_cbytes));
@@ -2025,10 +2026,10 @@ EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
 
 /**
 *
-*  deliver command
+*  notify edges under current network to deliver p2p cmd
 *
 **/
-EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
+EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd)
 {
     CP2P_MD          *cp2p_md;
 
@@ -2039,7 +2040,7 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cp2p_cmd_deliver: cp2p module #0x%lx not started.\n",
+                "error:cp2p_cmd_deliver_notify: cp2p module #0x%lx not started.\n",
                 cp2p_md_id);
         cp2p_print_module_status(cp2p_md_id, LOGSTDOUT);
         dbg_exit(MD_CP2P, cp2p_md_id);
@@ -2047,26 +2048,22 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
 #endif/*CP2P_DEBUG_SWITCH*/
 
     cp2p_md = CP2P_MD_GET(cp2p_md_id);
-
-    dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_deliver: "
-                                         "cmd (service '%s', cmd '%s')\n", 
-                                         (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd),
-                                         (char *)CP2P_CMD_COMMAND_LINE_STR(cp2p_cmd));    
-
-   
+ 
     /*notify reachable edges to execute cmd*/
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
     if(NULL_PTR == ctdnssv_node_mgr)
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver: "
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver_notify: "
                                              "new ctdnssv_node_mgr failed\n");    
         return (EC_FALSE);
     }
     
-    if(EC_FALSE == ctdns_finger_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
-                                CP2P_CMD_SERVICE_NAME(cp2p_cmd), CP2P_NODES_MAX_NUM, ctdnssv_node_mgr))
+    if(EC_FALSE == ctdns_finger_edge_service(CP2P_MD_CTDNS_MODI(cp2p_md), 
+                                             CP2P_CMD_SERVICE_NAME(cp2p_cmd), 
+                                             CP2P_NODES_MAX_NUM, 
+                                             ctdnssv_node_mgr))
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver: "
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver_notify: "
                                              "finger service '%s' failed\n",
                                              (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd));    
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
@@ -2085,7 +2082,7 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
         MOD_NODE_MODI(&recv_mod_node) = 0;/*only one p2p module*/
 
-        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_deliver: "
+        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_deliver_notify: "
                                              "cmd (service '%s', cmd '%s') "
                                              "=> deliver cmd to tcid %s\n", 
                                              (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd),
@@ -2093,7 +2090,7 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
                                              MOD_NODE_TCID_STR(&recv_mod_node));  
         task_p2p_no_wait(cp2p_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP, 
                          &recv_mod_node, 
-                         NULL_PTR, FI_cp2p_cmd_deliver, CMPI_ERROR_MODI, cp2p_cmd);
+                         NULL_PTR, FI_cp2p_cmd_deliver, CMPI_ERROR_MODI, des_network, des_tcid, cp2p_cmd);
     }
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
   
@@ -2102,10 +2099,77 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
 
 /**
 *
+*  deliver command
+*
+**/
+EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd)
+{
+    CP2P_MD          *cp2p_md;
+    
+#if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
+    if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cp2p_cmd_deliver: cp2p module #0x%lx not started.\n",
+                cp2p_md_id);
+        cp2p_print_module_status(cp2p_md_id, LOGSTDOUT);
+        dbg_exit(MD_CP2P, cp2p_md_id);
+    }
+#endif/*CP2P_DEBUG_SWITCH*/
+
+    cp2p_md = CP2P_MD_GET(cp2p_md_id);
+
+    if(CMPI_ANY_NETWORK == CP2P_MD_NETWORK_LEVEL(cp2p_md))
+    {
+        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_deliver: "
+                                             "cmd (service '%s', cmd '%s')\n", 
+                                             (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd),
+                                             (char *)CP2P_CMD_COMMAND_LINE_STR(cp2p_cmd));
+                                         
+        cp2p_cmd_deliver_notify(cp2p_md_id, des_network, des_tcid, cp2p_cmd);
+        
+        return cp2p_cmd_execute(cp2p_md_id, cp2p_cmd);
+    }
+
+    if(CP2P_MD_NETWORK_LEVEL(cp2p_md) > des_network)
+    {
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver: "
+                                             "cur network level %ld > des_network %ld\n",
+                                             CP2P_MD_NETWORK_LEVEL(cp2p_md),
+                                             des_network);    
+        return (EC_FALSE);
+    }
+
+    if(CP2P_MD_NETWORK_LEVEL(cp2p_md) == des_network)
+    {
+        if(CMPI_ANY_TCID != des_tcid)
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_cmd_deliver: "
+                                                 "here tcid '%s' != des_tcid '%s'\n",
+                                                 c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)),
+                                                 c_word_to_ipv4(des_tcid));    
+            return (EC_FALSE);
+        }
+    
+        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_cmd_deliver: "
+                                             "cmd (service '%s', cmd '%s')\n", 
+                                             (char *)CP2P_CMD_SERVICE_NAME_STR(cp2p_cmd),
+                                             (char *)CP2P_CMD_COMMAND_LINE_STR(cp2p_cmd));
+                                         
+        /*now reach the specific network*/
+        return cp2p_cmd_execute(cp2p_md_id, cp2p_cmd);
+    }    
+
+    /*notify edges of current network to deliver cmd*/ 
+    return cp2p_cmd_deliver_notify(cp2p_md_id, des_network, des_tcid, cp2p_cmd);
+}
+
+/**
+*
 *  report p2p online
 *
 **/
-EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id)
+EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name)
 {
     CP2P_MD          *cp2p_md;
 
@@ -2150,6 +2214,7 @@ EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id)
 
     chttp_req_add_header(&chttp_req, (const char *)"network", c_word_to_str(CP2P_MD_NETWORK_LEVEL(cp2p_md)));
     chttp_req_add_header(&chttp_req, (const char *)"tcid"   , c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)));
+    chttp_req_add_header(&chttp_req, (const char *)"service", cstring_get_str(service_name));
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)tdns_srv_host);
     chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
