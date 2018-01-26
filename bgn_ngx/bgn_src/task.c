@@ -5951,6 +5951,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
         }    
     }
 
+#if 0
     if(0 < TASK_BRD_NETWORK_LEVEL(task_brd))
     {
         UINT32  network_level;
@@ -5979,6 +5980,31 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
             return (EC_FALSE);
         }
     }
+#endif
+
+#if 1
+    if(0 < TASK_BRD_NETWORK_LEVEL(task_brd))
+    {   
+        if(EC_FALSE == cagent_set_tcid(cagent, 
+                                      c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                      c_word_to_ipv4(ipaddr), 
+                                      c_word_to_str(CAGENT_RESERVED_PORT(cagent))))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_pull_config: "
+                                                 "set cid '%s', ip '%s' failed\n",
+                                                 c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                                 c_word_to_ipv4(ipaddr));
+                                                 
+            cagent_release_tcid(cagent, (const char *)CTDNSHTTP_NODES_SERVICE_NAME, 
+                                c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
+                                c_word_to_str(CAGENT_RESERVED_PORT(cagent)));
+
+            cagent_free(cagent);
+            cstring_free(edge_service_name);
+            return (EC_FALSE);
+        }
+    }
+#endif
 
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_pull_config: "
                                          "service '%s', tcid '%s', ip '%s', port %ld done\n",
@@ -7495,6 +7521,8 @@ LOG * task_brd_default_init(int argc, char **argv)
     CSTRING *ssl_path_cstr;
     EC_BOOL  daemon_flag;
 
+    const char *loglevel;
+
     init_host_endian();
     cmisc_init(LOC_TASK_0131);
 
@@ -7503,8 +7531,12 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*prepare stdout,stderr, stdin devices*/
     log_start();
 
-    log_set_level((const char *)"53:9,149:9");
-
+    loglevel = task_brd_parse_arg(argc, argv, (const char *)"-loglevel");
+    if(NULL_PTR != loglevel)
+    {
+        log_set_level(loglevel);
+    }
+    
     this_comm   = CMPI_COMM_WORLD;
     this_size   = CMPI_MIN_SIZE;      /*default*/
     this_tcid   = CMPI_ERROR_TCID;

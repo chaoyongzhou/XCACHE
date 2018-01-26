@@ -34,6 +34,8 @@ extern "C"{
 #define CTDNS_EDGE_PING_MAX_NSEC    ((UINT32) 10)
 #define CTDNS_EDGE_PING_MAX_MSEC    (CTDNS_EDGE_PING_MAX_NSEC * 1000)
 
+#define CTDNS_NODE_DETECT_NSEC      ((UINT32) 1)
+
 typedef struct
 {
     /* used counter >= 0 */
@@ -274,11 +276,35 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
 
 /**
 *
-*  detect nodes alive of service
+*  detect specific service nodes alive of service
 *
 *
 **/
-EC_BOOL ctdns_detect(const UINT32 ctdns_md_id, const CSTRING *service_name);
+EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name);
+
+/**
+*
+*  detect edge nodes and upper nodes alive of service
+*
+*
+**/
+EC_BOOL ctdns_detect(const UINT32 ctdns_md_id);
+
+/**
+*
+*  detect loop
+*
+*
+**/
+EC_BOOL ctdns_detect_loop(const UINT32 ctdns_md_id);
+
+/**
+*
+*  detect task
+*
+*
+**/
+EC_BOOL ctdns_detect_task(const UINT32 ctdns_md_id);
 
 #endif /*_CTDNS_H*/
 

@@ -796,6 +796,9 @@
 #define                             FI_ctdns_detect  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 33))
 #define                FI_ctdns_finger_edge_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 34))
 #define               FI_ctdns_finger_upper_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 35))
+#define                     FI_ctdns_detect_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 36))
+#define                        FI_ctdns_detect_loop  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 37))
+#define                        FI_ctdns_detect_task  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 38))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))

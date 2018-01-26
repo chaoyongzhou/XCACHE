@@ -507,7 +507,7 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL EC_BOOL ctdns_detect(const UINT32 ctdns_md_id, const CSTRING *service_name); -- */
+/* -- EC_BOOL EC_BOOL ctdns_detect(const UINT32 ctdns_md_id); -- */
 /*func module     */     MD_CTDNS,
 /*func logic addr */     (UINT32)ctdns_detect,
 /*func beg addr   */     0,
@@ -516,9 +516,9 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func name       */     "ctdns_detect",
 /*func index      */     FI_ctdns_detect,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     2,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -549,6 +549,51 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para num   */     4,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CTDNSSV_NODE_MGR_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_detect_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_detect_service",
+/*func index      */     FI_ctdns_detect_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_detect_loop(const UINT32 ctdns_md_id); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_detect_loop,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_detect_loop",
+/*func index      */     FI_ctdns_detect_loop,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_detect_task(const UINT32 ctdns_md_id); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_detect_task,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_detect_task",
+/*func index      */     FI_ctdns_detect_task,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
 };

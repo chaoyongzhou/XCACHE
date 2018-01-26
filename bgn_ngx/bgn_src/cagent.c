@@ -187,6 +187,10 @@ EC_BOOL cagent_reserve_tcid(CAGENT *cagent, const char *service, const char *ipa
     }
     CAGENT_RESERVED_PORT(cagent) = c_str_to_word(v);    
 
+    /*record socket ipaddr and port during http procedure*/
+    CAGENT_LOCAL_IPADDR(cagent) = CHTTP_RSP_CLIENT_IPADDR(&chttp_rsp);
+    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);      
+
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
@@ -378,8 +382,8 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/set");
 
-    chttp_req_add_header(&chttp_req, (const char *)"level", network_level);
-    chttp_req_add_header(&chttp_req, (const char *)"service", service);
+    //chttp_req_add_header(&chttp_req, (const char *)"level", network_level);
+    //chttp_req_add_header(&chttp_req, (const char *)"service", service);
     chttp_req_add_header(&chttp_req, (const char *)"tcid", tcid);
     chttp_req_add_header(&chttp_req, (const char *)"ip", ipaddr); /*my ip*/
     chttp_req_add_header(&chttp_req, (const char *)"port", port);
@@ -417,6 +421,70 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
 
     dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_service: service '%s', tcid '%s', ip '%s'\n",
                     service, tcid, ipaddr);    
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, const char *port)
+{
+    CHTTP_REQ         chttp_req;
+    CHTTP_RSP         chttp_rsp;
+
+    UINT32            tdns_ipaddr;
+    
+    chttp_req_init(&chttp_req);
+    chttp_rsp_init(&chttp_rsp);
+
+    if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+    {
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: dns resolve '%s' failed\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent));
+        return (EC_FALSE);
+    }
+    
+    chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
+    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));    
+
+    chttp_req_set_method(&chttp_req, (const char *)"GET");
+    chttp_req_set_uri(&chttp_req, (const char *)"/tdns/set");
+
+    chttp_req_add_header(&chttp_req, (const char *)"tcid", tcid);
+    chttp_req_add_header(&chttp_req, (const char *)"ip", ipaddr); /*my ip*/
+    chttp_req_add_header(&chttp_req, (const char *)"port", port);
+
+    chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)CAGENT_TDNS_HOST_STR(cagent));
+    chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (const char *)"keep-alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (const char *)"0");
+
+    if(EC_FALSE == chttp_request_block(&chttp_req, &chttp_rsp, NULL_PTR))
+    {
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: http request failed\n");
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
+    {
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: invalid rsp status %u\n",
+                        CHTTP_RSP_STATUS(&chttp_rsp));
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    /*record socket ipaddr and port during http procedure*/
+    CAGENT_LOCAL_IPADDR(cagent) = CHTTP_RSP_CLIENT_IPADDR(&chttp_rsp);
+    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);    
+
+    chttp_req_clean(&chttp_req);
+    chttp_rsp_clean(&chttp_rsp);
+
+    dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_tcid: bind tcid '%s', ip '%s' done\n",
+                    tcid, ipaddr);    
     
     return (EC_TRUE);
 }

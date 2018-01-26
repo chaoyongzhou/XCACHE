@@ -72,6 +72,8 @@ SYS_CFG *cagent_gen_config(const CAGENT *cagent);
 
 EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char *service, const char *tcid, const char *ipaddr, const char *port);
 
+EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, const char *port);
+
 EC_BOOL cagent_check_p2p(const CAGENT *cagent);
 
 EC_BOOL cagent_start_p2p(const CAGENT *cagent);
