@@ -10,7 +10,7 @@ RUN cd /etc/yum.repos.d/ && rm -f *                                            \
 # update yum source -- END
 #----------------------------------------------------------------------------------------------
 #
-RUN echo 'export LC_ALL="en_US.UTF-8"' >> /etc/profile
+#RUN echo 'export LC_ALL="en_US.UTF-8"' >> /etc/profile
 
 # dependency packages
 RUN yum -y install initscripts
@@ -18,22 +18,26 @@ RUN yum -y install initscripts
 RUN yum -y install crontabs
 
 # XCACHE installation
-RUN curl -svo /home/xcache-5.7.4.7-R.x86_64.rpm http://www.test.com/xcache-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/xcache-5.7.4.7-R.x86_64.rpm
+RUN curl -svo /home/xcache-5.7.4.8-R.x86_64.rpm http://www.test.com/xcache-5.7.4.8-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/xcache-5.7.4.8-R.x86_64.rpm
 
 # RFS installation
-RUN curl -svo /home/rfs-5.7.4.7-R.x86_64.rpm http://www.test.com/rfs-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/rfs-5.7.4.7-R.x86_64.rpm
+RUN curl -svo /home/rfs-5.7.4.8-R.x86_64.rpm http://www.test.com/rfs-5.7.4.8-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/rfs-5.7.4.8-R.x86_64.rpm
 
 # DETECT installation
-RUN curl -svo /home/detect-5.7.4.7-R.x86_64.rpm http://www.test.com/detect-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/detect-5.7.4.7-R.x86_64.rpm
+RUN curl -svo /home/detect-5.7.4.8-R.x86_64.rpm http://www.test.com/detect-5.7.4.8-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/detect-5.7.4.8-R.x86_64.rpm
 
 # P2P installation
-RUN curl -svo /home/p2p-2-5.7.4.7-R.x86_64.rpm http://www.test.com/p2p-2-5.7.4.7-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/p2p-2-5.7.4.7-R.x86_64.rpm
+RUN curl -svo /home/p2p-2-5.7.4.8-R.x86_64.rpm http://www.test.com/p2p-2-5.7.4.8-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/p2p-2-5.7.4.8-R.x86_64.rpm
 
 # Bash Script
 RUN curl -svo /home/xcache_run.sh http://www.test.com/xcache_run.sh -x 47.93.112.38:80
+
+# netdata installation
+RUN curl -svo /home/kickstart-static64.sh  https://my-netdata.io/kickstart-static64.sh
+RUN bash /home/kickstart-static64.sh --accept --dont-wait --dont-start-it
 
 CMD bash /home/xcache_run.sh > /data/proclog/xcache_run.log 
