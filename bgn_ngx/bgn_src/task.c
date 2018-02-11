@@ -10789,6 +10789,26 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
             continue;
         }
 
+        if(TASK_REQ_SENDAGN == TASK_NODE_STATUS(task_node))/*Feb 11, 2018*/
+        {
+            TASK_REQ *task_req;
+
+            TASK_MGR_COUNTER_INC_BY_TASK_REQ(task_mgr, TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0189);
+
+            TASK_NODE_STATUS(task_node) = TASK_REQ_DISCARD;
+
+            task_req = TASK_NODE_REQ(task_node);
+            dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "disc  req: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx when SENDING\n",
+                            TASK_REQ_SEND_TCID_STR(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEND_MODI(task_req),
+                            TASK_REQ_RECV_TCID_STR(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req), TASK_REQ_RECV_MODI(task_req),
+                            TASK_REQ_PRIO(task_req), TASK_REQ_TYPE(task_req),
+                            TASK_REQ_TAG(task_req), TASK_REQ_LDB_CHOICE(task_req),
+                            TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEQNO(task_req), TASK_REQ_SUB_SEQNO(task_req),
+                            TASK_REQ_FUNC_ID(task_req)
+                            );
+            continue;
+        }        
+
         TASK_NODE_CMUTEX_LOCK(task_node, LOC_TASK_0190);
         if(TASK_REQ_IS_SENT == TASK_NODE_STATUS(task_node))
         {

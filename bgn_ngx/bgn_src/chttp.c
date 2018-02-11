@@ -2303,17 +2303,28 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
         /*umount from defer request queue if necessary*/
         chttp_defer_request_queue_erase(chttp_node);
 
-        /* unbind */
-        CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+        /**
+         * not free chttp_node but release ccond
+         * which will pull routine to the starting point of sending http request
+         **/
+        if(NULL_PTR != CHTTP_NODE_CROUTINE_NODE(chttp_node))
+        {
+            croutine_pool_unload(TASK_REQ_CTHREAD_POOL(task_brd_default_get()), CHTTP_NODE_CROUTINE_NODE(chttp_node));
+            CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR;
+        }
 
-        /*free*/
-        chttp_node_free(chttp_node);
+        if(NULL_PTR != CHTTP_NODE_CROUTINE_COND(chttp_node))
+        {
+            croutine_cond_release(CHTTP_NODE_CROUTINE_COND(chttp_node), LOC_CHTTP_0014);
+        }        
 
         cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         
-        CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE; 
+        CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_TRUE;
+
         return (EC_TRUE);
     }
 

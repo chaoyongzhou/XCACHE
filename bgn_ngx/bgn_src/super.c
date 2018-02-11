@@ -3051,6 +3051,8 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n", 
                             c_word_to_ipv4(des_tcid));
+
+        super_handle_broken_tcid(super_md_id, des_tcid);
         return (EC_FALSE);
     }
 

@@ -286,7 +286,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
                 return (CMPI_ERROR_MODI);
             }
 
-            cp2phttp_log_start();
+            //cp2phttp_log_start();
             /*task_brd_default_bind_http_srv_modi(CMPI_ERROR_MODI);*//*never bind due to override previouse ctdns_md_id*/
             chttp_rest_list_push((const char *)CP2PHTTP_REST_API_NAME, cp2phttp_commit_request);
 
