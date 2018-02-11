@@ -7638,6 +7638,9 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         json_object *rsp_body_obj;
         const char  *rsp_body_str;
 
+        UINT32       pos;
+        CSTRING     *path_cstr;        
+
         super_md_id = 0;
 
         path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSHTTP_0028);
@@ -7666,9 +7669,6 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         cbytes_clean(rsp_content_cbytes);
      
         rsp_body_obj = json_object_new_array();
-
-        UINT32 pos;
-        CSTRING *path_cstr;
      
         for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
         {

@@ -170,8 +170,9 @@ typedef struct _CSOCKET_CNODE
     uint32_t            reusing:1;/*re-use*/
     uint32_t            closing:1;/*if closing = 1, reusing would be ignore*/
     uint32_t            pending:1;/*wait resume*/
+    uint32_t            looping:1;/*timeout looping*/ 
     uint32_t            nonblock:1;
-    uint32_t            rsvd   :9;
+    uint32_t            rsvd   :8;
 
     UINT32              client_ipaddr;
     UINT32              client_port;
@@ -225,6 +226,8 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_REUSING(csocket_cnode)                 ((csocket_cnode)->reusing)
 #define CSOCKET_CNODE_CLOSING(csocket_cnode)                 ((csocket_cnode)->closing)
 #define CSOCKET_CNODE_PENDING(csocket_cnode)                 ((csocket_cnode)->pending)
+#define CSOCKET_CNODE_LOOPING(csocket_cnode)                 ((csocket_cnode)->looping)
+
 #define CSOCKET_CNODE_NONBLOCK(csocket_cnode)                ((csocket_cnode)->nonblock)
 
 #define CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode)      ((csocket_cnode)->send_once_max_size)

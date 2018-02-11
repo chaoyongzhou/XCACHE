@@ -7531,7 +7531,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*prepare stdout,stderr, stdin devices*/
     log_start();
 
-    loglevel = task_brd_parse_arg(argc, argv, (const char *)"-loglevel");
+    loglevel = task_brd_parse_arg(argc, (const char **)argv, (const char *)"-loglevel");
     if(NULL_PTR != loglevel)
     {
         log_set_level(loglevel);

@@ -2214,7 +2214,7 @@ EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name)
 
     chttp_req_add_header(&chttp_req, (const char *)"network", c_word_to_str(CP2P_MD_NETWORK_LEVEL(cp2p_md)));
     chttp_req_add_header(&chttp_req, (const char *)"tcid"   , c_word_to_ipv4(CP2P_MD_NETWORK_TCID(cp2p_md)));
-    chttp_req_add_header(&chttp_req, (const char *)"service", cstring_get_str(service_name));
+    chttp_req_add_header(&chttp_req, (const char *)"service", (char *)cstring_get_str(service_name));
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)tdns_srv_host);
     chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");

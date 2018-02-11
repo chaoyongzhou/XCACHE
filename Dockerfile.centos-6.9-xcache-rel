@@ -40,4 +40,10 @@ RUN curl -svo /home/xcache_run.sh http://www.test.com/xcache_run.sh -x 47.93.112
 RUN curl -svo /home/kickstart-static64.sh  https://my-netdata.io/kickstart-static64.sh
 RUN bash /home/kickstart-static64.sh --accept --dont-wait --dont-start-it
 
+# cleanup
+RUN yum clean all && rm -f /home/*.rpm
+
+#EXPOSE 80
+#EXPOSE 19999
+
 CMD bash /home/xcache_run.sh > /data/proclog/xcache_run.log 

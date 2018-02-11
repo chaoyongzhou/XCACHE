@@ -327,33 +327,41 @@ EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = ctdnshttp_commit_settcid_get_request(chttp_node);
     }
-    else if (EC_TRUE == ctdnshttp_is_http_get_deltcid(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_deltcid(chttp_node))
     {
         ret = ctdnshttp_commit_deltcid_get_request(chttp_node);
     }
-    else if (EC_TRUE == ctdnshttp_is_http_get_configtcid(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_configtcid(chttp_node))
     {
         ret = ctdnshttp_commit_configtcid_get_request(chttp_node);
     }   
-    else if (EC_TRUE == ctdnshttp_is_http_get_reservetcid(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_reservetcid(chttp_node))
     {
         ret = ctdnshttp_commit_reservetcid_get_request(chttp_node);
     }  
-    else if (EC_TRUE == ctdnshttp_is_http_get_releasetcid(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_releasetcid(chttp_node))
     {
         ret = ctdnshttp_commit_releasetcid_get_request(chttp_node);
     }     
-    else if (EC_TRUE == ctdnshttp_is_http_get_flush(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_flush(chttp_node))
     {
         ret = ctdnshttp_commit_flush_get_request(chttp_node);
     }
-    else if (EC_TRUE == ctdnshttp_is_http_get_ping(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_ping(chttp_node))
     {
         ret = ctdnshttp_commit_ping_get_request(chttp_node);
     }
-    else if (EC_TRUE == ctdnshttp_is_http_get_online(chttp_node))
+    else if(EC_TRUE == ctdnshttp_is_http_get_online(chttp_node))
     {
         ret = ctdnshttp_commit_online_get_request(chttp_node);
+    }
+    else if(EC_TRUE == ctdnshttp_is_http_get_upper(chttp_node))
+    {
+        ret = ctdnshttp_commit_upper_get_request(chttp_node);
+    }
+    else if(EC_TRUE == ctdnshttp_is_http_get_edge(chttp_node))
+    {
+        ret = ctdnshttp_commit_edge_get_request(chttp_node);
     }
     else
     {
@@ -1900,12 +1908,64 @@ EC_BOOL ctdnshttp_commit_ping_get_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node)
 {
-    dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_ping_get_request: ctdns ping done\n");
+    CSOCKET_CNODE      * csocket_cnode;
+    char               * des_tcid_str;
+
+    UINT32               des_tcid;
+    UINT32               des_ipaddr;
+    UINT32               des_port;
+    UINT32               elapsed_msec;
+    
+    des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
+    if(NULL_PTR == des_tcid_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_ping_get_request: ctdns ping done\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_ping_get_request: ctdns ping done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+     
+        return (EC_TRUE);
+    }
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    des_tcid = c_ipv4_to_word(des_tcid_str);
+    if(EC_FALSE == ctdns_ping(CSOCKET_CNODE_MODI(csocket_cnode), des_tcid, &des_ipaddr, &des_port, &elapsed_msec))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_ping_get_request: "
+                                                  "ping %s failed\n", 
+                                                  des_tcid_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_ping_get_request: "
+                                                  "ping %s failed",
+                                                  des_tcid_str);
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND; 
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_ping_get_request: "
+                                              "ctdns ping %s (%s, %ld) in %ld ms done\n", 
+                                              des_tcid_str, c_word_to_ipv4(des_ipaddr), des_port, elapsed_msec);
+                                              
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_ping_get_request: ctdns ping done");
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_ping_get_request: "
+                                              "ctdns ping %s (%s, %ld) in %ld ms done", 
+                                              des_tcid_str, c_word_to_ipv4(des_ipaddr), des_port, elapsed_msec);
 
-    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;   
+
+    /*prepare response header*/
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"tcid"   , des_tcid_str);
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"ip"     , c_word_to_ipv4(des_ipaddr));
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port"   , c_word_to_str(des_port));  
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"elapsed", c_word_to_str(elapsed_msec));  
 
     return (EC_TRUE);
 }
@@ -2168,6 +2228,636 @@ EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_online_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return ctdnshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: upper ----------------------------------------*/
+static EC_BOOL __ctdnshttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+ 
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/upper") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/upper")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_is_http_get_upper(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+ 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_upper: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __ctdnshttp_uri_is_upper_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+ 
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_commit_upper_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+ 
+    if(EC_FALSE == ctdnshttp_handle_upper_get_request(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: handle 'GET' request failed\n");     
+        return (EC_FALSE);
+    }
+ 
+    if(EC_FALSE == ctdnshttp_make_upper_get_response(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = ctdnshttp_commit_upper_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+ 
+    return (ret);
+}
+
+EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
+{ 
+    CSOCKET_CNODE      * csocket_cnode;
+      
+    char               * service_str;
+    char               * on_tcid_str;
+
+    CSTRING              service_cstr;
+
+    UINT32               on_tcid;
+    UINT32               max_num;
+
+    CTDNSSV_NODE_MGR   * ctdnssv_node_mgr;
+
+    service_str = chttp_node_get_header(chttp_node, (const char *)"service");
+    if(NULL_PTR == service_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: no service in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: no service in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }
+    cstring_set_str(&service_cstr, (const UINT8 *)service_str);
+
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    if(NULL_PTR == on_tcid_str)
+    {
+        on_tcid = CMPI_LOCAL_TCID;
+    }
+    else
+    {
+        on_tcid = c_ipv4_to_word(on_tcid_str);
+    }
+    
+    max_num = ((UINT32)(~(UINT32)0));
+
+    ctdnssv_node_mgr = ctdnssv_node_mgr_new();
+    if(NULL_PTR == ctdnssv_node_mgr)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: no memory\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: no memory");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+     
+        return (EC_TRUE);
+    }
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    if(CMPI_LOCAL_TCID == on_tcid)
+    {
+        if(EC_FALSE == ctdns_finger_upper_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+                                 max_num, ctdnssv_node_mgr))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: "
+                                                      "finger upper nodes of service '%s' failed\n", 
+                                                      service_str);
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
+                                                      "finger upper nodes of service '%s' failed", 
+                                                      service_str);
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+
+            ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+            return (EC_TRUE);        
+        }
+
+
+        dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request: "
+                                                  "finger upper nodes of service '%s' done\n", 
+                                                  service_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_upper_get_request: "
+                                                  "finger upper nodes of service '%s' done", 
+                                                  service_str);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+    else
+    {
+        MOD_NODE        recv_mod_node;
+        EC_BOOL         ret;
+        
+        MOD_NODE_TCID(&recv_mod_node) = on_tcid;
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+
+        ret = EC_FALSE;
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+                 &recv_mod_node,
+                 &ret,
+                 FI_ctdns_finger_upper_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);        
+
+        if(EC_FALSE == ret)
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: "
+                                                      "finger upper nodes of service '%s' on tcid '%s' failed\n", 
+                                                      service_str, on_tcid_str);
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
+                                                      "finger upper nodes of service '%s' on tcid '%s' failed", 
+                                                      service_str, on_tcid_str);
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+
+            ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+            return (EC_TRUE);        
+        }   
+
+        dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request: "
+                                                  "finger upper nodes of service '%s' on tcid '%s' done\n", 
+                                                  service_str, on_tcid_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_upper_get_request: "
+                                                  "finger upper nodes of service '%s'on tcid '%s' done", 
+                                                  service_str, on_tcid_str);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;        
+    }
+
+    /*json encode*/
+    if(EC_FALSE == ctdnssv_node_mgr_is_empty(ctdnssv_node_mgr))
+    {
+        CBYTES             * rsp_content_cbytes;
+
+        json_object        * rsp_body_obj;
+        const char         * rsp_body_str;     
+
+        CLIST_DATA         * clist_data;
+
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+        cbytes_clean(rsp_content_cbytes);
+     
+        rsp_body_obj = json_object_new_array();
+
+        CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+        {
+            CTDNSSV_NODE        *ctdnssv_node;
+            json_object         *ctdnssv_obj;
+
+            ctdnssv_node = CLIST_DATA_DATA(clist_data);
+
+            ctdnssv_obj = json_object_new_object();
+            json_object_object_add(ctdnssv_obj, (const char *)"tcid", 
+                                   json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))));
+
+            json_object_object_add(ctdnssv_obj, (const char *)"ip", 
+                                   json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_IPADDR(ctdnssv_node))));
+                                   
+            json_object_object_add(ctdnssv_obj, (const char *)"port", 
+                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node)))); 
+                                   
+            json_object_array_add(rsp_body_obj, ctdnssv_obj);
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+
+        /* free json obj */
+        json_object_put(rsp_body_obj);
+        
+        dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request done\n");
+    }
+
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_make_upper_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+ 
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make header kvs failed\n");
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }  
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);    
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_commit_upper_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return ctdnshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: edge ----------------------------------------*/
+static EC_BOOL __ctdnshttp_uri_is_edge_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+ 
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/edge") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/edge")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_is_http_get_edge(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+ 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_edge: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __ctdnshttp_uri_is_edge_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+ 
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_commit_edge_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+ 
+    if(EC_FALSE == ctdnshttp_handle_edge_get_request(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: handle 'GET' request failed\n");     
+        return (EC_FALSE);
+    }
+ 
+    if(EC_FALSE == ctdnshttp_make_edge_get_response(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = ctdnshttp_commit_edge_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+ 
+    return (ret);
+}
+
+EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
+{ 
+    CSOCKET_CNODE      * csocket_cnode;
+      
+    char               * service_str;
+    char               * on_tcid_str;
+
+    CSTRING              service_cstr;
+
+    UINT32               on_tcid;
+    UINT32               max_num;
+
+    CTDNSSV_NODE_MGR   * ctdnssv_node_mgr;
+
+    service_str = chttp_node_get_header(chttp_node, (const char *)"service");
+    if(NULL_PTR == service_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: no service in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: no service in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }
+    cstring_set_str(&service_cstr, (const UINT8 *)service_str);
+
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    if(NULL_PTR == on_tcid_str)
+    {
+        on_tcid = CMPI_LOCAL_TCID;
+    }
+    else
+    {
+        on_tcid = c_ipv4_to_word(on_tcid_str);
+    }
+    
+    max_num = ((UINT32)(~(UINT32)0));
+
+    ctdnssv_node_mgr = ctdnssv_node_mgr_new();
+    if(NULL_PTR == ctdnssv_node_mgr)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: no memory\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: no memory");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+     
+        return (EC_TRUE);
+    }
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    if(CMPI_LOCAL_TCID == on_tcid)
+    {
+        if(EC_FALSE == ctdns_finger_edge_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+                                 max_num, ctdnssv_node_mgr))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: "
+                                                      "finger edge nodes of service '%s' failed\n", 
+                                                      service_str);
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
+                                                      "finger edge nodes of service '%s' failed", 
+                                                      service_str);
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+
+            ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+            return (EC_TRUE);        
+        }
+
+
+        dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request: "
+                                                  "finger edge nodes of service '%s' done\n", 
+                                                  service_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_edge_get_request: "
+                                                  "finger edge nodes of service '%s' done", 
+                                                  service_str);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+    else
+    {
+        MOD_NODE        recv_mod_node;
+        EC_BOOL         ret;
+        
+        MOD_NODE_TCID(&recv_mod_node) = on_tcid;
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+
+        ret = EC_FALSE;
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+                 &recv_mod_node,
+                 &ret,
+                 FI_ctdns_finger_edge_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);        
+
+        if(EC_FALSE == ret)
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: "
+                                                      "finger edge nodes of service '%s' on tcid '%s' failed\n", 
+                                                      service_str, on_tcid_str);
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
+                                                      "finger edge nodes of service '%s' on tcid '%s' failed", 
+                                                      service_str, on_tcid_str);
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+
+            ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+            return (EC_TRUE);        
+        }   
+
+        dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request: "
+                                                  "finger edge nodes of service '%s' on tcid '%s' done\n", 
+                                                  service_str, on_tcid_str);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_edge_get_request: "
+                                                  "finger edge nodes of service '%s'on tcid '%s' done", 
+                                                  service_str, on_tcid_str);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;        
+    }
+
+    /*json encode*/
+    if(EC_FALSE == ctdnssv_node_mgr_is_empty(ctdnssv_node_mgr))
+    {
+        CBYTES             * rsp_content_cbytes;
+
+        json_object        * rsp_body_obj;
+        const char         * rsp_body_str;     
+
+        CLIST_DATA         * clist_data;
+
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+        cbytes_clean(rsp_content_cbytes);
+     
+        rsp_body_obj = json_object_new_array();
+
+        CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+        {
+            CTDNSSV_NODE        *ctdnssv_node;
+            json_object         *ctdnssv_obj;
+
+            ctdnssv_node = CLIST_DATA_DATA(clist_data);
+
+            ctdnssv_obj = json_object_new_object();
+            json_object_object_add(ctdnssv_obj, (const char *)"tcid", 
+                                   json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))));
+
+            json_object_object_add(ctdnssv_obj, (const char *)"ip", 
+                                   json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_IPADDR(ctdnssv_node))));
+                                   
+            json_object_object_add(ctdnssv_obj, (const char *)"port", 
+                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node)))); 
+                                   
+            json_object_array_add(rsp_body_obj, ctdnssv_obj);
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+
+        /* free json obj */
+        json_object_put(rsp_body_obj);
+        
+        dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request done\n");
+    }
+
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+ 
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make header kvs failed\n");
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }  
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);    
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_commit_edge_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

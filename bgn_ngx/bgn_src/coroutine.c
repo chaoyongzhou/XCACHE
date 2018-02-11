@@ -2235,7 +2235,7 @@ EC_BOOL coroutine_usleep(const UINT32 msec, const UINT32 location)
     {
         return (EC_FALSE);
     }
-    coroutine_cond_reserve(coroutine_cond, 1, LOC_COROUTINE_0065);
+    coroutine_cond_reserve(coroutine_cond, 1, LOC_COROUTINE_0066);
     coroutine_cond_wait(coroutine_cond, location);
 
     coroutine_cond_free(coroutine_cond, location);

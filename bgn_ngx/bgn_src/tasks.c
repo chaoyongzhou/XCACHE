@@ -675,6 +675,10 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     tasks_worker    = TASKS_CFG_WORKER(tasks_cfg); 
     broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
 
+    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_close: close sockfd %d, vec size %ld => \n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                    cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node))); 
+                    
     /*remove csocket_cnode from work if existing*/
     cvector_delete(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);
     tasks_worker_callback_when_del(tasks_worker, tasks_node);
@@ -728,6 +732,7 @@ EC_BOOL tasks_node_heartbeat(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnod
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_node_heartbeat: sockfd %d was broken\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
         //CSOCKET_CNODE_CLOSING(csocket_cnode) = BIT_TRUE;
+        CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_FALSE;
         return (EC_FALSE);
     }
 
@@ -804,6 +809,7 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
         csocket_cnode_push_timeout_callback(csocket_cnode, 
                                          (const char *)"tasks_node_heartbeat", 
                                          (UINT32)tasks_node, (UINT32)tasks_node_heartbeat);
+        CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_TRUE; /*when timeout, not close it*/                                             
 
         csocket_cnode_reset_shutdown_callback(csocket_cnode); 
         csocket_cnode_push_shutdown_callback(csocket_cnode, 
@@ -1625,6 +1631,7 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
         tasks_worker_callback_when_add(tasks_worker, tasks_node);
 
         tasks_node_set_epoll(tasks_node, csocket_cnode);
+
         return (EC_TRUE);
     }
 
@@ -1661,6 +1668,7 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
     tasks_worker_callback_when_add(tasks_worker, tasks_node);
 
     tasks_node_set_epoll(tasks_node, csocket_cnode);
+
     return (EC_TRUE);
 }
 

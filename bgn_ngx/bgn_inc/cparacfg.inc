@@ -309,7 +309,7 @@ typedef struct
 #define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE_DEF                  MEM_BUFF_64K
 #define CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE_DEF                  MEM_BUFF_64K
-#define CPARACFG_CSOCKET_CNODE_NUM_DEF                           1
+#define CPARACFG_CSOCKET_CNODE_NUM_DEF                           4
 
 #define CPARACFG_FILE_LOG_MAX_RECORDS_DEF                        FILE_LOG_RECORDS_001M
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_DEF              SWITCH_OFF

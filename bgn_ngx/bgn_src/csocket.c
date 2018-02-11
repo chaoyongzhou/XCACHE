@@ -195,6 +195,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
+    CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
 
     CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
@@ -265,6 +266,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
+    CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
 
     CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
     CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
@@ -531,6 +533,9 @@ EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
+    dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_close: close sockfd %d of csocket_cnode %p\n", 
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode), csocket_cnode);
+    
     if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
     {
         cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -579,8 +584,8 @@ void csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode)
         int      sockfd;
         uint32_t nonblock;
         
-
-        sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode); /*csocket_cnode will be clean up, save sockfd at first*/
+        /*csocket_cnode will be clean up, save sockfd at first*/
+        sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode); 
 
         nonblock = CSOCKET_CNODE_NONBLOCK(csocket_cnode);
 
@@ -783,7 +788,10 @@ EC_BOOL csocket_cnode_itimeout(CSOCKET_CNODE *csocket_cnode)
     csocket_cnode_callback_when_timeout(csocket_cnode);
 
     /*do not walk through iclose procedure*/
-    csocket_cnode_close(csocket_cnode);
+    if(BIT_FALSE == CSOCKET_CNODE_LOOPING(csocket_cnode))
+    {
+        csocket_cnode_close(csocket_cnode);
+    }
     return (EC_TRUE);
 }
 

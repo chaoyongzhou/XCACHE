@@ -75,7 +75,7 @@
 #define SEC_0065_CHFSNPMGR                  ((UINT32)(     65)) /*chfsnpmgr                       */
 #define SEC_0066_MM                         ((UINT32)(     66)) /*mm                              */
 #define SEC_0067_CSTACK                     ((UINT32)(     67)) /*cstack                          */
-#define SEC_0068_XXXX                       ((UINT32)(     68)) /*xxxxxxxxxxxxxxxxxxxxxxxxxx      */
+#define SEC_0068_CP2PHTTP                   ((UINT32)(     68)) /*cp2phttp                        */
 #define SEC_0069_XXXXXXX                    ((UINT32)(     69)) /*xxxxxxx                         */
 #define SEC_0070_XXXXX                      ((UINT32)(     70)) /*xxxxxxxxxxxxxxxxxxxxxxxxxx      */
 #define SEC_0071_XXXXE                      ((UINT32)(     71)) /*xxxxxxxxxxxxxxxxxxxxx           */

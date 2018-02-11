@@ -36,6 +36,7 @@ extern "C"{
 
 #include "crb.h"
 #include "chttp.h"
+#include "crfshttp.h"
 #include "crfsmon.h"
 #include "crfsconhash.h"
 
@@ -162,6 +163,24 @@ UINT32 crfsmon_start()
 
     dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_start: start CRFSMON module #%ld\n", crfsmon_md_id);
 
+    if(SWITCH_ON == CRFSMONHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    {
+        /*http server*/
+        if(EC_TRUE == task_brd_default_check_csrv_enabled() && 0 == crfsmon_md_id)
+        {
+            if(EC_FALSE == chttp_defer_request_queue_init())
+            {
+                dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfsmon_start: init crfshttp defer request queue failed\n");
+                crfsmon_end(crfsmon_md_id);
+                return (CMPI_ERROR_MODI);
+            }
+
+            crfshttp_log_start();
+            task_brd_default_bind_http_srv_modi(crfsmon_md_id);
+            /*reuse RFS HTTP*/
+            chttp_rest_list_push((const char *)CRFSHTTP_REST_API_NAME, crfshttp_commit_request);
+        }
+    }
     return ( crfsmon_md_id );
 }
 

@@ -39,6 +39,7 @@ extern "C"{
 #include "ctdns.h"
 #include "ctdnshttp.h"
 //#include "ctdnshttps.h"
+#include "cp2phttp.h"
 
 #include "cping.h"
 
@@ -227,6 +228,8 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
         return (CMPI_ERROR_MODI);
     }
 
+    ctdns_susv_init(CTDNS_MD_SUSV(ctdns_md));
+
     ctdns_md->usedcounter = 1;
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)ctdns_end, ctdns_md_id);
@@ -268,6 +271,35 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
 #endif     
 
     } 
+
+#if 1
+    if(SWITCH_ON == CP2PHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    {
+        /*note: trick! start p2p http server with same port as that of tdns http server*/
+        /*http server*/
+        if(EC_TRUE == task_brd_default_check_csrv_enabled() && 0 == ctdns_md_id)
+        {
+            if(EC_FALSE == chttp_defer_request_queue_init())
+            {
+                dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_start: init cp2phttp defer request queue failed\n");
+                ctdns_end(ctdns_md_id);
+                return (CMPI_ERROR_MODI);
+            }
+
+            cp2phttp_log_start();
+            /*task_brd_default_bind_http_srv_modi(CMPI_ERROR_MODI);*//*never bind due to override previouse ctdns_md_id*/
+            chttp_rest_list_push((const char *)CP2PHTTP_REST_API_NAME, cp2phttp_commit_request);
+
+            dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: "
+                                                  "start p2p http server\n");
+        }
+        else
+        {
+            dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: "
+                                                  "NOT start p2p http server\n");        
+        }
+    } 
+#endif
 
     /*launch detection*/
     //ctdns_detect_loop(ctdns_md_id);
@@ -342,6 +374,8 @@ void ctdns_end(const UINT32 ctdns_md_id)
         CTDNS_MD_SVP(ctdns_md) = NULL_PTR;
     }    
 
+    ctdns_susv_clean(CTDNS_MD_SUSV(ctdns_md));
+
     /* free module : */
     //ctdns_free_module_static_mem(ctdns_md_id);
 
@@ -391,6 +425,224 @@ CSTRING *ctdns_gen_edge_service_name(const CSTRING *service_name)
     return (edge_service_name);
 }
 
+CTDNS_SUSV_NODE *ctdns_susv_node_new()
+{
+    CTDNS_SUSV_NODE *ctdns_susv_node;
+
+    alloc_static_mem(MM_CTDNS_SUSV_NODE, &ctdns_susv_node, LOC_CTDNS_0003);
+    if(NULL_PTR != ctdns_susv_node)
+    {
+        ctdns_susv_node_init(ctdns_susv_node);
+    }
+    return (ctdns_susv_node);
+}
+
+EC_BOOL ctdns_susv_node_init(CTDNS_SUSV_NODE *ctdns_susv_node)
+{
+    cstring_init(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node), NULL_PTR);
+    
+    CTDNS_SUSV_NODE_TCID(ctdns_susv_node)             = CMPI_ERROR_TCID;
+    CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)            = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdns_susv_node_clean(CTDNS_SUSV_NODE *ctdns_susv_node)
+{
+    cstring_clean(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node));
+    
+    CTDNS_SUSV_NODE_TCID(ctdns_susv_node)             = CMPI_ERROR_TCID;
+    CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)            = 0;
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdns_susv_node_free(CTDNS_SUSV_NODE *ctdns_susv_node)
+{
+    if(NULL_PTR != ctdns_susv_node)
+    {
+        ctdns_susv_node_clean(ctdns_susv_node);
+        free_static_mem(MM_CTDNS_SUSV_NODE, ctdns_susv_node, LOC_CTDNS_0004);
+    }
+    return (EC_TRUE);
+}
+
+void ctdns_susv_node_print(LOG *log, const CTDNS_SUSV_NODE *ctdns_susv_node)
+{
+    sys_print(log, "ctdns_susv_node %p: service %s, tcid %s, fails %ld\n",
+                    ctdns_susv_node,
+                    (char *)cstring_get_str(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node)),
+                    c_word_to_ipv4(CTDNS_SUSV_NODE_TCID(ctdns_susv_node)),
+                    CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)
+                    );
+   
+    return;
+}
+
+EC_BOOL ctdns_susv_node_cmp(const CTDNS_SUSV_NODE *ctdns_susv_node_1st, const CTDNS_SUSV_NODE *ctdns_susv_node_2nd)
+{
+    if(CTDNS_SUSV_NODE_TCID(ctdns_susv_node_1st) != CTDNS_SUSV_NODE_TCID(ctdns_susv_node_2nd))
+    {
+        return (EC_FALSE);
+    }
+
+    return cstring_is_equal(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node_1st), CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node_2nd));
+}
+
+EC_BOOL ctdns_susv_init(CTDNS_SUSV *ctdns_susv)
+{
+    clist_init(CTDNS_SUSV_MGR(ctdns_susv), MM_CTDNS_SUSV_NODE, LOC_CTDNS_0005);
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdns_susv_clean(CTDNS_SUSV *ctdns_susv)
+{
+    clist_clean(CTDNS_SUSV_MGR(ctdns_susv), (CLIST_DATA_DATA_CLEANER)ctdns_susv_node_free);
+    
+    return (EC_TRUE);
+}
+
+void ctdns_susv_print(LOG *log, const CTDNS_SUSV *ctdns_susv)
+{
+    clist_print(log, CTDNS_SUSV_MGR(ctdns_susv), (CLIST_DATA_DATA_PRINT)ctdns_susv_node_print);
+   
+    return;
+}
+
+CTDNS_SUSV_NODE *ctdns_susv_search(CTDNS_SUSV *ctdns_susv, const CSTRING *service, const UINT32 tcid)
+{
+    CTDNS_SUSV_NODE     ctdns_susv_node_t;
+
+    /*mount only*/
+    cstring_set_str(CTDNS_SUSV_NODE_SERVICE(&ctdns_susv_node_t), cstring_get_str(service));
+    CTDNS_SUSV_NODE_TCID(&ctdns_susv_node_t) = tcid;
+    
+    return clist_search_data_front(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t, 
+                                   (CLIST_DATA_DATA_CMP)ctdns_susv_node_cmp);
+}
+
+CTDNS_SUSV_NODE *ctdns_susv_delete(CTDNS_SUSV *ctdns_susv, const CSTRING *service, const UINT32 tcid)
+{
+    CTDNS_SUSV_NODE     ctdns_susv_node_t;
+
+    /*mount only*/
+    cstring_set_str(CTDNS_SUSV_NODE_SERVICE(&ctdns_susv_node_t), cstring_get_str(service));
+    CTDNS_SUSV_NODE_TCID(&ctdns_susv_node_t) = tcid;
+
+    return  clist_del(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t, 
+                       (CLIST_DATA_DATA_CMP)ctdns_susv_node_cmp);
+}
+
+EC_BOOL ctdns_susv_add(CTDNS_SUSV *ctdns_susv, const CSTRING *service, const UINT32 tcid, const UINT32 fails)
+{
+    CTDNS_SUSV_NODE *ctdns_susv_node;
+
+    ctdns_susv_node = ctdns_susv_node_new();
+    if(NULL_PTR == ctdns_susv_node)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_susv_add: new ctdns_susv_node failed\n");
+        return (EC_FALSE); 
+    }
+
+    cstring_clone(service, CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node));
+    CTDNS_SUSV_NODE_TCID(ctdns_susv_node)  = tcid;
+    CTDNS_SUSV_NODE_FAILS(ctdns_susv_node) = fails;
+
+    if(NULL_PTR == clist_push_back(CTDNS_SUSV_MGR(ctdns_susv), (void *)ctdns_susv_node))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_susv_add: add ('%s', '%s', %ld) failed\n",
+                                              (char *)cstring_get_str(service),
+                                              c_word_to_ipv4(tcid), 
+                                              fails);
+        ctdns_susv_node_free(ctdns_susv_node);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  set suspicious server to monitor
+*
+**/
+EC_BOOL ctdns_set_susv(const UINT32 ctdns_md_id, const CSTRING *service, const UINT32 tcid, const UINT32 max_fails)
+{
+    CTDNS_MD        *ctdns_md;
+    CTDNS_SUSV      *ctdns_susv;
+    CTDNS_SUSV_NODE *ctdns_susv_node;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_set_susv: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        ctdns_print_module_status(ctdns_md_id, LOGSTDOUT);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md   = CTDNS_MD_GET(ctdns_md_id);
+    ctdns_susv = CTDNS_MD_SUSV(ctdns_md);
+
+    ctdns_susv_node = ctdns_susv_search(ctdns_susv, service, tcid);
+    if(NULL_PTR == ctdns_susv_node)
+    {
+        return ctdns_susv_add(ctdns_susv, service, tcid, 1); /*new one*/
+    }
+
+    CTDNS_SUSV_NODE_FAILS(ctdns_susv_node) ++;
+
+    if(max_fails < CTDNS_SUSV_NODE_FAILS(ctdns_susv_node))
+    {
+        ctdns_susv_delete(ctdns_susv, service, tcid);
+        ctdns_susv_node_free(ctdns_susv_node);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  unset suspicious server from monitor
+*
+**/
+EC_BOOL ctdns_unset_susv(const UINT32 ctdns_md_id, const CSTRING *service, const UINT32 tcid)
+{
+    CTDNS_MD        *ctdns_md;
+    CTDNS_SUSV      *ctdns_susv;
+    CTDNS_SUSV_NODE *ctdns_susv_node;
+
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_unset_susv: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        ctdns_print_module_status(ctdns_md_id, LOGSTDOUT);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md   = CTDNS_MD_GET(ctdns_md_id);
+    ctdns_susv = CTDNS_MD_SUSV(ctdns_md);
+
+    ctdns_susv_node = ctdns_susv_delete(ctdns_susv, service, tcid);
+    if(NULL_PTR != ctdns_susv_node)
+    {
+        ctdns_susv_node_free(ctdns_susv_node);
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  flush npp and svp to disk
+*
+**/
 EC_BOOL ctdns_flush(const UINT32 ctdns_md_id)
 {
     //CTDNS_MD  *ctdns_md;
@@ -1821,6 +2073,99 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
     return (EC_TRUE);
 }
 
+static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+{
+    UINT32            max_num;
+
+    TASK_BRD         *task_brd;
+    TASK_MGR         *task_mgr;
+    CLIST_DATA       *clist_data;
+
+    UINT32            ipaddr;
+    UINT32            port;
+    UINT32            elapsed_msec;
+    
+    CVECTOR          *ret_vec;
+    UINT32            ret_pos;
+    
+    max_num  = (UINT32)(~(UINT32)0);
+
+    ret_vec = cvector_new(0, MM_UINT32, LOC_CTDNS_0006);
+    if(NULL_PTR == ret_vec)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:__ctdns_detect_service: "
+                                              "new ret_vec failed\n");    
+        return (EC_FALSE);
+    }
+
+    task_brd = task_brd_default_get();
+
+    /*try one by one*/
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+    {
+        CTDNSSV_NODE        *ctdnssv_node;
+        MOD_NODE             recv_mod_node;
+        UINT32              *ret;
+
+        ctdnssv_node = CLIST_DATA_DATA(clist_data);
+
+        MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
+        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+        MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one p2p module*/
+
+        dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] __ctdns_detect_service: "
+                                              "detect service '%s' node '%s'\n",
+                                              (char *)cstring_get_str(service_name),
+                                              c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))); 
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_CTDNS_0007);
+        cvector_push_no_lock(ret_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+        
+        task_p2p_inc(task_mgr, 
+                    ctdns_md_id, 
+                    &recv_mod_node,
+                    ret, 
+                    FI_ctdns_ping, CMPI_ERROR_MODI, CTDNSSV_NODE_TCID(ctdnssv_node), 
+                    &ipaddr, &port, &elapsed_msec);
+    }
+    
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    ret_pos = 0;
+    CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+    {   
+        UINT32              *ret;    
+   
+        ret = (UINT32 *)cvector_get(ret_vec, ret_pos);
+
+        if(EC_FALSE == (*ret))
+        {
+            CTDNSSV_NODE        *ctdnssv_node;
+            
+            ctdnssv_node = CLIST_DATA_DATA(clist_data);
+
+            dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] __ctdns_detect_service: "
+                                                  "delete node '%s' from service '%s'\n",
+                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
+                                                  (char *)cstring_get_str(service_name)); 
+
+            ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));
+        }
+
+        cvector_set(ret_vec, ret_pos, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0008);   
+        
+        ret_pos ++;
+    }
+
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+    cvector_free(ret_vec, LOC_CTDNS_0009);
+    
+    return (EC_TRUE);
+}
 /**
 *
 *  detect nodes alive of service
@@ -1887,7 +2232,7 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
         return (EC_TRUE);
     }
 
-    ret_vec = cvector_new(0, MM_UINT32, LOC_CTDNS_0003);
+    ret_vec = cvector_new(0, MM_UINT32, LOC_CTDNS_0010);
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_detect_service: "
@@ -1918,7 +2263,7 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
                                               (char *)cstring_get_str(service_name),
                                               c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))); 
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_CTDNS_0004);
+        alloc_static_mem(MM_UINT32, &ret, LOC_CTDNS_0011);
         cvector_push_no_lock(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;
         
@@ -1935,32 +2280,44 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     ret_pos = 0;
     CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
     {   
+        CTDNSSV_NODE        *ctdnssv_node;
         UINT32              *ret;    
+
+        ctdnssv_node = CLIST_DATA_DATA(clist_data);
    
         ret = (UINT32 *)cvector_get(ret_vec, ret_pos);
 
         if(EC_FALSE == (*ret))
         {
-            CTDNSSV_NODE        *ctdnssv_node;
-            
-            ctdnssv_node = CLIST_DATA_DATA(clist_data);
-
             dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
-                                                  "delete node '%s' from service '%s'\n",
+                                                  "suspect node '%s' from service '%s'\n",
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
-                                                  (char *)cstring_get_str(service_name)); 
+                                                  (char *)cstring_get_str(service_name));   
+                                                  
+            if(EC_FALSE == ctdns_set_susv(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node), 
+                                           CTDNS_NODE_DETECT_MAX_FAILS))
+            {
+                dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
+                                                      "delete node '%s' from service '%s'\n",
+                                                      c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
+                                                      (char *)cstring_get_str(service_name)); 
 
-            ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));
+                ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));            
+            }
+        }
+        else
+        {
+            ctdns_unset_susv(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));
         }
 
         cvector_set(ret_vec, ret_pos, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0005);   
+        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0012);   
         
         ret_pos ++;
     }
 
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
-    cvector_free(ret_vec, LOC_CTDNS_0006);
+    cvector_free(ret_vec, LOC_CTDNS_0013);
     
     return (EC_TRUE);
 }
@@ -2087,7 +2444,7 @@ EC_BOOL ctdns_detect_loop(const UINT32 ctdns_md_id)
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_detect_loop: "
                                           "sleep %ld msec\n",
                                           msec);
-    coroutine_usleep(msec, LOC_CTDNS_0004);
+    coroutine_usleep(msec, LOC_CTDNS_0014);
     
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
