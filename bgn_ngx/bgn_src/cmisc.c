@@ -2474,7 +2474,7 @@ CBYTES *c_file_load_whole(const char *file_name)
     file_content = cbytes_new(file_size);
     if(NULL_PTR == file_content)
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:c_file_load_whole: "
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                              "new cbytes with size %ld failed\n",
                                              file_size);    
         c_file_close(file_fd);

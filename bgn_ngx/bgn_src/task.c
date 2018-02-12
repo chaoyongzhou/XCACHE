@@ -8015,7 +8015,7 @@ LOG * task_brd_default_init(int argc, char **argv)
                                            (UINT32)do_cmd_default, 0);
         if(NULL_PTR == croutine_node)
         {
-            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:task_brd_default_int: croutine load for 'do_cmd_default' failed\n");
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_int: croutine load for 'do_cmd_default' failed\n");
             task_brd_default_abort();/*abort !*/ 
         }
         CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_TASK_0137); 

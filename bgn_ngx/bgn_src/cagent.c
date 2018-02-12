@@ -279,7 +279,7 @@ EC_BOOL cagent_check_config_xml(const CAGENT *cagent, const char *fname)
 
     if(EC_FALSE == sys_cfg_load(sys_cfg, fname))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:cagent_check_config_xml: load %s failed\n", fname);
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_check_config_xml: load %s failed\n", fname);
         sys_cfg_free(sys_cfg);
         return (EC_FALSE);
     }
@@ -324,7 +324,7 @@ SYS_CFG *cagent_gen_config(const CAGENT *cagent)
     cparacfg = cparacfg_new(CAGENT_RESERVED_TCID(cagent), CMPI_FWD_RANK);
     if(NULL_PTR == cparacfg)
     {
-        dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cagent_gen_config: new cparacfg failed\n");
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_gen_config: new cparacfg failed\n");
         sys_cfg_free(sys_cfg);
         return (NULL_PTR);
     }
@@ -346,7 +346,7 @@ EC_BOOL cagent_gen_config_xml(const CAGENT *cagent, const char *fname)
 
     if(EC_FALSE == user_log_open(LOGUSER07, fname, "w"))
     {
-        dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cagent_gen_config_xml: open '%s' failed\n", fname);
+        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_gen_config_xml: open '%s' failed\n", fname);
         sys_cfg_free(sys_cfg);
         return (EC_FALSE);
     }

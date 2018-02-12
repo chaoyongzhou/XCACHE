@@ -170,7 +170,7 @@ UINT32 crfsmon_start()
         {
             if(EC_FALSE == chttp_defer_request_queue_init())
             {
-                dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfsmon_start: init crfshttp defer request queue failed\n");
+                dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_start: init crfshttp defer request queue failed\n");
                 crfsmon_end(crfsmon_md_id);
                 return (CMPI_ERROR_MODI);
             }

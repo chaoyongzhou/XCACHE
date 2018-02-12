@@ -5752,7 +5752,7 @@ EC_BOOL cmp4_content_ims_header_out_304_expires_filter(const UINT32 cmp4_md_id, 
     k = (const char *)CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC;
     if(EC_FALSE == cngx_get_var_uint32_t(r, k, &nsec, 0))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_304_expires_filter: "
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_304_expires_filter: "
                                              "[cngx] get var '%s' failed\n",
                                              k);
         return (EC_FALSE);
@@ -6083,7 +6083,7 @@ EC_BOOL cmp4_content_ims_header_out_not_304_expires_filter(const UINT32 cmp4_md_
     k = (const char *)CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC;
     if(EC_FALSE == cngx_get_var_uint32_t(r, k, &nsec, 0))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_expires_filter: "
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_expires_filter: "
                                              "[cngx] get var '%s' failed\n",
                                              k);
         return (EC_FALSE);

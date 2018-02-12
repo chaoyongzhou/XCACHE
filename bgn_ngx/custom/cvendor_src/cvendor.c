@@ -1811,7 +1811,7 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     if(EC_TRUE == cngx_is_direct_orig_switch_on(r))
     {
         /*direct procedure to orig server*/
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
                                              "direct orig switch on => direct procedure\n");
         return cvendor_content_direct_procedure(cvendor_md_id);
     }
@@ -3919,7 +3919,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     k = (const char *)"Connection";   
     v = (char       *)"keep-alive";
     chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                          "renew req header '%s':'%s' done\n",
                                          k, v); 
                                          
@@ -5605,7 +5605,7 @@ EC_BOOL cvendor_content_ims_header_out_304_expires_filter(const UINT32 cvendor_m
     k = (const char *)CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC;
     if(EC_FALSE == cngx_get_var_uint32_t(r, k, &nsec, 0))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_304_expires_filter: "
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_304_expires_filter: "
                                              "[cngx] get var '%s' failed\n",
                                              k);
         return (EC_FALSE);
@@ -5936,7 +5936,7 @@ EC_BOOL cvendor_content_ims_header_out_not_304_expires_filter(const UINT32 cvend
     k = (const char *)CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC;
     if(EC_FALSE == cngx_get_var_uint32_t(r, k, &nsec, 0))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_expires_filter: "
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_expires_filter: "
                                              "[cngx] get var '%s' failed\n",
                                              k);
         return (EC_FALSE);
