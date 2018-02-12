@@ -91,6 +91,12 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_edge_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cp2phttp_is_http_get_refresh(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_refresh_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_refresh_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_refresh_get_response(CHTTP_NODE *chttp_node);
+
 
 #endif /*_CP2PHTTP_H*/
 

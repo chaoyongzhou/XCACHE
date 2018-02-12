@@ -299,6 +299,27 @@ EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const UINT32 des_network, cons
 **/
 EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name);
 
+/**
+*
+*  notify edges under current network to refresh cache
+*
+**/
+EC_BOOL cp2p_refresh_cache_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CSTRING *service, const CSTRING *path);
+
+/**
+*
+*  refresh local cache
+*
+**/
+EC_BOOL cp2p_refresh_local_cache(const UINT32 cp2p_md_id, const CSTRING *path);
+
+/**
+*
+*  refresh cache
+*
+**/
+EC_BOOL cp2p_refresh_cache(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CSTRING *service, const CSTRING *path); 
+
 #endif /*_CP2P_H*/
 
 #ifdef __cplusplus

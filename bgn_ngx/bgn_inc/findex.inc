@@ -839,6 +839,8 @@
 #define                  FI_cp2p_cmd_deliver_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 20))
 #define                         FI_cp2p_cmd_deliver  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 21))
 #define                       FI_cp2p_online_report  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 22))
+#define                FI_cp2p_refresh_cache_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 23))
+#define                       FI_cp2p_refresh_cache  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 24))
 
 
 
