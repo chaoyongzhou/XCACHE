@@ -67,6 +67,31 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_make_flush_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_flush_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cp2phttp_is_http_get_online(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_online_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_online_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_online_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cp2phttp_is_http_get_offline(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_offline_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_offline_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_offline_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cp2phttp_is_http_get_upper(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upper_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upper_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cp2phttp_is_http_get_edge(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_edge_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_edge_get_response(CHTTP_NODE *chttp_node);
+
+
 #endif /*_CP2PHTTP_H*/
 
 #ifdef __cplusplus
