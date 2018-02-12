@@ -626,6 +626,36 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL ctdns_unset_service(const UINT32 ctdns_md_id, const UINT32 tcid, const CSTRING *service_name); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_unset_service,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_unset_service",
+/*func index      */     FI_ctdns_unset_service,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_offline,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_offline",
+/*func index      */     FI_ctdns_offline,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_ctdns_func_addr_list_len = sizeof(g_ctdns_func_addr_list)/sizeof(g_ctdns_func_addr_list[0]);

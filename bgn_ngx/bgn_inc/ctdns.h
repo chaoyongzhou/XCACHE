@@ -205,6 +205,8 @@ EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_na
 
 EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name);
 
+EC_BOOL ctdns_unset_service(const UINT32 ctdns_md_id, const UINT32 tcid, const CSTRING *service_name);
+
 EC_BOOL ctdns_finger_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
 
 EC_BOOL ctdns_finger_edge_service(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 max_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr);
@@ -342,6 +344,17 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
 EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
 
 EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
+
+/**
+*
+*  offline reporting
+*
+*
+**/
+EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
+
+EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
+
 
 /**
 *

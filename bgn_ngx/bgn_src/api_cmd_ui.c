@@ -376,6 +376,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "tdns get"     , "tdns get service <service> max nodes <num> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns set"     , "tdns set tcid <tcid> ip <ip> port <port> [service <service>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns delete"  , "tdns delete tcid <tcid> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns online"  , "tdns online service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns offline" , "tdns offline service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns search"  , "tdns search tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count tcid num on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count service <service > node num on tcid <tcid> at <console|log>");
@@ -399,6 +401,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "p2p file"    , "p2p delete <service> <src file> in {all | network <level> {all | tcid <tcid>}} on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "p2p cmd"     , "p2p execute <service> <cmd> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "p2p cmd"     , "p2p deliver <service> <cmd> in {all | network <level> {all | tcid <tcid>}} on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p online"  , "p2p online <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "p2p offline" , "p2p offline <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    
 #endif
 
 #if 0
@@ -834,6 +839,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_search_tcid      , "tdns search tcid %t on tcid %t at %s", tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_search_service   , "tdns search service %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_delete           , "tdns delete tcid %t on tcid %t at %s", tcid, tcid, where);
+    //api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_online           , "tdns online service %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
+    //api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_offline          , "tdns offline service %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_npp         , "tdns show npp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_svp         , "tdns show svp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_count_tcid_num   , "tdns count tcid num on tcid %t at %s", tcid, where);
@@ -862,7 +869,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_deliver_cmd       , "p2p deliver %s %s in network %n tcid %t on tcid %t at %s", where, where, rank, tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_deliver_cmd_subnet, "p2p deliver %s %s in network %n all on tcid %t at %s", where, where, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_deliver_cmd_all   , "p2p deliver %s %s in all on tcid %t at %s", where, where, tcid, where);
-
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_online            , "p2p online %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_offline           , "p2p offline %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
+    
     api_cmd_comm_define(cmd_tree, api_cmd_ui_download_file         , "download file %s to %s from tcid %t at %s", where, where, tcid, where); 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_upload_file           , "upload file %s to %s on tcid %t at %s", where, where, tcid, where); 
 
@@ -23515,6 +23524,112 @@ EC_BOOL api_cmd_ui_ctdns_delete(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
+EC_BOOL api_cmd_ui_ctdns_online(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   network;
+    UINT32   tdns_tcid;
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_uint32(param  , 1, &network);
+    api_cmd_para_vec_get_tcid(param    , 2, &tdns_tcid);
+    api_cmd_para_vec_get_tcid(param    , 3, &tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*tdns online service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
+    /*tdns online service %s network %n tcid %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_online: tdns online service %s network %s tcid %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        network,
+                        c_word_to_ipv4(tdns_tcid),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_online, CMPI_ERROR_MODI, network, tdns_tcid, service);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] online %s\n", c_word_to_ipv4(tdns_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] online %s\n", c_word_to_ipv4(tdns_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ctdns_offline(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   network;
+    UINT32   tdns_tcid;
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_uint32(param  , 1, &network);
+    api_cmd_para_vec_get_tcid(param    , 2, &tdns_tcid);
+    api_cmd_para_vec_get_tcid(param    , 3, &tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*tdns offline service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
+    /*tdns offline service %s network %n tcid %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_offline: tdns offline service %s network %s tcid %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        network,
+                        c_word_to_ipv4(tdns_tcid),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_offline, CMPI_ERROR_MODI, network, tdns_tcid, service);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] offline %s\n", c_word_to_ipv4(tdns_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] offline %s\n", c_word_to_ipv4(tdns_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param)
 {
     UINT32   ctdnsnp_tcid;
@@ -25024,6 +25139,113 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param)
 
     return (EC_TRUE);
 }
+
+EC_BOOL api_cmd_ui_cp2p_online(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   network;
+    UINT32   p2p_tcid;
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_uint32(param  , 1, &network);
+    api_cmd_para_vec_get_tcid(param    , 2, &p2p_tcid);
+    api_cmd_para_vec_get_tcid(param    , 3, &tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*p2p online <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
+    /*p2p online %s network %n tcid %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_online: p2p online service %s network %s tcid %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        network,
+                        c_word_to_ipv4(p2p_tcid),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_online, CMPI_ERROR_MODI, network, p2p_tcid, service);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] online %s\n", c_word_to_ipv4(p2p_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] online %s\n", c_word_to_ipv4(p2p_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cp2p_offline(CMD_PARA_VEC * param)
+{
+    CSTRING *service;
+    UINT32   network;
+    UINT32   p2p_tcid;
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &service);
+    api_cmd_para_vec_get_uint32(param  , 1, &network);
+    api_cmd_para_vec_get_tcid(param    , 2, &p2p_tcid);
+    api_cmd_para_vec_get_tcid(param    , 3, &tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*p2p offline <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
+    /*p2p offline %s network %n tcid %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_offline: p2p offline %s network %s tcid %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(service),
+                        network,
+                        c_word_to_ipv4(p2p_tcid),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_offline, CMPI_ERROR_MODI, network, p2p_tcid, service);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] offline %s\n", c_word_to_ipv4(p2p_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] offline %s\n", c_word_to_ipv4(p2p_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
 #endif
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)

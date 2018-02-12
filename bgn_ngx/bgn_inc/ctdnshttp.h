@@ -110,6 +110,12 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_make_online_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL ctdnshttp_is_http_get_offline(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_offline_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_offline_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_offline_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL ctdnshttp_is_http_get_upper(const CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_upper_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node);

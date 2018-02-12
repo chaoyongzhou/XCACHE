@@ -355,6 +355,10 @@ EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = ctdnshttp_commit_online_get_request(chttp_node);
     }
+    else if(EC_TRUE == ctdnshttp_is_http_get_offline(chttp_node))
+    {
+        ret = ctdnshttp_commit_offline_get_request(chttp_node);
+    }
     else if(EC_TRUE == ctdnshttp_is_http_get_upper(chttp_node))
     {
         ret = ctdnshttp_commit_upper_get_request(chttp_node);
@@ -2236,6 +2240,253 @@ EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node)
 #endif
 
 #if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: offline ----------------------------------------*/
+static EC_BOOL __ctdnshttp_uri_is_offline_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+ 
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/offline") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/offline")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_is_http_get_offline(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+ 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_offline: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __ctdnshttp_uri_is_offline_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+ 
+    return (EC_FALSE);
+}
+
+EC_BOOL ctdnshttp_commit_offline_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+ 
+    if(EC_FALSE == ctdnshttp_handle_offline_get_request(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: handle 'GET' request failed\n");     
+        return (EC_FALSE);
+    }
+ 
+    if(EC_FALSE == ctdnshttp_make_offline_get_response(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = ctdnshttp_commit_offline_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+ 
+    return (ret);
+}
+
+EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
+{ 
+//    CSOCKET_CNODE * csocket_cnode;
+      
+    char          * network_str;
+    char          * tcid_str;
+    char          * service_name_str;
+    char          * on_tcid_str;
+
+    CSTRING         service_name;
+
+    MOD_NODE        recv_mod_node;
+
+    network_str = chttp_node_get_header(chttp_node, (const char *)"network");
+    if(NULL_PTR == network_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: no network in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: no network in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }
+    if(EC_FALSE == c_str_is_digit(network_str))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: invalid network in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: invalid network in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }
+
+    tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
+    if(NULL_PTR == tcid_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: no tcid in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: no tcid in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }   
+    if(EC_FALSE == c_ipv4_is_ok(tcid_str))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: invalid tcid in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: invalid tcid in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }
+
+    service_name_str = chttp_node_get_header(chttp_node, (const char *)"service");
+    if(NULL_PTR == service_name_str)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: no service in header\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: no service in header");
+                         
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+     
+        return (EC_TRUE);
+    }   
+    cstring_set_str(&service_name, (const UINT8 *)service_name_str); /*mount only*/
+
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    if(NULL_PTR != on_tcid_str)
+    {
+        MOD_NODE_TCID(&recv_mod_node) = c_ipv4_to_word(on_tcid_str);
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+
+        task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                 &recv_mod_node,
+                 NULL_PTR,
+                 FI_ctdns_offline, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str), &service_name);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_offline_get_request: "
+                                                  "network %s, tcid '%s', service '%s', report offline on tcid %s", 
+                                                  network_str,
+                                                  tcid_str,
+                                                  service_name_str,
+                                                  on_tcid_str);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+     
+        return (EC_TRUE);
+    }
+    
+    MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+
+    task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+             &recv_mod_node,
+             NULL_PTR,
+             FI_ctdns_offline, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str), &service_name);
+
+    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_offline_get_request: "
+                                              "network %s, tcid '%s', service '%s', report offline", 
+                                              network_str,
+                                              tcid_str,
+                                              service_name_str);
+
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_make_offline_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+ 
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make header kvs failed\n");
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }  
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ctdnshttp_commit_offline_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return ctdnshttp_commit_response(chttp_node);
+}
+#endif
+
+
+#if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: upper ----------------------------------------*/
 static EC_BOOL __ctdnshttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
 {
@@ -2366,12 +2617,12 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
                                                       service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
                                                       "finger upper nodes of service '%s' failed", 
                                                       service_str);
                              
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_TRUE);        
@@ -2413,12 +2664,12 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
                                                       service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
                                                       "finger upper nodes of service '%s' on tcid '%s' failed", 
                                                       service_str, on_tcid_str);
                              
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_TRUE);        
@@ -2681,12 +2932,12 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
                                                       service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
                                                       "finger edge nodes of service '%s' failed", 
                                                       service_str);
                              
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_TRUE);        
@@ -2728,12 +2979,12 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
                                                       service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
                                                       "finger edge nodes of service '%s' on tcid '%s' failed", 
                                                       service_str, on_tcid_str);
                              
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_TRUE);        

@@ -801,6 +801,8 @@
 #define                        FI_ctdns_detect_task  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 38))
 #define                           FI_ctdns_set_susv  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 39))
 #define                         FI_ctdns_unset_susv  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 40))
+#define                      FI_ctdns_unset_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 41))
+#define                            FI_ctdns_offline  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 42))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))
