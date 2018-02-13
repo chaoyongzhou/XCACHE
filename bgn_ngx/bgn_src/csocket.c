@@ -918,6 +918,7 @@ EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port
         return(EC_TRUE);
     }
 
+#if 0
     /*otherwise, query DNS*/
     phost = gethostbyname(c_word_to_ipv4(srv_ipaddr));
     if (1)
@@ -937,7 +938,7 @@ EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port
         bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0]));    
         return (EC_TRUE);
     }
-
+#endif
     dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_client_addr_init: unknown ip: %s\n", c_word_to_ipv4(srv_ipaddr));
     return (EC_FALSE);
 }

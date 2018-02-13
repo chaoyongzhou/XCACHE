@@ -4632,6 +4632,148 @@ EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
 /*note: host_name is domain or ipv4 string*/
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
 {
+    struct addrinfo  hints;
+    struct addrinfo *answer;
+    struct addrinfo *ptr;
+    
+    int              ret;
+    uint32_t         idx;
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    if(EC_TRUE == task_brd_default_has_detect())
+    {
+        return c_dns_resolve_by_detect(host_name, ipv4);
+    }
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+    bzero(&hints, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    answer = NULL_PTR;
+
+    /*refer: http://www.man7.org/linux/man-pages/man3/getaddrinfo.3.html*/
+    ret = getaddrinfo(host_name, NULL_PTR, &hints, &answer);
+    if(0 != ret)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: resolve host '%s' failed, err: %s\n", 
+                        host_name, gai_strerror(ret));
+        return (EC_FALSE);
+    }
+
+    /*debug*/
+    if(do_log(SEC_0013_CMISC, 9))
+    {
+        for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++) 
+        {
+            switch (ptr->ai_family) 
+            {
+                case AF_UNSPEC:
+                {
+                    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                                          "[%u] host '%s' => "
+                                                          "family Unspecified\n",
+                                                          idx, host_name);                    
+                    break;
+                }
+                case AF_INET:
+                {
+                    struct sockaddr_in *sockaddr_ipv4;
+                    char               *ipv4_str;
+                    
+                    sockaddr_ipv4 = (struct sockaddr_in *) ptr->ai_addr;
+                    ipv4_str      = c_inet_ntos(&(sockaddr_ipv4->sin_addr));
+                    
+                    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                                          "[%u] host '%s' => "
+                                                          "family: AF_INET (IPv4), ip: %s\n",
+                                                          idx, host_name, ipv4_str);                  
+                    
+                    break;
+                }
+                case AF_INET6:
+                {
+                    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                                          "[%u] host '%s' => "
+                                                          "family: AF_INET6 (IPv6)\n",
+                                                          idx, host_name);                    
+                    break;
+                }
+                default:
+                {
+                    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                                          "[%u] host '%s' => "
+                                                          "family: Other %ld\n",
+                                                          idx, host_name, ptr->ai_family);                    
+                    break;
+                }
+            }
+        }
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                              "host '%s' => "
+                                              "total %u results\n",
+                                              host_name, idx); 
+    }    
+    
+    for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++) 
+    {   
+        switch (ptr->ai_family) 
+        {
+            case AF_UNSPEC:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
+                                                      "[%u] host '%s' => "
+                                                      "family Unspecified\n",
+                                                      idx, host_name);
+                break;
+            }
+            case AF_INET:
+            {
+                struct sockaddr_in *sockaddr_ipv4;
+                char               *ipv4_str;
+
+                
+                sockaddr_ipv4 = (struct sockaddr_in *) ptr->ai_addr;
+                ipv4_str      = c_inet_ntos(&(sockaddr_ipv4->sin_addr));
+                
+                dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
+                                                      "[%u] host '%s' => "
+                                                      "family: AF_INET (IPv4), ip: %s\n",
+                                                      idx, host_name, sockaddr_ipv4);                  
+                
+                (*ipv4)  = c_ipv4_to_word(ipv4_str); /*select the first one*/
+                
+                freeaddrinfo(answer);
+                
+                return (EC_TRUE); /*terminate*/
+            }
+            case AF_INET6: /*not support yet*/
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
+                                                      "[%u] host '%s' => "
+                                                      "family: AF_INET6 (IPv6)\n",
+                                                      idx, host_name);                    
+                break;
+            }
+            default:
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
+                                                      "[%u] host '%s' => "
+                                                      "family: Other %ld\n",
+                                                      idx, host_name, ptr->ai_family);                    
+                break;
+            }
+        }
+    }
+
+    freeaddrinfo(answer);
+    
+    /*never reach here*/
+    return (EC_FALSE);
+}
+EC_BOOL c_dns_resolve_obsolete(const char *host_name, UINT32 *ipv4)
+{
     struct hostent *host;
     char           *ipv4_str;
 

@@ -35,6 +35,7 @@ EC_BOOL cp2phttp_log_start();
 
 EC_BOOL cp2phttp_commit_request(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_http_post(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_http_put(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_http_get(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_http_head(CHTTP_NODE *chttp_node);
 
@@ -54,6 +55,12 @@ EC_BOOL cp2phttp_commit_upload_post_request(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_make_upload_post_response(CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_upload_post_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cp2phttp_is_http_put_upload(const CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upload_put_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_upload_put_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upload_put_response(CHTTP_NODE *chttp_node);
 
 EC_BOOL cp2phttp_is_http_get_push(const CHTTP_NODE *chttp_node);
 EC_BOOL cp2phttp_commit_push_get_request(CHTTP_NODE *chttp_node);

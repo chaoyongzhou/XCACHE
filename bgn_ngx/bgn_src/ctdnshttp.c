@@ -2383,7 +2383,7 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     }   
     cstring_set_str(&service_name, (const UINT8 *)service_name_str); /*mount only*/
 
-    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR != on_tcid_str)
     {
         MOD_NODE_TCID(&recv_mod_node) = c_ipv4_to_word(on_tcid_str);
@@ -2579,7 +2579,7 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
 
-    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR == on_tcid_str)
     {
         on_tcid = CMPI_LOCAL_TCID;
@@ -2894,7 +2894,7 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
 
-    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on-tcid");
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR == on_tcid_str)
     {
         on_tcid = CMPI_LOCAL_TCID;

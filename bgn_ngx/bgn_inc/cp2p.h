@@ -291,7 +291,7 @@ EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_networ
 **/
 EC_BOOL cp2p_cmd_deliver(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd);
 
-/*------------------------------------------------ interface of reporter ------------------------------------------------*/
+/*------------------------------------------------ interface of misc ------------------------------------------------*/
 /**
 *
 *  report p2p online

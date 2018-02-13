@@ -22,7 +22,7 @@ extern "C"{
 #define LOG_CSTR_DEVICE      ((UINT32) 2)
 #define LOG_NULL_DEVICE      ((UINT32) 3)
 
-#define LOG_DEFAULT_DBG_LEVEL    ((UINT32) 1)
+#define LOG_DEFAULT_DBG_LEVEL    ((UINT32) 0)
 #define LOG_MAX_DBG_LEVEL        ((UINT32) 9)
 #define LOG_ERR_DBG_LEVEL        ((UINT32)-1)
 
