@@ -2085,7 +2085,7 @@ EC_BOOL chttps_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0157_CHTTPS, 1)(LOGSTDOUT, "[DEBUG] chttps_srv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new(LOC_CHTTPS_0011);/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_srv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
@@ -2275,7 +2275,7 @@ EC_BOOL chttps_node_complete(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cn
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0011);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0012);
         }
 
         //CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE; /*xxx*/
@@ -2294,7 +2294,7 @@ EC_BOOL chttps_node_complete(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cn
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0012);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0013);
         }
         
         //CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
@@ -2369,7 +2369,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0013);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0014);
         }
 
         return (EC_TRUE);
@@ -2387,7 +2387,7 @@ EC_BOOL chttps_node_close(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0014);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0015);
         }
 
         return (EC_TRUE);
@@ -2448,7 +2448,7 @@ EC_BOOL chttps_node_timeout(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cno
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0015);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0016);
         }
 
         cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -2471,7 +2471,7 @@ EC_BOOL chttps_node_timeout(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cno
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0016);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0017);
         }
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE; 
@@ -2534,7 +2534,7 @@ EC_BOOL chttps_node_shutdown(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cn
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0017);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0018);
         }
 
         cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -2556,7 +2556,7 @@ EC_BOOL chttps_node_shutdown(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cn
         if(NULL_PTR != CHTTPS_NODE_CROUTINE_COND(chttps_node) && BIT_FALSE == CHTTPS_NODE_COROUTINE_RESTORE(chttps_node))
         {
             CHTTPS_NODE_COROUTINE_RESTORE(chttps_node) = BIT_TRUE;
-            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0018);
+            croutine_cond_release(CHTTPS_NODE_CROUTINE_COND(chttps_node), LOC_CHTTPS_0019);
         }
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE; 
@@ -2705,7 +2705,7 @@ EC_BOOL chttps_node_send_rsp(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cn
 CHTTPS_REST *chttps_rest_new()
 {
     CHTTPS_REST *chttps_rest;
-    alloc_static_mem(MM_CHTTPS_REST, &chttps_rest, LOC_CHTTPS_0019);
+    alloc_static_mem(MM_CHTTPS_REST, &chttps_rest, LOC_CHTTPS_0020);
     if(NULL_PTR == chttps_rest)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_rest_new: new chttps_rest failed\n");
@@ -2736,7 +2736,7 @@ EC_BOOL chttps_rest_free(CHTTPS_REST *chttps_rest)
     if(NULL_PTR != chttps_rest)
     {
         chttps_rest_clean(chttps_rest);
-        free_static_mem(MM_CHTTPS_REST, chttps_rest, LOC_CHTTPS_0020);
+        free_static_mem(MM_CHTTPS_REST, chttps_rest, LOC_CHTTPS_0021);
     }
  
     return (EC_TRUE);
@@ -2774,7 +2774,7 @@ EC_BOOL chttps_rest_list_push(const char *name, EC_BOOL (*commit)(CHTTPS_NODE *)
 
     if(NULL_PTR == g_chttps_rest_list)
     {
-        g_chttps_rest_list = clist_new(MM_CHTTPS_REST, LOC_CHTTPS_0021);
+        g_chttps_rest_list = clist_new(MM_CHTTPS_REST, LOC_CHTTPS_0022);
         if(NULL_PTR == g_chttps_rest_list)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_rest_list_push: new rest list failed\n");
@@ -2885,7 +2885,7 @@ EC_BOOL chttps_defer_request_queue_init()
 {
     if(EC_FALSE == g_chttps_defer_request_queue_init_flag)
     {
-        cqueue_init(&g_chttps_defer_request_queue, MM_CHTTPS_NODE, LOC_CHTTPS_0022);
+        cqueue_init(&g_chttps_defer_request_queue, MM_CHTTPS_NODE, LOC_CHTTPS_0023);
 
         if(EC_FALSE == cepoll_set_loop_handler(task_brd_default_get_cepoll(),
                                                 (const char *)"chttps_defer_request_queue_launch",
@@ -3854,7 +3854,7 @@ EC_BOOL chttps_node_connect(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const
             csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
         }
 
-        csocket_cnode = csocket_cnode_new();
+        csocket_cnode = csocket_cnode_new(LOC_CHTTPS_0024);
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_connect:new csocket cnode for socket %d to server %s:%ld failed\n",
@@ -4345,7 +4345,7 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         CHTTPS_NODE_CLIENT_PRIVKEY_FILE(chttps_node) = client_privkey_file;
     }    
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0023);
+    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0025);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: new croutine_cond failed\n");
@@ -4415,8 +4415,8 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
     chttps_node_set_socket_callback(chttps_node, CHTTPS_NODE_CSOCKET_CNODE(chttps_node));
     chttps_node_set_socket_epoll(chttps_node, CHTTPS_NODE_CSOCKET_CNODE(chttps_node));
 
-    croutine_cond_reserve(croutine_cond, 1, LOC_CHTTPS_0024);
-    croutine_cond_wait(croutine_cond, LOC_CHTTPS_0025);
+    croutine_cond_reserve(croutine_cond, 1, LOC_CHTTPS_0026);
+    croutine_cond_wait(croutine_cond, LOC_CHTTPS_0027);
 
     __COROUTINE_IF_EXCEPTION() {/*exception*/
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: coroutine was cancelled\n"); 
@@ -4590,7 +4590,7 @@ EC_BOOL chttps_node_check(CHTTPS_NODE *chttps_node, const UINT32 ipaddr, const U
         csocket_tcpi_stat_print(LOGSTDOUT, sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new();
+    csocket_cnode = csocket_cnode_new(LOC_CHTTPS_0028);
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_check:new csocket cnode for socket %d to server %s:%ld failed\n",
@@ -4624,7 +4624,7 @@ EC_BOOL chttps_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
         return (EC_FALSE);
     }
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0026);
+    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0029);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_check: new croutine_cond failed\n");
@@ -4651,8 +4651,8 @@ EC_BOOL chttps_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
     chttps_node_set_socket_callback(chttps_node, CHTTPS_NODE_CSOCKET_CNODE(chttps_node));
     chttps_node_set_socket_epoll(chttps_node, CHTTPS_NODE_CSOCKET_CNODE(chttps_node));
 
-    croutine_cond_reserve(croutine_cond, 1, LOC_CHTTPS_0027);
-    croutine_cond_wait(croutine_cond, LOC_CHTTPS_0028);
+    croutine_cond_reserve(croutine_cond, 1, LOC_CHTTPS_0030);
+    croutine_cond_wait(croutine_cond, LOC_CHTTPS_0031);
 
     __COROUTINE_CATCH_EXCEPTION() { /*exception*/
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_check: coroutine was cancelled\n");

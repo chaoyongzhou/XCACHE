@@ -245,6 +245,13 @@ void super_diag_mem(const UINT32 super_md_id, LOG *log);
 
 /**
 *
+* diagnostic mem of CSOCKET_CNODE of current process
+*
+**/
+void super_diag_csocket_cnode(const UINT32 super_md_id, LOG *log);
+
+/**
+*
 * diagnostic mem of current process
 *
 **/

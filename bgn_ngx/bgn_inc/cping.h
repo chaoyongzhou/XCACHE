@@ -29,6 +29,8 @@ void    cping_node_print(LOG *log, const CPING_NODE *cping_node);
 
 EC_BOOL cping_node_icheck(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode);
 
+EC_BOOL cping_node_complete(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode);
+
 EC_BOOL cping_node_shutdown(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL cping_node_close(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode);

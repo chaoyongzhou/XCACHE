@@ -157,6 +157,7 @@
 #define               FI_super_http_request_merge  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  138))
 #define                 FI_super_store_after_ddir  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  139))
 #define                          FI_super_connect  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  140))
+#define               FI_super_diag_csocket_cnode  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  141))
 
 #define               FI_cdfs_print_module_status  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  0))
 #define            FI_cdfs_free_module_static_mem  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  1))
@@ -803,6 +804,9 @@
 #define                         FI_ctdns_unset_susv  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 40))
 #define                      FI_ctdns_unset_service  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 41))
 #define                            FI_ctdns_offline  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 42))
+#define                FI_ctdns_refresh_local_cache  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 43))
+#define               FI_ctdns_refresh_cache_notify  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 44))
+#define                      FI_ctdns_refresh_cache  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 45))
 
 #define              FI_cdetect_print_module_status  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 0))
 #define           FI_cdetect_free_module_static_mem  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 1))

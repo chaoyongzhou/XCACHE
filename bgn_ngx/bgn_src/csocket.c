@@ -267,6 +267,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
+    CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
 
     CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
     CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
@@ -294,11 +295,11 @@ void csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode)
     return;
 }
 
-CSOCKET_CNODE * csocket_cnode_new()
+CSOCKET_CNODE * csocket_cnode_new(const UINT32 location)
 {
     CSOCKET_CNODE *csocket_cnode;
 
-    alloc_static_mem(MM_CSOCKET_CNODE, &csocket_cnode, LOC_CSOCKET_0001);
+    alloc_static_mem(MM_CSOCKET_CNODE, &csocket_cnode, location);
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_cnode_new: failed to alloc CSOCKET_CNODE\n");
@@ -317,7 +318,7 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
     if(NULL_PTR != csocket_cnode)
     {
         csocket_cnode_clean(csocket_cnode);
-        free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0002);
+        free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0001);
     }
     return (EC_TRUE);
 }
@@ -549,7 +550,7 @@ CSOCKET_CNODE * csocket_cnode_unix_new(const UINT32 tcid, const int sockfd, cons
 {
     CSOCKET_CNODE *csocket_cnode;
 
-    alloc_static_mem(MM_CSOCKET_CNODE, &csocket_cnode, LOC_CSOCKET_0003);
+    alloc_static_mem(MM_CSOCKET_CNODE, &csocket_cnode, LOC_CSOCKET_0002);
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_cnode_unix_new: failed to alloc CSOCKET_CNODE\n");
@@ -906,7 +907,7 @@ static EC_BOOL csocket_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_
 EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_in *srv_addr)
 {
     struct sockaddr_in     ipv4addr; 
-    struct hostent        *phost;
+    //struct hostent        *phost;
         
     if ( 0 < inet_pton(AF_INET, c_word_to_ipv4(srv_ipaddr), &(ipv4addr.sin_addr)) )
     {
@@ -2617,7 +2618,7 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
 
     max_sockfd = 0;
 
-    fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSOCKET_0004);
+    fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSOCKET_0003);
     if(NULL_PTR == fd_cset)
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: malloc FD_CSET with size %d failed\n", sizeof(FD_CSET));
@@ -2628,25 +2629,25 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
     csocket_fd_set(sockfd, fd_cset, &max_sockfd);
     if(EC_FALSE == csocket_select(max_sockfd + 1, fd_cset, NULL_PTR, NULL_PTR, &timeout, &ret))
     {
-        safe_free(fd_cset, LOC_CSOCKET_0005);
+        safe_free(fd_cset, LOC_CSOCKET_0004);
         return (EC_FALSE);
     }
 
     len = sizeof(int);
     if(0 != getsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_ERROR, (char *)&err, (socklen_t *)&len))
     {
-        safe_free(fd_cset, LOC_CSOCKET_0006);
+        safe_free(fd_cset, LOC_CSOCKET_0005);
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: sockfd %d, errno = %d, errstr = %s\n", sockfd, errno, strerror(errno));
         return (EC_FALSE);
     }
  
     if(0 != err)
     {
-        safe_free(fd_cset, LOC_CSOCKET_0007);
+        safe_free(fd_cset, LOC_CSOCKET_0006);
         return (EC_FALSE);
     }
 
-    safe_free(fd_cset, LOC_CSOCKET_0008);
+    safe_free(fd_cset, LOC_CSOCKET_0007);
     return (EC_TRUE);
 }
 
@@ -3471,7 +3472,7 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
             return (NULL_PTR);
         }
      
-        task_node = task_node_new(len, LOC_CSOCKET_0009);
+        task_node = task_node_new(len, LOC_CSOCKET_0008);
         if(NULL_PTR == task_node)
         {
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: new task_node with %ld bytes failed\n", len);

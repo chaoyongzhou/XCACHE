@@ -388,6 +388,10 @@ EC_BOOL cp2phttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cp2phttp_commit_edge_get_request(chttp_node);
     }
+    else if(EC_TRUE == cp2phttp_is_http_get_refresh(chttp_node))
+    {
+        ret = cp2phttp_commit_refresh_get_request(chttp_node);
+    }
     else
     {
         CBUFFER *uri_cbuffer;

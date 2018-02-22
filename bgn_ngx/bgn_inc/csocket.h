@@ -50,7 +50,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode);
 
 void    csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode);
 
-CSOCKET_CNODE * csocket_cnode_new();
+CSOCKET_CNODE * csocket_cnode_new(const UINT32 location);
 
 EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode);
 

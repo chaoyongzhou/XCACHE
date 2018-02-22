@@ -588,8 +588,11 @@ void safe_copy(UINT8 *old_ptr, UINT8 *new_ptr, UINT32 len);
 void print_static_mem_status(LOG *log);
 void print_static_mem_status_of_type(LOG *log, const UINT32  type);
 #if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
+typedef void (*SHOW_MEM_DETAIL)(LOG *, void *);
+
 UINT32 print_static_mem_diag_info( LOG *log );
 UINT32 print_static_mem_diag_info_of_type(LOG *log, const UINT32 type);
+UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*show)(LOG *, void *));
 
 UINT32 print_static_mem_stat_info(LOG *log);
 UINT32 print_static_mem_stat_info_of_type(LOG *log, const UINT32 type);

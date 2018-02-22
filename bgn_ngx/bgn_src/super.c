@@ -656,7 +656,7 @@ UINT32 super_incl_taskc_node(const UINT32 super_md_id, const UINT32 ipaddr, cons
         super_show_work_client(super_md_id, LOGSTDOUT);
     }
 
-    csocket_cnode = csocket_cnode_new(taskc_id, sockfd, CSOCKET_TYPE_TCP, ipaddr, port);
+    csocket_cnode = csocket_cnode_new(LOC_SUPER_0020);
     CSOCKET_CNODE_TCID(csocket_cnode  ) = taskc_id;
     CSOCKET_CNODE_SOCKFD(csocket_cnode) = sockfd;
     CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
@@ -710,7 +710,7 @@ UINT32 super_excl_taskc_node(const UINT32 super_md_id, const UINT32 tcid, const 
         super_show_work_client(super_md_id, LOGSTDOUT);
     }
 
-    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0020);
+    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0021);
     for(pos = 0; pos < cvector_size(TASKS_WORKER_NODES(tasks_worker)); /*pos ++*/)
     {
         TASKS_NODE *tasks_node;
@@ -732,7 +732,7 @@ UINT32 super_excl_taskc_node(const UINT32 super_md_id, const UINT32 tcid, const 
 
         pos ++;
     }
-    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0021);
+    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0022);
 
     if(do_log(SEC_0117_SUPER, 5))
     {
@@ -776,7 +776,7 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *des_taskc_mgr)
     tasks_cfg    = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker = TASKS_CFG_WORKER(tasks_cfg);
 
-    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0022);
+    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0023);
     for(tasks_node_pos = 0; tasks_node_pos < cvector_size(TASKS_WORKER_NODES(tasks_worker)); tasks_node_pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -811,7 +811,7 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *des_taskc_mgr)
 
         clist_push_back(TASKC_MGR_NODE_LIST(des_taskc_mgr), (void *)taskc_node);
     }
-    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0023);
+    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0024);
 
     return (0);
 }
@@ -848,7 +848,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
 
     task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
-    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0024);
+    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0025);
     for(tasks_node_pos = 0; tasks_node_pos < cvector_size(TASKS_WORKER_NODES(tasks_worker)); tasks_node_pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -895,7 +895,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
         //task_brd_sync_cload_node(task_brd, cload_node);
         clist_push_back(des_cload_mgr, (void *)cload_node);
     }
-    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0025);
+    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0026);
 
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
@@ -1148,6 +1148,24 @@ void super_diag_mem(const UINT32 super_md_id, LOG *log)
     return;
 }
 
+void super_diag_csocket_cnode(const UINT32 super_md_id, LOG *log)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_diag_csocket_cnode: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    //dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "===================================== memory diagnostic info beg: =====================================\n");
+    print_static_mem_diag_detail_of_type(log, MM_CSOCKET_CNODE, (SHOW_MEM_DETAIL)csocket_cnode_print);
+    //dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "===================================== memory diagnostic info end: =====================================\n");
+    return;
+}
+
 /**
 *
 * diagnostic mem of current process
@@ -1387,10 +1405,10 @@ EC_BOOL super_cancel_task_req(const UINT32 super_md_id, const UINT32 seqno, cons
         return (EC_FALSE);
     }
 
-    TASK_NODE_CMUTEX_LOCK(TASK_REQ_NODE(task_req), LOC_SUPER_0026);
+    TASK_NODE_CMUTEX_LOCK(TASK_REQ_NODE(task_req), LOC_SUPER_0027);
     TASK_NODE_STATUS(TASK_REQ_NODE(task_req)) = TASK_REQ_DISCARD;
-    TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_SUPER_0027);
-    TASK_NODE_CMUTEX_UNLOCK(TASK_REQ_NODE(task_req), LOC_SUPER_0028);
+    TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, task_req, LOC_SUPER_0028);
+    TASK_NODE_CMUTEX_UNLOCK(TASK_REQ_NODE(task_req), LOC_SUPER_0029);
 
     return (EC_TRUE);
 }
@@ -1499,7 +1517,7 @@ static void super_sync_taskcomm_self(CVECTOR *collected_vec, TASK_MGR *task_mgr,
         return;
     }
 
-    new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0029);
+    new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0030);
     cvector_push_no_lock(collected_vec, (void *)new_mod_node_vec);
 
     for(rank = 0; rank < TASK_BRD_SIZE(task_brd); rank ++)
@@ -1527,7 +1545,7 @@ static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0030);
+    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0031);
     for(pos = 0; pos < cvector_size(remote_tasks_cfg_vec); pos ++)
     {
         TASKS_CFG *remote_tasks_cfg;
@@ -1556,7 +1574,7 @@ static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote
         }
 
 
-        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0031);
+        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0032);
         cvector_push_no_lock(collected_vec, (void *)new_mod_node_vec);
 
         MOD_NODE_TCID(&recv_mod_node) = TASKS_CFG_TCID(remote_tasks_cfg);
@@ -1572,7 +1590,7 @@ static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote
                         max_hops, max_remotes, time_to_live,
                         new_mod_node_vec);
     }
-    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0032);
+    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0033);
 
     return;
 }
@@ -1582,7 +1600,7 @@ static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_t
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0033);
+    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0034);
     for(pos = 0; pos < cvector_size(remote_tasks_cfg_vec); pos ++)
     {
         TASKS_CFG *remote_tasks_cfg;
@@ -1610,7 +1628,7 @@ static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_t
             continue;
         }
 
-        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0034);
+        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0035);
         cvector_push_no_lock(collected_vec, (void *)new_mod_node_vec);
 
         MOD_NODE_TCID(&recv_mod_node) = TASKS_CFG_TCID(remote_tasks_cfg);
@@ -1626,7 +1644,7 @@ static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_t
                         max_hops, max_remotes, time_to_live,
                         new_mod_node_vec);
     }
-    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0035);
+    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0036);
     return;
 }
 
@@ -1635,7 +1653,7 @@ static void super_sync_taskcomm_externet(CVECTOR *collected_vec, CVECTOR *remote
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0036);
+    CVECTOR_LOCK(remote_tasks_cfg_vec, LOC_SUPER_0037);
     for(pos = 0; pos < cvector_size(remote_tasks_cfg_vec); pos ++)
     {
         TASKS_CFG *remote_tasks_cfg;
@@ -1667,7 +1685,7 @@ static void super_sync_taskcomm_externet(CVECTOR *collected_vec, CVECTOR *remote
             continue;
         }
 
-        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0037);
+        new_mod_node_vec = cvector_new(0, MM_MOD_NODE, LOC_SUPER_0038);
         cvector_push_no_lock(collected_vec, (void *)new_mod_node_vec);
 
         MOD_NODE_TCID(&recv_mod_node) = TASKS_CFG_TCID(remote_tasks_cfg);
@@ -1683,7 +1701,7 @@ static void super_sync_taskcomm_externet(CVECTOR *collected_vec, CVECTOR *remote
                         max_hops, max_remotes, time_to_live,
                         new_mod_node_vec);
     }
-    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0038);
+    CVECTOR_UNLOCK(remote_tasks_cfg_vec, LOC_SUPER_0039);
     return;
 }
 
@@ -1774,7 +1792,7 @@ void super_sync_taskcomm(const UINT32 super_md_id, const UINT32 src_tcid, const 
     remote_tasks_cfg_vec = TASK_CFG_TASKS_CFG_VEC(local_task_cfg);
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    collected_vec = cvector_new(0, MM_CVECTOR, LOC_SUPER_0039);
+    collected_vec = cvector_new(0, MM_CVECTOR, LOC_SUPER_0040);
 
     MOD_NODE_TCID(&send_mod_node) = TASK_BRD_TCID(task_brd);
     MOD_NODE_COMM(&send_mod_node) = TASK_BRD_COMM(task_brd);
@@ -1833,7 +1851,7 @@ void super_sync_taskcomm(const UINT32 super_md_id, const UINT32 src_tcid, const 
 
         if(0 == cvector_size(new_mod_node_vec))
         {
-            cvector_free(new_mod_node_vec, LOC_SUPER_0040);
+            cvector_free(new_mod_node_vec, LOC_SUPER_0041);
             continue;
         }
 
@@ -1900,12 +1918,12 @@ void super_sync_taskcomm(const UINT32 super_md_id, const UINT32 src_tcid, const 
         }
 
         cvector_set_no_lock(collected_vec, pos, NULL_PTR);
-        //cvector_clean(new_mod_node_vec, (CVECTOR_DATA_CLEANER)mod_node_free, LOC_SUPER_0041);
-        cvector_free(new_mod_node_vec, LOC_SUPER_0042);
+        //cvector_clean(new_mod_node_vec, (CVECTOR_DATA_CLEANER)mod_node_free, LOC_SUPER_0042);
+        cvector_free(new_mod_node_vec, LOC_SUPER_0043);
     }
 
     /*when reach here, collected_vec should have no more element*/
-    cvector_free(collected_vec, LOC_SUPER_0043);
+    cvector_free(collected_vec, LOC_SUPER_0044);
 
     task_cfg_free(local_task_cfg);
 
@@ -2262,16 +2280,16 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
     task_brd = task_brd_default_get();
 
     /*pre-checking*/
-    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0044);
+    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0045);
     broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid, NULL_PTR);
     if(CVECTOR_ERR_POS != broken_tcid_pos)
     {
         /*okay, someone is working on this broken tcid, terminate on-going*/
-        CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0045);
+        CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0046);
         return;
     }
     cvector_push_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid);
-    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0046);
+    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0047);
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_notify_broken_tcid beg: broken tcid %s ==============================\n",
                         c_word_to_ipv4(broken_tcid));
@@ -2306,11 +2324,11 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     /*ok, complete the broken tcid handling, remove it from table*/
-    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0047);
+    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0048);
     /*we have to search it again because the broken tcid position maybe changed under multiple thread environment*/
     broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid, NULL_PTR);
     cvector_erase_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), broken_tcid_pos);
-    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0048);
+    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0049);
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_notify_broken_tcid end: broken tcid %s ==============================\n",
                         c_word_to_ipv4(broken_tcid));
@@ -2509,11 +2527,11 @@ void super_show_route_table(const UINT32 super_md_id, LOG *log)
     task_brd = task_brd_default_get();
     tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
-    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0049);
+    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0050);
     if(EC_TRUE == cvector_is_empty(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)))
     {
         sys_log(log, "(no route)\n");
-        CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0050);
+        CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0051);
         return;
     }
     for(pos = 0; pos < cvector_size(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)); pos ++)
@@ -2532,7 +2550,7 @@ void super_show_route_table(const UINT32 super_md_id, LOG *log)
                         TASKR_CFG_MASKR_STR(taskr_cfg),
                         TASKR_CFG_NEXT_TCID_STR(taskr_cfg));
     }
-    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0051);
+    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_SUPER_0052);
     return;
 }
 
@@ -2786,15 +2804,15 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         {
             if(NULL_PTR != host)
             {
-                safe_free(host, LOC_SUPER_0052);
+                safe_free(host, LOC_SUPER_0053);
             }
             if(NULL_PTR != port)
             {
-                safe_free(port, LOC_SUPER_0053);
+                safe_free(port, LOC_SUPER_0054);
             }
             if(NULL_PTR != uri)
             {
-                safe_free(uri, LOC_SUPER_0054);
+                safe_free(uri, LOC_SUPER_0055);
             }         
             break;
         }
@@ -2809,14 +2827,14 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         {
             dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: location '%s' =>  host '%s'\n", loc, host);
             chttp_req_set_ipaddr(&chttp_req_t, host);
-            safe_free(host, LOC_SUPER_0055);
+            safe_free(host, LOC_SUPER_0056);
         }
 
         if(NULL_PTR != port)
         {
             dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: location '%s' =>  port '%s'\n", loc, port);
             chttp_req_set_port(&chttp_req_t, port);
-            safe_free(port, LOC_SUPER_0056);
+            safe_free(port, LOC_SUPER_0057);
         }
 
         if(NULL_PTR == uri)
@@ -2831,7 +2849,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
 
         cstring_clean(CHTTP_REQ_URI(&chttp_req_t));
         chttp_req_set_uri(&chttp_req_t, uri);
-        safe_free(uri, LOC_SUPER_0057);
+        safe_free(uri, LOC_SUPER_0058);
 
         if(do_log(SEC_0117_SUPER, 9))
         {
@@ -2926,7 +2944,7 @@ void super_wait_me_ready(const UINT32 super_md_id)
 #endif/*SUPER_DEBUG_SWITCH*/
     task_brd = task_brd_default_get();
 
-    TASK_BRD_FWD_CCOND_WAIT(task_brd, LOC_SUPER_0058);
+    TASK_BRD_FWD_CCOND_WAIT(task_brd, LOC_SUPER_0059);
     return;
 }
 
@@ -3151,7 +3169,7 @@ void super_run_shell(const UINT32 super_md_id, const CSTRING *cmd_line, LOG *log
 
     rstream = popen((char *)cstring_get_str(cmd_line), "r");
 
-    result = cstring_new(NULL_PTR, LOC_SUPER_0059);
+    result = cstring_new(NULL_PTR, LOC_SUPER_0060);
     cstring_set_capacity(result, 4096);/*4KB*/
 
     cstring_fread(result, rstream);
@@ -3186,7 +3204,7 @@ EC_BOOL super_exec_shell(const UINT32 super_md_id, const CSTRING *cmd_line, CBYT
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    cmd_line_fix = cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0060);
+    cmd_line_fix = cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0061);
     cstring_append_str(cmd_line_fix, (UINT8 *)" 2>&1");/*fix*/
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "super_exec_shell: execute shell command: %s\n", (char *)cstring_get_str(cmd_line_fix));
@@ -3301,7 +3319,7 @@ EC_BOOL super_exec_shell_vec(const UINT32 super_md_id, const CVECTOR *tcid_vec, 
         if(NULL_PTR == output_cbytes)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_exec_shell_vec: new output cbytes failed\n");
-            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0061);
+            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0062);
             return (EC_FALSE);
         }
 
@@ -3358,7 +3376,7 @@ EC_BOOL super_exec_shell_vec_tcid_cstr(const UINT32 super_md_id, const CVECTOR *
         if(NULL_PTR == output_cbytes)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_exec_shell_vec_tcid_cstr: new output cbytes failed\n");
-            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0062);
+            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0063);
             task_mgr_free(task_mgr);
             return (EC_FALSE);
         }
@@ -3494,7 +3512,7 @@ EC_BOOL super_exec_shell_vec_ipaddr_cstr(const UINT32 super_md_id, const CVECTOR
         if(NULL_PTR == output_cbytes)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_exec_shell_vec_ipaddr_cstr: new output cbytes failed\n");
-            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0063);
+            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0064);
             task_mgr_free(task_mgr);
             return (EC_FALSE);
         }
@@ -3591,7 +3609,7 @@ EC_BOOL super_exec_shell_cbtimer_reset(const UINT32 super_md_id, const CSTRING *
         CBTIMER_NODE_NAME(cbtimer_node) = NULL_PTR;
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(cstring_get_str(cbtimer_name), LOC_SUPER_0064);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(cstring_get_str(cbtimer_name), LOC_SUPER_0065);
 
     /*timeout < timeout + delta = expire_time < 2 * timeout*/
     /*delta should ensure timeout action must be executed once and only once, but not 100 percent :(*/
@@ -3626,7 +3644,7 @@ EC_BOOL super_exec_shell_cbtimer_reset(const UINT32 super_md_id, const CSTRING *
     }
 
     handler->func_para[ 0 ].para_val = super_md_id;
-    handler->func_para[ 1 ].para_val = (UINT32)cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0065);
+    handler->func_para[ 1 ].para_val = (UINT32)cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0066);
     handler->func_para[ 2 ].para_val = (UINT32)cbytes_new(0);
 
     CTIMET_GET(CBTIMER_NODE_START_TIME(cbtimer_node));
@@ -3697,7 +3715,7 @@ EC_BOOL super_exec_shell_cbtimer_set(const UINT32 super_md_id, const CSTRING *cb
         return (EC_FALSE);
     }
 
-    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(cstring_get_str(cbtimer_name), LOC_SUPER_0066);
+    CBTIMER_NODE_NAME(cbtimer_node) = cstring_new(cstring_get_str(cbtimer_name), LOC_SUPER_0067);
 
     /*timeout < timeout + delta = expire_time < 2 * timeout*/
     /*delta should ensure timeout action must be executed once and only once, but not 100 percent :(*/
@@ -3720,7 +3738,7 @@ EC_BOOL super_exec_shell_cbtimer_set(const UINT32 super_md_id, const CSTRING *cb
     handler->func_ret_val  = EC_TRUE;
 
     handler->func_para[ 0 ].para_val = super_md_id;
-    handler->func_para[ 1 ].para_val = (UINT32)cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0067);
+    handler->func_para[ 1 ].para_val = (UINT32)cstring_new(cstring_get_str(cmd_line), LOC_SUPER_0068);
     handler->func_para[ 2 ].para_val = (UINT32)cbytes_new(0);
 
     CTIMET_GET(CBTIMER_NODE_START_TIME(cbtimer_node));
@@ -4234,7 +4252,7 @@ EC_BOOL super_download(const UINT32 super_md_id, const CSTRING *fname, CBYTES *c
         return (EC_FALSE);
     }
 
-    fbuf = (UINT8 *)SAFE_MALLOC(fsize, LOC_SUPER_0068);
+    fbuf = (UINT8 *)SAFE_MALLOC(fsize, LOC_SUPER_0069);
     if(NULL_PTR == fbuf)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_download: alloc %ld bytes for file %s buffer failed\n",
@@ -4248,7 +4266,7 @@ EC_BOOL super_download(const UINT32 super_md_id, const CSTRING *fname, CBYTES *c
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_download: load %ld bytes from file %s to buffer failed\n",
                             fsize, (char *)cstring_get_str(fname));
-        SAFE_FREE(fbuf, LOC_SUPER_0069);
+        SAFE_FREE(fbuf, LOC_SUPER_0070);
         c_file_close(fd);
         return (EC_FALSE);
     }
@@ -4341,7 +4359,7 @@ EC_BOOL super_download_vec_tcid_cstr(const UINT32 super_md_id, const CVECTOR *tc
         if(NULL_PTR == output_cbytes)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_download_vec_tcid_cstr: new output cbytes failed\n");
-            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0070);
+            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0071);
             task_mgr_free(task_mgr);
             return (EC_FALSE);
         }
@@ -4480,7 +4498,7 @@ EC_BOOL super_download_vec_ipaddr_cstr(const UINT32 super_md_id, const CVECTOR *
         if(NULL_PTR == output_cbytes)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_download_vec_ipaddr_cstr: new output cbytes failed\n");
-            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0071);
+            cvector_clean_no_lock(output_cbytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_SUPER_0072);
             task_mgr_free(task_mgr);
             return (EC_FALSE);
         }
@@ -4537,7 +4555,7 @@ EC_BOOL super_backup(const UINT32 super_md_id, const CSTRING *fname)
     {
         CSTRING *cmd_line;
 
-        cmd_line = cstring_new(NULL_PTR, LOC_SUPER_0072);
+        cmd_line = cstring_new(NULL_PTR, LOC_SUPER_0073);
         if(NULL_PTR == cmd_line)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_backup: new cmd line failed\n");
@@ -4904,7 +4922,7 @@ EC_BOOL super_collect_vec_ipaddr_cstr(const UINT32 super_md_id, CVECTOR *ipaddr_
 #endif/*SUPER_DEBUG_SWITCH*/
 
     task_brd = task_brd_default_get();
-    ipaddr_vec = cvector_new(0, MM_UINT32, LOC_SUPER_0073);
+    ipaddr_vec = cvector_new(0, MM_UINT32, LOC_SUPER_0074);
     if(NULL_PTR == ipaddr_vec)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_collect_vec_ipaddr_cstr: new cvector failed\n");
@@ -4919,16 +4937,16 @@ EC_BOOL super_collect_vec_ipaddr_cstr(const UINT32 super_md_id, CVECTOR *ipaddr_
         CSTRING *ipaddr_cstr;
 
         ipaddr = (UINT32)cvector_get_no_lock(ipaddr_vec, pos);
-        ipaddr_cstr = (CSTRING *)cstring_new((UINT8 *)c_word_to_ipv4(ipaddr), LOC_SUPER_0074);
+        ipaddr_cstr = (CSTRING *)cstring_new((UINT8 *)c_word_to_ipv4(ipaddr), LOC_SUPER_0075);
         if(NULL_PTR == ipaddr_cstr)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_collect_vec_ipaddr_cstr: new cstring failed\n");
-            cvector_free(ipaddr_vec, LOC_SUPER_0075);
+            cvector_free(ipaddr_vec, LOC_SUPER_0076);
             return (EC_FALSE);
         }
         cvector_push_no_lock(ipaddr_cstr_vec, (void *)ipaddr_cstr);
     }
-    cvector_free_no_lock(ipaddr_vec, LOC_SUPER_0076);
+    cvector_free_no_lock(ipaddr_vec, LOC_SUPER_0077);
     return (EC_TRUE);
 }
 
@@ -4965,12 +4983,12 @@ EC_BOOL super_write_fdata(const UINT32 super_md_id, const CSTRING *fname, const 
         return (EC_FALSE);
     }
 
-    SUPER_FNODE_CMUTEX_LOCK(super_fnode, LOC_SUPER_0077);
+    SUPER_FNODE_CMUTEX_LOCK(super_fnode, LOC_SUPER_0078);
 
     if(EC_FALSE == c_file_size(SUPER_FNODE_FD(super_fnode), &cur_fsize))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_write_fdata: get size of file %s failed\n", (char *)cstring_get_str(fname));
-        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0078);
+        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0079);
         return (EC_FALSE);
     }
 
@@ -4978,7 +4996,7 @@ EC_BOOL super_write_fdata(const UINT32 super_md_id, const CSTRING *fname, const 
     if(cur_fsize != offset && EC_FALSE == c_file_truncate(SUPER_FNODE_FD(super_fnode), offset))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_write_fdata: truncate file %s to %ld bytes failed\n", (char *)cstring_get_str(fname), offset);
-        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0079);
+        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0080);
         return (EC_FALSE);
     }
 
@@ -4987,11 +5005,11 @@ EC_BOOL super_write_fdata(const UINT32 super_md_id, const CSTRING *fname, const 
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_write_fdata: flush %ld bytes at offset %ld of file %s failed\n",
                             cbytes_len(cbytes), write_offset, (char *)cstring_get_str(fname));
-        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0080);
+        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0081);
         return (EC_FALSE);
     }
 
-    SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0081);
+    SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0082);
 
     return (EC_TRUE);
 }
@@ -5035,16 +5053,16 @@ EC_BOOL super_read_fdata(const UINT32 super_md_id, const CSTRING *fname, const U
     }
 
     read_offset = offset;
-    SUPER_FNODE_CMUTEX_LOCK(super_fnode, LOC_SUPER_0082);
+    SUPER_FNODE_CMUTEX_LOCK(super_fnode, LOC_SUPER_0083);
     if(EC_FALSE == c_file_load(SUPER_FNODE_FD(super_fnode), &read_offset, max_len, cbytes_buf(cbytes)))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_read_fdata: load %ld bytes at offset %ld of file %s failed\n",
                             max_len, read_offset, (char *)cstring_get_str(fname));
-        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0083);
+        SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0084);
         return (EC_FALSE);
     }
 
-    SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0084);
+    SUPER_FNODE_CMUTEX_UNLOCK(super_fnode, LOC_SUPER_0085);
 
     return (EC_TRUE);
 }
@@ -5835,7 +5853,7 @@ EC_BOOL super_transfer_vec_ipaddr_cstr(const UINT32 super_md_id, const CSTRING *
 
     task_brd = task_brd_default_get();
 
-    tcid_vec = cvector_new(0, MM_UINT32, LOC_SUPER_0085);
+    tcid_vec = cvector_new(0, MM_UINT32, LOC_SUPER_0086);
     if(NULL_PTR == tcid_vec)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_transfer_vec_ipaddr_cstr: new tcid vec failed\n");
@@ -5869,10 +5887,10 @@ EC_BOOL super_transfer_vec_ipaddr_cstr(const UINT32 super_md_id, const CSTRING *
     if(EC_FALSE == super_transfer_vec(super_md_id, src_fname, tcid_vec, des_fname, ret_vec))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_transfer_vec_ipaddr_cstr: transfer to tcid vec failed\n");
-        cvector_free(tcid_vec, LOC_SUPER_0086);
+        cvector_free(tcid_vec, LOC_SUPER_0087);
         return (EC_FALSE);
     }
-    cvector_free(tcid_vec, LOC_SUPER_0087);
+    cvector_free(tcid_vec, LOC_SUPER_0088);
     return (EC_TRUE);
 }
 
@@ -6270,8 +6288,8 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
     MOD_NODE_RANK(&recv_mod_node) = des_rank;
     MOD_NODE_MODI(&recv_mod_node) = 0;
 
-    report_vec  = cvector_new(0, MM_UINT32, LOC_SUPER_0088);
-    cstring_vec = cvector_new(0, MM_CSTRING, LOC_SUPER_0089);
+    report_vec  = cvector_new(0, MM_UINT32, LOC_SUPER_0089);
+    cstring_vec = cvector_new(0, MM_CSTRING, LOC_SUPER_0090);
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(idx = 0; idx < num; idx ++)
@@ -6279,10 +6297,10 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
         UINT32 *ret;
         CSTRING *cstring;
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_SUPER_0090);
+        alloc_static_mem(MM_UINT32, &ret, LOC_SUPER_0091);
         cvector_push(report_vec, (void *)ret);
 
-        cstring = cstring_new(NULL_PTR, LOC_SUPER_0091);
+        cstring = cstring_new(NULL_PTR, LOC_SUPER_0092);
         cvector_push(cstring_vec, (void *)cstring);
      
         (*ret) = EC_FALSE;
@@ -6306,14 +6324,14 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
         }
 
         cvector_set(report_vec, idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_SUPER_0092);
+        free_static_mem(MM_UINT32, ret, LOC_SUPER_0093);
 
         cvector_set(cstring_vec, idx, NULL_PTR);
         cstring_free(cstring);
     } 
 
-    cvector_free(report_vec, LOC_SUPER_0093);
-    cvector_free(cstring_vec, LOC_SUPER_0094);
+    cvector_free(report_vec, LOC_SUPER_0094);
+    cvector_free(cstring_vec, LOC_SUPER_0095);
 
     return (result);
 }
@@ -6377,7 +6395,7 @@ EC_BOOL super_say_hello_loop0(const UINT32 super_md_id, const UINT32 loops, cons
         EC_BOOL  ret;
         CSTRING *cstring;
 
-        cstring = cstring_new(NULL_PTR, LOC_SUPER_0095);
+        cstring = cstring_new(NULL_PTR, LOC_SUPER_0096);
         ASSERT(NULL_PTR != cstring);
         ret = super_say_hello(super_md_id, des_tcid, des_rank, cstring);
         cstring_free(cstring);
@@ -6458,7 +6476,7 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
     task_brd = task_brd_default_get();
     obj_zone_id = __GET_ZONE_ID_FROM_TCID(TASK_BRD_TCID(task_brd));
 
-    SUPER_MD_OBJ_ZONE(super_md) = cvector_new(obj_zone_size, MM_CVECTOR, LOC_SUPER_0096);
+    SUPER_MD_OBJ_ZONE(super_md) = cvector_new(obj_zone_size, MM_CVECTOR, LOC_SUPER_0097);
     if(NULL_PTR == SUPER_MD_OBJ_ZONE(super_md))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_load_data: new obj zone with size %ld failed\n", obj_zone_size);
@@ -6474,7 +6492,7 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
      
         obj_data_num = /*50*/5;
      
-        obj_vec = cvector_new(obj_data_num, MM_UINT32, LOC_SUPER_0097);
+        obj_vec = cvector_new(obj_data_num, MM_UINT32, LOC_SUPER_0098);
         if(NULL_PTR == obj_vec)
         {
             EC_BOOL ret;
@@ -6488,8 +6506,8 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
                         0,
                         (UINT32)cvector_free,
                         NULL_PTR,
-                        LOC_SUPER_0098);
-            cvector_free(SUPER_MD_OBJ_ZONE(super_md), LOC_SUPER_0099);         
+                        LOC_SUPER_0099);
+            cvector_free(SUPER_MD_OBJ_ZONE(super_md), LOC_SUPER_0100);         
             return (EC_FALSE);
         }
 
@@ -6650,7 +6668,7 @@ EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, 
      
         MOD_NODE recv_mod_node;
 
-        obj_data = cvector_new(0, MM_UINT32, LOC_SUPER_0100);
+        obj_data = cvector_new(0, MM_UINT32, LOC_SUPER_0101);
         if(NULL_PTR == obj_data)
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_get_data_vec: new obj_data failed\n");
@@ -6663,8 +6681,8 @@ EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, 
                         0,
                         (UINT32)cvector_free_no_lock,
                         NULL_PTR,
-                        LOC_SUPER_0101);
-            cvector_clean_no_lock(obj_data_vec, NULL_PTR, LOC_SUPER_0102);
+                        LOC_SUPER_0102);
+            cvector_clean_no_lock(obj_data_vec, NULL_PTR, LOC_SUPER_0103);
             return (EC_FALSE);
         }
 
@@ -6880,14 +6898,14 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree done => cond %p\n",
                 tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted)); 
 
-    croutine_cond_reserve(SUPER_CCOND_COND(super_ccond_inserted), 1, LOC_SUPER_0103);
+    croutine_cond_reserve(SUPER_CCOND_COND(super_ccond_inserted), 1, LOC_SUPER_0104);
     if(do_log(SEC_0117_SUPER, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] => cond %p\n",
                     tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
     }
  
-    if(EC_TIMEOUT == croutine_cond_wait(SUPER_CCOND_COND(super_ccond_inserted), LOC_SUPER_0104))
+    if(EC_TIMEOUT == croutine_cond_wait(SUPER_CCOND_COND(super_ccond_inserted), LOC_SUPER_0105))
     {
         if(do_log(SEC_0117_SUPER, 9))
         {
@@ -6950,7 +6968,7 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_wakeup: release all super_ccond [tag %ld, key '%.*s'] <= cond %p\n",
                 tag, CSTRING_LEN(key), CSTRING_STR(key), SUPER_CCOND_COND(super_ccond_searched));
              
-    croutine_cond_release_all(SUPER_CCOND_COND(super_ccond_searched), LOC_SUPER_0105);
+    croutine_cond_release_all(SUPER_CCOND_COND(super_ccond_searched), LOC_SUPER_0106);
 
     /*super_ccond_searched will be free when delete its crb node from tree*/ 
     crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node_searched);

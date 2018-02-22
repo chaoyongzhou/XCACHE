@@ -69,6 +69,9 @@ EC_BOOL api_cmd_ui_show_mem_all_of_type(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_diag_mem(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_diag_mem_all(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_diag_csocket_cnode(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_diag_csocket_cnode_all(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_diag_mem_of_type(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_diag_mem_all_of_type(CMD_PARA_VEC * param);
 

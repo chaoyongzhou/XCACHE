@@ -656,6 +656,51 @@ FUNC_ADDR_NODE g_ctdns_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_refresh_local_cache,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_refresh_local_cache",
+/*func index      */     FI_ctdns_refresh_local_cache,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_refresh_cache_notify,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_refresh_cache_notify",
+/*func index      */     FI_ctdns_refresh_cache_notify,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path); -- */
+/*func module     */     MD_CTDNS,
+/*func logic addr */     (UINT32)ctdns_refresh_cache,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "ctdns_refresh_cache",
+/*func index      */     FI_ctdns_refresh_cache,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_ctdns_func_addr_list_len = sizeof(g_ctdns_func_addr_list)/sizeof(g_ctdns_func_addr_list[0]);

@@ -355,6 +355,17 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
 
 EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name);
 
+/**
+*
+*  refresh cache path
+*
+*
+**/
+EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path);
+
+EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path);
+
+EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path); 
 
 /**
 *

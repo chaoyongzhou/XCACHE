@@ -259,7 +259,7 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
      
         dbg_log(SEC_0112_CSRV, 1)(LOGSTDOUT, "csrv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
-        csocket_cnode = csocket_cnode_new();/*here do not know the remote client srv port*/
+        csocket_cnode = csocket_cnode_new(LOC_CSRV_0003);/*here do not know the remote client srv port*/
         if(NULL_PTR == csocket_cnode)
         {
             dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_accept_once:failed to alloc csocket cnode for sockfd %d, hence close it\n", client_conn_sockfd);
@@ -445,7 +445,7 @@ EC_BOOL csrv_select(CSRV *csrv, int *ret)
 
     max_sockfd = 0;
 
-    fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSRV_0003);
+    fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSRV_0004);
     if(NULL_PTR == fd_cset)
     {
         dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_select: malloc FD_CSET with size %d failed\n", sizeof(FD_CSET));
@@ -456,11 +456,11 @@ EC_BOOL csrv_select(CSRV *csrv, int *ret)
     csocket_fd_set(CSRV_SOCKFD(csrv), fd_cset, &max_sockfd);
     if(EC_FALSE == csocket_select(max_sockfd + 1, fd_cset, NULL_PTR, NULL_PTR, &tv, ret))
     {
-        safe_free(fd_cset, LOC_CSRV_0004);
+        safe_free(fd_cset, LOC_CSRV_0005);
         return (EC_FALSE);
     }
  
-    safe_free(fd_cset, LOC_CSRV_0005);
+    safe_free(fd_cset, LOC_CSRV_0006);
     return (EC_TRUE);
 }
 

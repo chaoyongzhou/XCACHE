@@ -1906,6 +1906,109 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
     return (EC_TRUE);
 }
 
+EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path)
+{
+    //CTDNS_MD         *ctdns_md;
+
+    TASK_MGR         *task_mgr;
+
+    CSTRING          *edge_service_name;
+    
+    CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
+    CLIST_DATA       *clist_data;
+        
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_refresh_cache_notify: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        ctdns_print_module_status(ctdns_md_id, LOGSTDOUT);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    ctdnssv_node_mgr = ctdnssv_node_mgr_new();
+    if(NULL_PTR == ctdnssv_node_mgr)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
+                                              "new ctdnssv_node_mgr failed\n");    
+        return (EC_FALSE);
+    }
+
+    edge_service_name = ctdns_gen_edge_service_name(service_name);
+    if(NULL_PTR == edge_service_name)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
+                                              "gen edge service name failed\n");    
+        ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+        return (EC_FALSE);
+    }
+  
+    
+    if(EC_FALSE == ctdns_finger_service(ctdns_md_id, 
+                                        edge_service_name, 
+                                        (UINT32)(~(UINT32)0), 
+                                        ctdnssv_node_mgr))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
+                                              "finger service '%s' failed\n",
+                                              (char *)cstring_get_str(edge_service_name));    
+        cstring_free(edge_service_name);
+        ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+        return (EC_FALSE);
+    }
+
+    if(EC_TRUE == ctdnssv_node_mgr_is_empty(ctdnssv_node_mgr))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
+                                              "no edge node for service '%s'\n",
+                                              (char *)cstring_get_str(edge_service_name));    
+        cstring_free(edge_service_name);
+        ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+        return (EC_FALSE);
+    }
+    cstring_free(edge_service_name);
+
+    /*try one by one*/
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
+    CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
+    {
+        CTDNSSV_NODE        *ctdnssv_node;
+        MOD_NODE             recv_mod_node;
+
+        ctdnssv_node = CLIST_DATA_DATA(clist_data);
+
+        MOD_NODE_TCID(&recv_mod_node) = CTDNSSV_NODE_TCID(ctdnssv_node);
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one tdns module*/
+
+        if(do_log(SEC_0026_CTDNS, 9))
+        {
+            dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_refresh_cache_notify: "
+                                                  "notify edge node '%s' that "
+                                                  "network %ld, tcid '%s' refresh path '%s'\n",
+                                                  c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
+                                                  network,
+                                                  c_word_to_ipv4(tcid),
+                                                  (char *)cstring_get_str(path)); 
+        }
+        
+        task_p2p_inc(task_mgr, 
+                    ctdns_md_id, 
+                    &recv_mod_node,
+                    NULL_PTR, FI_ctdns_refresh_cache, CMPI_ERROR_MODI, network, tcid, service_name, path);
+    }
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);  
+    
+    task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+                     
+    return (EC_TRUE);
+}
+
 /**
 *
 *  ping tcid and record the elapsed msec
@@ -2293,6 +2396,153 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
                                           (char *)cstring_get_str(edge_service_name),
                                           c_word_to_ipv4(tcid));    
     cstring_free(edge_service_name);
+    return (EC_TRUE);
+}
+
+/**
+*
+*  refresh local cache
+*
+**/
+EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
+{
+    CTDNS_MD          *ctdns_md;
+
+    CHTTP_REQ         chttp_req;
+    CHTTP_RSP         chttp_rsp;
+    CSTRING           body_cstr;
+   
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_refresh_local_cache: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        ctdns_print_module_status(ctdns_md_id, LOGSTDOUT);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+    
+    chttp_req_init(&chttp_req);
+    chttp_rsp_init(&chttp_rsp);
+    
+    chttp_req_set_ipaddr(&chttp_req, (const char *)"127.0.0.1");
+    chttp_req_set_port(&chttp_req, (const char *)"80");    
+
+    chttp_req_set_method(&chttp_req, (const char *)"GET");
+    chttp_req_set_uri(&chttp_req, (const char *)"www.refresh.com");
+
+    chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)"www.refresh.com");
+    chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (const char *)"keep-alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (const char *)"0");
+
+    cstring_init(&body_cstr, NULL_PTR);
+    cstring_format(&body_cstr, "[\"%s\"]", cstring_get_str(path));
+    chttp_req_set_body(&chttp_req, (const uint8_t *)cstring_get_str(&body_cstr), (uint32_t)cstring_get_len(&body_cstr));
+    cstring_clean(&body_cstr);
+
+    if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_local_cache: http request failed\n");
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_local_cache: invalid rsp status %u\n",
+                        CHTTP_RSP_STATUS(&chttp_rsp));
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    chttp_req_clean(&chttp_req);
+    chttp_rsp_clean(&chttp_rsp);
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_refresh_local_cache: refresh '%s' done\n",
+                    (const char *)cstring_get_str(path));    
+    
+    return (EC_TRUE);
+}
+
+/**
+*
+*  refresh cache path
+*
+*
+**/
+EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path)
+{
+    //CTDNS_MD        *ctdns_md;
+    
+    TASK_BRD        *task_brd;
+   
+#if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
+    if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:ctdns_refresh_cache: ctdns module #0x%lx not started.\n",
+                ctdns_md_id);
+        dbg_exit(MD_CTDNS, ctdns_md_id);
+    }
+#endif/*CTDNS_DEBUG_SWITCH*/
+
+    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+
+    task_brd = task_brd_default_get();
+
+    if(CMPI_TOP_NETWORK == network)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
+                                              "network level should never be top\n");    
+        return (EC_FALSE);
+    }
+    
+    if(TASK_BRD_NETWORK_LEVEL(task_brd) > network)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
+                                              "cur network level %ld >= reporter network %ld\n",
+                                              TASK_BRD_NETWORK_LEVEL(task_brd),
+                                              network);    
+        return (EC_FALSE);
+    }
+
+    if(TASK_BRD_NETWORK_LEVEL(task_brd) < network)
+    {
+        return ctdns_refresh_cache_notify(ctdns_md_id, network, tcid, service_name, path);
+    }    
+
+    /*now TASK_BRD_NETWORK_LEVEL(task_brd) == network*/  
+    if(CMPI_ANY_TCID != tcid && CMPI_LOCAL_TCID != tcid)
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
+                                              "local tcid '%s' != des tcid '%s'\n",
+                                              c_word_to_ipv4(CMPI_LOCAL_TCID),
+                                              c_word_to_ipv4(tcid));    
+        return (EC_FALSE);
+    }
+    
+    /*refresh local cache*/
+
+    if(EC_FALSE == ctdns_refresh_local_cache(ctdns_md_id, path))
+    {
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
+                                              "refresh '%s' failed\n",
+                                              (char *)cstring_get_str(path));
+        return (EC_FALSE);
+    }       
+
+    dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_refresh_cache: "
+                                          "refresh '%s' done\n",
+                                          (char *)cstring_get_str(path));        
+
     return (EC_TRUE);
 }
 

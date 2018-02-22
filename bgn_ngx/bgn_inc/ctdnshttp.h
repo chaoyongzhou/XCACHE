@@ -32,8 +32,8 @@ extern "C"{
 #define CTDNSHTTP_REST_API_NAME            "/tdns"
 
 #define CTDNSHTTP_HOST_DEFAULT             "y.pooapp.net"
-#define CTDNSHTTP_PORT_DEFAULT             "2100"
-#define CTDNSBGN_PORT_DEFAULT              "2000"
+#define CTDNSBGN_PORT_DEFAULT              "788"
+#define CTDNSHTTP_PORT_DEFAULT             "789"
 #define CTDNSHTTP_SERVER_DEFAULT           CTDNSHTTP_HOST_DEFAULT":"CTDNSHTTP_PORT_DEFAULT
 
 #define CTDNSHTTP_NODES_SERVICE_NAME       "p2p.nodes" /*on T-DNS server*/
@@ -127,6 +127,12 @@ EC_BOOL ctdnshttp_commit_edge_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL ctdnshttp_commit_edge_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL ctdnshttp_is_http_get_refresh(const CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_refresh_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_refresh_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_refresh_get_response(CHTTP_NODE *chttp_node);
 
 #endif /*_CTDNSHTTP_H*/
 

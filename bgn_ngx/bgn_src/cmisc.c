@@ -4647,7 +4647,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
     bzero(&hints, sizeof(hints));
-    hints.ai_family   = AF_UNSPEC;
+    hints.ai_family   = AF_INET/*AF_UNSPEC*/;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
@@ -4657,8 +4657,18 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
     ret = getaddrinfo(host_name, NULL_PTR, &hints, &answer);
     if(0 != ret)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: resolve host '%s' failed, err: %s\n", 
-                        host_name, gai_strerror(ret));
+        if(EAI_SYSTEM == ret)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
+                                                  "resolve host '%s' failed, errno %d, errstr %s\n", 
+                                                  host_name, errno, strerror(errno));
+        }
+        else
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
+                                                  "resolve host '%s' failed, err: %s\n", 
+                                                  host_name, gai_strerror(ret));
+        }
         return (EC_FALSE);
     }
 

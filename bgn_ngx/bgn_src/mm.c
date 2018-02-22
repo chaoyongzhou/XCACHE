@@ -1873,6 +1873,58 @@ UINT32 print_static_mem_diag_info_of_type(LOG *log, const UINT32 type)
     return 0;
 }
 
+UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*show)(LOG *, void *))
+{
+    MM_MAN *pMan;
+    MM_NODE *pNode;
+    MM_NODE_BLOCK *pNodeBlock;
+    UINT32 node_num;
+    UINT32 node_idx;
+
+    /* if no static memory is allocated before, then return success */
+    if ( EC_FALSE == g_mem_init_flag )
+    {
+        return ( 0 );
+    }
+
+    if(type >= MM_END)
+    {
+        sys_log(log, "error:print_static_mem_diag_detail_of_type: invalid type %ld\n", type);
+        return ((UINT32)-1);
+    }
+
+    /* do this manager */
+    pMan = &(g_mem_manager[ type ]);
+    //MAN_LOCK(pMan, LOC_MM_0249);
+
+    //dbg_log(SEC_0066_MM, 3)(LOGSTDOUT, "print_static_mem_diag_info: type = %ld\n", type);
+    //man_debug("print_static_mem_diag_info: ", pMan);
+
+    MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
+    {
+        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] pNodeBlock = %lx\n", pNodeBlock);
+        /* do this node block */
+        node_num = pNodeBlock->nodenum;
+        for ( node_idx = 0; node_idx < node_num; node_idx ++ )
+        {
+            /* do this node */
+            pNode = &( pNodeBlock->pnodes[ node_idx ] );
+
+            if ( MM_NODE_USED == pNode->usedflag)
+            {
+                sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %lx\n",
+                    type, pMan->name,
+                    MM_LOC_FILE_NAME(pNode->location),
+                    MM_LOC_LINE_NO(pNode->location),
+                    pNode->pmem + sizeof(MM_AUX));
+                show(log, (void *)(pNode->pmem + sizeof(MM_AUX)));     
+            }
+        }
+    }
+
+    return 0;
+}
+
 UINT32 print_static_mem_stat_info(LOG *log)
 {
     UINT32  type;
@@ -2043,7 +2095,7 @@ UINT32 mm_man_occupy_node_init(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 
 UINT32 mm_man_occupy_node_free(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 {
-    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0249);
+    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0250);
     return (0);
 }
 
@@ -2116,7 +2168,7 @@ UINT32 mm_man_load_node_init(MM_MAN_LOAD_NODE *mm_man_load_node)
 
 UINT32 mm_man_load_node_free(MM_MAN_LOAD_NODE *mm_man_load_node)
 {
-    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0250);
+    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0251);
     return (0);
 }
 
