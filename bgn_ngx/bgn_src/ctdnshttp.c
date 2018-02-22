@@ -3245,41 +3245,54 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
-    }    
+    }
+    des_network = c_str_to_word(des_network_str);
 
     des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
-    if(NULL_PTR == des_tcid_str)
+    if(NULL_PTR != des_tcid_str)
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: no des_tcid in header\n");
+        if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: invalid des_tcid in header\n");
 
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: no des_tcid in header");
-                         
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: invalid des_tcid in header");
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);
+            return (EC_TRUE);        
+        }
+        des_tcid    = c_ipv4_to_word(des_tcid_str); 
     }
-
-    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
-    if(NULL_PTR == on_tcid_str)
+    else
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: no on_tcid in header\n");
+        des_tcid = CMPI_ANY_TCID;
+    }
+    
+    on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
+    if(NULL_PTR != on_tcid_str)
+    {
+        if(EC_FALSE == c_ipv4_is_ok(on_tcid_str))
+        {
+            dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: invalid on_tcid in header\n");
 
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: no on_tcid in header");
-                         
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: invalid on_tcid in header");
+                             
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);
+            return (EC_TRUE);
+        }
+        on_tcid = c_ipv4_to_word(on_tcid_str); 
+    }
+    else
+    {
+        on_tcid = CMPI_LOCAL_TCID;
     }
     
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-
-    des_network = c_str_to_word(des_network_str);
-    on_tcid     = c_ipv4_to_word(on_tcid_str); 
-    des_tcid    = c_ipv4_to_word(des_tcid_str); 
     
     /*refresh cache*/
     if(1)
@@ -3300,8 +3313,8 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: "
-                                                     "refresh service '%s', path '%s' to '%s' on tcid '%s' failed\n", 
-                                                     service_str, path_str, des_tcid_str, on_tcid_str);
+                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed\n", 
+                                                      service_str, path_str, des_tcid_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
@@ -3316,8 +3329,8 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     }
    
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_refresh_get_request: "
-                                             "refresh service '%s', file '%s' to '%s' on tcid '%s' done\n", 
-                                             service_str, path_str, des_tcid_str, on_tcid_str);
+                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done\n", 
+                                              service_str, path_str, des_tcid_str, on_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
