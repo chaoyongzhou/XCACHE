@@ -2411,6 +2411,7 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     CHTTP_REQ         chttp_req;
     CHTTP_RSP         chttp_rsp;
     CSTRING           body_cstr;
+    UINT32            body_len;
    
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
@@ -2432,17 +2433,18 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     chttp_req_set_port(&chttp_req, (const char *)"80");    
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
-    chttp_req_set_uri(&chttp_req, (const char *)"www.refresh.com");
-
-    chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)"www.refresh.com");
-    chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
-    chttp_req_add_header(&chttp_req, (const char *)"Connection", (const char *)"keep-alive");
-    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (const char *)"0");
+    chttp_req_set_uri(&chttp_req, (const char *)"/");
 
     cstring_init(&body_cstr, NULL_PTR);
     cstring_format(&body_cstr, "[\"%s\"]", cstring_get_str(path));
-    chttp_req_set_body(&chttp_req, (const uint8_t *)cstring_get_str(&body_cstr), (uint32_t)cstring_get_len(&body_cstr));
+    body_len = cstring_get_len(&body_cstr);
+    chttp_req_set_body(&chttp_req, (const uint8_t *)cstring_get_str(&body_cstr), (uint32_t)body_len);
     cstring_clean(&body_cstr);
+    
+    chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)"www.refresh.com");
+    chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (const char *)"keep-alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", c_word_to_str(body_len));
 
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
