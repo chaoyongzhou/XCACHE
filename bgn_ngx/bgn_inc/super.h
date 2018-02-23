@@ -503,7 +503,7 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
 * try to connect
 *
 **/
-EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid);
+EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 conn_num);
 
 /**
 *

@@ -165,6 +165,7 @@ typedef struct _CSOCKET_CNODE
     int                 sockfd;
     uint32_t            type:16;
     uint32_t            unix_domain:1; /*unix domain socket*/
+    uint32_t            is_used:1;
     uint32_t            writing:1;
     uint32_t            reading:1;
     uint32_t            reusing:1;/*re-use*/
@@ -172,7 +173,7 @@ typedef struct _CSOCKET_CNODE
     uint32_t            pending:1;/*wait resume*/
     uint32_t            looping:1;/*timeout looping*/ 
     uint32_t            nonblock:1;
-    uint32_t            rsvd   :8;
+    uint32_t            rsvd   :7;
 
     UINT32              client_ipaddr;
     UINT32              client_port;
@@ -221,6 +222,7 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)           ((csocket_cnode)->client_ipaddr)
 #define CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)             ((csocket_cnode)->client_port)
 
+#define CSOCKET_CNODE_IS_USED(csocket_cnode)                 ((csocket_cnode)->is_used)
 #define CSOCKET_CNODE_WRITING(csocket_cnode)                 ((csocket_cnode)->writing)
 #define CSOCKET_CNODE_READING(csocket_cnode)                 ((csocket_cnode)->reading)
 #define CSOCKET_CNODE_REUSING(csocket_cnode)                 ((csocket_cnode)->reusing)

@@ -869,6 +869,7 @@ EC_BOOL cepoll_set_event(CEPOLL *cepoll, const int sockfd, const uint32_t event,
     if(0 > sockfd || CEPOLL_MAX_FD_NUM <= sockfd)
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_set_event:invalid sockfd %d\n", sockfd);
+        c_backtrace_dump(LOGSTDOUT);
         return (EC_FALSE);
     }
 

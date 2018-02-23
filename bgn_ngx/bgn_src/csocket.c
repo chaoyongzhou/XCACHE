@@ -190,6 +190,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
 
     CSOCKET_CNODE_TYPE(csocket_cnode )              = CSOCKET_TYPE_ERR;
     CSOCKET_CNODE_UNIX(csocket_cnode )              = BIT_FALSE;
+    CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE; /*default is not used*/
     CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
@@ -257,10 +258,20 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_TCID(csocket_cnode   )            = CMPI_ERROR_TCID;
     CSOCKET_CNODE_COMM(csocket_cnode   )            = CMPI_ERROR_COMM;
     CSOCKET_CNODE_SIZE(csocket_cnode   )            = 0              ;
-    CSOCKET_CNODE_SOCKFD(csocket_cnode )            = CMPI_ERROR_SOCKFD;
 
+    if(0 < CSOCKET_CNODE_SOCKFD(csocket_cnode ))
+    {
+        csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
+    }
+    else
+    {
+        CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
+    }
+    
     CSOCKET_CNODE_TYPE(csocket_cnode )              = CSOCKET_TYPE_ERR;
     CSOCKET_CNODE_UNIX(csocket_cnode )              = BIT_FALSE;
+    CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
     CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
@@ -308,6 +319,8 @@ CSOCKET_CNODE * csocket_cnode_new(const UINT32 location)
 
     csocket_cnode_init(csocket_cnode);
 
+    CSOCKET_CNODE_IS_USED(csocket_cnode) = BIT_TRUE; /*set used*/
+    
     CSOCKET_CNODE_SET_CONNECTED(csocket_cnode);
 
     return (csocket_cnode);
@@ -317,7 +330,10 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
 {
     if(NULL_PTR != csocket_cnode)
     {
+        ASSERT(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode));
+        
         csocket_cnode_clean(csocket_cnode);
+        
         free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0001);
     }
     return (EC_TRUE);
@@ -542,6 +558,8 @@ EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
         cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
     }
     csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_SOCKFD(csocket_cnode) = CMPI_ERROR_SOCKFD;
+    
     csocket_cnode_free(csocket_cnode);
     return (EC_TRUE);
 }

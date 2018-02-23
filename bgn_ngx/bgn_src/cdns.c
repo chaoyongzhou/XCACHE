@@ -508,7 +508,7 @@ EC_BOOL cdns_node_create(CDNS_NODE *cdns_node, const CDNS_REQ * cdns_req)
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_node_create:send req on socket %d to server %s:%ld failed\n",
                         sockfd, c_word_to_ipv4(ipaddr), port);
 
-        csocket_cnode_close(csocket_cnode);
+        csocket_cnode_free(csocket_cnode);
         return (EC_FALSE);
     }
 

@@ -2028,9 +2028,9 @@ FUNC_ADDR_NODE g_super_func_addr_list[ ] = {
 /*func name       */     "super_connect",
 /*func index      */     FI_super_connect,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     2,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
 {

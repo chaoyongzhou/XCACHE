@@ -152,6 +152,7 @@ EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag)
             dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_srv_accept_once: server %s:%ld:%d accept new client %s:%d failed\n",
                             TASKS_CFG_SRVIPADDR_STR(tasks_cfg), TASKS_CFG_SRVPORT(tasks_cfg), TASKS_CFG_SRVSOCKFD(tasks_cfg),
                             c_word_to_ipv4(client_ipaddr), client_conn_sockfd);        
+
             csocket_cnode_free(csocket_cnode);
             (*continue_flag) = ret;
             return (EC_TRUE);
@@ -1637,8 +1638,10 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
         
         tasks_worker_callback_when_add(tasks_worker, tasks_node);
 
-        tasks_node_set_epoll(tasks_node, csocket_cnode);
-
+        if(0 < CSOCKET_CNODE_SOCKFD(csocket_cnode))
+        {
+            tasks_node_set_epoll(tasks_node, csocket_cnode);
+        }
         return (EC_TRUE);
     }
 
@@ -1674,8 +1677,10 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
 
     tasks_worker_callback_when_add(tasks_worker, tasks_node);
 
-    tasks_node_set_epoll(tasks_node, csocket_cnode);
-
+    if(0 < CSOCKET_CNODE_SOCKFD(csocket_cnode))
+    {
+        tasks_node_set_epoll(tasks_node, csocket_cnode);
+    }
     return (EC_TRUE);
 }
 
@@ -1936,7 +1941,7 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
             task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                              &recv_mod_node, 
                              NULL_PTR, 
-                             FI_super_connect, CMPI_ERROR_MODI, des_tcid);
+                             FI_super_connect, CMPI_ERROR_MODI, des_tcid, (UINT32)1/*CSOCKET_CNODE_NUM*/);
 
             return (EC_AGAIN);
         }

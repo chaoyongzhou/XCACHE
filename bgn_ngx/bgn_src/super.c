@@ -3035,7 +3035,7 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
 * try to connect
 *
 **/
-EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid)
+EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 conn_num)
 {
     TASK_BRD  *task_brd;
 
@@ -3077,7 +3077,7 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid)
     dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n", 
                         c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);    
 
-    if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, (UINT32)CSOCKET_CNODE_NUM))
+    if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, conn_num))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: register to (tcid '%s', ip '%s', port %ld) failed\n", 
                             c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
