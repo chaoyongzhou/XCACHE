@@ -377,8 +377,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "tdns get"     , "tdns get service <service> max nodes <num> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns set"     , "tdns set tcid <tcid> ip <ip> port <port> [service <service>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns delete"  , "tdns delete tcid <tcid> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "tdns online"  , "tdns online service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "tdns offline" , "tdns offline service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "tdns online"  , "tdns online service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "tdns offline" , "tdns offline service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "tdns refresh" , "tdns refresh path <cache path> service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns search"  , "tdns search tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count tcid num on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "tdns count"   , "tdns count service <service > node num on tcid <tcid> at <console|log>");
@@ -845,6 +846,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_delete           , "tdns delete tcid %t on tcid %t at %s", tcid, tcid, where);
     //api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_online           , "tdns online service %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
     //api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_offline          , "tdns offline service %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_refresh_cache    , "tdns refresh path %s service %s network %n tcid %t on tcid %t at %s", where, where, rank, tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_npp         , "tdns show npp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_show_svp         , "tdns show svp on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_count_tcid_num   , "tdns count tcid num on tcid %t at %s", tcid, where);
@@ -23862,6 +23864,62 @@ EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n%s", c_word_to_ipv4(ctdnsnp_tcid),CMPI_FWD_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
         log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ctdns_refresh_cache(CMD_PARA_VEC * param)
+{
+    CSTRING *cache_path;
+    CSTRING *service;
+    UINT32   network;
+    UINT32   tdns_tcid;
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &cache_path);
+    api_cmd_para_vec_get_cstring(param , 1, &service);
+    api_cmd_para_vec_get_uint32(param  , 2, &network);
+    api_cmd_para_vec_get_tcid(param    , 3, &tdns_tcid);
+    api_cmd_para_vec_get_tcid(param    , 4, &tcid);
+    api_cmd_para_vec_get_cstring(param , 5, &where);
+
+    /*tdns refresh path <cache path> service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
+    /*tdns refresh path %s service %s network %n tcid %t on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_refresh_cache: tdns refresh path %s service %s network %s tcid %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(cache_path),
+                        (char *)cstring_get_str(service),
+                        network,
+                        c_word_to_ipv4(tdns_tcid),
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;
+
+    ret = EC_FALSE;
+ 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_ctdns_refresh_cache, CMPI_ERROR_MODI, network, tdns_tcid, service, cache_path);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] refresh %s\n", c_word_to_ipv4(tdns_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] refresh %s\n", c_word_to_ipv4(tdns_tcid));
     }
 
     return (EC_TRUE);

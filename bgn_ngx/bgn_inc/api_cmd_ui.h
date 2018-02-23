@@ -510,6 +510,7 @@ EC_BOOL api_cmd_ui_ctdns_online(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_offline(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ctdns_refresh_cache(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cdetect_show_orig_nodes(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param);
