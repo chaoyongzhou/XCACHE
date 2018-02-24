@@ -201,6 +201,9 @@ typedef struct _CSOCKET_CNODE
         }ext;
     }u;
 
+    void               *recving_task_node;/*be incoming data*/
+    void               *sending_task_node;/*be sending data*/
+
     CCALLBACK_LIST      recv_callback_list;    /*after data recv complete*/
     CCALLBACK_LIST      send_callback_list;    /*after data sent complete*/
     CCALLBACK_LIST      complete_callback_list;/*after procedure complete*/
@@ -246,6 +249,9 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_PKT_POS(csocket_cnode)                 ((csocket_cnode)->u.pkt.pkt_pos)
 #define CSOCKET_CNODE_PTR(csocket_cnode)                     ((csocket_cnode)->u.ext.ptr)
 #define CSOCKET_CNODE_MODI(csocket_cnode)                    ((csocket_cnode)->u.ext.modi)
+
+#define CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode)       ((csocket_cnode)->recving_task_node)
+#define CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode)       ((csocket_cnode)->sending_task_node)
 
 #define CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode)      (&((csocket_cnode)->recv_callback_list))
 #define CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode)      (&((csocket_cnode)->send_callback_list))

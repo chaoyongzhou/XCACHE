@@ -75,8 +75,7 @@ typedef struct
 
     CVECTOR csocket_cnode_vec;/*csocket cnodes connecting to remote tasks node*/
 
-    CLIST   sending_list;   /*be sending data. item is TASK_NODE*//*FIFO*/
-    CLIST   recving_list;   /*be recving data. item is TASK_NODE*/
+    CLIST   sending_list;   /*be sending data. item is TASK_NODE, mount only*//*FIFO*/
 }TASKS_NODE;
 
 #define TASKS_NODE_SRVIPADDR(tasks_node)                    ((tasks_node)->srvipaddr)
@@ -91,7 +90,6 @@ typedef struct
 #define TASKS_NODE_LAST_SEND_TIME(tasks_node)               (((tasks_node)->last_send_time))
 #define TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)            (&((tasks_node)->csocket_cnode_vec))
 #define TASKS_NODE_SENDING_LIST(tasks_node)                 (&((tasks_node)->sending_list))
-#define TASKS_NODE_RECVING_LIST(tasks_node)                 (&((tasks_node)->recving_list))
 
 typedef EC_BOOL (*TASKS_WORKER_ADD_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when add a worker (csocket_cnode -> tasks_node)*/
 typedef EC_BOOL (*TASKS_WORKER_DEL_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when del a worker (csocket_cnode -> tasks_node)*/

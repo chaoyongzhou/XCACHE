@@ -223,16 +223,14 @@ EC_BOOL tasks_node_init(TASKS_NODE *tasks_node, const UINT32 srvipaddr, const UI
     cvector_init(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), 0, MM_CSOCKET_CNODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0003);
 
     clist_init(TASKS_NODE_SENDING_LIST(tasks_node), MM_TASK_NODE, LOC_TASKS_0004);
-    clist_init(TASKS_NODE_RECVING_LIST(tasks_node), MM_TASK_NODE, LOC_TASKS_0005);
     return (EC_TRUE);
 }
 
 EC_BOOL tasks_node_clean(TASKS_NODE *tasks_node)
 {
-    cvector_clean(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (CVECTOR_DATA_CLEANER)csocket_cnode_close_and_clean_event, LOC_TASKS_0006);
+    cvector_clean(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (CVECTOR_DATA_CLEANER)csocket_cnode_close_and_clean_event, LOC_TASKS_0005);
 
     clist_clean(TASKS_NODE_SENDING_LIST(tasks_node), NULL_PTR); /*it is temporary list. never free its data part*/
-    clist_clean(TASKS_NODE_RECVING_LIST(tasks_node), (CLIST_DATA_DATA_CLEANER)task_node_free);
 
     TASKS_NODE_SRVIPADDR(tasks_node) = CMPI_ERROR_IPADDR;
     TASKS_NODE_SRVPORT(tasks_node)   = CMPI_ERROR_SRVPORT;;
@@ -252,7 +250,7 @@ EC_BOOL tasks_node_free(TASKS_NODE *tasks_node)
     if(NULL_PTR != tasks_node)
     {
         tasks_node_clean(tasks_node);
-        free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0007);
+        free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0006);
     }
     return (EC_TRUE);
 }
@@ -283,7 +281,7 @@ EC_BOOL tasks_node_is_connected(const TASKS_NODE *tasks_node)
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0008);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0007);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -297,11 +295,11 @@ EC_BOOL tasks_node_is_connected(const TASKS_NODE *tasks_node)
         /*regard tasks_node is connected if exist any one connected csocket_cnode*/
         if(EC_TRUE == csocket_cnode_is_connected(csocket_cnode))
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0009);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0008);
             return (EC_TRUE);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0010);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0009);
     return (EC_FALSE);
 }
 
@@ -335,7 +333,7 @@ UINT32 tasks_node_count_load(const TASKS_NODE *tasks_node)
 
     load_sum = 0;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0011);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0010);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -348,7 +346,7 @@ UINT32 tasks_node_count_load(const TASKS_NODE *tasks_node)
 
         load_sum += CSOCKET_CNODE_LOAD(csocket_cnode);
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0012);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0011);
     return (load_sum);
 }
 
@@ -362,7 +360,7 @@ CSOCKET_CNODE *tasks_node_search_csocket_cnode_with_min_load(const TASKS_NODE *t
     min_csocket_cnode = NULL_PTR;
     min_load = ((UINT32)-1);
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0013);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0012);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -376,7 +374,7 @@ CSOCKET_CNODE *tasks_node_search_csocket_cnode_with_min_load(const TASKS_NODE *t
         /*shortcut*/
         if(0 == CSOCKET_CNODE_LOAD(csocket_cnode))
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0014);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0013);
             return (csocket_cnode);
         }
 
@@ -386,7 +384,7 @@ CSOCKET_CNODE *tasks_node_search_csocket_cnode_with_min_load(const TASKS_NODE *t
             min_load = CSOCKET_CNODE_LOAD(csocket_cnode);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0015);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0014);
     return (min_csocket_cnode);
 }
 
@@ -394,7 +392,7 @@ CSOCKET_CNODE *tasks_node_search_csocket_cnode_by_sockfd(const TASKS_NODE *tasks
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0016);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0015);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -407,11 +405,11 @@ CSOCKET_CNODE *tasks_node_search_csocket_cnode_by_sockfd(const TASKS_NODE *tasks
 
         if(sockfd == CSOCKET_CNODE_SOCKFD(csocket_cnode))
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0017);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0016);
             return (csocket_cnode);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0018);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0017);
     return (NULL_PTR);
 }
 
@@ -419,7 +417,7 @@ EC_BOOL tasks_node_is_empty(const TASKS_NODE *tasks_node)
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0019);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0018);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -427,11 +425,11 @@ EC_BOOL tasks_node_is_empty(const TASKS_NODE *tasks_node)
         csocket_cnode = (CSOCKET_CNODE *)cvector_get_no_lock(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), pos);
         if(NULL_PTR != csocket_cnode)
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0020);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0019);
             return (EC_FALSE);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0021);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0020);
     return (EC_TRUE);
 }
 
@@ -507,28 +505,25 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
 
     task_brd     = task_brd_default_get();
 
-    if(CSOCKET_CNODE_XCHG_TASKC_NODE == CSOCKET_CNODE_STATUS(csocket_cnode))
-    {
-        /*tasks_node is worker*/
-        save_to_list = TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE);
-    }
-    else
-    {
-        /*tasks_node is monitor*/
-        save_to_list = NULL_PTR;
-    }
+    ASSERT(CSOCKET_CNODE_XCHG_TASKC_NODE == CSOCKET_CNODE_STATUS(csocket_cnode));
+
+    /*tasks_node is worker*/
+    save_to_list = TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE);    
+    
     for(;;)
     {
         TASK_NODE  *task_node;
 
-        /*handle incoming tas_node*/
-        task_node = clist_back(TASKS_NODE_RECVING_LIST(tasks_node));
+        /*handle incoming task_node*/
+        task_node = CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode);
         if(NULL_PTR != task_node)
         {
             /*if fix cannot complete the task_node, CRBUFF has no data to handle => terminate*/
             if(EC_FALSE == csocket_cnode_fix_task_node(csocket_cnode, task_node))
             {
-                dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: fix task node %p not completed\n", task_node);
+                dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                                      "sockfd %d fix task node %p not completed\n", 
+                                                      CSOCKET_CNODE_SOCKFD(csocket_cnode), task_node);
                 /*terminate*/
                 break;
             }
@@ -537,18 +532,22 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
             dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: update last access time\n");
             tasks_node_update_time(tasks_node);
 
-            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: fix task node %p done\n", task_node);
+            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                                  "sockfd %d fix task node %p done [len %ld (0x%lx), save_to_list %p]\n", 
+                                                  CSOCKET_CNODE_SOCKFD(csocket_cnode), task_node,
+                                                  TASK_NODE_BUFF_LEN(task_node), TASK_NODE_BUFF_LEN(task_node),
+                                                  save_to_list);
 
             /*otherwise, remove it from INCOMING list and push it to INCOMED list*/
-            if(NULL_PTR != save_to_list)
-            {
-                clist_pop_back(TASKS_NODE_RECVING_LIST(tasks_node));
-                clist_push_back(save_to_list, (void *)task_node);
-            }
+            CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = NULL_PTR;
+            clist_push_back(save_to_list, (void *)task_node);
+            
             TASK_NODE_COMP(task_node) = TASK_WAS_RECV;
         }
 
         /*handle next task_node*/
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: before fetch, pkt pos = %ld\n",
+                            CSOCKET_CNODE_PKT_POS(csocket_cnode));
         task_node = csocket_fetch_task_node(csocket_cnode);
         if(NULL_PTR == task_node)
         {
@@ -563,23 +562,20 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
         if(TASK_NODE_BUFF_POS(task_node) == TASK_NODE_BUFF_LEN(task_node))
         {
             /*push complete task_node to INCOMED list*/
-            if(NULL_PTR != save_to_list)
-            {
-                dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: push task_node to incomed list\n");
-                clist_push_back(save_to_list, (void *)task_node);
-            }
-            else
-            {
-                dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: push task_node to incoming list\n");
-                clist_push_back(TASKS_NODE_RECVING_LIST(tasks_node), (void *)task_node);
-            }
+            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                                  "sockfd %d push task_node %p to incomed list\n",
+                                                  CSOCKET_CNODE_SOCKFD(csocket_cnode), task_node);
+            clist_push_back(save_to_list, (void *)task_node);
             TASK_NODE_COMP(task_node) = TASK_WAS_RECV;
         }
         else
         {
             /*push incomplete task_node to INCOMING list*/
-            clist_push_back(TASKS_NODE_RECVING_LIST(tasks_node), (void *)task_node);
-            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: push task_node to incoming list\n");
+            CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = (void *)task_node;
+            
+            dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                                  "sockfd %d push task_node %p to incoming list\n",
+                                                  CSOCKET_CNODE_SOCKFD(csocket_cnode), task_node);
             /*terminate this loop*/
             break;
         }    
@@ -589,16 +585,18 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     /*but tasks_node_irecv return EC_TRUE, thus need to return EC_FALSE to cepoll_handle*/
     if(EC_FALSE == csocket_is_connected(CSOCKET_CNODE_SOCKFD(csocket_cnode)))
     {
-        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: sockfd %d RD was broken\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                              "sockfd %d RD was broken\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode));
                          
         return (EC_FALSE); 
     }
 
     if(EC_FALSE == CSOCKET_CNODE_IS_CONNECTED(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: sockfd %d RD was set to disconnected\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_irecv: "
+                                              "sockfd %d RD was set to disconnected\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode));
                          
         return (EC_FALSE); 
     }
@@ -609,8 +607,13 @@ EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
 EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
 {   
     TASK_NODE *task_node;
-    
-    task_node = clist_front(TASKS_NODE_SENDING_LIST(tasks_node));/*FIFO*/
+
+    task_node = CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode);
+    if(NULL_PTR == task_node)
+    {
+        task_node = clist_pop_front(TASKS_NODE_SENDING_LIST(tasks_node));/*FIFO*/
+        CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = task_node;
+    }
     
     if(NULL_PTR == task_node)
     {   
@@ -638,7 +641,8 @@ EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
         {
             dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_isend: sockfd %d WR events trigger disconnected\n",
                                 CSOCKET_CNODE_SOCKFD(csocket_cnode));
-     
+
+            CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR; /*umount*/
             CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode);            
             return (EC_FALSE);
         }
@@ -648,11 +652,11 @@ EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
         tasks_node_update_time(tasks_node);             
     }
 
-    /*when data sending incomplete, end this sending loop*/
+    /*when data sending completed, end this sending loop*/
     if( TASK_NODE_BUFF_POS(task_node) == TASK_NODE_BUFF_LEN(task_node))
     {   
         TASK_NODE_COMP(task_node) = TASK_WAS_SENT;
-        clist_pop_front(TASKS_NODE_SENDING_LIST(tasks_node)); /*pop but never free it*/
+        CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR;
     }
  
     if(EC_FALSE == csocket_is_connected(CSOCKET_CNODE_SOCKFD(csocket_cnode)))/*Jan 13, 2017*/
@@ -683,8 +687,9 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     tasks_worker    = TASKS_CFG_WORKER(tasks_cfg); 
     broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
 
-    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_close: close sockfd %d, vec size %ld => \n",
+    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_close: close sockfd %d on tcid %s, vec size %ld => \n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                    TASKS_NODE_TCID_STR(tasks_node),
                     cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node))); 
                     
     /*remove csocket_cnode from work if existing*/
@@ -915,7 +920,7 @@ void tasks_node_print(LOG *log, const TASKS_NODE *tasks_node)
     UINT32 pos;
 
     csocket_cnode_vec = (CVECTOR *)TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node);
-    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0022);
+    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0021);
     for(pos = 0; pos < cvector_size(csocket_cnode_vec); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -937,7 +942,7 @@ void tasks_node_print(LOG *log, const TASKS_NODE *tasks_node)
                     CSOCKET_CNODE_SOCKFD(csocket_cnode)
                 );
     }
-    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0023);
+    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0022);
     return ;
 }
 
@@ -947,7 +952,7 @@ void tasks_node_print_csocket_cnode_list(LOG *log, const TASKS_NODE *tasks_node,
     UINT32 pos;
 
     csocket_cnode_vec = (CVECTOR *)TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node);
-    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0024);
+    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0023);
     for(pos = 0; pos < cvector_size(csocket_cnode_vec); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -969,7 +974,7 @@ void tasks_node_print_csocket_cnode_list(LOG *log, const TASKS_NODE *tasks_node,
                     CSOCKET_CNODE_SOCKFD(csocket_cnode)
                 );
     }
-    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0025);
+    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0024);
     return ;
 }
 
@@ -978,7 +983,7 @@ void tasks_node_print_in_plain(LOG *log, const TASKS_NODE *tasks_node)
     UINT32 pos;
     UINT32 csocket_cnode_num;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0026);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0025);
     csocket_cnode_num = cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node));
     sys_print(log, "srvipaddr %s, srvport %ld, tcid %s, comm %ld, size %ld, sockfd ",
                 TASKS_NODE_SRVIPADDR_STR(tasks_node),
@@ -1006,7 +1011,7 @@ void tasks_node_print_in_plain(LOG *log, const TASKS_NODE *tasks_node)
             sys_print(log, "%d:",CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0027);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0026);
     return ;
 }
 
@@ -1015,7 +1020,7 @@ void tasks_node_sprint(CSTRING *cstring, const TASKS_NODE *tasks_node)
     UINT32 pos;
     UINT32 csocket_cnode_num;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0028);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0027);
     csocket_cnode_num = cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node));
     cstring_format(cstring, "srvipaddr %s, srvport %ld, tcid %s, comm %ld, size %ld, sockfd ",
                 TASKS_NODE_SRVIPADDR_STR(tasks_node),
@@ -1043,7 +1048,7 @@ void tasks_node_sprint(CSTRING *cstring, const TASKS_NODE *tasks_node)
             cstring_format(cstring, "%d:",CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0029);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0028);
     return ;
 }
 
@@ -1280,9 +1285,9 @@ UINT32 tasks_worker_count(const TASKS_WORKER *tasks_worker, const UINT32 tcid, c
 {
     UINT32 count;
 
-    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0030);
+    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0029);
     count = tasks_worker_count_no_lock(tasks_worker, tcid, srv_ipaddr, srv_port);
-    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0031);
+    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0030);
 
     return (count);
 }
@@ -1343,7 +1348,7 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *tasks_w
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0032);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0031);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1356,11 +1361,11 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *tasks_w
 
         if(ipaddr == TASKS_NODE_SRVIPADDR(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0033);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0032);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0034);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0033);
     return (NULL_PTR);
 }
 
@@ -1372,7 +1377,7 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0035);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0034);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1388,11 +1393,11 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
 #endif
         if(tcid == TASKS_NODE_TCID(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0036);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0035);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0037);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0036);
     return (NULL_PTR);
 }
 
@@ -1403,7 +1408,7 @@ CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(con
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0038);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0037);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1420,14 +1425,14 @@ CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(con
 
             dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid: tasks_node %p matched tcid %s\n",
                                  tasks_node, c_word_to_ipv4(tasks_tcid));
-            //CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0039);
+            //CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0038);
 
             csocket_cnode = tasks_node_search_csocket_cnode_with_min_load(tasks_node);
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0040);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0039);
             return (csocket_cnode);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0041);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0040);
 
     dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid: no tasks_node matched tcid %s (vec size %ld)\n",
                          c_word_to_ipv4(tasks_tcid), cvector_size(tasks_nodes)); 
@@ -1444,7 +1449,7 @@ CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(con
 
     tasks_cfg   = TASKS_WORK_BASE_TASKS_CFG_ENTRY(tasks_worker);
 
-    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0042);
+    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0041);
     for(pos = 0; pos < cvector_size(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)); pos ++)
     {
         TASKR_CFG   *taskr_cfg;
@@ -1472,7 +1477,7 @@ CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(con
                                     c_word_to_ipv4(TASKR_CFG_NEXT_TCID(taskr_cfg))
                                     );
                 /*TODO: later we can find out all matched routes and csocket cnodes, and then filter the min load one*/
-                CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0043);
+                CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0042);
                 return (csocket_cnode);
             }
             dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid: %s & %s == %s & %s  ==> %s [unreachable]\n",
@@ -1489,7 +1494,7 @@ CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(con
                                 );
         }
     }
-    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0044);
+    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKS_0043);
 
     return (NULL_PTR);
 }
@@ -1522,7 +1527,7 @@ CSOCKET_CNODE *tasks_worker_search_csocket_cnode_by_tcid_sockfd(const TASKS_WORK
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker); 
     
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0045);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0044);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1537,12 +1542,12 @@ CSOCKET_CNODE *tasks_worker_search_csocket_cnode_by_tcid_sockfd(const TASKS_WORK
         {
             CSOCKET_CNODE *csocket_cnode;
             csocket_cnode = tasks_node_search_csocket_cnode_by_sockfd(tasks_node, sockfd);
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0046);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0045);
             return (csocket_cnode);
         }
     }
 
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0047);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0046);
     return (NULL_PTR);
 }
 
@@ -1691,7 +1696,7 @@ EC_BOOL tasks_worker_collect_tcid(const TASKS_WORKER *tasks_worker, CVECTOR *tci
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker); 
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0048);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0047);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1709,7 +1714,7 @@ EC_BOOL tasks_worker_collect_tcid(const TASKS_WORKER *tasks_worker, CVECTOR *tci
             cvector_push_no_lock(tcid_vec, (void *)tcid);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0049);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0048);
     return (EC_TRUE);
 }
 
@@ -1720,7 +1725,7 @@ EC_BOOL tasks_worker_collect_ipaddr(const TASKS_WORKER *tasks_worker, CVECTOR *i
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker); 
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0050);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0049);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1738,7 +1743,7 @@ EC_BOOL tasks_worker_collect_ipaddr(const TASKS_WORKER *tasks_worker, CVECTOR *i
             cvector_push_no_lock(ipaddr_vec, (void *)ipaddr);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0051);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0050);
     return (EC_TRUE);
 }
 
@@ -1786,7 +1791,7 @@ static EC_BOOL __tasks_worker_del_runner(TASKS_NODE *tasks_node, CCALLBACK_NODE 
 
 EC_BOOL tasks_worker_init(TASKS_WORKER *tasks_worker)
 {
-    cvector_init(TASKS_WORKER_NODES(tasks_worker), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0052);
+    cvector_init(TASKS_WORKER_NODES(tasks_worker), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0051);
 
     ccallback_list_init(TASKS_WORKER_ADD_CALLBACK_LIST(tasks_worker));
     ccallback_list_set_name(TASKS_WORKER_ADD_CALLBACK_LIST(tasks_worker), (const char *)"TASKS_WORKER_ADD_CALLBACK_LIST"); 
@@ -1816,7 +1821,7 @@ EC_BOOL tasks_worker_clean(TASKS_WORKER *tasks_worker)
     }
     ccallback_list_clean(TASKS_WORKER_DEL_CALLBACK_LIST(tasks_worker));
 
-    cvector_clean(TASKS_WORKER_NODES(tasks_worker), (CVECTOR_DATA_CLEANER)tasks_node_free, LOC_TASKS_0053);
+    cvector_clean(TASKS_WORKER_NODES(tasks_worker), (CVECTOR_DATA_CLEANER)tasks_node_free, LOC_TASKS_0052);
     
     return (EC_TRUE);
 }
@@ -1846,7 +1851,7 @@ void tasks_worker_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_WORKER
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
     
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0054);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0053);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1859,7 +1864,7 @@ void tasks_worker_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_WORKER
         }
         tasks_node_print_csocket_cnode_list(log, tasks_node, index);
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0055);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0054);
     return;
 }
 
@@ -1908,6 +1913,8 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
     tasks_node = tasks_worker_search_tasks_node_by_tcid(tasks_worker, des_tcid);
     if(NULL_PTR == tasks_node)
     {
+        TASKS_CFG *remote_tasks_cfg;
+        
         if(TASK_REQ_SENDAGN == TASK_NODE_STATUS(task_node))
         {
             /*do not trigger connecting to avoid task flooding*/
@@ -1928,7 +1935,29 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
                         TASK_NODE_SEND_TCID(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEQNO(task_node), TASK_NODE_SUB_SEQNO(task_node),
                         TASK_NODE_FUNC_ID(task_node)
                         );
-        
+
+        /*if tcid is registered in sys cfg*/
+        remote_tasks_cfg = task_brd_register_node_fetch(task_brd_default_get(), des_tcid);
+        if(NULL_PTR != remote_tasks_cfg)
+        {
+            MOD_NODE        recv_mod_node;
+            
+            MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
+            MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
+            MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+    
+            task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                             &recv_mod_node, 
+                             NULL_PTR, 
+                             FI_super_add_connection, CMPI_ERROR_MODI, des_tcid, 
+                             TASKS_CFG_SRVIPADDR(remote_tasks_cfg), TASKS_CFG_SRVPORT(remote_tasks_cfg), 
+                             (UINT32)CSOCKET_CNODE_NUM);
+
+            return (EC_AGAIN);
+        }
+
+        /*if supporting T-DNS, resolve tcid*/
         if(TDNS_RESOLVE_SWITCH == SWITCH_ON)
         {
             MOD_NODE        recv_mod_node;
@@ -2102,7 +2131,7 @@ EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker)
 
     task_brd = task_brd_default_get();
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0056);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0055);
     for(pos = 0; pos < cvector_size(tasks_nodes); /*pos ++*/)
     {
         TASKS_NODE *tasks_node;
@@ -2131,7 +2160,7 @@ EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker)
             pos ++;
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0057);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0056);
 
     return (EC_TRUE);
 }
@@ -2231,7 +2260,7 @@ TASKS_NODE *tasks_monitor_search_tasks_node_by_tcid(const TASKS_MONITOR *tasks_m
 
     tasks_nodes = TASKS_MONITOR_NODES(tasks_monitor);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0058);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0057);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -2247,11 +2276,11 @@ TASKS_NODE *tasks_monitor_search_tasks_node_by_tcid(const TASKS_MONITOR *tasks_m
 
         if(tcid == TASKS_NODE_TCID(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0059);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0058);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0060);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0059);
     return (NULL_PTR);
 }
 
@@ -2344,9 +2373,9 @@ UINT32 tasks_monitor_count(const TASKS_MONITOR *tasks_monitor, const UINT32 tcid
 {
     UINT32 count;
 
-    CVECTOR_LOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0061);
+    CVECTOR_LOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0060);
     count = tasks_monitor_count_no_lock(tasks_monitor, tcid, srv_ipaddr, srv_port);
-    CVECTOR_UNLOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0062);
+    CVECTOR_UNLOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0061);
 
     return (count);
 }
@@ -2387,7 +2416,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
         csocket_tcpi_stat_print(LOGSTDOUT, client_sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new(LOC_TASKS_0063);/*client save remote server ipaddr and srvport info*/
+    csocket_cnode = csocket_cnode_new(LOC_TASKS_0062);/*client save remote server ipaddr and srvport info*/
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_monitor_open:new csocket cnode failed\n");
@@ -2413,7 +2442,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
 
 EC_BOOL tasks_monitor_init(TASKS_MONITOR *tasks_monitor)
 {
-    cvector_init(TASKS_MONITOR_NODES(tasks_monitor), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0064);
+    cvector_init(TASKS_MONITOR_NODES(tasks_monitor), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0063);
 
     ccallback_list_init(TASKS_MONITOR_ADD_CALLBACK_LIST(tasks_monitor));
     ccallback_list_set_name(TASKS_MONITOR_ADD_CALLBACK_LIST(tasks_monitor), (const char *)"TASKS_MONITOR_ADD_CALLBACK_LIST");
@@ -2443,7 +2472,7 @@ EC_BOOL tasks_monitor_clean(TASKS_MONITOR *tasks_monitor)
     }
     ccallback_list_clean(TASKS_MONITOR_DEL_CALLBACK_LIST(tasks_monitor));
     
-    cvector_clean(TASKS_MONITOR_NODES(tasks_monitor), (CVECTOR_DATA_CLEANER)tasks_node_free, LOC_TASKS_0065);
+    cvector_clean(TASKS_MONITOR_NODES(tasks_monitor), (CVECTOR_DATA_CLEANER)tasks_node_free, LOC_TASKS_0064);
     return (EC_TRUE);
 }
 
@@ -2482,7 +2511,7 @@ static TASK_NODE *__tasks_handshake_encode()
     data_tag = 0;
     data_num = csocket_encode_actual_size() + xmod_node_encode_actual_size();
 
-    task_node = task_node_new(data_num, LOC_TASKS_0066);
+    task_node = task_node_new(data_num, LOC_TASKS_0065);
     if(NULL_PTR == task_node)
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:__tasks_handshake_encode: new task_node failed\n");
@@ -2564,7 +2593,8 @@ EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
 {
     TASK_NODE *task_node;
 
-    if(EC_TRUE == clist_is_empty(TASKS_NODE_SENDING_LIST(tasks_node)))
+    task_node = CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode);
+    if(NULL_PTR == task_node)
     {
         task_node = __tasks_handshake_encode();
         if(NULL_PTR == task_node)
@@ -2574,11 +2604,10 @@ EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
         }
 
         /*when sending on socket does not complete, add request to monitor list*/
-        clist_push_back(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node);
+        //clist_push_back(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node);
+        CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = (void *)task_node;
     }
-    
-    task_node = clist_front(TASKS_NODE_SENDING_LIST(tasks_node));
-    
+        
     if(TASK_NODE_BUFF_POS(task_node) != TASK_NODE_BUFF_LEN(task_node))
     {
         /*try to send the left data*/
@@ -2587,6 +2616,8 @@ EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
             dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_handshake_isend_on_csocket_cnode: sockfd %d was broken\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode));
      
+            CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR;
+            task_node_free(task_node); /*this is handshake task_node*/
             return (EC_FALSE);
         }
 
@@ -2594,6 +2625,9 @@ EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
         {
             dbg_log(SEC_0121_TASKS, 0)(LOGSTDERR, "error:tasks_handshake_isend_on_csocket_cnode: sockfd %d isend failed\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode));
+                    
+            CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR;
+            task_node_free(task_node); /*this is handshake task_node*/
             return (EC_FALSE);
         }     
 
@@ -2606,7 +2640,8 @@ EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
     {
         CSOCKET_CNODE_STATUS(csocket_cnode) |= CSOCKET_CNODE_SENT_TASKC_NODE;
 
-        clist_pop_front(TASKS_NODE_SENDING_LIST(tasks_node));
+        //clist_del(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node, NULL_PTR);
+        CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR;
         task_node_free(task_node); /*this is handshake task_node*/
     }
 
@@ -2621,7 +2656,7 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     /*handle incoming task_node*/
-    task_node = clist_pop_back(TASKS_NODE_RECVING_LIST(tasks_node));
+    task_node = CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode);
     if(NULL_PTR != task_node)
     {
         /*if fix cannot complete the task_node, CRBUFF has no data to handle, so terminate*/
@@ -2631,14 +2666,17 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
             {
                 dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_handshake_irecv_on_csocket_cnode: sockfd %d was broken\n",
                                     CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
+                                    
+                CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = NULL_PTR;
                 task_node_free(task_node);
                 return (EC_FALSE);
             }
 
             /*wait for next irecv*/
-            clist_push_back(TASKS_NODE_RECVING_LIST(tasks_node), (void *)task_node);
             return (EC_TRUE);
         }
+
+        CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = NULL_PTR;
 
         TASK_NODE_COMP(task_node) = TASK_WAS_RECV;
 
@@ -2691,12 +2729,13 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
             {
                 dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_handshake_irecv_on_csocket_cnode: sockfd %d was broken\n",
                                     CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
+                
                 task_node_free(task_node);
                 return (EC_FALSE);
             }
             
             /*incomplete task_node*/
-            clist_push_back(TASKS_NODE_RECVING_LIST(tasks_node), (void *)task_node);
+            CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = (void *)task_node;
             
             dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_handshake_irecv_on_csocket_cnode: pos %ld, len %ld => incoming\n",
                             TASK_NODE_BUFF_POS(task_node), TASK_NODE_BUFF_LEN(task_node));
@@ -2705,10 +2744,12 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
         }
     }
 
+    ASSERT(NULL_PTR == CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_handshake_irecv_on_csocket_cnode: sockfd %d was broken\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
+                            
         task_node_free(task_node);
         return (EC_FALSE);
     }
@@ -2718,7 +2759,7 @@ EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_C
     
     __tasks_handshake_decode(task_node, csocket_cnode);
     CSOCKET_CNODE_STATUS(csocket_cnode) |= CSOCKET_CNODE_RCVD_TASKC_NODE;
-    
+
     task_node_free(task_node);
  
     return (EC_TRUE);

@@ -213,6 +213,9 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
     CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
 
+    CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode)  = NULL_PTR;
+    CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode)  = NULL_PTR;
+
     ccallback_list_init(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode));
     ccallback_list_set_name(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_RECV_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
@@ -254,6 +257,9 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     ccallback_list_clean(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
     ccallback_list_clean(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode));
     ccallback_list_clean(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode));
+
+    ASSERT(NULL_PTR == CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
+    ASSERT(NULL_PTR == CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode));
     
     CSOCKET_CNODE_TCID(csocket_cnode   )            = CMPI_ERROR_TCID;
     CSOCKET_CNODE_COMM(csocket_cnode   )            = CMPI_ERROR_COMM;
@@ -3493,11 +3499,15 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         task_node = task_node_new(len, LOC_CSOCKET_0008);
         if(NULL_PTR == task_node)
         {
+            CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode); /*something wrong. Feb 24,2018*/
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: new task_node with %ld bytes failed\n", len);
             return (NULL_PTR);
         }
 
         TASK_NODE_TAG(task_node) = tag;
+
+        dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n", 
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode), len, tag, task_node);        
 
         /*move the probed buff to task_node*/
         BCOPY(out_buff, TASK_NODE_BUFF(task_node), out_size);

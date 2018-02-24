@@ -6962,6 +6962,44 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
     return (EC_TRUE);
 }
 
+TASKS_CFG *task_brd_register_node_fetch(TASK_BRD *task_brd, const UINT32 tcid)
+{
+    TASKS_CFG *remote_tasks_cfg;
+ 
+    remote_tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), tcid, CMPI_ANY_MASK, CMPI_ANY_MASK);
+    if(NULL_PTR == remote_tasks_cfg)
+    {
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "info:task_brd_register_node_fetch: not found tasks_cfg of node %s\n", c_word_to_ipv4(tcid));
+        return (NULL_PTR);
+    }
+
+    /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
+    if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
+    )
+    {
+        return (NULL_PTR);
+    }
+
+    if(CMPI_ERROR_IPADDR  == TASKS_CFG_SRVIPADDR(remote_tasks_cfg) 
+    || CMPI_ERROR_SRVPORT == TASKS_CFG_SRVPORT(remote_tasks_cfg))
+    {
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node_fetch: not register to remote tasks tcid %s: "
+                                             "maski %s maske %s [srvipaddr %s:srvport %ld]\n",
+                            TASKS_CFG_TCID_STR(remote_tasks_cfg),
+                            TASKS_CFG_MASKI_STR(remote_tasks_cfg),
+                            TASKS_CFG_MASKE_STR(remote_tasks_cfg),
+                            TASKS_CFG_SRVIPADDR_STR(remote_tasks_cfg),
+                            TASKS_CFG_SRVPORT(remote_tasks_cfg));
+        return (NULL_PTR);                         
+    }
+    
+    return (remote_tasks_cfg);
+}
+
 EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid)
 {
     TASKS_CFG *remote_tasks_cfg;
