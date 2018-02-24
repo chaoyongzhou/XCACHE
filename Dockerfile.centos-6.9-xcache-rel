@@ -18,20 +18,20 @@ RUN yum -y install initscripts
 RUN yum -y install crontabs
 
 # XCACHE installation
-RUN curl -svo /home/xcache-5.7.4.12-R.x86_64.rpm http://www.test.com/xcache-5.7.4.12-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/xcache-5.7.4.12-R.x86_64.rpm
+RUN curl -svo /home/xcache-5.7.5.0-R.x86_64.rpm http://www.test.com/xcache-5.7.5.0-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/xcache-5.7.5.0-R.x86_64.rpm
 
 # RFS installation
-RUN curl -svo /home/rfs-5.7.4.12-R.x86_64.rpm http://www.test.com/rfs-5.7.4.12-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/rfs-5.7.4.12-R.x86_64.rpm
+RUN curl -svo /home/rfs-5.7.5.0-R.x86_64.rpm http://www.test.com/rfs-5.7.5.0-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/rfs-5.7.5.0-R.x86_64.rpm
 
 # DETECT installation
-RUN curl -svo /home/detect-5.7.4.12-R.x86_64.rpm http://www.test.com/detect-5.7.4.12-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/detect-5.7.4.12-R.x86_64.rpm
+RUN curl -svo /home/detect-5.7.5.0-R.x86_64.rpm http://www.test.com/detect-5.7.5.0-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/detect-5.7.5.0-R.x86_64.rpm
 
 # P2P installation
-RUN curl -svo /home/p2p-2-5.7.4.12-R.x86_64.rpm http://www.test.com/p2p-2-5.7.4.12-R.x86_64.rpm -x 47.93.112.38:80
-RUN rpm -ivh /home/p2p-2-5.7.4.12-R.x86_64.rpm
+RUN curl -svo /home/p2p-2-5.7.5.0-R.x86_64.rpm http://www.test.com/p2p-2-5.7.5.0-R.x86_64.rpm -x 47.93.112.38:80
+RUN rpm -ivh /home/p2p-2-5.7.5.0-R.x86_64.rpm
 
 # Bash Script
 RUN curl -svo /home/xcache_run.sh http://www.test.com/xcache_run.sh -x 47.93.112.38:80
