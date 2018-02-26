@@ -75,6 +75,7 @@ typedef struct
     uint16_t  rsvd03;
     uint16_t  crfsmon_conhash_replicas      ; /* CRFSMON_CONHASH_REPLICAS */
     UINT32    crfsmon_conhash_switch        ; /* CRFSMON_CONHASH_SWITCH */
+    UINT32    crfsmon_hot_path_switch       ; /* CRFSMON_HOT_PATH_SWITCH */
 
     UINT32    chfs_memc_switch              ; /* CHFS_MEMC_SWITCH */
     uint8_t   rsvd04;
@@ -166,6 +167,7 @@ typedef struct
 #define CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM(cparacfg)                 ((cparacfg)->crfs_memc_cpgd_block_num)
 #define CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->crfsmon_conhash_switch)
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
+#define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
 
 #define CPARACFG_CHFS_MEMC_SWITCH(cparacfg)                         ((cparacfg)->chfs_memc_switch)
 #define CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)                       ((cparacfg)->chfs_memc_np_model)
@@ -209,6 +211,7 @@ typedef struct
 
 #define CPARACFG_CRFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CRFS_MEMC_SWITCH(cparacfg))) 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
+#define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
 
 #define CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CHFS_MEMC_SWITCH(cparacfg))) 
 #define CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)))
@@ -327,6 +330,7 @@ typedef struct
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
+#define CPARACFG_CRFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
 
 #define CPARACFG_CHFS_MEMC_SWITCH_DEF                            SWITCH_OFF
 #define CPARACFG_CHFS_MEMC_NP_MODEL_DEF                          CHFSNP_128M_MODEL
@@ -410,6 +414,7 @@ typedef struct
 #define    CRFS_MEMC_CPGD_BLOCK_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM)
 #define    CRFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_SWITCH)
 #define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
+#define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)
 
 #define    CHFS_MEMC_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_SWITCH)
 #define    CHFS_MEMC_NP_MODEL                            CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_NP_MODEL)

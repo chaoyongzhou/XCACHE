@@ -111,6 +111,7 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSMON_CONHASH_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSMON_CONHASH_REPLICAS);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSMON_HOT_PATH_SWITCH);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_NP_MODEL);
@@ -232,7 +233,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM          = %s\n" ,  cpgd_model_str(CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM(cparacfg)));
     sys_log(log, "CPARACFG_CRFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CRFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg));
-
+    sys_log(log, "CPARACFG_CRFSMON_HOT_PATH_SWITCH           = %s\n" ,  CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
+    
     sys_log(log, "CPARACFG_CHFS_MEMC_SWITCH                  = %s\n" ,  CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CHFS_MEMC_NP_MODEL                = %s\n" ,  crfsnp_model_str(CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)));
     sys_log(log, "CPARACFG_CHFS_MEMC_BUCKET_NUM              = %u\n" ,  CPARACFG_CHFS_MEMC_BUCKET_NUM(cparacfg));

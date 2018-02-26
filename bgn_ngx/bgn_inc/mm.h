@@ -304,6 +304,8 @@ extern "C"{
 
 #define               MM_CTDNS_SUSV_NODE    ((UINT32)229)
 
+#define                 MM_CRFS_HOT_PATH    ((UINT32)230)
+
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)
 

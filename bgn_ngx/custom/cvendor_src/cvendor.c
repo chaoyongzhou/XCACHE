@@ -2432,14 +2432,14 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
         
         k = (const char *)"Content-Range";
         chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k);
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
                                                 "del rsp header %s done\n",
                                                 k); 
                                                 
         k = (const char *)"Content-Length";
         v = (const char *)c_word_to_str(CVENDOR_MD_CONTENT_LENGTH(cvendor_md));
         chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md),k, v);
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
                                                 "renew rsp header %s:%s done\n",
                                                 k, v); 
                                                 

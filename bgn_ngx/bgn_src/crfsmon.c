@@ -44,13 +44,14 @@ extern "C"{
 
 #include "findex.inc"
 
+static UINT32   g_crfsmon_rfs_node_pos = 0;
+
 #define CRFSMON_MD_CAPACITY()                  (cbc_md_capacity(MD_CRFSMON))
 
 #define CRFSMON_MD_GET(crfsmon_md_id)     ((CRFSMON_MD *)cbc_md_get(MD_CRFSMON, (crfsmon_md_id)))
 
 #define CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id)  \
     ((CMPI_ANY_MODI != (crfsmon_md_id)) && ((NULL_PTR == CRFSMON_MD_GET(crfsmon_md_id)) || (0 == (CRFSMON_MD_GET(crfsmon_md_id)->usedcounter))))
-
 
 /**
 *   for test only
@@ -147,6 +148,14 @@ UINT32 crfsmon_start()
         CRFSMON_MD_CRFSCONHASH(crfsmon_md) = NULL_PTR;
     }
 
+    CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md) = chash_algo_fetch(CRFSMON_HOT_PATH_HASH_ALGO);
+    
+    /*initialize HOT PATH RB TREE*/
+    crb_tree_init(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md),
+                    (CRB_DATA_CMP)crfs_hot_path_cmp,
+                    (CRB_DATA_FREE)crfs_hot_path_free,
+                    (CRB_DATA_PRINT)crfs_hot_path_print);    
+
     crfsmon_md->usedcounter = 1;
 
     tasks_cfg_push_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
@@ -226,6 +235,9 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
         CRFSMON_MD_CRFSCONHASH(crfsmon_md) = NULL_PTR;
     }
 
+    CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md) = NULL_PTR;
+    crb_tree_clean(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
+
     tasks_cfg_erase_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
                                       (const char *)"crfsmon_callback_when_add", 
                                       crfsmon_md_id, 
@@ -296,7 +308,7 @@ EC_BOOL crfs_node_free(CRFS_NODE *crfs_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_node_clone(CRFS_NODE *crfs_node_des, const CRFS_NODE *crfs_node_src)
+EC_BOOL crfs_node_clone(const CRFS_NODE *crfs_node_src, CRFS_NODE *crfs_node_des)
 {
     if(NULL_PTR != crfs_node_src && NULL_PTR != crfs_node_des)
     {
@@ -566,7 +578,7 @@ EC_BOOL crfsmon_crfs_node_add(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
         return (EC_FALSE);             
     }
 
-    crfs_node_clone(crfs_node_t, crfs_node);
+    crfs_node_clone(crfs_node, crfs_node_t);
 
     CRFS_NODE_IPADDR(crfs_node_t) = TASKS_CFG_SRVIPADDR(tasks_cfg);
     CRFS_NODE_PORT(crfs_node_t)   = TASKS_CFG_CSRVPORT(tasks_cfg); /*http port*/
@@ -974,7 +986,7 @@ EC_BOOL crfsmon_crfs_node_get_by_pos(const UINT32 crfsmon_md_id, const UINT32 po
                     pos
                     );
                  
-    crfs_node_clone(crfs_node, crfs_node_t);
+    crfs_node_clone(crfs_node_t, crfs_node);
     return (EC_TRUE);
 }
 
@@ -1032,7 +1044,7 @@ EC_BOOL crfsmon_crfs_node_get_by_tcid(const UINT32 crfsmon_md_id, const UINT32 t
                     crfs_node_state(crfs_node_searched)
                     );
 
-    crfs_node_clone(crfs_node, crfs_node_searched);
+    crfs_node_clone(crfs_node_searched, crfs_node);
                  
     return (EC_TRUE);
 }
@@ -1106,7 +1118,7 @@ EC_BOOL crfsmon_crfs_node_get_by_hash(const UINT32 crfsmon_md_id, const UINT32 h
                         pos, hash
                         );
                      
-        crfs_node_clone(crfs_node, crfs_node_t); 
+        crfs_node_clone(crfs_node_t, crfs_node);
     }
     return (EC_TRUE);
 }
@@ -1120,14 +1132,160 @@ EC_BOOL crfsmon_crfs_node_get_by_path(const UINT32 crfsmon_md_id, const uint8_t 
     return crfsmon_crfs_node_get_by_hash(crfsmon_md_id, hash, crfs_node);
 }
 
-EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
+EC_BOOL crfsmon_crfs_node_set_start_pos(const UINT32 crfsmon_md_id, const UINT32 start_pos)
 {
-    CRFS_NODE   crfs_node;
-    UINT32      hash;
+    g_crfsmon_rfs_node_pos = start_pos;
+    return (EC_TRUE);
+}
 
+EC_BOOL crfsmon_crfs_node_search_up(const UINT32 crfsmon_md_id, CRFS_NODE *crfs_node)
+{
+    CRFSMON_MD *crfsmon_md;
+    
+    UINT32      crfs_node_num;
+    UINT32      crfs_node_pos;
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    
+    crfs_node_num = cvector_size(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md));
+    if(0 == crfs_node_num)
+    {
+        return (EC_FALSE);
+    }  
+  
+    g_crfsmon_rfs_node_pos = (g_crfsmon_rfs_node_pos + 1) % crfs_node_num;
+
+    for(crfs_node_pos = g_crfsmon_rfs_node_pos; crfs_node_pos < crfs_node_num; crfs_node_pos ++)
+    {
+        CRFS_NODE    *crfs_node_t;
+        
+        crfs_node_t = cvector_get(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md), crfs_node_pos);
+        
+        if(NULL_PTR != crfs_node_t 
+        && EC_TRUE == crfs_node_is_up(crfs_node_t))
+        {
+            crfs_node_clone(crfs_node_t, crfs_node);
+            return (EC_TRUE);
+        }
+    }  
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
+{
+    CRFSMON_MD *crfsmon_md;
+    
+    CRFS_NODE   crfs_node;
+    
     TASK_BRD   *task_brd;
     TASKS_CFG  *tasks_cfg;
 
+    char       *dirname;
+
+    CSTRING     cache_path;
+
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_store_http_srv_get_hot: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    
+    /*hot cache path*/
+    dirname = c_dirname((char *)cstring_get_str(path));
+    if(NULL_PTR == dirname)
+    {
+        return (EC_FALSE);
+    }
+   
+    cstring_set_str(&cache_path, (const UINT8 *)dirname);/*mount only*/
+    
+    if(EC_FALSE == crfsmon_crfs_hot_path_exist(crfsmon_md_id, &cache_path))
+    {
+        safe_free(dirname, LOC_CRFSMON_0005);
+        return (EC_FALSE);
+    }
+    
+    if(EC_FALSE == crfsmon_crfs_node_search_up(crfsmon_md_id, &crfs_node))
+    {
+        safe_free(dirname, LOC_CRFSMON_0006);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_store_http_srv_get_hot: "
+                "hot path '%s' => crfs_node (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
+                dirname,
+                c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)),
+                c_word_to_ipv4(CRFS_NODE_IPADDR(&crfs_node)), CRFS_NODE_PORT(&crfs_node),
+                CRFS_NODE_MODI(&crfs_node),
+                crfs_node_state(&crfs_node));          
+
+    safe_free(dirname, LOC_CRFSMON_0007);
+
+    task_brd = task_brd_default_get();
+
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), CRFS_NODE_TCID(&crfs_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
+    if(NULL_PTR == tasks_cfg)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_store_http_srv_get: not searched tasks cfg of tcid %s\n",
+                            c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+        return (EC_FALSE);
+    }    
+
+    if(NULL_PTR != tcid)
+    {
+        (*tcid) = TASKS_CFG_TCID(tasks_cfg);
+    }
+
+    if(NULL_PTR != srv_ipaddr)
+    {
+        (*srv_ipaddr) = TASKS_CFG_SRVIPADDR(tasks_cfg);
+    }
+
+    if(NULL_PTR != srv_port)
+    {
+        (*srv_port) = TASKS_CFG_CSRVPORT(tasks_cfg); /*http port*/
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
+{
+    CRFSMON_MD *crfsmon_md;
+    
+    CRFS_NODE   crfs_node;
+    UINT32      hash;
+    
+    TASK_BRD   *task_brd;
+    TASKS_CFG  *tasks_cfg;
+
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_store_http_srv_get: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    /*hot cache path*/
+    if(CRFSMON_HOT_PATH_SWITCH == SWITCH_ON
+    && EC_TRUE == crfsmon_crfs_store_http_srv_get_hot(crfsmon_md_id, path, tcid, srv_ipaddr, srv_port))
+    {
+        return (EC_TRUE);
+    }
+
+    /*not hot cache path*/
     hash = c_crc32_short(CSTRING_STR(path), (size_t)CSTRING_LEN(path));
 
     crfs_node_init(&crfs_node);
@@ -1281,6 +1439,485 @@ EC_BOOL crfsmon_callback_when_del(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
         }
     }
 
+    return (EC_TRUE);
+}
+
+CRFS_HOT_PATH *crfs_hot_path_new()
+{
+    CRFS_HOT_PATH *crfs_hot_path;
+    
+    alloc_static_mem(MM_CRFS_HOT_PATH, &crfs_hot_path, LOC_CRFSMON_0008);
+    if(NULL_PTR != crfs_hot_path)
+    {
+        crfs_hot_path_init(crfs_hot_path);
+    }
+    return (crfs_hot_path);
+}
+
+EC_BOOL crfs_hot_path_init(CRFS_HOT_PATH *crfs_hot_path)
+{
+    if(NULL_PTR != crfs_hot_path)
+    {
+        CRFS_HOT_PATH_HASH(crfs_hot_path) = 0;
+        
+        cstring_init(CRFS_HOT_PATH_CSTR(crfs_hot_path), NULL_PTR);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_hot_path_clean(CRFS_HOT_PATH *crfs_hot_path)
+{
+    if(NULL_PTR != crfs_hot_path)
+    {
+        CRFS_HOT_PATH_HASH(crfs_hot_path) = 0;
+        
+        cstring_clean(CRFS_HOT_PATH_CSTR(crfs_hot_path));
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_hot_path_free(CRFS_HOT_PATH *crfs_hot_path)
+{
+    if(NULL_PTR != crfs_hot_path)
+    {
+        crfs_hot_path_clean(crfs_hot_path);
+        
+        free_static_mem(MM_CRFS_HOT_PATH, crfs_hot_path, LOC_CRFSMON_0009);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_hot_path_clone(CRFS_HOT_PATH *crfs_hot_path_des, const CRFS_HOT_PATH *crfs_hot_path_src)
+{
+    if(NULL_PTR != crfs_hot_path_src && NULL_PTR != crfs_hot_path_des)
+    {
+        CRFS_HOT_PATH_HASH(crfs_hot_path_des) = CRFS_HOT_PATH_HASH(crfs_hot_path_src);
+
+        cstring_clone(CRFS_HOT_PATH_CSTR(crfs_hot_path_src), CRFS_HOT_PATH_CSTR(crfs_hot_path_des));
+    }
+
+    return (EC_TRUE);
+}
+
+int crfs_hot_path_cmp(const CRFS_HOT_PATH *crfs_hot_path_1st, const CRFS_HOT_PATH *crfs_hot_path_2nd)
+{
+    if(CRFS_HOT_PATH_HASH(crfs_hot_path_1st) > CRFS_HOT_PATH_HASH(crfs_hot_path_2nd))
+    {
+        return (1);
+    }
+
+    if(CRFS_HOT_PATH_HASH(crfs_hot_path_1st) < CRFS_HOT_PATH_HASH(crfs_hot_path_2nd))
+    {
+        return (-1);
+    }
+
+    return cstring_cmp(CRFS_HOT_PATH_CSTR(crfs_hot_path_1st), CRFS_HOT_PATH_CSTR(crfs_hot_path_2nd));
+}
+
+void crfs_hot_path_print(const CRFS_HOT_PATH *crfs_hot_path, LOG *log)
+{
+    sys_log(log, "crfs_hot_path_print: crfs_hot_path %p: hash %u, str '%s'\n", crfs_hot_path,
+                    CRFS_HOT_PATH_HASH(crfs_hot_path),
+                    (char *)cstring_get_str(CRFS_HOT_PATH_CSTR(crfs_hot_path))
+                    );
+    return;
+}
+
+EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *path)
+{
+    CRFSMON_MD      *crfsmon_md;
+
+    CRB_NODE        *crb_node;
+    CRFS_HOT_PATH   *crfs_hot_path;    
+
+    UINT8            path_last_char;
+    
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_add: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    /*check validity*/
+    if(NULL_PTR == path)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
+                                                "path is null\n");
+        return (EC_FALSE);
+    }
+    
+    if(EC_TRUE == cstring_is_empty(path))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
+                                                "path is empty\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cstring_get_char(path, cstring_get_len(path) - 1, &path_last_char)
+    || '/' == (char)path_last_char)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
+                                                "invalid path '%s'\n",
+                                                (char *)cstring_get_str(path));
+        return (EC_FALSE);
+    }    
+
+    crfs_hot_path = crfs_hot_path_new();
+    if(NULL_PTR == crfs_hot_path)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
+                                                "new crfs_hot_path failed\n");
+        return (EC_FALSE);
+    }
+
+    /*init*/
+    CRFS_HOT_PATH_HASH(crfs_hot_path) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
+                                                            cstring_get_len(path), 
+                                                            cstring_get_str(path));
+    
+    cstring_clone(path, CRFS_HOT_PATH_CSTR(crfs_hot_path));
+    
+    crb_node = crb_tree_insert_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)crfs_hot_path);
+    if(NULL_PTR == crb_node)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
+                                                "add hot path '%s' failed\n",
+                                                (char *)cstring_get_str(path));
+        crfs_hot_path_free(crfs_hot_path);
+        return (EC_FALSE);                     
+    }
+
+    if(CRB_NODE_DATA(crb_node) != crfs_hot_path)/*found duplicate*/
+    {
+        dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_add: "
+                                                "found duplicated hot path '%s'\n",
+                                                (char *)cstring_get_str(path));     
+        crfs_hot_path_free(crfs_hot_path);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_add: "
+                                            "add hot path '%s' done\n",
+                                            (char *)cstring_get_str(path));     
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsmon_crfs_hot_path_del(const UINT32 crfsmon_md_id, const CSTRING *path)
+{
+    CRFSMON_MD      *crfsmon_md;
+
+    CRB_NODE        *crb_node_searched;
+    CRFS_HOT_PATH    crfs_hot_path_t;    
+    
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_del: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    /*init*/
+    CRFS_HOT_PATH_HASH(&crfs_hot_path_t) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
+                                                            cstring_get_len(path), 
+                                                            cstring_get_str(path));
+    
+    cstring_set_str(CRFS_HOT_PATH_CSTR(&crfs_hot_path_t), cstring_get_str(path));
+
+    crb_node_searched = crb_tree_search_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)&crfs_hot_path_t);
+    if(NULL_PTR == crb_node_searched)
+    {
+        dbg_log(SEC_0155_CRFSMON, 5)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_del: "
+                                                "not found hot path '%s'\n",
+                                                (char *)cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    crb_tree_delete(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), crb_node_searched);
+
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_del: "
+                                            "del hot path '%s' done\n",
+                                            (char *)cstring_get_str(path));    
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsmon_crfs_hot_path_exist(const UINT32 crfsmon_md_id, const CSTRING *path)
+{
+    CRFSMON_MD      *crfsmon_md;
+
+    CRB_NODE        *crb_node_searched;
+    CRFS_HOT_PATH    crfs_hot_path_t;    
+    
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_exist: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    if(EC_TRUE == crb_tree_is_empty(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md)))
+    {
+        return (EC_FALSE);
+    }
+
+    /*init*/
+    CRFS_HOT_PATH_HASH(&crfs_hot_path_t) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
+                                                            cstring_get_len(path), 
+                                                            cstring_get_str(path));
+    
+    cstring_set_str(CRFS_HOT_PATH_CSTR(&crfs_hot_path_t), cstring_get_str(path));
+
+    crb_node_searched = crb_tree_search_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)&crfs_hot_path_t);
+    if(NULL_PTR == crb_node_searched)
+    {
+        dbg_log(SEC_0155_CRFSMON, 5)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_exist: "
+                                                "not found hot path '%s'\n",
+                                                (char *)cstring_get_str(path));
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_exist: "
+                                            "found hot path '%s'\n",
+                                            (char *)cstring_get_str(path));    
+    return (EC_TRUE);
+}
+
+void crfsmon_crfs_hot_path_print(const UINT32 crfsmon_md_id, LOG *log)
+{
+    CRFSMON_MD *crfsmon_md;
+
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_print: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    crb_tree_print(log, CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
+ 
+    return;
+}
+
+/*format: /<domain>/path */
+static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md_id, char *crfsmon_host_path_start, char *crfsmon_host_path_end)
+{
+    CRFSMON_MD          *crfsmon_md;
+    
+    char                *p;
+    CSTRING              path;
+    
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    /*locate the first char which is not space*/
+    
+    for(p = crfsmon_host_path_start;isspace(*p); p ++) 
+    {
+        /*do nothing*/
+    }                               
+    
+    if('\0' == (*p))
+    {
+        dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
+                                                "skip empty line '%.*s'\n",
+                                                (crfsmon_host_path_end - crfsmon_host_path_start), 
+                                                crfsmon_host_path_start);      
+        /*skip empty line*/
+        return (EC_TRUE);
+    }
+    
+    if('#' == (*p))
+    {
+        /*skip commented line*/
+        dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
+                                                "skip commented line '%.*s'\n",
+                                                (crfsmon_host_path_end - crfsmon_host_path_start), 
+                                                crfsmon_host_path_start);          
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
+                                            "handle line '%.*s'\n",
+                                            (crfsmon_host_path_end - crfsmon_host_path_start), 
+                                            crfsmon_host_path_start);
+                                            
+    c_str_trim_space(p);
+    cstring_set_str(&path, (const UINT8 *)p);
+    
+    if(EC_FALSE == crfsmon_crfs_hot_path_add(crfsmon_md_id, &path))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_line: "
+                                                "insert '%s' failed\n",
+                                                p);    
+        return (EC_FALSE);    
+    }
+    
+    dbg_log(SEC_0155_CRFSMON, 5)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
+                                            "insert '%s' done\n",
+                                            p);    
+    return (EC_TRUE);
+}
+
+static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md_id, char *crfsmon_hot_path_start, char *crfsmon_hot_path_end)
+{
+    char        *crfsmon_hot_path_line_start;
+    uint32_t     crfsmon_hot_path_line_no;
+
+    crfsmon_hot_path_line_start = crfsmon_hot_path_start;
+    crfsmon_hot_path_line_no    = 1;
+    
+    while(crfsmon_hot_path_line_start < crfsmon_hot_path_end)
+    {
+        char  *crfsmon_hot_path_line_end;
+
+        crfsmon_hot_path_line_end = crfsmon_hot_path_line_start;
+        
+        while(crfsmon_hot_path_line_end < crfsmon_hot_path_end)
+        {
+            if('\n' == (*crfsmon_hot_path_line_end ++)) /*also works for line-terminator '\r\n'*/
+            {
+                break;
+            }
+        }
+
+        if(crfsmon_hot_path_line_end > crfsmon_hot_path_end)
+        {
+            break;
+        }
+
+        *(crfsmon_hot_path_line_end - 1) = '\0'; /*insert string terminator*/
+
+        dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
+                                                "to parse line %u# '%.*s' failed\n",
+                                                crfsmon_hot_path_line_no, 
+                                                (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start), 
+                                                crfsmon_hot_path_line_start);
+                                                
+        if(EC_FALSE == __crfsmon_parse_hot_path_line(crfsmon_md_id, crfsmon_hot_path_line_start, crfsmon_hot_path_line_end))
+        {
+            dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
+                                                    "parse line %u# '%.*s' failed\n",
+                                                    crfsmon_hot_path_line_no, 
+                                                    (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start), 
+                                                    crfsmon_hot_path_line_start);
+            return (EC_FALSE);          
+        }
+
+        crfsmon_hot_path_line_no ++;
+
+        crfsmon_hot_path_line_start = crfsmon_hot_path_line_end;
+    }
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const char *fname)
+{
+    CRFSMON_MD  *crfsmon_md;
+
+    UINT32       fsize;
+    UINT32       offset;
+    UINT8       *fcontent;
+    int          fd;
+    
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_load: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    fd = c_file_open(fname, O_RDONLY, 0666);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "open file '%s' failed\n",
+                                                fname);
+        return (EC_FALSE);                     
+    }
+
+    if(EC_FALSE == c_file_size(fd, &fsize))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "get size of '%s' failed\n",
+                                                fname);    
+        c_file_close(fd);
+        return (EC_FALSE);
+    }
+
+    if(0 == fsize)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "file '%s' size is 0\n",
+                                                fname);    
+        c_file_close(fd);
+        return (EC_FALSE);
+    }
+
+    fcontent = safe_malloc(fsize, LOC_CRFSMON_0010);
+    if(NULL_PTR == fcontent)
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "malloc %ld bytes failed\n",
+                                                fsize);    
+        c_file_close(fd);
+        return (EC_FALSE);
+    }
+
+    offset = 0;
+    if(EC_FALSE == c_file_load(fd, &offset, fsize, fcontent))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "load file '%s' failed\n",
+                                                fname);    
+        c_file_close(fd);
+        safe_free(fcontent, LOC_CRFSMON_0011);
+        return (EC_FALSE);
+    }
+    c_file_close(fd);
+
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
+                                            "load file '%s' from disk done\n",
+                                            fname);  
+
+    /*parse*/
+    if(EC_FALSE == __crfsmon_parse_hot_path_file(crfsmon_md_id, (char *)fcontent, (char *)(fcontent + fsize)))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "parse file '%s' failed\n",
+                                                fname);    
+        safe_free(fcontent, LOC_CRFSMON_0012);
+        return (EC_FALSE);
+    }
+    safe_free(fcontent, LOC_CRFSMON_0013);
+
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
+                                            "parse file '%s' done\n",
+                                            fname);   
     return (EC_TRUE);
 }
 

@@ -1024,6 +1024,7 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " hfsConhashReplicas=\"%u\""      , CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg));
         sys_print(log, " sfsConhashSwitch=\"%s\""        , CPARACFG_CSFSMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " sfsConhashReplicas=\"%u\""      , CPARACFG_CSFSMON_CONHASH_REPLICAS(cparacfg));
+        sys_print(log, " rfsHotPathSwitch=\"%s\""        , CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
         sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
         sys_print(log, " epollTimeoutMsec=\"%u\""        , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));

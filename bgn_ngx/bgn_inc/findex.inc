@@ -760,6 +760,10 @@
 #define                 FI_crfsmon_crfs_node_list  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 12))
 #define                  FI_crfsmon_crfs_node_num  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 13))
 #define          FI_crfsmon_crfs_node_get_by_hash  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 14))
+#define              FI_crfsmon_crfs_hot_path_add  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 15))
+#define              FI_crfsmon_crfs_hot_path_del  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 16))
+#define            FI_crfsmon_crfs_hot_path_exist  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 17))
+#define            FI_crfsmon_crfs_hot_path_print  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 18))
 
 #define                FI_ctdns_print_module_status  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 0))
 #define             FI_ctdns_free_module_static_mem  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 1))
