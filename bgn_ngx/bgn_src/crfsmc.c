@@ -198,7 +198,6 @@ CRFSNP_FNODE *crfsmc_reserve_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path
     }
 
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = 0/*task_brd_default_get_time()*/;
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = 0;
 
     if(do_log(SEC_0140_CRFSMC, 9))
     {

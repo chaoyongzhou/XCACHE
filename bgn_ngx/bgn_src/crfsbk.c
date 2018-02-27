@@ -718,7 +718,7 @@ EC_BOOL crfsbk_add_disk(CRFSBK *crfsbk, const uint16_t disk_no)
     return (EC_TRUE);
 }
 
-CRFSNP_FNODE *crfsbk_reserve_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const uint32_t expire_nsec, uint32_t *node_pos)
+CRFSNP_FNODE *crfsbk_reserve_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, uint32_t *node_pos)
 {
     CRFSNP *crfsnp;
     CRFSNP_ITEM *crfsnp_item;
@@ -751,7 +751,6 @@ CRFSNP_FNODE *crfsbk_reserve_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path
     }
 
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = task_brd_default_get_time();
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = expire_nsec;
 
     if(do_log(SEC_0141_CRFSBK, 9))
     {
@@ -881,7 +880,7 @@ EC_BOOL crfsbk_room_is_ok_no_lock(CRFSBK *crfsbk, const REAL level)
     return (EC_FALSE);/*NOT ok*/
 }
 
-EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBYTES *cbytes, const uint32_t expire_nsec, const uint8_t *md5sum)
+EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBYTES *cbytes, const uint8_t *md5sum)
 {
     CRFSNP_FNODE *crfsnp_fnode;
     CRFSNP_INODE *crfsnp_inode;
@@ -895,7 +894,7 @@ EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBY
 
     UINT32   offset;
 
-    crfsnp_fnode = crfsbk_reserve_np_no_lock(crfsbk, file_path, expire_nsec, &node_pos);
+    crfsnp_fnode = crfsbk_reserve_np_no_lock(crfsbk, file_path, &node_pos);
     if(NULL_PTR == crfsnp_fnode)
     {
         dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_write_no_lock: file %s reserve np failed\n",
@@ -947,7 +946,7 @@ EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBY
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_read_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode, UINT32 *expires_timestamp)
+EC_BOOL crfsbk_read_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFSNP *crfsnp;
 
@@ -962,22 +961,13 @@ EC_BOOL crfsbk_read_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_
 
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
         crfsnp_fnode_import(CRFSNP_ITEM_FNODE(crfsnp_item), crfsnp_fnode);
-
-        if(NULL_PTR != expires_timestamp)
-        {
-            (*expires_timestamp) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
-            if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)) /* note: 0 means never expired*/
-            {
-                (*expires_timestamp) += CRFSNP_ITEM_CREATE_TIME(crfsnp_item); /*tip: inc op will overcome uint32_t -> UINT32*/
-            }       
-        }     
-
+        
         return (EC_TRUE);
     }
     return (EC_FALSE);
 }
 
-EC_BOOL crfsbk_read_np_b_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode, UINT32 *expires_timestamp)
+EC_BOOL crfsbk_read_np_b_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFSNP *crfsnp;
 
@@ -992,15 +982,6 @@ EC_BOOL crfsbk_read_np_b_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSN
 
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
         crfsnp_fnode_import(CRFSNP_ITEM_FNODE(crfsnp_item), crfsnp_fnode);
-
-        if(NULL_PTR != expires_timestamp)
-        {
-            (*expires_timestamp) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
-            if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)) /* note: 0 means never expired*/
-            {
-                (*expires_timestamp) += CRFSNP_ITEM_CREATE_TIME(crfsnp_item); /*tip: inc op will overcome uint32_t -> UINT32*/
-            }       
-        }     
 
         return (EC_TRUE);
     }
@@ -1049,36 +1030,17 @@ EC_BOOL crfsbk_read_dn_no_lock(CRFSBK *crfsbk, const CRFSNP_FNODE *crfsnp_fnode,
     return (EC_TRUE); 
 }
 
-EC_BOOL crfsbk_read_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsbk_read_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes)
 {
     CRFSNP_FNODE crfsnp_fnode;
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
-    if(EC_FALSE == crfsbk_read_np_no_lock(crfsbk, file_path, &crfsnp_fnode, expires_timestamp))
+    if(EC_FALSE == crfsbk_read_np_no_lock(crfsbk, file_path, &crfsnp_fnode))
     {
         dbg_log(SEC_0141_CRFSBK, 5)(LOGSTDOUT, "warn:crfsbk_read_no_lock: read file %s from np failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    }
-
-    if(NULL_PTR != expires_timestamp && (*expires_timestamp) > task_brd_default_get_time())
-    { 
-        if(do_log(SEC_0141_CRFSBK, 9))
-        {
-            sys_log(LOGSTDOUT, "[DEBUG] crfsbk_read_no_lock: read file %s [EXPIRED: %ld > %u] from npp and fnode %p is \n",
-                               (char *)cstring_get_str(file_path),
-                               (*expires_timestamp), task_brd_default_get_time(),
-                               &crfsnp_fnode);
-            crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
-        }
-     
-        if(EC_FALSE == need_expired_content)
-        {
-            dbg_log(SEC_0141_CRFSBK, 5)(LOGSTDOUT, "crfsbk_read_no_lock: not need to read expired file %s from dn\n",
-                               (char *)cstring_get_str(file_path));
-            return (EC_FALSE);
-        }     
     }
 
     if(EC_FALSE == crfsbk_read_dn_no_lock(crfsbk, &crfsnp_fnode, cbytes))
@@ -1116,10 +1078,10 @@ EC_BOOL crfsbk_recycle_no_lock(CRFSBK *crfsbk, const UINT32 max_num, UINT32 *com
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_write(CRFSBK *crfsbk, const CSTRING *file_path, const CBYTES *cbytes, const uint32_t expire_nsec, const uint8_t *md5sum)
+EC_BOOL crfsbk_write(CRFSBK *crfsbk, const CSTRING *file_path, const CBYTES *cbytes, const uint8_t *md5sum)
 {
     CRFSBK_WRLOCK(crfsbk, LOC_CRFSBK_0016);
-    if(EC_FALSE == crfsbk_write_no_lock(crfsbk, file_path, cbytes, expire_nsec, md5sum))
+    if(EC_FALSE == crfsbk_write_no_lock(crfsbk, file_path, cbytes, md5sum))
     {
         CRFSBK_UNLOCK(crfsbk, LOC_CRFSBK_0017);
         dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_write: write %s with %ld bytes failed\n",
@@ -1136,10 +1098,10 @@ EC_BOOL crfsbk_write(CRFSBK *crfsbk, const CSTRING *file_path, const CBYTES *cby
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_read(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsbk_read(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes)
 {
     CRFSBK_RDLOCK(crfsbk, LOC_CRFSBK_0019);
-    if(EC_FALSE == crfsbk_read_no_lock(crfsbk, file_path, cbytes, expires_timestamp, need_expired_content))
+    if(EC_FALSE == crfsbk_read_no_lock(crfsbk, file_path, cbytes))
     {
         CRFSBK_UNLOCK(crfsbk, LOC_CRFSBK_0020);
         dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_read: read %s failed\n",
@@ -1467,9 +1429,6 @@ void crfsbk_print(LOG *log, const CRFSBK *crfsbk)
 EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path)
 {
     CBYTES  cbytes;
-    UINT32  expires_timestamp;
-    EC_BOOL need_expired_content;
-    UINT32  expire_nsec;
 
     CRFSNP_ITEM *crfsnp_item_master; 
 
@@ -1530,8 +1489,7 @@ EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path)
 
     cbytes_init(&cbytes);
 
-    need_expired_content = EC_FALSE; /*if file already expired, ignore*/
-    if(EC_FALSE == crfsbk_read(crfsbk, path, &cbytes, &expires_timestamp, need_expired_content))
+    if(EC_FALSE == crfsbk_read(crfsbk, path, &cbytes))
     {
         dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_replay_file: read file %s from backup RFS failed\n",
                             (char *)cstring_get_str(path));
@@ -1539,8 +1497,7 @@ EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    expire_nsec = expires_timestamp - task_brd_default_get_time();/*re-calculate expire seconds*/ 
-    if(EC_FALSE == crfs_write(CRFSBK_CRFS_MD_ID(crfsbk), path, &cbytes, expire_nsec))
+    if(EC_FALSE == crfs_write(CRFSBK_CRFS_MD_ID(crfsbk), path, &cbytes))
     {
         dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_replay_file: replay file %s to master RFS failed\n",
                             (char *)cstring_get_str(path));

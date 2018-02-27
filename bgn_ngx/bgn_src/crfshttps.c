@@ -733,14 +733,8 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    char          *expired_body_str;
     char          *store_offset_str;
     char          *store_size_str;
-
-    EC_BOOL        expired_body_needed;
-    UINT32         expires_timestamp;
-    char           expires_str[64];
-    uint32_t       expires_str_len;
 
     uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
 
@@ -782,16 +776,6 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
     content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
     cbytes_clean(content_cbytes);
 
-    expired_body_str = chttps_node_get_header(chttps_node, (const char *)"expired-body");
-    if(NULL_PTR == expired_body_str || 0 == c_str_to_uint32_t(expired_body_str))
-    {
-        expired_body_needed = EC_TRUE;/*even if file expired, return file content*/
-    }
-    else
-    {
-        expired_body_needed = EC_FALSE;/*if file expired, NOT return file content*/
-    }
-
     store_offset_str = chttps_node_get_header(chttps_node, (const char *)"store-offset");
     if(NULL_PTR != store_offset_str)
     {
@@ -812,7 +796,7 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         offset        = store_offset;
         max_len       = store_size;
 
-        if(EC_FALSE == crfs_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes, &expires_timestamp, expired_body_needed))
+        if(EC_FALSE == crfs_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u failed\n",
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
@@ -843,7 +827,7 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         CSOCKET_CNODE * csocket_cnode;
      
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
-        if(EC_FALSE == crfs_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, &expires_timestamp, expired_body_needed))
+        if(EC_FALSE == crfs_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_get_request: crfs read %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -869,9 +853,6 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;                         
     }
-
-    expires_str_len = snprintf(expires_str, sizeof(expires_str), "Expires:%ld\r\n", expires_timestamp);
-    cbuffer_set(CHTTPS_NODE_EXPIRES(chttps_node), (uint8_t *)expires_str, expires_str_len);
 
     cstring_clean(&path_cstr);
 
@@ -2659,15 +2640,10 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     if(EC_TRUE == __crfshttps_uri_is_setsmf_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = chttps_node_get_header(chttps_node, (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 #if 1
-        if(EC_FALSE == crfs_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfs_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -2690,7 +2666,7 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
-        if(EC_FALSE == crfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec, CRFS_MAX_REPLICA_NUM))
+        if(EC_FALSE == crfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CRFS_MAX_REPLICA_NUM))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -2960,15 +2936,7 @@ EC_BOOL crfshttps_handle_setsmf_memc_post_request(CHTTPS_NODE *chttps_node)
  
     if(EC_TRUE == __crfshttps_uri_is_setsmf_memc_post_op(uri_cbuffer))
     {
-        CSOCKET_CNODE * csocket_cnode;
-/* because write memory cache only, expired_nsec is not needed */
-/*
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = chttps_node_header_get(chttps_node, (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
-*/   
+        CSOCKET_CNODE * csocket_cnode;  
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 #if 1
@@ -2995,7 +2963,7 @@ EC_BOOL crfshttps_handle_setsmf_memc_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_setsmf_memc_post_request: crfs write memcache %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
-        if(EC_FALSE == crfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec, CRFS_MAX_REPLICA_NUM))
+        if(EC_FALSE == crfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CRFS_MAX_REPLICA_NUM))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -3375,16 +3343,7 @@ EC_BOOL crfshttps_handle_getsmf_memc_get_request(CHTTPS_NODE *chttps_node)
     CBYTES        *content_cbytes;
 
     UINT32         req_body_chunk_num;
-/*
-    char          *expired_body_str;
-    char          *store_offset_str;
-    char          *store_size_str;
-
-    EC_BOOL        expired_body_needed;
-    UINT32         expires_timestamp;
-    char           expires_str[64];
-    uint32_t       expires_str_len;
-*/
+    
     uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmfmemc");
@@ -3424,65 +3383,6 @@ EC_BOOL crfshttps_handle_getsmf_memc_get_request(CHTTPS_NODE *chttps_node)
 
     content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
     cbytes_clean(content_cbytes);
-#if 0
-    expired_body_str = chttps_node_header_get(chttps_node, (const char *)"expired-body");
-    if(NULL_PTR == expired_body_str || 0 == c_str_to_uint32_t(expired_body_str))
-    {
-        expired_body_needed = EC_TRUE;/*even if file expired, return file content*/
-    }
-    else
-    {
-        expired_body_needed = EC_FALSE;/*if file expired, NOT return file content*/
-    }
-#endif
-#if 0
-    store_offset_str = chttps_node_header_get(chttps_node, (const char *)"store-offset");
-    if(NULL_PTR != store_offset_str)
-    {
-        CSOCKET_CNODE * csocket_cnode;
-     
-        uint32_t store_offset;
-        uint32_t store_size;
-     
-        UINT32   offset;
-        UINT32   max_len;
-     
-        store_size_str   = chttps_node_header_get(chttps_node, (const char *)"store-size");
-
-        store_offset = c_str_to_uint32_t(store_offset_str);
-        store_size   = c_str_to_uint32_t(store_size_str);/*note: when store_size_str is null, store_size is zero*/
-
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
-        offset        = store_offset;
-        max_len       = store_size;
-
-        if(EC_FALSE == crfs_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes, &expires_timestamp, expired_body_needed))
-        {
-            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_memc_get_request: crfs read %s with offset %u, size %u failed\n",
-                                (char *)cstring_get_str(&path_cstr), store_offset, store_size);
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_getsmf_memc_get_request: crfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
-                             
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
-         
-            cstring_clean(&path_cstr);
-            cbytes_clean(content_cbytes);
-            //return (EC_FALSE);
-            return (EC_TRUE);
-        }
-
-        dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_memc_get_request: crfs read %s with offset %u, size %u done\n",
-                            (char *)cstring_get_str(&path_cstr), store_offset, store_size);
-
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_getsmf_memc_get_request: crfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
-
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
-    }
-#endif
  
     /*read whole file content*/
  
@@ -3514,10 +3414,6 @@ EC_BOOL crfshttps_handle_getsmf_memc_get_request(CHTTPS_NODE *chttps_node)
     CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_getsmf_memc_get_request: crfs read %s from memcache done", (char *)cstring_get_str(&path_cstr));
 
     CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;                         
-
-
-//    expires_str_len = snprintf(expires_str, sizeof(expires_str), "Expires:%ld\r\n", expires_timestamp);
-//    cbuffer_set(CHTTPS_NODE_EXPIRES(chttps_node), (uint8_t *)expires_str, expires_str_len);
 
     cstring_clean(&path_cstr);
 
@@ -4701,15 +4597,10 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     if(EC_TRUE == __crfshttps_uri_is_update_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = chttps_node_get_header(chttps_node, (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 #if 1
-        if(EC_FALSE == crfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: crfs update %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -4732,7 +4623,7 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_update_post_request: crfs update %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
-        if(EC_FALSE == crfs_update_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec, CRFS_MAX_REPLICA_NUM))
+        if(EC_FALSE == crfs_update_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CRFS_MAX_REPLICA_NUM))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: crfs update %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -4999,15 +4890,10 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     if(EC_TRUE == __crfshttps_uri_is_renew_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = chttps_node_get_header(chttps_node, (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 #if 1
-        if(EC_FALSE == crfs_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expired_nsec))
+        if(EC_FALSE == crfs_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: crfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -5030,7 +4916,7 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_renew_post_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
-        if(EC_FALSE == crfs_renew_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expired_nsec, CRFS_MAX_REPLICA_NUM))
+        if(EC_FALSE == crfs_renew_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFS_MAX_REPLICA_NUM))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: crfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));

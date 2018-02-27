@@ -764,6 +764,8 @@
 #define              FI_crfsmon_crfs_hot_path_del  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 16))
 #define            FI_crfsmon_crfs_hot_path_exist  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 17))
 #define            FI_crfsmon_crfs_hot_path_print  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 18))
+#define             FI_crfsmon_crfs_hot_path_load  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 19))
+#define           FI_crfsmon_crfs_hot_path_unload  ((UINT32) ((MD_CRFSMON << (WORDSIZE/2)) + 20))
 
 #define                FI_ctdns_print_module_status  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 0))
 #define             FI_ctdns_free_module_static_mem  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 1))
@@ -850,6 +852,17 @@
 #define                FI_cp2p_refresh_cache_notify  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 23))
 #define                       FI_cp2p_refresh_cache  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 24))
 
+#define                FI_cfile_print_module_status  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 0))
+#define             FI_cfile_free_module_static_mem  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 1))
+#define                              FI_cfile_start  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 2))
+#define                                FI_cfile_end  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 3))
+#define                             FI_cfile_exists  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 4))
+#define                               FI_cfile_size  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 5))
+#define                                FI_cfile_md5  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 6))
+#define                               FI_cfile_load  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 7))
+#define                             FI_cfile_update  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 8))
+#define                             FI_cfile_remove  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 9))
+#define                             FI_cfile_rename  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 10))
 
 
 #endif/* _FINDEX_INC */

@@ -942,7 +942,7 @@ EC_BOOL crfsnp_mgr_find(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT3
     return crfsnp_mgr_search(crfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag, NULL_PTR);
 }
 
-CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const uint32_t expire_nsec)
+CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path)
 {
     CRFSNP *crfsnp;
     CRFSNP_ITEM *crfsnp_item;
@@ -971,7 +971,6 @@ CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_pat
     }
 
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = task_brd_default_get_time();
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = expire_nsec;
 
     /*not import yet*/ 
     return CRFSNP_ITEM_FNODE(crfsnp_item);
@@ -1071,7 +1070,7 @@ EC_BOOL crfsnp_mgr_write(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode, UINT32 *expires_timestamp)
+EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFSNP *crfsnp;
     uint32_t crfsnp_id;
@@ -1095,14 +1094,6 @@ EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP
             crfsnp_fnode_import(CRFSNP_ITEM_FNODE(crfsnp_item), crfsnp_fnode);
         }
 
-        if(NULL_PTR != expires_timestamp)
-        {
-            (*expires_timestamp) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
-            if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)) /* note: 0 means never expired*/
-            {
-                (*expires_timestamp) += CRFSNP_ITEM_CREATE_TIME(crfsnp_item); /*tip: inc op will overcome uint32_t -> UINT32*/
-            }       
-        }
         return (EC_TRUE);
     }
     return (EC_FALSE); 
@@ -1152,7 +1143,7 @@ EC_BOOL crfsnp_mgr_write_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, con
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos, UINT32 *expires_timestamp)
+EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos)
 {
     CRFSNP *crfsnp;
     uint32_t node_pos;
@@ -1171,15 +1162,7 @@ EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint
 
         (*parent_pos) = node_pos;
         crfsnp_item   = crfsnp_fetch(crfsnp, node_pos);
-
-        if(NULL_PTR != expires_timestamp)
-        {
-            (*expires_timestamp) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
-            if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)) /* note: 0 means never expired*/
-            {
-                (*expires_timestamp) += CRFSNP_ITEM_CREATE_TIME(crfsnp_item); /*tip: inc op will overcome uint32_t -> UINT32*/
-            }       
-        }
+        
         return (EC_TRUE);
     } 
     return (EC_FALSE); 
@@ -1205,34 +1188,6 @@ EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, cons
 
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
         return crfsnp_fnode_import(crfsnp_fnode, CRFSNP_ITEM_FNODE(crfsnp_item));
-    }
-    return (EC_FALSE); 
-}
-
-EC_BOOL crfsnp_mgr_update_expires(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const UINT32 expires_timestamp)
-{
-    CRFSNP *crfsnp;
-    uint32_t crfsnp_id;
-    uint32_t node_pos;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_update_expires: no np for path %s\n", (char *)cstring_get_str(file_path));
-        return (EC_FALSE);
-    }
-
-    node_pos = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_REG);
-    if(CRFSNPRB_ERR_POS != node_pos)
-    {
-        CRFSNP_ITEM *crfsnp_item;
-        uint32_t expires_timestamp_t;
-
-        expires_timestamp_t = (uint32_t)expires_timestamp;
-
-        crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
-        CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = expires_timestamp_t;
-        return (EC_TRUE);
     }
     return (EC_FALSE); 
 }
@@ -1935,7 +1890,7 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size, UINT32 *expires_timestamp)
+EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size)
 {
     CRFSNP  *crfsnp;
     uint32_t crfsnp_id;
@@ -1955,20 +1910,7 @@ EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_store_size_b: get store size of file %s\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     } 
-
-    if(NULL_PTR != expires_timestamp)
-    {
-        CRFSNP_ITEM *crfsnp_item;
-
-        crfsnp_item   = crfsnp_fetch(crfsnp, node_pos);
-
-        (*expires_timestamp) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
-        if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)) /* note: 0 means never expired*/
-        {
-            (*expires_timestamp) += CRFSNP_ITEM_CREATE_TIME(crfsnp_item); /*tip: inc op will overcome uint32_t -> UINT32*/
-        }
-    }
-
+    
     //(*store_size) += cur_store_size;
     (*store_size) = cur_store_size;
  

@@ -189,7 +189,9 @@ EC_BOOL crfsmon_crfs_hot_path_exist(const UINT32 crfsmon_md_id, const CSTRING *p
 
 void crfsmon_crfs_hot_path_print(const UINT32 crfsmon_md_id, LOG *log);
 
-EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const char *fname);
+EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *path);
+
+EC_BOOL crfsmon_crfs_hot_path_unload(const UINT32 crfsmon_md_id);
 
 #endif /*_CRFSMON_H*/
 

@@ -877,7 +877,7 @@ EC_BOOL crfsc_is_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 *  write a file
 *
 **/
-EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec)
+EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
  
@@ -899,10 +899,10 @@ EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const
         return (EC_FALSE);
     }
 
-    return crfs_write(crfs_md_id, file_path, cbytes, expire_nsec);
+    return crfs_write(crfs_md_id, file_path, cbytes);
 }
 
-EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec)
+EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -931,7 +931,7 @@ EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CB
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes, expire_nsec);
+             &result, FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes);
 
     return (result);
 }
@@ -943,7 +943,7 @@ EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CB
 *  read a file
 *
 **/
-EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
  
@@ -965,10 +965,10 @@ EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES
         return (EC_FALSE);
     }
 
-    return crfs_read(crfs_md_id, file_path, cbytes, expires_timestamp, need_expired_content);
+    return crfs_read(crfs_md_id, file_path, cbytes);
 }
 
-EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -997,7 +997,7 @@ EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *c
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_read_ep, CMPI_ERROR_MODI, file_path, cbytes, expires_timestamp, need_expired_content);
+             &result, FI_crfsc_read_ep, CMPI_ERROR_MODI, file_path, cbytes);
 
     return (result);
 }
@@ -1074,7 +1074,7 @@ EC_BOOL crfsc_write_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32
 *  when max_len = 0, return the partial content from offset to EOF (end of file)
 *
 **/
-EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
  
@@ -1096,10 +1096,10 @@ EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT
         return (EC_FALSE);
     }
 
-    return crfs_read_e(crfs_md_id, file_path, offset, max_len, cbytes, expires_timestamp, need_expired_content);
+    return crfs_read_e(crfs_md_id, file_path, offset, max_len, cbytes);
 }
 
-EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1128,7 +1128,7 @@ EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_read_e_ep, CMPI_ERROR_MODI, file_path, offset, max_len, cbytes, expires_timestamp, need_expired_content);
+             &result, FI_crfsc_read_e_ep, CMPI_ERROR_MODI, file_path, offset, max_len, cbytes);
 
     return (result);
 }
@@ -1268,7 +1268,7 @@ EC_BOOL crfsc_write_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64
 *  read a file from offset
 *
 **/
-EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
  
@@ -1290,10 +1290,10 @@ EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
         return (EC_FALSE);
     }
 
-    return crfs_read_b(crfs_md_id, file_path, offset, max_len, cbytes, expires_timestamp, need_expired_content);
+    return crfs_read_b(crfs_md_id, file_path, offset, max_len, cbytes);
 }
 
-EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content)
+EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1326,12 +1326,12 @@ EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_read_b_ep, CMPI_ERROR_MODI, file_path, offset, max_len, cbytes, expires_timestamp, need_expired_content);
+             &result, FI_crfsc_read_b_ep, CMPI_ERROR_MODI, file_path, offset, max_len, cbytes);
 
     return (result);
 }
 
-EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t offset, UINT32 *expires_timestamp, const EC_BOOL need_expired_content, uint32_t *block_size, int *block_fd)
+EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t offset, uint32_t *block_size, int *block_fd)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1372,7 +1372,7 @@ EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_
         return (EC_FALSE);
     }  
 
-    return crfs_fetch_block_fd_b(crfs_md_id, file_path, offset, expires_timestamp, need_expired_content, block_size, block_fd);
+    return crfs_fetch_block_fd_b(crfs_md_id, file_path, offset, block_size, block_fd);
 }
 
 /**
@@ -1380,7 +1380,7 @@ EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_
 *  renew a fnode to name node
 *
 **/
-EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp)
+EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     UINT32  crfs_md_id;
  
@@ -1402,10 +1402,10 @@ EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const
         return (EC_FALSE);
     }
 
-    return crfs_renew(crfs_md_id, file_path, expires_timestamp);
+    return crfs_renew(crfs_md_id, file_path);
 }
 
-EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp)
+EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1434,7 +1434,7 @@ EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path, const UI
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_renew_ep, CMPI_ERROR_MODI, file_path, expires_timestamp);
+             &result, FI_crfsc_renew_ep, CMPI_ERROR_MODI, file_path);
 
     return (result);
 }
@@ -1772,7 +1772,7 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
 *  update a file
 *
 **/
-EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec)
+EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
  
@@ -1794,10 +1794,10 @@ EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, cons
         return (EC_FALSE);
     }
 
-    return crfs_update(crfs_md_id, file_path, cbytes, expire_nsec);
+    return crfs_update(crfs_md_id, file_path, cbytes);
 }
 
-EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec)
+EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1826,7 +1826,7 @@ EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const C
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_update_ep, CMPI_ERROR_MODI, file_path, cbytes, expire_nsec);
+             &result, FI_crfsc_update_ep, CMPI_ERROR_MODI, file_path, cbytes);
 
     return (result);
 }
@@ -1965,7 +1965,7 @@ EC_BOOL crfsc_file_size(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
 *  get bigfile store size of specific file given full path name
 *
 **/
-EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp)
+EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size)
 {
     UINT32  crfs_md_id;
  
@@ -1987,10 +1987,10 @@ EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path
         return (EC_FALSE);
     }
 
-    return crfs_store_size_b(crfs_md_id, file_path, store_size, expires_timestamp);
+    return crfs_store_size_b(crfs_md_id, file_path, store_size);
 }
 
-EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp)
+EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -2019,7 +2019,7 @@ EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, u
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_store_size_b_ep, CMPI_ERROR_MODI, file_path, store_size, expires_timestamp);
+             &result, FI_crfsc_store_size_b_ep, CMPI_ERROR_MODI, file_path, store_size);
 
     return (result);
 }
@@ -3480,7 +3480,7 @@ EC_BOOL crfsc_trans_dir_whole(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
 /*------------------------------------------------ interface for replica ------------------------------------------------*/
 #if 0
-EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec)
+EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -3509,7 +3509,7 @@ EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const 
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes, expire_nsec);
+             &result, FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes);
 
     return (result);
 }

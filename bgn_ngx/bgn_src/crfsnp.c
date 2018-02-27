@@ -673,7 +673,6 @@ EC_BOOL crfsnp_item_init(CRFSNP_ITEM *crfsnp_item)
     CRFSNP_ITEM_PARENT_POS(crfsnp_item)       = CRFSNPRB_ERR_POS;/*fix*/
     CRFSNP_ITEM_KLEN(crfsnp_item)             = 0;
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item)      = 0;
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)      = 0;
     CRFSNP_ITEM_SECOND_HASH(crfsnp_item)      = 0;
 
     BSET(CRFSNP_ITEM_KEY(crfsnp_item), '\0', CRFSNP_KEY_MAX_SIZE);
@@ -692,7 +691,6 @@ EC_BOOL crfsnp_item_clean(CRFSNP_ITEM *crfsnp_item)
     CRFSNP_ITEM_PARENT_POS(crfsnp_item)       = CRFSNPRB_ERR_POS;/*fix bug: break pointer to parent*/
     CRFSNP_ITEM_KLEN(crfsnp_item)             = 0;
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item)      = 0;
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)      = 0;
     CRFSNP_ITEM_SECOND_HASH(crfsnp_item)      = 0;
 
 #if 0
@@ -731,7 +729,6 @@ EC_BOOL crfsnp_item_clone(const CRFSNP_ITEM *crfsnp_item_src, CRFSNP_ITEM *crfsn
     /*give up copying parent_pos !*/
  
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item_des) = CRFSNP_ITEM_CREATE_TIME(crfsnp_item_src);
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item_des) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item_src);
 
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item_src))
     {
@@ -776,7 +773,6 @@ EC_BOOL crfsnp_item_move(const CRFSNP_ITEM *crfsnp_item_src, CRFSNP_ITEM *crfsnp
     /*give up copying parent_pos !*/
  
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item_des) = CRFSNP_ITEM_CREATE_TIME(crfsnp_item_src);
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item_des) = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item_src);
     CRFSNP_ITEM_SECOND_HASH(crfsnp_item_des) = CRFSNP_ITEM_SECOND_HASH(crfsnp_item_src);
 
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item_src))
@@ -841,13 +837,12 @@ void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
 {
     uint32_t pos;
 
-    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, klen %u, create time %u, expire in %u seconds, hash %u\n",
+    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, klen %u, create time %u, hash %u\n",
                     crfsnp_item,
                     CRFSNP_ITEM_DIR_FLAG(crfsnp_item), __crfsnp_item_dir_flag_str(CRFSNP_ITEM_DIR_FLAG(crfsnp_item)),
                     CRFSNP_ITEM_USED_FLAG(crfsnp_item),
                     CRFSNP_ITEM_KLEN(crfsnp_item),
                     CRFSNP_ITEM_CREATE_TIME(crfsnp_item),
-                    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item),
                     CRFSNP_ITEM_SECOND_HASH(crfsnp_item)
                     );
 
@@ -3206,18 +3201,7 @@ EC_BOOL crfsnp_item_expire(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item)
 
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
-        if(0 == CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item))
-        {
-            /*if never expire*/
-
-            CRFSNP_ITEM_CREATE_TIME(crfsnp_item) --;
-            CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = 1;
-
-            return (EC_TRUE);
-        }
-
-        CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = 1;
-
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_item_expire: obsolete interface\n");
         return (EC_TRUE);
     }
 
@@ -3633,19 +3617,6 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const uint32_t dflag, const UINT32 nsec, c
                     dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_retire: np %u node_pos %d [REG][1] done\n",CRFSNP_ID(crfsnp), node_pos);
                 }
             }
-#if 0
-            /*retire if expired*/
-            else if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)
-            && CRFSNP_ITEM_CREATE_TIME(crfsnp_item) + CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) < cur_time)
-            {
-                /*retire it*/
-                if(EC_TRUE == crfsnp_umount_item(crfsnp, node_pos))
-                {
-                    retire_num ++;
-                    dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_retire: np %u node_pos %d [REG][2] done\n",CRFSNP_ID(crfsnp), node_pos);
-                }
-            }
-#endif         
             continue;
         }
 
@@ -3660,19 +3631,6 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const uint32_t dflag, const UINT32 nsec, c
                     dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_retire: np %u node_pos %d [BIG][1] done\n",CRFSNP_ID(crfsnp), node_pos);
                 }
             }
-#if 0
-            /*retire if expired*/
-            else if(0 != CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)
-            && CRFSNP_ITEM_CREATE_TIME(crfsnp_item) + CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) < cur_time)
-            {
-                /*retire it*/
-                if(EC_TRUE == crfsnp_umount_item(crfsnp, node_pos))
-                {
-                    retire_num ++;
-                    dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_retire: np %u node_pos %d [BIG][2] done\n",CRFSNP_ID(crfsnp), node_pos);
-                }
-            }
-#endif         
             continue;
         }
 
@@ -6271,9 +6229,6 @@ static EC_BOOL __crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node
     CSTRING           *file_path;
     CBYTES            *cbytes;
                    
-    UINT32             expire_nsec;
-    EC_BOOL            need_expired_content;
-                   
     MOD_NODE           recv_mod_node;
 
     CRFSNP_TRANS_NODE *crfsnp_trans_node;
@@ -6298,8 +6253,7 @@ static EC_BOOL __crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node
     MOD_NODE_RANK(&recv_mod_node) = CMPI_CRFSC_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0 /*CMPI_ANY_MODI*/;
 
-    need_expired_content = EC_FALSE;
-    if(EC_FALSE == CRFSNP_TRANS_CRFS_READ_FILE(crfsnp_trans_dn)(CRFSNP_TRANS_CRFS_MODI(crfsnp_trans_dn), file_path, cbytes, NULL_PTR, need_expired_content))
+    if(EC_FALSE == CRFSNP_TRANS_CRFS_READ_FILE(crfsnp_trans_dn)(CRFSNP_TRANS_CRFS_MODI(crfsnp_trans_dn), file_path, cbytes))
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_transfer_handle_file: read failed when transfer_handle file '%s'\n",
                             (char *)cstring_get_str(file_path));
@@ -6307,10 +6261,9 @@ static EC_BOOL __crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node
         return (EC_FALSE);
     }
 
-    expire_nsec = CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item);
     CRFSNP_TRANS_NODE_RET(crfsnp_trans_node) = EC_FALSE;
     task_p2p_inc(task_mgr, CRFSNP_TRANS_CRFSC_MODI(crfsnp_trans_dn), &recv_mod_node,
-                 &(CRFSNP_TRANS_NODE_RET(crfsnp_trans_node)), FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes, expire_nsec);
+                 &(CRFSNP_TRANS_NODE_RET(crfsnp_trans_node)), FI_crfsc_write_ep, CMPI_ERROR_MODI, file_path, cbytes);
 
     cvector_push(crfsnp_trans_node_vec, (void *)crfsnp_trans_node);
 
@@ -6354,7 +6307,6 @@ EC_BOOL crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node_pos, con
 static EC_BOOL __crfsnp_transfer_handle_file_b_offset(CRFSNP *crfsnp, const CSTRING *file_path, uint64_t *offset, const MOD_NODE *recv_mod_node, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CBYTES         *cbytes;
-    EC_BOOL         need_expired_content;
 
     EC_BOOL         ret;
     uint64_t        save_offset;
@@ -6368,8 +6320,7 @@ static EC_BOOL __crfsnp_transfer_handle_file_b_offset(CRFSNP *crfsnp, const CSTR
     }
 
     save_offset = (*offset);
-    need_expired_content = EC_FALSE;
-    ret = CRFSNP_TRANS_CRFS_READ_FILE_B(crfsnp_trans_dn)(CRFSNP_TRANS_CRFS_MODI(crfsnp_trans_dn),file_path, &save_offset, CPGB_CACHE_MAX_BYTE_SIZE, cbytes, NULL_PTR, need_expired_content);
+    ret = CRFSNP_TRANS_CRFS_READ_FILE_B(crfsnp_trans_dn)(CRFSNP_TRANS_CRFS_MODI(crfsnp_trans_dn),file_path, &save_offset, CPGB_CACHE_MAX_BYTE_SIZE, cbytes);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_transfer_handle_file_b: read offset %ld failed when transfer_handle bigfile '%s'\n",

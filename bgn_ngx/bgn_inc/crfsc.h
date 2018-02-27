@@ -163,18 +163,18 @@ EC_BOOL crfsc_is_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path);
 *  write a file
 *
 **/
-EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec);
+EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes);
 
-EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec);
+EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes);
 
 /**
 *
 *  read a file
 *
 **/
-EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes);
 
-EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes);
 
 /*----------------------------------- POSIX interface -----------------------------------*/
 /**
@@ -193,9 +193,9 @@ EC_BOOL crfsc_write_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32
 *  when max_len = 0, return the partial content from offset to EOF (end of file); 
 *
 **/
-EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
 
-EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
 
 /*----------------------------------- BIG FILE interface -----------------------------------*/
 
@@ -222,20 +222,20 @@ EC_BOOL crfsc_write_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64
 *  read a file from offset
 *
 **/
-EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
 
-EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
 
-EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t offset, UINT32 *expires_timestamp, const EC_BOOL need_expired_content, uint32_t *block_size, int *block_fd);
+EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t offset, uint32_t *block_size, int *block_fd);
 
 /**
 *
 *  renew a fnode to name node
 *
 **/
-EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp);
+EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path);
 
-EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp);
+EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path);
 
 /**
 *
@@ -277,9 +277,9 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
 *  update a file 
 *
 **/
-EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec);
+EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes);
 
-EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec);
+EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes);
 
 /**
 *
@@ -304,9 +304,9 @@ EC_BOOL crfsc_file_size(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
 *  get bigfile store size of specific file given full path name
 *
 **/
-EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp);
+EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size);
 
-EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp);
+EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size);
 
 /**
 *

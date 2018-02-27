@@ -6840,7 +6840,7 @@ EC_BOOL super_do_test(const UINT32 super_md_id)
 
     cbytes_append(&body, (UINT8 *)body_data, strlen(body_data));
  
-    crfs_write(0, &path, &body, 0);
+    crfs_write(0, &path, &body);
 
     cstring_clean(&path);
     cbytes_clean(&body);
@@ -7341,7 +7341,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
     ret = EC_FALSE;         
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
             &recv_mod_node,
-            &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, (UINT32)0, auth_token);
+            &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, auth_token);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: store '%.*s' done\n",
                     CSTRING_LEN(path), CSTRING_STR(path));

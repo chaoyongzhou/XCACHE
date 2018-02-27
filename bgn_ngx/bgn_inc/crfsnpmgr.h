@@ -148,7 +148,7 @@ EC_BOOL crfsnp_mgr_find_file_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path)
 
 EC_BOOL crfsnp_mgr_find(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
-CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const uint32_t expire_nsec);
+CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
 
 EC_BOOL crfsnp_mgr_release(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
 
@@ -156,15 +156,13 @@ EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, c
 
 EC_BOOL crfsnp_mgr_write(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const CRFSNP_FNODE *crfsnp_fnode);
 
-EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode, UINT32 *expires_timestamp);
+EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode);
 
 EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const CRFSNP_FNODE *crfsnp_fnode);
 
-EC_BOOL crfsnp_mgr_update_expires(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const UINT32 expires_timestamp);
-
 EC_BOOL crfsnp_mgr_write_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const uint64_t *file_size, UINT32 (*hash_func)(const UINT32, const UINT8 *));
 
-EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos, UINT32 *expires_timestamp);
+EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos);
 
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
@@ -202,7 +200,7 @@ EC_BOOL crfsnp_mgr_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const 
 
 EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *path_cstr, const uint32_t dflag, CRFSNP_DIT_NODE *crfsnp_dit_node);
 
-EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size, UINT32 *expires_timestamp);
+EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size);
 
 EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CMD5_DIGEST *md5sum);
 

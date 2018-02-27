@@ -2879,16 +2879,7 @@ EC_BOOL csfshttp_handle_getsmf_memc_get_request(CHTTP_NODE *chttp_node)
     CBYTES        *content_cbytes;
 
     UINT32         req_body_chunk_num;
-/*
-    char          *expired_body_str;
-    char          *store_offset_str;
-    char          *store_size_str;
 
-    EC_BOOL        expired_body_needed;
-    UINT32         expires_timestamp;
-    char           expires_str[64];
-    uint32_t       expires_str_len;
-*/
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmfmemc");

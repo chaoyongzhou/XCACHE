@@ -213,6 +213,8 @@ EC_BOOL c_basedir_create(const char *file_name);
 
 EC_BOOL c_dir_exist(const char *pathname);
 
+EC_BOOL c_dir_remove(const char *pathname);
+
 EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size);
 
 EC_BOOL c_file_flush(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
@@ -248,6 +250,10 @@ EC_BOOL c_file_truncate(int fd, const UINT32 fsize);
 EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ]);
 
 EC_BOOL c_file_unlink(const char *filename);
+
+EC_BOOL c_file_remove(const char *filename);
+
+EC_BOOL c_file_rename(const char *src_filename, const char *des_filename);
 
 int c_mem_ncmp(const UINT8 *src, const UINT32 slen, const UINT8 *des, const UINT32 dlen);
 

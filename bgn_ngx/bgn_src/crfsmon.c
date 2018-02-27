@@ -1830,10 +1830,11 @@ static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md_id, char *c
     return (EC_TRUE);
 }
 
-EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const char *fname)
+EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *path)
 {
     CRFSMON_MD  *crfsmon_md;
 
+    const char  *fname;
     UINT32       fsize;
     UINT32       offset;
     UINT8       *fcontent;
@@ -1850,6 +1851,15 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const char *fname
 #endif/*CRFS_DEBUG_SWITCH*/
 
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    if(EC_TRUE == cstring_is_empty(path))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "path is empty\n");
+        return (EC_FALSE);                     
+    }
+
+    fname = (char *)cstring_get_str(path);
 
     fd = c_file_open(fname, O_RDONLY, 0666);
     if(ERR_FD == fd)
@@ -1918,6 +1928,29 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const char *fname
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
                                             "parse file '%s' done\n",
                                             fname);   
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsmon_crfs_hot_path_unload(const UINT32 crfsmon_md_id)
+{
+    CRFSMON_MD  *crfsmon_md;
+
+#if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
+    if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfsmon_crfs_hot_path_unload: crfsmon module #0x%lx not started.\n",
+                crfsmon_md_id);
+        dbg_exit(MD_CRFSMON, crfsmon_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+
+    crb_tree_clean(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
+
+    dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
+                                            "unload done\n");   
     return (EC_TRUE);
 }
 

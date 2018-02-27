@@ -192,7 +192,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec); -- */
+/* -- EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_write_ep,
 /*func beg addr   */     0,
@@ -201,13 +201,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_write_ep",
 /*func index      */     FI_crfsc_write_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec); -- */
+/* -- EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_write,
 /*func beg addr   */     0,
@@ -216,13 +216,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_write",
 /*func index      */     FI_crfsc_write,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read_ep,
 /*func beg addr   */     0,
@@ -231,13 +231,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read_ep",
 /*func index      */     FI_crfsc_read_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read,
 /*func beg addr   */     0,
@@ -246,9 +246,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read",
 /*func index      */     FI_crfsc_read,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -282,7 +282,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read_e_ep,
 /*func beg addr   */     0,
@@ -291,13 +291,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read_e_ep",
 /*func index      */     FI_crfsc_read_e_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     7,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read_e,
 /*func beg addr   */     0,
@@ -306,9 +306,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read_e",
 /*func index      */     FI_crfsc_read_e,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     7,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -372,7 +372,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read_b_ep,
 /*func beg addr   */     0,
@@ -381,13 +381,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read_b_ep",
 /*func index      */     FI_crfsc_read_b_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     7,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content); -- */
+/* -- EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_read_b,
 /*func beg addr   */     0,
@@ -396,13 +396,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_read_b",
 /*func index      */     FI_crfsc_read_b,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     7,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,e_dbg_EC_BOOL,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp); -- */
+/* -- EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_renew_ep,
 /*func beg addr   */     0,
@@ -411,13 +411,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_renew_ep",
 /*func index      */     FI_crfsc_renew_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,},
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 expires_timestamp); -- */
+/* -- EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_renew,
 /*func beg addr   */     0,
@@ -426,9 +426,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_renew",
 /*func index      */     FI_crfsc_renew,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,},
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -537,7 +537,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec); -- */
+/* -- EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_update_ep,
 /*func beg addr   */     0,
@@ -546,13 +546,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_update_ep",
 /*func index      */     FI_crfsc_update_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 expire_nsec); -- */
+/* -- EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_update,
 /*func beg addr   */     0,
@@ -561,9 +561,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_update",
 /*func index      */     FI_crfsc_update,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -627,7 +627,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp); -- */
+/* -- EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_store_size_b_ep,
 /*func beg addr   */     0,
@@ -636,13 +636,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_store_size_b_ep",
 /*func index      */     FI_crfsc_store_size_b_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size, UINT32 *expires_timestamp); -- */
+/* -- EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_store_size_b,
 /*func beg addr   */     0,
@@ -651,9 +651,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_store_size_b",
 /*func index      */     FI_crfsc_store_size_b,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_uint64_t_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

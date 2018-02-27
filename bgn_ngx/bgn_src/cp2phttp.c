@@ -617,7 +617,7 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0068_CP2PHTTP, 1)(LOGSTDOUT, "warn:cp2phttp_handle_upload_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cp2phttp_handle_upload_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -710,7 +710,7 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: new cbytes without buff failed");
                  
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -723,7 +723,7 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
                          
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -937,7 +937,7 @@ EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0068_CP2PHTTP, 1)(LOGSTDOUT, "warn:cp2phttp_handle_upload_put_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cp2phttp_handle_upload_put_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -1030,7 +1030,7 @@ EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: new cbytes without buff failed");
                  
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -1043,7 +1043,7 @@ EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node)
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: export body with len %ld to cbytes failed", (UINT32)body_len);
                          
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;

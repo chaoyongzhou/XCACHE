@@ -3750,7 +3750,6 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
     num = CRFSNP_ITEM_CREATE_TIME(crfsnp_item);
     cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
  
-    cmpi_encode_uint32_t(comm, CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CRFSNP_ITEM_SECOND_HASH(crfsnp_item), out_buff, out_buff_max_len, position);
  
     cmpi_encode_uint32(comm, CRFSNP_ITEM_PARENT_POS(crfsnp_item), out_buff, out_buff_max_len, position);
@@ -3786,7 +3785,6 @@ UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp
     num = CRFSNP_ITEM_CREATE_TIME(crfsnp_item);
 
     cmpi_encode_uint32_size(comm, num, size);
-    cmpi_encode_uint32_t_size(comm, CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CRFSNP_ITEM_SECOND_HASH(crfsnp_item), size);
 
     cmpi_encode_uint32_size(comm, CRFSNP_ITEM_PARENT_POS(crfsnp_item), size);
@@ -3815,7 +3813,6 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
     UINT32 klen;
 
     ctime_t  create_time;
-    uint32_t expire_nsec;
     uint32_t second_hash;
 
     UINT32   num;
@@ -3853,11 +3850,9 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
     create_time = num;
  
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(expire_nsec));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(second_hash));
 
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = (ctime_t )(create_time);
-    CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item) = (uint32_t)(expire_nsec);
     CRFSNP_ITEM_SECOND_HASH(crfsnp_item) = (uint32_t)(second_hash);
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(parent_pos));

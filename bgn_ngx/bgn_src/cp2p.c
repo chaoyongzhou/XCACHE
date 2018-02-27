@@ -1081,11 +1081,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
 
     CSTRING          *file_path;
     CBYTES           *file_content;
-    UINT32            expires_timestamp;
-    EC_BOOL           need_expired_content;
     EC_BOOL           ret;
-
-    UINT32            expire_nsec;
     
 #if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
@@ -1120,8 +1116,6 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
         return (EC_FALSE);
     }    
 
-    need_expired_content = EC_TRUE;
-
     dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_download: "
                                          "download '%s' from RFS tcid %s\n", 
                                          (char *)cstring_get_str(file_path),
@@ -1135,7 +1129,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     ret = EC_FALSE;
     task_p2p(cp2p_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
              &recv_mod_node, 
-             &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, file_content, &expires_timestamp, need_expired_content);
+             &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, file_content);
 
     if(EC_FALSE == ret)
     {
@@ -1166,8 +1160,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     }
 
     /*store to storage*/
-    expire_nsec = 0;
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), file_path, file_content, expire_nsec))
+    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), file_path, file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_download: "
                                              "write '%s' to storage failed\n", 
@@ -1413,8 +1406,6 @@ EC_BOOL cp2p_file_dump(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
     
     CSTRING          *rfs_file_path;
     CBYTES           *rfs_file_content;
-    UINT32            expires_timestamp;
-    EC_BOOL           need_expired_content;
     
     UINT32            des_offset;
     int               des_fd;
@@ -1451,9 +1442,7 @@ EC_BOOL cp2p_file_dump(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
         return (EC_FALSE);
     } 
 
-    need_expired_content = EC_TRUE;
-    if(EC_FALSE == crfs_read(CP2P_MD_CRFS_MODI(cp2p_md), rfs_file_path, rfs_file_content, 
-                    &expires_timestamp, need_expired_content))
+    if(EC_FALSE == crfs_read(CP2P_MD_CRFS_MODI(cp2p_md), rfs_file_path, rfs_file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "read '%s' from storage failed\n", 
@@ -1687,7 +1676,6 @@ EC_BOOL cp2p_file_load(const UINT32 cp2p_md_id, const CSTRING *src_file, const C
     CBYTES           *src_file_bytes;
 
     CSTRING          *des_file_path;
-    UINT32            des_file_expire_nsec;
     
 #if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
@@ -1722,8 +1710,7 @@ EC_BOOL cp2p_file_load(const UINT32 cp2p_md_id, const CSTRING *src_file, const C
         return (EC_FALSE);
     }
 
-    des_file_expire_nsec = 0;
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_bytes, des_file_expire_nsec))
+    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_bytes))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_load: "
                                              "update '%s' to storage failed\n", 
@@ -1757,7 +1744,6 @@ EC_BOOL cp2p_file_upload(const UINT32 cp2p_md_id, const CBYTES *src_file_content
     CP2P_MD          *cp2p_md;
 
     CSTRING          *des_file_path;
-    UINT32            des_file_expire_nsec;
     
 #if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
@@ -1780,8 +1766,7 @@ EC_BOOL cp2p_file_upload(const UINT32 cp2p_md_id, const CBYTES *src_file_content
         return (EC_FALSE);
     }
 
-    des_file_expire_nsec = 0;
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_content, des_file_expire_nsec))
+    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_upload: "
                                              "update '%s' to storage failed\n", 

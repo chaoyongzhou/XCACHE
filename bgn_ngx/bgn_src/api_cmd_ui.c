@@ -301,7 +301,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc open"    , "hsrfsc open from root <dir> on tcid <tcid>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc close"   , "hsrfsc close on tcid <tcid>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc read"    , "hsrfsc read file <name> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsrfsc write"   , "hsrfsc write file <name> with content <string> and expire <num> seconds on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsrfsc write"   , "hsrfsc write file <name> with content <string> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc create"  , "hsrfsc create bigfile <name> with size <file size> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc read"    , "hsrfsc read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc download", "hsrfsc download bigfile <name> to file <name> on tcid <tcid> at <console|log>");
@@ -758,7 +758,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_open            , "hsrfsc open from root %s on tcid %t", where, tcid);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_close           , "hsrfsc close on tcid %t", tcid);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_read            , "hsrfsc read file %s on tcid %t at %s", where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write           , "hsrfsc write file %s with content %s and expire %n seconds on tcid %t at %s", where, where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write           , "hsrfsc write file %s with content %s on tcid %t at %s", where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_create_b        , "hsrfsc create bigfile %s with size %N on tcid %t at %s", where, offset64, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_read_b          , "hsrfsc read bigfile %s from offset %N max %n on tcid %t at %s", where, offset64, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write_b         , "hsrfsc write bigfile %s with content %s at offset %N on tcid %t at %s", where, where, offset64, tcid, where); 
@@ -15256,8 +15256,6 @@ EC_BOOL api_cmd_ui_crfs_read(CMD_PARA_VEC * param)
 
     MOD_NODE   mod_node;
     CBYTES    *cbytes;
-    UINT32     expires_timestamp;
-    EC_BOOL    need_expired_content;
     LOG       *des_log;
     EC_BOOL    ret;
  
@@ -15282,11 +15280,10 @@ EC_BOOL api_cmd_ui_crfs_read(CMD_PARA_VEC * param)
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
 
-    need_expired_content = EC_TRUE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfs_read, CMPI_ERROR_MODI, file_name, cbytes, &expires_timestamp, need_expired_content);
+             FI_crfs_read, CMPI_ERROR_MODI, file_name, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -15350,7 +15347,7 @@ EC_BOOL api_cmd_ui_crfs_write(CMD_PARA_VEC * param)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfs_write, CMPI_ERROR_MODI, file_name, cbytes, 0); // set expire_nsec = 0
+             FI_crfs_write, CMPI_ERROR_MODI, file_name, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -15436,9 +15433,6 @@ EC_BOOL api_cmd_ui_crfs_read_b(CMD_PARA_VEC * param)
     LOG       *des_log;
     EC_BOOL    ret;
 
-    UINT32    expires_timestamp;
-    EC_BOOL   need_expired_content;
-
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &file_name);
     api_cmd_para_vec_get_uint64(param  , 2, &offset);
@@ -15461,14 +15455,13 @@ EC_BOOL api_cmd_ui_crfs_read_b(CMD_PARA_VEC * param)
     MOD_NODE_RANK(&mod_node) = CMPI_CRFS_RANK;
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
-    need_expired_content = EC_TRUE;
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
  
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfs_read_b, CMPI_ERROR_MODI, file_name, &offset, max_len, cbytes, &expires_timestamp, need_expired_content);
+             FI_crfs_read_b, CMPI_ERROR_MODI, file_name, &offset, max_len, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -15654,20 +15647,17 @@ EC_BOOL api_cmd_ui_crfs_download_b(CMD_PARA_VEC * param)
     {
         EC_BOOL    ret;
         UINT32     max_len;
-        UINT32     offset_t;
-        UINT32     expires_timestamp;
-        EC_BOOL    need_expired_content;     
+        UINT32     offset_t;   
 
         max_len  = CPGB_CACHE_MAX_BYTE_SIZE;
         offset_t = (UINT32)offset;
 
-        need_expired_content = EC_TRUE;
         ret = EC_FALSE;     
      
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
-                 FI_crfs_read_b, CMPI_ERROR_MODI, bigfile_name, &offset, max_len, cbytes, &expires_timestamp, need_expired_content);
+                 FI_crfs_read_b, CMPI_ERROR_MODI, bigfile_name, &offset, max_len, cbytes);
 
         des_log = api_cmd_ui_get_log(where);
 
@@ -19209,8 +19199,7 @@ EC_BOOL api_cmd_ui_crfsc_read(CMD_PARA_VEC * param)
 
     MOD_NODE   mod_node;
     CBYTES    *cbytes;
-    UINT32     expires_timestamp;
-    EC_BOOL    need_expired_content;
+
     LOG       *des_log;
     EC_BOOL    ret;
  
@@ -19234,11 +19223,10 @@ EC_BOOL api_cmd_ui_crfsc_read(CMD_PARA_VEC * param)
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
 
-    need_expired_content = EC_TRUE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfsc_read, CMPI_ERROR_MODI, file_name, cbytes, &expires_timestamp, need_expired_content);
+             FI_crfsc_read, CMPI_ERROR_MODI, file_name, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -19262,7 +19250,6 @@ EC_BOOL api_cmd_ui_crfsc_write(CMD_PARA_VEC * param)
 {
     CSTRING *file_name;
     CSTRING *file_content;
-    UINT32   expire_nsec;
     UINT32   crfscnp_tcid;
     CSTRING *where;
 
@@ -19273,16 +19260,14 @@ EC_BOOL api_cmd_ui_crfsc_write(CMD_PARA_VEC * param)
 
     api_cmd_para_vec_get_cstring(param , 0, &file_name);
     api_cmd_para_vec_get_cstring(param , 1, &file_content);
-    api_cmd_para_vec_get_uint32(param  , 2, &expire_nsec);
-    api_cmd_para_vec_get_tcid(param    , 3, &crfscnp_tcid);
-    api_cmd_para_vec_get_cstring(param , 4, &where);
+    api_cmd_para_vec_get_tcid(param    , 2, &crfscnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
 
     /*hsrfsc write file <name> with content <string> on tcid <tcid> at <where>*/
     /*hsrfsc write file %s with content %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_write: hsrfsc write file %s with content %s and expire %ld seconds on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_write: hsrfsc write file %s with content %s on tcid %s at %s\n",
                         (char *)cstring_get_str(file_name),
                         (char *)cstring_get_str(file_content),
-                        expire_nsec,
                         c_word_to_ipv4(crfscnp_tcid),
                         (char *)cstring_get_str(where));
 
@@ -19299,7 +19284,7 @@ EC_BOOL api_cmd_ui_crfsc_write(CMD_PARA_VEC * param)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfsc_write, CMPI_ERROR_MODI, file_name, cbytes, expire_nsec);
+             FI_crfsc_write, CMPI_ERROR_MODI, file_name, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -19381,9 +19366,6 @@ EC_BOOL api_cmd_ui_crfsc_read_b(CMD_PARA_VEC * param)
     LOG       *des_log;
     EC_BOOL    ret;
 
-    UINT32    expires_timestamp;
-    EC_BOOL   need_expired_content;
-
     api_cmd_para_vec_get_cstring(param , 0, &file_name);
     api_cmd_para_vec_get_uint64(param  , 1, &offset);
     api_cmd_para_vec_get_uint32(param  , 2, &max_len);
@@ -19404,14 +19386,13 @@ EC_BOOL api_cmd_ui_crfsc_read_b(CMD_PARA_VEC * param)
     MOD_NODE_RANK(&mod_node) = CMPI_CRFSC_RANK;
     MOD_NODE_MODI(&mod_node) = 0;
 
-    need_expired_content = EC_TRUE;
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
  
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfsc_read_b, CMPI_ERROR_MODI, file_name, &offset, max_len, cbytes, &expires_timestamp, need_expired_content);
+             FI_crfsc_read_b, CMPI_ERROR_MODI, file_name, &offset, max_len, cbytes);
 
     des_log = api_cmd_ui_get_log(where);
 
@@ -19589,19 +19570,16 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
         EC_BOOL    ret;
         UINT32     max_len;
         UINT32     offset_t;
-        UINT32     expires_timestamp;
-        EC_BOOL    need_expired_content;     
 
         max_len  = CPGB_CACHE_MAX_BYTE_SIZE;
         offset_t = (UINT32)offset;
 
-        need_expired_content = EC_TRUE;
         ret = EC_FALSE;     
      
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
-                 FI_crfsc_read_b, CMPI_ERROR_MODI, bigfile_name, &offset, max_len, cbytes, &expires_timestamp, need_expired_content);
+                 FI_crfsc_read_b, CMPI_ERROR_MODI, bigfile_name, &offset, max_len, cbytes);
 
         des_log = api_cmd_ui_get_log(where);
 

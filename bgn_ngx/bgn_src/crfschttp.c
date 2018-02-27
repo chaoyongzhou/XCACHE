@@ -1174,14 +1174,9 @@ EC_BOOL crfschttp_handle_renew_request(CRFSCHTTP_NODE *crfschttp_node)
     if(EC_TRUE == __crfschttp_uri_is_renew_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expired_nsec))
+        if(EC_FALSE == crfsc_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_renew_request: node %p, crfsc renew %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1276,14 +1271,9 @@ EC_BOOL crfschttp_handle_setsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     if(EC_TRUE == __crfschttp_uri_is_setsmf_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_setsmf_request: node %p, crfsc write %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1381,14 +1371,9 @@ EC_BOOL crfschttp_handle_update_request(CRFSCHTTP_NODE *crfschttp_node)
     else if(EC_TRUE == __crfschttp_uri_is_update_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_update_request: node %p, crfsc update %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1484,15 +1469,10 @@ EC_BOOL crfschttp_handle_put_request(CRFSCHTTP_NODE *crfschttp_node)
     if(EC_TRUE == __crfschttp_uri_is_setsmf_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
         //if(EC_FALSE == crfsc_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec, CRFSC_MAX_REPLICA_NUM))
-        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_put_request: node %p, crfsc write %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1508,14 +1488,9 @@ EC_BOOL crfschttp_handle_put_request(CRFSCHTTP_NODE *crfschttp_node)
     else if(EC_TRUE == __crfschttp_uri_is_update_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_put_request: node %p, crfsc update %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1611,15 +1586,10 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
     if(EC_TRUE == __crfschttp_uri_is_setsmf_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
         //if(EC_FALSE == crfsc_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec, CRFSC_MAX_REPLICA_NUM))
-        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_post_request: node %p, crfsc write %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1635,14 +1605,9 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
     else if(EC_TRUE == __crfschttp_uri_is_update_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        char    *expired_str;
-        uint32_t expired_nsec;
-
-        expired_str  = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expires");
-        expired_nsec = c_str_to_uint32_t(expired_str);
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, expired_nsec))
+        if(EC_FALSE == crfsc_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_post_request: node %p, crfsc update %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -1952,15 +1917,8 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     CSTRING        path_cstr;
     CBYTES        *content_cbytes;
 
-    char          *expired_body_str;
     char          *store_offset_str;
     char          *store_size_str;
-
-    EC_BOOL        expired_body_needed;
-    UINT32         expires_timestamp;
-    char           expires_str[64];
-    uint32_t       expires_str_len;
-    CTIMET         cur_time;
 
     uri_cbuffer  = CRFSCHTTP_NODE_URI(crfschttp_node);
 
@@ -1977,16 +1935,6 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
 
     content_cbytes = CRFSCHTTP_NODE_CONTENT_CBYTES(crfschttp_node);
     cbytes_clean(content_cbytes);
-
-    expired_body_str = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expired_body");
-    if(NULL_PTR == expired_body_str || 0 == c_str_to_uint32_t(expired_body_str))
-    {
-        expired_body_needed = EC_TRUE;/*even if file expired, return file content*/
-    }
-    else
-    {
-        expired_body_needed = EC_FALSE;/*if file expired, NOT return file content*/
-    }
 
     store_offset_str = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"store_offset");
     if(NULL_PTR != store_offset_str)
@@ -2008,7 +1956,7 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
         offset        = store_offset;
         max_len       = store_size;
      
-        if(EC_FALSE == crfsc_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes, &expires_timestamp, expired_body_needed))
+        if(EC_FALSE == crfsc_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_getsmf_request: node %p, crfsc read %s with offset %u, size %u failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr), store_offset, store_size);
@@ -2027,7 +1975,7 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
         CSOCKET_CNODE * csocket_cnode;     
      
         csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
-        if(EC_FALSE == crfsc_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, &expires_timestamp, expired_body_needed))
+        if(EC_FALSE == crfsc_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_getsmf_request: node %p, crfsc read %s failed\n",
                                 crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -2039,18 +1987,6 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_TRUE);
         }
         CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_OK;
-    }
-
-    expires_str_len = snprintf(expires_str, sizeof(expires_str), "Expires:%ld\r\n", expires_timestamp);
-    cbuffer_set(CRFSCHTTP_NODE_EXPIRES(crfschttp_node), (uint8_t *)expires_str, expires_str_len);
-
-    cur_time = task_brd_default_get_time();
-    dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_getsmf_request: node %p, file '%s', expires_timestamp %ld, current time %ld\n",
-                        crfschttp_node, (char *)cstring_get_str(&path_cstr), expires_timestamp, cur_time);
-
-    if(0 < expires_timestamp && expires_timestamp < cur_time)
-    {
-        cbuffer_set(CRFSCHTTP_NODE_STALE(crfschttp_node), CONST_UINT8_STR_AND_LEN("Stale:1\r\n")); 
     }
 
     cstring_clean(&path_cstr);
@@ -2065,9 +2001,6 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfsc
     uint64_t   offset;
     uint64_t   offset_save;
     UINT32     max_len;
-
-    EC_BOOL    expires_timestamp;
-    EC_BOOL    expired_body_needed;
 
     CSTRING   *store_path;
     CBYTES     data_cbytes;
@@ -2110,8 +2043,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfsc
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] __crfschttp_handle_getbgf_request_read_body: node %p, read offset reach %ld\n",
                         crfschttp_node, offset);
 
-    expired_body_needed = CRFSCHTTP_NODE_EXPIRED_BODY_NEED(crfschttp_node);
-    if(EC_FALSE == crfsc_read_b(CSOCKET_CNODE_MODI(csocket_cnode), store_path, &offset, max_len, &data_cbytes, &expires_timestamp, expired_body_needed))
+    if(EC_FALSE == crfsc_read_b(CSOCKET_CNODE_MODI(csocket_cnode), store_path, &offset, max_len, &data_cbytes))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_read_body: node %p, crfsc read %s from offset %ld, max_len %u failed\n",
                             crfschttp_node, (char *)cstring_get_str(store_path), offset_save, max_len);
@@ -2232,9 +2164,6 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_block(CRFSCHTTP_NODE *crfs
     uint64_t   offset;
     uint32_t   max_len;
 
-    EC_BOOL    expires_timestamp;
-    EC_BOOL    expired_body_needed;
-
     CSTRING   *store_path;
 
     uint32_t   block_size;
@@ -2255,11 +2184,9 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_block(CRFSCHTTP_NODE *crfs
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] __crfschttp_handle_getbgf_request_read_block: node %p, read offset reach %ld\n",
                         crfschttp_node, offset);
-
-    expired_body_needed = CRFSCHTTP_NODE_EXPIRED_BODY_NEED(crfschttp_node);
  
     if(EC_FALSE == crfsc_fetch_block_fd_b_ep(CSOCKET_CNODE_MODI(csocket_cnode), store_path,
-                                          offset, &expires_timestamp, expired_body_needed,
+                                          offset,
                                           &block_size, &block_fd))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_read_block: node %p, crfsc fetch %s from offset %ld, max_len %u failed\n",
@@ -2403,25 +2330,6 @@ static EC_BOOL __crfschttp_handle_getbgf_request_fetch_path(CRFSCHTTP_NODE *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_fetch_expired_body_need(CRFSCHTTP_NODE *crfschttp_node)
-{
-    char          *expired_body_str;
-    EC_BOOL        expired_body_needed;
- 
-    expired_body_str = cstrkv_mgr_get_val_str(CRFSCHTTP_NODE_HEADER_KVS(crfschttp_node), (const char *)"Expired_body");
-    if(NULL_PTR == expired_body_str || 0 == c_str_to_uint32_t(expired_body_str))
-    {
-        expired_body_needed = EC_TRUE;/*even if file expired, return file content*/
-    }
-    else
-    {
-        expired_body_needed = EC_FALSE;/*if file expired, NOT return file content*/
-    }
-    CRFSCHTTP_NODE_EXPIRED_BODY_NEED(crfschttp_node) = expired_body_needed;
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfschttp_handle_getbgf_request(CRFSCHTTP_NODE *crfschttp_node)
 {
     CSOCKET_CNODE *csocket_cnode;
@@ -2433,10 +2341,6 @@ EC_BOOL crfschttp_handle_getbgf_request(CRFSCHTTP_NODE *crfschttp_node)
     char          *data_offset_str;
     char          *data_size_str;
 
-    EC_BOOL        expired_body_needed;
-    UINT32         expires_timestamp;
-    char           expires_str[64];
-    uint32_t       expires_str_len;
     //int            sock_sendbuf_size;
     uint64_t       store_size_of_file;
     MOD_NODE      *des_mod_node;
@@ -2496,12 +2400,8 @@ EC_BOOL crfschttp_handle_getbgf_request(CRFSCHTTP_NODE *crfschttp_node)
     content_cbytes = CRFSCHTTP_NODE_CONTENT_CBYTES(crfschttp_node);
     cbytes_clean(content_cbytes);
 
-    /*get expired_body_need flag*/
-    __crfschttp_handle_getbgf_request_fetch_expired_body_need(crfschttp_node);
-    expired_body_needed = CRFSCHTTP_NODE_EXPIRED_BODY_NEED(crfschttp_node);
-
     /*get file store_size*/
-    if(EC_FALSE == crfsc_store_size_b(CSOCKET_CNODE_MODI(csocket_cnode), store_path, &store_size_of_file, &expires_timestamp))
+    if(EC_FALSE == crfsc_store_size_b(CSOCKET_CNODE_MODI(csocket_cnode), store_path, &store_size_of_file))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_getbgf_request: node %p, crfsc get store size of file %s failed\n",
                             crfschttp_node, (char *)cstring_get_str(store_path));
@@ -2572,15 +2472,6 @@ EC_BOOL crfschttp_handle_getbgf_request(CRFSCHTTP_NODE *crfschttp_node)
  
     /*set http status code: OK*/
     CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_OK;
-
-    /*set Expires header*/
-    expires_str_len = snprintf(expires_str, sizeof(expires_str), "Expires:%ld\r\n", expires_timestamp);
-    cbuffer_set(CRFSCHTTP_NODE_EXPIRES(crfschttp_node), (uint8_t *)expires_str, expires_str_len);
-
-    if(0 < expires_timestamp && expires_timestamp < task_brd_default_get_time())
-    {
-        cbuffer_set(CRFSCHTTP_NODE_STALE(crfschttp_node), CONST_UINT8_STR_AND_LEN("Stale:1\r\n")); 
-    }
 
     CRFSCHTTP_NODE_SEND_DATA_MORE(crfschttp_node)      = __crfschttp_handle_getbgf_request_send_block_more;
     //CRFSCHTTP_NODE_SEND_DATA_MORE(crfschttp_node)      = __crfschttp_handle_getbgf_request_send_body_more;

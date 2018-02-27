@@ -214,7 +214,7 @@ typedef struct
     
     /*64 bits*/
     uint32_t      parent_pos;/*parent directory*/
-    uint32_t      expire_nsec;/*item will be expired in nseconds. 0 means never expired*/
+    uint32_t      rsvd2;/*item will be expired in nseconds. 0 means never expired*/
     
     uint8_t       rsvd3;
     uint8_t       key[ CRFSNP_KEY_MAX_SIZE ];  /* dir name or file name */
@@ -241,7 +241,6 @@ typedef struct
 #define CRFSNP_ITEM_DNODE(crfsnp_item)            (&((crfsnp_item)->u.dnode))
 #define CRFSNP_ITEM_BNODE(crfsnp_item)            (&((crfsnp_item)->u.bnode))
 #define CRFSNP_ITEM_CREATE_TIME(crfsnp_item)      ((crfsnp_item)->create_time)
-#define CRFSNP_ITEM_EXPIRE_NSEC(crfsnp_item)      ((crfsnp_item)->expire_nsec)
 #define CRFSNP_ITEM_SECOND_HASH(crfsnp_item)      ((crfsnp_item)->second_hash)
 
 /*get CRFSNP_ITEM from CRFSNPRB_NODE*/
@@ -520,8 +519,8 @@ typedef struct
 #define CRFSNP_RECYCLE_NP_FUNC(crfsnp_recycle_np)      ((crfsnp_recycle_np)->recycle_np)
 
 
-typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
-typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_B_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *expires_timestamp, const EC_BOOL need_expired_content);
+typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes);
+typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_B_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
 
 typedef EC_BOOL (* CRFSNP_TRANS_CRFSC_DEL_FILE_FUNC)(const UINT32 crfsc_md_id, const CSTRING *file_path);
 typedef EC_BOOL (* CRFSNP_TRANS_CRFSC_DEL_FILE_B_FUNC)(const UINT32 crfsc_md_id, const CSTRING *file_path);

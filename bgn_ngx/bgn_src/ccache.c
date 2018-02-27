@@ -592,8 +592,7 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
     
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
             &recv_mod_node,
-            &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, (UINT32)0, 
-            auth_token);
+            &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, auth_token);
 
     return (ret);
 }
@@ -1184,9 +1183,6 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES  *content_cbytes)
 {
-    UINT32                       expires_timestamp;
-    EC_BOOL                      need_expired_content;
-
     MOD_NODE                     recv_mod_node;
 
     EC_BOOL                      ret;
@@ -1196,7 +1192,6 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
 
-    need_expired_content = EC_TRUE;
     ret = EC_FALSE;
     
     if(CHTTP_SEG_ERR_OFFSET != store_start_offset
@@ -1211,8 +1206,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
             &recv_mod_node, 
-            &ret, FI_crfs_read_e, CMPI_ERROR_MODI, file_path, &store_offset, store_size, 
-            content_cbytes, &expires_timestamp, need_expired_content);
+            &ret, FI_crfs_read_e, CMPI_ERROR_MODI, file_path, &store_offset, store_size, content_cbytes);
         
         if(EC_FALSE == ret)
         {
@@ -1230,8 +1224,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
         &recv_mod_node, 
-        &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, 
-        content_cbytes, &expires_timestamp, need_expired_content);
+        &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, content_cbytes);
     
     if(EC_FALSE == ret)
     {

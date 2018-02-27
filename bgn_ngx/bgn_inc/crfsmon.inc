@@ -296,7 +296,36 @@ FUNC_ADDR_NODE g_crfsmon_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_LOG_ptr,},
 /*func para val   */     0, 0, {0},
 },
-
+{
+/* -- EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *path); -- */
+/*func module     */     MD_CRFSMON,
+/*func logic addr */     (UINT32)crfsmon_crfs_hot_path_load,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "crfsmon_crfs_hot_path_load",
+/*func index      */     FI_crfsmon_crfs_hot_path_load,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL crfsmon_crfs_hot_path_unload(const UINT32 crfsmon_md_id); -- */
+/*func module     */     MD_CRFSMON,
+/*func logic addr */     (UINT32)crfsmon_crfs_hot_path_unload,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "crfsmon_crfs_hot_path_unload",
+/*func index      */     FI_crfsmon_crfs_hot_path_unload,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_crfsmon_func_addr_list_len = sizeof(g_crfsmon_func_addr_list)/sizeof(g_crfsmon_func_addr_list[0]);

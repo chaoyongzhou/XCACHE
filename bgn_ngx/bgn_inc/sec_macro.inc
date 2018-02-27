@@ -76,7 +76,7 @@
 #define SEC_0066_MM                         ((UINT32)(     66)) /*mm                              */
 #define SEC_0067_CSTACK                     ((UINT32)(     67)) /*cstack                          */
 #define SEC_0068_CP2PHTTP                   ((UINT32)(     68)) /*cp2phttp                        */
-#define SEC_0069_XXXXXXX                    ((UINT32)(     69)) /*xxxxxxx                         */
+#define SEC_0069_CFILE                      ((UINT32)(     69)) /*cfile                           */
 #define SEC_0070_XXXXX                      ((UINT32)(     70)) /*xxxxxxxxxxxxxxxxxxxxxxxxxx      */
 #define SEC_0071_XXXXE                      ((UINT32)(     71)) /*xxxxxxxxxxxxxxxxxxxxx           */
 #define SEC_0072_CEPOLL                     ((UINT32)(     72)) /*cepoll                          */

@@ -44,7 +44,8 @@ extern "C"{
 #define     MD_CTDNS     ((UINT32) 21)
 #define     MD_CDETECT   ((UINT32) 22)
 #define     MD_CP2P      ((UINT32) 23)
-#define     MD_END       ((UINT32) 24)
+#define     MD_CFILE     ((UINT32) 24)
+#define     MD_END       ((UINT32) 25)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)

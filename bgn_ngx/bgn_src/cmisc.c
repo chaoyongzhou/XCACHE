@@ -2203,6 +2203,26 @@ EC_BOOL c_dir_exist(const char *pathname)
     return (EC_FALSE);
 }
 
+/*if pathname is a file, call unlink; if pathname is a dir, call rmdir*/
+EC_BOOL c_dir_remove(const char *pathname)
+{
+    if (NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != remove(pathname))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dir_remove: "
+                                              "remove '%s' failed, errno = %d, errstr = %s\n", 
+                                              pathname, errno, strerror(errno));
+        
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
 {
     FILE    *rstream;
@@ -2720,6 +2740,48 @@ EC_BOOL c_file_unlink(const char *filename)
 
     if(0 != unlink(filename))
     {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_unlink: "
+                                              "unlink '%s' failed, errno = %d, errstr = %s\n", 
+                                              filename, errno, strerror(errno));    
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+/*if filename is a file, call unlink; if filename is a dir, call rmdir*/
+EC_BOOL c_file_remove(const char *filename)
+{
+    if (NULL_PTR == filename)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != remove(filename))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_remove: "
+                                              "remove '%s' failed, errno = %d, errstr = %s\n", 
+                                              filename, errno, strerror(errno));
+        
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_file_rename(const char *src_filename, const char *des_filename)
+{
+    if (NULL_PTR == src_filename || NULL_PTR == des_filename)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != rename(src_filename, des_filename))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_rename: "
+                                              "rename '%s' to '%s' failed, errno = %d, errstr = %s\n", 
+                                              src_filename, des_filename, errno, strerror(errno));
+        
         return (EC_FALSE);
     }
 

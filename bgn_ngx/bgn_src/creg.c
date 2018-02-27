@@ -43,6 +43,7 @@ extern "C"{
 #include "cdetect.h"
 #include "ctdnssv.h"
 #include "cp2p.h"
+#include "cfile.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -72,6 +73,7 @@ extern "C"{
 #include "cdetect.inc"
 #include "ctdnssv.inc"
 #include "cp2p.inc"
+#include "cfile.inc"
 #include "task.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
@@ -1140,6 +1142,8 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CDETECT ,  &g_cdetect_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cdetect_func_addr_list, FI_cdetect_start , FI_cdetect_end  , ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CP2P    ,  &g_cp2p_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cp2p_func_addr_list   , FI_cp2p_start    , FI_cp2p_end     , ERR_FUNC_ID             , NULL_PTR                                   );
+
+    creg_func_addr_vec_add(func_addr_vec, MD_CFILE   ,  &g_cfile_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cfile_func_addr_list  , FI_cfile_start    , FI_cfile_end   , ERR_FUNC_ID             , NULL_PTR                                   );
     
     return (EC_TRUE);
 }
