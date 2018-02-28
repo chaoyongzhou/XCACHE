@@ -166,6 +166,8 @@ EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint
 
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
+EC_BOOL crfsnp_mgr_umount_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
+
 EC_BOOL crfsnp_mgr_move(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag);
 
 EC_BOOL crfsnp_mgr_mkdir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path);

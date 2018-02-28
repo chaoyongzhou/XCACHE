@@ -4457,12 +4457,12 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
 /*note: copied from nginx*/
 void c_gmtime(time_t t, CTM *tp)
 {
-    uint32_t   yday;
-    uint32_t  n, sec, min, hour, mday, mon, year, wday, days, leap;
+    int           yday;
+    unsigned int  n, sec, min, hour, mday, mon, year, wday, days, leap;
 
     /* the calculation is valid for positive time_t only */
 
-    n = (uint32_t) t;
+    n = (unsigned int) t;
 
     days = n / 86400;
 

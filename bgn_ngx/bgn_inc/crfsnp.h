@@ -164,6 +164,8 @@ CRFSNP_ITEM *crfsnp_dnode_find(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_
 
 uint32_t crfsnp_dnode_search(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
+uint32_t crfsnp_dnode_match(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag); 
+
 uint32_t crfsnp_dnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const uint32_t path_seg_second_hash, const uint32_t path_seg_len, const uint8_t *path_seg, const uint32_t dir_flag);
 
 /**
@@ -185,6 +187,10 @@ uint32_t crfsnp_bnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const ui
 EC_BOOL crfsnp_bnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
 
 EC_BOOL crfsnp_bnode_delete_single_son(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item_del);
+
+uint32_t crfsnp_match_no_lock(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
+
+uint32_t crfsnp_match(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 uint32_t crfsnp_search_no_lock(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
@@ -259,6 +265,8 @@ EC_BOOL crfsnp_umount_item(CRFSNP *crfsnp, const uint32_t node_pos);
 EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos);
 
 EC_BOOL crfsnp_umount(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
+
+EC_BOOL crfsnp_umount_wild(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 EC_BOOL crfsnp_recycle_item_file(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
 

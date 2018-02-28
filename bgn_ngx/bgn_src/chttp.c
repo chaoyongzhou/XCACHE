@@ -7057,7 +7057,7 @@ static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp
             }
             
             /*note: time_t unit is second but not mico-second*/
-            expires_str = c_http_time(last_modified_time + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+            expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)));
             chttp_node_renew_header(chttp_node, (const char *)"Expires", expires_str);
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: renew header: 'Expires':'%s'\n", expires_str);
         }
@@ -7083,7 +7083,7 @@ static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp
             }
             
             /*note: time_t unit is second but not mico-second*/
-            expires_str = c_http_time(last_modified_time + (time_t)CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+            expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)));
             chttp_node_add_header(chttp_node, (const char *)"Expires", expires_str);
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: add header: 'Expires':'%s'\n", expires_str);
         }

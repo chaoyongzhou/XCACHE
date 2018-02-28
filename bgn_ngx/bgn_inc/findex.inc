@@ -488,6 +488,9 @@
 #define     FI_crfs_renew_http_headers_with_token  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 129))
 #define                 FI_crfs_update_with_token  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 130))
 #define                   FI_crfs_file_wait_ready  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 131))
+#define                  FI_crfs_delete_file_wild  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 132))
+#define                FI_crfs_delete_file_b_wild  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 133))
+#define                   FI_crfs_delete_dir_wild  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 134))
 
 //#define                       FI_crfs_write_cache  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + XX))
 

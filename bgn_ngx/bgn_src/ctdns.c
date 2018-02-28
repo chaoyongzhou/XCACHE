@@ -29,7 +29,7 @@ extern "C"{
 #include "cmpie.h"
 
 #include "cload.h"
-
+#include "coroutine.h"
 #include "cmd5.h"
 #include "cbase64code.h"
 

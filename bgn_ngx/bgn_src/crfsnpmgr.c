@@ -1267,6 +1267,89 @@ EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UIN
     return (EC_FALSE);
 }
 
+static EC_BOOL __crfsnp_mgr_umount_file_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    uint32_t crfsnp_id;
+    EC_BOOL  ret;
+
+    ret = EC_FALSE;
+    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
+    {
+        CRFSNP  *crfsnp;
+
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0040);
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0041);
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_wild: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0042);
+
+        if(EC_TRUE == crfsnp_umount_wild(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wild: np %u umount %.*s succ\n",
+                                crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+            ret = EC_TRUE;
+        }
+    }
+    
+    /*return true if any np succ*/
+    return (ret);
+}
+
+static EC_BOOL __crfsnp_mgr_umount_dir_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    uint32_t crfsnp_id;
+
+    EC_BOOL  ret;
+
+    ret = EC_FALSE;
+    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
+    {
+        CRFSNP *crfsnp;
+
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0043);
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0044);
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_dir_wild: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0045);
+
+        if(EC_TRUE == crfsnp_umount_wild(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_dir_wild: np %u umount %.*s succ\n",
+                                crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+            ret = EC_TRUE;
+        }
+    }
+
+    /*return true if any np succ*/
+    return (ret);
+}
+
+EC_BOOL crfsnp_mgr_umount_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    {
+        return __crfsnp_mgr_umount_file_wild(crfsnp_mgr, path, dflag);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
+    {
+        return __crfsnp_mgr_umount_dir_wild(crfsnp_mgr, path, dflag);
+    }
+ 
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wild: found invalid dflag 0x%x before umount %.*s\n",
+                        dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
+    return (EC_FALSE);
+}
+
+
 /*note: only support move in same np!*/
 static EC_BOOL __crfsnp_mgr_move_file(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag)
 {
@@ -1312,15 +1395,15 @@ static EC_BOOL __crfsnp_mgr_move_dir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path
     {
         CRFSNP *crfsnp;
 
-        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0040);
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0046);
         crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
         if(NULL_PTR == crfsnp)
         {
-            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0041);
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0047);
             dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_dir: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0042);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0048);
 
         if(EC_FALSE == crfsnp_move(crfsnp,  crfsnp,
                                    (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
@@ -1395,15 +1478,15 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
     CVECTOR  *cur_path_cstr_vec;
     uint32_t  node_pos;
  
-    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0043);
+    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0049);
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0044);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0050);
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_path_of_np: open np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0045);
+    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0051);
 
     node_pos = crfsnp_search_no_lock(crfsnp, cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_ANY);
     if(CRFSNPRB_ERR_POS == node_pos)
@@ -1411,7 +1494,7 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
         return (EC_TRUE);
     }
 
-    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0046);
+    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0052);
     if(NULL_PTR == cur_path_cstr_vec)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_path_of_np: new cur_path_cstr_vec failed\n");
@@ -1420,8 +1503,8 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
 
     if(EC_FALSE == crfsnp_list_path_vec(crfsnp, node_pos, cur_path_cstr_vec))
     {
-        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0047);
-        cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0048);
+        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0053);
+        cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0054);
      
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_path_of_np: list path %s in np %u failed\n",
                            (char *)cstring_get_str(path), crfsnp_id);
@@ -1433,7 +1516,7 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
         /*merge*/
         cvector_merge_direct_no_lock(cur_path_cstr_vec, path_cstr_vec);
     }
-    cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0049);
+    cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0055);
 
     return (EC_TRUE);
 }
@@ -1463,15 +1546,15 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
     CVECTOR  *cur_seg_cstr_vec;
     uint32_t  node_pos;
  
-    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0050);
+    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0056);
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0051);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0057);
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_seg_of_np: open np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0052);
+    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0058);
 
     node_pos = crfsnp_search_no_lock(crfsnp, cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_ANY);
     if(CRFSNPRB_ERR_POS == node_pos)
@@ -1479,7 +1562,7 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
         return (EC_TRUE);
     }
 
-    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0053);
+    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0059);
     if(NULL_PTR == cur_seg_cstr_vec)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_seg_of_np: new cur_seg_cstr_vec failed\n");
@@ -1488,8 +1571,8 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
 
     if(EC_FALSE == crfsnp_list_seg_vec(crfsnp, node_pos, cur_seg_cstr_vec))
     {
-        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0054);
-        cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0055);
+        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0060);
+        cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0061);
      
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_seg_of_np: list seg of path %s in np %u failed\n",
                            (char *)cstring_get_str(path), crfsnp_id);
@@ -1501,7 +1584,7 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
         /*merge*/
         cvector_merge_direct_no_lock(cur_seg_cstr_vec, seg_cstr_vec);
     }
-    cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0056);
+    cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0062);
 
     return (EC_TRUE);
 }
@@ -1531,15 +1614,15 @@ EC_BOOL crfsnp_mgr_file_num_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cs
     uint32_t  node_pos;
     uint32_t  cur_file_num;
  
-    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0057);
+    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0063);
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0058);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0064);
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_num_of_np: open np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0059);
+    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0065);
 
     cur_file_num = 0;
     node_pos = crfsnp_file_num(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_num);
@@ -1657,15 +1740,15 @@ EC_BOOL crfsnp_mgr_file_size_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_c
     uint32_t  node_pos;
     uint64_t  cur_file_size;
  
-    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0060);
+    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0066);
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0061);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0067);
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_size_of_np: open np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0062);
+    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0068);
 
     cur_file_size = 0;
     node_pos = crfsnp_file_size(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size);
@@ -1735,15 +1818,15 @@ EC_BOOL crfsnp_mgr_dir_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr)
     {
         CRFSNP *crfsnp;
 
-        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0063);
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0069);
         crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
         if(NULL_PTR == crfsnp)
         {
-            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0064);
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0070);
             dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_dir_expire: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0065);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0071);
 
         if(EC_FALSE == crfsnp_expire(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_DIR))
         {
@@ -1764,15 +1847,15 @@ EC_BOOL crfsnp_mgr_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, cons
     {
         CRFSNP *crfsnp;
 
-        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0066);
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0072);
         crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
         if(NULL_PTR == crfsnp)
         {
-            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0067);
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0073);
             dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_expire: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0068);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0074);
 
         if(EC_FALSE == crfsnp_expire(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag))
         {
@@ -1816,15 +1899,15 @@ EC_BOOL crfsnp_mgr_dir_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CR
     {
         CRFSNP *crfsnp;
 
-        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0069);
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0075);
         crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
         if(NULL_PTR == crfsnp)
         {
-            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0070);
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0076);
             dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_dir_walk: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0071);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0077);
 
         if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_DIR, crfsnp_dit_node))
         {
@@ -1845,15 +1928,15 @@ EC_BOOL crfsnp_mgr_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const 
     {
         CRFSNP *crfsnp;
 
-        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0072);
+        CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0078);
         crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
         if(NULL_PTR == crfsnp)
         {
-            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0073);
+            CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0079);
             dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_walk: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0074);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0080);
 
         if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, crfsnp_dit_node))
         {
@@ -1870,15 +1953,15 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
 {
     CRFSNP *crfsnp;
 
-    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0075);
+    CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, LOC_CRFSNPMGR_0081);
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
-        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0076);
+        CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0082);
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_walk_of_np: open np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0077);
+    CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0083);
 
     if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, crfsnp_dit_node))
     {

@@ -753,6 +753,33 @@ EC_BOOL crfsmc_delete_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UI
     return (EC_TRUE); 
 }
 
+EC_BOOL crfsmc_delete_wild_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
+{
+    CRFSNP *crfsnp;
+    uint32_t node_pos;
+
+    crfsnp = CRFSMC_NP(crfsmc);
+
+    node_pos = crfsnp_match_no_lock(crfsnp, CRFSNPRB_ROOT_POS, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), dflag);
+    if(CRFSNPRB_ERR_POS != node_pos)
+    {
+        UINT32  complete_num;
+     
+        crfsnp_umount_item_deep(crfsnp, node_pos);
+     
+        complete_num = 0;
+        crfsmc_recycle_no_lock(crfsmc, CRFSMC_RECYCLE_MAX_NUM, &complete_num);
+        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild_no_lock: delete path %s with dflag %ld and recycle %ld done\n",
+                           (char *)cstring_get_str(file_path), dflag, complete_num);
+        return (EC_TRUE);                        
+    }
+
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild_no_lock: not found path %s with dflag %ld\n",
+                   (char *)cstring_get_str(file_path), dflag);
+    return (EC_TRUE); 
+}
+
+
 EC_BOOL crfsmc_retire_no_lock(CRFSMC *crfsmc)
 {
     CRFSNP     *crfsnp;
@@ -913,16 +940,40 @@ EC_BOOL crfsmc_delete(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dfl
     return (EC_TRUE);
 }
 
+EC_BOOL crfsmc_delete_wild(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
+{
+    UINT32 count;
+    
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s start ...\n",
+                       (char *)cstring_get_str(file_path));
+                       
+    count = 0;
+    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0033);
+    while(EC_TRUE == crfsmc_delete_wild_no_lock(crfsmc, file_path, dflag))
+    {
+        count ++;
+        
+        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s: %ld\n",
+                           (char *)cstring_get_str(file_path), count);
+    }
+    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0034);
+
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s done, complete %ld\n",
+                       (char *)cstring_get_str(file_path), count);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL crfsmc_retire(CRFSMC *crfsmc)
 {
-    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0033);
+    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0035);
     if(EC_FALSE == crfsmc_retire_no_lock(crfsmc))
     {
-        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0034);
+        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0036);
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDOUT, "error:crfsmc_retire: retire failed\n");
         return (EC_FALSE);
     }
-    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0035);
+    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0037);
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_retire: retire done\n");
     return (EC_TRUE);
@@ -930,14 +981,14 @@ EC_BOOL crfsmc_retire(CRFSMC *crfsmc)
 
 EC_BOOL crfsmc_recycle(CRFSMC *crfsmc, const UINT32 max_num, UINT32 *complete_num)
 {
-    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0036);
+    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0038);
     if(EC_FALSE == crfsmc_recycle_no_lock(crfsmc, max_num, complete_num))
     {
-        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0037);
+        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0039);
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDOUT, "error:crfsmc_recycle: recycle failed\n");
         return (EC_FALSE);
     }
-    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0038);
+    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0040);
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_recycle: recycle done\n");
     return (EC_TRUE);
@@ -962,14 +1013,14 @@ void crfsmc_print(LOG *log, const CRFSMC *crfsmc)
 
 EC_BOOL crfsmc_ensure_room_safe_level(CRFSMC *crfsmc)
 {
-    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0039); 
+    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0041); 
     if(EC_FALSE == crfsmc_ensure_room_safe_level_no_lock(crfsmc))
     {
-        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0040);
+        CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0042);
         return (EC_FALSE);
     }
  
-    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0041);
+    CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0043);
     return (EC_TRUE);
 }
 

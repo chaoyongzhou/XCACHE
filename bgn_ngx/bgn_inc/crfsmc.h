@@ -93,6 +93,8 @@ EC_BOOL crfsmc_update(CRFSMC *crfsmc, const CSTRING *file_path, const CBYTES *cb
 
 EC_BOOL crfsmc_delete(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag);
 
+EC_BOOL crfsmc_delete_wild(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag);
+
 EC_BOOL crfsmc_retire(CRFSMC *crfsmc);
 
 EC_BOOL crfsmc_recycle(CRFSMC *crfsmc, const UINT32 max_num, UINT32 *complete_num);

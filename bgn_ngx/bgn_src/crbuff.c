@@ -59,7 +59,7 @@ EC_BOOL crbuff_clean(CRBUFF *crbuff)
     {
         if(NULL_PTR != CRBUFF_DATA(crbuff))
         {
-            safe_free(CRBUFF_DATA(crbuff), LOC_CRBUFF_0001);
+            safe_free(CRBUFF_DATA(crbuff), LOC_CRBUFF_0002);
             CRBUFF_DATA(crbuff) = NULL_PTR;
         }
         
@@ -77,7 +77,7 @@ EC_BOOL crbuff_free(CRBUFF *crbuff)
     if(NULL_PTR != crbuff)
     {
         crbuff_clean(crbuff);
-        safe_free(crbuff, LOC_CRBUFF_0001);  
+        safe_free(crbuff, LOC_CRBUFF_0003);  
     }
     return (EC_TRUE);
 }
@@ -104,7 +104,7 @@ EC_BOOL crbuff_set_capacity(CRBUFF *crbuff, const UINT32 capacity)
      * policy is used
      *
     **/
-    data = safe_malloc(capacity + 1, LOC_CRBUFF_0001);
+    data = safe_malloc(capacity + 1, LOC_CRBUFF_0004);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0033_CRBUFF, 0)(LOGSTDOUT, "error:crbuff_set_capacity:"
