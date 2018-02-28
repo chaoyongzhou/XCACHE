@@ -23973,6 +23973,7 @@ EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param)
     /*detect show orig node <domain> on tcid <tcid> at <where>*/
     /*detect show orig node %s on tcid %t at %s*/
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cdetect_show_orig_node: detect show orig node %s on tcid %s at %s\n",
+                        (char *)cstring_get_str(domain),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
 

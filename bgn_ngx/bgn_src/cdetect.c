@@ -305,7 +305,7 @@ EC_BOOL cdetect_orig_node_clear(CDETECT_ORIG_NODE *cdetect_orig_node)
     CDETECT_ORIG_NODE_STATUS_REACHABLE(cdetect_orig_node)        = CHTTP_OK;        /*default*/
     CDETECT_ORIG_NODE_STATUS_FORBIDDEN(cdetect_orig_node)        = CHTTP_FORBIDDEN; /*default*/
     CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)         = CDETECT_ORIG_NODE_CHOICE_LATEST;/*default*/
-    CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
+    //CDETECT_ORIG_NODE_DOMAIN_HASH(cdetect_orig_node)             = 0;
     
     CDETECT_ORIG_NODE_LAST_DETECT_TIME(cdetect_orig_node)        = 0;
     CDETECT_ORIG_NODE_LAST_ACCESS_TIME(cdetect_orig_node)        = 0;

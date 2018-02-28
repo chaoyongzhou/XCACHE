@@ -1177,7 +1177,7 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_switch(node, (const char *)"rfsHotPathSwitch"     , &(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"hfsConhashSwitch"     , &(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)));
     __cxml_parse_tag_uint16_t(node, (const char *)"hfsConhashReplicas" , &(CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg)));
-        __cxml_parse_tag_switch(node, (const char *)"sfsConhashSwitch"     , &(CPARACFG_CSFSMON_CONHASH_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"sfsConhashSwitch"     , &(CPARACFG_CSFSMON_CONHASH_SWITCH(cparacfg)));
     __cxml_parse_tag_uint16_t(node, (const char *)"sfsConhashReplicas" , &(CPARACFG_CSFSMON_CONHASH_REPLICAS(cparacfg)));
     __cxml_parse_tag_uint32_t(node, (const char *)"outputBlockingLowAt", &(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)));
     __cxml_parse_tag_uint32_t(node, (const char *)"epollTimeoutMsec"   , &(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)));
