@@ -1131,6 +1131,21 @@ EC_BOOL crfsbk_remove_file(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL crfsbk_remove_file_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsnp_umount_wildcard(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_REG))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_file_wildcard: umount %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+ 
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_file_wildcard: umount %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
 EC_BOOL crfsbk_remove_file_b(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsnp_umount(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_BIG))
@@ -1146,6 +1161,21 @@ EC_BOOL crfsbk_remove_file_b(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL crfsbk_remove_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsnp_umount_wildcard(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_BIG))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_file_b_wildcard: umount %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_file_b_wildcard: umount %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
 EC_BOOL crfsbk_remove_dir(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsnp_umount(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_DIR))
@@ -1156,6 +1186,21 @@ EC_BOOL crfsbk_remove_dir(CRFSBK *crfsbk, const CSTRING *path)
     }
 
     dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_dir: umount %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsbk_remove_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsnp_umount_wildcard(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_DIR))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_dir_wildcard: umount %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_dir_wildcard: umount %.*s done\n",
                         cstring_get_len(path), cstring_get_str(path));
  
     return (EC_TRUE);
@@ -1203,6 +1248,48 @@ EC_BOOL crfsbk_remove(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
     return (EC_FALSE);
 }
 
+EC_BOOL crfsbk_remove_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
+{
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
+    {
+        return crfsbk_remove_file_wildcard(crfsbk, path);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    {
+        return crfsbk_remove_file_b_wildcard(crfsbk, path);
+    } 
+
+    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
+    {
+        return crfsbk_remove_dir_wildcard(crfsbk, path);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
+    {
+        if(EC_TRUE == crfsbk_remove_file_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+     
+        if(EC_TRUE == crfsbk_remove_file_b_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+
+        if(EC_TRUE == crfsbk_remove_dir_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_wildcard: path [invalid 0x%x] %s\n",
+                        dflag, (char *)cstring_get_str(path));
+    return (EC_FALSE);
+}
+
 EC_BOOL crfsbk_delete_file(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsbk_remove_file(crfsbk, path))
@@ -1215,6 +1302,23 @@ EC_BOOL crfsbk_delete_file(CRFSBK *crfsbk, const CSTRING *path)
     crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_REG_OP, CRFSOP_PATH_IS_REG, path);
 
     dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_file: delete %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsbk_delete_file_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsbk_remove_file_wildcard(crfsbk, path))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_file_wildcard: delete %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_REG_OP, CRFSOP_PATH_IS_REG, path);
+
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_file_wildcard: delete %.*s done\n",
                         cstring_get_len(path), cstring_get_str(path));
  
     return (EC_TRUE);
@@ -1237,6 +1341,23 @@ EC_BOOL crfsbk_delete_file_b(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL crfsbk_delete_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsbk_remove_file_b_wildcard(crfsbk, path))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_file_b_wildcard: delete %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_BIG_OP, CRFSOP_PATH_IS_BIG, path);
+
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_file_b_wildcard: delete %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
 EC_BOOL crfsbk_delete_dir(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsbk_remove_dir(crfsbk, path))
@@ -1249,6 +1370,23 @@ EC_BOOL crfsbk_delete_dir(CRFSBK *crfsbk, const CSTRING *path)
     crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_DIR_OP, CRFSOP_PATH_IS_DIR, path);
 
     dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_dir: delete %.*s done\n",
+                        cstring_get_len(path), cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsbk_delete_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path)
+{
+    if(EC_FALSE == crfsbk_remove_dir_wildcard(crfsbk, path))
+    {
+        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_dir_wildcard: delete %.*s failed\n",
+                            cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_DIR_OP, CRFSOP_PATH_IS_DIR, path);
+
+    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_dir_wildcard: delete %.*s done\n",
                         cstring_get_len(path), cstring_get_str(path));
  
     return (EC_TRUE);
@@ -1292,6 +1430,48 @@ EC_BOOL crfsbk_delete(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
     }
 
     dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete: path [invalid 0x%x] %s\n",
+                        dflag, (char *)cstring_get_str(path));
+    return (EC_FALSE);
+}
+
+EC_BOOL crfsbk_delete_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
+{
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
+    {
+        return crfsbk_delete_file_wildcard(crfsbk, path);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    {
+        return crfsbk_delete_file_b_wildcard(crfsbk, path);
+    } 
+
+    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
+    {
+        return crfsbk_delete_dir_wildcard(crfsbk, path);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
+    {
+        if(EC_TRUE == crfsbk_delete_file_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+     
+        if(EC_TRUE == crfsbk_delete_file_b_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+
+        if(EC_TRUE == crfsbk_delete_dir_wildcard(crfsbk, path))
+        {
+            return (EC_TRUE);
+        }
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_wildcard: path [invalid 0x%x] %s\n",
                         dflag, (char *)cstring_get_str(path));
     return (EC_FALSE);
 }

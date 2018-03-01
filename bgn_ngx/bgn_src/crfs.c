@@ -144,7 +144,7 @@ static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTRING *file_pa
 static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode);
 static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
 
-static EC_BOOL __crfs_check_path_is_wild(const CSTRING *path);
+static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path);
 
 /**
 *   for test only
@@ -6352,7 +6352,7 @@ EC_BOOL crfs_delete_dn(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const CR
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_check_path_is_wild(const CSTRING *path)
+static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path)
 {
     const char     *str;
     UINT32          len;
@@ -6417,6 +6417,41 @@ EC_BOOL crfs_delete_file_backup(const UINT32 crfs_md_id, const CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL crfs_delete_file_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
+{
+    CRFS_MD      *crfs_md;
+ 
+#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
+    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfs_delete_file_backup_wildcard: crfs module #0x%lx not started.\n",
+                crfs_md_id);
+        dbg_exit(MD_CRFS, crfs_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfs_md = CRFS_MD_GET(crfs_md_id);
+ 
+    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_file_backup_wildcard: RFS in SYNC but backup RFS is null\n");
+        return (EC_FALSE);
+    }     
+
+    if(EC_FALSE == crfsbk_delete_file_wildcard(CRFS_MD_BACKUP(crfs_md), path))
+    {
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+                           (char *)cstring_get_str(path));  
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s from backup RFS done\n",
+                       (char *)cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
 EC_BOOL crfs_delete_file_b_backup(const UINT32 crfs_md_id, const CSTRING *path)
 {
     CRFS_MD      *crfs_md;
@@ -6447,6 +6482,41 @@ EC_BOOL crfs_delete_file_b_backup(const UINT32 crfs_md_id, const CSTRING *path)
     }
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup: delete file %s from backup RFS done\n",
+                       (char *)cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_delete_file_b_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
+{
+    CRFS_MD      *crfs_md;
+ 
+#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
+    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfs_delete_file_b_backup_wildcard: crfs module #0x%lx not started.\n",
+                crfs_md_id);
+        dbg_exit(MD_CRFS, crfs_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfs_md = CRFS_MD_GET(crfs_md_id);
+ 
+    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_file_b_backup_wildcard: RFS in SYNC but backup RFS is null\n");
+        return (EC_FALSE);
+    }     
+
+    if(EC_FALSE == crfsbk_delete_file_b_wildcard(CRFS_MD_BACKUP(crfs_md), path))
+    {
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+                           (char *)cstring_get_str(path));  
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup_wildcard: delete file %s from backup RFS done\n",
                        (char *)cstring_get_str(path));
  
     return (EC_TRUE);
@@ -6487,6 +6557,41 @@ EC_BOOL crfs_delete_dir_backup(const UINT32 crfs_md_id, const CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL crfs_delete_dir_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
+{
+    CRFS_MD      *crfs_md;
+ 
+#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
+    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfs_delete_dir_backup_wildcard: crfs module #0x%lx not started.\n",
+                crfs_md_id);
+        dbg_exit(MD_CRFS, crfs_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfs_md = CRFS_MD_GET(crfs_md_id);
+ 
+    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_dir_backup_wildcard: RFS in SYNC but backup RFS is null\n");
+        return (EC_FALSE);
+    }     
+
+    if(EC_FALSE == crfsbk_delete_dir(CRFS_MD_BACKUP(crfs_md), path))
+    {
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+                           (char *)cstring_get_str(path));  
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s from backup RFS done\n",
+                       (char *)cstring_get_str(path));
+ 
+    return (EC_TRUE);
+}
+
 /**
 *
 *  delete a file
@@ -6506,9 +6611,9 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(EC_TRUE == __crfs_check_path_is_wild(path))
+    if(EC_TRUE == __crfs_check_path_has_wildcard(path))
     {
-        return crfs_delete_file_wild(crfs_md_id, path);
+        return crfs_delete_file_wildcard(crfs_md_id, path);
     }
 
     /*in SYNC state*/
@@ -6619,7 +6724,7 @@ EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path)
+EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
 {
     CRFS_MD      *crfs_md;
     MOD_NODE      mod_node;
@@ -6628,7 +6733,7 @@ EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_wild: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_wildcard: crfs module #0x%lx not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6637,19 +6742,16 @@ EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path)
     /*in SYNC state*/
     if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
     {
-#if 0    
-        if(EC_TRUE == crfs_delete_file_backup(crfs_md_id, path))
+        if(EC_TRUE == crfs_delete_file_backup_wildcard(crfs_md_id, path))
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wild: delete file %s from backup RFS done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: delete file %s from backup RFS done\n",
                                    (char *)cstring_get_str(path));         
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_wild: delete file %s from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_wildcard: delete file %s from backup RFS failed\n",
                                (char *)cstring_get_str(path));    
-#endif     
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_wild: not support delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path)); 
+
         return (EC_FALSE);/*terminate, not change RFS*/
     }
  
@@ -6657,33 +6759,33 @@ EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path)
 
     if(SWITCH_ON == CRFS_MEMC_SWITCH)
     {
-        if(EC_TRUE == crfsmc_delete_wild(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
+        if(EC_TRUE == crfsmc_delete_wildcard(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wild: delete file %s from memcache done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: delete file %s from memcache done\n",
                                (char *)cstring_get_str(path));
         }
     } 
 
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wild: npp was not open\n");
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wildcard: npp was not open\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wild: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %u, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0154);
-    if(EC_FALSE == crfsnp_mgr_umount_wild(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
+    if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wild: umount %.*s failed or terminated\n",
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wildcard: umount %.*s failed or terminated\n",
                             cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0155);    
         return (EC_FALSE);                            
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0156);
  
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wild: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %u, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     /*force to unlock the possible locked-file*/
@@ -6698,7 +6800,7 @@ EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path)
     task_p2p_no_wait(crfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &mod_node,
              NULL_PTR,
-             FI_crfs_delete_file_wild, CMPI_ERROR_MODI, path);
+             FI_crfs_delete_file_wildcard, CMPI_ERROR_MODI, path);
              
     return (EC_TRUE);
 }
@@ -6722,9 +6824,9 @@ EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(EC_TRUE == __crfs_check_path_is_wild(path))
+    if(EC_TRUE == __crfs_check_path_has_wildcard(path))
     {
-        return crfs_delete_file_b_wild(crfs_md_id, path);
+        return crfs_delete_file_b_wildcard(crfs_md_id, path);
     }
     
     /*in SYNC state*/
@@ -6833,7 +6935,7 @@ EC_BOOL crfs_delete_file_b_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path)
+EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
 {
     CRFS_MD      *crfs_md;
     MOD_NODE      mod_node;
@@ -6842,7 +6944,7 @@ EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b_wild: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b_wildcard: crfs module #0x%lx not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6851,19 +6953,15 @@ EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path)
     /*in SYNC state*/
     if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
     {
-#if 0    
-        if(EC_TRUE == crfs_delete_file_b_backup(crfs_md_id, path))
+        if(EC_TRUE == crfs_delete_file_b_backup_wildcard(crfs_md_id, path))
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wild: delete file %s from backup RFS done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: delete file %s from backup RFS done\n",
                                    (char *)cstring_get_str(path));         
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_b_wild: delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));         
-#endif
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_b_wild: not support delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));         
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_b_wildcard: delete file %s from backup RFS failed\n",
+                               (char *)cstring_get_str(path));                 
 
         return (EC_FALSE);/*terminate, not change RFS*/
     }
@@ -6872,34 +6970,34 @@ EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path)
 
     if(SWITCH_ON == CRFS_MEMC_SWITCH)
     {
-        if(EC_TRUE == crfsmc_delete_wild(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
+        if(EC_TRUE == crfsmc_delete_wildcard(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wild: delete file %s from memcache done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: delete file %s from memcache done\n",
                                (char *)cstring_get_str(path));
         }
     }
  
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_b_wild: npp was not open\n");
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_b_wildcard: npp was not open\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wild: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %u, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0160);
-    if(EC_FALSE == crfsnp_mgr_umount_wild(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
+    if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_b_wild: umount %.*s failed or terminated\n",
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_b_wildcard: umount %.*s failed or terminated\n",
                             cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0161);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0162);
  
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wild: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %u, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
      /*try to delete next matched file*/
@@ -6911,7 +7009,7 @@ EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path)
     task_p2p_no_wait(crfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &mod_node,
              NULL_PTR,
-             FI_crfs_delete_file_b_wild, CMPI_ERROR_MODI, path);
+             FI_crfs_delete_file_b_wildcard, CMPI_ERROR_MODI, path);
              
     return (EC_TRUE);
 }
@@ -6935,9 +7033,9 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(EC_TRUE == __crfs_check_path_is_wild(path))
+    if(EC_TRUE == __crfs_check_path_has_wildcard(path))
     {
-        return crfs_delete_dir_wild(crfs_md_id, path);
+        return crfs_delete_dir_wildcard(crfs_md_id, path);
     }
 
     /*in SYNC state*/
@@ -7046,7 +7144,7 @@ EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path)
+EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
 {
     CRFS_MD      *crfs_md;
     MOD_NODE      mod_node;
@@ -7055,7 +7153,7 @@ EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_wild: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_wildcard: crfs module #0x%lx not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7064,21 +7162,17 @@ EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path)
     /*in SYNC state*/
     if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
     {
-#if 0    
-        if(EC_TRUE == crfs_delete_dir_backup(crfs_md_id, path))/*xxx*/
+        if(EC_TRUE == crfs_delete_dir_backup_wildcard(crfs_md_id, path))
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wild: delete dir %s from backup RFS done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: delete dir %s from backup RFS done\n",
                                    (char *)cstring_get_str(path));         
             return (EC_TRUE);
         }
 
         /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_wild: delete dir %s from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_wildcard: delete dir %s from backup RFS failed\n",
                                (char *)cstring_get_str(path));      
-#endif     
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_wild: not support delete dir %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path)); 
+
         return (EC_FALSE);/*terminate, not change RFS*/
     }
 
@@ -7086,33 +7180,33 @@ EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path)
  
     if(SWITCH_ON == CRFS_MEMC_SWITCH)
     {
-        if(EC_TRUE == crfsmc_delete_wild(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))/*xxx*/
+        if(EC_TRUE == crfsmc_delete_wildcard(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))/*xxx*/
         {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wild: delete dir %s from memcache done\n",
+            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: delete dir %s from memcache done\n",
                                (char *)cstring_get_str(path));
         }
     }
  
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_dir_wild: npp was not open\n");
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_dir_wildcard: npp was not open\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wild: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %u, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0166);
-    if(EC_FALSE == crfsnp_mgr_umount_wild(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
+    if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wild: umount %.*s failed or terminated\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: umount %.*s failed or terminated\n",
                             cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0167);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0168);
  
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wild: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %u, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
      /*try to delete next matched file*/
@@ -7124,7 +7218,7 @@ EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path)
     task_p2p_no_wait(crfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &mod_node,
              NULL_PTR,
-             FI_crfs_delete_dir_wild, CMPI_ERROR_MODI, path);
+             FI_crfs_delete_dir_wildcard, CMPI_ERROR_MODI, path);
  
     return (EC_TRUE);
 }

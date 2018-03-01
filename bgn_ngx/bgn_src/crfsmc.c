@@ -753,7 +753,7 @@ EC_BOOL crfsmc_delete_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UI
     return (EC_TRUE); 
 }
 
-EC_BOOL crfsmc_delete_wild_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
+EC_BOOL crfsmc_delete_wildcard_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
 {
     CRFSNP *crfsnp;
     uint32_t node_pos;
@@ -769,12 +769,12 @@ EC_BOOL crfsmc_delete_wild_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, con
      
         complete_num = 0;
         crfsmc_recycle_no_lock(crfsmc, CRFSMC_RECYCLE_MAX_NUM, &complete_num);
-        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild_no_lock: delete path %s with dflag %ld and recycle %ld done\n",
+        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard_no_lock: delete path %s with dflag %ld and recycle %ld done\n",
                            (char *)cstring_get_str(file_path), dflag, complete_num);
         return (EC_TRUE);                        
     }
 
-    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild_no_lock: not found path %s with dflag %ld\n",
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard_no_lock: not found path %s with dflag %ld\n",
                    (char *)cstring_get_str(file_path), dflag);
     return (EC_TRUE); 
 }
@@ -940,25 +940,25 @@ EC_BOOL crfsmc_delete(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dfl
     return (EC_TRUE);
 }
 
-EC_BOOL crfsmc_delete_wild(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
+EC_BOOL crfsmc_delete_wildcard(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
 {
     UINT32 count;
     
-    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s start ...\n",
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard: delete %s start ...\n",
                        (char *)cstring_get_str(file_path));
                        
     count = 0;
     CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0033);
-    while(EC_TRUE == crfsmc_delete_wild_no_lock(crfsmc, file_path, dflag))
+    while(EC_TRUE == crfsmc_delete_wildcard_no_lock(crfsmc, file_path, dflag))
     {
         count ++;
         
-        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s: %ld\n",
+        dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard: delete %s: %ld\n",
                            (char *)cstring_get_str(file_path), count);
     }
     CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0034);
 
-    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wild: delete %s done, complete %ld\n",
+    dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard: delete %s done, complete %ld\n",
                        (char *)cstring_get_str(file_path), count);
 
     return (EC_TRUE);

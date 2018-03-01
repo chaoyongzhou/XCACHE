@@ -119,6 +119,14 @@ EC_BOOL crfsbk_remove_dir(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_remove(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
 
+EC_BOOL crfsbk_remove_file_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_remove_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_remove_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_remove_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
+
 /*delete: record operation*/
 EC_BOOL crfsbk_delete_file(CRFSBK *crfsbk, const CSTRING *path);
 
@@ -127,6 +135,14 @@ EC_BOOL crfsbk_delete_file_b(CRFSBK *crfsbk, const CSTRING *path);
 EC_BOOL crfsbk_delete_dir(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_delete(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
+
+EC_BOOL crfsbk_delete_file_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_delete_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_delete_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path);
+
+EC_BOOL crfsbk_delete_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
 
 EC_BOOL crfsbk_retire(CRFSBK *crfsbk);
 

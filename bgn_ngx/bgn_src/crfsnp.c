@@ -4567,14 +4567,14 @@ EC_BOOL crfsnp_umount(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *pa
     return (EC_TRUE);
 }
 
-/* path has wild seg '*' */
-EC_BOOL crfsnp_umount_wild(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
+/* path has wildcard seg '*' */
+EC_BOOL crfsnp_umount_wildcard(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
 {
     uint32_t node_pos;
 
     if('/' != (*path))
     {
-        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_umount_wild: np %u, invalid path %.*s\n", CRFSNP_ID(crfsnp), path_len, (char *)path);
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_umount_wildcard: np %u, invalid path %.*s\n", CRFSNP_ID(crfsnp), path_len, (char *)path);
         return (EC_FALSE);
     }
 

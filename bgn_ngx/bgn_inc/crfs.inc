@@ -1998,14 +1998,14 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path); -- */
+/* -- EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path); -- */
 /*func module     */     MD_CRFS,
-/*func logic addr */     (UINT32)crfs_delete_file_wild,
+/*func logic addr */     (UINT32)crfs_delete_file_wildcard,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "crfs_delete_file_wild",
-/*func index      */     FI_crfs_delete_file_wild,
+/*func name       */     "crfs_delete_file_wildcard",
+/*func index      */     FI_crfs_delete_file_wildcard,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     2,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
@@ -2013,14 +2013,14 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path); -- */
+/* -- EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path); -- */
 /*func module     */     MD_CRFS,
-/*func logic addr */     (UINT32)crfs_delete_file_b_wild,
+/*func logic addr */     (UINT32)crfs_delete_file_b_wildcard,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "crfs_delete_file_b_wild",
-/*func index      */     FI_crfs_delete_file_b_wild,
+/*func name       */     "crfs_delete_file_b_wildcard",
+/*func index      */     FI_crfs_delete_file_b_wildcard,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     2,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},
@@ -2028,14 +2028,14 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path); -- */
+/* -- EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path); -- */
 /*func module     */     MD_CRFS,
-/*func logic addr */     (UINT32)crfs_delete_dir_wild,
+/*func logic addr */     (UINT32)crfs_delete_dir_wildcard,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "crfs_delete_dir_wild",
-/*func index      */     FI_crfs_delete_dir_wild,
+/*func name       */     "crfs_delete_dir_wildcard",
+/*func index      */     FI_crfs_delete_dir_wildcard,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     2,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,},

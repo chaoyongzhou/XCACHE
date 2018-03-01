@@ -691,7 +691,7 @@ EC_BOOL crfs_delete_dn(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const CR
 **/
 EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path);
 EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path);
-EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path);
+EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path);
 
 /**
 *
@@ -700,7 +700,7 @@ EC_BOOL crfs_delete_file_wild(const UINT32 crfs_md_id, const CSTRING *path);
 **/
 EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path);
 EC_BOOL crfs_delete_file_b_no_lock(const UINT32 crfs_md_id, const CSTRING *path);
-EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path);
+EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path);
 
 /**
 *
@@ -709,7 +709,7 @@ EC_BOOL crfs_delete_file_b_wild(const UINT32 crfs_md_id, const CSTRING *path);
 **/
 EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path);
 EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path);
-EC_BOOL crfs_delete_dir_wild(const UINT32 crfs_md_id, const CSTRING *path);
+EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path);
 
 /**
 *

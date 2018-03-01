@@ -1267,7 +1267,7 @@ EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UIN
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_mgr_umount_file_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+static EC_BOOL __crfsnp_mgr_umount_file_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     uint32_t crfsnp_id;
     EC_BOOL  ret;
@@ -1282,14 +1282,14 @@ static EC_BOOL __crfsnp_mgr_umount_file_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRI
         if(NULL_PTR == crfsnp)
         {
             CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0041);
-            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_wild: open np %u failed\n", crfsnp_id);
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_wildcard: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
         CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0042);
 
-        if(EC_TRUE == crfsnp_umount_wild(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        if(EC_TRUE == crfsnp_umount_wildcard(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
-            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wild: np %u umount %.*s succ\n",
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wildcard: np %u umount %.*s succ\n",
                                 crfsnp_id, cstring_get_len(path), cstring_get_str(path));
             ret = EC_TRUE;
         }
@@ -1299,7 +1299,7 @@ static EC_BOOL __crfsnp_mgr_umount_file_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRI
     return (ret);
 }
 
-static EC_BOOL __crfsnp_mgr_umount_dir_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+static EC_BOOL __crfsnp_mgr_umount_dir_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     uint32_t crfsnp_id;
 
@@ -1315,14 +1315,14 @@ static EC_BOOL __crfsnp_mgr_umount_dir_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRIN
         if(NULL_PTR == crfsnp)
         {
             CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0044);
-            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_dir_wild: open np %u failed\n", crfsnp_id);
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_dir_wildcard: open np %u failed\n", crfsnp_id);
             return (EC_FALSE);
         }
         CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, LOC_CRFSNPMGR_0045);
 
-        if(EC_TRUE == crfsnp_umount_wild(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        if(EC_TRUE == crfsnp_umount_wildcard(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
-            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_dir_wild: np %u umount %.*s succ\n",
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_dir_wildcard: np %u umount %.*s succ\n",
                                 crfsnp_id, cstring_get_len(path), cstring_get_str(path));
             ret = EC_TRUE;
         }
@@ -1332,19 +1332,19 @@ static EC_BOOL __crfsnp_mgr_umount_dir_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRIN
     return (ret);
 }
 
-EC_BOOL crfsnp_mgr_umount_wild(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
     {
-        return __crfsnp_mgr_umount_file_wild(crfsnp_mgr, path, dflag);
+        return __crfsnp_mgr_umount_file_wildcard(crfsnp_mgr, path, dflag);
     }
 
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
-        return __crfsnp_mgr_umount_dir_wild(crfsnp_mgr, path, dflag);
+        return __crfsnp_mgr_umount_dir_wildcard(crfsnp_mgr, path, dflag);
     }
  
-    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wild: found invalid dflag 0x%x before umount %.*s\n",
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard: found invalid dflag 0x%x before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
     return (EC_FALSE);
 }
