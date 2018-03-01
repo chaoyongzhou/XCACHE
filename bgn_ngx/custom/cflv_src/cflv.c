@@ -1900,13 +1900,21 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         return cflv_content_direct_procedure(cflv_md_id);
     }
 
-    if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CFLV_MD_CNGX_OPTION(cflv_md)))
+    cngx_option_set_only_if_cached(r, CVENDOR_MD_CNGX_OPTION(cflv_md));
+    if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
     {
-        /*direct procedure to orig server*/
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
-                                             "not cacheable method => direct procedure\n");
-        return cflv_content_direct_procedure(cflv_md_id);
+                                             "only_if_cached is false\n");    
+        
+        if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CFLV_MD_CNGX_OPTION(cflv_md)))
+        {
+            /*direct procedure to orig server*/
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
+                                                 "not cacheable method => direct procedure\n");
+            return cflv_content_direct_procedure(cflv_md_id);
+        }        
     }
+    /*else fall through*/    
 
     /*parse 'Range' in cngx http req header*/
     if(EC_FALSE == cflv_get_req_range_segs(cflv_md_id, CFLV_MD_CACHE_SEG_SIZE(cflv_md)))
@@ -6234,6 +6242,16 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
                                              CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
+        {
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0002);
+
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: "
+                                                 "only-if-cached is true => %u\n", 
+                                                 NGX_HTTP_SERVICE_UNAVAILABLE);                
+            return (EC_FALSE);
+        }         
                         
         /*change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
@@ -7309,6 +7327,16 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
                                              CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
+        {
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0002);
+
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: "
+                                                "only-if-cached is true => %u\n", 
+                                                NGX_HTTP_SERVICE_UNAVAILABLE);                
+            return (EC_FALSE);
+        }         
                         
         /*change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
@@ -7661,6 +7689,16 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
                                                  seg_no);
                         
             cbytes_clean(&seg_cbytes);
+
+            if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
+            {
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0002);
+
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
+                                                     "only-if-cached is true => %u\n", 
+                                                     NGX_HTTP_SERVICE_UNAVAILABLE);                
+                return (EC_FALSE);
+            }            
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                  "absent_seg_no %ld => orig\n", 

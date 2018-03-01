@@ -93,11 +93,14 @@ extern "C"{
 typedef struct
 {
     uint32_t           cacheable_method:1;/*bit bool*/
-    uint32_t           rsvd;
+    uint32_t           only_if_cached  :1;/*bit bool*/
+    uint32_t           rsvd01:30;
+    uint32_t           rsvd02;
     
 }CNGX_OPTION;
 
 #define CNGX_OPTION_CACHEABLE_METHOD(cngx_option)   ((cngx_option)->cacheable_method)
+#define CNGX_OPTION_ONLY_IF_CACHED(cngx_option)     ((cngx_option)->only_if_cached)
 
 typedef struct
 {
@@ -291,6 +294,7 @@ EC_BOOL cngx_set_store(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 EC_BOOL cngx_option_init(CNGX_OPTION *cngx_option);
 EC_BOOL cngx_option_clean(CNGX_OPTION *cngx_option);
 EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cngx_option);
+EC_BOOL cngx_option_set_only_if_cached(ngx_http_request_t *r, CNGX_OPTION *cngx_option);
 
 /*------------------------------ NGX BGN MODULE MANAGEMENT ------------------------------*/
 CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_new();

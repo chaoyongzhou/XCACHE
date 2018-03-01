@@ -1812,18 +1812,26 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
-                                             "direct orig switch on => direct procedure\n");
-        return cvendor_content_direct_procedure(cvendor_md_id);
-    }
-    
-    if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
-    {
-        /*direct procedure to orig server*/
-        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
-                                                "not cacheable method => direct procedure\n");
+                                                "direct orig switch on => direct procedure\n");
         return cvendor_content_direct_procedure(cvendor_md_id);
     }
 
+    cngx_option_set_only_if_cached(r, CVENDOR_MD_CNGX_OPTION(cvendor_md));
+    if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                "only_if_cached is false\n");    
+        
+        if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+        {
+            /*direct procedure to orig server*/
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                    "not cacheable method => direct procedure\n");
+            return cvendor_content_direct_procedure(cvendor_md_id);
+        }        
+    }
+    /*else fall through*/
+    
     /*parse 'Range' in cngx http req header*/
     if(EC_FALSE == cvendor_get_req_range_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
     {
@@ -6563,6 +6571,16 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
                                                 CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CVENDOR_0112);
+
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
+                                                    "only-if-cached is true => %u\n", 
+                                                    NGX_HTTP_SERVICE_UNAVAILABLE);                
+            return (EC_FALSE);
+        }         
                         
         /*change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
@@ -7651,6 +7669,16 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
                                                 CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CVENDOR_0112);
+
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+                                                    "only-if-cached is true => %u\n", 
+                                                    NGX_HTTP_SERVICE_UNAVAILABLE);                
+            return (EC_FALSE);
+        }        
                         
         /*change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
@@ -8028,8 +8056,18 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
                                                     "fetch seg %ld from cache failed\n", 
                                                     seg_no);
-                        
+
             cbytes_clean(&seg_cbytes);
+            
+            if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
+            {
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CVENDOR_0112);
+
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                        "only-if-cached is true => %u\n", 
+                                                        NGX_HTTP_SERVICE_UNAVAILABLE);                
+                return (EC_FALSE);
+            }
 
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                     "absent_seg_no %ld => orig\n", 

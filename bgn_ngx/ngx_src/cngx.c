@@ -2211,6 +2211,22 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_option_set_only_if_cached(ngx_http_request_t *r, CNGX_OPTION *cngx_option)
+{
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"only-if-cached"))
+    {
+        CNGX_OPTION_ONLY_IF_CACHED(cngx_option)  = BIT_TRUE;
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_only_if_cached: "
+                                             "found only-if-cached => true\n");        
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_only_if_cached: "
+                                         "not found only-if-cached => false\n");        
+    return (EC_TRUE);
+}
+
 /*------------------------------ NGX BGN MODULE MANAGEMENT ------------------------------*/
 CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_new()
 {

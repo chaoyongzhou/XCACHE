@@ -767,7 +767,17 @@ EC_BOOL cmp4_get_cache_file_e(const UINT32 cmp4_md_id, size_t size, off_t offset
                                                  CRANGE_SEG_NO(&crange_seg));
                             
             cbytes_clean(&seg_cbytes);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0001);
+            //cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0001);
+
+            if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
+            {
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0002);
+
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_get_cache_file_e: "
+                                                     "only-if-cached is true => %u\n", 
+                                                     NGX_HTTP_SERVICE_UNAVAILABLE);                
+                return (EC_FALSE);
+            }             
             return (EC_FALSE);
         }
 
@@ -2224,13 +2234,21 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         return cmp4_content_direct_procedure(cmp4_md_id);
     }
 
-    if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CMP4_MD_CNGX_OPTION(cmp4_md)))
+    cngx_option_set_only_if_cached(r, CMP4_MD_CNGX_OPTION(cmp4_md));
+    if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
     {
-        /*direct procedure to orig server*/
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
-                                             "not cacheable method => direct procedure\n");
-        return cmp4_content_direct_procedure(cmp4_md_id);
+                                             "only_if_cached is false\n");    
+        
+        if(BIT_FALSE == CNGX_OPTION_CACHEABLE_METHOD(CMP4_MD_CNGX_OPTION(cmp4_md)))
+        {
+            /*direct procedure to orig server*/
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
+                                                 "not cacheable method => direct procedure\n");
+            return cmp4_content_direct_procedure(cmp4_md_id);
+        }        
     }
+    /*else fall through*/  
 
     /*parse 'Range' in cngx http req header*/
     if(EC_FALSE == cmp4_get_req_range_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
@@ -7549,6 +7567,16 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
                                              CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0002);
+
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: "
+                                                 "only-if-cached is true => %u\n", 
+                                                 NGX_HTTP_SERVICE_UNAVAILABLE);   
+            return (EC_FALSE);
+        }         
                         
         /*change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
@@ -8576,6 +8604,16 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
                                              CRANGE_SEG_NO(crange_seg));
                         
         cbytes_clean(&seg_cbytes);
+
+        if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0002);
+
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: "
+                                                "only-if-cached is true => %u\n", 
+                                                NGX_HTTP_SERVICE_UNAVAILABLE);                
+            return (EC_FALSE);
+        }         
                         
         /*change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
@@ -9169,6 +9207,16 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
                                                  seg_no);
                         
             cbytes_clean(&seg_cbytes);
+
+            if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
+            {
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0002);
+
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
+                                                     "only-if-cached is true => %u\n", 
+                                                     NGX_HTTP_SERVICE_UNAVAILABLE);                
+                return (EC_FALSE);
+            }            
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "absent_seg_no %ld => orig\n", 
