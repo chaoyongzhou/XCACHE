@@ -43,11 +43,8 @@ EXPAT_LIB_DIR = $(EXPAT_DIR)/lib
 EXPAT_INC = -I $(EXPAT_INC_DIR)
 EXPAT_LIB = -Wl,-rpath,$(EXPAT_LIB_DIR) -L $(EXPAT_LIB_DIR) -lexpat
 
-READLINE_DIR ?= /usr/local/xcache/depend/readline
-READLINE_INC_DIR = $(READLINE_DIR)/include
-READLINE_LIB_DIR = $(READLINE_DIR)/lib
-READLINE_INC = -I $(READLINE_INC_DIR)
-READLINE_LIB = -Wl,-rpath,$(READLINE_LIB_DIR) -L $(READLINE_LIB_DIR) -lreadline
+READLINE_INC = 
+READLINE_LIB = -lreadline
 
 EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/core \
