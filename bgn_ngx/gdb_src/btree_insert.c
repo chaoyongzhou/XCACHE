@@ -12,7 +12,7 @@ extern "C"{
 
 #include "db_internal.h"
 
-static uint8_t
+STATIC_CAST static uint8_t
 __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
             offset_t *filePos, uint8_t *split, uint8_t replaceDup)
 {
@@ -147,7 +147,7 @@ __splitNode(BTree *tree, BTreeNode *rootNode, uint8_t **key,
     return 1;
 }
 
-static void print_keys(BTreeNode *rootNode)
+STATIC_CAST static void print_keys(BTreeNode *rootNode)
 {
     uint8_t i;
     for(i = 0; i < rootNode->keyCount; i ++)
@@ -157,7 +157,7 @@ static void print_keys(BTreeNode *rootNode)
     dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"\n");
 }
 
-static void print_kvs(BTreeNode *rootNode)
+STATIC_CAST static void print_kvs(BTreeNode *rootNode)
 {
     uint8_t i;
     for(i = 0; i < rootNode->keyCount; i ++)
@@ -169,7 +169,7 @@ static void print_kvs(BTreeNode *rootNode)
 }
 
 
-static uint8_t
+STATIC_CAST static uint8_t
 __addKey(BTree *tree, BTreeNode *rootNode, uint8_t **key, offset_t *filePos,
          uint8_t *split, uint8_t replaceDup)
 {
@@ -262,7 +262,7 @@ __addKey(BTree *tree, BTreeNode *rootNode, uint8_t **key, offset_t *filePos,
     return 1;
 }
 
-static uint8_t
+STATIC_CAST static uint8_t
 __insertKey(BTree *tree, offset_t rootOffset, uint8_t **key,
             offset_t *filePos, uint8_t *split, uint8_t replaceDup)
 {

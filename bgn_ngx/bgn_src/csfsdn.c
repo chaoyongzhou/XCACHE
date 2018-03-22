@@ -141,7 +141,7 @@ void csfsdn_node_fname_print(LOG *log, const CSFSDN *csfsdn, const UINT32 node_i
     return;
 }
 
-static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
     UINT32       disk_no;
     UINT32       path_no;
@@ -163,7 +163,7 @@ static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const UINT32 node_i
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsdn_node_dname_gen(const CSFSDN *csfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL __csfsdn_node_dname_gen(const CSFSDN *csfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
     UINT32       disk_no;
     UINT32       block_no;
@@ -480,7 +480,7 @@ EC_BOOL csfsdn_node_read(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 data
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsdn_collect_expired_node(const CSFSDN_NODE *csfsdn_node, CLIST *expired_node_list)
+STATIC_CAST static EC_BOOL __csfsdn_collect_expired_node(const CSFSDN_NODE *csfsdn_node, CLIST *expired_node_list)
 {
     ctime_t     cur_time;
 
@@ -544,7 +544,7 @@ EC_BOOL csfsdn_expire_open_nodes(CSFSDN *csfsdn)
     return (EC_TRUE);
 }
 
-static char * __csfsdn_vol_fname_gen(const char *root_dname)
+STATIC_CAST static char * __csfsdn_vol_fname_gen(const char *root_dname)
 {
     const char *field[ 2 ];
     char       *vol_fname;
@@ -562,7 +562,7 @@ static char * __csfsdn_vol_fname_gen(const char *root_dname)
     return (vol_fname);
 }
 
-static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16_t max_gb_num_of_disk_space)
+STATIC_CAST static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16_t max_gb_num_of_disk_space)
 {
 #if (CSFSD_TEST_SCENARIO_001T_DISK == CSFSD_DEBUG_CHOICE)
     uint16_t max_tb_num_of_disk_space;

@@ -95,7 +95,7 @@ UINT32 csbuff_get_max_len(const CSBUFF *csbuff)
     return CSBUFF_MAX_LEN(csbuff);
 }
 
-static void csbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const UINT32 count)
+STATIC_CAST static void csbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const UINT32 count)
 {
     sys_print(LOGSTDOUT, "%02x ", ch);
     //sys_print(LOGSTDOUT, "%c ", ch);
@@ -110,7 +110,7 @@ static void csbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const
     return;
 }
 
-static void csbuff_print_end_with_alignment(LOG *log, const UINT32 count)
+STATIC_CAST static void csbuff_print_end_with_alignment(LOG *log, const UINT32 count)
 {
     if(0 != (count % CSBUFF_PRINT_LINE_WIDETH))
     {
@@ -120,7 +120,7 @@ static void csbuff_print_end_with_alignment(LOG *log, const UINT32 count)
 }
 
 
-static void csbuff_print_whole_cache(LOG *log, const CSBUFF *csbuff)
+STATIC_CAST static void csbuff_print_whole_cache(LOG *log, const CSBUFF *csbuff)
 {
     UINT32 pos;
     UINT32 count;
@@ -135,7 +135,7 @@ static void csbuff_print_whole_cache(LOG *log, const CSBUFF *csbuff)
     return;
 }
 
-static void csbuff_print_to_read_cache(LOG *log, const CSBUFF *csbuff)
+STATIC_CAST static void csbuff_print_to_read_cache(LOG *log, const CSBUFF *csbuff)
 {
     UINT32 total_read_len;
     UINT32 to_tail_len;

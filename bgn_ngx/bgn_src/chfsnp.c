@@ -56,23 +56,23 @@ static CHFSNP_CFG g_chfsnp_cfg_tbl[] = {
 
 static uint8_t g_chfsnp_cfg_tbl_len = (uint8_t)(sizeof(g_chfsnp_cfg_tbl)/sizeof(g_chfsnp_cfg_tbl[0]));
 
-static uint32_t __chfsnp_bucket_insert(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+STATIC_CAST static uint32_t __chfsnp_bucket_insert(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
-static EC_BOOL __chfsnp_bucket_delete(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+STATIC_CAST static EC_BOOL __chfsnp_bucket_delete(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
-static EC_BOOL __chfsnp_bucket_delete_item(CHFSNP *chfsnp, const uint32_t bucket_pos, const uint32_t node_pos);
+STATIC_CAST static EC_BOOL __chfsnp_bucket_delete_item(CHFSNP *chfsnp, const uint32_t bucket_pos, const uint32_t node_pos);
 
-static EC_BOOL __chfsnp_delete_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos);
+STATIC_CAST static EC_BOOL __chfsnp_delete_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos);
 
-static EC_BOOL __chfsnp_delete_all_buckets(CHFSNP *chfsnp);
+STATIC_CAST static EC_BOOL __chfsnp_delete_all_buckets(CHFSNP *chfsnp);
 
-static EC_BOOL __chfsnp_update_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos,
+STATIC_CAST static EC_BOOL __chfsnp_update_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-static uint32_t __chfsnp_bucket_search(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+STATIC_CAST static uint32_t __chfsnp_bucket_search(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
-static void __chfsnp_print_hash(LOG *log, const uint32_t path_len, const uint8_t *path, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static void __chfsnp_print_hash(LOG *log, const uint32_t path_len, const uint8_t *path, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     uint32_t idx;
 
@@ -139,7 +139,7 @@ EC_BOOL chfsnp_model_item_max_num(const uint8_t chfsnp_model, uint32_t *item_max
     return (EC_TRUE);
 }
 
-static char *__chfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
+STATIC_CAST static char *__chfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
 {
     char *fname;
     uint32_t len;
@@ -162,7 +162,7 @@ static char *__chfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
     return (fname);
 }
 
-static uint32_t __chfsnp_path_seg_len(const uint8_t *full_path, const uint32_t full_path_len, const uint8_t *path_seg_beg)
+STATIC_CAST static uint32_t __chfsnp_path_seg_len(const uint8_t *full_path, const uint32_t full_path_len, const uint8_t *path_seg_beg)
 {
     uint8_t *ptr;
 
@@ -179,7 +179,7 @@ static uint32_t __chfsnp_path_seg_len(const uint8_t *full_path, const uint32_t f
     return (ptr - path_seg_beg);
 }
 
-static EC_BOOL __chfsnp_path_hash(CHFSNP *chfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t digest_max_len, uint8_t *digest, uint32_t *path_1st_hash, uint32_t *path_2nd_hash)
+STATIC_CAST static EC_BOOL __chfsnp_path_hash(CHFSNP *chfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t digest_max_len, uint8_t *digest, uint32_t *path_1st_hash, uint32_t *path_2nd_hash)
 {
     ASSERT(CMD5_DIGEST_LEN == digest_max_len);
     cmd5_sum(path_len, path, digest);
@@ -638,7 +638,7 @@ EC_BOOL chfsnp_item_is(const CHFSNP_ITEM *chfsnp_item, const uint32_t klen, cons
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_init(CHFSNP_HEADER *chfsnp_header)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_init(CHFSNP_HEADER *chfsnp_header)
 {
     BSET(CHFSNP_HEADER_DEL_ITEMS_BITMAP(chfsnp_header), 0, CHFSNP_DEL_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -647,7 +647,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_init(CHFSNP_HEADER *chfsnp_heade
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_clean(CHFSNP_HEADER *chfsnp_header)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_clean(CHFSNP_HEADER *chfsnp_header)
 {
     BSET(CHFSNP_HEADER_DEL_ITEMS_BITMAP(chfsnp_header), 0, CHFSNP_DEL_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -656,7 +656,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_clean(CHFSNP_HEADER *chfsnp_head
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_get(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos, uint8_t *bit_set_flag)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_get(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos, uint8_t *bit_set_flag)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -685,7 +685,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_get(CHFSNP_HEADER *chfsnp_header
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_set(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_set(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -711,7 +711,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_set(CHFSNP_HEADER *chfsnp_header
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_unset(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_unset(CHFSNP_HEADER *chfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -739,7 +739,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_unset(CHFSNP_HEADER *chfsnp_head
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_header_del_items_bitmap_search_from(CHFSNP_HEADER *chfsnp_header, uint32_t *bit_pos)
+STATIC_CAST static EC_BOOL __chfsnp_header_del_items_bitmap_search_from(CHFSNP_HEADER *chfsnp_header, uint32_t *bit_pos)
 {
     uint32_t u32_last;
     uint32_t bit_last;
@@ -786,7 +786,7 @@ static EC_BOOL __chfsnp_header_del_items_bitmap_search_from(CHFSNP_HEADER *chfsn
     return (EC_FALSE);
 }
 
-static CHFSNP_HEADER *__chfsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model, const uint32_t bucket_max_num)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model, const uint32_t bucket_max_num)
 {
     CHFSNP_HEADER *chfsnp_header;
     uint32_t      *bucket;
@@ -849,7 +849,7 @@ static CHFSNP_HEADER *__chfsnp_header_new(const uint32_t np_id, const UINT32 fsi
     return (chfsnp_header);
 }
 
-static CHFSNP_HEADER *__chfsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -876,7 +876,7 @@ static CHFSNP_HEADER *__chfsnp_header_load(const uint32_t np_id, const UINT32 fs
     return ((CHFSNP_HEADER *)buff);
 }
 
-static CHFSNP_HEADER * __chfsnp_header_flush(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
+STATIC_CAST static CHFSNP_HEADER * __chfsnp_header_flush(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
 {
     if(NULL_PTR != chfsnp_header)
     {
@@ -896,7 +896,7 @@ static CHFSNP_HEADER * __chfsnp_header_flush(CHFSNP_HEADER *chfsnp_header, const
     return (chfsnp_header);
 }
 
-static CHFSNP_HEADER *__chfsnp_header_free(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_free(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
 {
     if(NULL_PTR != chfsnp_header)
     {
@@ -922,7 +922,7 @@ static CHFSNP_HEADER *__chfsnp_header_free(CHFSNP_HEADER *chfsnp_header, const u
 }
 
 
-static CHFSNP_HEADER *__chfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     CHFSNP_HEADER *chfsnp_header;
 
@@ -939,7 +939,7 @@ static CHFSNP_HEADER *__chfsnp_header_open(const uint32_t np_id, const UINT32 fs
     return (chfsnp_header);
 }
 
-static CHFSNP_HEADER *__chfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model, const uint32_t bucket_max_num)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model, const uint32_t bucket_max_num)
 {
     CHFSNP_HEADER *chfsnp_header;
     uint32_t *bucket;
@@ -1004,7 +1004,7 @@ static CHFSNP_HEADER *__chfsnp_header_create(const uint32_t np_id, const UINT32 
     return (chfsnp_header);
 }
 
-static CHFSNP_HEADER * __chfsnp_header_sync(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
+STATIC_CAST static CHFSNP_HEADER * __chfsnp_header_sync(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
 {
     if(NULL_PTR != chfsnp_header)
     {
@@ -1022,7 +1022,7 @@ static CHFSNP_HEADER * __chfsnp_header_sync(CHFSNP_HEADER *chfsnp_header, const 
     return (chfsnp_header);
 }
 
-static CHFSNP_HEADER *__chfsnp_header_close(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
+STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_close(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, const UINT32 fsize, const int fd)
 {
     if(NULL_PTR != chfsnp_header)
     {
@@ -1271,7 +1271,7 @@ void chfsnp_bucket_print(LOG *log, const uint32_t *chfsnp_buckets, const uint32_
     return;
 }
 
-static const CHFSNP_ITEM *__chfsnp_bucket_find(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static const CHFSNP_ITEM *__chfsnp_bucket_find(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     const CHFSNPRB_POOL *pool;
     uint32_t bucket_pos;
@@ -1297,7 +1297,7 @@ static const CHFSNP_ITEM *__chfsnp_bucket_find(const CHFSNP *chfsnp, const uint3
     return (NULL_PTR);
 }
 
-static uint32_t __chfsnp_bucket_search(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static uint32_t __chfsnp_bucket_search(const CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     const CHFSNPRB_POOL *pool;
     uint32_t bucket_pos;
@@ -1310,7 +1310,7 @@ static uint32_t __chfsnp_bucket_search(const CHFSNP *chfsnp, const uint32_t firs
     return chfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
 }
 
-static uint32_t __chfsnp_bucket_insert(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static uint32_t __chfsnp_bucket_insert(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     uint32_t insert_offset;
     uint32_t bucket_pos;
@@ -1342,7 +1342,7 @@ static uint32_t __chfsnp_bucket_insert(CHFSNP *chfsnp, const uint32_t first_hash
     return (insert_offset);
 }
 
-static EC_BOOL __chfsnp_bucket_delete(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static EC_BOOL __chfsnp_bucket_delete(CHFSNP *chfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     CHFSNP_ITEM *chfsnp_item;
  
@@ -1389,7 +1389,7 @@ static EC_BOOL __chfsnp_bucket_delete(CHFSNP *chfsnp, const uint32_t first_hash,
 }
 
 /*delete single item from bucket*/
-static EC_BOOL __chfsnp_bucket_delete_item(CHFSNP *chfsnp, const uint32_t bucket_pos, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __chfsnp_bucket_delete_item(CHFSNP *chfsnp, const uint32_t bucket_pos, const uint32_t node_pos)
 {
     CHFSNP_ITEM *chfsnp_item;
     uint32_t     root_pos;
@@ -1418,7 +1418,7 @@ static EC_BOOL __chfsnp_bucket_delete_item(CHFSNP *chfsnp, const uint32_t bucket
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_delete_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos)
+STATIC_CAST static EC_BOOL __chfsnp_delete_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos)
 {
     while(CHFSNPRB_ERR_POS != CHFSNP_BUCKET(chfsnp, bucket_pos))
     {
@@ -1431,7 +1431,7 @@ static EC_BOOL __chfsnp_delete_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_delete_all_buckets(CHFSNP *chfsnp)
+STATIC_CAST static EC_BOOL __chfsnp_delete_all_buckets(CHFSNP *chfsnp)
 {
     uint32_t bucket_num;
     uint32_t bucket_pos;
@@ -1567,7 +1567,7 @@ EC_BOOL chfsnp_fnode_update(CHFSNP *chfsnp, CHFSNP_FNODE *chfsnp_fnode,
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_bucket_update(CHFSNP * chfsnp, CHFSNPRB_POOL *pool, const uint32_t node_pos,
+STATIC_CAST static EC_BOOL __chfsnp_bucket_update(CHFSNP * chfsnp, CHFSNPRB_POOL *pool, const uint32_t node_pos,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no)
 {
@@ -1604,7 +1604,7 @@ static EC_BOOL __chfsnp_bucket_update(CHFSNP * chfsnp, CHFSNPRB_POOL *pool, cons
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_update_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos,
+STATIC_CAST static EC_BOOL __chfsnp_update_one_bucket(CHFSNP *chfsnp, const uint32_t bucket_pos,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no)
 {
@@ -1928,7 +1928,7 @@ EC_BOOL chfsnp_file_size(CHFSNP *chfsnp, const uint32_t path_len, const uint8_t 
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_count_bucket_file_size(CHFSNP * chfsnp, CHFSNPRB_POOL *pool, const uint32_t node_pos, uint64_t *file_size)
+STATIC_CAST static EC_BOOL __chfsnp_count_bucket_file_size(CHFSNP * chfsnp, CHFSNPRB_POOL *pool, const uint32_t node_pos, uint64_t *file_size)
 {
     CHFSNPRB_NODE *node;
     CHFSNP_ITEM   *item;
@@ -1955,7 +1955,7 @@ static EC_BOOL __chfsnp_count_bucket_file_size(CHFSNP * chfsnp, CHFSNPRB_POOL *p
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_count_one_bucket_file_size(CHFSNP *chfsnp, const uint32_t bucket_pos, uint64_t *file_size)
+STATIC_CAST static EC_BOOL __chfsnp_count_one_bucket_file_size(CHFSNP *chfsnp, const uint32_t bucket_pos, uint64_t *file_size)
 {
     CHFSNPRB_POOL *pool;
     pool = CHFSNP_ITEMS_POOL(chfsnp);
@@ -2187,7 +2187,7 @@ EC_BOOL chfsnp_show_item(LOG *log, const CHFSNP_ITEM *chfsnp_item)
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_show_one_bucket(LOG *log, const CHFSNP * chfsnp, const CHFSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __chfsnp_show_one_bucket(LOG *log, const CHFSNP * chfsnp, const CHFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     CHFSNPRB_NODE *node;
     CHFSNP_ITEM   *item;

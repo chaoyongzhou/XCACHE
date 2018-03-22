@@ -2548,7 +2548,7 @@ EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, cons
     return (EC_TRUE);
 }
 
-static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+STATIC_CAST static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
     UINT32            max_num;
 

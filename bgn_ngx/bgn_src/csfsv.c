@@ -47,7 +47,7 @@ extern "C"{
 #define ASSERT_CSFSV_HDR_PAD_SIZE() \
     CSFSV_ASSERT( CSFSV_HDR_PAD_SIZE == DEBUG_COUNT_CSFSV_HDR_PAD_SIZE())
 
-static uint8_t *__csfsv_new_disk_fname(const CSFSV *csfsv, const uint16_t disk_no)
+STATIC_CAST static uint8_t *__csfsv_new_disk_fname(const CSFSV *csfsv, const uint16_t disk_no)
 {
     char *csfsd_dname;
     char *csfsd_fname;
@@ -81,7 +81,7 @@ static uint8_t *__csfsv_new_disk_fname(const CSFSV *csfsv, const uint16_t disk_n
     return ((uint8_t *)csfsd_fname);
 }
 
-static EC_BOOL __csfsv_free_disk_fname(const CSFSV *csfsv, uint8_t *csfsd_fname)
+STATIC_CAST static EC_BOOL __csfsv_free_disk_fname(const CSFSV *csfsv, uint8_t *csfsd_fname)
 {
     if(NULL_PTR != csfsd_fname)
     {
@@ -90,7 +90,7 @@ static EC_BOOL __csfsv_free_disk_fname(const CSFSV *csfsv, uint8_t *csfsd_fname)
     return (EC_TRUE);
 } 
 
-static CSFSV_HDR *__csfsv_hdr_load(CSFSV *csfsv)
+STATIC_CAST static CSFSV_HDR *__csfsv_hdr_load(CSFSV *csfsv)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -113,7 +113,7 @@ static CSFSV_HDR *__csfsv_hdr_load(CSFSV *csfsv)
     return ((CSFSV_HDR *)buff);
 }
 
-static EC_BOOL __csfsv_hdr_flush(CSFSV *csfsv)
+STATIC_CAST static EC_BOOL __csfsv_hdr_flush(CSFSV *csfsv)
 {
     if(NULL_PTR != CSFSV_HEADER(csfsv))
     {
@@ -130,7 +130,7 @@ static EC_BOOL __csfsv_hdr_flush(CSFSV *csfsv)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsv_hdr_free(CSFSV *csfsv)
+STATIC_CAST static EC_BOOL __csfsv_hdr_free(CSFSV *csfsv)
 {
     if(NULL_PTR != CSFSV_HEADER(csfsv))
     {
@@ -155,7 +155,7 @@ static EC_BOOL __csfsv_hdr_free(CSFSV *csfsv)
     return (EC_TRUE);
 }
 
-static CSFSV_HDR *__csfsv_hdr_new(CSFSV *csfsv)
+STATIC_CAST static CSFSV_HDR *__csfsv_hdr_new(CSFSV *csfsv)
 {
     CSFSV_HDR *csfsv_hdr;
 
@@ -244,7 +244,7 @@ EC_BOOL csfsv_hdr_clean(CSFSV *csfsv)
     return (EC_TRUE);
 }
 
-static CSFSV_HDR *__csfsv_hdr_open(CSFSV *csfsv)
+STATIC_CAST static CSFSV_HDR *__csfsv_hdr_open(CSFSV *csfsv)
 {
     CSFSV_HDR *csfsv_hdr;
 
@@ -273,7 +273,7 @@ CSFSV_HDR *csfsv_hdr_open(CSFSV *csfsv)
     return __csfsv_hdr_open(csfsv);
 }
 
-static EC_BOOL __csfsv_hdr_close(CSFSV *csfsv)
+STATIC_CAST static EC_BOOL __csfsv_hdr_close(CSFSV *csfsv)
 {
     if(NULL_PTR != CSFSV_HEADER(csfsv))
     {
@@ -305,7 +305,7 @@ EC_BOOL csfsv_hdr_close(CSFSV *csfsv)
     return __csfsv_hdr_close(csfsv);
 }
 
-static EC_BOOL __csfsv_hdr_sync(CSFSV *csfsv)
+STATIC_CAST static EC_BOOL __csfsv_hdr_sync(CSFSV *csfsv)
 {
     if(NULL_PTR != CSFSV_HEADER(csfsv))
     {
@@ -723,7 +723,7 @@ EC_BOOL csfsv_set_np(CSFSV *csfsv, const uint32_t np_node_err_pos, CSFSNP_RECYCL
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsv_rmv_disk(CSFSV *csfsv, const uint16_t disk_no)
+STATIC_CAST static EC_BOOL __csfsv_rmv_disk(CSFSV *csfsv, const uint16_t disk_no)
 {
     uint8_t *csfsd_fname;
 

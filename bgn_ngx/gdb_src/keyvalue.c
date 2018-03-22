@@ -14,7 +14,7 @@ extern "C"{
 #include <ctype.h>
 #include <pcre.h>
 
-static void __print_kv_chars(LOG *log, const uint8_t *buff, const uint32_t len)
+STATIC_CAST static void __print_kv_chars(LOG *log, const uint8_t *buff, const uint32_t len)
 {
     uint32_t pos;
     for(pos = 0; pos < len; pos ++)
@@ -370,7 +370,7 @@ void keyFreeHs(uint8_t *key, const word_t location)
     return;
 }
 
-static int _BCMP(const uint8_t *s1, const uint8_t *s2, size_t n)
+STATIC_CAST static int _BCMP(const uint8_t *s1, const uint8_t *s2, size_t n)
 {
     size_t pos;
     int result;
@@ -432,7 +432,7 @@ int  keyCmpHs(const uint8_t *key_1st, const uint8_t *key_2nd)
     return 0;
 }
 
-static int __mem_ncmp(uint8_t *src, const uint32_t slen, const uint8_t *des, const uint32_t dlen)
+STATIC_CAST static int __mem_ncmp(uint8_t *src, const uint32_t slen, const uint8_t *des, const uint32_t dlen)
 {
     uint32_t len;
 
@@ -1320,7 +1320,7 @@ int  kvCmpKeyHs(const uint8_t *kv_1st, const uint8_t *kv_2nd)
     return keyCmpHs2(kv_1st, kv_2nd);
 }
 
-static void __kvSplitRowkeyScope(const uint8_t *rowkey_scope, uint8_t **start_rowkey, uint8_t **end_rowkey)
+STATIC_CAST static void __kvSplitRowkeyScope(const uint8_t *rowkey_scope, uint8_t **start_rowkey, uint8_t **end_rowkey)
 {
     (*start_rowkey) = (uint8_t *)(rowkey_scope);
     (*end_rowkey)   = (uint8_t *)(rowkey_scope + keyGettLenHs(rowkey_scope));
@@ -1338,7 +1338,7 @@ static void __kvSplitRowkeyScope(const uint8_t *rowkey_scope, uint8_t **start_ro
 *   warning: if scope_2nd = (e1, e1], what will happen?
 *
 **/
-static int __kvCmpRowInRowkeyScope(const uint8_t *rowkey_scope_1st, const uint8_t *rowkey_scope_2nd)
+STATIC_CAST static int __kvCmpRowInRowkeyScope(const uint8_t *rowkey_scope_1st, const uint8_t *rowkey_scope_2nd)
 {
     uint8_t *start_rowkey_1st;
     uint8_t *end_rowkey_1st;

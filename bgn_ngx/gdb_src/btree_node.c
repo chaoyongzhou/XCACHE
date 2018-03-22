@@ -12,7 +12,7 @@ extern "C"{
 
 #include "db_internal.h"
 
-static uint32_t
+STATIC_CAST static uint32_t
 __getNodeSize(BTreeNode *node, const uint16_t *keySizes)
 {
     uint32_t l, i;
@@ -36,7 +36,7 @@ __getNodeSize(BTreeNode *node, const uint16_t *keySizes)
     return l;
 }
 
-static void
+STATIC_CAST static void
 __compressNode(BTreeNode *node, uint8_t ***newKeys, uint16_t **newKeySizes)
 {
     uint8_t i;
@@ -74,7 +74,7 @@ __compressNode(BTreeNode *node, uint8_t ***newKeys, uint16_t **newKeySizes)
 #endif/*(SWITCH_OFF == COMPRESS_MODE)*/
 }
 
-static void
+STATIC_CAST static void
 __uncompressNode(BTreeNode *node, uint8_t ***newKeys,
                  uint16_t **newKeySizes)
 {

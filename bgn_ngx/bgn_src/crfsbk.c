@@ -149,7 +149,7 @@ int crfsop_cmp(const CRFSOP *crfsop_1st, const CRFSOP *crfsop_2nd)
     return (ret);
 }
 
-static const char *__crfsop_op_type(const uint16_t crfs_op)
+STATIC_CAST static const char *__crfsop_op_type(const uint16_t crfs_op)
 {
     switch(crfs_op)
     {
@@ -185,7 +185,7 @@ static const char *__crfsop_op_type(const uint16_t crfs_op)
     return (const char *)"unknow";
 }
 
-static const char *__crfsop_path_type(const uint16_t path_type)
+STATIC_CAST static const char *__crfsop_path_type(const uint16_t path_type)
 {
     switch(path_type)
     {
@@ -219,17 +219,17 @@ void crfsop_print(LOG *log, const CRFSOP *crfsop)
     return;
 }
 
-static int __crfsop_clist_data_cmp(const CLIST_DATA *clist_data_1st, const CLIST_DATA *clist_data_2nd)
+STATIC_CAST static int __crfsop_clist_data_cmp(const CLIST_DATA *clist_data_1st, const CLIST_DATA *clist_data_2nd)
 {
     return crfsop_cmp(CLIST_DATA_DATA(clist_data_1st), CLIST_DATA_DATA(clist_data_2nd));
 }
 
-static EC_BOOL __crfsop_clist_data_free(CLIST_DATA *clist_data)
+STATIC_CAST static EC_BOOL __crfsop_clist_data_free(CLIST_DATA *clist_data)
 {
     return crfsop_free(CLIST_DATA_DATA(clist_data));
 }
 
-static void __crfsop_clist_data_print(LOG *log, const CLIST_DATA *clist_data)
+STATIC_CAST static void __crfsop_clist_data_print(LOG *log, const CLIST_DATA *clist_data)
 {
     crfsop_print(log, CLIST_DATA_DATA(clist_data));
     return;
@@ -495,7 +495,7 @@ EC_BOOL crfsoprec_export(const CRFSOPREC *crfsoprec)
     return (EC_TRUE); 
 }
 
-static EC_BOOL __crfsoprec_import_to_tree(CRFSOPREC *crfsoprec)
+STATIC_CAST static EC_BOOL __crfsoprec_import_to_tree(CRFSOPREC *crfsoprec)
 {
     CLIST_DATA *clist_data;
 
@@ -817,7 +817,7 @@ EC_BOOL crfsbk_release_dn_no_lock(CRFSBK *crfsbk, const uint32_t size, const uin
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsbk_release_dn_no_lock(CRFSBK *crfsbk, const CRFSNP_FNODE *crfsnp_fnode)
+STATIC_CAST static EC_BOOL __crfsbk_release_dn_no_lock(CRFSBK *crfsbk, const CRFSNP_FNODE *crfsnp_fnode)
 {
     const CRFSNP_INODE *crfsnp_inode;
 
@@ -1476,7 +1476,7 @@ EC_BOOL crfsbk_delete_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
     return (EC_FALSE);
 }
 
-static CRFSNP_ITEM * __crfsbk_search_item(CRFSBK *crfsbk, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
+STATIC_CAST static CRFSNP_ITEM * __crfsbk_search_item(CRFSBK *crfsbk, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
 {
     uint32_t  node_pos;
 

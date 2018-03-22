@@ -102,7 +102,7 @@ static const uint16_t g_pgb_bitmap_offset[] = {
     CPGB_RB_BITMAP_OFFSET_OF_004KB_MODEL, 
 };
 
-static EC_BOOL __cpgb_page_model_cpgrb_bitmap_set(CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos)
+STATIC_CAST static EC_BOOL __cpgb_page_model_cpgrb_bitmap_set(CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos)
 {
     const CPGB_CONF *cpgb_conf;
     uint8_t *pgc_cpgrb_bitmap;
@@ -134,7 +134,7 @@ static EC_BOOL __cpgb_page_model_cpgrb_bitmap_set(CPGB *cpgb, const uint16_t pag
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgb_page_model_cpgrb_bitmap_clear(CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos)
+STATIC_CAST static EC_BOOL __cpgb_page_model_cpgrb_bitmap_clear(CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos)
 {
     const CPGB_CONF *cpgb_conf;
     uint8_t *pgc_cpgrb_bitmap;
@@ -166,7 +166,7 @@ static EC_BOOL __cpgb_page_model_cpgrb_bitmap_clear(CPGB *cpgb, const uint16_t p
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgb_page_model_cpgrb_bitmap_get(const CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos, uint8_t *bit_val)
+STATIC_CAST static EC_BOOL __cpgb_page_model_cpgrb_bitmap_get(const CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos, uint8_t *bit_val)
 {
     const CPGB_CONF *cpgb_conf;
     const uint8_t *pgc_cpgrb_bitmap;
@@ -199,7 +199,7 @@ static EC_BOOL __cpgb_page_model_cpgrb_bitmap_get(const CPGB *cpgb, const uint16
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgb_page_model_cpgrb_bitmap_is(const CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos, const uint8_t bit_val)
+STATIC_CAST static EC_BOOL __cpgb_page_model_cpgrb_bitmap_is(const CPGB *cpgb, const uint16_t page_model, const uint16_t bit_pos, const uint8_t bit_val)
 {
     const CPGB_CONF *cpgb_conf;
     const uint8_t *pgc_cpgrb_bitmap;
@@ -237,7 +237,7 @@ static EC_BOOL __cpgb_page_model_cpgrb_bitmap_is(const CPGB *cpgb, const uint16_
 }
 
 /*check no adjacent (odd, even) bits are both 1*/
-static EC_BOOL __cpgb_page_model_cpgrb_bitmap_check(const CPGB *cpgb, const uint16_t page_model)
+STATIC_CAST static EC_BOOL __cpgb_page_model_cpgrb_bitmap_check(const CPGB *cpgb, const uint16_t page_model)
 {
     const CPGB_CONF *cpgb_conf;
     const uint8_t *pgc_cpgrb_bitmap;
@@ -273,7 +273,7 @@ static EC_BOOL __cpgb_page_model_cpgrb_bitmap_check(const CPGB *cpgb, const uint
     return (EC_TRUE);
 }
 
-static void __cpgb_page_model_cpgrb_bitmap_print(LOG *log, const CPGB *cpgb, const uint16_t page_model)
+STATIC_CAST static void __cpgb_page_model_cpgrb_bitmap_print(LOG *log, const CPGB *cpgb, const uint16_t page_model)
 {
     const CPGB_CONF *cpgb_conf;
     const uint8_t *pgc_cpgrb_bitmap;
@@ -310,7 +310,7 @@ static void __cpgb_page_model_cpgrb_bitmap_print(LOG *log, const CPGB *cpgb, con
 }
 
 /*count the num of bit 1*/
-static uint16_t __cpgb_page_model_cpgrb_bitmap_count_bits(const CPGB *cpgb, const uint16_t page_model)
+STATIC_CAST static uint16_t __cpgb_page_model_cpgrb_bitmap_count_bits(const CPGB *cpgb, const uint16_t page_model)
 {
     const CPGB_CONF *cpgb_conf;
     const uint8_t *pgc_cpgrb_bitmap;
@@ -345,7 +345,7 @@ static uint16_t __cpgb_page_model_cpgrb_bitmap_count_bits(const CPGB *cpgb, cons
       if page model is 16k model, return 01
   endif   
 **/
-static uint16_t __cpgb_page_model_first_page(const CPGB *cpgb, const uint16_t page_model)
+STATIC_CAST static uint16_t __cpgb_page_model_first_page(const CPGB *cpgb, const uint16_t page_model)
 {
     uint16_t node_pos;
     const CPGRB_NODE *node;
@@ -361,7 +361,7 @@ static uint16_t __cpgb_page_model_first_page(const CPGB *cpgb, const uint16_t pa
     return (CPGRB_NODE_DATA(node));
 }
 
-static EC_BOOL __cpgb_page_model_check(const CPGB *cpgb, const uint16_t page_model)
+STATIC_CAST static EC_BOOL __cpgb_page_model_check(const CPGB *cpgb, const uint16_t page_model)
 {
     uint16_t bits_count;
     uint16_t nodes_count;

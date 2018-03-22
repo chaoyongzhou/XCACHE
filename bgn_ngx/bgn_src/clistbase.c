@@ -17,12 +17,12 @@ extern "C"{
 
 
 /*for safe reason, when data handler is not given, set to default null function*/
-static EC_BOOL clistbase_null_default(void *data)
+STATIC_CAST static EC_BOOL clistbase_null_default(void *data)
 {
     return (EC_TRUE);
 }
 
-static EC_BOOL clistbase_cmp_default(const void *data_1, const void *data_2)
+STATIC_CAST static EC_BOOL clistbase_cmp_default(const void *data_1, const void *data_2)
 {
     if(data_1 == data_2)
     {
@@ -31,7 +31,7 @@ static EC_BOOL clistbase_cmp_default(const void *data_1, const void *data_2)
     return (EC_FALSE);
 }
 
-static EC_BOOL clistbase_walker_default(const void *data_1, const void *data_2)
+STATIC_CAST static EC_BOOL clistbase_walker_default(const void *data_1, const void *data_2)
 {
     if(data_1 <= data_2)
     {

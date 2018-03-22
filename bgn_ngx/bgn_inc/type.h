@@ -248,6 +248,13 @@ netinet/in.h
 # define UNUSED(x) x
 #endif
 
+#ifdef STATIC_CAST
+#elif defined(__GNUC__)
+# define STATIC_CAST __attribute__((unused))
+#else
+# define STATIC_CAST
+#endif
+
 /*EC_BOOL value*/
 #define EC_TRUE      ((UINT32) 0)
 #define EC_FALSE     ((UINT32) 1)

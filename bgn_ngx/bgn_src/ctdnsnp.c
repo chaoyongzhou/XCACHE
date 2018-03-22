@@ -51,7 +51,7 @@ static CTDNSNP_CFG g_ctdnsnp_cfg_tbl[] = {
 
 static uint8_t g_ctdnsnp_cfg_tbl_len = (uint8_t)(sizeof(g_ctdnsnp_cfg_tbl)/sizeof(g_ctdnsnp_cfg_tbl[0]));
 
-static CTDNSNPRB_NODE *__ctdnsnprb_node(CTDNSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static CTDNSNPRB_NODE *__ctdnsnprb_node(CTDNSNPRB_POOL *pool, const uint32_t node_pos)
 {
     if(CTDNSNPRB_POOL_NODE_MAX_NUM(pool) > node_pos)
     {
@@ -122,7 +122,7 @@ EC_BOOL ctdnsnp_model_item_max_num(const uint8_t ctdnsnp_model, uint32_t *item_m
     return (EC_TRUE);
 }
 
-static char *ctdnsnp_fname_gen(const char *root_dir, const uint32_t np_id)
+STATIC_CAST static char *ctdnsnp_fname_gen(const char *root_dir, const uint32_t np_id)
 {
     char    *fname;
     uint32_t len;
@@ -308,7 +308,7 @@ CTDNSNP_ITEM *ctdnsnp_item_right(const CTDNSNP *ctdnsnp, const CTDNSNP_ITEM *ctd
     return ctdnsnp_fetch(ctdnsnp, right_offset);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -333,7 +333,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_load(const uint32_t np_id, const UINT32 
     return ((CTDNSNP_HEADER *)buff);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_dup(CTDNSNP_HEADER *src_ctdnsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_dup(CTDNSNP_HEADER *src_ctdnsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
     CTDNSNP_HEADER *des_ctdnsnp_header;
 
@@ -351,7 +351,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_dup(CTDNSNP_HEADER *src_ctdnsnp_header, 
     return (des_ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t model)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t model)
 {
     CTDNSNP_HEADER *ctdnsnp_header;
     uint32_t        node_max_num;
@@ -377,7 +377,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, const UINT32 f
     return (ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER * __ctdnsnp_header_flush(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_flush(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnsnp_header)
     {
@@ -393,7 +393,7 @@ static CTDNSNP_HEADER * __ctdnsnp_header_flush(CTDNSNP_HEADER *ctdnsnp_header, c
     return (ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_free(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_free(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnsnp_header)
     {
@@ -417,7 +417,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_free(CTDNSNP_HEADER *ctdnsnp_header, con
 }
 
 
-static CTDNSNP_HEADER *__ctdnsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     CTDNSNP_HEADER *ctdnsnp_header;
 
@@ -432,7 +432,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_open(const uint32_t np_id, const UINT32 
     return (ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_clone(const CTDNSNP_HEADER *src_ctdnsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_clone(const CTDNSNP_HEADER *src_ctdnsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
     CTDNSNP_HEADER *des_ctdnsnp_header;
  
@@ -451,7 +451,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_clone(const CTDNSNP_HEADER *src_ctdnsnp_
     return (des_ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t model)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t model)
 {
     CTDNSNP_HEADER *ctdnsnp_header;
     
@@ -479,7 +479,7 @@ static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id, const UINT3
     return (ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER * __ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnsnp_header)
     {
@@ -497,7 +497,7 @@ static CTDNSNP_HEADER * __ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsnp_header, co
     return (ctdnsnp_header);
 }
 
-static CTDNSNP_HEADER *__ctdnsnp_header_close(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_close(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnsnp_header)
     {

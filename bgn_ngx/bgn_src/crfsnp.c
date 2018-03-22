@@ -64,7 +64,7 @@ static CRFSNP_CFG g_crfsnp_cfg_tbl[] = {
 
 static uint8_t g_crfsnp_cfg_tbl_len = (uint8_t)(sizeof(g_crfsnp_cfg_tbl)/sizeof(g_crfsnp_cfg_tbl[0]));
 
-static CRFSNPRB_NODE *__crfsnprb_node(CRFSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static CRFSNPRB_NODE *__crfsnprb_node(CRFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     if(CRFSNPRB_POOL_NODE_MAX_NUM(pool) > node_pos)
     {
@@ -135,7 +135,7 @@ EC_BOOL crfsnp_model_item_max_num(const uint8_t crfsnp_model, uint32_t *item_max
     return (EC_TRUE);
 }
 
-static char *crfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
+STATIC_CAST static char *crfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
 {
     char *fname;
     uint32_t len;
@@ -159,7 +159,7 @@ static char *crfsnp_fname_gen(const char *root_dir, const uint32_t np_id)
     return (fname);
 }
 
-static uint32_t crfsnp_path_seg_len(const uint8_t *full_path, const uint32_t full_path_len, const uint8_t *path_seg_beg)
+STATIC_CAST static uint32_t crfsnp_path_seg_len(const uint8_t *full_path, const uint32_t full_path_len, const uint8_t *path_seg_beg)
 {
     uint8_t *ptr;
 
@@ -571,7 +571,7 @@ EC_BOOL crfsnp_bnode_clone(const CRFSNP_BNODE *crfsnp_bnode_src, CRFSNP_BNODE *c
     return (EC_TRUE);
 }
 
-static void __crfsnp_bnode_seg_print(LOG *log, const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
+STATIC_CAST static void __crfsnp_bnode_seg_print(LOG *log, const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
 {
     CRFSNPRB_POOL *pool;
     CRFSNPRB_NODE *node;
@@ -598,7 +598,7 @@ static void __crfsnp_bnode_seg_print(LOG *log, const CRFSNP *crfsnp, const CRFSN
     return;
 }
 
-static void __crfsnp_bnode_seg_print_reverse(LOG *log, const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
+STATIC_CAST static void __crfsnp_bnode_seg_print_reverse(LOG *log, const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
 {
     CRFSNPRB_POOL *pool;
     CRFSNPRB_NODE *node;
@@ -809,7 +809,7 @@ EC_BOOL crfsnp_item_set_key(CRFSNP_ITEM *crfsnp_item, const uint32_t klen, const
     return (EC_TRUE);
 }
 
-static const char *__crfsnp_item_dir_flag_str(const uint32_t dir_flag)
+STATIC_CAST static const char *__crfsnp_item_dir_flag_str(const uint32_t dir_flag)
 {
     switch(dir_flag)
     {
@@ -1008,7 +1008,7 @@ EC_BOOL crfsnp_dit_node_clean(CRFSNP_DIT_NODE *crfsnp_dit_node)
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_DEL_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_DEL_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1017,7 +1017,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_init(CRFSNP_HEADER *crfsnp_heade
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_DEL_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_DEL_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1026,7 +1026,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_clean(CRFSNP_HEADER *crfsnp_head
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint8_t *bit_set_flag)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint8_t *bit_set_flag)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1055,7 +1055,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_get(CRFSNP_HEADER *crfsnp_header
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1081,7 +1081,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_set(CRFSNP_HEADER *crfsnp_header
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1109,7 +1109,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_unset(CRFSNP_HEADER *crfsnp_head
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_del_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_del_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
 {
     uint32_t u32_last;
     uint32_t bit_last;
@@ -1156,7 +1156,7 @@ static EC_BOOL __crfsnp_header_del_items_bitmap_search_from(CRFSNP_HEADER *crfsn
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_TRANS_PRE_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_TRANS_PRE_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1165,7 +1165,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_init(CRFSNP_HEADER *crfsnp
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_TRANS_PRE_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_TRANS_PRE_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1174,7 +1174,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_clean(CRFSNP_HEADER *crfsn
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1203,7 +1203,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_get(CRFSNP_HEADER *crfsnp_
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1229,7 +1229,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_set(CRFSNP_HEADER *crfsnp_
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1257,7 +1257,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_unset(CRFSNP_HEADER *crfsn
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
 {
     uint32_t u32_last;
     uint32_t bit_last;
@@ -1304,7 +1304,7 @@ static EC_BOOL __crfsnp_header_trans_pre_items_bitmap_search_from(CRFSNP_HEADER 
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_TRANS_MID_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_TRANS_MID_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1313,7 +1313,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_init(CRFSNP_HEADER *crfsnp
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_TRANS_MID_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_TRANS_MID_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1322,7 +1322,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_clean(CRFSNP_HEADER *crfsn
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_reset(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_reset(CRFSNP_HEADER *crfsnp_header)
 {
     BSET(CRFSNP_HEADER_TRANS_MID_ITEMS_BITMAP(crfsnp_header), 0, CRFSNP_TRANS_MID_ITEMS_BITMAP_U8_TAB_SIZE);
 
@@ -1343,7 +1343,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_reset(CRFSNP_HEADER *crfsn
 }
 
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1372,7 +1372,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_get(CRFSNP_HEADER *crfsnp_
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1398,7 +1398,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_set(CRFSNP_HEADER *crfsnp_
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1426,7 +1426,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_unset(CRFSNP_HEADER *crfsn
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
 {
     uint32_t u32_last;
     uint32_t bit_last;
@@ -1473,7 +1473,7 @@ static EC_BOOL __crfsnp_header_trans_mid_items_bitmap_search_from(CRFSNP_HEADER 
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_init(CRFSNP_HEADER *crfsnp_header)
 {
 #if 0
     uint32_t pos;
@@ -1491,7 +1491,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_init(CRFSNP_HEADER *crfsn
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_clean(CRFSNP_HEADER *crfsnp_header)
 {
 #if 0
     uint32_t pos;
@@ -1509,7 +1509,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_clean(CRFSNP_HEADER *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_get(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos, uint32_t *bit_set_flag)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1538,7 +1538,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_get(CRFSNP_HEADER *crfsnp
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_set(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1564,7 +1564,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_set(CRFSNP_HEADER *crfsnp
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_unset(CRFSNP_HEADER *crfsnp_header, const uint32_t bit_pos)
 {
     uint32_t u32_offset;
     uint32_t bit_offset;
@@ -1592,7 +1592,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_unset(CRFSNP_HEADER *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_header_trans_post_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
+STATIC_CAST static EC_BOOL __crfsnp_header_trans_post_items_bitmap_search_from(CRFSNP_HEADER *crfsnp_header, uint32_t *bit_pos)
 {
     uint32_t u32_last;
     uint32_t bit_last;
@@ -1640,7 +1640,7 @@ static EC_BOOL __crfsnp_header_trans_post_items_bitmap_search_from(CRFSNP_HEADER
 }
 
 
-static CRFSNP_HEADER *__crfsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -1665,7 +1665,7 @@ static CRFSNP_HEADER *__crfsnp_header_load(const uint32_t np_id, const UINT32 fs
     return ((CRFSNP_HEADER *)buff);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_dup(CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_dup(CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
     CRFSNP_HEADER *des_crfsnp_header;
 
@@ -1683,7 +1683,7 @@ static CRFSNP_HEADER *__crfsnp_header_dup(CRFSNP_HEADER *src_crfsnp_header, cons
     return (des_crfsnp_header);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
 {
     CRFSNP_HEADER *crfsnp_header;
     uint32_t node_max_num;
@@ -1722,7 +1722,7 @@ static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, const UINT32 fsi
     return (crfsnp_header);
 }
 
-static CRFSNP_HEADER * __crfsnp_header_flush(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER * __crfsnp_header_flush(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != crfsnp_header)
     {
@@ -1738,7 +1738,7 @@ static CRFSNP_HEADER * __crfsnp_header_flush(CRFSNP_HEADER *crfsnp_header, const
     return (crfsnp_header);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_free(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_free(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != crfsnp_header)
     {
@@ -1762,7 +1762,7 @@ static CRFSNP_HEADER *__crfsnp_header_free(CRFSNP_HEADER *crfsnp_header, const u
 }
 
 
-static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
 {
     CRFSNP_HEADER *crfsnp_header;
 
@@ -1777,7 +1777,7 @@ static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, const UINT32 fs
     return (crfsnp_header);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
     CRFSNP_HEADER *des_crfsnp_header;
  
@@ -1796,7 +1796,7 @@ static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src_crfsnp_head
     return (des_crfsnp_header);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
 {
     CRFSNP_HEADER *crfsnp_header;
     uint32_t node_max_num;
@@ -1836,7 +1836,7 @@ static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, const UINT32 
 }
 
 #if 0
-static CRFSNP_HEADER *__crfsnp_header_create_1(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create_1(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
 {
     CRFSNP_HEADER *crfsnp_header;
     uint32_t node_max_num;
@@ -1901,7 +1901,7 @@ static CRFSNP_HEADER *__crfsnp_header_create_1(const uint32_t np_id, const UINT3
     return (crfsnp_header);
 }
 #endif
-static CRFSNP_HEADER * __crfsnp_header_sync(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER * __crfsnp_header_sync(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != crfsnp_header)
     {
@@ -1919,7 +1919,7 @@ static CRFSNP_HEADER * __crfsnp_header_sync(CRFSNP_HEADER *crfsnp_header, const 
     return (crfsnp_header);
 }
 
-static CRFSNP_HEADER *__crfsnp_header_close(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_close(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != crfsnp_header)
     {
@@ -2366,7 +2366,7 @@ uint32_t crfsnp_dnode_umount_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnod
 }
 
 /*delete single item from dnode*/
-static EC_BOOL __crfsnp_dnode_delete_item(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item)
+STATIC_CAST static EC_BOOL __crfsnp_dnode_delete_item(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
@@ -2384,7 +2384,7 @@ static EC_BOOL __crfsnp_dnode_delete_item(const CRFSNP *crfsnp, CRFSNP_DNODE *cr
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_dnode_delete_all_items(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfsnp_dnode_delete_all_items(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, const uint32_t node_pos)
 {
     CRFSNPRB_POOL *pool;
     CRFSNPRB_NODE *node;
@@ -2427,7 +2427,7 @@ EC_BOOL crfsnp_dnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_d
 }
 #if 1
 /*delete one item from dnode, if item is dnode, it must be empty*/
-static EC_BOOL __crfsnp_dnode_delete_single_item(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item, CRFSNP_ITEM *crfsnp_item_del)
+STATIC_CAST static EC_BOOL __crfsnp_dnode_delete_single_item(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item, CRFSNP_ITEM *crfsnp_item_del)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
@@ -2577,7 +2577,7 @@ uint32_t crfsnp_bnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const ui
 }
 
 /*delete single item from bnode*/
-static EC_BOOL __crfsnp_bnode_delete_item(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item)
+STATIC_CAST static EC_BOOL __crfsnp_bnode_delete_item(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
@@ -2589,7 +2589,7 @@ static EC_BOOL __crfsnp_bnode_delete_item(const CRFSNP *crfsnp, CRFSNP_BNODE *cr
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_bnode_delete_all_items(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfsnp_bnode_delete_all_items(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos)
 {
     CRFSNPRB_POOL *pool;
     CRFSNPRB_NODE *node;
@@ -2633,7 +2633,7 @@ EC_BOOL crfsnp_bnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_b
 
 #if 1
 /*delete single item from bnode*/
-static EC_BOOL __crfsnp_bnode_delete_single_item(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item, CRFSNP_ITEM *crfsnp_item_del)
+STATIC_CAST static EC_BOOL __crfsnp_bnode_delete_single_item(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item, CRFSNP_ITEM *crfsnp_item_del)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
@@ -3187,7 +3187,7 @@ EC_BOOL crfsnp_fnode_update(CRFSNP *crfsnp, CRFSNP_FNODE *crfsnp_fnode,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_bucket_update(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos,
+STATIC_CAST static EC_BOOL __crfsnp_bucket_update(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no)
 {
@@ -3322,7 +3322,7 @@ EC_BOOL crfsnp_update_no_lock(CRFSNP *crfsnp,
                               des_disk_no, des_block_no, des_page_no);    /*recursively*/
 }
 
-static EC_BOOL __crfsnp_bucket_expire(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfsnp_bucket_expire(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     CRFSNPRB_NODE *node;
     CRFSNP_ITEM   *item;
@@ -3411,7 +3411,7 @@ EC_BOOL crfsnp_item_expire(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_bucket_walk(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos, CRFSNP_DIT_NODE *crfsnp_dit_node)
+STATIC_CAST static EC_BOOL __crfsnp_bucket_walk(CRFSNP * crfsnp, CRFSNPRB_POOL *pool, const uint32_t node_pos, CRFSNP_DIT_NODE *crfsnp_dit_node)
 {
     CRFSNPRB_NODE *node;
     CRFSNP_ITEM   *item;
@@ -4787,7 +4787,7 @@ EC_BOOL crfsnp_seg_name_cstr(const CRFSNP *crfsnp, const uint32_t offset, CSTRIN
 }
 
 
-static EC_BOOL __crfsnp_list_path_vec(const CRFSNP *crfsnp, const uint32_t node_pos, const uint8_t *prev_path_str, CVECTOR *path_cstr_vec)
+STATIC_CAST static EC_BOOL __crfsnp_list_path_vec(const CRFSNP *crfsnp, const uint32_t node_pos, const uint8_t *prev_path_str, CVECTOR *path_cstr_vec)
 {
     const CRFSNPRB_POOL *pool;
     const CRFSNPRB_NODE *node;
@@ -5497,7 +5497,7 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     return (crfsnp);
 }
 
-static EC_BOOL __crfsnp_get_item_full_path(const CRFSNP *crfsnp, const uint32_t node_pos, uint8_t **full_path, uint32_t *dflag)
+STATIC_CAST static EC_BOOL __crfsnp_get_item_full_path(const CRFSNP *crfsnp, const uint32_t node_pos, uint8_t **full_path, uint32_t *dflag)
 {
     uint8_t *path;
     uint32_t path_len;
@@ -5630,7 +5630,7 @@ EC_BOOL crfsnp_show_item_full_path(LOG *log, const CRFSNP *crfsnp, const uint32_
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_show_item(LOG *log, const CRFSNP *crfsnp, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfsnp_show_item(LOG *log, const CRFSNP *crfsnp, const uint32_t node_pos)
 {
     const CRFSNPRB_POOL *pool;
     const CRFSNP_ITEM   *crfsnp_item;
@@ -5813,7 +5813,7 @@ EC_BOOL crfsnp_show_path(LOG *log, CRFSNP *crfsnp, const uint32_t path_len, cons
     return crfsnp_show_item(log, crfsnp, node_pos);
 }
 
-static EC_BOOL __crfsnp_get_first_fname_of_item(const CRFSNP *crfsnp, const uint32_t node_pos, uint8_t **fname, uint32_t *dflag)
+STATIC_CAST static EC_BOOL __crfsnp_get_first_fname_of_item(const CRFSNP *crfsnp, const uint32_t node_pos, uint8_t **fname, uint32_t *dflag)
 {
     const CRFSNPRB_POOL *pool;
     const CRFSNP_ITEM   *crfsnp_item;
@@ -6450,7 +6450,7 @@ EC_BOOL crfsnp_transfer_pre(CRFSNP *crfsnp, const CSTRING *dir_path, const CRFSD
 }
 
 /*------------------------------------------------ transfer handle -----------------------------------------*/
-static EC_BOOL __crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node_pos, const UINT32 des_tcid, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec)
+STATIC_CAST static EC_BOOL __crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node_pos, const UINT32 des_tcid, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec)
 {
     CRFSNP_ITEM       *crfsnp_item; 
     CRFSNP_FNODE      *crfsnp_fnode;
@@ -6533,7 +6533,7 @@ EC_BOOL crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node_pos, con
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfsnp_transfer_handle_file_b_offset(CRFSNP *crfsnp, const CSTRING *file_path, uint64_t *offset, const MOD_NODE *recv_mod_node, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfsnp_transfer_handle_file_b_offset(CRFSNP *crfsnp, const CSTRING *file_path, uint64_t *offset, const MOD_NODE *recv_mod_node, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CBYTES         *cbytes;
 
@@ -6577,7 +6577,7 @@ static EC_BOOL __crfsnp_transfer_handle_file_b_offset(CRFSNP *crfsnp, const CSTR
     cbytes_free(cbytes);
     return (EC_TRUE);
 }
-static EC_BOOL __crfsnp_transfer_handle_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const UINT32 des_tcid, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfsnp_transfer_handle_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const UINT32 des_tcid, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CRFSNP_ITEM    *crfsnp_item;
     CRFSNP_BNODE   *crfsnp_bnode;
@@ -6879,7 +6879,7 @@ EC_BOOL crfsnp_transfer_handle(CRFSNP *crfsnp, const CSTRING *dir_path, const CR
 }
 
 /*------------------------------------------------ transfer post clean -----------------------------------------*/
-static EC_BOOL __crfsnp_transfer_post_file(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfsnp_transfer_post_file(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CSTRING        *file_path;
 
@@ -6936,7 +6936,7 @@ EC_BOOL crfsnp_transfer_post_file(CRFSNP *crfsnp, const uint32_t node_pos, const
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsnp_transfer_post_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfsnp_transfer_post_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CSTRING        *file_path;
 

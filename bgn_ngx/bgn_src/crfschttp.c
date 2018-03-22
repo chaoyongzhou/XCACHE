@@ -174,7 +174,7 @@ static const uint32_t g_crfschttp_status_kvs_num = sizeof(g_crfschttp_status_kvs
 
 static EC_BOOL g_crfcshttp_log_init = EC_FALSE;
 
-static const char *__crfschttp_status_str_get(const uint32_t http_status)
+STATIC_CAST static const char *__crfschttp_status_str_get(const uint32_t http_status)
 {
     uint32_t idx;
 
@@ -194,7 +194,7 @@ static CQUEUE g_crfschttp_defer_request_queue;
 
 static CLIST  g_csocket_cnode_defer_close_list;
 
-static void __crfschttp_print_buf(const char *info, const uint8_t *buf, const UINT32 len)
+STATIC_CAST static void __crfschttp_print_buf(const char *info, const uint8_t *buf, const UINT32 len)
 {
     UINT32   idx;
     const uint8_t *pch;
@@ -207,7 +207,7 @@ static void __crfschttp_print_buf(const char *info, const uint8_t *buf, const UI
     return;
 }
 
-static int __crfschttp_on_message_begin(http_parser_t* http_parser)
+STATIC_CAST static int __crfschttp_on_message_begin(http_parser_t* http_parser)
 {
     CRFSCHTTP_NODE *crfschttp_node;
 
@@ -223,7 +223,7 @@ static int __crfschttp_on_message_begin(http_parser_t* http_parser)
     return (0);
 }
 
-static int __crfschttp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
+STATIC_CAST static int __crfschttp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
 {
     CRFSCHTTP_NODE *crfschttp_node;
 
@@ -249,14 +249,14 @@ static int __crfschttp_on_headers_complete(http_parser_t* http_parser, const cha
     return (0);
 }
 
-static int __crfschttp_on_message_complete(http_parser_t* http_parser)
+STATIC_CAST static int __crfschttp_on_message_complete(http_parser_t* http_parser)
 {
     (void)http_parser;
     dbg_log(SEC_0145_CRFSCHTTP, 5)(LOGSTDOUT, "\n***MESSAGE COMPLETE***\n\n");
     return (0);
 }
 
-static int __crfschttp_on_url(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __crfschttp_on_url(http_parser_t* http_parser, const char* at, size_t length)
 {
     CRFSCHTTP_NODE *crfschttp_node;
 
@@ -268,7 +268,7 @@ static int __crfschttp_on_url(http_parser_t* http_parser, const char* at, size_t
     return (0);
 }
 
-static int __crfschttp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __crfschttp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CRFSCHTTP_NODE *crfschttp_node;
     CSTRKV *cstrkv;
@@ -290,7 +290,7 @@ static int __crfschttp_on_header_field(http_parser_t* http_parser, const char* a
     return (0);
 }
 
-static int __crfschttp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __crfschttp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
 {
     CRFSCHTTP_NODE *crfschttp_node;
     CSTRKV *cstrkv;
@@ -311,7 +311,7 @@ static int __crfschttp_on_header_value(http_parser_t* http_parser, const char* a
     return (0);
 }
 
-static int __crfschttp_on_body(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __crfschttp_on_body(http_parser_t* http_parser, const char* at, size_t length)
 {
     CRFSCHTTP_NODE *crfschttp_node;
     CHUNK_MGR     *body_chunks;
@@ -331,7 +331,7 @@ static int __crfschttp_on_body(http_parser_t* http_parser, const char* at, size_
     return (0);
 }
 
-static EC_BOOL __crfschttp_uri_is_setsmf_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_setsmf_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -348,7 +348,7 @@ static EC_BOOL __crfschttp_uri_is_setsmf_op(const CBUFFER *uri_cbuffer)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_uri_is_getrgf_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_getrgf_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -365,7 +365,7 @@ static EC_BOOL __crfschttp_uri_is_getrgf_op(const CBUFFER *uri_cbuffer)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_uri_is_getsmf_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_getsmf_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -382,7 +382,7 @@ static EC_BOOL __crfschttp_uri_is_getsmf_op(const CBUFFER *uri_cbuffer)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_uri_is_getbgf_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_getbgf_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -400,7 +400,7 @@ static EC_BOOL __crfschttp_uri_is_getbgf_op(const CBUFFER *uri_cbuffer)
 }
 
 
-static EC_BOOL __crfschttp_uri_is_update_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_update_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -418,7 +418,7 @@ static EC_BOOL __crfschttp_uri_is_update_op(const CBUFFER *uri_cbuffer)
 }
 
 /*renew expires setting*/
-static EC_BOOL __crfschttp_uri_is_renew_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_renew_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -435,7 +435,7 @@ static EC_BOOL __crfschttp_uri_is_renew_op(const CBUFFER *uri_cbuffer)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_uri_is_dsmf_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_dsmf_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -452,7 +452,7 @@ static EC_BOOL __crfschttp_uri_is_dsmf_op(const CBUFFER *uri_cbuffer)
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_uri_is_ddir_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __crfschttp_uri_is_ddir_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
@@ -1638,7 +1638,7 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getrgf_request_send_block(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getrgf_request_send_block(CRFSCHTTP_NODE *crfschttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
@@ -1684,7 +1684,7 @@ static EC_BOOL __crfschttp_handle_getrgf_request_send_block(CRFSCHTTP_NODE *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getrgf_request_send_block_more(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getrgf_request_send_block_more(CRFSCHTTP_NODE *crfschttp_node)
 {
     /*send data*/
     if(EC_FALSE == __crfschttp_handle_getrgf_request_send_block(crfschttp_node))
@@ -1731,7 +1731,7 @@ static EC_BOOL __crfschttp_handle_getrgf_request_send_block_more(CRFSCHTTP_NODE 
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getrgf_request_fetch_path(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getrgf_request_fetch_path(CRFSCHTTP_NODE *crfschttp_node)
 {
     CBUFFER       *uri_cbuffer;
     CSTRING       *store_path; 
@@ -1994,7 +1994,7 @@ EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfschttp_node)
 {    
     CSOCKET_CNODE *csocket_cnode;
 
@@ -2058,7 +2058,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP_NODE *crfsc
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_send_body(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_send_body(CRFSCHTTP_NODE *crfschttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
@@ -2103,7 +2103,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_send_body(CRFSCHTTP_NODE *crfsc
                        crfschttp_node, CRFSCHTTP_NODE_STORE_CUR_OFFSET(crfschttp_node));
     return (EC_TRUE);
 }
-static EC_BOOL __crfschttp_handle_getbgf_request_send_body_more(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_send_body_more(CRFSCHTTP_NODE *crfschttp_node)
 {
     /*send data*/
     if(EC_FALSE == __crfschttp_handle_getbgf_request_send_body(crfschttp_node))
@@ -2157,7 +2157,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_send_body_more(CRFSCHTTP_NODE *
 }
 
 /*get block fd and pos*/
-static EC_BOOL __crfschttp_handle_getbgf_request_read_block(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_read_block(CRFSCHTTP_NODE *crfschttp_node)
 {    
     CSOCKET_CNODE *csocket_cnode;
 
@@ -2202,7 +2202,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_read_block(CRFSCHTTP_NODE *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_send_block(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_send_block(CRFSCHTTP_NODE *crfschttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
@@ -2252,7 +2252,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_send_block(CRFSCHTTP_NODE *crfs
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_send_block_more(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_send_block_more(CRFSCHTTP_NODE *crfschttp_node)
 {
     /*send data*/
     if(EC_FALSE == __crfschttp_handle_getbgf_request_send_block(crfschttp_node))
@@ -2305,7 +2305,7 @@ static EC_BOOL __crfschttp_handle_getbgf_request_send_block_more(CRFSCHTTP_NODE 
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_handle_getbgf_request_fetch_path(CRFSCHTTP_NODE *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_fetch_path(CRFSCHTTP_NODE *crfschttp_node)
 {
     CBUFFER       *uri_cbuffer;
     CSTRING       *store_path; 
@@ -3590,7 +3590,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
     return (EC_FALSE);
 }
 
-static void __crfschttp_parser_setting_init(http_parser_settings_t   *http_parser_setting)
+STATIC_CAST static void __crfschttp_parser_setting_init(http_parser_settings_t   *http_parser_setting)
 {
     BSET(http_parser_setting, 0, sizeof(http_parser_settings_t));
  
@@ -3822,17 +3822,17 @@ void crfschttp_node_print(LOG *log, const CRFSCHTTP_NODE *crfschttp_node)
     return;
 }
 
-static EC_BOOL __crfschttp_node_recv_is_in_low_bps(CRFSCHTTP_NODE  *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_node_recv_is_in_low_bps(CRFSCHTTP_NODE  *crfschttp_node)
 {
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_node_send_is_in_low_bps(CRFSCHTTP_NODE  *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_node_send_is_in_low_bps(CRFSCHTTP_NODE  *crfschttp_node)
 {
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfschttp_node_prepare_for_csocket_cnode(CSOCKET_CNODE *csocket_cnode)
+STATIC_CAST static EC_BOOL __crfschttp_node_prepare_for_csocket_cnode(CSOCKET_CNODE *csocket_cnode)
 {
     CRFSCHTTP_NODE *crfschttp_node;
 
@@ -3879,7 +3879,7 @@ static EC_BOOL __crfschttp_node_prepare_for_csocket_cnode(CSOCKET_CNODE *csocket
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *crfschttp_node)
+STATIC_CAST static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *crfschttp_node)
 {
     CSOCKET_CNODE *csocket_cnode;
  

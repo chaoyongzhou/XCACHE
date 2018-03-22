@@ -24,12 +24,12 @@ extern "C"{
 #include "debug.h"
 
 /*for safe reason, when data handler is not given, set to default null function*/
-static void cvector_null_default(void *data)
+STATIC_CAST static void cvector_null_default(void *data)
 {
     return;
 }
 
-static EC_BOOL cvector_data_cmp_default(const void * data_1, const void * data_2)
+STATIC_CAST static EC_BOOL cvector_data_cmp_default(const void * data_1, const void * data_2)
 {
     if(data_1 != data_2)
     {
@@ -38,7 +38,7 @@ static EC_BOOL cvector_data_cmp_default(const void * data_1, const void * data_2
     return (EC_TRUE);
 }
 
-static EC_BOOL cvector_data_filter_default(const void * data_1, const void * data_2)
+STATIC_CAST static EC_BOOL cvector_data_filter_default(const void * data_1, const void * data_2)
 {
     if(data_1 != data_2)
     {

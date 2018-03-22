@@ -189,7 +189,7 @@ void cthread_killme(void *args)
     return;
 }
 
-static EC_BOOL cthread_check_tcid_offset()
+STATIC_CAST static EC_BOOL cthread_check_tcid_offset()
 {
     if(CTHREAD_GET_TID() != CTHREAD_FETCH_TID(pthread_self(), CTHREAD_TID_OFFSET))
     {
@@ -623,7 +623,7 @@ void cthread_task_print(LOG *log, const CTHREAD_TASK *cthread_task)
     return;
 }
 
-static void cthread_unbind(CTHREAD_BIND *cthread_bind)
+STATIC_CAST static void cthread_unbind(CTHREAD_BIND *cthread_bind)
 {
     CTHREAD_NODE *cthread_node;
     CTHREAD_POOL *cthread_pool;
@@ -659,7 +659,7 @@ static void cthread_unbind(CTHREAD_BIND *cthread_bind)
     return;
 }
 
-static UINT32 cthread_core_load_inc(CTHREAD_BIND *cthread_bind)
+STATIC_CAST static UINT32 cthread_core_load_inc(CTHREAD_BIND *cthread_bind)
 {
     UINT32 core_id;
 
@@ -677,7 +677,7 @@ static UINT32 cthread_core_load_inc(CTHREAD_BIND *cthread_bind)
     return (0);
 }
 
-static UINT32 cthread_core_load_dec(CTHREAD_BIND *cthread_bind)
+STATIC_CAST static UINT32 cthread_core_load_dec(CTHREAD_BIND *cthread_bind)
 {
     UINT32 core_id;
 
@@ -1078,7 +1078,7 @@ void cthread_node_print(LOG *log, const CTHREAD_NODE *cthread_node)
 }
 
 /*note: this function should also work for core_max_num = 1*/
-static UINT32 cthreadp_unused_core_id(CTHREAD_POOL *cthread_pool, const UINT32 core_max_num, const UINT32 core_id_except)
+STATIC_CAST static UINT32 cthreadp_unused_core_id(CTHREAD_POOL *cthread_pool, const UINT32 core_max_num, const UINT32 core_id_except)
 {
     UINT32 core_id;
     core_id = CTHREAD_POOL_CORE_MAX_ID_USED(cthread_pool) + 1;

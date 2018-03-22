@@ -84,14 +84,14 @@ uint16_t dhcp_get_local_port()
 }
 
 /*NOTE: get from or put in buffer, all data is already in network byte order*/
-static uint8_t __dhcp_get8(const uint8_t *buffer, uint32_t *counter)
+STATIC_CAST static uint8_t __dhcp_get8(const uint8_t *buffer, uint32_t *counter)
 {
     uint8_t i = buffer[*counter];
     (*counter)++;
     return i;
 }
 
-static uint16_t __dhcp_get16(const uint8_t *buffer, uint32_t *counter)
+STATIC_CAST static uint16_t __dhcp_get16(const uint8_t *buffer, uint32_t *counter)
 {
     uint16_t s;
     memcpy(&s, buffer + *counter, sizeof(uint16_t));
@@ -99,7 +99,7 @@ static uint16_t __dhcp_get16(const uint8_t *buffer, uint32_t *counter)
     return s;
 }
 
-static uint32_t __dhcp_get32(const uint8_t *buffer, uint32_t *counter)
+STATIC_CAST static uint32_t __dhcp_get32(const uint8_t *buffer, uint32_t *counter)
 {
     uint32_t l;
     memcpy(&l, buffer + *counter, sizeof(uint32_t));
@@ -107,37 +107,37 @@ static uint32_t __dhcp_get32(const uint8_t *buffer, uint32_t *counter)
     return l;
 }
 
-static void  __dhcp_get8s(uint8_t *buffer, uint32_t *counter, uint8_t *data, const uint32_t len)
+STATIC_CAST static void  __dhcp_get8s(uint8_t *buffer, uint32_t *counter, uint8_t *data, const uint32_t len)
 {
     memcpy(data, buffer + *counter, len);
     *counter += len;
 }
 
-static void __dhcp_put8(uint8_t *buffer, uint32_t *counter, uint8_t c)
+STATIC_CAST static void __dhcp_put8(uint8_t *buffer, uint32_t *counter, uint8_t c)
 {
     buffer[*counter] = c;
     (*counter)++;
 }
 
-static void __dhcp_put16(uint8_t *buffer, uint32_t *counter, uint16_t s)
+STATIC_CAST static void __dhcp_put16(uint8_t *buffer, uint32_t *counter, uint16_t s)
 {
     memcpy(buffer + *counter, &s, sizeof(uint16_t));
     *counter += sizeof(uint16_t);
 }
 
-static void __dhcp_put32(uint8_t *buffer, uint32_t *counter, uint32_t l)
+STATIC_CAST static void __dhcp_put32(uint8_t *buffer, uint32_t *counter, uint32_t l)
 {
     memcpy(buffer + *counter, &l, sizeof(uint32_t));
     *counter += sizeof(uint32_t);
 }
 
-static void __dhcp_put8s(uint8_t *buffer, uint32_t *counter, const uint8_t *data, const uint32_t len)
+STATIC_CAST static void __dhcp_put8s(uint8_t *buffer, uint32_t *counter, const uint8_t *data, const uint32_t len)
 {
     memcpy(buffer + *counter, data, len);
     *counter += len;
 }
 
-static uint32_t __dhcp_checksum (unsigned char *buf, unsigned nbytes, uint32_t sum)
+STATIC_CAST static uint32_t __dhcp_checksum (unsigned char *buf, unsigned nbytes, uint32_t sum)
 {
     unsigned i;
 
@@ -167,14 +167,14 @@ static uint32_t __dhcp_checksum (unsigned char *buf, unsigned nbytes, uint32_t s
     return sum;
 }
 
-static uint32_t __dhcp_wrapsum (uint32_t sum)
+STATIC_CAST static uint32_t __dhcp_wrapsum (uint32_t sum)
 {
     sum = ~sum & 0xFFFF;
     return htons(sum);
 }
 
 /*note: the input des_ip, des_mask and gateway should be in network byte order*/
-static EC_BOOL __dhcp_if_add_route(int sock, const char *netcard, const uint32_t des_ip, const uint32_t des_mask, const uint32_t gateway)
+STATIC_CAST static EC_BOOL __dhcp_if_add_route(int sock, const char *netcard, const uint32_t des_ip, const uint32_t des_mask, const uint32_t gateway)
 {
     struct rtentry rt;
     struct sockaddr_in *sa;

@@ -40,7 +40,7 @@ extern "C"{
 
 #include "findex.inc"
 
-static uint32_t __csfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)
+STATIC_CAST static uint32_t __csfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)
 {
     uint8_t   digest[ CMD5_DIGEST_LEN ];
     uint32_t  hash_val;
@@ -153,7 +153,7 @@ EC_BOOL csfsnp_mgr_close_np(CSFSNP_MGR *csfsnp_mgr, const uint32_t csfsnp_id)
     return (EC_TRUE);
 }
 
-static char *__csfsnp_mgr_gen_db_name(const char *root_dir)
+STATIC_CAST static char *__csfsnp_mgr_gen_db_name(const char *root_dir)
 {
     const char *fields[ 2 ];
  
@@ -163,7 +163,7 @@ static char *__csfsnp_mgr_gen_db_name(const char *root_dir)
     return c_str_join((char *)"/", fields, 2);
 }
 
-static EC_BOOL __csfsnp_mgr_load_db(CSFSNP_MGR *csfsnp_mgr, int csfsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __csfsnp_mgr_load_db(CSFSNP_MGR *csfsnp_mgr, int csfsnp_mgr_fd)
 {
     UINT32 csfsnp_mgr_db_size;
     UINT8* csfsnp_mgr_db_buff;
@@ -228,7 +228,7 @@ static EC_BOOL __csfsnp_mgr_load_db(CSFSNP_MGR *csfsnp_mgr, int csfsnp_mgr_fd)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsnp_mgr_flush_db(CSFSNP_MGR *csfsnp_mgr, int csfsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __csfsnp_mgr_flush_db(CSFSNP_MGR *csfsnp_mgr, int csfsnp_mgr_fd)
 {
     UINT32 csfsnp_mgr_db_size;
     UINT8* csfsnp_mgr_db_buff;
@@ -536,7 +536,7 @@ EC_BOOL csfsnp_mgr_show_np(LOG *log, CSFSNP_MGR *csfsnp_mgr, const uint32_t csfs
     return (EC_TRUE);
 }
 
-static uint32_t __csfsnp_mgr_get_np_id_of_path(const CSFSNP_MGR *csfsnp_mgr, const uint32_t path_len, const uint8_t *path)
+STATIC_CAST static uint32_t __csfsnp_mgr_get_np_id_of_path(const CSFSNP_MGR *csfsnp_mgr, const uint32_t path_len, const uint8_t *path)
 {
     uint32_t csfsnp_num;
     uint32_t csfsnp_id;
@@ -562,7 +562,7 @@ static uint32_t __csfsnp_mgr_get_np_id_of_path(const CSFSNP_MGR *csfsnp_mgr, con
     return (csfsnp_id);
 }
 
-static CSFSNP *__csfsnp_mgr_get_np_of_id(CSFSNP_MGR *csfsnp_mgr, const uint32_t csfsnp_id)
+STATIC_CAST static CSFSNP *__csfsnp_mgr_get_np_of_id(CSFSNP_MGR *csfsnp_mgr, const uint32_t csfsnp_id)
 {
     CSFSNP  * csfsnp;
 
@@ -579,7 +579,7 @@ static CSFSNP *__csfsnp_mgr_get_np_of_id(CSFSNP_MGR *csfsnp_mgr, const uint32_t 
     return (csfsnp);        
 }
 
-static CSFSNP *__csfsnp_mgr_get_np(CSFSNP_MGR *csfsnp_mgr, const uint32_t path_len, const uint8_t *path, uint32_t *np_id)
+STATIC_CAST static CSFSNP *__csfsnp_mgr_get_np(CSFSNP_MGR *csfsnp_mgr, const uint32_t path_len, const uint8_t *path, uint32_t *np_id)
 {
     CSFSNP  * csfsnp;
     uint32_t  csfsnp_id;
@@ -925,7 +925,7 @@ EC_BOOL csfsnp_mgr_delete(CSFSNP_MGR *csfsnp_mgr, const CSTRING *path)
     return csfsnp_delete(csfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path));
 }
 
-static EC_BOOL __csfsnp_mgr_delete_np(CSFSNP_MGR *csfsnp_mgr, const uint32_t csfsnp_id, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __csfsnp_mgr_delete_np(CSFSNP_MGR *csfsnp_mgr, const uint32_t csfsnp_id, const uint32_t node_pos)
 {
     CSFSNP *csfsnp;
  

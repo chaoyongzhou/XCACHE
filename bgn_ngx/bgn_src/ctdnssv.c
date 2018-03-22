@@ -46,7 +46,7 @@ static CTDNSSV_CFG g_ctdnssv_cfg_tbl[] = {
 
 static uint8_t g_ctdnssv_cfg_tbl_len = (uint8_t)(sizeof(g_ctdnssv_cfg_tbl)/sizeof(g_ctdnssv_cfg_tbl[0]));
 
-static CTDNSSVRB_NODE *__ctdnssvrb_node(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static CTDNSSVRB_NODE *__ctdnssvrb_node(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
 {
     if(CTDNSSVRB_POOL_NODE_MAX_NUM(pool) > node_pos)
     {
@@ -117,7 +117,7 @@ EC_BOOL ctdnssv_model_item_max_num(const uint8_t ctdnssv_model, uint32_t *item_m
     return (EC_TRUE);
 }
 
-static char *ctdnssv_fname_gen(const char *root_dir, const char *sname)
+STATIC_CAST static char *ctdnssv_fname_gen(const char *root_dir, const char *sname)
 {
     char    *fname;
     uint32_t len;
@@ -441,7 +441,7 @@ EC_BOOL ctdnssv_header_load(CTDNSSV *ctdnssv, uint32_t *offset, CTDNSSV_HEADER *
     return (EC_TRUE);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_new(const UINT32 fsize, int fd, const uint8_t model)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_new(const UINT32 fsize, int fd, const uint8_t model)
 {
     CTDNSSV_HEADER *ctdnssv_header;
     uint32_t node_max_num;
@@ -492,7 +492,7 @@ EC_BOOL ctdnssv_header_is(const CTDNSSV_HEADER *ctdnssv_header, const uint32_t s
     return BCMP(sname, CTDNSSV_HEADER_SNAME(ctdnssv_header), sname_len);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_load(const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_load(const UINT32 fsize, int fd)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -517,7 +517,7 @@ static CTDNSSV_HEADER *__ctdnssv_header_load(const UINT32 fsize, int fd)
     return ((CTDNSSV_HEADER *)buff);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_open(const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_open(const UINT32 fsize, int fd)
 {
     CTDNSSV_HEADER *ctdnssv_header;
 
@@ -532,7 +532,7 @@ static CTDNSSV_HEADER *__ctdnssv_header_open(const UINT32 fsize, int fd)
     return (ctdnssv_header);
 }
 
-static CTDNSSV_HEADER * __ctdnssv_header_flush(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_flush(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnssv_header)
     {
@@ -548,7 +548,7 @@ static CTDNSSV_HEADER * __ctdnssv_header_flush(CTDNSSV_HEADER *ctdnssv_header, c
     return (ctdnssv_header);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_free(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_free(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnssv_header)
     {
@@ -571,7 +571,7 @@ static CTDNSSV_HEADER *__ctdnssv_header_free(CTDNSSV_HEADER *ctdnssv_header, con
     return (NULL_PTR);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, int fd, const uint8_t model)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, int fd, const uint8_t model)
 {
     CTDNSSV_HEADER *ctdnssv_header;
     uint32_t                node_max_num;
@@ -598,7 +598,7 @@ static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, int fd, const
     return (ctdnssv_header);
 }
 
-static CTDNSSV_HEADER * __ctdnssv_header_sync(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_sync(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnssv_header)
     {
@@ -616,7 +616,7 @@ static CTDNSSV_HEADER * __ctdnssv_header_sync(CTDNSSV_HEADER *ctdnssv_header, co
     return (ctdnssv_header);
 }
 
-static CTDNSSV_HEADER *__ctdnssv_header_close(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
+STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_close(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
 {
     if(NULL_PTR != ctdnssv_header)
     {
@@ -1023,7 +1023,7 @@ CTDNSSV_ITEM *ctdnssv_get(CTDNSSV *ctdnssv, const UINT32 tcid)
     return ctdnssv_fetch(ctdnssv, ctdnssv_search(ctdnssv, tcid));
 }
 
-static EC_BOOL __ctdnssv_finger(CTDNSSV *ctdnssv, const uint32_t node_pos, UINT32 *left_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
+STATIC_CAST static EC_BOOL __ctdnssv_finger(CTDNSSV *ctdnssv, const uint32_t node_pos, UINT32 *left_num, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
     CTDNSSVRB_POOL    *ctdnssv_pool;
     CTDNSSVRB_NODE    *node;

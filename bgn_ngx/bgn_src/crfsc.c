@@ -68,21 +68,21 @@ extern "C"{
 #define CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id)  \
     ((CMPI_ANY_MODI != (crfsc_md_id)) && ((NULL_PTR == CRFSC_MD_GET(crfsc_md_id)) || (0 == (CRFSC_MD_GET(crfsc_md_id)->usedcounter))))
 
-static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_root_dir);
-static EC_BOOL __crfsc_end_all_rfs(UINT32 crfsc_md_id);
+STATIC_CAST static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_root_dir);
+STATIC_CAST static EC_BOOL __crfsc_end_all_rfs(UINT32 crfsc_md_id);
 
-static UINT32  __crfsc_get_modi(const UINT32 crfsc_md_id, const UINT32 crfs_pos);
-static EC_BOOL __crfsc_set_modi(const UINT32 crfsc_md_id, const UINT32 crfs_md_id);
+STATIC_CAST static UINT32  __crfsc_get_modi(const UINT32 crfsc_md_id, const UINT32 crfs_pos);
+STATIC_CAST static EC_BOOL __crfsc_set_modi(const UINT32 crfsc_md_id, const UINT32 crfs_md_id);
 
-static UINT32  __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_md_id, const CSTRING *file_path);
-static EC_BOOL __crfsc_get_rfsc_mod_node_of_file_path(const UINT32 crfsc_md_id, const CRFSDT *crfsdt, const CSTRING *file_path, MOD_NODE *mod_node);
+STATIC_CAST static UINT32  __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_md_id, const CSTRING *file_path);
+STATIC_CAST static EC_BOOL __crfsc_get_rfsc_mod_node_of_file_path(const UINT32 crfsc_md_id, const CRFSDT *crfsdt, const CSTRING *file_path, MOD_NODE *mod_node);
 
-static MOD_MGR *__crfsc_make_mod_mgr_by_pnode(const UINT32 crfsc_md_id, CRFSDT_PNODE *crfsdt_pnode);
-static EC_BOOL  __crfsc_make_mode_node_by_rnode(CRFSDT_RNODE *crfsdt_rnode, CRFSC_WALKER_ARG *crfsc_walker_arg);
-static MOD_MGR *__crfsc_make_mod_mgr_by_rnode_tree(const UINT32 crfsc_md_id, CRB_TREE *rnode_tree);
+STATIC_CAST static MOD_MGR *__crfsc_make_mod_mgr_by_pnode(const UINT32 crfsc_md_id, CRFSDT_PNODE *crfsdt_pnode);
+STATIC_CAST static EC_BOOL  __crfsc_make_mode_node_by_rnode(CRFSDT_RNODE *crfsdt_rnode, CRFSC_WALKER_ARG *crfsc_walker_arg);
+STATIC_CAST static MOD_MGR *__crfsc_make_mod_mgr_by_rnode_tree(const UINT32 crfsc_md_id, CRB_TREE *rnode_tree);
 
-static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir);
-static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt_standby, const CSTRING *crfs_root_dir);
+STATIC_CAST static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir);
+STATIC_CAST static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt_standby, const CSTRING *crfs_root_dir);
 
 /**
 *   for test only
@@ -138,7 +138,7 @@ UINT32 crfsc_free_module_static_mem(const UINT32 crfsc_md_id)
     return 0;
 }
 
-static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_root_dir)
+STATIC_CAST static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_root_dir)
 { 
     EC_BOOL ret;
 
@@ -172,7 +172,7 @@ static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_roo
     return (ret);
 }
 
-static EC_BOOL __crfsc_end_all_rfs(UINT32 crfsc_md_id)
+STATIC_CAST static EC_BOOL __crfsc_end_all_rfs(UINT32 crfsc_md_id)
 {
     CRFSC_MD *crfsc_md;
     UINT32    crfs_num;
@@ -358,12 +358,12 @@ void crfsc_end(const UINT32 crfsc_md_id)
     return ;
 }
 
-static EC_BOOL __crfs_default_true_checker(const EC_BOOL ec_bool)
+STATIC_CAST static EC_BOOL __crfs_default_true_checker(const EC_BOOL ec_bool)
 {
     return (ec_bool);
 }
 
-static EC_BOOL __crfs_default_false_checker(const EC_BOOL ec_bool)
+STATIC_CAST static EC_BOOL __crfs_default_false_checker(const EC_BOOL ec_bool)
 {
     if(EC_TRUE == ec_bool)
     {
@@ -372,7 +372,7 @@ static EC_BOOL __crfs_default_false_checker(const EC_BOOL ec_bool)
     return (EC_TRUE);
 }
 
-static MOD_MGR *crfsc_make_mod_mgr_by_rnode_vec(const UINT32 crfsc_md_id, CVECTOR *crfsconhash_rnode_vec)
+STATIC_CAST static MOD_MGR *crfsc_make_mod_mgr_by_rnode_vec(const UINT32 crfsc_md_id, CVECTOR *crfsconhash_rnode_vec)
 {
     UINT32   crfsconhash_rnode_pos;
     UINT32   crfsconhash_rnode_num;
@@ -404,7 +404,7 @@ static MOD_MGR *crfsc_make_mod_mgr_by_rnode_vec(const UINT32 crfsc_md_id, CVECTO
     return (mod_mgr);
 }
 
-static MOD_MGR *__crfsc_make_mod_mgr_by_pnode(const UINT32 crfsc_md_id, CRFSDT_PNODE *crfsdt_pnode)
+STATIC_CAST static MOD_MGR *__crfsc_make_mod_mgr_by_pnode(const UINT32 crfsc_md_id, CRFSDT_PNODE *crfsdt_pnode)
 {
     CRFSCONHASH  *crfsconhash;
 
@@ -412,7 +412,7 @@ static MOD_MGR *__crfsc_make_mod_mgr_by_pnode(const UINT32 crfsc_md_id, CRFSDT_P
     return crfsc_make_mod_mgr_by_rnode_vec(crfsc_md_id, CRFSCONHASH_RNODE_VEC(crfsconhash));
 }
 
-static EC_BOOL __crfsc_make_mode_node_by_rnode(CRFSDT_RNODE *crfsdt_rnode, CRFSC_WALKER_ARG *crfsc_walker_arg)
+STATIC_CAST static EC_BOOL __crfsc_make_mode_node_by_rnode(CRFSDT_RNODE *crfsdt_rnode, CRFSC_WALKER_ARG *crfsc_walker_arg)
 {
     mod_mgr_incl(CRFSDT_RNODE_TCID(crfsdt_rnode),
                   CMPI_LOCAL_COMM,
@@ -422,7 +422,7 @@ static EC_BOOL __crfsc_make_mode_node_by_rnode(CRFSDT_RNODE *crfsdt_rnode, CRFSC
     return (EC_TRUE);
 }
 
-static MOD_MGR *__crfsc_make_mod_mgr_by_rnode_tree(const UINT32 crfsc_md_id, CRB_TREE *rnode_tree)
+STATIC_CAST static MOD_MGR *__crfsc_make_mod_mgr_by_rnode_tree(const UINT32 crfsc_md_id, CRB_TREE *rnode_tree)
 {
     MOD_MGR *mod_mgr;
 
@@ -442,7 +442,7 @@ static MOD_MGR *__crfsc_make_mod_mgr_by_rnode_tree(const UINT32 crfsc_md_id, CRB
     return (mod_mgr);
 }
 
-static UINT32 __crfsc_get_modi(const UINT32 crfsc_md_id, const UINT32 crfs_pos)
+STATIC_CAST static UINT32 __crfsc_get_modi(const UINT32 crfsc_md_id, const UINT32 crfs_pos)
 {
     CRFSC_MD     *crfsc_md;
     MOD_NODE     *mod_node;
@@ -458,7 +458,7 @@ static UINT32 __crfsc_get_modi(const UINT32 crfsc_md_id, const UINT32 crfs_pos)
     return MOD_NODE_MODI(mod_node);
 }
 
-static EC_BOOL __crfsc_set_modi(const UINT32 crfsc_md_id, const UINT32 crfs_md_id)
+STATIC_CAST static EC_BOOL __crfsc_set_modi(const UINT32 crfsc_md_id, const UINT32 crfs_md_id)
 {
     CRFSC_MD     *crfsc_md;
     MOD_NODE     *mod_node;
@@ -483,7 +483,7 @@ static EC_BOOL __crfsc_set_modi(const UINT32 crfsc_md_id, const UINT32 crfs_md_i
 }
 
 /*get module id of CRFS*/
-static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_md_id, const CSTRING *file_path)
+STATIC_CAST static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD     *crfsc_md;
     UINT32        crfs_md_id;
@@ -517,7 +517,7 @@ static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_md_id, const 
 }
 
 /*get mod_node of CRFSC*/
-static EC_BOOL __crfsc_get_rfsc_mod_node_of_file_path(const UINT32 crfsc_md_id, const CRFSDT *crfsdt, const CSTRING *file_path, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __crfsc_get_rfsc_mod_node_of_file_path(const UINT32 crfsc_md_id, const CRFSDT *crfsdt, const CSTRING *file_path, MOD_NODE *mod_node)
 {
     CRFSDT_PNODE      *crfsdt_pnode; 
     CRFSCONHASH_RNODE *crfsconhash_rnode;
@@ -2378,7 +2378,7 @@ EC_BOOL crfsc_has_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING
     return crfsdt_has(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md), tcid, path);
 }
 
-static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir)
+STATIC_CAST static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir)
 {
     CSTRING  *dt_fname;
      
@@ -2534,7 +2534,7 @@ EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id)
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt_standby, const CSTRING *crfs_root_dir)
+STATIC_CAST static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt_standby, const CSTRING *crfs_root_dir)
 {
     CSTRING  *dt_fname;
     UINT32    offset;

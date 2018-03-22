@@ -247,7 +247,7 @@ EC_BOOL csfsmc_release_dn_no_lock(CSFSMC *csfsmc, const uint32_t size, const uin
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsmc_release_dn_no_lock(CSFSMC *csfsmc, const CSFSNP_FNODE *csfsnp_fnode)
+STATIC_CAST static EC_BOOL __csfsmc_release_dn_no_lock(CSFSMC *csfsmc, const CSFSNP_FNODE *csfsnp_fnode)
 {
     const CSFSNP_INODE *csfsnp_inode;
 
@@ -285,7 +285,7 @@ EC_BOOL csfsmc_import_dn_no_lock(CSFSMC *csfsmc, const CBYTES *cbytes, const CSF
 }
 
 /*for debug only*/
-static REAL __csfsmc_room_ratio(CSFSMC *csfsmc)
+STATIC_CAST static REAL __csfsmc_room_ratio(CSFSMC *csfsmc)
 {
     CPGD *cpgd;
     double ratio;
@@ -674,7 +674,7 @@ EC_BOOL csfsmc_update_no_lock(CSFSMC *csfsmc, const CSTRING *file_path, const CB
 }
 
 /*recycle from csfsmclist if need*/
-static EC_BOOL __csfsmc_recycle_np_no_lock(CSFSMC *csfsmc, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __csfsmc_recycle_np_no_lock(CSFSMC *csfsmc, const uint32_t node_pos)
 {
     CSFSNP      *csfsnp;
     CSFSMCLIST  *csfsmclist;

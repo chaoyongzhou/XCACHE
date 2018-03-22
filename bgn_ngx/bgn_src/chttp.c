@@ -149,7 +149,7 @@ const char *chttp_status_str_get(const uint32_t http_status)
 }
 
 /*private interface, not for http parser*/
-static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE *csocket_cnode;
 
@@ -251,7 +251,7 @@ static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
 }
 
 /*private interface, not for http parser*/
-static EC_BOOL __chttp_on_send_complete(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_on_send_complete(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE *csocket_cnode;
 
@@ -276,7 +276,7 @@ static EC_BOOL __chttp_on_send_complete(CHTTP_NODE *chttp_node)
 }
 
 /*---------------------------------------- HTTP PASER INTERFACE ----------------------------------------*/
-static int __chttp_on_message_begin(http_parser_t* http_parser)
+STATIC_CAST static int __chttp_on_message_begin(http_parser_t* http_parser)
 {
     CHTTP_NODE *chttp_node;
 
@@ -304,7 +304,7 @@ static int __chttp_on_message_begin(http_parser_t* http_parser)
 * otherwise, error
 *
 **/
-static int __chttp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
+STATIC_CAST static int __chttp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
 {
     CHTTP_NODE    *chttp_node;
 
@@ -352,7 +352,7 @@ static int __chttp_on_headers_complete(http_parser_t* http_parser, const char* l
     return (0);/*succ*/
 }
 
-static int __chttp_on_message_complete(http_parser_t* http_parser)
+STATIC_CAST static int __chttp_on_message_complete(http_parser_t* http_parser)
 {
     CHTTP_NODE    *chttp_node;
     
@@ -399,7 +399,7 @@ static int __chttp_on_message_complete(http_parser_t* http_parser)
     return (0);
 }
 
-static int __chttp_on_url(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_on_url(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
 
@@ -419,7 +419,7 @@ static int __chttp_on_url(http_parser_t* http_parser, const char* at, size_t len
 }
 
 /*only for http response*/
-static int __chttp_on_status(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_on_status(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
     CSOCKET_CNODE *csocket_cnode;
@@ -456,7 +456,7 @@ static int __chttp_on_status(http_parser_t* http_parser, const char* at, size_t 
     return (0);
 }
 
-static int __chttp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
     CSTRKV *cstrkv;
@@ -483,7 +483,7 @@ static int __chttp_on_header_field(http_parser_t* http_parser, const char* at, s
     return (0);
 }
 
-static int __chttp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
     CSTRKV *cstrkv;
@@ -515,7 +515,7 @@ static int __chttp_on_header_value(http_parser_t* http_parser, const char* at, s
     return (0);
 }
 
-static int __chttp_on_body(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_on_body(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
     CHUNK_MGR     *recv_chunks;
@@ -546,7 +546,7 @@ static int __chttp_on_body(http_parser_t* http_parser, const char* at, size_t le
 }
 
 /*---------------------------------------- INTERFACE WITH HTTP PASER  ----------------------------------------*/
-static void __chttp_parser_init(http_parser_t   *http_parser, const UINT32 type)
+STATIC_CAST static void __chttp_parser_init(http_parser_t   *http_parser, const UINT32 type)
 {
     if(NULL_PTR != http_parser)
     {
@@ -571,7 +571,7 @@ static void __chttp_parser_init(http_parser_t   *http_parser, const UINT32 type)
     return;
 }
 
-static void __chttp_parser_setting_init(http_parser_settings_t   *http_parser_setting)
+STATIC_CAST static void __chttp_parser_setting_init(http_parser_settings_t   *http_parser_setting)
 {
     if(NULL_PTR != http_parser_setting)
     {
@@ -588,7 +588,7 @@ static void __chttp_parser_setting_init(http_parser_settings_t   *http_parser_se
     return;
 }
 
-static void __chttp_parser_clean(http_parser_t   *http_parser)
+STATIC_CAST static void __chttp_parser_clean(http_parser_t   *http_parser)
 {
     if(NULL_PTR != http_parser)
     {
@@ -615,7 +615,7 @@ static void __chttp_parser_clean(http_parser_t   *http_parser)
     return;
 }
 
-static void __chttp_parser_setting_clean(http_parser_settings_t   *http_parser_setting)
+STATIC_CAST static void __chttp_parser_setting_clean(http_parser_settings_t   *http_parser_setting)
 {
     if(NULL_PTR != http_parser_setting)
     {
@@ -1344,7 +1344,7 @@ void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
 }
 
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
-static EC_BOOL __chttp_node_parse_on_message_begin_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
+STATIC_CAST static EC_BOOL __chttp_node_parse_on_message_begin_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
 {   
     CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK    on_message_bein_callback;
     
@@ -1353,7 +1353,7 @@ static EC_BOOL __chttp_node_parse_on_message_begin_runner(CHTTP_NODE *chttp_node
     return on_message_bein_callback(chttp_node);
 }
 
-static EC_BOOL __chttp_node_parse_on_headers_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
+STATIC_CAST static EC_BOOL __chttp_node_parse_on_headers_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
 {   
     CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK    on_headers_complete_callback;
     
@@ -1362,7 +1362,7 @@ static EC_BOOL __chttp_node_parse_on_headers_complete_runner(CHTTP_NODE *chttp_n
     return on_headers_complete_callback(chttp_node);
 }
 
-static EC_BOOL __chttp_node_parse_on_body_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
+STATIC_CAST static EC_BOOL __chttp_node_parse_on_body_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
 {   
     CHTTP_NODE_PARSE_ON_BODY_CALLBACK    on_body_callback;
     
@@ -1371,7 +1371,7 @@ static EC_BOOL __chttp_node_parse_on_body_runner(CHTTP_NODE *chttp_node, CCALLBA
     return on_body_callback(chttp_node);
 }
 
-static EC_BOOL __chttp_node_parse_on_message_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
+STATIC_CAST static EC_BOOL __chttp_node_parse_on_message_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
 {   
     CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK    on_message_complete_callback;
     
@@ -4655,7 +4655,7 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
     return;
 }
 
-static void __chttp_req_header_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
+STATIC_CAST static void __chttp_req_header_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
 {
     CLIST_DATA *clist_data;
     CLIST_LOOP_NEXT(CSTRKV_MGR_LIST(CHTTP_REQ_HEADER(chttp_req)), clist_data)
@@ -4675,7 +4675,7 @@ static void __chttp_req_header_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
     return;
 }
 
-static void __chttp_req_param_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
+STATIC_CAST static void __chttp_req_param_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
 {
     CLIST_DATA *clist_data;
     EC_BOOL flag;
@@ -4733,7 +4733,7 @@ void chttp_req_print_plain(LOG *log, const CHTTP_REQ *chttp_req)
     return;
 }
 
-static EC_BOOL __chttp_req_resolve_host(const char *host, UINT32 *ip)
+STATIC_CAST static EC_BOOL __chttp_req_resolve_host(const char *host, UINT32 *ip)
 {
     EC_BOOL ret;
 
@@ -5069,7 +5069,7 @@ void chttp_rsp_print(LOG *log, const CHTTP_RSP *chttp_rsp)
     return;
 }
 
-static void __chttp_rsp_header_print_plain(LOG *log, const CHTTP_RSP *chttp_rsp)
+STATIC_CAST static void __chttp_rsp_header_print_plain(LOG *log, const CHTTP_RSP *chttp_rsp)
 {
     CLIST_DATA *clist_data;
     CLIST_LOOP_NEXT(CSTRKV_MGR_LIST(CHTTP_RSP_HEADER(chttp_rsp)), clist_data)
@@ -5277,7 +5277,7 @@ EC_BOOL chttp_rsp_discard_body(CHTTP_RSP *chttp_rsp)
     return cbytes_clean(CHTTP_RSP_BODY(chttp_rsp));
 }
 /*---------------------------------------- HTTP RESPONSE PASER INTERFACE ----------------------------------------*/
-static int __chttp_rsp_on_message_begin(http_parser_t* http_parser)
+STATIC_CAST static int __chttp_rsp_on_message_begin(http_parser_t* http_parser)
 {
     CHTTP_RSP *chttp_rsp;
 
@@ -5302,7 +5302,7 @@ static int __chttp_rsp_on_message_begin(http_parser_t* http_parser)
 * otherwise, error
 *
 **/
-static int __chttp_rsp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
+STATIC_CAST static int __chttp_rsp_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
 
@@ -5316,7 +5316,7 @@ static int __chttp_rsp_on_headers_complete(http_parser_t* http_parser, const cha
     return (0);/*succ*/
 }
 
-static int __chttp_rsp_on_message_complete(http_parser_t* http_parser)
+STATIC_CAST static int __chttp_rsp_on_message_complete(http_parser_t* http_parser)
 {
     CHTTP_RSP    *chttp_rsp;
 
@@ -5331,7 +5331,7 @@ static int __chttp_rsp_on_message_complete(http_parser_t* http_parser)
     return (0);
 }
 
-static int __chttp_rsp_on_url(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_rsp_on_url(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
 
@@ -5346,7 +5346,7 @@ static int __chttp_rsp_on_url(http_parser_t* http_parser, const char* at, size_t
 }
 
 /*only for http response*/
-static int __chttp_rsp_on_status(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_rsp_on_status(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP     *chttp_rsp;
 
@@ -5362,7 +5362,7 @@ static int __chttp_rsp_on_status(http_parser_t* http_parser, const char* at, siz
     return (0);
 }
 
-static int __chttp_rsp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_rsp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
     CSTRKV *cstrkv;
@@ -5389,7 +5389,7 @@ static int __chttp_rsp_on_header_field(http_parser_t* http_parser, const char* a
     return (0);
 }
 
-static int __chttp_rsp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_rsp_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
     CSTRKV       *cstrkv;
@@ -5415,7 +5415,7 @@ static int __chttp_rsp_on_header_value(http_parser_t* http_parser, const char* a
     return (0);
 }
 
-static int __chttp_rsp_on_body(http_parser_t* http_parser, const char* at, size_t length)
+STATIC_CAST static int __chttp_rsp_on_body(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
 
@@ -6761,7 +6761,7 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
+STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
 {
     CBYTES        *cbytes;
 
@@ -6795,7 +6795,7 @@ static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTT
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
+STATIC_CAST static EC_BOOL __chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
 {
     CBYTES        *cbytes;
 
@@ -6829,7 +6829,7 @@ static EC_BOOL __chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *ch
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_node_filter_header_check_etag(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_etag(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
     char *etag;
 
@@ -6863,7 +6863,7 @@ static EC_BOOL __chttp_node_filter_header_check_etag(CHTTP_NODE *chttp_node, CHT
     return (EC_FALSE);
 }
 
-static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
     char  *last_modified;
     time_t lsmd;
@@ -6896,7 +6896,7 @@ static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *chttp_node, CHT
     return (EC_FALSE);
 }
 
-static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *chttp_node)
 {
     CHTTP_STORE    *chttp_store;
     uint64_t        content_length;
@@ -6949,7 +6949,7 @@ static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *chttp_node)
     return (EC_FALSE);/*not expired*/
 }
 
-static EC_BOOL __chttp_node_filter_header_check_modified(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_modified(CHTTP_NODE *chttp_node)
 {
     uint32_t status_code;
  
@@ -6980,7 +6980,7 @@ static EC_BOOL __chttp_node_filter_header_check_modified(CHTTP_NODE *chttp_node)
     return (EC_FALSE);
 }
 
-static EC_BOOL __chttp_node_filter_header_check_chunked(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_chunked(CHTTP_NODE *chttp_node)
 {
     if(EC_TRUE == chttp_node_is_chunked(chttp_node))
     {
@@ -6999,7 +6999,7 @@ static EC_BOOL __chttp_node_filter_header_check_chunked(CHTTP_NODE *chttp_node)
     return (EC_FALSE);
 }
 
-static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP_NODE *chttp_node)
 {
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
@@ -7026,7 +7026,7 @@ static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP_NODE *chttp
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp_node)
 {
     CHTTP_STORE    *chttp_store;
 
@@ -7092,7 +7092,7 @@ static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_node_filter_header_set_content_range(CHTTP_NODE *chttp_node)
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_content_range(CHTTP_NODE *chttp_node)
 {
     char           *v;
     char            content_range[64];
@@ -8422,7 +8422,7 @@ EC_BOOL chttp_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
  * Merge Http Request (MERGE ORIGIN FLOW)
  *
 \*-------------------------------------------------------------------------------------------------------------------------------------------*/
-static EC_BOOL __chttp_request_merge_file_lock(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, const CSTRING *path, const UINT32 expire_nsec, UINT32 *locked_already)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_lock(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, const CSTRING *path, const UINT32 expire_nsec, UINT32 *locked_already)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8440,7 +8440,7 @@ static EC_BOOL __chttp_request_merge_file_lock(const CHTTP_REQ *chttp_req, CHTTP
                             path, expire_nsec, CHTTP_STORE_AUTH_TOKEN(chttp_store), locked_already);
 }
 
-static EC_BOOL __chttp_request_merge_file_unlock(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_unlock(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8458,7 +8458,7 @@ static EC_BOOL __chttp_request_merge_file_unlock(const CHTTP_REQ *chttp_req, con
                               path, CHTTP_STORE_AUTH_TOKEN(chttp_store));
 }
 
-static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8525,7 +8525,7 @@ static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chttp_req, const
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_request_merge_file_retire(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_retire(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8555,7 +8555,7 @@ static EC_BOOL __chttp_request_merge_file_retire(const CHTTP_REQ *chttp_req, con
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat, UINT32 *data_ready)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat, UINT32 *data_ready)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8622,7 +8622,7 @@ static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chttp_req, const
     return (EC_TRUE);
 }
 
-static EC_BOOL __chttp_request_merge_file_wait_ready(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait_ready(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -8656,7 +8656,7 @@ static EC_BOOL __chttp_request_merge_file_wait_ready(const CHTTP_REQ *chttp_req,
 
 
 /*(NO WAIT)*/
-static EC_BOOL __chttp_request_merge_file_orig(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_orig(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
     EC_BOOL        merge_flag_saved;
@@ -9006,7 +9006,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
  * Header Http Request (only token owner would store header to storage)
  *
 \*-------------------------------------------------------------------------------------------------------------------------------------------*/
-static EC_BOOL __chttp_request_header_file_lock(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, const CSTRING *path, const UINT32 expire_nsec, UINT32 *locked_already)
+STATIC_CAST static EC_BOOL __chttp_request_header_file_lock(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, const CSTRING *path, const UINT32 expire_nsec, UINT32 *locked_already)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -9025,7 +9025,7 @@ static EC_BOOL __chttp_request_header_file_lock(const CHTTP_REQ *chttp_req, CHTT
                        CHTTP_STORE_AUTH_TOKEN(chttp_store), locked_already);
 }
 
-static EC_BOOL __chttp_request_header_file_unlock(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
+STATIC_CAST static EC_BOOL __chttp_request_header_file_unlock(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
@@ -9043,7 +9043,7 @@ static EC_BOOL __chttp_request_header_file_unlock(const CHTTP_REQ *chttp_req, co
                         path, CHTTP_STORE_AUTH_TOKEN(chttp_store));
 }
 
-static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
     EC_BOOL        merge_flag_saved;
@@ -9063,7 +9063,7 @@ static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_REQ *chttp_req
     return (ret);
 }
 
-static EC_BOOL __chttp_request_header_file_orig_no_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_no_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
     EC_BOOL        merge_flag_saved;
@@ -9089,7 +9089,7 @@ static EC_BOOL __chttp_request_header_file_orig_no_cache(const CHTTP_REQ *chttp_
     return (ret);
 }
 
-static EC_BOOL __chttp_request_header_file_wait_header(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
+STATIC_CAST static EC_BOOL __chttp_request_header_file_wait_header(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;

@@ -62,60 +62,60 @@ extern "C"{
 #define CRFS_MD_ID_CHECK_INVALID(crfs_md_id)  \
     ((CMPI_ANY_MODI != (crfs_md_id)) && ((NULL_PTR == CRFS_MD_GET(crfs_md_id)) || (0 == (CRFS_MD_GET(crfs_md_id)->usedcounter))))
 
-static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
-static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
-static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id);
-static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const UINT32 max_num, UINT32 *complete_num);
+STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
+STATIC_CAST static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
+STATIC_CAST static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id);
+STATIC_CAST static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const UINT32 max_num, UINT32 *complete_num);
 
 /*when found missed segment in bnode*/
-static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
                                               CRFSNP *crfsnp,
                                               const uint32_t parent_pos,
                                               UINT32 *offset, const CBYTES *cbytes,
                                               const uint32_t key_2nd_hash,
                                               const uint32_t klen, const uint8_t *key,
                                               uint32_t *node_pos);
-static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
                                            CRFSNP *crfsnp,
                                            const uint32_t node_pos,
                                            UINT32 *offset, const CBYTES *cbytes,
                                            const uint32_t key_2nd_hash,
                                            const uint32_t klen, const uint8_t *key);
-static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
                                              CRFSNP *crfsnp, const uint32_t parent_pos,
                                              const uint32_t seg_no, UINT32 *offset,
                                              const CBYTES *cbytes);
-static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const uint32_t parent_pos, uint64_t *offset, const CBYTES *cbytes);
+STATIC_CAST static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const uint32_t parent_pos, uint64_t *offset, const CBYTES *cbytes);
 
-static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
                                                     UINT32 *offset,
                                                     const UINT32 max_len, CBYTES *cbytes);
-static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
                                                 CRFSNP *crfsnp,
                                                 const uint32_t node_pos,
                                                 UINT32 *offset,
                                                 CBYTES *cbytes);
 
-static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
                                             CRFSNP *crfsnp,
                                             const uint32_t parent_pos,
                                             const uint32_t seg_no, UINT32 *offset,
                                             const UINT32 max_len, CBYTES *cbytes);      
 
-static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_md_id,
                                                 CRFSNP *crfsnp,
                                                 const uint32_t node_pos,
                                                 uint32_t *block_size,
                                                 int *block_fd);
 
-static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_id,
                                             CRFSNP *crfsnp,
                                             const uint32_t parent_pos,
                                             const uint32_t seg_no,
                                             uint32_t *block_size,
                                             int *block_fd);
 
-static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
                                              CRFSNP *crfsnp,
                                              const uint32_t parent_pos,
                                              const uint64_t offset,
@@ -127,24 +127,24 @@ static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
 *  read data node at offset from the specific big file
 *
 **/
-static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, const uint32_t parent_pos, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
+STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, const uint32_t parent_pos, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
 
 /**
 *
 *  read a bnode from name node
 *
 **/
-static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos);
+STATIC_CAST static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos);
 
 /**
 *
 *  delete file data from current dn
 *
 **/
-static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode);
-static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
+STATIC_CAST static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode);
+STATIC_CAST static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
 
-static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path);
+STATIC_CAST static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path);
 
 /**
 *   for test only
@@ -857,7 +857,7 @@ EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log)
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_add_neighbor(const UINT32 crfs_md_id, TASKS_CFG *remote_tasks_cfg)
+STATIC_CAST static EC_BOOL __crfs_add_neighbor(const UINT32 crfs_md_id, TASKS_CFG *remote_tasks_cfg)
 {
     CRFS_MD  *crfs_md;
     CVECTOR  *crfs_neighbor_vec;
@@ -890,7 +890,7 @@ static EC_BOOL __crfs_add_neighbor(const UINT32 crfs_md_id, TASKS_CFG *remote_ta
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, const UINT32 cluster_id)
+STATIC_CAST static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, const UINT32 cluster_id)
 {
     TASK_BRD    *task_brd; 
     TASKS_CFG   *local_tasks_cfg;
@@ -967,7 +967,7 @@ static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, co
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id)
+STATIC_CAST static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id)
 {
     CRFS_MD     *crfs_md;
 
@@ -1717,7 +1717,7 @@ EC_BOOL crfs_is_dir(const UINT32 crfs_md_id, const CSTRING *dir_path)
 *  reserve space from dn
 *
 **/
-static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const UINT32 data_len, const uint32_t path_hash, CRFSNP_FNODE *crfsnp_fnode)
+STATIC_CAST static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const UINT32 data_len, const uint32_t path_hash, CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_INODE *crfsnp_inode;
@@ -1937,7 +1937,7 @@ EC_BOOL crfs_release_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnod
 *  write a file (version 0.1)
 *
 **/
-static EC_BOOL __crfs_write_v01(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write_v01(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
@@ -1990,7 +1990,7 @@ static EC_BOOL __crfs_write_v01(const UINT32 crfs_md_id, const CSTRING *file_pat
 *  write a file (version 0.2)
 *
 **/
-static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
@@ -2049,7 +2049,7 @@ static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRING *file_pat
 *  write a file (version 0.3)
 *
 **/
-static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
@@ -2143,7 +2143,7 @@ static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, c
 }
 
 /*Jan 16, 2017*/
-static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
@@ -2230,7 +2230,7 @@ static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
@@ -2267,7 +2267,7 @@ static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_p
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_write_cache_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_write_cache_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
@@ -3052,7 +3052,7 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
 *  create a bnode in name node
 *
 **/
-static EC_BOOL __crfs_create_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const uint64_t *file_size)
+STATIC_CAST static EC_BOOL __crfs_create_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const uint64_t *file_size)
 {
     CRFS_MD      *crfs_md;
 
@@ -3434,7 +3434,7 @@ EC_BOOL crfs_vol_transfer(const UINT32 crfs_md_id, const CSTRING *remote_path)
 *  transfer files from one RFS to another RFS based on file name hash value in consistency hash table
 *
 **/
-static EC_BOOL __crfs_transfer_pre_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode)
+STATIC_CAST static EC_BOOL __crfs_transfer_pre_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode)
 {
     CRFS_MD      *crfs_md;
 
@@ -3452,7 +3452,7 @@ static EC_BOOL __crfs_transfer_pre_of_np(const UINT32 crfs_md_id, const uint32_t
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_transfer_handle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfs_transfer_handle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CRFS_MD      *crfs_md;
 
@@ -3470,7 +3470,7 @@ static EC_BOOL __crfs_transfer_handle_of_np(const UINT32 crfs_md_id, const uint3
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_transfer_post_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
+STATIC_CAST static EC_BOOL __crfs_transfer_post_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
 {
     CRFS_MD      *crfs_md;
 
@@ -4531,7 +4531,7 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
 }
 
 /*when found missed segment in bnode*/
-static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
                                               CRFSNP *crfsnp,
                                               const uint32_t parent_pos,
                                               UINT32 *offset, const CBYTES *cbytes,
@@ -4617,7 +4617,7 @@ static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
                                            CRFSNP *crfsnp,
                                            const uint32_t node_pos,
                                            UINT32 *offset, const CBYTES *cbytes,
@@ -4693,7 +4693,7 @@ static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
                                              CRFSNP *crfsnp, const uint32_t parent_pos,
                                              const uint32_t seg_no, UINT32 *offset,
                                              const CBYTES *cbytes)
@@ -4868,7 +4868,7 @@ static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
 *  write data node at offset in the specific big file
 *
 **/
-static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id,
                                       const uint32_t crfsnp_id,
                                       const uint32_t parent_pos,
                                       uint64_t *offset,
@@ -4994,7 +4994,7 @@ static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
                                                     UINT32 *offset,
                                                     const UINT32 max_len, CBYTES *cbytes)
 {
@@ -5019,7 +5019,7 @@ static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
                                                 CRFSNP *crfsnp,
                                                 const uint32_t node_pos,
                                                 UINT32 *offset,
@@ -5081,7 +5081,7 @@ static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
                                             CRFSNP *crfsnp,
                                             const uint32_t parent_pos,
                                             const uint32_t seg_no, UINT32 *offset,
@@ -5196,7 +5196,7 @@ static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
 *  read data node at offset from the specific big file
 *
 **/
-static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, const uint32_t parent_pos, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, const uint32_t parent_pos, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
 
@@ -5333,7 +5333,7 @@ static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, const u
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_md_id,
                                                 CRFSNP *crfsnp,
                                                 const uint32_t node_pos,
                                                 uint32_t *block_size,
@@ -5383,7 +5383,7 @@ static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_id,
                                             CRFSNP *crfsnp,
                                             const uint32_t parent_pos,
                                             const uint32_t seg_no,
@@ -5465,7 +5465,7 @@ static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
+STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
                                              CRFSNP *crfsnp,
                                              const uint32_t parent_pos,
                                              const uint64_t offset,
@@ -5555,7 +5555,7 @@ static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
 *  reserve a fnode from name node
 *
 **/
-static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING *file_path)
+STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING *file_path)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
@@ -5598,7 +5598,7 @@ static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING 
 *  release a fnode from name node
 *
 **/
-static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CSTRING *file_path)
+STATIC_CAST static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CSTRING *file_path)
 {
     CRFS_MD      *crfs_md;
 
@@ -5724,7 +5724,7 @@ EC_BOOL crfs_read_npp(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_
 *  read a bnode from name node
 *
 **/
-static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos)
+STATIC_CAST static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos)
 {
     CRFS_MD      *crfs_md;
 
@@ -6203,7 +6203,7 @@ EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const UINT32 tcid, const
 *  delete file data from current dn
 *
 **/
-static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode)
+STATIC_CAST static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFS_MD *crfs_md;
     const CRFSNP_INODE *crfsnp_inode;
@@ -6257,7 +6257,7 @@ static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crf
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode)
+STATIC_CAST static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode)
 {
     CRFS_MD *crfs_md;
 
@@ -6352,7 +6352,7 @@ EC_BOOL crfs_delete_dn(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const CR
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path)
+STATIC_CAST static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path)
 {
     const char     *str;
     UINT32          len;
@@ -7715,7 +7715,7 @@ EC_BOOL crfs_qlist_seg_of_np(const UINT32 crfs_md_id, const CSTRING *file_path, 
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_cat_path(const CRFSNP_ITEM *crfsnp_item, CSTRING *des_path)
+STATIC_CAST static EC_BOOL __crfs_cat_path(const CRFSNP_ITEM *crfsnp_item, CSTRING *des_path)
 {
     cstring_rtrim(des_path, (UINT8)'/');
     cstring_append_chars(des_path, (UINT32)1, (const UINT8 *)"/", LOC_CRFS_0208);
@@ -7724,7 +7724,7 @@ static EC_BOOL __crfs_cat_path(const CRFSNP_ITEM *crfsnp_item, CSTRING *des_path
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_qlist_tree(CRFSNP_DIT_NODE *crfsnp_dit_node, CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfs_qlist_tree(CRFSNP_DIT_NODE *crfsnp_dit_node, CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos)
 {
     if(CRFSNP_ITEM_IS_NOT_USED == CRFSNP_ITEM_USED_FLAG(crfsnp_item))
     {
@@ -8408,7 +8408,7 @@ EC_BOOL crfs_search(const UINT32 crfs_md_id, const CSTRING *path_cstr, const UIN
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const UINT32 max_num, UINT32 *complete_num)
+STATIC_CAST static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const UINT32 max_num, UINT32 *complete_num)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_RECYCLE_DN crfsnp_recycle_dn;
@@ -8973,7 +8973,7 @@ EC_BOOL crfs_expire_dn(const UINT32 crfs_md_id)
 }
 
 
-static EC_BOOL __crfs_retire_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const uint32_t dflag, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step, UINT32 *complete_retire_num)
+STATIC_CAST static EC_BOOL __crfs_retire_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const uint32_t dflag, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step, UINT32 *complete_retire_num)
 {
     CRFS_MD      *crfs_md;
 
@@ -9352,7 +9352,7 @@ EC_BOOL crfs_wait_file_name_set(CRFS_WAIT_FILE *crfs_wait_file, const CSTRING *f
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_wait_file_owner_cmp(const MOD_NODE *mod_node, const UINT32 tcid)
+STATIC_CAST static EC_BOOL __crfs_wait_file_owner_cmp(const MOD_NODE *mod_node, const UINT32 tcid)
 {
     if(MOD_NODE_TCID(mod_node) == tcid)
     {
@@ -9580,7 +9580,7 @@ EC_BOOL crfs_wait_file_owner_notify(CRFS_WAIT_FILE *crfs_wait_file, const UINT32
     return crfs_wait_file_owner_notify_over_bgn(crfs_wait_file, tag);
 }
 
-static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path)
+STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path)
 {
     CRFS_MD          *crfs_md;
  
@@ -9920,7 +9920,7 @@ EC_BOOL crfs_locked_file_name_set(CRFS_LOCKED_FILE *crfs_locked_file, const CSTR
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_locked_file_need_retire(const CRFS_LOCKED_FILE *crfs_locked_file)
+STATIC_CAST static EC_BOOL __crfs_locked_file_need_retire(const CRFS_LOCKED_FILE *crfs_locked_file)
 {
     CTIMET cur_time;
     REAL diff_nsec;
@@ -9937,7 +9937,7 @@ static EC_BOOL __crfs_locked_file_need_retire(const CRFS_LOCKED_FILE *crfs_locke
     return (EC_FALSE);
 }
 
-static EC_BOOL __crfs_locked_file_retire(CRB_TREE *crbtree, CRB_NODE *node)
+STATIC_CAST static EC_BOOL __crfs_locked_file_retire(CRB_TREE *crbtree, CRB_NODE *node)
 {
     CRFS_LOCKED_FILE *crfs_locked_file;
  
@@ -10012,7 +10012,7 @@ EC_BOOL crfs_locked_file_retire(const UINT32 crfs_md_id, const UINT32 retire_max
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CBYTES *token, UINT32 *locked_already)
+STATIC_CAST static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CBYTES *token, UINT32 *locked_already)
 {
     CRFS_MD          *crfs_md;
  
@@ -10116,7 +10116,7 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *token)
+STATIC_CAST static EC_BOOL __crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *token)
 {
     CRFS_MD          *crfs_md;
  
@@ -11215,7 +11215,7 @@ EC_BOOL crfs_replay(const UINT32 crfs_md_id)
 }
 
 /*------------------------------------------------ interface for liburl ------------------------------------------------*/
-static EC_BOOL __crfs_open_url_list_file(const char *fname, char **fmem, UINT32 *fsize, int *fd)
+STATIC_CAST static EC_BOOL __crfs_open_url_list_file(const char *fname, char **fmem, UINT32 *fsize, int *fd)
 {
     char *cur_fmem;
     int   cur_fd;
@@ -11250,7 +11250,7 @@ static EC_BOOL __crfs_open_url_list_file(const char *fname, char **fmem, UINT32 
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_close_url_list_file(char *fmem, const UINT32 fsize, const int fd)
+STATIC_CAST static EC_BOOL __crfs_close_url_list_file(char *fmem, const UINT32 fsize, const int fd)
 {
     if(ERR_FD != fd)
     {
@@ -11265,7 +11265,7 @@ static EC_BOOL __crfs_close_url_list_file(char *fmem, const UINT32 fsize, const 
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfs_fetch_url_cstr(const char *fmem, const UINT32 fsize, UINT32 *offset, UINT32 *idx,CSTRING *url_cstr)
+STATIC_CAST static EC_BOOL __crfs_fetch_url_cstr(const char *fmem, const UINT32 fsize, UINT32 *offset, UINT32 *idx,CSTRING *url_cstr)
 {
     UINT32 old_offset;
     UINT32 line_len;

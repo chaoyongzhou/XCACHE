@@ -119,7 +119,7 @@ int cmutex_log_null(LOG *log, const char * format, ...)
     return 0;
 }
 
-static void cmutex_print(const char *info, const CMUTEX *cmutex)
+STATIC_CAST static void cmutex_print(const char *info, const CMUTEX *cmutex)
 {
     cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "[tid %ld] %s: cmutex %p : __m_reserved = %d, __m_count = %d, __m_owner = %d, __m_kind = %d\n",
                         CTHREAD_GET_TID(), info, cmutex,
@@ -130,7 +130,7 @@ static void cmutex_print(const char *info, const CMUTEX *cmutex)
             );
     return;
 }
-static EC_BOOL cmutex_check(const CMUTEX *cmutex, const UINT32 op, const UINT32 location)
+STATIC_CAST static EC_BOOL cmutex_check(const CMUTEX *cmutex, const UINT32 op, const UINT32 location)
 {
     switch(op)
     {
@@ -649,7 +649,7 @@ EC_BOOL cmutex_unlock(CMUTEX *cmutex, const UINT32 location)
     return (EC_TRUE);
 }
 
-static void ccond_print_var(const char *info, const CCOND *ccond)
+STATIC_CAST static void ccond_print_var(const char *info, const CCOND *ccond)
 {
     const pthread_cond_t  *var;
     var = CCOND_VAR(ccond);

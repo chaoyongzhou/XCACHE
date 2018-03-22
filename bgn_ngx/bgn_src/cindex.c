@@ -23,12 +23,12 @@ extern "C"{
 #include "debug.h"
 
 /*for safe reason, when data handler is not given, set to default null function*/
-static void cindex_null_default(void *data)
+STATIC_CAST static void cindex_null_default(void *data)
 {
     return;
 }
 
-static EC_BOOL cindex_data_cmp_default(const void * data_1, const void * data_2)
+STATIC_CAST static EC_BOOL cindex_data_cmp_default(const void * data_1, const void * data_2)
 {
     if(data_1 != data_2)
     {

@@ -455,7 +455,7 @@ EC_BOOL cdetect_ip_node_free(CDETECT_IP_NODE *cdetect_ip_node)
     return (EC_TRUE);
 }
 
-static const char *__cdetect_ip_node_status_str(const CDETECT_IP_NODE *cdetect_ip_node)
+STATIC_CAST static const char *__cdetect_ip_node_status_str(const CDETECT_IP_NODE *cdetect_ip_node)
 {
     if(CDETECT_IP_NODE_STATUS_REACHABLE == CDETECT_IP_NODE_STATUS(cdetect_ip_node))
     {
@@ -596,7 +596,7 @@ EC_BOOL cdetect_show_orig_node(const UINT32 cdetect_md_id, const CSTRING *domain
 }
 
 
-static uint32_t __cdetect_choice_strategy(const char *choice_stragety)
+STATIC_CAST static uint32_t __cdetect_choice_strategy(const char *choice_stragety)
 {
     if(EC_TRUE == c_str_is_in(choice_stragety, (const char *)":", (const char *)"RRB:ROUND-ROBBIN"))
     {
@@ -621,7 +621,7 @@ static uint32_t __cdetect_choice_strategy(const char *choice_stragety)
     return (CDETECT_ORIG_NODE_CHOICE_ERR);
 }
 
-static const char * __cdetect_choice_strategy_to_str(const uint32_t choice_stragety)
+STATIC_CAST static const char * __cdetect_choice_strategy_to_str(const uint32_t choice_stragety)
 {
     if(CDETECT_ORIG_NODE_CHOICE_RRB == choice_stragety)
     {
@@ -646,7 +646,7 @@ static const char * __cdetect_choice_strategy_to_str(const uint32_t choice_strag
     return (const char *)"ERR";
 }
 
-static EC_BOOL __cdetect_parse_ip_node(CLIST *cdetect_ip_nodes, char *ip)
+STATIC_CAST static EC_BOOL __cdetect_parse_ip_node(CLIST *cdetect_ip_nodes, char *ip)
 {
     char                *segs[ 2 ];
     uint32_t             segs_num;
@@ -725,7 +725,7 @@ static EC_BOOL __cdetect_parse_ip_node(CLIST *cdetect_ip_nodes, char *ip)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_parse_ip_nodes(CLIST *cdetect_ip_nodes, char *ips)
+STATIC_CAST static EC_BOOL __cdetect_parse_ip_nodes(CLIST *cdetect_ip_nodes, char *ips)
 {
     char                *segs[ CDETECT_ORIG_NODE_MAX_IP_NODES ];
     uint32_t             segs_num;
@@ -748,7 +748,7 @@ static EC_BOOL __cdetect_parse_ip_nodes(CLIST *cdetect_ip_nodes, char *ips)
 }
 
 /*format: domain | ip[:port][,...] | url | interval nsec | stopping nsec | reachable status | forbidden status | strategy */
-static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdetect_conf_start, char *cdetect_conf_end)
+STATIC_CAST static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdetect_conf_start, char *cdetect_conf_end)
 {
     CDETECT_MD          *cdetect_md;
     CDETECT_ORIG_NODE   *cdetect_orig_node;
@@ -875,7 +875,7 @@ static EC_BOOL __cdetect_parse_conf_line(const UINT32 cdetect_md_id, char *cdete
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_parse_conf_file(const UINT32 cdetect_md_id, char *cdetect_conf_start, char *cdetect_conf_end)
+STATIC_CAST static EC_BOOL __cdetect_parse_conf_file(const UINT32 cdetect_md_id, char *cdetect_conf_start, char *cdetect_conf_end)
 {
     char        *cdetect_conf_line_start;
     uint32_t     cdetect_conf_line_no;
@@ -1026,7 +1026,7 @@ EC_BOOL cdetect_load_conf(const UINT32 cdetect_md_id, const CSTRING *cdetect_con
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_ms(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node_choice_ms(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {
     CLIST_DATA          *clist_data;
     
@@ -1052,7 +1052,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_ms(CDETECT_ORIG_NODE *cdet
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_rrb(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node_choice_rrb(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {
     CLIST_DATA          *clist_data;
 
@@ -1078,7 +1078,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_rrb(CDETECT_ORIG_NODE *cde
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_fast(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node_choice_fast(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {
     CLIST_DATA          *clist_data;
     CDETECT_IP_NODE     *cdetect_ip_node_fast;
@@ -1124,7 +1124,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_fast(CDETECT_ORIG_NODE *cd
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_latest(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node_choice_latest(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {   
     CLIST_DATA          *clist_data;
     CLIST_DATA          *clist_data_latest;
@@ -1178,7 +1178,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_latest(CDETECT_ORIG_NODE *
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_dns_resolve_orig_node_choice_default(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node_choice_default(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {   
     CDETECT_IP_NODE     *cdetect_ip_node;
 
@@ -1198,7 +1198,7 @@ static EC_BOOL __cdetect_dns_resolve_orig_node_choice_default(CDETECT_ORIG_NODE 
 
     return (EC_FALSE);
 }
-static EC_BOOL __cdetect_dns_resolve_orig_node(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
+STATIC_CAST static EC_BOOL __cdetect_dns_resolve_orig_node(CDETECT_ORIG_NODE *cdetect_orig_node, UINT32 *ipaddr)
 {
     if(CDETECT_ORIG_NODE_CHOICE_MS == CDETECT_ORIG_NODE_CHOICE_STRATEGY(cdetect_orig_node)
     && EC_TRUE == __cdetect_dns_resolve_orig_node_choice_ms(cdetect_orig_node, ipaddr))
@@ -1292,7 +1292,7 @@ EC_BOOL cdetect_dns_resolve(const UINT32 cdetect_md_id, const CSTRING *domain, U
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_request(const CSTRING *domain, const CSTRING *uri, const UINT32 ipaddr, const UINT32 port, 
+STATIC_CAST static EC_BOOL __cdetect_request(const CSTRING *domain, const CSTRING *uri, const UINT32 ipaddr, const UINT32 port, 
                                      UINT32 *detect_task_num, uint32_t *status)
 {
     CHTTP_REQ            chttp_req;
@@ -1342,7 +1342,7 @@ static EC_BOOL __cdetect_request(const CSTRING *domain, const CSTRING *uri, cons
 }
 
 
-static EC_BOOL __cdetect_start_orig_node_choice_ms(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
+STATIC_CAST static EC_BOOL __cdetect_start_orig_node_choice_ms(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
 {
     CLIST_DATA          *clist_data;
 
@@ -1414,7 +1414,7 @@ static EC_BOOL __cdetect_start_orig_node_choice_ms(CDETECT_ORIG_NODE   *cdetect_
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_start_orig_node_choice_rrb(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
+STATIC_CAST static EC_BOOL __cdetect_start_orig_node_choice_rrb(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
 {
     UINT32               node_num;
     UINT32               node_idx;
@@ -1496,7 +1496,7 @@ static EC_BOOL __cdetect_start_orig_node_choice_rrb(CDETECT_ORIG_NODE   *cdetect
     return (EC_FALSE);
 }
 
-static EC_BOOL __cdetect_start_orig_node_choice_fast(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
+STATIC_CAST static EC_BOOL __cdetect_start_orig_node_choice_fast(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
 {
     CLIST_DATA          *clist_data;
     EC_BOOL              flag; /*true: indicate someone node is reachable, false: none is reachable*/
@@ -1592,7 +1592,7 @@ static EC_BOOL __cdetect_start_orig_node_choice_fast(CDETECT_ORIG_NODE   *cdetec
     return (EC_TRUE);
 }
 
-static EC_BOOL __cdetect_start_orig_node_choice_latest(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
+STATIC_CAST static EC_BOOL __cdetect_start_orig_node_choice_latest(CDETECT_ORIG_NODE   *cdetect_orig_node, UINT32 *detect_task_num)
 {
     CLIST_DATA      *clist_data;
 

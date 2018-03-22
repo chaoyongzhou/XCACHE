@@ -60,7 +60,7 @@ extern "C"{
 #define ASSERT_CPGV_HDR_PAD_SIZE() \
     CPGV_ASSERT( CPGV_HDR_PAD_SIZE == DEBUG_COUNT_CPGV_HDR_PAD_SIZE())
 
-static uint16_t __cpgv_page_model_first_disk(const CPGV *cpgv, const uint16_t page_model)
+STATIC_CAST static uint16_t __cpgv_page_model_first_disk(const CPGV *cpgv, const uint16_t page_model)
 {
     uint16_t node_pos;
     const CPGRB_NODE *node;
@@ -76,7 +76,7 @@ static uint16_t __cpgv_page_model_first_disk(const CPGV *cpgv, const uint16_t pa
     return (CPGRB_NODE_DATA(node));
 }
 
-static uint16_t __cpgv_page_model_get(const CPGV *cpgv, const uint16_t assign_bitmap)
+STATIC_CAST static uint16_t __cpgv_page_model_get(const CPGV *cpgv, const uint16_t assign_bitmap)
 {
     uint16_t page_model;
     uint16_t e;
@@ -88,7 +88,7 @@ static uint16_t __cpgv_page_model_get(const CPGV *cpgv, const uint16_t assign_bi
     return (page_model);
 }
 
-static uint8_t *__cpgv_new_disk_fname(const CPGV *cpgv, const uint16_t disk_no)
+STATIC_CAST static uint8_t *__cpgv_new_disk_fname(const CPGV *cpgv, const uint16_t disk_no)
 {
     char *cpgd_dname;
     char *cpgd_fname;
@@ -122,7 +122,7 @@ static uint8_t *__cpgv_new_disk_fname(const CPGV *cpgv, const uint16_t disk_no)
     return ((uint8_t *)cpgd_fname);
 }
 
-static EC_BOOL __cpgv_free_disk_fname(const CPGV *cpgv, uint8_t *cpgd_fname)
+STATIC_CAST static EC_BOOL __cpgv_free_disk_fname(const CPGV *cpgv, uint8_t *cpgd_fname)
 {
     if(NULL_PTR != cpgd_fname)
     {
@@ -131,7 +131,7 @@ static EC_BOOL __cpgv_free_disk_fname(const CPGV *cpgv, uint8_t *cpgd_fname)
     return (EC_TRUE);
 } 
 
-static void __cpgv_hdr_size_info_print()
+STATIC_CAST static void __cpgv_hdr_size_info_print()
 {
     dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR)   = %u\n", sizeof(CPGV_HDR));
     dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGRB_POOL) = %u\n", sizeof(CPGRB_POOL));
@@ -148,7 +148,7 @@ static void __cpgv_hdr_size_info_print()
     return;
 }
 
-static CPGV_HDR *__cpgv_hdr_load(CPGV *cpgv)
+STATIC_CAST static CPGV_HDR *__cpgv_hdr_load(CPGV *cpgv)
 {
     uint8_t *buff;
     UINT32   offset;
@@ -171,7 +171,7 @@ static CPGV_HDR *__cpgv_hdr_load(CPGV *cpgv)
     return ((CPGV_HDR *)buff);
 }
 
-static EC_BOOL __cpgv_hdr_flush(CPGV *cpgv)
+STATIC_CAST static EC_BOOL __cpgv_hdr_flush(CPGV *cpgv)
 {
     if(NULL_PTR != CPGV_HEADER(cpgv))
     {
@@ -188,7 +188,7 @@ static EC_BOOL __cpgv_hdr_flush(CPGV *cpgv)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgv_hdr_free(CPGV *cpgv)
+STATIC_CAST static EC_BOOL __cpgv_hdr_free(CPGV *cpgv)
 {
     if(NULL_PTR != CPGV_HEADER(cpgv))
     {
@@ -213,7 +213,7 @@ static EC_BOOL __cpgv_hdr_free(CPGV *cpgv)
     return (EC_TRUE);
 }
 
-static CPGV_HDR *__cpgv_hdr_new(CPGV *cpgv)
+STATIC_CAST static CPGV_HDR *__cpgv_hdr_new(CPGV *cpgv)
 {
     CPGV_HDR *cpgv_hdr;
 
@@ -297,7 +297,7 @@ EC_BOOL cpgv_hdr_init(CPGV *cpgv)
     return (EC_TRUE);
 }
 
-static CPGV_HDR *__cpgv_hdr_open(CPGV *cpgv)
+STATIC_CAST static CPGV_HDR *__cpgv_hdr_open(CPGV *cpgv)
 {
     CPGV_HDR *cpgv_hdr;
 
@@ -327,7 +327,7 @@ CPGV_HDR *cpgv_hdr_open(CPGV *cpgv)
     return __cpgv_hdr_open(cpgv);
 }
 
-static EC_BOOL __cpgv_hdr_close(CPGV *cpgv)
+STATIC_CAST static EC_BOOL __cpgv_hdr_close(CPGV *cpgv)
 {
     if(NULL_PTR != CPGV_HEADER(cpgv))
     {
@@ -359,7 +359,7 @@ EC_BOOL cpgv_hdr_close(CPGV *cpgv)
     return __cpgv_hdr_close(cpgv);
 }
 
-static EC_BOOL __cpgv_hdr_sync(CPGV *cpgv)
+STATIC_CAST static EC_BOOL __cpgv_hdr_sync(CPGV *cpgv)
 {
     if(NULL_PTR != CPGV_HEADER(cpgv))
     {
@@ -961,7 +961,7 @@ void cpgv_clean(CPGV *cpgv)
 }
 
 /*add one free disk into pool*/
-static EC_BOOL __cpgv_add_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_t page_model)
+STATIC_CAST static EC_BOOL __cpgv_add_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_t page_model)
 { 
     if(CPGV_MAX_DISK_NUM <= disk_no)
     {
@@ -984,7 +984,7 @@ static EC_BOOL __cpgv_add_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_
 }
 
 /*del one free disk from pool*/
-static EC_BOOL __cpgv_del_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_t page_model)
+STATIC_CAST static EC_BOOL __cpgv_del_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_t page_model)
 {
     /*del disk_no from rbtree*/
     if(CPGRB_ERR_POS == cpgrb_tree_delete_data(CPGV_PAGE_DISK_CPGRB_POOL(cpgv), &(CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS(cpgv, page_model)), disk_no))
@@ -1012,7 +1012,7 @@ static EC_BOOL __cpgv_del_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_
 }
 
 /*page_model is IN & OUT parameter*/
-static EC_BOOL __cpgv_assign_disk(CPGV *cpgv, uint16_t *page_model, uint16_t *disk_no)
+STATIC_CAST static EC_BOOL __cpgv_assign_disk(CPGV *cpgv, uint16_t *page_model, uint16_t *disk_no)
 {
     uint16_t disk_no_t;
     uint16_t page_model_t;
@@ -1054,7 +1054,7 @@ static EC_BOOL __cpgv_assign_disk(CPGV *cpgv, uint16_t *page_model, uint16_t *di
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgv_rmv_disk(CPGV *cpgv, const uint16_t disk_no)
+STATIC_CAST static EC_BOOL __cpgv_rmv_disk(CPGV *cpgv, const uint16_t disk_no)
 {
     uint8_t *cpgd_fname;
 
@@ -1282,7 +1282,7 @@ EC_BOOL cpgv_umount_disk(CPGV *cpgv, const uint16_t disk_no)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cpgv_size_to_page_model(const uint32_t size, uint16_t *page_num, uint16_t *page_model)
+STATIC_CAST static EC_BOOL __cpgv_size_to_page_model(const uint32_t size, uint16_t *page_num, uint16_t *page_model)
 {
     uint16_t page_num_need;
     uint16_t page_model_t;

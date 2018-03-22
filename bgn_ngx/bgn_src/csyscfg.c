@@ -215,7 +215,7 @@ CSTRING *cluster_node_cfg_get_extra_val_by_key_cstr(const CLUSTER_NODE_CFG *clus
     return (CSTRING *)cmap_get_val_by_key(CLUSTER_NODE_CFG_EXTRAS(cluster_node_cfg), (void *)key_cstr, (CMAP_KEY_CMP)cstring_is_equal);
 }
 
-static void __cluster_node_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
+STATIC_CAST static void __cluster_node_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
 {
     sys_print(log, " %s=\"%s\"" ,
                    (const char *)cstring_get_str((CSTRING *)CMAP_NODE_KEY(extra)),
@@ -224,7 +224,7 @@ static void __cluster_node_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
     return;
 }
 
-static void __cluster_node_cfg_extras_print_xml(LOG *log, const CMAP *extras)
+STATIC_CAST static void __cluster_node_cfg_extras_print_xml(LOG *log, const CMAP *extras)
 {
     CLIST_DATA *clist_data;
     CLIST_LOOP_NEXT(CMAP_NODES(extras), clist_data)
@@ -540,7 +540,7 @@ CSTRING *cluster_cfg_get_node_extra_val_by_key_cstr(const CLUSTER_CFG *cluster_c
     return cluster_node_cfg_get_extra_val_by_key_cstr(cluster_node_cfg, key_cstr); 
 }
 
-static void __cluster_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
+STATIC_CAST static void __cluster_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
 {
     sys_print(log, " %s=\"%s\"" ,
                    (const char *)cstring_get_str((CSTRING *)CMAP_NODE_KEY(extra)),
@@ -549,7 +549,7 @@ static void __cluster_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
     return;
 }
 
-static void __cluster_cfg_extras_print_xml(LOG *log, const CMAP *extras)
+STATIC_CAST static void __cluster_cfg_extras_print_xml(LOG *log, const CMAP *extras)
 {
     CLIST_DATA *clist_data;
     CLIST_LOOP_NEXT(CMAP_NODES(extras), clist_data)
@@ -861,7 +861,7 @@ void cparacfg_csocket_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UI
     return;
 }
 
-static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG *cparacfg)
+STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG *cparacfg)
 {
     UINT32   log_sector;
     UINT32   log_level;
@@ -1496,7 +1496,7 @@ MACIP_CFG *sys_cfg_search_macip_cfg_by_mac_addr(const SYS_CFG *sys_cfg, const UI
     return (NULL_PTR);
 }
 
-static EC_BOOL __cluster_node_cfg_collect_tcid(const CLUSTER_NODE_CFG *cluster_node_cfg, const char *role, CVECTOR * dn_tcid_vec)
+STATIC_CAST static EC_BOOL __cluster_node_cfg_collect_tcid(const CLUSTER_NODE_CFG *cluster_node_cfg, const char *role, CVECTOR * dn_tcid_vec)
 {
     if(
        EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, role)

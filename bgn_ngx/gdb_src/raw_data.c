@@ -14,7 +14,7 @@ extern "C"{
 #include "zlib.h"
 #include <errno.h>
 
-static uint8_t __mkdir(const char *dir_name)
+STATIC_CAST static uint8_t __mkdir(const char *dir_name)
 {
     char *pstr;
 
@@ -73,7 +73,7 @@ static uint8_t __mkdir(const char *dir_name)
     return 1;
 }
 
-static uint8_t *__dupFileName(const uint8_t *root_path)
+STATIC_CAST static uint8_t *__dupFileName(const uint8_t *root_path)
 {
     uint8_t *file_name;
     MEM_CHECK(file_name = (uint8_t *)SAFE_MALLOC(strlen((char *)root_path) + 1, LOC_RAW_0001));
@@ -81,7 +81,7 @@ static uint8_t *__dupFileName(const uint8_t *root_path)
     return (file_name);
 }
 
-static uint8_t __mkbasedir(const char *file_name)
+STATIC_CAST static uint8_t __mkbasedir(const char *file_name)
 {
     char *dir_name;
     uint8_t ret;

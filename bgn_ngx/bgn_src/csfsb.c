@@ -68,7 +68,7 @@ static const uint8_t g_nbits_per_byte[] = {
 };
 
 
-static EC_BOOL __csfsb_page_used_bitmap_set(CSFSB *csfsb, const uint16_t bit_pos)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_set(CSFSB *csfsb, const uint16_t bit_pos)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -101,7 +101,7 @@ static EC_BOOL __csfsb_page_used_bitmap_set(CSFSB *csfsb, const uint16_t bit_pos
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_clear(CSFSB *csfsb, const uint16_t bit_pos)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_clear(CSFSB *csfsb, const uint16_t bit_pos)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -131,7 +131,7 @@ static EC_BOOL __csfsb_page_used_bitmap_clear(CSFSB *csfsb, const uint16_t bit_p
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_get(const CSFSB *csfsb, const uint16_t bit_pos, uint32_t *bit_val)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_get(const CSFSB *csfsb, const uint16_t bit_pos, uint32_t *bit_val)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -162,7 +162,7 @@ static EC_BOOL __csfsb_page_used_bitmap_get(const CSFSB *csfsb, const uint16_t b
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_search_from(const CSFSB *csfsb, const uint16_t max_nbits, uint16_t *bit_pos)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_search_from(const CSFSB *csfsb, const uint16_t max_nbits, uint16_t *bit_pos)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -209,7 +209,7 @@ static EC_BOOL __csfsb_page_used_bitmap_search_from(const CSFSB *csfsb, const ui
     return (EC_FALSE);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_is(const CSFSB *csfsb, const uint16_t bit_pos, const uint32_t bit_val)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_is(const CSFSB *csfsb, const uint16_t bit_pos, const uint32_t bit_val)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -244,7 +244,7 @@ static EC_BOOL __csfsb_page_used_bitmap_is(const CSFSB *csfsb, const uint16_t bi
     return (EC_FALSE);
 }
 
-static void __csfsb_page_used_bitmap_print(LOG *log, const CSFSB *csfsb)
+STATIC_CAST static void __csfsb_page_used_bitmap_print(LOG *log, const CSFSB *csfsb)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -279,7 +279,7 @@ static void __csfsb_page_used_bitmap_print(LOG *log, const CSFSB *csfsb)
 }
 
 /*count the num of bit 1*/
-static uint16_t __csfsb_page_used_bitmap_count_bits(const CSFSB *csfsb)
+STATIC_CAST static uint16_t __csfsb_page_used_bitmap_count_bits(const CSFSB *csfsb)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -305,7 +305,7 @@ static uint16_t __csfsb_page_used_bitmap_count_bits(const CSFSB *csfsb)
     return (bits_count);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_init(CSFSB *csfsb)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_init(CSFSB *csfsb)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -321,7 +321,7 @@ static EC_BOOL __csfsb_page_used_bitmap_init(CSFSB *csfsb)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_used_bitmap_clean(CSFSB *csfsb)
+STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_clean(CSFSB *csfsb)
 {
     uint32_t *page_used_bitmap;
     uint16_t  page_max_num;
@@ -337,7 +337,7 @@ static EC_BOOL __csfsb_page_used_bitmap_clean(CSFSB *csfsb)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_np_node_pos_init(CSFSB *csfsb, const uint32_t np_node_err_pos)
+STATIC_CAST static EC_BOOL __csfsb_page_np_node_pos_init(CSFSB *csfsb, const uint32_t np_node_err_pos)
 {
     uint32_t *page_np_node_pos;
     uint16_t  page_max_num;
@@ -353,7 +353,7 @@ static EC_BOOL __csfsb_page_np_node_pos_init(CSFSB *csfsb, const uint32_t np_nod
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsb_page_np_node_pos_clean(CSFSB *csfsb, const uint32_t np_node_err_pos)
+STATIC_CAST static EC_BOOL __csfsb_page_np_node_pos_clean(CSFSB *csfsb, const uint32_t np_node_err_pos)
 {
     uint32_t *page_np_node_pos;
     uint16_t  page_max_num;

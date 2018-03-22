@@ -47,7 +47,7 @@ extern "C"{
 #define PRINT_BUFF(info, buff, len) do{}while(0)
 #endif
 
-static void cproc_bind_spec_core(const UINT32 rank)
+STATIC_CAST static void cproc_bind_spec_core(const UINT32 rank)
 {
     UINT32 core_max_num;
     UINT32 core_idx;
@@ -66,7 +66,7 @@ static void cproc_bind_spec_core(const UINT32 rank)
     return;
 }
 
-static void cproc_bind_all_core(const UINT32 rank)
+STATIC_CAST static void cproc_bind_all_core(const UINT32 rank)
 {
     UINT32 core_max_num;
     UINT32 core_idx;
@@ -88,7 +88,7 @@ static void cproc_bind_all_core(const UINT32 rank)
     return;
 }
 
-static void cproc_bind_none_core(const UINT32 rank)
+STATIC_CAST static void cproc_bind_none_core(const UINT32 rank)
 {
     return;
 }
