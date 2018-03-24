@@ -93,12 +93,12 @@ uint16_t csfsd_model_get(const char *model_str)
     return (CSFSD_ERROR_BLOCK_NUM);
 }
 
-static CSFSB *__csfsd_block(CSFSD *csfsd, const uint16_t  block_no)
+STATIC_CAST static CSFSB *__csfsd_block(CSFSD *csfsd, const uint16_t  block_no)
 {
     return (CSFSB *)(((void *)CSFSD_HEADER(csfsd)) + sizeof(CSFSD_HDR) + block_no * sizeof(CSFSB));
 }
 
-static EC_BOOL __csfsd_hdr_init(CSFSD_HDR *csfsd_hdr, const uint16_t block_num)
+STATIC_CAST static EC_BOOL __csfsd_hdr_init(CSFSD_HDR *csfsd_hdr, const uint16_t block_num)
 {
     if(NULL_PTR != csfsd_hdr)
     {
@@ -106,7 +106,7 @@ static EC_BOOL __csfsd_hdr_init(CSFSD_HDR *csfsd_hdr, const uint16_t block_num)
 
         page_max_num  = block_num;
         page_max_num *= CSFSB_PAGE_NUM;
-     
+
         CSFSD_HDR_BLOCK_MAX_NUM(csfsd_hdr) = block_num;
         CSFSD_HDR_PAGE_MAX_NUM(csfsd_hdr)  = page_max_num;
     }
@@ -114,7 +114,7 @@ static EC_BOOL __csfsd_hdr_init(CSFSD_HDR *csfsd_hdr, const uint16_t block_num)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsd_hdr_clean(CSFSD_HDR *csfsd_hdr)
+STATIC_CAST static EC_BOOL __csfsd_hdr_clean(CSFSD_HDR *csfsd_hdr)
 {
     if(NULL_PTR != csfsd_hdr)
     {
@@ -124,7 +124,7 @@ static EC_BOOL __csfsd_hdr_clean(CSFSD_HDR *csfsd_hdr)
     return (EC_TRUE);
 }
 
-static CSFSD_HDR *__csfsd_hdr_open(CSFSD *csfsd)
+STATIC_CAST static CSFSD_HDR *__csfsd_hdr_open(CSFSD *csfsd)
 {
     CSFSD_HDR *csfsd_hdr;
     uint16_t   block_num;
@@ -155,11 +155,11 @@ static CSFSD_HDR *__csfsd_hdr_open(CSFSD *csfsd)
             sys_log(LOGSTDOUT, "[DEBUG] __csfsd_hdr_open: block %u is\n", block_no);
             csfsb_print(LOGSTDOUT, csfsb);
         }
-    } 
+    }
     return (csfsd_hdr);
 }
 
-static EC_BOOL __csfsd_hdr_close(CSFSD *csfsd)
+STATIC_CAST static EC_BOOL __csfsd_hdr_close(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
     {
@@ -168,20 +168,20 @@ static EC_BOOL __csfsd_hdr_close(CSFSD *csfsd)
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:__csfsd_hdr_close: sync csfsd_hdr of %s with size %u failed\n",
                                CSFSD_FNAME(csfsd), CSFSD_FSIZE(csfsd));
         }
-     
+
         if(0 != munmap(CSFSD_HEADER(csfsd), CSFSD_FSIZE(csfsd)))
         {
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:__csfsd_hdr_close: munmap csfsd of %s with size %u failed\n",
                                CSFSD_FNAME(csfsd), CSFSD_FSIZE(csfsd));
         }
-    
-        CSFSD_HEADER(csfsd) = NULL_PTR;     
+
+        CSFSD_HEADER(csfsd) = NULL_PTR;
     }
 
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsd_hdr_sync(CSFSD *csfsd)
+STATIC_CAST static EC_BOOL __csfsd_hdr_sync(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
     {
@@ -189,7 +189,7 @@ static EC_BOOL __csfsd_hdr_sync(CSFSD *csfsd)
         {
             uint16_t     block_num;
             uint16_t     block_no;
-         
+
             block_num = CSFSD_HDR_BLOCK_MAX_NUM(CSFSD_HEADER(csfsd));
 
             sys_log(LOGSTDOUT, "[DEBUG] __csfsd_hdr_sync: csfsd %p, fsize %u, block_num %u\n",
@@ -205,18 +205,18 @@ static EC_BOOL __csfsd_hdr_sync(CSFSD *csfsd)
                 csfsb_print(LOGSTDOUT, csfsb);
             }
         }
-     
+
         if(0 != msync(CSFSD_HEADER(csfsd), CSFSD_FSIZE(csfsd), MS_SYNC))
         {
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:__csfsd_hdr_sync: sync csfsd_hdr of %s with size %u failed\n",
                                CSFSD_FNAME(csfsd), CSFSD_FSIZE(csfsd));
-        }          
+        }
     }
 
     return (EC_TRUE);
 }
 
-static CSFSD_HDR *__csfsd_hdr_load(CSFSD *csfsd)
+STATIC_CAST static CSFSD_HDR *__csfsd_hdr_load(CSFSD *csfsd)
 {
     uint8_t     *buff;
     CSFSD_HDR   *csfsd_hdr;
@@ -255,13 +255,13 @@ static CSFSD_HDR *__csfsd_hdr_load(CSFSD *csfsd)
         {
             sys_log(LOGSTDOUT, "[DEBUG] __csfsd_hdr_load: block %u is\n", block_no);
             csfsb_print(LOGSTDOUT, csfsb);
-        }     
+        }
     }
     return (csfsd_hdr);
 }
 
 
-static EC_BOOL __csfsd_hdr_free(CSFSD *csfsd)
+STATIC_CAST static EC_BOOL __csfsd_hdr_free(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
     {
@@ -281,25 +281,25 @@ static EC_BOOL __csfsd_hdr_free(CSFSD *csfsd)
         safe_free(CSFSD_HEADER(csfsd), LOC_CSFSD_0004);
         CSFSD_HEADER(csfsd) = NULL_PTR;
     }
- 
+
     /*cpgv_hdr cannot be accessed again*/
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsd_hdr_flush(CSFSD *csfsd)
+STATIC_CAST static EC_BOOL __csfsd_hdr_flush(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
     {
         UINT32 offset;
 
-        offset = 0;     
+        offset = 0;
         if(EC_FALSE == c_file_flush(CSFSD_FD(csfsd), &offset, CSFSD_FSIZE(csfsd), (const UINT8 *)CSFSD_HEADER(csfsd)))
         {
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:__csfsd_hdr_flush: flush csfsd_hdr to fd %d with size %u failed\n",
                         CSFSD_FD(csfsd), CSFSD_FSIZE(csfsd));
             return (EC_FALSE);
         }
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -338,20 +338,20 @@ CSFSD_HDR *csfsd_hdr_new(CSFSD *csfsd, const uint16_t block_num)
 EC_BOOL csfsd_hdr_free(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
-    {     
+    {
         if(0 != msync(CSFSD_HEADER(csfsd), CSFSD_FSIZE(csfsd), MS_SYNC))
         {
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:csfsd_hdr_free: sync csfsd_hdr of %s with size %u failed\n",
                                CSFSD_FNAME(csfsd), CSFSD_FSIZE(csfsd));
         }
-     
+
         if(0 != munmap(CSFSD_HEADER(csfsd), CSFSD_FSIZE(csfsd)))
         {
             dbg_log(SEC_0165_CSFSD, 1)(LOGSTDOUT, "warn:csfsd_hdr_free: munmap csfsd of %s with size %u failed\n",
                                CSFSD_FNAME(csfsd), CSFSD_FSIZE(csfsd));
         }
-     
-        CSFSD_HEADER(csfsd) = NULL_PTR;     
+
+        CSFSD_HEADER(csfsd) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -429,7 +429,7 @@ EC_BOOL csfsd_hdr_flush(const CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: pad %u bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     DEBUG(CSFSD_ASSERT(sizeof(CSFSD_HDR) == (*offset) - offset_saved));
 
@@ -449,7 +449,7 @@ EC_BOOL csfsd_hdr_load(CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     }
 
     /*skip rsvd01*/
-    (*offset) += sizeof(uint16_t); 
+    (*offset) += sizeof(uint16_t);
 
     /*load CSFSD_HDR_PAGE_MAX_NUM*/
     osize = sizeof(uint32_t);
@@ -478,18 +478,18 @@ CSFSD_HDR *csfsd_hdr_mem_new(CSFSD *csfsd, const uint16_t block_num)
     }
 
     __csfsd_hdr_init(csfsd_hdr, block_num);
- 
+
     return (csfsd_hdr);
 }
 
 EC_BOOL csfsd_hdr_mem_free(CSFSD *csfsd)
 {
     if(NULL_PTR != CSFSD_HEADER(csfsd))
-    {     
+    {
         __csfsd_hdr_clean(CSFSD_HEADER(csfsd));
-     
-        safe_free(CSFSD_HEADER(csfsd), LOC_CSFSD_0006);     
-        CSFSD_HEADER(csfsd) = NULL_PTR;     
+
+        safe_free(CSFSD_HEADER(csfsd), LOC_CSFSD_0006);
+        CSFSD_HEADER(csfsd) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -498,13 +498,13 @@ EC_BOOL csfsd_hdr_mem_free(CSFSD *csfsd)
 CSFSD *csfsd_new(const uint8_t *csfsd_fname, const uint16_t block_num, const uint32_t np_node_err_pos, CSFSNP_RECYCLE np_node_recycle, void *np)
 {
     CSFSD      *csfsd;
- 
+
     if(CSFSD_MAX_BLOCK_NUM < block_num)
     {
         dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_new: block_num %u overflow\n", block_num);
         return (NULL_PTR);
     }
- 
+
     if(EC_TRUE == c_file_access((const char *)csfsd_fname, F_OK))
     {
         dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_new: %s already exist\n", csfsd_fname);
@@ -598,9 +598,9 @@ EC_BOOL csfsd_rmv(const uint8_t *csfsd_fname)
 CSFSD *csfsd_open(const uint8_t *csfsd_fname)
 {
     CSFSD      *csfsd;
- 
+
     UINT32      fsize;
- 
+
     alloc_static_mem(MM_CSFSD, &csfsd, LOC_CSFSD_0010);
     if(NULL_PTR == csfsd)
     {
@@ -641,7 +641,7 @@ CSFSD *csfsd_open(const uint8_t *csfsd_fname)
         csfsd_close(csfsd);
         return (NULL_PTR);
     }
- 
+
     return (csfsd);
 }
 
@@ -671,7 +671,7 @@ EC_BOOL csfsd_close(CSFSD *csfsd)
 EC_BOOL csfsd_sync(CSFSD *csfsd)
 {
     if(NULL_PTR != csfsd)
-    {     
+    {
         csfsd_hdr_sync(csfsd);
     }
     return (EC_TRUE);
@@ -716,8 +716,8 @@ EC_BOOL csfsd_clean(CSFSD *csfsd)
         safe_free(CSFSD_HEADER(csfsd), LOC_CSFSD_0014);
         CSFSD_HEADER(csfsd) = NULL_PTR;
     }
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 EC_BOOL csfsd_set_np(CSFSD *csfsd, const uint32_t np_node_err_pos, CSFSNP_RECYCLE np_node_recycle, void *npp)
@@ -776,7 +776,7 @@ EC_BOOL csfsd_new_space(CSFSD *csfsd, const uint16_t page_num, uint16_t *block_n
         dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "error:csfsd_new_space: page_num %u, block %u, page %u failed\n",
                     page_num, block_no_t, page_no_t);
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -789,8 +789,8 @@ EC_BOOL csfsd_bind(CSFSD *csfsd, const uint16_t block_no, const uint16_t page_no
     {
         dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "error:csfsd_bind: block %u is null\n", block_no);
         return (EC_FALSE);
-    } 
- 
+    }
+
     if(EC_FALSE == csfsb_bind(csfsb, page_no, np_id, np_node_pos))
     {
         dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "error:csfsd_bind: bind (block %u, page %u) and (np %u, pos %u) failed\n",
@@ -801,7 +801,7 @@ EC_BOOL csfsd_bind(CSFSD *csfsd, const uint16_t block_no, const uint16_t page_no
     dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "[DEBUG] csfsd_bind: bind (block %u, page %u) and (np %u, pos %u) done\n",
                     block_no, page_no, np_id, np_node_pos);
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL csfsd_flush_size(const CSFSD *csfsd, UINT32 *size)
@@ -818,7 +818,7 @@ EC_BOOL csfsd_flush(const CSFSD *csfsd, int fd, UINT32 *offset)
         dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_flush: flush CSFSD_HEADER at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -865,7 +865,7 @@ void csfsd_print(LOG *log, const CSFSD *csfsd)
         }
     }
 
-    return; 
+    return;
 }
 
 /*-------------------------------------------- DISK in memory --------------------------------------------*/
@@ -879,7 +879,7 @@ CSFSD *csfsd_mem_new(const uint16_t block_num)
         dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_mem_new: block_num %u overflow\n", block_num);
         return (NULL_PTR);
     }
- 
+
     alloc_static_mem(MM_CSFSD, &csfsd, LOC_CSFSD_0016);
     if(NULL_PTR == csfsd)
     {
@@ -928,14 +928,14 @@ EC_BOOL csfsd_mem_free(CSFSD *csfsd)
     {
         UINT32 block_num;
         UINT32 block_no;
-     
+
         /*clean blocks*/
         block_num = CSFSD_BLOCK_MAX_NUM(csfsd);
         for(block_no = 0; block_no < block_num; block_no ++)
         {
             CSFSD_BLOCK_NODE(csfsd, block_no) = NULL_PTR;
         }
- 
+
         csfsd_hdr_mem_free(csfsd);
 
         ASSERT(ERR_FD == CSFSD_FD(csfsd));

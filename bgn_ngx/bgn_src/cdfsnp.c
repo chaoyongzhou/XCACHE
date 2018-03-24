@@ -141,12 +141,12 @@ EC_BOOL cdfsnp_mode_bloom_col_num(const UINT32 cdfsnp_mode, UINT32 *bloom_col_nu
     return (EC_TRUE);
 }
 
-static EC_BOOL cdfsnp_create_dir(const char *dir_name)
+STATIC_CAST static EC_BOOL cdfsnp_create_dir(const char *dir_name)
 {
     return c_dir_create(dir_name);
 }
 
-static EC_BOOL cdfsnp_dname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL cdfsnp_dname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
 {
     CDSK_SHARD cdsk_shard;
 
@@ -162,7 +162,7 @@ static EC_BOOL cdfsnp_dname_gen(const char *root_dir, const UINT32 disk_num, con
     return (EC_TRUE);
 }
 
-static EC_BOOL cdfsnp_fname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 cdfsnp_path_layout, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL cdfsnp_fname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 cdfsnp_path_layout, char *path, const UINT32 max_len)
 {
     CDSK_SHARD cdsk_shard;
 
@@ -230,7 +230,7 @@ void cdfsnp_print_buff(LOG *log, const UINT8 *buff, const UINT32 len)
     return;
 }
 
-static UINT32 cdfsnp_path_seg_len(const UINT8 *full_path, const UINT32 full_path_len, const UINT8 *path_seg_beg)
+STATIC_CAST static UINT32 cdfsnp_path_seg_len(const UINT8 *full_path, const UINT32 full_path_len, const UINT8 *path_seg_beg)
 {
     UINT8 *ptr;
 
@@ -2859,7 +2859,7 @@ EC_BOOL cdfsnp_create(CDFSNP *cdfsnp, const char *cdfsnp_db_root_dir)
     return (EC_TRUE);
 }
 
-static UINT32 cdfsnp_figured_block_find_uclosed_offset(const CVECTOR *cdfsnp_inode_vec, const UINT32 offset)
+STATIC_CAST static UINT32 cdfsnp_figured_block_find_uclosed_offset(const CVECTOR *cdfsnp_inode_vec, const UINT32 offset)
 {
     UINT32 pos;
     UINT32 closed_offset;
@@ -2882,7 +2882,7 @@ static UINT32 cdfsnp_figured_block_find_uclosed_offset(const CVECTOR *cdfsnp_ino
     return (closed_pos);
 }
 
-static void cdfsnp_figured_block_sort_print(LOG *log, const CVECTOR *file_size_vec, const CVECTOR *cdfsnp_inode_vec)
+STATIC_CAST static void cdfsnp_figured_block_sort_print(LOG *log, const CVECTOR *file_size_vec, const CVECTOR *cdfsnp_inode_vec)
 {
     UINT32 prev_offset;
     UINT32 prev_file_size;

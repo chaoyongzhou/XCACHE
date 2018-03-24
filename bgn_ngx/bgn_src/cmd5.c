@@ -42,7 +42,7 @@ void cmd5_byteswap(uint32_t * buf, unsigned words)
                  ((unsigned) p[1] << 8 | p[0]);
         p += 4;
     }while (--words);
- 
+
     return;
 }
 #endif/*(__BYTE_ORDER == __BIG_ENDIAN)*/
@@ -256,7 +256,7 @@ EC_BOOL cmd5_sum(const uint32_t data_len, const uint8_t *data, uint8_t digest[ C
     cmd5_init(&md5);
     cmd5_update(&md5, (uint8_t *) data, data_len);
     cmd5_final(digest, &md5);
- 
+
     return (EC_TRUE);
 }
 

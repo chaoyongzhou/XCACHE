@@ -652,7 +652,7 @@ UINT32 cmpi_encode_cstring(const UINT32 comm, const CSTRING *cstring, UINT8 *out
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cstring: cstring is null.\n");
         dbg_exit(MD_TBD, 0);
     }
-*/ 
+*/
     if ( NULL_PTR == out_buff )
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cstring: out_buff is null.\n");
@@ -2953,7 +2953,7 @@ UINT32 cmpi_encode_cbytes(const UINT32 comm, const CBYTES *cbytes, UINT8 *out_bu
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cbytes: cbytes is null.\n");
         dbg_exit(MD_TBD, 0);
     }
-*/ 
+*/
     if ( NULL_PTR == out_buff )
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cbytes: out_buff is null.\n");
@@ -2983,7 +2983,7 @@ UINT32 cmpi_encode_cbytes_size(const UINT32 comm, const CBYTES *cbytes, UINT32 *
         cmpi_encode_uint32_size(comm, 0, size);
         return ((UINT32)0);
     }
- 
+
     cmpi_encode_uint8_array_size(comm, NULL_PTR, CBYTES_LEN(cbytes), size);
     return ((UINT32)0);
 }
@@ -3565,7 +3565,7 @@ UINT32 cmpi_encode_crfsnp_fnode(const UINT32 comm, const CRFSNP_FNODE *crfsnp_fn
     cmpi_encode_uint32(comm, CRFSNP_FNODE_FILESZ(crfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFSNP_FNODE_REPNUM(crfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint8_array(comm, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN, out_buff, out_buff_max_len, position);
- 
+
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < (CRFSNP_FNODE_REPNUM(crfsnp_fnode)) && crfsnp_inode_pos < CRFSNP_FILE_REPLICA_MAX_NUM; crfsnp_inode_pos ++)
     {
         CRFSNP_INODE *crfsnp_inode;
@@ -3584,7 +3584,7 @@ UINT32 cmpi_encode_crfsnp_fnode_size(const UINT32 comm, const CRFSNP_FNODE *crfs
     cmpi_encode_uint32_size(comm, CRFSNP_FNODE_FILESZ(crfsnp_fnode), size);
     cmpi_encode_uint32_size(comm, CRFSNP_FNODE_REPNUM(crfsnp_fnode), size);
     cmpi_encode_uint8_array_size(comm, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN, size);
- 
+
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && crfsnp_inode_pos < CRFSNP_FILE_REPLICA_MAX_NUM; crfsnp_inode_pos ++)
     {
         CRFSNP_INODE *crfsnp_inode;
@@ -3601,7 +3601,7 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
     UINT32 file_size;
     UINT32 replica_num;
     UINT32 md5sum_len;
- 
+
     uint32_t crfsnp_inode_pos;
 
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
@@ -3624,7 +3624,7 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(file_size));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(replica_num));
- 
+
     if(CRFSNP_FILE_REPLICA_MAX_NUM < (replica_num))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsnp_fnode: replica num %ld overflow\n", replica_num);
@@ -3690,7 +3690,7 @@ UINT32 cmpi_decode_crfsnp_bnode(const UINT32 comm, const UINT8 *in_buff, const U
 {
     uint64_t file_size;
     uint64_t store_size;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -3722,7 +3722,7 @@ UINT32 cmpi_decode_crfsnp_bnode(const UINT32 comm, const UINT8 *in_buff, const U
 UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     UINT32   num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == crfsnp_item )
     {
@@ -3744,14 +3744,14 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
     cmpi_encode_uint32(comm, CRFSNP_ITEM_DIR_FLAG(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFSNP_ITEM_USED_FLAG(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFSNP_ITEM_KLEN(crfsnp_item), out_buff, out_buff_max_len, position);
- 
+
     cmpi_pack(CRFSNP_ITEM_KEY(crfsnp_item), CRFSNP_ITEM_KLEN(crfsnp_item), CMPI_UCHAR, out_buff, out_buff_max_len, position, comm);
 
     num = CRFSNP_ITEM_CREATE_TIME(crfsnp_item);
     cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
- 
+
     cmpi_encode_uint32_t(comm, CRFSNP_ITEM_SECOND_HASH(crfsnp_item), out_buff, out_buff_max_len, position);
- 
+
     cmpi_encode_uint32(comm, CRFSNP_ITEM_PARENT_POS(crfsnp_item), out_buff, out_buff_max_len, position);
 
     if(CRFSNP_ITEM_FILE_IS_DIR == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
@@ -3767,7 +3767,7 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
     if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
         cmpi_encode_crfsnp_bnode(comm, CRFSNP_ITEM_BNODE(crfsnp_item), out_buff, out_buff_max_len, position);
-    } 
+    }
 
     return ((UINT32)0);
 }
@@ -3775,7 +3775,7 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
 UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item, UINT32 *size)
 {
     UINT32   num;
- 
+
     cmpi_encode_uint32_size(comm, CRFSNP_ITEM_DIR_FLAG(crfsnp_item), size);
     cmpi_encode_uint32_size(comm, CRFSNP_ITEM_USED_FLAG(crfsnp_item), size);
     cmpi_encode_uint32_size(comm, CRFSNP_ITEM_KLEN(crfsnp_item), size);
@@ -3849,7 +3849,7 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
     create_time = num;
- 
+
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(second_hash));
 
     CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = (ctime_t )(create_time);
@@ -3875,7 +3875,7 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
     {
         cmpi_decode_crfsnp_bnode(comm, in_buff, in_buff_max_len, position, CRFSNP_ITEM_BNODE(crfsnp_item));
     }
- 
+
     return ((UINT32)0);
 }
 
@@ -3967,7 +3967,7 @@ UINT32 cmpi_encode_chfsnp_fnode(const UINT32 comm, const CHFSNP_FNODE *chfsnp_fn
 
     cmpi_encode_uint32(comm, CHFSNP_FNODE_FILESZ(chfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHFSNP_FNODE_REPNUM(chfsnp_fnode), out_buff, out_buff_max_len, position);
- 
+
     for(chfsnp_inode_pos = 0; chfsnp_inode_pos < (CHFSNP_FNODE_REPNUM(chfsnp_fnode)) && chfsnp_inode_pos < CHFSNP_FILE_REPLICA_MAX_NUM; chfsnp_inode_pos ++)
     {
         CHFSNP_INODE *chfsnp_inode;
@@ -4000,7 +4000,7 @@ UINT32 cmpi_decode_chfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 {
     UINT32 file_size;
     UINT32 replica_num;
- 
+
     uint32_t chfsnp_inode_pos;
 
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
@@ -4093,7 +4093,7 @@ UINT32 cmpi_decode_time_t(const UINT32 comm, const UINT8 *in_buff, const UINT32 
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(tmp));
     (*time) = (time_t)tmp;
- 
+
     return ((UINT32)0);
 }
 
@@ -4118,7 +4118,7 @@ UINT32 cmpi_encode_chfsnp_item(const UINT32 comm, const CHFSNP_ITEM *chfsnp_item
 #endif /* ENCODE_DEBUG_SWITCH */
 
     cmpi_encode_time_t(comm, CHFSNP_ITEM_C_TIME(chfsnp_item), out_buff, out_buff_max_len, position);
- 
+
     cmpi_encode_uint32_t(comm, CHFSNP_ITEM_BUCKET_POS(chfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHFSNP_ITEM_STAT(chfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHFSNP_ITEM_KLEN(chfsnp_item), out_buff, out_buff_max_len, position);
@@ -4133,7 +4133,7 @@ UINT32 cmpi_encode_chfsnp_item(const UINT32 comm, const CHFSNP_ITEM *chfsnp_item
 UINT32 cmpi_encode_chfsnp_item_size(const UINT32 comm, const CHFSNP_ITEM *chfsnp_item, UINT32 *size)
 {
     cmpi_encode_time_t_size(comm, CHFSNP_ITEM_C_TIME(chfsnp_item), size);
- 
+
     cmpi_encode_uint32_t_size(comm, CHFSNP_ITEM_BUCKET_POS(chfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CHFSNP_ITEM_STAT(chfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CHFSNP_ITEM_KLEN(chfsnp_item), size);
@@ -4304,7 +4304,7 @@ UINT32 cmpi_decode_crfsop(const UINT32 comm, const UINT8 *in_buff, const UINT32 
 
     cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CRFSOP_OP_TYPE(crfsop)));
     cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CRFSOP_PATH_TYPE(crfsop)));
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num)); 
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CRFSOP_PATH_NAME(crfsop));
 
     CRFSOP_PATH_HASH(crfsop) = (uint32_t)num;
@@ -4427,8 +4427,8 @@ UINT32 cmpi_decode_crfsconhash_vnode(const UINT32 comm, const UINT8 *in_buff, co
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CRFSCONHASH_VNODE_HASH(crfsconhash_vnode))); 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CRFSCONHASH_VNODE_POS(crfsconhash_vnode))); 
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CRFSCONHASH_VNODE_HASH(crfsconhash_vnode)));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CRFSCONHASH_VNODE_POS(crfsconhash_vnode)));
 
     return ((UINT32)0);
 }
@@ -4437,7 +4437,7 @@ UINT32 cmpi_encode_crfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == rnode_vec )
     {
@@ -4458,7 +4458,7 @@ UINT32 cmpi_encode_crfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFSCONHASH_RNODE *crfsconhash_rnode;
@@ -4467,13 +4467,13 @@ UINT32 cmpi_encode_crfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CRFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16(comm, replicas, out_buff, out_buff_max_len, position);
             cmpi_encode_uint32_t(comm, tcid, out_buff, out_buff_max_len, position);
-         
+
             continue;
         }
 
@@ -4489,7 +4489,7 @@ UINT32 cmpi_encode_crfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32_size(comm, num, size);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFSCONHASH_RNODE *crfsconhash_rnode;
@@ -4498,13 +4498,13 @@ UINT32 cmpi_encode_crfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CRFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16_size(comm, replicas, size);
             cmpi_encode_uint32_t_size(comm, tcid, size);
-         
+
             continue;
         }
 
@@ -4517,7 +4517,7 @@ UINT32 cmpi_decode_crfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -4548,14 +4548,14 @@ UINT32 cmpi_decode_crfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: new rnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(EC_FALSE == cmpi_decode_crfsconhash_rnode(comm, in_buff, in_buff_max_len, position, crfsconhash_rnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
             crfsconhash_rnode_free(crfsconhash_rnode);
             return ((UINT32)-1);
         }
-     
+
         if(CRFSCONHASH_ERR_REPLICAS == CRFSCONHASH_RNODE_REPLICAS(crfsconhash_rnode)
         && ((uint32_t)CMPI_ERROR_TCID) == CRFSCONHASH_RNODE_TCID(crfsconhash_rnode))
         {
@@ -4570,14 +4570,14 @@ UINT32 cmpi_decode_crfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_crfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_crfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
    CRFSCONHASH_VNODE *crfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_crfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), out_buff, out_buff_max_len, position))
@@ -4593,7 +4593,7 @@ static UINT32 __cmpi_encode_crfsconhash_vnode_tree_inorder(const UINT32 comm, co
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__crfsconhash_flush_vnodes_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_crfsconhash_vnode(comm, crfsconhash_vnode, out_buff, out_buff_max_len, position))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__crfsconhash_flush_vnodes_inorder: encode vnode %p failed\n", crfsconhash_vnode);
@@ -4607,14 +4607,14 @@ static UINT32 __cmpi_encode_crfsconhash_vnode_tree_inorder(const UINT32 comm, co
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__crfsconhash_flush_vnodes_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
 UINT32 cmpi_encode_crfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vnode_tree, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == vnode_tree )
     {
@@ -4641,14 +4641,14 @@ UINT32 cmpi_encode_crfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vno
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_crfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_crfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
+{
    CRFSCONHASH_VNODE *crfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_crfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), size))
@@ -4664,7 +4664,7 @@ static UINT32 __cmpi_encode_crfsconhash_vnode_tree_size_inorder(const UINT32 com
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_crfsconhash_vnode_tree_size_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_crfsconhash_vnode_size(comm, crfsconhash_vnode, size))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_crfsconhash_vnode_tree_size_inorder: encode vnode %p failed\n", crfsconhash_vnode);
@@ -4678,7 +4678,7 @@ static UINT32 __cmpi_encode_crfsconhash_vnode_tree_size_inorder(const UINT32 com
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_crfsconhash_vnode_tree_size_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
@@ -4698,7 +4698,7 @@ UINT32 cmpi_decode_crfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
 {
     uint32_t num;
     uint32_t pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -4729,13 +4729,13 @@ UINT32 cmpi_decode_crfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_vnode_tree: new vnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(0 != cmpi_decode_crfsconhash_vnode(comm, in_buff, in_buff_max_len, position, crfsconhash_vnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_vnode_tree: decode vnode %u# failed\n", pos);
             crfsconhash_vnode_free(crfsconhash_vnode);
             return ((UINT32)-1);
-        }     
+        }
 
         if(NULL_PTR == crb_tree_insert_data(vnode_tree, (void *)crfsconhash_vnode))
         {
@@ -4872,7 +4872,7 @@ UINT32 cmpi_decode_crfsdt_pnode(const UINT32 comm, const UINT8 *in_buff, const U
 UINT32 cmpi_encode_cbuffer(const UINT32 comm, const CBUFFER *cbuffer, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     uint32_t used_size;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == cbuffer )
     {
@@ -4926,7 +4926,7 @@ UINT32 cmpi_decode_cbuffer(const UINT32 comm, const UINT8 *in_buff, const UINT32
     uint32_t used_size;
 
     cmpi_unpack(in_buff, in_buff_max_len, position, (UINT8 *)&used_size, 1,   CMPI_U32, comm);
- 
+
     cbuffer_expand_to(cbuffer, used_size);
     cmpi_unpack(in_buff, in_buff_max_len, position, CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer), used_size, CMPI_UCHAR, comm);
     CBUFFER_USED(cbuffer) += used_size;
@@ -4957,7 +4957,7 @@ UINT32 cmpi_encode_cstrkv(const UINT32 comm, const CSTRKV *cstrkv, UINT8 *out_bu
 
     cmpi_encode_cstring(comm, CSTRKV_KEY(cstrkv), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CSTRKV_VAL(cstrkv), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -4990,7 +4990,7 @@ UINT32 cmpi_decode_cstrkv(const UINT32 comm, const UINT8 *in_buff, const UINT32 
 
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CSTRKV_KEY(cstrkv));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CSTRKV_VAL(cstrkv));
- 
+
     return ((UINT32)0);
 }
 
@@ -5002,10 +5002,10 @@ UINT32 cmpi_encode_cstrkv_mgr(const UINT32 comm, const CSTRKV_MGR *cstrkv_mgr, U
 {
     CLIST      *kv_list;
     CLIST_DATA *clist_data;
- 
+
     UINT32      len;
     UINT32      idx;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == cstrkv_mgr )
     {
@@ -5031,14 +5031,14 @@ UINT32 cmpi_encode_cstrkv_mgr(const UINT32 comm, const CSTRKV_MGR *cstrkv_mgr, U
 
     kv_list = (CLIST *)CSTRKV_MGR_LIST(cstrkv_mgr);
     len     = clist_size(kv_list);
- 
+
     cmpi_encode_uint32(comm, (UINT32)len, out_buff, out_buff_max_len, position);
 
     idx = 0;
     CLIST_LOOP_NEXT(kv_list, clist_data)
     {
         CSTRKV *cstrkv;
-     
+
         idx ++;
 
         cstrkv = (CSTRKV *)CLIST_DATA_DATA(clist_data);
@@ -5053,7 +5053,7 @@ UINT32 cmpi_encode_cstrkv_mgr(const UINT32 comm, const CSTRKV_MGR *cstrkv_mgr, U
     }
 
     ASSERT(idx == len);
- 
+
     return ((UINT32)0);
 }
 
@@ -5061,26 +5061,26 @@ UINT32 cmpi_encode_cstrkv_mgr_size(const UINT32 comm, const CSTRKV_MGR *cstrkv_m
 {
     CLIST      *kv_list;
     CLIST_DATA *clist_data;
- 
+
     UINT32      len;
     UINT32      idx;
 
     if(NULL_PTR == cstrkv_mgr)
     {
         cmpi_encode_uint32_size(comm, (UINT32)0, size);
-        return ((UINT32)0); 
+        return ((UINT32)0);
     }
 
     kv_list = (CLIST *)CSTRKV_MGR_LIST(cstrkv_mgr);
     len     = clist_size(kv_list);
- 
+
     cmpi_encode_uint32_size(comm, (UINT32)len, size);
 
     idx = 0;
     CLIST_LOOP_NEXT(kv_list, clist_data)
     {
         CSTRKV *cstrkv;
-     
+
         idx ++;
 
         cstrkv = (CSTRKV *)CLIST_DATA_DATA(clist_data);
@@ -5096,7 +5096,7 @@ UINT32 cmpi_encode_cstrkv_mgr_size(const UINT32 comm, const CSTRKV_MGR *cstrkv_m
     }
 
     ASSERT(idx == len);
- 
+
     return ((UINT32)0);
 }
 
@@ -5104,7 +5104,7 @@ UINT32 cmpi_decode_cstrkv_mgr(const UINT32 comm, const UINT8 *in_buff, const UIN
 {
     UINT32 len;
     UINT32 idx;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -5124,7 +5124,7 @@ UINT32 cmpi_decode_cstrkv_mgr(const UINT32 comm, const UINT8 *in_buff, const UIN
 #endif /* ENCODE_DEBUG_SWITCH */
 
     ASSERT(0 == cstrkv_mgr_size(cstrkv_mgr));
- 
+
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
 
     for(idx = 0; idx < len; idx ++)
@@ -5142,7 +5142,7 @@ UINT32 cmpi_decode_cstrkv_mgr(const UINT32 comm, const UINT8 *in_buff, const UIN
         cmpi_decode_cstrkv(comm, in_buff, in_buff_max_len, position, cstrkv);
         //cstrkv_print(LOGSTDOUT, cstrkv);
         //dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_decode_cstrkv_mgr: [%ld/%ld] position: %ld, cstrkv: %p => end\n", idx, len, (*position), cstrkv);
-     
+
         cstrkv_mgr_add_kv(cstrkv_mgr, cstrkv);
     }
 
@@ -5176,13 +5176,13 @@ UINT32 cmpi_encode_chttp_req(const UINT32 comm, const CHTTP_REQ *chttp_req, UINT
 
     cmpi_encode_uint32(comm, CHTTP_REQ_IPADDR(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_REQ_PORT(chttp_req), out_buff, out_buff_max_len, position);
- 
+
     cmpi_encode_cstring(comm, CHTTP_REQ_METHOD(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_REQ_URI(chttp_req), out_buff, out_buff_max_len, position);
 
     cmpi_encode_cstrkv_mgr(comm, CHTTP_REQ_PARAM(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_cstrkv_mgr(comm, CHTTP_REQ_HEADER(chttp_req), out_buff, out_buff_max_len, position);
- 
+
     cmpi_encode_cbytes(comm, CHTTP_REQ_BODY(chttp_req), out_buff, out_buff_max_len, position);
 
     return ((UINT32)0);
@@ -5195,10 +5195,10 @@ UINT32 cmpi_encode_chttp_req_size(const UINT32 comm, const CHTTP_REQ *chttp_req,
 
     cmpi_encode_cstring_size(comm, CHTTP_REQ_METHOD(chttp_req), size);
     cmpi_encode_cstring_size(comm, CHTTP_REQ_URI(chttp_req), size);
- 
+
     cmpi_encode_cstrkv_mgr_size(comm, CHTTP_REQ_PARAM(chttp_req), size);
     cmpi_encode_cstrkv_mgr_size(comm, CHTTP_REQ_HEADER(chttp_req), size);
- 
+
     cmpi_encode_cbytes_size(comm, CHTTP_REQ_BODY(chttp_req), size);
 
     return ((UINT32)0);
@@ -5234,7 +5234,7 @@ UINT32 cmpi_decode_chttp_req(const UINT32 comm, const UINT8 *in_buff, const UINT
     cmpi_decode_cstrkv_mgr(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_HEADER(chttp_req));
 
     cmpi_decode_cbytes(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_BODY(chttp_req));
- 
+
     return ((UINT32)0);
 }
 #endif
@@ -5263,7 +5263,7 @@ UINT32 cmpi_encode_chttp_rsp(const UINT32 comm, const CHTTP_RSP *chttp_rsp, UINT
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT,"[DEBUG]cmpi_encode_chttp_rsp: position: %ld => beg\n", (*position));
     cmpi_encode_cstrkv_mgr(comm, CHTTP_RSP_HEADER(chttp_rsp), out_buff, out_buff_max_len, position);
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT,"[DEBUG]cmpi_encode_chttp_rsp: position: %ld => header ok\n", (*position));
- 
+
     cmpi_encode_cbytes(comm, CHTTP_RSP_BODY(chttp_rsp), out_buff, out_buff_max_len, position);
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT,"[DEBUG]cmpi_encode_chttp_rsp: position: %ld => end\n", (*position));
     return ((UINT32)0);
@@ -5272,9 +5272,9 @@ UINT32 cmpi_encode_chttp_rsp(const UINT32 comm, const CHTTP_RSP *chttp_rsp, UINT
 UINT32 cmpi_encode_chttp_rsp_size(const UINT32 comm, const CHTTP_RSP *chttp_rsp, UINT32 *size)
 {
     cmpi_encode_cstrkv_mgr_size(comm, CHTTP_RSP_HEADER(chttp_rsp), size);
- 
+
     cmpi_encode_cbytes_size(comm, CHTTP_RSP_BODY(chttp_rsp), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -5351,7 +5351,7 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
 
     cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_E_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -5368,7 +5368,7 @@ UINT32 cmpi_encode_chttp_stat_size(const UINT32 comm, const CHTTP_STAT *chttp_st
 
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_L_NSEC(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), size);
- 
+
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_H_NSEC(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), size);
 
@@ -5448,7 +5448,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
 #endif /* ENCODE_DEBUG_SWITCH */
 
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_encode_chttp_store: position: %ld, chttp_store: %p => beg\n", (*position), chttp_store);
- 
+
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_ID(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_SIZE(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_S_OFFSET(chttp_store), out_buff, out_buff_max_len, position);
@@ -5508,7 +5508,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint64_size(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), size);
     cmpi_encode_uint64_size(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_USE_GZIP_FLAG(chttp_store), size);
- 
+
     cmpi_encode_uint32_size(comm, CHTTP_STORE_CACHE_ALLOW(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_CACHE_SWITCH(chttp_store), size);
     cmpi_encode_cstring_size(comm, CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), size);
@@ -5565,7 +5565,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
     cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_LAST_MODIFIED(chttp_store));
     cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CONTENT_LENGTH(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
- 
+
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CACHE_ALLOW(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CACHE_SWITCH(chttp_store));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_STORE_CACHE_HTTP_CODES(chttp_store));
@@ -5609,7 +5609,7 @@ UINT32 cmpi_encode_tasks_node(const UINT32 comm, const TASKS_NODE *tasks_node, U
     cmpi_encode_uint32(comm, TASKS_NODE_TCID(tasks_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, TASKS_NODE_COMM(tasks_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, TASKS_NODE_SIZE(tasks_node), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -5620,7 +5620,7 @@ UINT32 cmpi_encode_tasks_node_size(const UINT32 comm, const TASKS_NODE *tasks_no
     cmpi_encode_uint32_size(comm, TASKS_NODE_TCID(tasks_node), size);
     cmpi_encode_uint32_size(comm, TASKS_NODE_COMM(tasks_node), size);
     cmpi_encode_uint32_size(comm, TASKS_NODE_SIZE(tasks_node), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -5681,7 +5681,7 @@ UINT32 cmpi_encode_crfs_node(const UINT32 comm, const CRFS_NODE *crfs_node, UINT
     cmpi_encode_uint32(comm, CRFS_NODE_PORT(crfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFS_NODE_MODI(crfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFS_NODE_STATE(crfs_node), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -5692,7 +5692,7 @@ UINT32 cmpi_encode_crfs_node_size(const UINT32 comm, const CRFS_NODE *crfs_node,
     cmpi_encode_uint32_size(comm, CRFS_NODE_PORT(crfs_node), size);
     cmpi_encode_uint32_size(comm, CRFS_NODE_MODI(crfs_node), size);
     cmpi_encode_uint32_size(comm, CRFS_NODE_STATE(crfs_node), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -5842,8 +5842,8 @@ UINT32 cmpi_decode_chfsconhash_vnode(const UINT32 comm, const UINT8 *in_buff, co
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CHFSCONHASH_VNODE_HASH(chfsconhash_vnode))); 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CHFSCONHASH_VNODE_POS(chfsconhash_vnode))); 
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CHFSCONHASH_VNODE_HASH(chfsconhash_vnode)));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CHFSCONHASH_VNODE_POS(chfsconhash_vnode)));
 
     return ((UINT32)0);
 }
@@ -5852,7 +5852,7 @@ UINT32 cmpi_encode_chfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == rnode_vec )
     {
@@ -5873,7 +5873,7 @@ UINT32 cmpi_encode_chfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CHFSCONHASH_RNODE *chfsconhash_rnode;
@@ -5882,13 +5882,13 @@ UINT32 cmpi_encode_chfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CHFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16(comm, replicas, out_buff, out_buff_max_len, position);
             cmpi_encode_uint32_t(comm, tcid, out_buff, out_buff_max_len, position);
-         
+
             continue;
         }
 
@@ -5904,7 +5904,7 @@ UINT32 cmpi_encode_chfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32_size(comm, num, size);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CHFSCONHASH_RNODE *chfsconhash_rnode;
@@ -5913,13 +5913,13 @@ UINT32 cmpi_encode_chfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CHFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16_size(comm, replicas, size);
             cmpi_encode_uint32_t_size(comm, tcid, size);
-         
+
             continue;
         }
 
@@ -5932,7 +5932,7 @@ UINT32 cmpi_decode_chfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -5963,14 +5963,14 @@ UINT32 cmpi_decode_chfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: new rnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(EC_FALSE == cmpi_decode_chfsconhash_rnode(comm, in_buff, in_buff_max_len, position, chfsconhash_rnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
             chfsconhash_rnode_free(chfsconhash_rnode);
             return ((UINT32)-1);
         }
-     
+
         if(CHFSCONHASH_ERR_REPLICAS == CHFSCONHASH_RNODE_REPLICAS(chfsconhash_rnode)
         && ((uint32_t)CMPI_ERROR_TCID) == CHFSCONHASH_RNODE_TCID(chfsconhash_rnode))
         {
@@ -5985,14 +5985,14 @@ UINT32 cmpi_decode_chfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_chfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_chfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
    CHFSCONHASH_VNODE *chfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_chfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), out_buff, out_buff_max_len, position))
@@ -6008,7 +6008,7 @@ static UINT32 __cmpi_encode_chfsconhash_vnode_tree_inorder(const UINT32 comm, co
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_chfsconhash_vnode(comm, chfsconhash_vnode, out_buff, out_buff_max_len, position))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: encode vnode %p failed\n", chfsconhash_vnode);
@@ -6022,14 +6022,14 @@ static UINT32 __cmpi_encode_chfsconhash_vnode_tree_inorder(const UINT32 comm, co
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
 UINT32 cmpi_encode_chfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vnode_tree, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == vnode_tree )
     {
@@ -6056,14 +6056,14 @@ UINT32 cmpi_encode_chfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vno
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_chfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_chfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
+{
    CHFSCONHASH_VNODE *chfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_chfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), size))
@@ -6079,7 +6079,7 @@ static UINT32 __cmpi_encode_chfsconhash_vnode_tree_size_inorder(const UINT32 com
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_chfsconhash_vnode_tree_size_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_chfsconhash_vnode_size(comm, chfsconhash_vnode, size))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_chfsconhash_vnode_tree_size_inorder: encode vnode %p failed\n", chfsconhash_vnode);
@@ -6093,7 +6093,7 @@ static UINT32 __cmpi_encode_chfsconhash_vnode_tree_size_inorder(const UINT32 com
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_chfsconhash_vnode_tree_size_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
@@ -6113,7 +6113,7 @@ UINT32 cmpi_decode_chfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
 {
     uint32_t num;
     uint32_t pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -6144,13 +6144,13 @@ UINT32 cmpi_decode_chfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_vnode_tree: new vnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(0 != cmpi_decode_chfsconhash_vnode(comm, in_buff, in_buff_max_len, position, chfsconhash_vnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_vnode_tree: decode vnode %u# failed\n", pos);
             chfsconhash_vnode_free(chfsconhash_vnode);
             return ((UINT32)-1);
-        }     
+        }
 
         if(NULL_PTR == crb_tree_insert_data(vnode_tree, (void *)chfsconhash_vnode))
         {
@@ -6251,7 +6251,7 @@ UINT32 cmpi_encode_chfs_node(const UINT32 comm, const CHFS_NODE *chfs_node, UINT
     cmpi_encode_uint32(comm, CHFS_NODE_PORT(chfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHFS_NODE_MODI(chfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHFS_NODE_STATE(chfs_node), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -6262,7 +6262,7 @@ UINT32 cmpi_encode_chfs_node_size(const UINT32 comm, const CHFS_NODE *chfs_node,
     cmpi_encode_uint32_size(comm, CHFS_NODE_PORT(chfs_node), size);
     cmpi_encode_uint32_size(comm, CHFS_NODE_MODI(chfs_node), size);
     cmpi_encode_uint32_size(comm, CHFS_NODE_STATE(chfs_node), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -6412,8 +6412,8 @@ UINT32 cmpi_decode_csfsconhash_vnode(const UINT32 comm, const UINT8 *in_buff, co
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CSFSCONHASH_VNODE_HASH(csfsconhash_vnode))); 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CSFSCONHASH_VNODE_POS(csfsconhash_vnode))); 
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CSFSCONHASH_VNODE_HASH(csfsconhash_vnode)));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CSFSCONHASH_VNODE_POS(csfsconhash_vnode)));
 
     return ((UINT32)0);
 }
@@ -6422,7 +6422,7 @@ UINT32 cmpi_encode_csfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == rnode_vec )
     {
@@ -6443,7 +6443,7 @@ UINT32 cmpi_encode_csfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CSFSCONHASH_RNODE *csfsconhash_rnode;
@@ -6452,13 +6452,13 @@ UINT32 cmpi_encode_csfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CSFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16(comm, replicas, out_buff, out_buff_max_len, position);
             cmpi_encode_uint32_t(comm, tcid, out_buff, out_buff_max_len, position);
-         
+
             continue;
         }
 
@@ -6474,7 +6474,7 @@ UINT32 cmpi_encode_csfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
 
     num = cvector_size(rnode_vec);
     cmpi_encode_uint32_size(comm, num, size);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CSFSCONHASH_RNODE *csfsconhash_rnode;
@@ -6483,13 +6483,13 @@ UINT32 cmpi_encode_csfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *
         {
             uint32_t     tcid;
             uint16_t     replicas;
-     
+
             replicas = CSFSCONHASH_ERR_REPLICAS;
             tcid     = (uint32_t)CMPI_ERROR_TCID;
 
             cmpi_encode_uint16_size(comm, replicas, size);
             cmpi_encode_uint32_t_size(comm, tcid, size);
-         
+
             continue;
         }
 
@@ -6502,7 +6502,7 @@ UINT32 cmpi_decode_csfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
 {
     UINT32 num;
     UINT32 pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -6533,14 +6533,14 @@ UINT32 cmpi_decode_csfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: new rnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(EC_FALSE == cmpi_decode_csfsconhash_rnode(comm, in_buff, in_buff_max_len, position, csfsconhash_rnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
             csfsconhash_rnode_free(csfsconhash_rnode);
             return ((UINT32)-1);
         }
-     
+
         if(CSFSCONHASH_ERR_REPLICAS == CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode)
         && ((uint32_t)CMPI_ERROR_TCID) == CSFSCONHASH_RNODE_TCID(csfsconhash_rnode))
         {
@@ -6555,14 +6555,14 @@ UINT32 cmpi_decode_csfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_csfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_csfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
    CSFSCONHASH_VNODE *csfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_csfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), out_buff, out_buff_max_len, position))
@@ -6578,7 +6578,7 @@ static UINT32 __cmpi_encode_csfsconhash_vnode_tree_inorder(const UINT32 comm, co
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_csfsconhash_vnode(comm, csfsconhash_vnode, out_buff, out_buff_max_len, position))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: encode vnode %p failed\n", csfsconhash_vnode);
@@ -6592,14 +6592,14 @@ static UINT32 __cmpi_encode_csfsconhash_vnode_tree_inorder(const UINT32 comm, co
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
 UINT32 cmpi_encode_csfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vnode_tree, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == vnode_tree )
     {
@@ -6626,14 +6626,14 @@ UINT32 cmpi_encode_csfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vno
     return ((UINT32)0);
 }
 
-static UINT32 __cmpi_encode_csfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
-{ 
+STATIC_CAST static UINT32 __cmpi_encode_csfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
+{
    CSFSCONHASH_VNODE *csfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return ((UINT32)0);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(0 != __cmpi_encode_csfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), size))
@@ -6649,7 +6649,7 @@ static UINT32 __cmpi_encode_csfsconhash_vnode_tree_size_inorder(const UINT32 com
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_csfsconhash_vnode_tree_size_inorder: data of crb node %p is null\n", node);
         return ((UINT32)-1);
     }
- 
+
     if(0 != cmpi_encode_csfsconhash_vnode_size(comm, csfsconhash_vnode, size))
     {
         dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_csfsconhash_vnode_tree_size_inorder: encode vnode %p failed\n", csfsconhash_vnode);
@@ -6663,7 +6663,7 @@ static UINT32 __cmpi_encode_csfsconhash_vnode_tree_size_inorder(const UINT32 com
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_csfsconhash_vnode_tree_size_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
             return ((UINT32)-1);
         }
-    } 
+    }
     return ((UINT32)0);
 }
 
@@ -6683,7 +6683,7 @@ UINT32 cmpi_decode_csfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
 {
     uint32_t num;
     uint32_t pos;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -6714,13 +6714,13 @@ UINT32 cmpi_decode_csfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buf
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_vnode_tree: new vnode %u# failed\n", pos);
             return ((UINT32)-1);
         }
-     
+
         if(0 != cmpi_decode_csfsconhash_vnode(comm, in_buff, in_buff_max_len, position, csfsconhash_vnode))
         {
             dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_vnode_tree: decode vnode %u# failed\n", pos);
             csfsconhash_vnode_free(csfsconhash_vnode);
             return ((UINT32)-1);
-        }     
+        }
 
         if(NULL_PTR == crb_tree_insert_data(vnode_tree, (void *)csfsconhash_vnode))
         {
@@ -6821,7 +6821,7 @@ UINT32 cmpi_encode_csfs_node(const UINT32 comm, const CSFS_NODE *csfs_node, UINT
     cmpi_encode_uint32(comm, CSFS_NODE_PORT(csfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CSFS_NODE_MODI(csfs_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CSFS_NODE_STATE(csfs_node), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -6832,7 +6832,7 @@ UINT32 cmpi_encode_csfs_node_size(const UINT32 comm, const CSFS_NODE *csfs_node,
     cmpi_encode_uint32_size(comm, CSFS_NODE_PORT(csfs_node), size);
     cmpi_encode_uint32_size(comm, CSFS_NODE_MODI(csfs_node), size);
     cmpi_encode_uint32_size(comm, CSFS_NODE_STATE(csfs_node), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -6893,7 +6893,7 @@ UINT32 cmpi_encode_ctdnssv_node(const UINT32 comm, const CTDNSSV_NODE *ctdnssv_n
     cmpi_encode_uint32(comm, CTDNSSV_NODE_TCID(ctdnssv_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CTDNSSV_NODE_IPADDR(ctdnssv_node), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CTDNSSV_NODE_PORT(ctdnssv_node), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -6902,7 +6902,7 @@ UINT32 cmpi_encode_ctdnssv_node_size(const UINT32 comm, const CTDNSSV_NODE *ctdn
     cmpi_encode_uint32_size(comm, CTDNSSV_NODE_TCID(ctdnssv_node), size);
     cmpi_encode_uint32_size(comm, CTDNSSV_NODE_IPADDR(ctdnssv_node), size);
     cmpi_encode_uint32_size(comm, CTDNSSV_NODE_PORT(ctdnssv_node), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -6938,7 +6938,7 @@ UINT32 cmpi_encode_ctdnssv_node_mgr(const UINT32 comm, const CTDNSSV_NODE_MGR *c
 {
     UINT32           size;
     CLIST_DATA      *clist_data;
-    
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == ctdnssv_node_mgr )
     {
@@ -6967,14 +6967,14 @@ UINT32 cmpi_encode_ctdnssv_node_mgr(const UINT32 comm, const CTDNSSV_NODE_MGR *c
         ctdnssv_node = CLIST_DATA_DATA(clist_data);
         cmpi_encode_ctdnssv_node(comm, ctdnssv_node, out_buff, out_buff_max_len, position);
     }
- 
+
     return ((UINT32)0);
 }
 
 UINT32 cmpi_encode_ctdnssv_node_mgr_size(const UINT32 comm, const CTDNSSV_NODE_MGR *ctdnssv_node_mgr, UINT32 *size)
 {
     CLIST_DATA      *clist_data;
-    
+
     cmpi_encode_uint32_size(comm, (UINT32)0, size);
     CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
     {
@@ -6983,7 +6983,7 @@ UINT32 cmpi_encode_ctdnssv_node_mgr_size(const UINT32 comm, const CTDNSSV_NODE_M
         ctdnssv_node = CLIST_DATA_DATA(clist_data);
         cmpi_encode_ctdnssv_node_size(comm, ctdnssv_node, size);
     }
-    
+
     return ((UINT32)0);
 }
 
@@ -7014,7 +7014,7 @@ UINT32 cmpi_decode_ctdnssv_node_mgr(const UINT32 comm, const UINT8 *in_buff, con
     for(idx = 0; idx < size; idx ++)
     {
         CTDNSSV_NODE *ctdnssv_node;
-        
+
         ctdnssv_node = ctdnssv_node_new();
         if(NULL_PTR == ctdnssv_node)
         {
@@ -7058,7 +7058,7 @@ UINT32 cmpi_encode_cp2p_file(const UINT32 comm, const CP2P_FILE *cp2p_file, UINT
     cmpi_encode_uint32(comm, CP2P_FILE_SRC_SIZE(cp2p_file), out_buff, out_buff_max_len, position);
     cmpi_encode_cmd5_digest(comm, CP2P_FILE_SRC_MD5(cp2p_file), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CP2P_FILE_REPORT_TCID(cp2p_file), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -7070,7 +7070,7 @@ UINT32 cmpi_encode_cp2p_file_size(const UINT32 comm, const CP2P_FILE *cp2p_file,
     cmpi_encode_uint32_size(comm, CP2P_FILE_SRC_SIZE(cp2p_file), size);
     cmpi_encode_cmd5_digest_size(comm, CP2P_FILE_SRC_MD5(cp2p_file), size);
     cmpi_encode_uint32_size(comm, CP2P_FILE_REPORT_TCID(cp2p_file), size);
- 
+
     return ((UINT32)0);
 }
 
@@ -7130,7 +7130,7 @@ UINT32 cmpi_encode_cp2p_cmd(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UINT8 *
 
     cmpi_encode_cstring(comm, CP2P_CMD_SERVICE_NAME(cp2p_cmd), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CP2P_CMD_COMMAND_LINE(cp2p_cmd), out_buff, out_buff_max_len, position);
- 
+
     return ((UINT32)0);
 }
 
@@ -7138,7 +7138,7 @@ UINT32 cmpi_encode_cp2p_cmd_size(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UI
 {
     cmpi_encode_cstring_size(comm, CP2P_CMD_SERVICE_NAME(cp2p_cmd), size);
     cmpi_encode_cstring_size(comm, CP2P_CMD_COMMAND_LINE(cp2p_cmd), size);
- 
+
     return ((UINT32)0);
 }
 

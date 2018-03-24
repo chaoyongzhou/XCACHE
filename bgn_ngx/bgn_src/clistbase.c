@@ -149,8 +149,8 @@ void *clistbase_front(const CLISTBASE *clistbase)
     if(clistbase_node == CLISTBASE_NULL_NODE(clistbase))
     {
         return (void *)0;
-    }    
-   
+    }
+
     data = CLISTBASE_NODE_DATA(clistbase_node);
 
     return data;
@@ -544,7 +544,7 @@ void *clistbase_del(CLISTBASE *clistbase, const void *data, EC_BOOL (*cmp)(const
         {
             cur_data = CLISTBASE_NODE_DATA(clistbase_node);
             CLISTBASE_NODE_DEL(clistbase_node);
- 
+
             clistbase->size --;
 
             return (cur_data);
@@ -607,7 +607,7 @@ void clistbase_clean(CLISTBASE *clistbase, EC_BOOL (*cleaner)(void *))
         clistbase->size --;
 
         data = CLISTBASE_NODE_DATA(clistbase_node);
-        
+
         cleaner(data);
     }
 
@@ -621,12 +621,12 @@ void clistbase_handover(CLISTBASE *clistbase_src, CLISTBASE *clistbase_des)
     while( EC_FALSE == CLISTBASE_IS_EMPTY(clistbase_src) )
     {
         CLISTBASE_NODE *clistbase_node;
-     
+
         clistbase_node = CLISTBASE_FIRST_NODE(clistbase_src);
         CLISTBASE_NODE_DEL(clistbase_node);
 
         CLISTBASE_NODE_ADD_BACK(clistbase_des, clistbase_node);
-    } 
+    }
 
     clistbase_des->size = clistbase_src->size;
     clistbase_src->size = 0;

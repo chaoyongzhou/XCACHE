@@ -43,13 +43,13 @@ extern "C"{
     ((CMPI_ANY_MODI != (csession_md_id)) && ((NULL_PTR == CSESSION_MD_GET(csession_md_id)) || (0 == (CSESSION_MD_GET(csession_md_id)->usedcounter))))
 
 
-static UINT32 __csession_reserve_id(const UINT32 csession_md_id);
+STATIC_CAST static UINT32 __csession_reserve_id(const UINT32 csession_md_id);
 
-static EC_BOOL __csession_get_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
+STATIC_CAST static EC_BOOL __csession_get_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
                                             const char **segs, const UINT32 seg_idx, const UINT32 seg_num,
                                             CLIST *csession_item_list);
 
-static EC_BOOL __csession_cbtimer_add(const UINT32 csession_md_id);
+STATIC_CAST static EC_BOOL __csession_cbtimer_add(const UINT32 csession_md_id);
 
 /**
 *   for test only
@@ -133,8 +133,8 @@ UINT32 csession_start()
     task_brd = task_brd_default_get();
 
     CSESSION_MD_MOD_MGR(csession_md) = mod_mgr_new(csession_md_id, LOAD_BALANCING_LOOP);
- 
-    CSESSION_MD_INIT_CRWLOCK(csession_md, LOC_CSESSION_0001); 
+
+    CSESSION_MD_INIT_CRWLOCK(csession_md, LOC_CSESSION_0001);
     CSESSION_MD_INIT_ID_POOL_CMUTEX(csession_md, LOC_CSESSION_0002);
     CSESSION_MD_ID_POOL(csession_md) = CSESSION_BEGIN_ID; /*initialize session id pool*/
     clist_init(CSESSION_MD_SESSION_LIST(csession_md), MM_CSESSION_NODE, LOC_CSESSION_0003);
@@ -257,7 +257,7 @@ void csession_show(const UINT32 csession_md_id, LOG *log)
     return;
 }
 
-static UINT32 __csession_reserve_id(const UINT32 csession_md_id)
+STATIC_CAST static UINT32 __csession_reserve_id(const UINT32 csession_md_id)
 {
     CSESSION_MD    *csession_md;
     UINT32 session_id;
@@ -603,7 +603,7 @@ EC_BOOL csession_add(const UINT32 csession_md_id, const CSTRING *name, const UIN
     }
 
     CSESSION_NODE_ID(csession_node) = __csession_reserve_id(csession_md_id);
- 
+
     clist_push_back(CSESSION_MD_SESSION_LIST(csession_md), (void *)csession_node);
     CSESSION_MD_CRWLOCK_UNLOCK(csession_md, LOC_CSESSION_0027);
     return (EC_TRUE);
@@ -627,7 +627,7 @@ EC_BOOL csession_rmv_by_name(const UINT32 csession_md_id, const CSTRING *name)
 #endif/*CSESSION_DEBUG_SWITCH*/
 
     csession_md = CSESSION_MD_GET(csession_md_id);
- 
+
     CSESSION_MD_CRWLOCK_WRLOCK(csession_md, LOC_CSESSION_0028);
 
     clist_data = clist_search_front(CSESSION_MD_SESSION_LIST(csession_md), name, (CLIST_DATA_DATA_CMP)csession_node_match_name);
@@ -1028,7 +1028,7 @@ EC_BOOL csession_set_by_id(const UINT32 csession_md_id, const UINT32 session_id,
     csession_md = CSESSION_MD_GET(csession_md_id);
 
     CSESSION_MD_CRWLOCK_WRLOCK(csession_md, LOC_CSESSION_0050);
- 
+
     csession_node = csession_search_by_id(csession_md_id, session_id);
     if(NULL_PTR == csession_node)
     {
@@ -1050,7 +1050,7 @@ EC_BOOL csession_set_by_id(const UINT32 csession_md_id, const UINT32 session_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __csession_get_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
+STATIC_CAST static EC_BOOL __csession_get_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
                                             const char **segs, const UINT32 seg_idx, const UINT32 seg_num,
                                             CLIST *csession_item_list)
 {
@@ -1121,7 +1121,7 @@ static EC_BOOL __csession_get_depth(const UINT32 csession_md_id, const CLIST *ca
     return (EC_TRUE);
 }
 
-static EC_BOOL __csession_get_key_regex_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
+STATIC_CAST static EC_BOOL __csession_get_key_regex_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
                                             const char **segs, const UINT32 seg_idx, const UINT32 seg_num,
                                             CLIST *csession_item_list)
 {
@@ -1382,7 +1382,7 @@ EC_BOOL csession_get_by_id(const UINT32 csession_md_id, const UINT32 session_id,
     return (EC_TRUE);
 }
 
-static EC_BOOL __csession_get_children_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
+STATIC_CAST static EC_BOOL __csession_get_children_depth(const UINT32 csession_md_id, const CLIST *cache_tree,
                                             const char **segs, const UINT32 seg_idx, const UINT32 seg_num,
                                             CLIST *csession_item_list)
 {
@@ -1408,7 +1408,7 @@ static EC_BOOL __csession_get_children_depth(const UINT32 csession_md_id, const 
             CSESSION_ITEM      *new_csession_item;
             CSTRING *key;
             CBYTES  *val;
-     
+
             csession_item = (CSESSION_ITEM *)CLIST_DATA_DATA(clist_data);
             key = CSESSION_ITEM_KEY(csession_item);
             val = CSESSION_ITEM_VAL(csession_item);
@@ -1424,7 +1424,7 @@ static EC_BOOL __csession_get_children_depth(const UINT32 csession_md_id, const 
             clist_push_back(csession_item_list, (void *)new_csession_item);
         }
         CLIST_UNLOCK(cache_tree, LOC_CSESSION_0076);
-     
+
         return (EC_TRUE);
     }
 
@@ -1582,7 +1582,7 @@ EC_BOOL csession_get_by_name_regex(const UINT32 csession_md_id, const CSTRING *s
     }
 #endif/*CSESSION_DEBUG_SWITCH*/
 
-    csession_md = CSESSION_MD_GET(csession_md_id); 
+    csession_md = CSESSION_MD_GET(csession_md_id);
 
     name_re = pcre_compile((char *)cstring_get_str(session_name_regex), 0, &errstr, &erroffset, NULL_PTR);
     if(NULL_PTR == name_re)
@@ -1823,7 +1823,7 @@ EC_BOOL csession_expire_handle(const UINT32 csession_md_id)
     return (EC_TRUE);
 }
 
-static EC_BOOL __csession_cbtimer_add(const UINT32 csession_md_id)
+STATIC_CAST static EC_BOOL __csession_cbtimer_add(const UINT32 csession_md_id)
 {
     TASK_BRD *task_brd;
     CBTIMER_NODE *cbtimer_node;

@@ -40,7 +40,7 @@ extern "C"{
 
 #include "findex.inc"
 
-static EC_BOOL cdfsnp_mgr_get_file_size(const int fd, UINT32 *file_size)
+STATIC_CAST static EC_BOOL cdfsnp_mgr_get_file_size(const int fd, UINT32 *file_size)
 {
     UINT32 cur_offset;
     UINT32 end_offset;

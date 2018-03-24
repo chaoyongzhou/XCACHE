@@ -11,7 +11,7 @@ extern "C"{
 
 #include "db_internal.h"
 
-static void __safe_strncpy(uint8_t *des, const uint8_t *src, size_t n, const word_t location)
+STATIC_CAST static void __safe_strncpy(uint8_t *des, const uint8_t *src, size_t n, const word_t location)
 {
     memcpy(des, src, n);
     return;

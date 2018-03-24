@@ -71,7 +71,7 @@ EC_BOOL crfsdt_pnode_init(CRFSDT_PNODE *crfsdt_pnode)
     /*WARNING: do not change the hash algo!*/
     crfsconhash_init(CRFSDT_PNODE_CONHASH(crfsdt_pnode), CHASH_MD5_ALGO_ID);
     cstring_init(CRFSDT_PNODE_PATH(crfsdt_pnode), NULL_PTR);
- 
+
     return (EC_TRUE);
 }
 
@@ -79,7 +79,7 @@ EC_BOOL crfsdt_pnode_clean(CRFSDT_PNODE *crfsdt_pnode)
 {
     crfsconhash_clean(CRFSDT_PNODE_CONHASH(crfsdt_pnode));
     cstring_clean(CRFSDT_PNODE_PATH(crfsdt_pnode));
- 
+
     return (EC_TRUE);
 }
 
@@ -88,7 +88,7 @@ EC_BOOL crfsdt_pnode_free(CRFSDT_PNODE *crfsdt_pnode)
     if(NULL_PTR != crfsdt_pnode)
     {
         crfsdt_pnode_clean(crfsdt_pnode);
-        free_static_mem(MM_CRFSDT_PNODE, crfsdt_pnode, LOC_CRFSDT_0002);     
+        free_static_mem(MM_CRFSDT_PNODE, crfsdt_pnode, LOC_CRFSDT_0002);
     }
     return (EC_TRUE);
 }
@@ -141,14 +141,14 @@ EC_BOOL crfsdt_pnode_has_tcid(CRFSDT_PNODE *crfsdt_pnode, const UINT32 tcid)
 }
 
 EC_BOOL crfsdt_pnode_flush(const CRFSDT_PNODE *crfsdt_pnode, int fd, UINT32 *offset)
-{ 
+{
     if(EC_FALSE == cstring_flush(CRFSDT_PNODE_PATH(crfsdt_pnode), fd, offset))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush path '%s' at offset %u of fd %d failed\n",
                            CRFSDT_PNODE_PATH_STR(crfsdt_pnode), (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == crfsconhash_flush(CRFSDT_PNODE_CONHASH(crfsdt_pnode), fd, offset))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush conhash of path '%s' at offset %u of fd %d failed\n",
@@ -166,7 +166,7 @@ EC_BOOL crfsdt_pnode_load(CRFSDT_PNODE *crfsdt_pnode, int fd, UINT32 *offset)
                            (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == crfsconhash_load(CRFSDT_PNODE_CONHASH(crfsdt_pnode), fd, offset))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_load: load conhash of path '%s' at offset %u of fd %d failed\n",
@@ -195,7 +195,7 @@ EC_BOOL crfsdt_rnode_init(CRFSDT_RNODE *crfsdt_rnode)
 {
     CRFSDT_RNODE_TCID(crfsdt_rnode) = CMPI_ERROR_TCID;
     crb_tree_init(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode), (CRB_DATA_CMP)cstring_ocmp, (CRB_DATA_FREE)cstring_free, (CRB_DATA_PRINT)cstring_print);
- 
+
     return (EC_TRUE);
 }
 
@@ -203,7 +203,7 @@ EC_BOOL crfsdt_rnode_clean(CRFSDT_RNODE *crfsdt_rnode)
 {
     CRFSDT_RNODE_TCID(crfsdt_rnode) = CMPI_ERROR_TCID;
     crb_tree_clean(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode));
- 
+
     return (EC_TRUE);
 }
 
@@ -212,7 +212,7 @@ EC_BOOL crfsdt_rnode_free(CRFSDT_RNODE *crfsdt_rnode)
     if(NULL_PTR != crfsdt_rnode)
     {
         crfsdt_rnode_clean(crfsdt_rnode);
-        free_static_mem(MM_CRFSDT_RNODE, crfsdt_rnode, LOC_CRFSDT_0004);     
+        free_static_mem(MM_CRFSDT_RNODE, crfsdt_rnode, LOC_CRFSDT_0004);
     }
     return (EC_TRUE);
 }
@@ -224,7 +224,7 @@ void crfsdt_rnode_print(LOG *log, const CRFSDT_RNODE *crfsdt_rnode)
                  c_word_to_ipv4(CRFSDT_RNODE_TCID(crfsdt_rnode)),
                  CRFSDT_RNODE_PATH_TREE(crfsdt_rnode)
                  );
-              
+
     crb_tree_print(log, CRFSDT_RNODE_PATH_TREE(crfsdt_rnode));
     return;
 }
@@ -257,7 +257,7 @@ EC_BOOL crfsdt_rnode_clone(const CRFSDT_RNODE *crfsdt_rnode_src, CRFSDT_RNODE *c
 EC_BOOL crfsdt_rnode_set_tcid(CRFSDT_RNODE *crfsdt_rnode, const UINT32 tcid)
 {
     CRFSDT_RNODE_TCID(crfsdt_rnode) = tcid;
- 
+
     return (EC_TRUE);
 }
 
@@ -288,7 +288,7 @@ EC_BOOL crfsdt_rnode_add_path(CRFSDT_RNODE *crfsdt_rnode, const CSTRING *path)
         /*duplicate insertion*/
         cstring_free(path_t);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -320,7 +320,7 @@ EC_BOOL crfsdt_rnode_flush(const CRFSDT_RNODE *crfsdt_rnode, int fd, UINT32 *off
                            c_word_to_ipv4(CRFSDT_RNODE_TCID(crfsdt_rnode)), (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == crb_tree_flush(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode), fd, offset, (CRB_DATA_FLUSH)cstring_flush))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_flush: flush path tree of tcid %s at offset %u of fd %d failed\n",
@@ -341,7 +341,7 @@ EC_BOOL crfsdt_rnode_load(CRFSDT_RNODE *crfsdt_rnode, int fd, UINT32 *offset)
                            (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == crb_tree_load(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode), fd, offset, (CRB_DATA_NEW)cstring_new_0, (CRB_DATA_LOAD)cstring_load))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_load: load path tree of tcid %s at offset %u of fd %d failed\n",
@@ -369,22 +369,22 @@ CRFSDT *crfsdt_new()
 EC_BOOL crfsdt_init(CRFSDT *crfsdt)
 {
     CRFSDT_CRWLOCK_INIT(crfsdt, LOC_CRFSDT_0007);
- 
+
     crb_tree_init(CRFSDT_PNODE_TREE(crfsdt), (CRB_DATA_CMP)crfsdt_pnode_cmp, (CRB_DATA_FREE)crfsdt_pnode_free, (CRB_DATA_PRINT)crfsdt_pnode_print);
 
     crb_tree_init(CRFSDT_RNODE_TREE(crfsdt), (CRB_DATA_CMP)crfsdt_rnode_cmp, (CRB_DATA_FREE)crfsdt_rnode_free, (CRB_DATA_PRINT)crfsdt_rnode_print);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL crfsdt_clean(CRFSDT *crfsdt)
 {
     CRFSDT_CRWLOCK_CLEAN(crfsdt, LOC_CRFSDT_0008);
- 
+
     crb_tree_clean(CRFSDT_PNODE_TREE(crfsdt));
 
     crb_tree_clean(CRFSDT_RNODE_TREE(crfsdt));
- 
+
     return (EC_TRUE);
 }
 
@@ -393,7 +393,7 @@ EC_BOOL crfsdt_free(CRFSDT *crfsdt)
     if(NULL_PTR != crfsdt)
     {
         crfsdt_clean(crfsdt);
-        free_static_mem(MM_CRFSDT, crfsdt, LOC_CRFSDT_0009);     
+        free_static_mem(MM_CRFSDT, crfsdt, LOC_CRFSDT_0009);
     }
     return (EC_TRUE);
 }
@@ -404,7 +404,7 @@ EC_BOOL crfsdt_reset(CRFSDT *crfsdt)
     crb_tree_clean(CRFSDT_PNODE_TREE(crfsdt));
 
     crb_tree_clean(CRFSDT_RNODE_TREE(crfsdt));
- 
+
     return (EC_TRUE);
 }
 
@@ -493,9 +493,9 @@ CRFSDT_PNODE *crfsdt_add_pnode(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
     if(NULL_PTR == crfsdt_pnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_add_pnode: new crfsdt_pnode failed\n");
-        return (NULL_PTR);     
+        return (NULL_PTR);
     }
- 
+
     crfsdt_pnode_set_path(crfsdt_pnode, path);
     if(EC_FALSE == crfsdt_pnode_add_tcid(crfsdt_pnode, tcid))
     {
@@ -503,7 +503,7 @@ CRFSDT_PNODE *crfsdt_add_pnode(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
         crfsdt_pnode_free(crfsdt_pnode);
         return (NULL_PTR);
     }
- 
+
     crb_node =  crb_tree_insert_data(CRFSDT_PNODE_TREE(crfsdt), (void *)crfsdt_pnode);
     if(NULL_PTR == crb_node)
     {
@@ -512,13 +512,13 @@ CRFSDT_PNODE *crfsdt_add_pnode(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
         crfsdt_pnode_free(crfsdt_pnode);
         return (NULL_PTR);
     }
- 
+
    /*fix*/
    if(CRB_NODE_DATA(crb_node) != (void *)crfsdt_pnode)
    {
         crfsdt_pnode_free(crfsdt_pnode);
    }
- 
+
     return (CRFSDT_PNODE *)CRB_NODE_DATA(crb_node);
 }
 
@@ -538,13 +538,13 @@ CRFSDT_RNODE *crfsdt_add_rnode(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
     if(NULL_PTR == crfsdt_rnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_add_rnode: new crfsdt_rnode failed\n");
-        return (NULL_PTR);     
+        return (NULL_PTR);
     }
- 
+
     crfsdt_rnode_set_tcid(crfsdt_rnode, tcid);
     crfsdt_rnode_add_path(crfsdt_rnode, path);
- 
-    crb_node = crb_tree_insert_data(CRFSDT_RNODE_TREE(crfsdt), (void *)crfsdt_rnode); 
+
+    crb_node = crb_tree_insert_data(CRFSDT_RNODE_TREE(crfsdt), (void *)crfsdt_rnode);
     if(NULL_PTR == crb_node)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_add_rnode: insert rnode (tcid %s, path %s ) failed\n",
@@ -552,7 +552,7 @@ CRFSDT_RNODE *crfsdt_add_rnode(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
         crfsdt_rnode_free(crfsdt_rnode);
         return (NULL_PTR);
     }
- 
+
     /*fix*/
     if(CRB_NODE_DATA(crb_node) != (void *)crfsdt_rnode)
     {
@@ -572,16 +572,16 @@ EC_BOOL crfsdt_add(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING *path)
     if(NULL_PTR == crfsdt_pnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_add: add pnode failed\n");
-        return (EC_FALSE);     
-    } 
- 
+        return (EC_FALSE);
+    }
+
     crfsdt_rnode = crfsdt_add_rnode(crfsdt, tcid, path);
     if(NULL_PTR == crfsdt_rnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_add: add rnode failed\n");
-        return (EC_FALSE);     
+        return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -630,16 +630,16 @@ EC_BOOL crfsdt_del(CRFSDT *crfsdt, const UINT32 tcid, const CSTRING *path)
     if(NULL_PTR == crfsdt_pnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_del: del pnode failed\n");
-        return (EC_FALSE);     
-    } 
- 
+        return (EC_FALSE);
+    }
+
     crfsdt_rnode = crfsdt_del_rnode(crfsdt, tcid, path);
     if(NULL_PTR == crfsdt_rnode)
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_del: del rnode failed\n");
-        return (EC_FALSE);     
+        return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -655,9 +655,9 @@ EC_BOOL crfsdt_has_pnode(const CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
             dbg_log(SEC_0142_CRFSDT, 6)(LOGSTDOUT, "info:crfsdt_has_pnode: path %s is close to pnode %s\n",
                                 (char *)cstring_get_str(path),
                                 CRFSDT_PNODE_PATH_STR(crfsdt_pnode)
-                                );       
+                                );
             return (EC_FALSE);
-        } 
+        }
         return crfsdt_pnode_has_tcid(crfsdt_pnode, tcid);
     }
 
@@ -672,8 +672,8 @@ EC_BOOL crfsdt_has_rnode(const CRFSDT *crfsdt, const UINT32 tcid, const CSTRING 
     if(NULL_PTR != crfsdt_rnode)
     {
         dbg_log(SEC_0142_CRFSDT, 9)(LOGSTDOUT, "[DEBUG] crfsdt_has_rnode: has no rnode for tcid %s\n",
-                            c_word_to_ipv4(tcid)); 
-                         
+                            c_word_to_ipv4(tcid));
+
         return crfsdt_rnode_has_path(crfsdt_rnode, path);
     }
 
@@ -686,16 +686,16 @@ EC_BOOL crfsdt_has(const CRFSDT *crfsdt, const UINT32 tcid, const CSTRING *path)
     {
         dbg_log(SEC_0142_CRFSDT, 9)(LOGSTDOUT, "error:crfsdt_has: has no pnode for tcid %s, path %s\n",
                             c_word_to_ipv4(tcid), (char *)cstring_get_str(path));
-        return (EC_FALSE);     
-    } 
- 
+        return (EC_FALSE);
+    }
+
     if(EC_FALSE == crfsdt_has_rnode(crfsdt, tcid, path))
     {
         dbg_log(SEC_0142_CRFSDT, 9)(LOGSTDOUT, "error:crfsdt_has: has no rnode for tcid %s, path %s\n",
                             c_word_to_ipv4(tcid), (char *)cstring_get_str(path));
-        return (EC_FALSE);     
+        return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -724,14 +724,14 @@ CRFSDT_PNODE *crfsdt_lookup_pnode(const CRFSDT *crfsdt, const CSTRING *path)
         dbg_log(SEC_0142_CRFSDT, 6)(LOGSTDOUT, "info:crfsdt_lookup_pnode: path %s is close to pnode %s\n",
                             (char *)cstring_get_str(path),
                             CRFSDT_PNODE_PATH_STR(crfsdt_pnode)
-                            );       
+                            );
         return (NULL_PTR);
-    } 
+    }
     return (crfsdt_pnode);
 }
 
 EC_BOOL crfsdt_flush(const CRFSDT *crfsdt, int fd, UINT32 *offset)
-{ 
+{
     if(EC_FALSE == crb_tree_flush(CRFSDT_PNODE_TREE(crfsdt), fd, offset, (CRB_DATA_FLUSH)crfsdt_pnode_flush))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush pnode tree at offset %u of fd %d failed\n",
@@ -744,12 +744,12 @@ EC_BOOL crfsdt_flush(const CRFSDT *crfsdt, int fd, UINT32 *offset)
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush rnode tree at offset %u of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
 EC_BOOL crfsdt_load(CRFSDT *crfsdt, int fd, UINT32 *offset)
-{ 
+{
     if(EC_FALSE == crb_tree_load(CRFSDT_PNODE_TREE(crfsdt), fd, offset, (CRB_DATA_NEW)crfsdt_pnode_new, (CRB_DATA_LOAD)crfsdt_pnode_load))
     {
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load pnode tree at offset %u of fd %d failed\n",
@@ -762,7 +762,7 @@ EC_BOOL crfsdt_load(CRFSDT *crfsdt, int fd, UINT32 *offset)
         dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load rnode tree at offset %u of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 

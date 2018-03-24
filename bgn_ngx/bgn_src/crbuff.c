@@ -13,7 +13,7 @@ extern "C"{
 *
 *  source code is modified from github:
 *     https://github.com/VladimirTyrin/RingBuffer
-*  
+*
 *  thanks the author Vladimir Tyrin.
 *
 *******************************************************************************/
@@ -32,7 +32,7 @@ CRBUFF *crbuff_new()
     if(NULL_PTR == crbuff)
     {
         dbg_log(SEC_0033_CRBUFF, 0)(LOGSTDOUT, "error:crbuff_new: "
-                                               "no memory\n");    
+                                               "no memory\n");
         return (NULL_PTR);
     }
 
@@ -62,9 +62,9 @@ EC_BOOL crbuff_clean(CRBUFF *crbuff)
             safe_free(CRBUFF_DATA(crbuff), LOC_CRBUFF_0002);
             CRBUFF_DATA(crbuff) = NULL_PTR;
         }
-        
+
         CRBUFF_BEG(crbuff) = NULL_PTR;
-        CRBUFF_END(crbuff) = NULL_PTR; 
+        CRBUFF_END(crbuff) = NULL_PTR;
 
         CRBUFF_CAPACITY(crbuff) = 0;
     }
@@ -77,7 +77,7 @@ EC_BOOL crbuff_free(CRBUFF *crbuff)
     if(NULL_PTR != crbuff)
     {
         crbuff_clean(crbuff);
-        safe_free(crbuff, LOC_CRBUFF_0003);  
+        safe_free(crbuff, LOC_CRBUFF_0003);
     }
     return (EC_TRUE);
 }
@@ -87,7 +87,7 @@ EC_BOOL crbuff_reset(CRBUFF *crbuff)
     if(NULL_PTR != crbuff)
     {
         CRBUFF_BEG(crbuff) = CRBUFF_DATA(crbuff);
-        CRBUFF_END(crbuff) = CRBUFF_DATA(crbuff);    
+        CRBUFF_END(crbuff) = CRBUFF_DATA(crbuff);
     }
 
     return (EC_TRUE);
@@ -111,15 +111,15 @@ EC_BOOL crbuff_set_capacity(CRBUFF *crbuff, const UINT32 capacity)
                                                "alloc %ld bytes failed\n",
                                                capacity);
         return (EC_FALSE);
-    }  
+    }
 
     CRBUFF_CAPACITY(crbuff) = capacity;
 
     CRBUFF_DATA(crbuff) = data;
-    
+
     /* end == begin, so crbuff is empty */
     CRBUFF_BEG(crbuff)  = data;
-    CRBUFF_END(crbuff)  = data;    
+    CRBUFF_END(crbuff)  = data;
 
     return (EC_TRUE);
 }
@@ -130,7 +130,7 @@ UINT32 crbuff_data_size(const CRBUFF *crbuff)
     if(CRBUFF_END(crbuff) >= CRBUFF_BEG(crbuff))
     {
         return (CRBUFF_END(crbuff) - CRBUFF_BEG(crbuff));
-    }  
+    }
 
     return (CRBUFF_END(crbuff) + CRBUFF_CAPACITY(crbuff) + 1 - CRBUFF_BEG(crbuff));
 }
@@ -152,28 +152,28 @@ EC_BOOL crbuff_push(CRBUFF *crbuff, void *data, const UINT32 data_size)
                                                "room_size %ld < data_size %ld\n",
                                                room_size, data_size);
         return (EC_FALSE);
-    }  
+    }
 
     if(CRBUFF_END(crbuff) >= CRBUFF_BEG(crbuff))
     {
         UINT32 end_free_segment;
-        
-        end_free_segment = CRBUFF_DATA(crbuff) 
-                         + CRBUFF_CAPACITY(crbuff) 
+
+        end_free_segment = CRBUFF_DATA(crbuff)
+                         + CRBUFF_CAPACITY(crbuff)
                          - CRBUFF_END(crbuff)
                          + (CRBUFF_BEG(crbuff) == CRBUFF_DATA(crbuff) ? 0 : 1);
-                         
+
         if(end_free_segment >= data_size) /* Simple case */
         {
             BCOPY(data, CRBUFF_END(crbuff), data_size);
-            
+
             CRBUFF_END(crbuff) += data_size;
         }
         else
         {
             BCOPY(data                   , CRBUFF_END(crbuff),  end_free_segment            );
             BCOPY(data + end_free_segment, CRBUFF_DATA(crbuff), data_size - end_free_segment);
-            
+
             CRBUFF_END(crbuff) = CRBUFF_DATA(crbuff) + data_size - end_free_segment;
         }
 
@@ -204,12 +204,12 @@ EC_BOOL crbuff_read(CRBUFF *crbuff, void *data, const UINT32 data_size)
         BCOPY(CRBUFF_BEG(crbuff), data, data_size);
         return (EC_TRUE);
     }
-    
-    end_data_segment = CRBUFF_DATA(crbuff) 
-                     + CRBUFF_CAPACITY(crbuff) 
+
+    end_data_segment = CRBUFF_DATA(crbuff)
+                     + CRBUFF_CAPACITY(crbuff)
                      - CRBUFF_BEG(crbuff)
                      + (CRBUFF_BEG(crbuff) == CRBUFF_DATA(crbuff) ? 0 : 1);
-                     
+
     if(end_data_segment >= data_size) /* Simple case */
     {
         BCOPY(CRBUFF_BEG(crbuff), data, data_size);
@@ -228,10 +228,10 @@ EC_BOOL crbuff_pop(CRBUFF *crbuff, void *data, const UINT32 data_size)
     {
         dbg_log(SEC_0033_CRBUFF, 0)(LOGSTDOUT, "error:crbuff_pop: "
                                                "read %ld bytes failed\n",
-                                               data_size);      
+                                               data_size);
         return (EC_FALSE);
     }
-    
+
     CRBUFF_BEG(crbuff) += data_size;
     if(CRBUFF_BEG(crbuff) > CRBUFF_DATA(crbuff) + CRBUFF_CAPACITY(crbuff))
     {

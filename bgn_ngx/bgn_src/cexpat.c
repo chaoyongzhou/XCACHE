@@ -67,15 +67,15 @@ EC_BOOL cexpat_attr_init(CEXPAT_ATTR *cexpat_attr)
 {
     cstring_init(CEXPAT_ATTR_NAME(cexpat_attr), NULL_PTR);
     cstring_init(CEXPAT_ATTR_VAL(cexpat_attr), NULL_PTR);
- 
+
     return (EC_TRUE);
 }
 
-static EC_BOOL __cexpat_attr_make(CEXPAT_ATTR *cexpat_attr, const uint8_t *name, const uint8_t *val)
+STATIC_CAST static EC_BOOL __cexpat_attr_make(CEXPAT_ATTR *cexpat_attr, const uint8_t *name, const uint8_t *val)
 {
     cstring_init(CEXPAT_ATTR_NAME(cexpat_attr), name);
     cstring_init(CEXPAT_ATTR_VAL(cexpat_attr), val);
- 
+
     return (EC_TRUE);
 }
 
@@ -83,7 +83,7 @@ EC_BOOL cexpat_attr_clean(CEXPAT_ATTR *cexpat_attr)
 {
     cstring_clean(CEXPAT_ATTR_NAME(cexpat_attr));
     cstring_clean(CEXPAT_ATTR_VAL(cexpat_attr));
- 
+
     return (EC_TRUE);
 }
 
@@ -149,7 +149,7 @@ void cexpat_node_attrs_print(LOG *log, const CEXPAT_NODE *cexpat_node)
     {
         clist_print(log, cexpat_attr_list, (CLIST_DATA_DATA_PRINT)cexpat_attr_print);
     }
-    return; 
+    return;
 }
 
 void cexpat_node_attrs_print_level(LOG *log, const CEXPAT_NODE *cexpat_node, const UINT32 level)
@@ -161,7 +161,7 @@ void cexpat_node_attrs_print_level(LOG *log, const CEXPAT_NODE *cexpat_node, con
     {
         clist_print_level(log, cexpat_attr_list, level, (CLIST_DATA_LEVEL_PRINT)cexpat_attr_print_level);
     }
-    return; 
+    return;
 }
 
 void cexpat_node_attrs_print_xml(LOG *log, const CEXPAT_NODE *cexpat_node)
@@ -173,7 +173,7 @@ void cexpat_node_attrs_print_xml(LOG *log, const CEXPAT_NODE *cexpat_node)
     {
         clist_print_plain(log, cexpat_attr_list, (CLIST_DATA_DATA_PRINT)cexpat_attr_print_xml);
     }
-    return; 
+    return;
 }
 
 void cexpat_attr_list_print_xml(LOG *log, const CLIST *cexpat_attr_list)
@@ -204,25 +204,25 @@ EC_BOOL cexpat_node_init(CEXPAT_NODE *cexpat_node)
 {
     CEXPAT_NODE_PARENT(cexpat_node) = NULL_PTR;
     clist_init(CEXPAT_NODE_CHILDREN(cexpat_node), MM_CEXPAT_NODE, LOC_CEXPAT_0005);
- 
+
     cstring_init(CEXPAT_NODE_NAME(cexpat_node), NULL_PTR);
 
     CEXPAT_NODE_CDATA(cexpat_node) = NULL_PTR;
     clist_init(CEXPAT_NODE_ATTRS(cexpat_node), MM_CEXPAT_ATTR, LOC_CEXPAT_0006);
- 
+
     return (EC_TRUE);
 }
 
-static EC_BOOL __cexpat_node_make(CEXPAT_NODE *cexpat_node, const uint8_t *name)
+STATIC_CAST static EC_BOOL __cexpat_node_make(CEXPAT_NODE *cexpat_node, const uint8_t *name)
 {
     CEXPAT_NODE_PARENT(cexpat_node) = NULL_PTR;
     clist_init(CEXPAT_NODE_CHILDREN(cexpat_node), MM_CEXPAT_NODE, LOC_CEXPAT_0007);
- 
+
     cstring_init(CEXPAT_NODE_NAME(cexpat_node), name);
 
     CEXPAT_NODE_CDATA(cexpat_node) = NULL_PTR;
     clist_init(CEXPAT_NODE_ATTRS(cexpat_node), MM_CEXPAT_ATTR, LOC_CEXPAT_0008);
- 
+
     return (EC_TRUE);
 }
 
@@ -230,7 +230,7 @@ EC_BOOL cexpat_node_clean(CEXPAT_NODE *cexpat_node)
 {
     CEXPAT_NODE_PARENT(cexpat_node) = NULL_PTR;
     clist_clean(CEXPAT_NODE_CHILDREN(cexpat_node), (CLIST_DATA_DATA_CLEANER)cexpat_node_free);
- 
+
     cstring_clean(CEXPAT_NODE_NAME(cexpat_node));
 
     if(NULL_PTR != CEXPAT_NODE_CDATA(cexpat_node))
@@ -240,7 +240,7 @@ EC_BOOL cexpat_node_clean(CEXPAT_NODE *cexpat_node)
     }
 
     clist_clean(CEXPAT_NODE_ATTRS(cexpat_node), (CLIST_DATA_DATA_CLEANER)cexpat_attr_free);
- 
+
     return (EC_TRUE);
 }
 
@@ -330,7 +330,7 @@ EC_BOOL cexpat_node_xclone_attr(const CEXPAT_NODE *cexpat_node_src, CEXPAT_NODE 
     if(NULL_PTR == attr_val_cstr)
     {
         dbg_log(SEC_0148_CEXPAT, 0)(LOGSTDOUT, "error:cexpat_node_xclone_attr: not find attr [%s] in src node %p\n",
-                           (const char *)attr_name_src, cexpat_node_src);                        
+                           (const char *)attr_name_src, cexpat_node_src);
         return (EC_FALSE);
     }
 
@@ -401,14 +401,14 @@ void cexpat_node_print_xml_beg(LOG *log, const CEXPAT_NODE *cexpat_node)
         sys_print(log, "%.*s</%s>\n",
                        CEXPAT_NODE_CDATA_LEN(cexpat_node),
                        CEXPAT_NODE_CDATA_BUF(cexpat_node),
-                       CEXPAT_NODE_NAME_STR(cexpat_node));                    
+                       CEXPAT_NODE_NAME_STR(cexpat_node));
     }
     else
     {
         sys_print(log, "<%s", CEXPAT_NODE_NAME_STR(cexpat_node));
 
         cexpat_node_attrs_print_xml(log, cexpat_node);
-        sys_print(log, ">\n"); 
+        sys_print(log, ">\n");
     }
     return;
 }
@@ -435,7 +435,7 @@ void cexpat_node_print_xml_level_beg(LOG *log, const CEXPAT_NODE *cexpat_node, c
         sys_print(log, "%.*s</%s>\n",
                        CEXPAT_NODE_CDATA_LEN(cexpat_node),
                        CEXPAT_NODE_CDATA_BUF(cexpat_node),
-                       CEXPAT_NODE_NAME_STR(cexpat_node));                    
+                       CEXPAT_NODE_NAME_STR(cexpat_node));
     }
     else
     {
@@ -443,7 +443,7 @@ void cexpat_node_print_xml_level_beg(LOG *log, const CEXPAT_NODE *cexpat_node, c
         sys_print(log, "<%s", CEXPAT_NODE_NAME_STR(cexpat_node));
 
         cexpat_node_attrs_print_xml(log, cexpat_node);
-        sys_print(log, ">\n"); 
+        sys_print(log, ">\n");
     }
     return;
 }
@@ -481,7 +481,7 @@ void cexpat_node_depth_print_xml_level(LOG *log, const CEXPAT_NODE *cexpat_node,
     return;
 }
 
-static void __cexpat_node_parse_start(void *arg, const char *name, const char **attrs)
+STATIC_CAST static void __cexpat_node_parse_start(void *arg, const char *name, const char **attrs)
 {
     CEXPAT_PARSER  *cexpat_parser;
     CEXPAT_NODE    *cexpat_node_new;
@@ -513,7 +513,7 @@ static void __cexpat_node_parse_start(void *arg, const char *name, const char **
     if(NULL_PTR == cexpat_node_new)
     {
         CEXPAT_PARSER_FAIL(cexpat_parser) = CEXPAT_PARSE_FAIL;
-     
+
         dbg_log(SEC_0148_CEXPAT, 0)(LOGSTDOUT, "error:__cexpat_node_parse_start: make cexpat_node_new failed\n");
         return;
     }
@@ -529,7 +529,7 @@ static void __cexpat_node_parse_start(void *arg, const char *name, const char **
     {
         cexpat_node_add_child(cexpat_node_cur, cexpat_node_new);
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDNULL, "[DEBUG] __cexpat_node_parse_start: node %p, add child %p which name [%s]\n",
-                          cexpat_node_cur, cexpat_node_new, CEXPAT_NODE_NAME_STR(cexpat_node_new));     
+                          cexpat_node_cur, cexpat_node_new, CEXPAT_NODE_NAME_STR(cexpat_node_new));
     }
 
     CEXPAT_NODE_PARENT(cexpat_node_new)   = cexpat_node_cur;
@@ -547,11 +547,11 @@ static void __cexpat_node_parse_start(void *arg, const char *name, const char **
     return;
 }
 
-static void __cexpat_node_parse_end(void *arg, const char *name)
+STATIC_CAST static void __cexpat_node_parse_end(void *arg, const char *name)
 {
     CEXPAT_PARSER  *cexpat_parser;
     CEXPAT_NODE    *cexpat_node;
- 
+
     cexpat_parser = (CEXPAT_PARSER *)arg;
     cexpat_node   = CEXPAT_PARSER_CUR_NODE(cexpat_parser);
 
@@ -562,14 +562,14 @@ static void __cexpat_node_parse_end(void *arg, const char *name)
     return;
 }
 
-static void __cexpat_node_parse_cdata(void *arg, const char *str, int len)
+STATIC_CAST static void __cexpat_node_parse_cdata(void *arg, const char *str, int len)
 {
     CEXPAT_PARSER *cexpat_parser;
     CEXPAT_NODE   *cexpat_node;
     CBYTES        *cdata;
     const char    *str_t;
     int            len_t;
- 
+
     cexpat_parser = (CEXPAT_PARSER *)arg;
     cexpat_node   = CEXPAT_PARSER_CUR_NODE(cexpat_parser);
 
@@ -590,12 +590,12 @@ static void __cexpat_node_parse_cdata(void *arg, const char *str, int len)
 
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] __cexpat_node_parse_cdata: node %p, name = [%s], cdata: (%p, %d) -> (%p, %d)\n",
                        cexpat_node, CEXPAT_NODE_NAME_STR(cexpat_node), str, len, str_t, len_t);
- 
+
     cdata = cbytes_make_by_bytes(len_t, (const uint8_t *)str_t);
     if(NULL_PTR == cdata)
     {
         CEXPAT_PARSER_FAIL(cexpat_parser) = CEXPAT_PARSE_FAIL;
-     
+
         dbg_log(SEC_0148_CEXPAT, 0)(LOGSTDOUT, "error:__cexpat_node_parse_cdata: node %p, make cstring '%.*s' failed\n", cexpat_node, len, str);
         return;
     }
@@ -608,21 +608,21 @@ static void __cexpat_node_parse_cdata(void *arg, const char *str, int len)
     return;
 }
 
-static void __cexpat_node_entity_declaration(void *arg, const char *entityName,
+STATIC_CAST static void __cexpat_node_entity_declaration(void *arg, const char *entityName,
                                           int is_parameter_entity, const char *value,
                                           int value_length, const char *base,
                                           const char *systemId, const char *publicId,
                                           const char *notationName)
 {
     CEXPAT_PARSER  *cexpat_parser;
- 
+
     cexpat_parser  = (CEXPAT_PARSER *)arg;
 
     XML_StopParser(CEXPAT_PARSER_XML_PARSER(cexpat_parser), XML_FALSE);
     return;
 }
 
-static void __cexpat_node_parse_header(void *arg, const char *str, int len)
+STATIC_CAST static void __cexpat_node_parse_header(void *arg, const char *str, int len)
 {
     CEXPAT_PARSER *cexpat_parser;
     CEXPAT_NODE   *cexpat_node;
@@ -632,7 +632,7 @@ static void __cexpat_node_parse_header(void *arg, const char *str, int len)
     UINT32         field_idx;
 
     cexpat_parser = (CEXPAT_PARSER *)arg;
-    cexpat_node   = CEXPAT_PARSER_CUR_NODE(cexpat_parser); 
+    cexpat_node   = CEXPAT_PARSER_CUR_NODE(cexpat_parser);
 
     str_dup = c_str_dup(str);
 
@@ -644,7 +644,7 @@ static void __cexpat_node_parse_header(void *arg, const char *str, int len)
     else
     {
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] __cexpat_node_parse_header: node %p, chars = [%.*s]\n",
-                           cexpat_node, len, str_dup); 
+                           cexpat_node, len, str_dup);
     }
 
     /*<?xml version="1.0"?>*/
@@ -671,12 +671,12 @@ static void __cexpat_node_parse_header(void *arg, const char *str, int len)
     if(0 != STRCMP(fields[ field_idx ++ ], (const char *)"version"))
     {
         return;
-    } 
+    }
 
     if(0 != STRCMP(fields[ field_idx ++ ], (const char *)"1.0"))
     {
         return;
-    } 
+    }
 
     if(0 != STRCMP(fields[ field_idx ++ ], (const char *)"?>"))
     {
@@ -687,7 +687,7 @@ static void __cexpat_node_parse_header(void *arg, const char *str, int len)
     if(CEXPAT_PARSE_HEADER_NOT_DONE == CEXPAT_PARSER_HEADER_DONE(cexpat_parser))
     {
         CEXPAT_PARSER_HEADER_DONE(cexpat_parser) = CEXPAT_PARSE_HEADER_IS_DONE;
-        XML_SetElementHandler(CEXPAT_PARSER_XML_PARSER(cexpat_parser), __cexpat_node_parse_start, __cexpat_node_parse_end); 
+        XML_SetElementHandler(CEXPAT_PARSER_XML_PARSER(cexpat_parser), __cexpat_node_parse_start, __cexpat_node_parse_end);
     }
 
     return;
@@ -700,7 +700,7 @@ EC_BOOL cexpat_attr_encode_xml(const CEXPAT_ATTR *cexpat_attr, CBUFFER *cbuffer)
                                    CEXPAT_ATTR_VAL_STR(cexpat_attr));
 
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDNULL, "[DEBUG] cexpat_attr_encode_xml result: \n[%.*s]\n",
-                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));                                 
+                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));
     return (EC_TRUE);
 }
 
@@ -719,8 +719,8 @@ EC_BOOL cexpat_node_attrs_encode_xml(const CEXPAT_NODE *cexpat_node, CBUFFER *cb
     }
 
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDNULL, "[DEBUG] cexpat_node_attrs_encode_xml result: \n[%.*s]\n",
-                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));  
-    return (EC_TRUE); 
+                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));
+    return (EC_TRUE);
 }
 
 EC_BOOL cexpat_node_encode_xml_beg(const CEXPAT_NODE *cexpat_node, CBUFFER *cbuffer)
@@ -735,7 +735,7 @@ EC_BOOL cexpat_node_encode_xml_beg(const CEXPAT_NODE *cexpat_node, CBUFFER *cbuf
         cbuffer_append_format(cbuffer, "%.*s</%s>",
                        CEXPAT_NODE_CDATA_LEN(cexpat_node),
                        CEXPAT_NODE_CDATA_BUF(cexpat_node),
-                       CEXPAT_NODE_NAME_STR(cexpat_node));                    
+                       CEXPAT_NODE_NAME_STR(cexpat_node));
     }
     else
     {
@@ -746,7 +746,7 @@ EC_BOOL cexpat_node_encode_xml_beg(const CEXPAT_NODE *cexpat_node, CBUFFER *cbuf
     }
 
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDNULL, "[DEBUG] cexpat_node_encode_xml_beg result: \n[%.*s]\n",
-                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));    
+                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));
     return (EC_TRUE);
 }
 
@@ -756,9 +756,9 @@ EC_BOOL cexpat_node_encode_xml_end(const CEXPAT_NODE *cexpat_node, CBUFFER *cbuf
     {
         cbuffer_append_format(cbuffer, "</%s>", CEXPAT_NODE_NAME_STR(cexpat_node));
     }
- 
+
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDNULL, "[DEBUG] cexpat_node_encode_xml_end result: \n[%.*s]\n",
-                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer)); 
+                       CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));
     return (EC_TRUE);
 }
 
@@ -845,7 +845,7 @@ const CEXPAT_NODE *cexpat_find_node_by_fields(const CEXPAT_NODE *cexpat_node, co
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_node_by_fields: find node [%s] faild\n", fields[ field_idx ]);
         return (NULL_PTR);
     }
- 
+
     for( ++ field_idx; field_idx < field_num; field_idx ++)
     {
         cexpat_node_cur = cexpat_find_child_node(cexpat_node_cur, fields[ field_idx ]);
@@ -853,7 +853,7 @@ const CEXPAT_NODE *cexpat_find_node_by_fields(const CEXPAT_NODE *cexpat_node, co
         {
             dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_node_by_fields: find child node [%s] faild\n", fields[ field_idx ]);
             return (NULL_PTR);
-        }     
+        }
     }
 
     return (cexpat_node_cur);
@@ -873,10 +873,10 @@ const CEXPAT_NODE *cexpat_find_node_by_path(const CEXPAT_NODE *cexpat_node, cons
     }
 
     dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_node_by_path: path [%s]\n", (char *)path);
- 
+
     field_num = c_str_split(path_t, (const char *)delim, (char **)fields, CEXPAT_PATH_MAX_DEPTH);
     safe_free(path_t, LOC_CEXPAT_0012);
- 
+
     return cexpat_find_node_by_fields(cexpat_node, (const uint8_t **)fields, field_num);
 }
 
@@ -891,7 +891,7 @@ const CSTRING *cexpat_find_attr_by_fields(const CEXPAT_NODE *cexpat_node, const 
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "error:cexpat_find_attr_by_fields: invalid field_num %ld\n", field_num);
         return (NULL_PTR);
     }
- 
+
     cexpat_node_cur = cexpat_node;
     field_idx = 0;
 
@@ -900,7 +900,7 @@ const CSTRING *cexpat_find_attr_by_fields(const CEXPAT_NODE *cexpat_node, const 
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_attr_by_fields: find node [%s] faild\n", fields[ field_idx ]);
         return (NULL_PTR);
     }
- 
+
     for( ++ field_idx; field_idx < field_num - 1; field_idx ++)
     {
         cexpat_node_cur = cexpat_find_child_node(cexpat_node_cur, fields[ field_idx ]);
@@ -908,7 +908,7 @@ const CSTRING *cexpat_find_attr_by_fields(const CEXPAT_NODE *cexpat_node, const 
         {
             dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_attr_by_fields: find child node [%s] faild\n", fields[ field_idx ]);
             return (NULL_PTR);
-        }     
+        }
     }
 
     if(do_log(SEC_0148_CEXPAT, 9))
@@ -932,10 +932,10 @@ const CSTRING *cexpat_find_attr_by_path(const CEXPAT_NODE *cexpat_node, const ui
         dbg_log(SEC_0148_CEXPAT, 0)(LOGSTDOUT, "error:cexpat_find_attr_by_path: dup path [%s] faild\n", (char *)path);
         return (NULL_PTR);
     }
- 
+
     field_num = c_str_split(path_t, (const char *)delim, (char **)fields, CEXPAT_PATH_MAX_DEPTH);
     safe_free(path_t, LOC_CEXPAT_0013);
- 
+
     return cexpat_find_attr_by_fields(cexpat_node, (const uint8_t **)fields, field_num);
 }
 
@@ -950,7 +950,7 @@ const CBYTES *cexpat_find_cdata_by_fields(const CEXPAT_NODE *cexpat_node, const 
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "error:cexpat_find_cdata_by_fields: invalid field_num %ld\n", field_num);
         return (NULL_PTR);
     }
- 
+
     cexpat_node_cur = cexpat_node;
     field_idx = 0;
 
@@ -959,7 +959,7 @@ const CBYTES *cexpat_find_cdata_by_fields(const CEXPAT_NODE *cexpat_node, const 
         dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_cdata_by_fields: find node [%s] faild\n", fields[ field_idx ]);
         return (NULL_PTR);
     }
- 
+
     for( ++ field_idx; field_idx < field_num; field_idx ++)
     {
         cexpat_node_cur = cexpat_find_child_node(cexpat_node_cur, fields[ field_idx ]);
@@ -967,14 +967,14 @@ const CBYTES *cexpat_find_cdata_by_fields(const CEXPAT_NODE *cexpat_node, const 
         {
             dbg_log(SEC_0148_CEXPAT, 9)(LOGSTDOUT, "[DEBUG] cexpat_find_cdata_by_fields: find child node [%s] faild\n", fields[ field_idx ]);
             return (NULL_PTR);
-        }     
+        }
     }
 
     if(0 && do_log(SEC_0148_CEXPAT, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] cexpat_find_cdata_by_fields: try to find cdata [%s] in node\n", (char *)fields[ field_idx - 1]);
         cexpat_node_depth_print_xml(LOGSTDOUT, cexpat_node_cur);
-    } 
+    }
 
     return CEXPAT_NODE_CDATA(cexpat_node_cur);
 }
@@ -991,10 +991,10 @@ const CBYTES *cexpat_find_cdata_by_path(const CEXPAT_NODE *cexpat_node, const ui
         dbg_log(SEC_0148_CEXPAT, 0)(LOGSTDOUT, "error:cexpat_find_cdata_by_path: dup path [%s] faild\n", (char *)path);
         return (NULL_PTR);
     }
- 
+
     field_num = c_str_split(path_t, (const char *)delim, (char **)fields, CEXPAT_PATH_MAX_DEPTH);
     safe_free(path_t, LOC_CEXPAT_0014);
- 
+
     return cexpat_find_cdata_by_fields(cexpat_node, (const uint8_t **)fields, field_num);
 }
 
@@ -1037,7 +1037,7 @@ EC_BOOL cexpat_parser_clear(CEXPAT_PARSER *cexpat_parser)
 EC_BOOL cexpat_parser_open(CEXPAT_PARSER *cexpat_parser)
 {
     XML_Parser  xml_parser;
- 
+
     xml_parser = XML_ParserCreate(NULL_PTR);
     if(NULL_PTR == xml_parser)
     {
@@ -1055,7 +1055,7 @@ EC_BOOL cexpat_parser_open(CEXPAT_PARSER *cexpat_parser)
     **/
     //XML_SetReturnNSTriplet(xml_parser, 1);
     XML_SetEntityDeclHandler(xml_parser, (void *) __cexpat_node_entity_declaration);
-    XML_SetCharacterDataHandler(xml_parser, __cexpat_node_parse_cdata); 
+    XML_SetCharacterDataHandler(xml_parser, __cexpat_node_parse_cdata);
 
     CEXPAT_PARSER_XML_PARSER(cexpat_parser) = xml_parser;
 

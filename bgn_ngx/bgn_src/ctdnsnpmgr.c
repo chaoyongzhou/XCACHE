@@ -43,26 +43,26 @@ CTDNSNP_MGR *ctdnsnp_mgr_new()
 
 EC_BOOL ctdnsnp_mgr_init(CTDNSNP_MGR *ctdnsnp_mgr)
 {
-    cstring_init(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr), NULL_PTR); 
+    cstring_init(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr), NULL_PTR);
 
     CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr) = CTDNSNP_ERR_MODEL;
     CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)      = 0;
     CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)           = 0;
 
     cvector_init(CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr), 0, MM_CTDNSNP, CVECTOR_LOCK_ENABLE, LOC_CTDNSNPMGR_0002);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL ctdnsnp_mgr_clean(CTDNSNP_MGR *ctdnsnp_mgr)
 {
-    cstring_clean(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr)); 
+    cstring_clean(CTDNSNP_MGR_DB_ROOT_DIR(ctdnsnp_mgr));
 
     CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr) = CTDNSNP_ERR_MODEL;
     CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)      = 0;
     CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)           = 0;
 
-    cvector_clean(CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr), (CVECTOR_DATA_CLEANER)ctdnsnp_free, LOC_CTDNSNPMGR_0003);    
+    cvector_clean(CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr), (CVECTOR_DATA_CLEANER)ctdnsnp_free, LOC_CTDNSNPMGR_0003);
 
     return (EC_TRUE);
 }
@@ -123,7 +123,7 @@ EC_BOOL ctdnsnp_mgr_open_np_all(CTDNSNP_MGR *ctdnsnp_mgr)
 {
     uint32_t ctdnsnp_num;
     uint32_t ctdnsnp_id;
- 
+
     ctdnsnp_num = CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr);
 
     for(ctdnsnp_id = 0; ctdnsnp_id < ctdnsnp_num; ctdnsnp_id ++)
@@ -146,7 +146,7 @@ EC_BOOL ctdnsnp_mgr_close_np_all(CTDNSNP_MGR *ctdnsnp_mgr)
 {
     uint32_t ctdnsnp_num;
     uint32_t ctdnsnp_id;
- 
+
     ctdnsnp_num = CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr);
 
     for(ctdnsnp_id = 0; ctdnsnp_id < ctdnsnp_num; ctdnsnp_id ++)
@@ -161,29 +161,29 @@ EC_BOOL ctdnsnp_mgr_close_np_all(CTDNSNP_MGR *ctdnsnp_mgr)
     return (EC_TRUE);
 }
 
-static char *__ctdnsnp_mgr_gen_db_name(const char *root_dir)
+STATIC_CAST static char *__ctdnsnp_mgr_gen_db_name(const char *root_dir)
 {
     const char *fields[ 2 ];
- 
+
     fields[ 0 ] = root_dir;
     fields[ 1 ] = CTDNSNP_DB_NAME;
- 
+
     return c_str_join((char *)"/", fields, 2);
 }
 
-static EC_BOOL __ctdnsnp_mgr_load_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __ctdnsnp_mgr_load_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_fd)
 {
     UINT32 ctdnsnp_mgr_db_size;
     UINT8* ctdnsnp_mgr_db_buff;
     UINT32 ctdnsnp_mgr_db_offset;
     UINT32 ctdnsnp_id;
- 
+
     /*init offset*/
     ctdnsnp_mgr_db_offset = 0;
 
     /*CTDNSNP_MGR_NP_MODEL*/
     ctdnsnp_mgr_db_size   = sizeof(uint8_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr));
     if(EC_FALSE == c_file_load(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_load_db: load np model failed\n");
@@ -192,16 +192,16 @@ static EC_BOOL __ctdnsnp_mgr_load_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_f
 
     /*CTDNSNP_MGR_NP_ITEM_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr));
     if(EC_FALSE == c_file_load(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_load_db: load item max num failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     /*CTDNSNP_MGR_NP_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr));
     if(EC_FALSE == c_file_load(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_load_db: load disk max num failed\n");
@@ -216,7 +216,7 @@ static EC_BOOL __ctdnsnp_mgr_load_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_f
     return (EC_TRUE);
 }
 
-static EC_BOOL __ctdnsnp_mgr_flush_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __ctdnsnp_mgr_flush_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_fd)
 {
     UINT32 ctdnsnp_mgr_db_size;
     UINT8* ctdnsnp_mgr_db_buff;
@@ -227,25 +227,25 @@ static EC_BOOL __ctdnsnp_mgr_flush_db(CTDNSNP_MGR *ctdnsnp_mgr, int ctdnsnp_mgr_
 
     /*CTDNSNP_MGR_NP_MODEL*/
     ctdnsnp_mgr_db_size   = sizeof(uint8_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MODEL(ctdnsnp_mgr));
     if(EC_FALSE == c_file_flush(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_flush_db: flush np model failed");
         return (EC_FALSE);
     }
- 
+
     /*CTDNSNP_MGR_NP_ITEM_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_ITEM_MAX_NUM(ctdnsnp_mgr));
     if(EC_FALSE == c_file_flush(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_flush_db: flush item max num failed");
         return (EC_FALSE);
-    }  
+    }
 
     /*CTDNSNP_MGR_NP_MAX_NUM*/
     ctdnsnp_mgr_db_size   = sizeof(uint32_t);
-    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr)); 
+    ctdnsnp_mgr_db_buff   = (UINT8 *)&(CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr));
     if(EC_FALSE == c_file_flush(ctdnsnp_mgr_fd, &ctdnsnp_mgr_db_offset, ctdnsnp_mgr_db_size, ctdnsnp_mgr_db_buff))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:__ctdnsnp_mgr_flush_db: flush disk max num failed");
@@ -336,13 +336,13 @@ EC_BOOL ctdnsnp_mgr_create_db(CTDNSNP_MGR *ctdnsnp_mgr, const CSTRING *ctdnsnp_d
 
         safe_free(ctdnsnp_mgr_db_name, LOC_CTDNSNPMGR_0011);
         return (EC_FALSE);
-    } 
+    }
 
     c_file_close(ctdnsnp_mgr_fd);
     ctdnsnp_mgr_fd = ERR_FD;
 
     dbg_log(SEC_0030_CTDNSNPMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnsnp_mgr_create_db: flush db to ctdnsnp mgr db %s done\n", ctdnsnp_mgr_db_name);
- 
+
     safe_free(ctdnsnp_mgr_db_name, LOC_CTDNSNPMGR_0012);
     return (EC_TRUE);
 }
@@ -446,7 +446,7 @@ EC_BOOL ctdnsnp_mgr_load(CTDNSNP_MGR *ctdnsnp_mgr, const CSTRING *ctdnsnp_db_roo
 EC_BOOL ctdnsnp_mgr_sync_np(CTDNSNP_MGR *ctdnsnp_mgr, const uint32_t ctdnsnp_id)
 {
     CTDNSNP *ctdnsnp;
- 
+
     ctdnsnp = (CTDNSNP *)cvector_get_no_lock(CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr), ctdnsnp_id);
     if(NULL_PTR != ctdnsnp)
     {
@@ -483,7 +483,7 @@ EC_BOOL ctdnsnp_mgr_show_np(LOG *log, CTDNSNP_MGR *ctdnsnp_mgr, const uint32_t c
 
     ctdnsnp = (CTDNSNP *)cvector_get_no_lock(CTDNSNP_MGR_NP_VEC(ctdnsnp_mgr), ctdnsnp_id);
     if(NULL_PTR == ctdnsnp)
-    {     
+    {
         /*try to open the np and print it*/
         ctdnsnp = ctdnsnp_mgr_open_np(ctdnsnp_mgr, ctdnsnp_id);
         if(NULL_PTR == ctdnsnp)
@@ -497,26 +497,26 @@ EC_BOOL ctdnsnp_mgr_show_np(LOG *log, CTDNSNP_MGR *ctdnsnp_mgr, const uint32_t c
         ctdnsnp_mgr_close_np(ctdnsnp_mgr, ctdnsnp_id);
     }
     else
-    {    
+    {
         ctdnsnp_print(log, ctdnsnp);
     }
 
     return (EC_TRUE);
 }
 
-static uint32_t __ctdnsnp_mgr_get_np_id_of_tcid(const CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
+STATIC_CAST static uint32_t __ctdnsnp_mgr_get_np_id_of_tcid(const CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
 {
     uint32_t ctdnsnp_num;
     uint32_t ctdnsnp_id;
 
     ctdnsnp_num = CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr);
     ctdnsnp_id  = (uint32_t)(tcid % ctdnsnp_num);
-    dbg_log(SEC_0030_CTDNSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_mgr_get_np_id_of_tcid: tcid %ld, ctdnsnp num %u => ctdnsnp id %u\n", 
+    dbg_log(SEC_0030_CTDNSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_mgr_get_np_id_of_tcid: tcid %ld, ctdnsnp num %u => ctdnsnp id %u\n",
                         tcid, ctdnsnp_num, ctdnsnp_id);
     return (ctdnsnp_id);
 }
 
-static CTDNSNP *__ctdnsnp_mgr_get_np(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, uint32_t *np_id)
+STATIC_CAST static CTDNSNP *__ctdnsnp_mgr_get_np(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, uint32_t *np_id)
 {
     CTDNSNP  * ctdnsnp;
     uint32_t  ctdnsnp_id;
@@ -539,21 +539,21 @@ static CTDNSNP *__ctdnsnp_mgr_get_np(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid
     {
         (*np_id) = ctdnsnp_id;
     }
-   
-    return (ctdnsnp);        
+
+    return (ctdnsnp);
 }
 
-static EC_BOOL __ctdnsnp_mgr_search(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, uint32_t *searched_ctdnsnp_id)
+STATIC_CAST static EC_BOOL __ctdnsnp_mgr_search(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, uint32_t *searched_ctdnsnp_id)
 {
     uint32_t ctdnsnp_num;
     uint32_t ctdnsnp_id;
- 
+
     ctdnsnp_num = CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr);
     for(ctdnsnp_id = 0; ctdnsnp_id < ctdnsnp_num; ctdnsnp_id ++)
     {
         CTDNSNP *ctdnsnp;
         uint32_t  node_pos;
-     
+
         ctdnsnp = ctdnsnp_mgr_open_np(ctdnsnp_mgr, ctdnsnp_id);
         if(NULL_PTR == ctdnsnp)
         {
@@ -574,10 +574,10 @@ static EC_BOOL __ctdnsnp_mgr_search(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid,
         {
             (*searched_ctdnsnp_id) = ctdnsnp_id;
         }
-     
+
         return (EC_TRUE);/*succ*/
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -589,11 +589,11 @@ EC_BOOL ctdnsnp_mgr_search(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, uint32_t
 CTDNSNP_ITEM *ctdnsnp_mgr_search_item(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
 {
     CTDNSNP   *ctdnsnp;
-    uint32_t  ctdnsnp_id; 
+    uint32_t  ctdnsnp_id;
     uint32_t  node_pos;
 
     CTDNSNP_ITEM *ctdnsnp_item;
- 
+
     ctdnsnp = __ctdnsnp_mgr_get_np(ctdnsnp_mgr, tcid, &ctdnsnp_id);
     if(NULL_PTR == ctdnsnp)
     {
@@ -620,7 +620,7 @@ CTDNSNP_MGR *ctdnsnp_mgr_create(const uint8_t ctdnsnp_model,
     CTDNSNP_MGR *ctdnsnp_mgr;
     uint32_t ctdnsnp_item_max_num;
     uint32_t ctdnsnp_id;
- 
+
     if(EC_FALSE == ctdnsnp_model_item_max_num(ctdnsnp_model , &ctdnsnp_item_max_num))
     {
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_create: invalid ctdnsnp model %u\n", ctdnsnp_model);
@@ -735,7 +735,7 @@ CTDNSNP_MGR * ctdnsnp_mgr_open(const CSTRING *ctdnsnp_db_root_dir)
 }
 
 EC_BOOL ctdnsnp_mgr_close(CTDNSNP_MGR *ctdnsnp_mgr)
-{ 
+{
     if(NULL_PTR != ctdnsnp_mgr)
     {
         ctdnsnp_mgr_flush(ctdnsnp_mgr);
@@ -791,7 +791,7 @@ EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipa
         dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_get: no np for tcid %s\n", c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
- 
+
     node_pos = ctdnsnp_search_no_lock(ctdnsnp, tcid);
     if(CTDNSNPRB_ERR_POS != node_pos)
     {
@@ -800,10 +800,10 @@ EC_BOOL ctdnsnp_mgr_get(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid, UINT32 *ipa
         ctdnsnp_item = ctdnsnp_fetch(ctdnsnp, node_pos);
         (*ipaddr) = CTDNSNP_ITEM_IPADDR(ctdnsnp_item);
         (*port) = CTDNSNP_ITEM_PORT(ctdnsnp_item);
-        
+
         return (EC_TRUE);
     }
-    return (EC_FALSE); 
+    return (EC_FALSE);
 }
 
 EC_BOOL ctdnsnp_mgr_delete(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
@@ -826,7 +826,7 @@ EC_BOOL ctdnsnp_mgr_delete(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tcid)
     }
 
     dbg_log(SEC_0030_CTDNSNPMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnsnp_mgr_delete: delete tcid %s to np %u done\n",
-                        c_word_to_ipv4(tcid), ctdnsnp_id);    
+                        c_word_to_ipv4(tcid), ctdnsnp_id);
 
     return (EC_TRUE);
 }
@@ -836,8 +836,8 @@ EC_BOOL ctdnsnp_mgr_tcid_num_of_np(CTDNSNP_MGR *ctdnsnp_mgr, const uint32_t ctdn
     CTDNSNP  *ctdnsnp;
     UINT32    cur_tcid_num;
     uint32_t  node_pos;
-    
- 
+
+
     ctdnsnp = ctdnsnp_mgr_open_np(ctdnsnp_mgr, ctdnsnp_id);
     if(NULL_PTR == ctdnsnp)
     {
@@ -862,7 +862,7 @@ EC_BOOL ctdnsnp_mgr_tcid_num(CTDNSNP_MGR *ctdnsnp_mgr, UINT32 *tcid_num)
     uint32_t ctdnsnp_id;
 
     (*tcid_num) = 0;
- 
+
     ctdnsnp_num = CTDNSNP_MGR_NP_MAX_NUM(ctdnsnp_mgr);
     for(ctdnsnp_id = 0; ctdnsnp_id < ctdnsnp_num; ctdnsnp_id ++)
     {
@@ -874,10 +874,10 @@ EC_BOOL ctdnsnp_mgr_tcid_num(CTDNSNP_MGR *ctdnsnp_mgr, UINT32 *tcid_num)
             dbg_log(SEC_0030_CTDNSNPMGR, 0)(LOGSTDOUT, "error:ctdnsnp_mgr_file_num: count tcid num of np %u failed\n",
                                ctdnsnp_id);
             return (EC_FALSE);
-        }     
+        }
 
         (*tcid_num) += cur_tcid_num;
-    } 
+    }
 
     return (EC_TRUE);
 }

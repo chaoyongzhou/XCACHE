@@ -35,8 +35,8 @@ extern "C"{
 #include "crouter.h"
 #include "taskcfgchk.h"
 
-static EC_BOOL taskcfgchk_conn_test(const TASK_CFG *task_cfg, const TASKS_CFG *local_tasks_cfg, const UINT32 remote_tcid);
-static EC_BOOL taskcfgchk_route_test(LOG *log, const TASK_CFG *task_cfg, TASKS_CFG *src_tasks_cfg, const UINT32 des_tcid, const UINT32 max_hops);
+STATIC_CAST static EC_BOOL taskcfgchk_conn_test(const TASK_CFG *task_cfg, const TASKS_CFG *local_tasks_cfg, const UINT32 remote_tcid);
+STATIC_CAST static EC_BOOL taskcfgchk_route_test(LOG *log, const TASK_CFG *task_cfg, TASKS_CFG *src_tasks_cfg, const UINT32 des_tcid, const UINT32 max_hops);
 
 EC_BOOL taskcfgchk_net_print(LOG *log, const TASK_CFG *task_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske)
 {
@@ -202,7 +202,7 @@ EC_BOOL taskcfgchk_conn_print(LOG *log, const TASK_CFG *task_cfg, const UINT32 t
 }
 
 
-static EC_BOOL taskcfgchk_conn_test(const TASK_CFG *task_cfg, const TASKS_CFG *local_tasks_cfg, const UINT32 remote_tcid)
+STATIC_CAST static EC_BOOL taskcfgchk_conn_test(const TASK_CFG *task_cfg, const TASKS_CFG *local_tasks_cfg, const UINT32 remote_tcid)
 {
     UINT32 pos;
 
@@ -238,7 +238,7 @@ static EC_BOOL taskcfgchk_conn_test(const TASK_CFG *task_cfg, const TASKS_CFG *l
 }
 
 
-static EC_BOOL taskcfgchk_route_test(LOG *log, const TASK_CFG *task_cfg, TASKS_CFG *src_tasks_cfg, const UINT32 des_tcid, const UINT32 max_hops)
+STATIC_CAST static EC_BOOL taskcfgchk_route_test(LOG *log, const TASK_CFG *task_cfg, TASKS_CFG *src_tasks_cfg, const UINT32 des_tcid, const UINT32 max_hops)
 {
     UINT32 pos;
 

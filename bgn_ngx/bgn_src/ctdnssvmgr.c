@@ -39,16 +39,16 @@ CTDNSSV_MGR *ctdnssv_mgr_new()
 
 EC_BOOL ctdnssv_mgr_init(CTDNSSV_MGR *ctdnssv_mgr)
 {
-    cstring_init(CTDNSSV_MGR_SP_ROOT_DIR(ctdnssv_mgr), NULL_PTR); 
+    cstring_init(CTDNSSV_MGR_SP_ROOT_DIR(ctdnssv_mgr), NULL_PTR);
     clist_init(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), MM_CTDNSSV, LOC_CTDNSSVMGR_0002);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL ctdnssv_mgr_clean(CTDNSSV_MGR *ctdnssv_mgr)
 {
-    cstring_clean(CTDNSSV_MGR_SP_ROOT_DIR(ctdnssv_mgr)); 
-    clist_clean(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), (CLIST_DATA_DATA_CLEANER)ctdnssv_free);    
+    cstring_clean(CTDNSSV_MGR_SP_ROOT_DIR(ctdnssv_mgr));
+    clist_clean(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), (CLIST_DATA_DATA_CLEANER)ctdnssv_free);
 
     return (EC_TRUE);
 }
@@ -66,7 +66,7 @@ EC_BOOL ctdnssv_mgr_free(CTDNSSV_MGR *ctdnssv_mgr)
 CTDNSSV *ctdnssv_mgr_search_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name)
 {
     CLIST_DATA    *clist_data;
-    
+
     CLIST_LOOP_NEXT(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), clist_data)
     {
         CTDNSSV     *ctdnssv;
@@ -88,22 +88,22 @@ CTDNSSV *ctdnssv_mgr_open_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_na
     ctdnssv = ctdnssv_mgr_search_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR != ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp: found sp '%s'\n", 
-                            (char *)cstring_get_str(service_name));    
+        dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp: found sp '%s'\n",
+                            (char *)cstring_get_str(service_name));
         return (ctdnssv);
     }
 
     ctdnssv = ctdnssv_open((char *)cstring_get_str(service_name));
     if(NULL_PTR == ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp: open sp %s failed\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp: open sp %s failed\n",
                         (char *)cstring_get_str(service_name));
         return (NULL_PTR);
     }
 
     clist_push_back(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), (void *)ctdnssv);
-    
-    dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp: open sp %s done\n", 
+
+    dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp: open sp %s done\n",
                         (char *)cstring_get_str(service_name));
     return (ctdnssv);
 }
@@ -111,7 +111,7 @@ CTDNSSV *ctdnssv_mgr_open_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_na
 CTDNSSV *ctdnssv_mgr_delete_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name)
 {
     CLIST_DATA    *clist_data;
-    
+
     CLIST_LOOP_NEXT(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), clist_data)
     {
         CTDNSSV     *ctdnssv;
@@ -134,7 +134,7 @@ EC_BOOL ctdnssv_mgr_close_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_na
     ctdnssv = ctdnssv_mgr_delete_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR == ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 1)(LOGSTDOUT, "warn:ctdnssv_mgr_close_sp: sp %s not open yet\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 1)(LOGSTDOUT, "warn:ctdnssv_mgr_close_sp: sp %s not open yet\n",
                         (char *)cstring_get_str(service_name));
         return (EC_TRUE);
     }
@@ -156,9 +156,9 @@ CTDNSSV *ctdnssv_mgr_create_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_
     {
         ctdnssv_sp_model = CTDNSSV_512K_MODEL;
     }
-    
-    ctdnssv = ctdnssv_create((char *)CTDNSSV_MGR_SP_ROOT_DIR_STR(ctdnssv_mgr), 
-                             (char *)cstring_get_str(service_name), 
+
+    ctdnssv = ctdnssv_create((char *)CTDNSSV_MGR_SP_ROOT_DIR_STR(ctdnssv_mgr),
+                             (char *)cstring_get_str(service_name),
                              ctdnssv_sp_model);
 
     if(NULL_PTR == ctdnssv)
@@ -180,16 +180,16 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
     dir = opendir(root_dir);
     if(NULL_PTR == dir)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: open dir %s failed\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: open dir %s failed\n",
                         root_dir);
         return (EC_FALSE);
     }
 
     while(NULL_PTR != (ptr = readdir(dir)))
-    {  
+    {
         uint32_t        d_name_len;
-        
-        if(0 == strcmp(ptr->d_name,".") 
+
+        if(0 == strcmp(ptr->d_name,".")
         || 0 == strcmp(ptr->d_name,".."))
         {
             continue;
@@ -206,10 +206,10 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
         {
             continue;
         }
-        
+
         if(8  == ptr->d_type     /*file*/
-        || 10 == ptr->d_type     /*link*/ 
-        )  
+        || 10 == ptr->d_type     /*link*/
+        )
         {
             CTDNSSV          *ctdnssv;
             char             *service_fname;
@@ -219,9 +219,9 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
             service_fname     = safe_malloc(service_fname_len, LOC_CTDNSSVMGR_0004);
             if(NULL_PTR == service_fname)
             {
-                dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: malloc %ld bytes failed\n", 
+                dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: malloc %ld bytes failed\n",
                                 service_fname_len);
-                                
+
                 closedir(dir);
                 return (EC_FALSE);
             }
@@ -230,24 +230,24 @@ EC_BOOL ctdnssv_mgr_open_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
             ctdnssv = ctdnssv_open(service_fname);
             if(NULL_PTR == ctdnssv)
             {
-                dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: open service file '%s' failed\n", 
+                dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_open_sp_all: open service file '%s' failed\n",
                                 service_fname);
-                                
+
                 safe_free(service_fname, LOC_CTDNSSVMGR_0005);
                 continue;
             }
 
-            dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp_all: open service file '%s' => service '%.*s' done\n", 
+            dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open_sp_all: open service file '%s' => service '%.*s' done\n",
                             service_fname,
                             CTDNSSV_SNAME_LEN(ctdnssv),
-                            CTDNSSV_SNAME(ctdnssv));            
+                            CTDNSSV_SNAME(ctdnssv));
 
             clist_push_back(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), (void *)ctdnssv);
         }
     }
 
     closedir(dir);
-    
+
     return (EC_TRUE);
 }
 
@@ -259,19 +259,19 @@ EC_BOOL ctdnssv_mgr_close_sp_all(CTDNSSV_MGR *ctdnssv_mgr)
     {
         dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_close_sp_all: close sp %.*s failed\n",
                         CTDNSSV_SNAME_LEN(ctdnssv), CTDNSSV_SNAME(ctdnssv));
-                        
+
         ctdnssv_close(ctdnssv);
     }
-   
+
     return (EC_TRUE);
 }
 
 void ctdnssv_mgr_print(LOG *log, const CTDNSSV_MGR *ctdnssv_mgr)
 {
     sys_log(log, "ctdnssv mgr:%p\n", ctdnssv_mgr);
-    
+
     sys_log(log, "ctdnssv mgr sp root dir  : %s\n", (char *)CTDNSSV_MGR_SP_ROOT_DIR_STR(ctdnssv_mgr));
- 
+
     clist_print(log, CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), (CLIST_DATA_DATA_PRINT)ctdnssv_print);
 
     return;
@@ -281,7 +281,7 @@ EC_BOOL ctdnssv_mgr_load(CTDNSSV_MGR *ctdnssv_mgr)
 {
     if(EC_FALSE == ctdnssv_mgr_open_sp_all(ctdnssv_mgr))
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_load: load all sp failed from dir %s\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_load: load all sp failed from dir %s\n",
                         (char *)CTDNSSV_MGR_SP_ROOT_DIR_STR(ctdnssv_mgr));
         return (EC_FALSE);
     }
@@ -312,7 +312,7 @@ EC_BOOL ctdnssv_mgr_flush(CTDNSSV_MGR *ctdnssv_mgr)
         ctdnssv = CLIST_DATA_DATA(clist_data);
         ctdnssv_sync(ctdnssv);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -322,12 +322,12 @@ EC_BOOL ctdnssv_mgr_show_sp(LOG *log, CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *s
 
     ctdnssv = ctdnssv_mgr_search_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR == ctdnssv)
-    {     
+    {
         /*try to open the sp and print it*/
         ctdnssv = ctdnssv_mgr_open_sp(ctdnssv_mgr, service_name);
         if(NULL_PTR == ctdnssv)
         {
-            dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_show_sp: open sp %s failed\n", 
+            dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_show_sp: open sp %s failed\n",
                         (const char *)cstring_get_str(service_name));
             return (EC_FALSE);
         }
@@ -337,7 +337,7 @@ EC_BOOL ctdnssv_mgr_show_sp(LOG *log, CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *s
         ctdnssv_close(ctdnssv);
     }
     else
-    {    
+    {
         ctdnssv_print(log, ctdnssv);
     }
 
@@ -363,14 +363,14 @@ CTDNSSV_MGR * ctdnssv_mgr_open(const CSTRING *ctdnssv_sp_root_dir)
         ctdnssv_mgr_free(ctdnssv_mgr);
         return (NULL_PTR);
     }
-    
-    dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open: ctdnssv mgr loaded from %s\n", 
+
+    dbg_log(SEC_0055_CTDNSSVMGR, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_mgr_open: ctdnssv mgr loaded from %s\n",
                 (char *)cstring_get_str(ctdnssv_sp_root_dir));
     return (ctdnssv_mgr);
 }
 
 EC_BOOL ctdnssv_mgr_close(CTDNSSV_MGR *ctdnssv_mgr)
-{ 
+{
     if(NULL_PTR != ctdnssv_mgr)
     {
         ctdnssv_mgr_flush(ctdnssv_mgr);
@@ -387,7 +387,7 @@ EC_BOOL ctdnssv_mgr_exists(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name
     if(NULL_PTR == ctdnssv)
     {
         return (EC_FALSE);
-    }    
+    }
     return (EC_TRUE);
 }
 
@@ -402,12 +402,12 @@ EC_BOOL ctdnssv_mgr_set(CTDNSSV_MGR *ctdnssv_mgr, const UINT32 tcid, const UINT3
         ctdnssv = ctdnssv_mgr_create_sp(ctdnssv_mgr, service_name);
         if(NULL_PTR == ctdnssv)
         {
-            dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_set: create sp '%s' failed\n", 
+            dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_set: create sp '%s' failed\n",
                             (const char *)cstring_get_str(service_name));
             return (EC_FALSE);
-        }        
+        }
     }
-    
+
     ctdnssv_item = ctdnssv_set(ctdnssv, tcid, ipaddr, port);
     if(NULL_PTR == ctdnssv_item)
     {
@@ -432,7 +432,7 @@ EC_BOOL ctdnssv_mgr_get(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, c
     ctdnssv = ctdnssv_mgr_open_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR == ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_get: no sp '%s'\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_get: no sp '%s'\n",
                         (const char *)cstring_get_str(service_name));
         return (EC_FALSE);
     }
@@ -447,7 +447,7 @@ EC_BOOL ctdnssv_mgr_pop(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, U
     ctdnssv = ctdnssv_mgr_open_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR == ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_pop: no sp '%s'\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_pop: no sp '%s'\n",
                         (const char *)cstring_get_str(service_name));
         return (EC_FALSE);
     }
@@ -471,11 +471,11 @@ EC_BOOL ctdnssv_mgr_delete_one(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_
 EC_BOOL ctdnssv_mgr_delete(CTDNSSV_MGR *ctdnssv_mgr, const UINT32 tcid)
 {
     CLIST_DATA      *clist_data;
-    
+
     CLIST_LOOP_NEXT(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), clist_data)
     {
         CTDNSSV           *ctdnssv;
-        
+
         ctdnssv = CLIST_DATA_DATA(clist_data);
         ctdnssv_delete(ctdnssv, tcid); /*delete tcid from service*/
     }
@@ -485,11 +485,11 @@ EC_BOOL ctdnssv_mgr_delete(CTDNSSV_MGR *ctdnssv_mgr, const UINT32 tcid)
 EC_BOOL ctdnssv_mgr_node_num_of_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *service_name, UINT32 *node_num)
 {
     CTDNSSV  *ctdnssv;
-    
+
     ctdnssv = ctdnssv_mgr_open_sp(ctdnssv_mgr, service_name);
     if(NULL_PTR == ctdnssv)
     {
-        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_tcid_num_of_sp: open sp '%s' failed\n", 
+        dbg_log(SEC_0055_CTDNSSVMGR, 0)(LOGSTDOUT, "error:ctdnssv_mgr_tcid_num_of_sp: open sp '%s' failed\n",
                         (const char *)cstring_get_str(service_name));
         return (EC_FALSE);
     }
@@ -500,15 +500,15 @@ EC_BOOL ctdnssv_mgr_node_num_of_sp(CTDNSSV_MGR *ctdnssv_mgr, const CSTRING *serv
 EC_BOOL ctdnssv_mgr_node_num(CTDNSSV_MGR *ctdnssv_mgr, UINT32 *node_num)
 {
     CLIST_DATA      *clist_data;
-    
+
     CLIST_LOOP_NEXT(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), clist_data)
     {
         CTDNSSV           *ctdnssv;
         UINT32             node_num_t;
-        
+
         ctdnssv = CLIST_DATA_DATA(clist_data);
         node_num_t = 0;
-        
+
         ctdnssv_node_num(ctdnssv, &node_num_t); /*delete tcid from service*/
         (*node_num) += node_num_t;
     }

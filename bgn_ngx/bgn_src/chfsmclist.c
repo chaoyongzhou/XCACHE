@@ -28,7 +28,7 @@ extern "C"{
 void chfsmclist_node_del(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 {
     CHFSMCLIST_NODE *node;
- 
+
     node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
     ASSERT(CHFSMCLIST_NODE_USED == CHFSMCLIST_NODE_USED_FLAG(node));
 
@@ -41,7 +41,7 @@ void chfsmclist_node_del(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
         CHFSMCLIST_NODE *left_node;
 
         left_node = CHFSMCLIST_FETCH_NODE(chfsmclist, CHFSMCLIST_NODE_LEFT_POS(node));
-        CHFSMCLIST_NODE_RIGHT_POS(left_node) = CHFSMCLIST_NODE_RIGHT_POS(node); 
+        CHFSMCLIST_NODE_RIGHT_POS(left_node) = CHFSMCLIST_NODE_RIGHT_POS(node);
     }
 
     if(CHFSMCLIST_TAIL(chfsmclist) == node_pos)
@@ -53,16 +53,16 @@ void chfsmclist_node_del(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
         CHFSMCLIST_NODE *right_node;
 
         right_node = CHFSMCLIST_FETCH_NODE(chfsmclist, CHFSMCLIST_NODE_RIGHT_POS(node));
-        CHFSMCLIST_NODE_LEFT_POS(right_node) = CHFSMCLIST_NODE_LEFT_POS(node); 
-    } 
- 
+        CHFSMCLIST_NODE_LEFT_POS(right_node) = CHFSMCLIST_NODE_LEFT_POS(node);
+    }
+
     CHFSMCLIST_NODE_LEFT_POS(node)  = CHFSMCLIST_ERR_POS;
     CHFSMCLIST_NODE_RIGHT_POS(node) = CHFSMCLIST_ERR_POS;
 
     CHFSMCLIST_NODE_USED_FLAG(node) = CHFSMCLIST_NODE_NOT_USED;
 
     CHFSMCLIST_NODE_USED_NUM(chfsmclist) --;
-    return; 
+    return;
 }
 
 void chfsmclist_node_add_head(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
@@ -83,11 +83,11 @@ void chfsmclist_node_add_head(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
         CHFSMCLIST_NODE *left_node;
 
         left_node = CHFSMCLIST_FETCH_NODE(chfsmclist, CHFSMCLIST_HEAD(chfsmclist));
-     
+
         CHFSMCLIST_NODE_LEFT_POS(new_node)  = CHFSMCLIST_ERR_POS;
         CHFSMCLIST_NODE_RIGHT_POS(new_node) = CHFSMCLIST_HEAD(chfsmclist);
         CHFSMCLIST_NODE_LEFT_POS(left_node) = node_pos;
-        CHFSMCLIST_HEAD(chfsmclist)         = node_pos; 
+        CHFSMCLIST_HEAD(chfsmclist)         = node_pos;
     }
 
     if(CHFSMCLIST_ERR_POS == CHFSMCLIST_TAIL(chfsmclist))
@@ -96,7 +96,7 @@ void chfsmclist_node_add_head(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
     }
 
     CHFSMCLIST_NODE_USED_FLAG(new_node) = CHFSMCLIST_NODE_USED;
- 
+
     CHFSMCLIST_NODE_USED_NUM(chfsmclist) ++;
     return;
 }
@@ -119,11 +119,11 @@ void chfsmclist_node_add_tail(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
         CHFSMCLIST_NODE *right_node;
 
         right_node = CHFSMCLIST_FETCH_NODE(chfsmclist, CHFSMCLIST_TAIL(chfsmclist));
-     
+
         CHFSMCLIST_NODE_LEFT_POS(new_node)    = CHFSMCLIST_TAIL(chfsmclist);
         CHFSMCLIST_NODE_RIGHT_POS(new_node)   = CHFSMCLIST_ERR_POS;
         CHFSMCLIST_NODE_RIGHT_POS(right_node) = node_pos;
-        CHFSMCLIST_TAIL(chfsmclist)       = node_pos; 
+        CHFSMCLIST_TAIL(chfsmclist)       = node_pos;
     }
 
     if(CHFSMCLIST_ERR_POS == CHFSMCLIST_HEAD(chfsmclist))
@@ -132,7 +132,7 @@ void chfsmclist_node_add_tail(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
     }
 
     CHFSMCLIST_NODE_USED_FLAG(new_node) = CHFSMCLIST_NODE_USED;
- 
+
     CHFSMCLIST_NODE_USED_NUM(chfsmclist) ++;
     return;
 }
@@ -140,7 +140,7 @@ void chfsmclist_node_add_tail(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 EC_BOOL chfsmclist_node_new(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 {
     CHFSMCLIST_NODE *node;
- 
+
     node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -173,7 +173,7 @@ EC_BOOL chfsmclist_node_new(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 EC_BOOL chfsmclist_node_free(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 {
     CHFSMCLIST_NODE *node;
- 
+
     node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -207,13 +207,13 @@ void chfsmclist_node_init(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
 {
     CHFSMCLIST_NODE *node;
 
-    node  = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos); 
+    node  = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CHFSMCLIST_NODE_RIGHT_POS(node)  = CHFSMCLIST_ERR_POS;
     CHFSMCLIST_NODE_LEFT_POS(node)   = CHFSMCLIST_ERR_POS;
     CHFSMCLIST_NODE_USED_FLAG(node)  = CHFSMCLIST_NODE_NOT_USED;
- 
+
     return;
 }
 
@@ -222,10 +222,10 @@ void chfsmclist_node_clean(CHFSMCLIST *chfsmclist, const uint32_t node_pos)
     CHFSMCLIST_NODE *node;
 
     ASSERT(node_pos < CHFSMCLIST_NODE_MAX_NUM(chfsmclist));
- 
+
     node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CHFSMCLIST_NODE_RIGHT_POS(node)  = CHFSMCLIST_ERR_POS;
     CHFSMCLIST_NODE_LEFT_POS(node)   = CHFSMCLIST_ERR_POS;
     CHFSMCLIST_NODE_USED_FLAG(node)  = CHFSMCLIST_NODE_NOT_USED;
@@ -271,7 +271,7 @@ EC_BOOL chfsmclist_node_lru_update(CHFSMCLIST *chfsmclist, const uint32_t node_p
             chfsmclist_node_add_head(chfsmclist, node_pos);
         }
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -347,7 +347,7 @@ CHFSMCLIST *chfsmclist_new(const uint32_t max_num)
 {
     CHFSMCLIST *chfsmclist;
     uint32_t size;
- 
+
     size = sizeof(CHFSMCLIST) + max_num * sizeof(CHFSMCLIST_NODE);
 
     chfsmclist = (CHFSMCLIST *)safe_malloc(size, LOC_CHFSMCLIST_0001);
@@ -425,7 +425,7 @@ void chfsmclist_print(LOG *log, const CHFSMCLIST *chfsmclist)
     while(CHFSMCLIST_ERR_POS != node_pos)
     {
         CHFSMCLIST_NODE *node;
-     
+
         chfsmclist_node_print(log, chfsmclist, node_pos);
 
         node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
@@ -449,7 +449,7 @@ void chfsmclist_print_tail(LOG *log, const CHFSMCLIST *chfsmclist)
     while(CHFSMCLIST_ERR_POS != node_pos)
     {
         CHFSMCLIST_NODE *node;
-     
+
         chfsmclist_node_print(log, chfsmclist, node_pos);
 
         node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);

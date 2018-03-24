@@ -71,15 +71,15 @@ EC_BOOL crfsmc_init(CRFSMC *crfsmc, const UINT32 crfs_md_id, const uint32_t np_i
     CPGD              *cpgd;
     CRFSMCLIST        *mclist;
     uint32_t           mclist_max_num;
-    UINT32             mcache_size;        
+    UINT32             mcache_size;
 
     crfsnp = crfsnp_mem_create(np_id, np_model, hash_2nd_algo_id);
     if(NULL_PTR == crfsnp)
     {
         dbg_log(SEC_0140_CRFSMC, 0)(LOGSTDOUT, "error:crfsmc_init: create mem np %u with model %u, hash %u failed\n",
-                           np_id, np_model, hash_2nd_algo_id);     
+                           np_id, np_model, hash_2nd_algo_id);
         return (EC_FALSE);
-    } 
+    }
 
     cpgd = cpgd_mem_new(block_num);
     if(NULL_PTR == cpgd)
@@ -109,7 +109,7 @@ EC_BOOL crfsmc_init(CRFSMC *crfsmc, const UINT32 crfs_md_id, const uint32_t np_i
         cpgd_mem_free(cpgd);
         crfsnp_mem_free(crfsnp);
         return (EC_FALSE);
-    } 
+    }
 
     CRFSMC_CRFS_MD_ID(crfsmc) = crfs_md_id;
     CRFSMC_NP(crfsmc)         = crfsnp;
@@ -141,13 +141,13 @@ EC_BOOL crfsmc_clean(CRFSMC *crfsmc)
     {
         crfsmclist_free(CRFSMC_LIST(crfsmc));
         CRFSMC_LIST(crfsmc) = NULL_PTR;
-    } 
+    }
 
     if(NULL_PTR != CRFSMC_MCACHE(crfsmc))
     {
         safe_free(CRFSMC_MCACHE(crfsmc), LOC_CRFSMC_0005);
         CRFSMC_MCACHE(crfsmc) = NULL_PTR;
-    } 
+    }
 
     CRFSMC_CLEAN_LOCK(crfsmc, LOC_CRFSMC_0006);
 
@@ -184,10 +184,10 @@ CRFSNP_FNODE *crfsmc_reserve_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path
     }
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_reserve_np_no_lock: insert file %s to node_pos %u done\n",
-                        (char *)cstring_get_str(file_path), node_pos_t); 
+                        (char *)cstring_get_str(file_path), node_pos_t);
 
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos_t);
- 
+
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_reserve_np_no_lock: set mem np end\n");
 
     if(CRFSNP_ITEM_FILE_IS_REG != CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
@@ -207,7 +207,7 @@ CRFSNP_FNODE *crfsmc_reserve_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path
 
     (*node_pos) = node_pos_t;
 
-    /*not import yet*/ 
+    /*not import yet*/
     return CRFSNP_ITEM_FNODE(crfsnp_item);
 }
 
@@ -223,7 +223,7 @@ EC_BOOL crfsmc_release_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path)
                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -232,7 +232,7 @@ EC_BOOL crfsmc_reserve_dn_no_lock(CRFSMC *crfsmc, const uint32_t size, uint16_t 
     CPGD *cpgd;
 
     cpgd = CRFSMC_PGD(crfsmc);
- 
+
     if(EC_FALSE == cpgd_new_space(cpgd, size, block_no, page_no))
     {
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDERR, "error:crfsmc_reserve_dn_no_lock: reserve size %u failed\n", size);
@@ -247,7 +247,7 @@ EC_BOOL crfsmc_release_dn_no_lock(CRFSMC *crfsmc, const uint32_t size, const uin
     CPGD *cpgd;
 
     cpgd = CRFSMC_PGD(crfsmc);
- 
+
     if(EC_FALSE == cpgd_free_space(cpgd, block_no, page_no, size))
     {
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDOUT, "error:crfsmc_release_dn_no_lock: release space of block_no %u, page_no %u, size %u failed\n",
@@ -257,7 +257,7 @@ EC_BOOL crfsmc_release_dn_no_lock(CRFSMC *crfsmc, const uint32_t size, const uin
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsmc_release_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode)
+STATIC_CAST static EC_BOOL __crfsmc_release_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode)
 {
     const CRFSNP_INODE *crfsnp_inode;
 
@@ -274,7 +274,7 @@ static EC_BOOL __crfsmc_release_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *c
 EC_BOOL crfsmc_import_dn_no_lock(CRFSMC *crfsmc, const CBYTES *cbytes, const CRFSNP_FNODE *crfsnp_fnode)
 {
     const CRFSNP_INODE *crfsnp_inode;
- 
+
     uint32_t size;
     uint16_t block_no;
     uint16_t page_no;
@@ -285,8 +285,8 @@ EC_BOOL crfsmc_import_dn_no_lock(CRFSMC *crfsmc, const CBYTES *cbytes, const CRF
 
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     block_no = CRFSNP_INODE_BLOCK_NO(crfsnp_inode);
-    page_no  = CRFSNP_INODE_PAGE_NO(crfsnp_inode) ;     
- 
+    page_no  = CRFSNP_INODE_PAGE_NO(crfsnp_inode) ;
+
     offset  = ((UINT32)(block_no)) * (CPGB_064MB_PAGE_NUM << CPGB_PAGE_BIT_SIZE)
             + (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
     BCOPY(CBYTES_BUF(cbytes), CRFSMC_MCACHE(crfsmc) + offset, size);
@@ -332,13 +332,13 @@ EC_BOOL crfsmc_room_is_ok_no_lock(CRFSMC *crfsmc, const REAL level)
 EC_BOOL crfsmc_write_dn_no_lock(CRFSMC *crfsmc, CRFSNP_FNODE *crfsnp_fnode, const CBYTES *cbytes, const uint8_t *md5sum)
 {
     CRFSNP_INODE *crfsnp_inode;
- 
+
     uint32_t size;
     uint16_t block_no;
-    uint16_t page_no; 
+    uint16_t page_no;
 
     UINT32   offset;
- 
+
     size = (uint32_t)cbytes_len(cbytes);
 
     if(EC_FALSE == crfsmc_reserve_dn_no_lock(crfsmc, size, &block_no, &page_no))
@@ -355,7 +355,7 @@ EC_BOOL crfsmc_write_dn_no_lock(CRFSMC *crfsmc, CRFSNP_FNODE *crfsnp_fnode, cons
     {
         BCOPY(md5sum, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN);
     }
- 
+
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     CRFSNP_INODE_CACHE_FLAG(crfsnp_inode) = CRFSDN_DATA_NOT_IN_CACHE;
     CRFSNP_INODE_DISK_NO(crfsnp_inode)    = CRFSMC_DISK_NO;
@@ -367,7 +367,7 @@ EC_BOOL crfsmc_write_dn_no_lock(CRFSMC *crfsmc, CRFSNP_FNODE *crfsnp_fnode, cons
             + (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_write_dn_no_lock: size %u, block %u, page %u, offset %ld\n",
-                       size, block_no, page_no, offset);         
+                       size, block_no, page_no, offset);
     BCOPY(CBYTES_BUF(cbytes), CRFSMC_MCACHE(crfsmc) + offset, size);
 
     return (EC_TRUE);
@@ -397,7 +397,7 @@ EC_BOOL crfsmc_write_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CBY
 
     /*add to memcache*/
     crfsmclist_node_add_head(CRFSMC_LIST(crfsmc), node_pos);
-                        
+
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_write_no_lock: write to mem cache at %u done\n", node_pos);
 
     return (EC_TRUE);
@@ -410,7 +410,7 @@ EC_BOOL crfsmc_read_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, CRFSNP_
     uint32_t node_pos_t;
 
     crfsnp = CRFSMC_NP(crfsmc);
- 
+
     node_pos_t = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_REG);
     if(CRFSNPRB_ERR_POS != node_pos_t)
     {
@@ -445,12 +445,12 @@ EC_BOOL crfsmc_check_np(CRFSMC *crfsmc, const CSTRING *file_path)
     uint32_t node_pos_t;
 
     CRFSMC_RDLOCK(crfsmc, LOC_CRFSMC_0008);
- 
+
     crfsnp = CRFSMC_NP(crfsmc);
     node_pos_t = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_REG);
 
     if(CRFSNPRB_ERR_POS != node_pos_t) /* file is in memcache */
-    {     
+    {
         CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0009);
         return (EC_TRUE);
     }
@@ -484,8 +484,8 @@ EC_BOOL crfsmc_read_e_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnod
     if((*store_offset) >= file_size)
     {
         dbg_log(SEC_0140_CRFSMC, 0)(LOGSTDOUT, "error:crfsmc_read_e_dn_no_lock: read file failed due to offset %ld overflow file size %ld\n",
-                           (*store_offset), file_size); 
-        return (EC_FALSE);                        
+                           (*store_offset), file_size);
+        return (EC_FALSE);
     }
 
     if((*store_offset) + store_size >= file_size)
@@ -517,8 +517,8 @@ EC_BOOL crfsmc_read_e_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnod
     CBYTES_LEN(cbytes) = max_len;
 
     (*store_offset) += max_len;
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsmc_read_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode, CBYTES *cbytes)
@@ -535,7 +535,7 @@ EC_BOOL crfsmc_read_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode,
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     block_no = CRFSNP_INODE_BLOCK_NO(crfsnp_inode);
     page_no  = CRFSNP_INODE_PAGE_NO(crfsnp_inode) ;
-                        
+
     /*export data from memcache*/
     offset  = ((UINT32)(block_no)) * (CPGB_064MB_PAGE_NUM << CPGB_PAGE_BIT_SIZE)
             + (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
@@ -553,8 +553,8 @@ EC_BOOL crfsmc_read_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode,
 
     BCOPY(CRFSMC_MCACHE(crfsmc) + offset, CBYTES_BUF(cbytes), file_size);
     CBYTES_LEN(cbytes) = file_size;
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 
@@ -578,7 +578,7 @@ EC_BOOL crfsmc_read_e_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, UINT32 *
         return (EC_FALSE);
     }
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsmc_file_size_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, uint64_t *file_size)
@@ -587,19 +587,19 @@ EC_BOOL crfsmc_file_size_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, uint6
     uint64_t cur_file_size;
 
     EC_BOOL ret;
- 
+
     crfsnp = CRFSMC_NP(crfsmc);
- 
+
     ret = crfsnp_file_size(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cur_file_size);
     if(EC_FALSE== ret)
     {
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDOUT, "error:crfsmc_file_size_no_lock: get size of file %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    } 
+    }
 
     (*file_size) = cur_file_size;
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsmc_read_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, CBYTES *cbytes)
@@ -614,7 +614,7 @@ EC_BOOL crfsmc_read_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, CBYTES *cb
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == crfsmc_read_dn_no_lock(crfsmc, &crfsnp_fnode, cbytes))
     {
         dbg_log(SEC_0140_CRFSMC, 1)(LOGSTDOUT, "error:crfsmc_read_dn_no_lock: read file %s from dn failed\n",
@@ -622,7 +622,7 @@ EC_BOOL crfsmc_read_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, CBYTES *cb
         return (EC_FALSE);
     }
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsmc_update_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CBYTES *cbytes, const uint8_t *md5sum)
@@ -632,7 +632,7 @@ EC_BOOL crfsmc_update_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CB
     CRFSNP_FNODE *crfsnp_fnode;
 
     uint32_t node_pos;
- 
+
     if(EC_FALSE == crfsmc_read_np_no_lock(crfsmc, file_path, NULL_PTR, &node_pos))
     {
          /*
@@ -640,7 +640,7 @@ EC_BOOL crfsmc_update_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CB
           * discard the lru node if needed
           */
         crfsmc_ensure_room_safe_level_no_lock(crfsmc);/*LRU retire & recycle*/
-     
+
         return crfsmc_write_no_lock(crfsmc, file_path, cbytes, md5sum);
     }
 
@@ -653,16 +653,16 @@ EC_BOOL crfsmc_update_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CB
      * and try to write dn
      */
     crfsnp = CRFSMC_NP(crfsmc);
- 
+
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
     crfsnp_fnode = CRFSNP_ITEM_FNODE(crfsnp_item);
- 
+
     __crfsmc_release_dn_no_lock(crfsmc, crfsnp_fnode);
 
     if(EC_FALSE == crfsmc_write_dn_no_lock(crfsmc, crfsnp_fnode, cbytes, md5sum))
     {
         CRFSMCLIST *crfsmclist;
-     
+
         dbg_log(SEC_0140_CRFSMC, 0)(LOGSTDOUT, "error:crfsmc_update_dn_no_lock: update file %s to dn failed\n",
                            (char *)cstring_get_str(file_path));
 
@@ -674,31 +674,31 @@ EC_BOOL crfsmc_update_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const CB
          * Because dn has been released and new content should be written to dn, but it failed,
          * so np should also remove from mem cache, right?
          */
-     
+
         crfsmclist = CRFSMC_LIST(crfsmc);
-     
+
         crfsmclist_pop_head(crfsmclist);
-     
+
         /* np is got by crfsmc_reserve_np_no_lock, when data first written to mem cache */
         crfsmc_release_np_no_lock(crfsmc, file_path);
-     
+
         return (EC_FALSE);
     }
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 /*recycle from crfsmclist if need*/
-static EC_BOOL __crfsmc_recycle_np_no_lock(CRFSMC *crfsmc, const uint32_t node_pos)
+STATIC_CAST static EC_BOOL __crfsmc_recycle_np_no_lock(CRFSMC *crfsmc, const uint32_t node_pos)
 {
     CRFSNP      *crfsnp;
     CRFSMCLIST  *crfsmclist;
- 
+
     CRFSNP_ITEM *crfsnp_item;
 
     crfsnp     = CRFSMC_NP(crfsmc);
     crfsmclist = CRFSMC_LIST(crfsmc);
- 
+
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
     if(NULL_PTR == crfsnp_item)
     {
@@ -722,8 +722,8 @@ static EC_BOOL __crfsmc_recycle_np_no_lock(CRFSMC *crfsmc, const uint32_t node_p
     if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
         return (EC_FALSE);
-    } 
- 
+    }
+
     return (EC_FALSE);
 }
 
@@ -738,19 +738,19 @@ EC_BOOL crfsmc_delete_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UI
     if(CRFSNPRB_ERR_POS != node_pos)
     {
         UINT32  complete_num;
-     
+
         crfsnp_umount_item_deep(crfsnp, node_pos);
-     
+
         complete_num = 0;
         crfsmc_recycle_no_lock(crfsmc, CRFSMC_RECYCLE_MAX_NUM, &complete_num);
         dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_no_lock: delete path %s with dflag %ld and recycle %ld done\n",
                            (char *)cstring_get_str(file_path), dflag, complete_num);
-        return (EC_TRUE);                        
+        return (EC_TRUE);
     }
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_no_lock: not found path %s with dflag %ld\n",
                    (char *)cstring_get_str(file_path), dflag);
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsmc_delete_wildcard_no_lock(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
@@ -764,19 +764,19 @@ EC_BOOL crfsmc_delete_wildcard_no_lock(CRFSMC *crfsmc, const CSTRING *file_path,
     if(CRFSNPRB_ERR_POS != node_pos)
     {
         UINT32  complete_num;
-     
+
         crfsnp_umount_item_deep(crfsnp, node_pos);
-     
+
         complete_num = 0;
         crfsmc_recycle_no_lock(crfsmc, CRFSMC_RECYCLE_MAX_NUM, &complete_num);
         dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard_no_lock: delete path %s with dflag %ld and recycle %ld done\n",
                            (char *)cstring_get_str(file_path), dflag, complete_num);
-        return (EC_TRUE);                        
+        return (EC_TRUE);
     }
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard_no_lock: not found path %s with dflag %ld\n",
                    (char *)cstring_get_str(file_path), dflag);
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 
@@ -793,9 +793,9 @@ EC_BOOL crfsmc_retire_no_lock(CRFSMC *crfsmc)
     node_pos = crfsmclist_pop_tail(crfsmclist);
 
     if(CRFSMCLIST_ERR_POS != node_pos)
-    {     
+    {
         UINT32  complete_num;
-     
+
         crfsnp_umount_item_deep(crfsnp, node_pos);
 
         complete_num = 0;
@@ -822,8 +822,8 @@ EC_BOOL crfsmc_recycle_no_lock(CRFSMC *crfsmc, const UINT32 max_num, UINT32 *com
     CRFSNP_RECYCLE_DN_FUNC(&crfsnp_recycle_dn)   = (CRFSNP_RECYCLE_DN_FUNC)__crfsmc_release_dn_no_lock;
 
     CRFSNP_RECYCLE_NP_ARG1(&crfsnp_recycle_np)   = (UINT32)crfsmc;
-    CRFSNP_RECYCLE_NP_FUNC(&crfsnp_recycle_np)   = (CRFSNP_RECYCLE_NP_FUNC)__crfsmc_recycle_np_no_lock; 
- 
+    CRFSNP_RECYCLE_NP_FUNC(&crfsnp_recycle_np)   = (CRFSNP_RECYCLE_NP_FUNC)__crfsmc_recycle_np_no_lock;
+
     if(EC_FALSE == crfsnp_recycle(crfsnp, max_num, &crfsnp_recycle_np, &crfsnp_recycle_dn, complete_num))
     {
         dbg_log(SEC_0140_CRFSMC, 0)(LOGSTDOUT, "error:crfsmc_recycle_no_lock: recycle failed\n");
@@ -843,9 +843,9 @@ EC_BOOL crfsmc_write(CRFSMC *crfsmc, const CSTRING *file_path, const CBYTES *cby
         return (EC_FALSE);
     }
     CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0017);
- 
+
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_write: write %s with %ld bytes done\n",
-                       (char *)cstring_get_str(file_path), cbytes_len(cbytes)); 
+                       (char *)cstring_get_str(file_path), cbytes_len(cbytes));
 
     return (EC_TRUE);
 }
@@ -864,7 +864,7 @@ EC_BOOL crfsmc_read(CRFSMC *crfsmc, const CSTRING *file_path, CBYTES *cbytes)
 
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_read: read %s with %ld bytes done\n",
                        (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-                    
+
     return (EC_TRUE);
 }
 
@@ -943,16 +943,16 @@ EC_BOOL crfsmc_delete(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dfl
 EC_BOOL crfsmc_delete_wildcard(CRFSMC *crfsmc, const CSTRING *file_path, const UINT32 dflag)
 {
     UINT32 count;
-    
+
     dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard: delete %s start ...\n",
                        (char *)cstring_get_str(file_path));
-                       
+
     count = 0;
     CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0033);
     while(EC_TRUE == crfsmc_delete_wildcard_no_lock(crfsmc, file_path, dflag))
     {
         count ++;
-        
+
         dbg_log(SEC_0140_CRFSMC, 9)(LOGSTDOUT, "[DEBUG] crfsmc_delete_wildcard: delete %s: %ld\n",
                            (char *)cstring_get_str(file_path), count);
     }
@@ -998,12 +998,12 @@ void crfsmc_print(LOG *log, const CRFSMC *crfsmc)
 {
     sys_print(log, "crfsmc_print: crfsmc %p: crfs_md_id %ld, crfsnp %p, cpgd %p, crfsmclist %p, mcache %p\n",
              crfsmc, CRFSMC_CRFS_MD_ID(crfsmc), CRFSMC_NP(crfsmc), CRFSMC_PGD(crfsmc), CRFSMC_LIST(crfsmc), CRFSMC_MCACHE(crfsmc));
-          
-    sys_print(log, "crfsmc_print: crfsmc %p: crfsnp %p:\n", crfsmc, CRFSMC_NP(crfsmc));          
+
+    sys_print(log, "crfsmc_print: crfsmc %p: crfsnp %p:\n", crfsmc, CRFSMC_NP(crfsmc));
     crfsnp_print(log, CRFSMC_NP(crfsmc));
 
     sys_print(log, "crfsmc_print: crfsmc %p: cpgd %p:\n", crfsmc, CRFSMC_PGD(crfsmc));
-    cpgd_print(log, CRFSMC_PGD(crfsmc)); 
+    cpgd_print(log, CRFSMC_PGD(crfsmc));
 
     sys_print(log, "crfsmc_print: crfsmc %p: crfsmclist %p:\n", crfsmc, CRFSMC_LIST(crfsmc));
     crfsmclist_print(log, CRFSMC_LIST(crfsmc));
@@ -1013,13 +1013,13 @@ void crfsmc_print(LOG *log, const CRFSMC *crfsmc)
 
 EC_BOOL crfsmc_ensure_room_safe_level(CRFSMC *crfsmc)
 {
-    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0041); 
+    CRFSMC_WRLOCK(crfsmc, LOC_CRFSMC_0041);
     if(EC_FALSE == crfsmc_ensure_room_safe_level_no_lock(crfsmc))
     {
         CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0042);
         return (EC_FALSE);
     }
- 
+
     CRFSMC_UNLOCK(crfsmc, LOC_CRFSMC_0043);
     return (EC_TRUE);
 }
@@ -1029,14 +1029,14 @@ EC_BOOL crfsmc_ensure_room_safe_level_no_lock(CRFSMC *crfsmc)
     uint32_t retire_times;
 
     retire_times = 0;
-   
+
     while(EC_FALSE == crfsmc_room_is_ok_no_lock(crfsmc, CRFSMC_ROOM_SAFE_LEVEL))
     {
         if(EC_FALSE == crfsmc_retire_no_lock(crfsmc)) /* retire & recycle, always return EC_TRUE */
         {
             /* will never reach here */
             crfsmc_recycle_no_lock(crfsmc, CRFSMC_RECYCLE_MAX_NUM, NULL_PTR);
-         
+
             dbg_log(SEC_0140_CRFSMC, 0)(LOGSTDOUT, "error:crfsmc_ensure_room_safe_level_no_lock: retire failed\n");
             return (EC_FALSE);
         }

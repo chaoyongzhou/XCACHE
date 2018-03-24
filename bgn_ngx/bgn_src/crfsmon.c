@@ -122,7 +122,7 @@ UINT32 crfsmon_start()
     task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CRFSMON , 32);
- 
+
     crfsmon_md_id = cbc_md_new(MD_CRFSMON, sizeof(CRFSMON_MD));
     if(CMPI_ERROR_MODI == crfsmon_md_id)
     {
@@ -134,7 +134,7 @@ UINT32 crfsmon_start()
     crfsmon_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem(); 
+    init_static_mem();
 
     /*initialize CRFS_NODE vector*/
     cvector_init(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md), 16, MM_CRFS_NODE, CVECTOR_LOCK_DISABLE, LOC_CRFSMON_0001);
@@ -149,25 +149,25 @@ UINT32 crfsmon_start()
     }
 
     CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md) = chash_algo_fetch(CRFSMON_HOT_PATH_HASH_ALGO);
-    
+
     /*initialize HOT PATH RB TREE*/
     crb_tree_init(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md),
                     (CRB_DATA_CMP)crfs_hot_path_cmp,
                     (CRB_DATA_FREE)crfs_hot_path_free,
-                    (CRB_DATA_PRINT)crfs_hot_path_print);    
+                    (CRB_DATA_PRINT)crfs_hot_path_print);
 
     crfsmon_md->usedcounter = 1;
 
-    tasks_cfg_push_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
-                                       (const char *)"crfsmon_callback_when_add", 
-                                       crfsmon_md_id, 
+    tasks_cfg_push_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
+                                       (const char *)"crfsmon_callback_when_add",
+                                       crfsmon_md_id,
                                        (UINT32)crfsmon_callback_when_add);
 
-    tasks_cfg_push_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
-                                       (const char *)"crfsmon_callback_when_del", 
-                                       crfsmon_md_id, 
+    tasks_cfg_push_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
+                                       (const char *)"crfsmon_callback_when_del",
+                                       crfsmon_md_id,
                                        (UINT32)crfsmon_callback_when_del);
-                                       
+
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsmon_end, crfsmon_md_id);
 
     dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_start: start CRFSMON module #%ld\n", crfsmon_md_id);
@@ -214,7 +214,7 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_end: crfsmon_md_id = %ld not exist.\n", crfsmon_md_id);
         dbg_exit(MD_CRFSMON, crfsmon_md_id);
     }
- 
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < crfsmon_md->usedcounter )
     {
@@ -238,16 +238,16 @@ void crfsmon_end(const UINT32 crfsmon_md_id)
     CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md) = NULL_PTR;
     crb_tree_clean(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
 
-    tasks_cfg_erase_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
-                                      (const char *)"crfsmon_callback_when_add", 
-                                      crfsmon_md_id, 
+    tasks_cfg_erase_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
+                                      (const char *)"crfsmon_callback_when_add",
+                                      crfsmon_md_id,
                                       (UINT32)crfsmon_callback_when_add);
 
-    tasks_cfg_erase_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd), 
-                                      (const char *)"crfsmon_callback_when_del", 
-                                      crfsmon_md_id, 
+    tasks_cfg_erase_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
+                                      (const char *)"crfsmon_callback_when_del",
+                                      crfsmon_md_id,
                                       (UINT32)crfsmon_callback_when_del);
- 
+
     /* free module : */
 
     crfsmon_md->usedcounter = 0;
@@ -278,7 +278,7 @@ EC_BOOL crfs_node_init(CRFS_NODE *crfs_node)
         CRFS_NODE_PORT(crfs_node)   = CMPI_ERROR_SRVPORT;
         CRFS_NODE_MODI(crfs_node)   = CMPI_ERROR_MODI;
         CRFS_NODE_STATE(crfs_node)  = CRFS_NODE_IS_ERR;
-     
+
     }
     return (EC_TRUE);
 }
@@ -292,7 +292,7 @@ EC_BOOL crfs_node_clean(CRFS_NODE *crfs_node)
         CRFS_NODE_PORT(crfs_node)   = CMPI_ERROR_SRVPORT;
         CRFS_NODE_MODI(crfs_node)   = CMPI_ERROR_MODI;
         CRFS_NODE_STATE(crfs_node)  = CRFS_NODE_IS_ERR;
-     
+
     }
     return (EC_TRUE);
 }
@@ -357,7 +357,7 @@ EC_BOOL crfs_node_is_valid(const CRFS_NODE *crfs_node)
     if(CRFS_NODE_IS_ERR == CRFS_NODE_STATE(crfs_node))
     {
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -433,7 +433,7 @@ void crfsmon_crfs_node_print(const UINT32 crfsmon_md_id, LOG *log)
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     cvector_print(log, CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md), (CVECTOR_DATA_PRINT)crfs_node_print);
- 
+
     return;
 }
 
@@ -475,12 +475,12 @@ void crfsmon_crfs_node_list(const UINT32 crfsmon_md_id, CSTRING *cstr)
                     );
 
         dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_node_list: [%ld] cstr:\n%.*s\n", pos,
-                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));  
-                     
+                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));
+
     }
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_node_list: list result:\n%.*s\n",
-                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));  
+                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));
     return;
 }
 
@@ -574,8 +574,8 @@ EC_BOOL crfsmon_crfs_node_add(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                 CRFS_NODE_MODI(crfs_node),
                 crfs_node_state(crfs_node)
                 );
-             
-        return (EC_FALSE);             
+
+        return (EC_FALSE);
     }
 
     crfs_node_clone(crfs_node, crfs_node_t);
@@ -601,7 +601,7 @@ EC_BOOL crfsmon_crfs_node_add(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                             CRFS_NODE_MODI(crfs_node_t),
                             crfs_node_state(crfs_node_t)
                             );
-                         
+
             cvector_pop(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md));
             crfs_node_free(crfs_node_t);
             return (EC_FALSE);
@@ -614,7 +614,7 @@ EC_BOOL crfsmon_crfs_node_add(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                         c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                         CRFS_NODE_MODI(crfs_node_t),
                         crfs_node_state(crfs_node_t)
-                        );     
+                        );
     }
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT,
@@ -624,7 +624,7 @@ EC_BOOL crfsmon_crfs_node_add(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                     c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                     CRFS_NODE_MODI(crfs_node_t),
                     crfs_node_state(crfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -691,7 +691,7 @@ EC_BOOL crfsmon_crfs_node_del(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                             c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                             CRFS_NODE_MODI(crfs_node_t),
                             crfs_node_state(crfs_node_t)
-                            );     
+                            );
         }
     }
 
@@ -703,7 +703,7 @@ EC_BOOL crfsmon_crfs_node_del(const UINT32 crfsmon_md_id, const CRFS_NODE *crfs_
                     CRFS_NODE_MODI(crfs_node_t),
                     crfs_node_state(crfs_node_t)
                     );
-                 
+
     crfs_node_free(crfs_node_t);
     return (EC_TRUE);
 }
@@ -778,10 +778,10 @@ EC_BOOL crfsmon_crfs_node_set_up(const UINT32 crfsmon_md_id, const CRFS_NODE *cr
                             c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                             CRFS_NODE_MODI(crfs_node_t),
                             crfs_node_state(crfs_node_t)
-                            );     
+                            );
         }
     }
- 
+
     CRFS_NODE_STATE(crfs_node_t) = CRFS_NODE_IS_UP; /*set up*/
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT,
@@ -791,7 +791,7 @@ EC_BOOL crfsmon_crfs_node_set_up(const UINT32 crfsmon_md_id, const CRFS_NODE *cr
                     c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                     CRFS_NODE_MODI(crfs_node_t),
                     crfs_node_state(crfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -865,10 +865,10 @@ EC_BOOL crfsmon_crfs_node_set_down(const UINT32 crfsmon_md_id, const CRFS_NODE *
                             c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                             CRFS_NODE_MODI(crfs_node_t),
                             crfs_node_state(crfs_node_t)
-                            );     
+                            );
         }
     }
- 
+
     CRFS_NODE_STATE(crfs_node_t) = CRFS_NODE_IS_DOWN; /*set down*/
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT,
@@ -878,7 +878,7 @@ EC_BOOL crfsmon_crfs_node_set_down(const UINT32 crfsmon_md_id, const CRFS_NODE *
                     c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                     CRFS_NODE_MODI(crfs_node_t),
                     crfs_node_state(crfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -934,13 +934,13 @@ EC_BOOL crfsmon_crfs_node_is_up(const UINT32 crfsmon_md_id, const CRFS_NODE *crf
                     c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node_t)), CRFS_NODE_PORT(crfs_node_t),
                     CRFS_NODE_MODI(crfs_node_t),
                     crfs_node_state(crfs_node_t)
-                    ); 
-                 
+                    );
+
     if(CRFS_NODE_IS_UP == CRFS_NODE_STATE(crfs_node_t))
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -985,7 +985,7 @@ EC_BOOL crfsmon_crfs_node_get_by_pos(const UINT32 crfsmon_md_id, const UINT32 po
                     crfs_node_state(crfs_node_t),
                     pos
                     );
-                 
+
     crfs_node_clone(crfs_node_t, crfs_node);
     return (EC_TRUE);
 }
@@ -1045,7 +1045,7 @@ EC_BOOL crfsmon_crfs_node_get_by_tcid(const UINT32 crfsmon_md_id, const UINT32 t
                     );
 
     crfs_node_clone(crfs_node_searched, crfs_node);
-                 
+
     return (EC_TRUE);
 }
 
@@ -1095,7 +1095,7 @@ EC_BOOL crfsmon_crfs_node_get_by_hash(const UINT32 crfsmon_md_id, const UINT32 h
     {
         UINT32      num;
         UINT32      pos;
- 
+
         num  = cvector_size(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md));
 
         pos  = (hash % num);
@@ -1117,7 +1117,7 @@ EC_BOOL crfsmon_crfs_node_get_by_hash(const UINT32 crfsmon_md_id, const UINT32 h
                         crfs_node_state(crfs_node_t),
                         pos, hash
                         );
-                     
+
         crfs_node_clone(crfs_node_t, crfs_node);
     }
     return (EC_TRUE);
@@ -1141,33 +1141,33 @@ EC_BOOL crfsmon_crfs_node_set_start_pos(const UINT32 crfsmon_md_id, const UINT32
 EC_BOOL crfsmon_crfs_node_search_up(const UINT32 crfsmon_md_id, CRFS_NODE *crfs_node)
 {
     CRFSMON_MD *crfsmon_md;
-    
+
     UINT32      crfs_node_num;
     UINT32      crfs_node_pos;
 
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
-    
+
     crfs_node_num = cvector_size(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md));
     if(0 == crfs_node_num)
     {
         return (EC_FALSE);
-    }  
-  
+    }
+
     g_crfsmon_rfs_node_pos = (g_crfsmon_rfs_node_pos + 1) % crfs_node_num;
 
     for(crfs_node_pos = g_crfsmon_rfs_node_pos; crfs_node_pos < crfs_node_num; crfs_node_pos ++)
     {
         CRFS_NODE    *crfs_node_t;
-        
+
         crfs_node_t = cvector_get(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md), crfs_node_pos);
-        
-        if(NULL_PTR != crfs_node_t 
+
+        if(NULL_PTR != crfs_node_t
         && EC_TRUE == crfs_node_is_up(crfs_node_t))
         {
             crfs_node_clone(crfs_node_t, crfs_node);
             return (EC_TRUE);
         }
-    }  
+    }
 
     return (EC_FALSE);
 }
@@ -1175,9 +1175,9 @@ EC_BOOL crfsmon_crfs_node_search_up(const UINT32 crfsmon_md_id, CRFS_NODE *crfs_
 EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
     CRFSMON_MD *crfsmon_md;
-    
+
     CRFS_NODE   crfs_node;
-    
+
     TASK_BRD   *task_brd;
     TASKS_CFG  *tasks_cfg;
 
@@ -1196,22 +1196,22 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
 #endif/*CRFS_DEBUG_SWITCH*/
 
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
-    
+
     /*hot cache path*/
     dirname = c_dirname((char *)cstring_get_str(path));
     if(NULL_PTR == dirname)
     {
         return (EC_FALSE);
     }
-   
+
     cstring_set_str(&cache_path, (const UINT8 *)dirname);/*mount only*/
-    
+
     if(EC_FALSE == crfsmon_crfs_hot_path_exist(crfsmon_md_id, &cache_path))
     {
         safe_free(dirname, LOC_CRFSMON_0005);
         return (EC_FALSE);
     }
-    
+
     if(EC_FALSE == crfsmon_crfs_node_search_up(crfsmon_md_id, &crfs_node))
     {
         safe_free(dirname, LOC_CRFSMON_0006);
@@ -1224,7 +1224,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
                 c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)),
                 c_word_to_ipv4(CRFS_NODE_IPADDR(&crfs_node)), CRFS_NODE_PORT(&crfs_node),
                 CRFS_NODE_MODI(&crfs_node),
-                crfs_node_state(&crfs_node));          
+                crfs_node_state(&crfs_node));
 
     safe_free(dirname, LOC_CRFSMON_0007);
 
@@ -1236,7 +1236,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_store_http_srv_get: not searched tasks cfg of tcid %s\n",
                             c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
         return (EC_FALSE);
-    }    
+    }
 
     if(NULL_PTR != tcid)
     {
@@ -1259,10 +1259,10 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
 EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
     CRFSMON_MD *crfsmon_md;
-    
+
     CRFS_NODE   crfs_node;
     UINT32      hash;
-    
+
     TASK_BRD   *task_brd;
     TASKS_CFG  *tasks_cfg;
 
@@ -1293,7 +1293,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRIN
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_store_http_srv_get: get crfs_node with crfsmon_md_id %ld and hash %ld failed\n",
                     crfsmon_md_id, hash);
-                 
+
         crfs_node_clean(&crfs_node);
         return (EC_FALSE);
     }
@@ -1305,7 +1305,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRIN
                     c_word_to_ipv4(CRFS_NODE_IPADDR(&crfs_node)), CRFS_NODE_PORT(&crfs_node),
                     CRFS_NODE_MODI(&crfs_node),
                     crfs_node_state(&crfs_node));
- 
+
         crfs_node_clean(&crfs_node);
         return (EC_FALSE);
     }
@@ -1318,7 +1318,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRIN
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_store_http_srv_get: not searched tasks cfg of tcid %s\n",
                             c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
         return (EC_FALSE);
-    }    
+    }
 
     if(NULL_PTR != tcid)
     {
@@ -1343,7 +1343,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRIN
 EC_BOOL crfsmon_callback_when_add(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_node)
 {
     CRFSMON_MD *crfsmon_md;
-    
+
     UINT32      pos;
 
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
@@ -1362,7 +1362,7 @@ EC_BOOL crfsmon_callback_when_add(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
                         "tasks_node (tcid %s, srv %s:%ld)\n",
                         c_word_to_ipv4(TASKS_NODE_TCID(tasks_node)),
                         c_word_to_ipv4(TASKS_NODE_SRVIPADDR(tasks_node)), TASKS_NODE_SRVPORT(tasks_node));
-                        
+
     for(pos = 0; pos < cvector_size(CRFSMON_MD_CRFS_NODE_VEC(crfsmon_md)); pos ++)
     {
         CRFS_NODE  *crfs_node;
@@ -1380,7 +1380,7 @@ EC_BOOL crfsmon_callback_when_add(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
                             c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node)), CRFS_NODE_PORT(crfs_node),
                             CRFS_NODE_MODI(crfs_node),
                             crfs_node_state(crfs_node)
-                            );         
+                            );
             return crfsmon_crfs_node_set_up(crfsmon_md_id, crfs_node);
         }
     }
@@ -1392,7 +1392,7 @@ EC_BOOL crfsmon_callback_when_add(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
 EC_BOOL crfsmon_callback_when_del(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_node)
 {
     CRFSMON_MD *crfsmon_md;
-    
+
     UINT32      pos;
 
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
@@ -1434,7 +1434,7 @@ EC_BOOL crfsmon_callback_when_del(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
                             c_word_to_ipv4(CRFS_NODE_IPADDR(crfs_node)), CRFS_NODE_PORT(crfs_node),
                             CRFS_NODE_MODI(crfs_node),
                             crfs_node_state(crfs_node)
-                            );        
+                            );
             return crfsmon_crfs_node_set_down(crfsmon_md_id, crfs_node);
         }
     }
@@ -1445,7 +1445,7 @@ EC_BOOL crfsmon_callback_when_del(const UINT32 crfsmon_md_id, TASKS_NODE *tasks_
 CRFS_HOT_PATH *crfs_hot_path_new()
 {
     CRFS_HOT_PATH *crfs_hot_path;
-    
+
     alloc_static_mem(MM_CRFS_HOT_PATH, &crfs_hot_path, LOC_CRFSMON_0008);
     if(NULL_PTR != crfs_hot_path)
     {
@@ -1459,7 +1459,7 @@ EC_BOOL crfs_hot_path_init(CRFS_HOT_PATH *crfs_hot_path)
     if(NULL_PTR != crfs_hot_path)
     {
         CRFS_HOT_PATH_HASH(crfs_hot_path) = 0;
-        
+
         cstring_init(CRFS_HOT_PATH_CSTR(crfs_hot_path), NULL_PTR);
     }
     return (EC_TRUE);
@@ -1470,7 +1470,7 @@ EC_BOOL crfs_hot_path_clean(CRFS_HOT_PATH *crfs_hot_path)
     if(NULL_PTR != crfs_hot_path)
     {
         CRFS_HOT_PATH_HASH(crfs_hot_path) = 0;
-        
+
         cstring_clean(CRFS_HOT_PATH_CSTR(crfs_hot_path));
     }
     return (EC_TRUE);
@@ -1481,7 +1481,7 @@ EC_BOOL crfs_hot_path_free(CRFS_HOT_PATH *crfs_hot_path)
     if(NULL_PTR != crfs_hot_path)
     {
         crfs_hot_path_clean(crfs_hot_path);
-        
+
         free_static_mem(MM_CRFS_HOT_PATH, crfs_hot_path, LOC_CRFSMON_0009);
     }
 
@@ -1529,10 +1529,10 @@ EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *pat
     CRFSMON_MD      *crfsmon_md;
 
     CRB_NODE        *crb_node;
-    CRFS_HOT_PATH   *crfs_hot_path;    
+    CRFS_HOT_PATH   *crfs_hot_path;
 
     UINT8            path_last_char;
-    
+
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
     if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
     {
@@ -1552,7 +1552,7 @@ EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *pat
                                                 "path is null\n");
         return (EC_FALSE);
     }
-    
+
     if(EC_TRUE == cstring_is_empty(path))
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_add: "
@@ -1567,7 +1567,7 @@ EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *pat
                                                 "invalid path '%s'\n",
                                                 (char *)cstring_get_str(path));
         return (EC_FALSE);
-    }    
+    }
 
     crfs_hot_path = crfs_hot_path_new();
     if(NULL_PTR == crfs_hot_path)
@@ -1579,11 +1579,11 @@ EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *pat
 
     /*init*/
     CRFS_HOT_PATH_HASH(crfs_hot_path) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
-                                                            cstring_get_len(path), 
+                                                            cstring_get_len(path),
                                                             cstring_get_str(path));
-    
+
     cstring_clone(path, CRFS_HOT_PATH_CSTR(crfs_hot_path));
-    
+
     crb_node = crb_tree_insert_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)crfs_hot_path);
     if(NULL_PTR == crb_node)
     {
@@ -1591,21 +1591,21 @@ EC_BOOL crfsmon_crfs_hot_path_add(const UINT32 crfsmon_md_id, const CSTRING *pat
                                                 "add hot path '%s' failed\n",
                                                 (char *)cstring_get_str(path));
         crfs_hot_path_free(crfs_hot_path);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     if(CRB_NODE_DATA(crb_node) != crfs_hot_path)/*found duplicate*/
     {
         dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_add: "
                                                 "found duplicated hot path '%s'\n",
-                                                (char *)cstring_get_str(path));     
+                                                (char *)cstring_get_str(path));
         crfs_hot_path_free(crfs_hot_path);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_add: "
                                             "add hot path '%s' done\n",
-                                            (char *)cstring_get_str(path));     
+                                            (char *)cstring_get_str(path));
     return (EC_TRUE);
 }
 
@@ -1614,8 +1614,8 @@ EC_BOOL crfsmon_crfs_hot_path_del(const UINT32 crfsmon_md_id, const CSTRING *pat
     CRFSMON_MD      *crfsmon_md;
 
     CRB_NODE        *crb_node_searched;
-    CRFS_HOT_PATH    crfs_hot_path_t;    
-    
+    CRFS_HOT_PATH    crfs_hot_path_t;
+
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
     if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
     {
@@ -1630,9 +1630,9 @@ EC_BOOL crfsmon_crfs_hot_path_del(const UINT32 crfsmon_md_id, const CSTRING *pat
 
     /*init*/
     CRFS_HOT_PATH_HASH(&crfs_hot_path_t) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
-                                                            cstring_get_len(path), 
+                                                            cstring_get_len(path),
                                                             cstring_get_str(path));
-    
+
     cstring_set_str(CRFS_HOT_PATH_CSTR(&crfs_hot_path_t), cstring_get_str(path));
 
     crb_node_searched = crb_tree_search_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)&crfs_hot_path_t);
@@ -1648,7 +1648,7 @@ EC_BOOL crfsmon_crfs_hot_path_del(const UINT32 crfsmon_md_id, const CSTRING *pat
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_del: "
                                             "del hot path '%s' done\n",
-                                            (char *)cstring_get_str(path));    
+                                            (char *)cstring_get_str(path));
     return (EC_TRUE);
 }
 
@@ -1657,8 +1657,8 @@ EC_BOOL crfsmon_crfs_hot_path_exist(const UINT32 crfsmon_md_id, const CSTRING *p
     CRFSMON_MD      *crfsmon_md;
 
     CRB_NODE        *crb_node_searched;
-    CRFS_HOT_PATH    crfs_hot_path_t;    
-    
+    CRFS_HOT_PATH    crfs_hot_path_t;
+
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
     if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
     {
@@ -1678,9 +1678,9 @@ EC_BOOL crfsmon_crfs_hot_path_exist(const UINT32 crfsmon_md_id, const CSTRING *p
 
     /*init*/
     CRFS_HOT_PATH_HASH(&crfs_hot_path_t) = CRFSMON_MD_HOT_PATH_HASH_FUNC(crfsmon_md)(
-                                                            cstring_get_len(path), 
+                                                            cstring_get_len(path),
                                                             cstring_get_str(path));
-    
+
     cstring_set_str(CRFS_HOT_PATH_CSTR(&crfs_hot_path_t), cstring_get_str(path));
 
     crb_node_searched = crb_tree_search_data(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md), (void *)&crfs_hot_path_t);
@@ -1693,7 +1693,7 @@ EC_BOOL crfsmon_crfs_hot_path_exist(const UINT32 crfsmon_md_id, const CSTRING *p
     }
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_exist: "
                                             "found hot path '%s'\n",
-                                            (char *)cstring_get_str(path));    
+                                            (char *)cstring_get_str(path));
     return (EC_TRUE);
 }
 
@@ -1714,83 +1714,83 @@ void crfsmon_crfs_hot_path_print(const UINT32 crfsmon_md_id, LOG *log)
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     crb_tree_print(log, CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
- 
+
     return;
 }
 
 /*format: /<domain>/path */
-static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md_id, char *crfsmon_host_path_start, char *crfsmon_host_path_end)
+STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md_id, char *crfsmon_host_path_start, char *crfsmon_host_path_end)
 {
     CRFSMON_MD          *crfsmon_md;
-    
+
     char                *p;
     CSTRING              path;
-    
+
     crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     /*locate the first char which is not space*/
-    
-    for(p = crfsmon_host_path_start;isspace(*p); p ++) 
+
+    for(p = crfsmon_host_path_start;isspace(*p); p ++)
     {
         /*do nothing*/
-    }                               
-    
+    }
+
     if('\0' == (*p))
     {
         dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                                 "skip empty line '%.*s'\n",
-                                                (crfsmon_host_path_end - crfsmon_host_path_start), 
-                                                crfsmon_host_path_start);      
+                                                (crfsmon_host_path_end - crfsmon_host_path_start),
+                                                crfsmon_host_path_start);
         /*skip empty line*/
         return (EC_TRUE);
     }
-    
+
     if('#' == (*p))
     {
         /*skip commented line*/
         dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                                 "skip commented line '%.*s'\n",
-                                                (crfsmon_host_path_end - crfsmon_host_path_start), 
-                                                crfsmon_host_path_start);          
+                                                (crfsmon_host_path_end - crfsmon_host_path_start),
+                                                crfsmon_host_path_start);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                             "handle line '%.*s'\n",
-                                            (crfsmon_host_path_end - crfsmon_host_path_start), 
+                                            (crfsmon_host_path_end - crfsmon_host_path_start),
                                             crfsmon_host_path_start);
-                                            
+
     c_str_trim_space(p);
     cstring_set_str(&path, (const UINT8 *)p);
-    
+
     if(EC_FALSE == crfsmon_crfs_hot_path_add(crfsmon_md_id, &path))
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_line: "
                                                 "insert '%s' failed\n",
-                                                p);    
-        return (EC_FALSE);    
+                                                p);
+        return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0155_CRFSMON, 5)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                             "insert '%s' done\n",
-                                            p);    
+                                            p);
     return (EC_TRUE);
 }
 
-static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md_id, char *crfsmon_hot_path_start, char *crfsmon_hot_path_end)
+STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md_id, char *crfsmon_hot_path_start, char *crfsmon_hot_path_end)
 {
     char        *crfsmon_hot_path_line_start;
     uint32_t     crfsmon_hot_path_line_no;
 
     crfsmon_hot_path_line_start = crfsmon_hot_path_start;
     crfsmon_hot_path_line_no    = 1;
-    
+
     while(crfsmon_hot_path_line_start < crfsmon_hot_path_end)
     {
         char  *crfsmon_hot_path_line_end;
 
         crfsmon_hot_path_line_end = crfsmon_hot_path_line_start;
-        
+
         while(crfsmon_hot_path_line_end < crfsmon_hot_path_end)
         {
             if('\n' == (*crfsmon_hot_path_line_end ++)) /*also works for line-terminator '\r\n'*/
@@ -1808,25 +1808,25 @@ static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md_id, char *c
 
         dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
                                                 "to parse line %u# '%.*s' failed\n",
-                                                crfsmon_hot_path_line_no, 
-                                                (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start), 
+                                                crfsmon_hot_path_line_no,
+                                                (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
                                                 crfsmon_hot_path_line_start);
-                                                
+
         if(EC_FALSE == __crfsmon_parse_hot_path_line(crfsmon_md_id, crfsmon_hot_path_line_start, crfsmon_hot_path_line_end))
         {
             dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
                                                     "parse line %u# '%.*s' failed\n",
-                                                    crfsmon_hot_path_line_no, 
-                                                    (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start), 
+                                                    crfsmon_hot_path_line_no,
+                                                    (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
                                                     crfsmon_hot_path_line_start);
-            return (EC_FALSE);          
+            return (EC_FALSE);
         }
 
         crfsmon_hot_path_line_no ++;
 
         crfsmon_hot_path_line_start = crfsmon_hot_path_line_end;
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -1839,7 +1839,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     UINT32       offset;
     UINT8       *fcontent;
     int          fd;
-    
+
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
     if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
     {
@@ -1856,7 +1856,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "path is empty\n");
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     fname = (char *)cstring_get_str(path);
@@ -1867,14 +1867,14 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "open file '%s' failed\n",
                                                 fname);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == c_file_size(fd, &fsize))
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "get size of '%s' failed\n",
-                                                fname);    
+                                                fname);
         c_file_close(fd);
         return (EC_FALSE);
     }
@@ -1883,7 +1883,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "file '%s' size is 0\n",
-                                                fname);    
+                                                fname);
         c_file_close(fd);
         return (EC_FALSE);
     }
@@ -1893,7 +1893,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "malloc %ld bytes failed\n",
-                                                fsize);    
+                                                fsize);
         c_file_close(fd);
         return (EC_FALSE);
     }
@@ -1903,7 +1903,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "load file '%s' failed\n",
-                                                fname);    
+                                                fname);
         c_file_close(fd);
         safe_free(fcontent, LOC_CRFSMON_0011);
         return (EC_FALSE);
@@ -1912,14 +1912,14 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
                                             "load file '%s' from disk done\n",
-                                            fname);  
+                                            fname);
 
     /*parse*/
     if(EC_FALSE == __crfsmon_parse_hot_path_file(crfsmon_md_id, (char *)fcontent, (char *)(fcontent + fsize)))
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
                                                 "parse file '%s' failed\n",
-                                                fname);    
+                                                fname);
         safe_free(fcontent, LOC_CRFSMON_0012);
         return (EC_FALSE);
     }
@@ -1927,7 +1927,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
                                             "parse file '%s' done\n",
-                                            fname);   
+                                            fname);
     return (EC_TRUE);
 }
 
@@ -1950,7 +1950,7 @@ EC_BOOL crfsmon_crfs_hot_path_unload(const UINT32 crfsmon_md_id)
     crb_tree_clean(CRFSMON_MD_HOT_PATH_TREE(crfsmon_md));
 
     dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
-                                            "unload done\n");   
+                                            "unload done\n");
     return (EC_TRUE);
 }
 

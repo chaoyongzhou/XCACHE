@@ -23,7 +23,7 @@ uint32_t ctdnssvrb_node_new(CTDNSSVRB_POOL *pool)
 {
     uint32_t node_pos_t;
     CTDNSSVRB_NODE *node;
- 
+
     node_pos_t = CTDNSSVRB_POOL_FREE_HEAD(pool);
     if(CTDNSSVRB_ERR_POS == node_pos_t)
     {
@@ -39,19 +39,19 @@ uint32_t ctdnssvrb_node_new(CTDNSSVRB_POOL *pool)
     }
 
     ASSERT(CTDNSSVRB_POOL_FREE_HEAD(pool) < CTDNSSVRB_POOL_NODE_MAX_NUM(pool));
- 
+
     node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
-#if 0 
+#if 0
     dbg_log(SEC_0039_CTDNSSVRB, 9)(LOGSTDNULL, "[DEBUG] ctdnssvrb_node_new: pool %p, max %u, used %u, free head %u, next %u\n",
                        pool,
                        CTDNSSVRB_POOL_NODE_MAX_NUM(pool),
                        CTDNSSVRB_POOL_NODE_USED_NUM(pool),
                        CTDNSSVRB_POOL_FREE_HEAD(pool),
                        CTDNSSVRB_NODE_NEXT_POS(node));
-#endif                    
+#endif
     CTDNSSVRB_POOL_FREE_HEAD(pool) = CTDNSSVRB_NODE_NEXT_POS(node);
     CTDNSSVRB_POOL_NODE_USED_NUM(pool) ++;
- 
+
     CTDNSSVRB_NODE_NEXT_POS(node)  = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_USED_FLAG(node) = CTDNSSVRB_NODE_USED;
 
@@ -66,17 +66,17 @@ void ctdnssvrb_node_free(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
         CTDNSSVRB_NODE *node;
 
         ASSERT(node_pos < CTDNSSVRB_POOL_NODE_MAX_NUM(pool));
-     
+
         node = CTDNSSVRB_POOL_NODE(pool, node_pos);
         ASSERT(CTDNSSVRB_NODE_IS_USED(node));
-     
+
         CTDNSSVRB_NODE_USED_FLAG(node)  = CTDNSSVRB_NODE_NOT_USED;
         CTDNSSVRB_NODE_PARENT_POS(node) = CTDNSSVRB_ERR_POS;
         CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_ERR_POS;
-        CTDNSSVRB_NODE_LEFT_POS(node)   = CTDNSSVRB_ERR_POS;     
+        CTDNSSVRB_NODE_LEFT_POS(node)   = CTDNSSVRB_ERR_POS;
         CTDNSSVRB_NODE_NEXT_POS(node)   = CTDNSSVRB_POOL_FREE_HEAD(pool);
         CTDNSSVRB_NODE_COLOR(node)      = CTDNSSVRB_BLACK;
-     
+
         CTDNSSVRB_POOL_FREE_HEAD(pool)  = node_pos;
         CTDNSSVRB_POOL_NODE_USED_NUM(pool) --;
     }
@@ -87,15 +87,15 @@ void ctdnssvrb_node_init(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
 {
     CTDNSSVRB_NODE *node;
 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
- 
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
+
     CTDNSSVRB_NODE_PARENT_POS(node) = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_LEFT_POS(node)   = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_USED_FLAG(node)  = CTDNSSVRB_NODE_NOT_USED;
     CTDNSSVRB_NODE_NEXT_POS(node)   = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_COLOR(node)      = CTDNSSVRB_BLACK;
- 
+
     return;
 }
 
@@ -104,9 +104,9 @@ void ctdnssvrb_node_clean(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
     CTDNSSVRB_NODE *node;
 
     ASSERT(node_pos < CTDNSSVRB_POOL_NODE_MAX_NUM(pool));
- 
-    node = CTDNSSVRB_POOL_NODE(pool, node_pos); 
- 
+
+    node = CTDNSSVRB_POOL_NODE(pool, node_pos);
+
     CTDNSSVRB_NODE_PARENT_POS(node) = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_ERR_POS;
     CTDNSSVRB_NODE_LEFT_POS(node)   = CTDNSSVRB_ERR_POS;
@@ -173,11 +173,11 @@ void ctdnssvrb_node_print_level(LOG *log, const CTDNSSVRB_POOL *pool, const uint
                        CTDNSSVRB_NODE_IS_USED(node) ? "data" : "next",
                        CTDNSSVRB_NODE_IS_USED(node) ? CTDNSSVRB_NODE_DATA(node) : CTDNSSVRB_NODE_NEXT_POS(node)
                        );
-    return;                    
+    return;
 }
 
 
-static void __ctdnssvrb_tree_rotate_left(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __ctdnssvrb_tree_rotate_left(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CTDNSSVRB_NODE *node;
     CTDNSSVRB_NODE *right;
@@ -201,7 +201,7 @@ static void __ctdnssvrb_tree_rotate_left(CTDNSSVRB_POOL *pool, const uint32_t no
     {
         CTDNSSVRB_NODE *parent;
         parent = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_PARENT_POS(node));
-     
+
         if (node_pos == CTDNSSVRB_NODE_LEFT_POS(parent))
         {
             CTDNSSVRB_NODE_LEFT_POS(parent) = right_pos;
@@ -219,7 +219,7 @@ static void __ctdnssvrb_tree_rotate_left(CTDNSSVRB_POOL *pool, const uint32_t no
     return;
 }
 
-static void __ctdnssvrb_tree_rotate_right(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __ctdnssvrb_tree_rotate_right(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CTDNSSVRB_NODE *node;
     CTDNSSVRB_NODE *left;
@@ -242,7 +242,7 @@ static void __ctdnssvrb_tree_rotate_right(CTDNSSVRB_POOL *pool, const uint32_t n
     {
         CTDNSSVRB_NODE *parent;
         parent = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_PARENT_POS(node));
- 
+
         if (node_pos == CTDNSSVRB_NODE_RIGHT_POS(parent))
         {
             CTDNSSVRB_NODE_RIGHT_POS(parent) = left_pos;
@@ -260,12 +260,12 @@ static void __ctdnssvrb_tree_rotate_right(CTDNSSVRB_POOL *pool, const uint32_t n
     return;
 }
 
-static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CTDNSSVRB_NODE *node;
     CTDNSSVRB_NODE *root;
-    CTDNSSVRB_NODE *parent; 
- 
+    CTDNSSVRB_NODE *parent;
+
     uint32_t  node_pos_t;
 
     node_pos_t = node_pos;
@@ -294,7 +294,7 @@ static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t n
                     CTDNSSVRB_NODE_COLOR(uncle)   = CTDNSSVRB_BLACK;
                     CTDNSSVRB_NODE_COLOR(parent)  = CTDNSSVRB_BLACK;
                     CTDNSSVRB_NODE_COLOR(gparent) = CTDNSSVRB_RED;
-                 
+
                     node = gparent;
                     node_pos_t = gparent_pos;
                     continue;
@@ -313,7 +313,7 @@ static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t n
             __ctdnssvrb_tree_rotate_right(pool, gparent_pos, root_pos);
          }
          else
-         {     
+         {
             {
                 CTDNSSVRB_NODE *uncle;
                 if (NULL_PTR != (uncle = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_LEFT_POS(gparent))) /*uncle is valid*/
@@ -322,7 +322,7 @@ static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t n
                     CTDNSSVRB_NODE_COLOR(uncle)   = CTDNSSVRB_BLACK;
                     CTDNSSVRB_NODE_COLOR(parent)  = CTDNSSVRB_BLACK;
                     CTDNSSVRB_NODE_COLOR(gparent) = CTDNSSVRB_RED;
-                 
+
                     node = gparent;
                     node_pos_t = gparent_pos;
                     continue;
@@ -347,9 +347,9 @@ static void __ctdnssvrb_tree_insert_color(CTDNSSVRB_POOL *pool, const uint32_t n
     return;
 }
 
-static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t node_pos, const uint32_t parent_pos, uint32_t *root_pos)
-{ 
-    CTDNSSVRB_NODE *node; 
+STATIC_CAST static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t node_pos, const uint32_t parent_pos, uint32_t *root_pos)
+{
+    CTDNSSVRB_NODE *node;
     uint32_t  node_pos_t;
     uint32_t  parent_pos_t;
 
@@ -361,22 +361,22 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
         CTDNSSVRB_NODE *parent;
 
         parent = CTDNSSVRB_POOL_NODE(pool, parent_pos_t);
-     
+
         if (CTDNSSVRB_NODE_LEFT_POS(parent) == node_pos_t)
         {
             CTDNSSVRB_NODE *other;
             CTDNSSVRB_NODE *o_left;
             CTDNSSVRB_NODE *o_right;
             uint32_t  other_pos;
-     
+
             other_pos = CTDNSSVRB_NODE_RIGHT_POS(parent);
             other = CTDNSSVRB_POOL_NODE(pool, other_pos);
-         
+
             if (CTDNSSVRB_RED == CTDNSSVRB_NODE_COLOR(other))
             {
                 CTDNSSVRB_NODE_COLOR(other)  = CTDNSSVRB_BLACK;
                 CTDNSSVRB_NODE_COLOR(parent) = CTDNSSVRB_RED;
-             
+
                 __ctdnssvrb_tree_rotate_left(pool, parent_pos_t, root_pos);
 
                 other_pos = CTDNSSVRB_NODE_RIGHT_POS(parent);
@@ -390,10 +390,10 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
             && (NULL_PTR == o_right || CTDNSSVRB_BLACK == CTDNSSVRB_NODE_COLOR(o_right)))
             {
                 CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_RED;
-             
+
                 node_pos_t = parent_pos_t;
                 node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
-             
+
                 parent_pos_t = CTDNSSVRB_NODE_PARENT_POS(node);
                 parent = CTDNSSVRB_POOL_NODE(pool, parent_pos_t);
             }
@@ -406,14 +406,14 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
                         CTDNSSVRB_NODE_COLOR(o_left) = CTDNSSVRB_BLACK;
                     }
                     CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_RED;
-                 
+
                     __ctdnssvrb_tree_rotate_right(pool, other_pos, root_pos);
-                 
+
                     other_pos = CTDNSSVRB_NODE_RIGHT_POS(parent);
                     other = CTDNSSVRB_POOL_NODE(pool, other_pos);
                     /*note: other was changed here*/
                 }
-             
+
                 CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_NODE_COLOR(parent);
                 CTDNSSVRB_NODE_COLOR(parent) = CTDNSSVRB_BLACK;
 
@@ -423,7 +423,7 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
                 {
                     CTDNSSVRB_NODE_COLOR(o_right) = CTDNSSVRB_BLACK;
                 }
-             
+
                 __ctdnssvrb_tree_rotate_left(pool, parent_pos_t, root_pos);
                 node_pos_t = (*root_pos);
                 break;
@@ -435,32 +435,32 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
             CTDNSSVRB_NODE *o_left;
             CTDNSSVRB_NODE *o_right;
             uint32_t  other_pos;
-         
+
             other_pos = CTDNSSVRB_NODE_LEFT_POS(parent);
             other = CTDNSSVRB_POOL_NODE(pool, other_pos);
-         
+
             if (CTDNSSVRB_RED == CTDNSSVRB_NODE_COLOR(other))
             {
                 CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_BLACK;
                 CTDNSSVRB_NODE_COLOR(parent) = CTDNSSVRB_RED;
-             
+
                 __ctdnssvrb_tree_rotate_right(pool, parent_pos_t, root_pos);
-             
+
                 other_pos = CTDNSSVRB_NODE_LEFT_POS(parent);
                 other = CTDNSSVRB_POOL_NODE(pool, other_pos);
             }
 
             o_left = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_LEFT_POS(other));
             o_right = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_RIGHT_POS(other));
-         
+
             if ((NULL_PTR == o_left  || CTDNSSVRB_BLACK == CTDNSSVRB_NODE_COLOR(o_left))
              && (NULL_PTR == o_right || CTDNSSVRB_BLACK == CTDNSSVRB_NODE_COLOR(o_right)))
             {
                 CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_RED;
-             
+
                 node_pos_t = parent_pos_t;
                 node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
-             
+
                 parent_pos_t = CTDNSSVRB_NODE_PARENT_POS(node);
                 parent = CTDNSSVRB_POOL_NODE(pool, parent_pos_t);
             }
@@ -472,16 +472,16 @@ static void __ctdnssvrb_tree_erase_color(CTDNSSVRB_POOL *pool, const uint32_t no
                     {
                         CTDNSSVRB_NODE_COLOR(o_right) = CTDNSSVRB_BLACK;
                     }
-                 
+
                     CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_RED;
-                 
+
                     __ctdnssvrb_tree_rotate_left(pool, other_pos, root_pos);
-                 
+
                     other_pos = CTDNSSVRB_NODE_LEFT_POS(parent);
                     other = CTDNSSVRB_POOL_NODE(pool, other_pos);
                     /*note: other was changed here*/
                 }
-             
+
                 CTDNSSVRB_NODE_COLOR(other) = CTDNSSVRB_NODE_COLOR(parent);
                 CTDNSSVRB_NODE_COLOR(parent) = CTDNSSVRB_BLACK;
 
@@ -533,22 +533,22 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
     else
     {
         CTDNSSVRB_NODE *old;
-     
+
         uint32_t old_pos;
         uint32_t left_pos;
 
         old_pos = node_pos_t;
-     
+
         node_pos_t = CTDNSSVRB_NODE_RIGHT_POS(node);
         node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
-     
+
         while (CTDNSSVRB_ERR_POS != (left_pos = CTDNSSVRB_NODE_LEFT_POS(node)))
         {
             node_pos_t = left_pos;
             node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
-         
+
         }
-     
+
         child_pos  = CTDNSSVRB_NODE_RIGHT_POS(node);
         parent_pos = CTDNSSVRB_NODE_PARENT_POS(node);
         color      = CTDNSSVRB_NODE_COLOR(node);
@@ -559,11 +559,11 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
             child = CTDNSSVRB_POOL_NODE(pool, child_pos);
             CTDNSSVRB_NODE_PARENT_POS(child) = parent_pos;
         }
-     
+
         if (CTDNSSVRB_ERR_POS != parent_pos)
         {
             CTDNSSVRB_NODE *parent;
-         
+
             parent = CTDNSSVRB_POOL_NODE(pool, parent_pos);
             if (CTDNSSVRB_NODE_LEFT_POS(parent) == node_pos_t)
             {
@@ -585,7 +585,7 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
         }
 
         old  = CTDNSSVRB_POOL_NODE(pool, old_pos);
-     
+
         CTDNSSVRB_NODE_PARENT_POS(node) = CTDNSSVRB_NODE_PARENT_POS(old);
         CTDNSSVRB_NODE_COLOR(node)      = CTDNSSVRB_NODE_COLOR(old);
         CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_NODE_RIGHT_POS(old);
@@ -595,7 +595,7 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
         {
             CTDNSSVRB_NODE *old_parent;
             old_parent = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_PARENT_POS(old));
-         
+
             if (CTDNSSVRB_NODE_LEFT_POS(old_parent) == old_pos)
             {
                 CTDNSSVRB_NODE_LEFT_POS(old_parent) = node_pos_t;
@@ -615,7 +615,7 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
 
             old_left = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_LEFT_POS(old));
             CTDNSSVRB_NODE_PARENT_POS(old_left) = node_pos_t;
-        }     
+        }
 
         if (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(old))
         {
@@ -632,15 +632,15 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
     if (CTDNSSVRB_ERR_POS != child_pos)
     {
         CTDNSSVRB_NODE *child;
-        child = CTDNSSVRB_POOL_NODE(pool, child_pos); 
+        child = CTDNSSVRB_POOL_NODE(pool, child_pos);
         CTDNSSVRB_NODE_PARENT_POS(child) = parent_pos;
     }
- 
+
     if (CTDNSSVRB_ERR_POS != parent_pos)
     {
         CTDNSSVRB_NODE *parent;
-     
-        parent = CTDNSSVRB_POOL_NODE(pool, parent_pos); 
+
+        parent = CTDNSSVRB_POOL_NODE(pool, parent_pos);
         if (CTDNSSVRB_NODE_LEFT_POS(parent) == node_pos_t)
         {
             CTDNSSVRB_NODE_LEFT_POS(parent) = child_pos;
@@ -663,7 +663,7 @@ EC_BOOL ctdnssvrb_tree_erase(CTDNSSVRB_POOL *pool, const uint32_t node_pos, uint
     return (EC_TRUE);
 }
 
-static uint32_t __ctdnssvrb_tree_count_node_num(const CTDNSSVRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static uint32_t __ctdnssvrb_tree_count_node_num(const CTDNSSVRB_POOL *pool, const uint32_t node_pos)
 {
     const CTDNSSVRB_NODE *node;
 
@@ -672,7 +672,7 @@ static uint32_t __ctdnssvrb_tree_count_node_num(const CTDNSSVRB_POOL *pool, cons
         return ((uint32_t)0);
     }
 
-    node = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+    node = CTDNSSVRB_POOL_NODE(pool, node_pos);
 
     return (uint32_t)(1 + __ctdnssvrb_tree_count_node_num(pool, CTDNSSVRB_NODE_LEFT_POS(node)) + __ctdnssvrb_tree_count_node_num(pool, CTDNSSVRB_NODE_RIGHT_POS(node)));
 }
@@ -712,7 +712,7 @@ uint32_t ctdnssvrb_tree_first_node(const CTDNSSVRB_POOL *pool, const uint32_t ro
     }
 
     node = CTDNSSVRB_POOL_NODE(pool, node_pos);
- 
+
     while (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
     {
         node_pos = CTDNSSVRB_NODE_LEFT_POS(node);
@@ -731,15 +731,15 @@ uint32_t ctdnssvrb_tree_last_node(const CTDNSSVRB_POOL *pool, const uint32_t roo
     {
         return (CTDNSSVRB_ERR_POS);
     }
- 
+
     node = CTDNSSVRB_POOL_NODE(pool, node_pos);
- 
+
     while (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         node_pos = CTDNSSVRB_NODE_RIGHT_POS(node);
         node = CTDNSSVRB_POOL_NODE(pool, node_pos);
     }
- 
+
     return (node_pos);
 }
 
@@ -776,7 +776,7 @@ uint32_t ctdnssvrb_tree_next_node(const CTDNSSVRB_POOL *pool, const uint32_t nod
         node_pos_t = CTDNSSVRB_NODE_PARENT_POS(node);
         node = parent;
     }
- 
+
     return (CTDNSSVRB_NODE_PARENT_POS(node));
 }
 
@@ -788,7 +788,7 @@ uint32_t ctdnssvrb_tree_prev_node(const CTDNSSVRB_POOL *pool, const uint32_t nod
 
     node_pos_t = node_pos;
     node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
- 
+
     /* If we have a left-hand child, go down and then right as far
        as we can. */
     if (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
@@ -817,16 +817,16 @@ uint32_t ctdnssvrb_tree_prev_node(const CTDNSSVRB_POOL *pool, const uint32_t nod
 /*victim_pos should be free*/
 void ctdnssvrb_tree_replace_node(CTDNSSVRB_POOL *pool, const uint32_t victim_pos, const uint32_t new_pos, uint32_t *root_pos)
 {
-    CTDNSSVRB_NODE *victim; 
+    CTDNSSVRB_NODE *victim;
 
-    victim = CTDNSSVRB_POOL_NODE(pool, victim_pos); 
+    victim = CTDNSSVRB_POOL_NODE(pool, victim_pos);
 
     /* Set the surrounding nodes to point to the replacement */
     if (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_PARENT_POS(victim))
     {
         CTDNSSVRB_NODE *parent;
         parent = CTDNSSVRB_POOL_NODE(pool, CTDNSSVRB_NODE_PARENT_POS(victim));
-     
+
         if (victim_pos == CTDNSSVRB_NODE_LEFT_POS(parent))
         {
             CTDNSSVRB_NODE_LEFT_POS(parent) = new_pos;
@@ -840,7 +840,7 @@ void ctdnssvrb_tree_replace_node(CTDNSSVRB_POOL *pool, const uint32_t victim_pos
     {
         (*root_pos) = new_pos;
     }
- 
+
     if (CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(victim))
     {
         CTDNSSVRB_NODE *left;
@@ -859,10 +859,10 @@ void ctdnssvrb_tree_replace_node(CTDNSSVRB_POOL *pool, const uint32_t victim_pos
 
 
 #if 1
-static int __ctdnssvrb_node_tcid_cmp(const CTDNSSVRB_NODE *node, const UINT32 tcid)
+STATIC_CAST static int __ctdnssvrb_node_tcid_cmp(const CTDNSSVRB_NODE *node, const UINT32 tcid)
 {
     const CTDNSSV_ITEM *item;
- 
+
     item = (const CTDNSSV_ITEM *)CTDNSSV_RB_NODE_ITEM(node);
     if(CTDNSSV_ITEM_TCID(item) < tcid)
     {
@@ -885,15 +885,15 @@ uint32_t ctdnssvrb_tree_search_data(const CTDNSSVRB_POOL *pool, const uint32_t r
     uint32_t node_pos;
 
     node_pos = root_pos;
- 
+
     while (CTDNSSVRB_ERR_POS != node_pos)
     {
         const CTDNSSVRB_NODE *node;
         int cmp_ret;
-     
-        node = CTDNSSVRB_POOL_NODE(pool, node_pos);     
+
+        node = CTDNSSVRB_POOL_NODE(pool, node_pos);
         cmp_ret = __ctdnssvrb_node_tcid_cmp(node, tcid);
-     
+
         if (0 < cmp_ret)
         {
             node_pos = CTDNSSVRB_NODE_LEFT_POS(node);
@@ -902,7 +902,7 @@ uint32_t ctdnssvrb_tree_search_data(const CTDNSSVRB_POOL *pool, const uint32_t r
         {
             node_pos = CTDNSSVRB_NODE_RIGHT_POS(node);
         }
-        else 
+        else
         {
             return (node_pos);
         }
@@ -927,12 +927,12 @@ EC_BOOL ctdnssvrb_tree_insert_data(CTDNSSVRB_POOL *pool, uint32_t *root_pos, con
     {
         CTDNSSVRB_NODE *node;
         int cmp_ret;
-     
+
         node = CTDNSSVRB_POOL_NODE(pool, node_pos_t);
         cmp_ret = __ctdnssvrb_node_tcid_cmp(node, tcid);
 
         parent_pos_t = node_pos_t;
-     
+
         if (0 < cmp_ret)
         {
             node_pos_t = CTDNSSVRB_NODE_LEFT_POS(node);
@@ -960,7 +960,7 @@ EC_BOOL ctdnssvrb_tree_insert_data(CTDNSSVRB_POOL *pool, uint32_t *root_pos, con
     }
     else
     {
-        CTDNSSVRB_NODE *node;     
+        CTDNSSVRB_NODE *node;
 
         node  = CTDNSSVRB_POOL_NODE(pool, new_pos_t);
         CTDNSSVRB_NODE_DATA(node) = 0;/*xxx*/
@@ -968,8 +968,8 @@ EC_BOOL ctdnssvrb_tree_insert_data(CTDNSSVRB_POOL *pool, uint32_t *root_pos, con
         CTDNSSVRB_NODE_PARENT_POS(node) = parent_pos_t;
         CTDNSSVRB_NODE_COLOR(node)      = CTDNSSVRB_RED;
         CTDNSSVRB_NODE_LEFT_POS(node)   = CTDNSSVRB_ERR_POS;
-        CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_ERR_POS;     
- 
+        CTDNSSVRB_NODE_RIGHT_POS(node)  = CTDNSSVRB_ERR_POS;
+
         if(CTDNSSVRB_ERR_POS == (*root_pos))
         {
             (*root_pos) = new_pos_t;
@@ -1022,7 +1022,7 @@ EC_BOOL ctdnssvrb_tree_delete(CTDNSSVRB_POOL *pool, uint32_t *root_pos, const ui
 
 
 /*postorder: left -> right -> root*/
-static void __ctdnssvrb_tree_free(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static void __ctdnssvrb_tree_free(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
 {
     CTDNSSVRB_NODE *node;
 
@@ -1030,20 +1030,20 @@ static void __ctdnssvrb_tree_free(CTDNSSVRB_POOL *pool, const uint32_t node_pos)
     {
         return;
     }
- 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
     {
         __ctdnssvrb_tree_free(pool, CTDNSSVRB_NODE_LEFT_POS(node));
-    } 
+    }
 
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         __ctdnssvrb_tree_free(pool, CTDNSSVRB_NODE_RIGHT_POS(node));
-    } 
+    }
 
     ctdnssvrb_node_free(pool, node_pos);
- 
+
     return;
 }
 void ctdnssvrb_tree_free(CTDNSSVRB_POOL *pool, const uint32_t root_pos)
@@ -1075,11 +1075,11 @@ EC_BOOL ctdnssvrb_pool_init(CTDNSSVRB_POOL *pool, const uint32_t node_max_num, c
         {
             dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "info:ctdnssvrb_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
-        }     
+        }
     }
     dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "info:ctdnssvrb_pool_init: init %u nodes done\n", node_max_num);
     ctdnssvrb_node_set_next(pool, node_max_num - 1, CTDNSSVRB_ERR_POS);/*overwrite the last one*/
- 
+
     CTDNSSVRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
     CTDNSSVRB_POOL_ROOT_POS(pool)  = CTDNSSVRB_ERR_POS;
     return (EC_TRUE);
@@ -1149,8 +1149,8 @@ void ctdnssvrb_preorder_print(LOG *log, const CTDNSSVRB_POOL *pool, const uint32
     {
         return;
     }
- 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
     ctdnssvrb_node_print(log, pool, node_pos);
 
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
@@ -1161,8 +1161,8 @@ void ctdnssvrb_preorder_print(LOG *log, const CTDNSSVRB_POOL *pool, const uint32
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         ctdnssvrb_preorder_print(log, pool, CTDNSSVRB_NODE_RIGHT_POS(node));
-    } 
- 
+    }
+
     return;
 }
 
@@ -1175,8 +1175,8 @@ void ctdnssvrb_inorder_print(LOG *log, const CTDNSSVRB_POOL *pool, const uint32_
     {
         return;
     }
- 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
     {
         ctdnssvrb_inorder_print(log, pool, CTDNSSVRB_NODE_LEFT_POS(node));
@@ -1187,8 +1187,8 @@ void ctdnssvrb_inorder_print(LOG *log, const CTDNSSVRB_POOL *pool, const uint32_
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         ctdnssvrb_inorder_print(log, pool, CTDNSSVRB_NODE_RIGHT_POS(node));
-    } 
- 
+    }
+
     return;
 }
 
@@ -1201,20 +1201,20 @@ void ctdnssvrb_postorder_print(LOG *log, const CTDNSSVRB_POOL *pool, const uint3
     {
         return;
     }
- 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
     {
         ctdnssvrb_postorder_print(log, pool, CTDNSSVRB_NODE_LEFT_POS(node));
-    } 
+    }
 
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         ctdnssvrb_postorder_print(log, pool, CTDNSSVRB_NODE_RIGHT_POS(node));
-    } 
+    }
 
     ctdnssvrb_node_print(log, pool, node_pos);
- 
+
     return;
 }
 
@@ -1228,8 +1228,8 @@ void ctdnssvrb_preorder_print_level(LOG *log, const CTDNSSVRB_POOL *pool, const 
     {
         return;
     }
- 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
     ctdnssvrb_node_print_level(log, pool, node_pos, level);
 
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_LEFT_POS(node))
@@ -1240,8 +1240,8 @@ void ctdnssvrb_preorder_print_level(LOG *log, const CTDNSSVRB_POOL *pool, const 
     if(CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         ctdnssvrb_preorder_print_level(log, pool, CTDNSSVRB_NODE_RIGHT_POS(node), level + 1);
-    } 
- 
+    }
+
     return;
 }
 
@@ -1262,7 +1262,7 @@ EC_BOOL ctdnssvrb_flush(const CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_flush: write CTDNSSVRB_POOL_ROOT_POS at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-    
+
     /*flush free_head*/
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSSVRB_POOL_FREE_HEAD(pool))))
@@ -1277,7 +1277,7 @@ EC_BOOL ctdnssvrb_flush(const CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_flush: write CTDNSSVRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*flush node_used_num*/
     osize  = sizeof(uint32_t);
@@ -1285,7 +1285,7 @@ EC_BOOL ctdnssvrb_flush(const CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_flush: write CTDNSSVRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    }  
+    }
 
     /*flush node_sizeof*/
     osize  = sizeof(uint32_t);
@@ -1296,14 +1296,14 @@ EC_BOOL ctdnssvrb_flush(const CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
     }
 
     /*flush rb_node table*/
-    osize  = CTDNSSVRB_POOL_NODE_MAX_NUM(pool) * CTDNSSVRB_POOL_NODE_SIZEOF(pool); 
+    osize  = CTDNSSVRB_POOL_NODE_MAX_NUM(pool) * CTDNSSVRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CTDNSSVRB_POOL_NODE_TBL(pool)))
     {
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_flush: write CTDNSSVRB_POOL_NODE_TBL at offset %u of fd %d failed where CTDNSSVRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CTDNSSVRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1321,7 +1321,7 @@ EC_BOOL ctdnssvrb_load(CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_load: load CTDNSSVRB_POOL_ROOT_POS at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-    
+
     /*load free_head*/
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CTDNSSVRB_POOL_FREE_HEAD(pool))))
@@ -1346,7 +1346,7 @@ EC_BOOL ctdnssvrb_load(CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_load: load CTDNSSVRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-    CTDNSSVRB_POOL_NODE_MAX_NUM(pool) = node_used_num; 
+    CTDNSSVRB_POOL_NODE_MAX_NUM(pool) = node_used_num;
 
     /*load node_sizeof*/
     osize  = sizeof(uint32_t);
@@ -1358,7 +1358,7 @@ EC_BOOL ctdnssvrb_load(CTDNSSVRB_POOL *pool, int fd, UINT32 *offset)
     CTDNSSVRB_POOL_NODE_SIZEOF(pool) = node_sizeof;
 
     /*load rb_node table*/
-    osize  = CTDNSSVRB_POOL_NODE_MAX_NUM(pool) * CTDNSSVRB_POOL_NODE_SIZEOF(pool); 
+    osize  = CTDNSSVRB_POOL_NODE_MAX_NUM(pool) * CTDNSSVRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CTDNSSVRB_POOL_NODE_TBL(pool)))
     {
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDOUT, "error:ctdnssvrb_load: load CTDNSSVRB_POOL_NODE_TBL at offset %u of fd %d failed where CTDNSSVRB_POOL_NODE_MAX_NUM is %u\n",
@@ -1395,7 +1395,7 @@ EC_BOOL ctdnssvrb_node_debug_cmp(const CTDNSSVRB_NODE *node_1st, const CTDNSSVRB
     {
         return (EC_TRUE);
     }
-#endif 
+#endif
 
     if(CTDNSSVRB_NODE_COLOR(node_1st) != CTDNSSVRB_NODE_COLOR(node_2nd))
     {
@@ -1423,7 +1423,7 @@ EC_BOOL ctdnssvrb_node_debug_cmp(const CTDNSSVRB_NODE *node_1st, const CTDNSSVRB
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDERR, "error:ctdnssvrb_node_debug_cmp: inconsistent CTDNSSVRB_NODE_LEFT_POS: %u != %u\n",
                             CTDNSSVRB_NODE_LEFT_POS(node_1st), CTDNSSVRB_NODE_LEFT_POS(node_2nd));
         return (EC_FALSE);
-    } 
+    }
 
     if(CTDNSSVRB_NODE_USED == CTDNSSVRB_NODE_USED_FLAG(node_1st))
     {
@@ -1440,7 +1440,7 @@ EC_BOOL ctdnssvrb_node_debug_cmp(const CTDNSSVRB_NODE *node_1st, const CTDNSSVRB
             dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDERR, "error:ctdnssvrb_node_debug_cmp: inconsistent CTDNSSVRB_NODE_NEXT_POS: %u != %u\n",
                                 CTDNSSVRB_NODE_NEXT_POS(node_1st), CTDNSSVRB_NODE_NEXT_POS(node_2nd));
             return (EC_FALSE);
-        } 
+        }
     }
     return (EC_TRUE);
 }
@@ -1456,7 +1456,7 @@ EC_BOOL ctdnssvrb_debug_cmp(const CTDNSSVRB_POOL *pool_1st, const CTDNSSVRB_POOL
                             CTDNSSVRB_POOL_ROOT_POS(pool_1st), CTDNSSVRB_POOL_ROOT_POS(pool_2nd));
         return (EC_FALSE);
     }
-    
+
     if(CTDNSSVRB_POOL_FREE_HEAD(pool_1st) != CTDNSSVRB_POOL_FREE_HEAD(pool_2nd))
     {
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDERR, "error:ctdnssvrb_debug_cmp: inconsistent CTDNSSVRB_POOL_FREE_HEAD: %u != %u\n",
@@ -1476,7 +1476,7 @@ EC_BOOL ctdnssvrb_debug_cmp(const CTDNSSVRB_POOL *pool_1st, const CTDNSSVRB_POOL
         dbg_log(SEC_0039_CTDNSSVRB, 0)(LOGSTDERR, "error:ctdnssvrb_debug_cmp: inconsistent CTDNSSVRB_POOL_NODE_USED_NUM: %u != %u\n",
                             CTDNSSVRB_POOL_NODE_USED_NUM(pool_1st), CTDNSSVRB_POOL_NODE_USED_NUM(pool_2nd));
         return (EC_FALSE);
-    } 
+    }
 
     if(CTDNSSVRB_POOL_NODE_SIZEOF(pool_1st) != CTDNSSVRB_POOL_NODE_SIZEOF(pool_2nd))
     {

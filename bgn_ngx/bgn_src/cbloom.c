@@ -147,7 +147,7 @@ UINT32 cbloom_word_offset(const CBLOOM *cbloom, const UINT32 nth_bit)
     return (word_offset);
 }
 
-static void cbloom_uint32_bitmap_header(LOG *log)
+STATIC_CAST static void cbloom_uint32_bitmap_header(LOG *log)
 {
     UINT32 pos;
 
@@ -178,7 +178,7 @@ static void cbloom_uint32_bitmap_header(LOG *log)
     return;
 }
 
-static void cbloom_uint32_bitmap_print(LOG *log, const UINT32 num)
+STATIC_CAST static void cbloom_uint32_bitmap_print(LOG *log, const UINT32 num)
 {
     UINT32 pos;
     UINT32 data;

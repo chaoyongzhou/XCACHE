@@ -53,8 +53,8 @@ EC_BOOL csrv_init(CSRV *csrv)
     CSRV_WR_NAME(csrv)              = NULL_PTR;
     CSRV_TIMEOUT_NAME(csrv)         = NULL_PTR;
     CSRV_COMPLETE_NAME(csrv)        = NULL_PTR;
-    CSRV_CLOSE_NAME(csrv)           = NULL_PTR;    
- 
+    CSRV_CLOSE_NAME(csrv)           = NULL_PTR;
+
     CSRV_RD_EVENT_HANDLER(csrv)     = NULL_PTR;
     CSRV_WR_EVENT_HANDLER(csrv)     = NULL_PTR;
     CSRV_TIMEOUT_HANDLER(csrv)      = NULL_PTR;
@@ -92,8 +92,8 @@ EC_BOOL csrv_clean(CSRV *csrv)
     CSRV_WR_NAME(csrv)              = NULL_PTR;
     CSRV_TIMEOUT_NAME(csrv)         = NULL_PTR;
     CSRV_COMPLETE_NAME(csrv)        = NULL_PTR;
-    CSRV_CLOSE_NAME(csrv)           = NULL_PTR;     
- 
+    CSRV_CLOSE_NAME(csrv)           = NULL_PTR;
+
     CSRV_RD_EVENT_HANDLER(csrv)     = NULL_PTR;
     CSRV_WR_EVENT_HANDLER(csrv)     = NULL_PTR;
     CSRV_TIMEOUT_HANDLER(csrv)      = NULL_PTR;
@@ -159,7 +159,7 @@ CSRV * csrv_start(const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 m
     CSRV_UNIX_SOCKFD(csrv)          = srv_unix_sockfd;
 
     CSRV_MD_ID(csrv)                = md_id;
-    
+
     CSRV_CSSL_NODE(csrv)            = NULL_PTR;
 
     cepoll_set_event(task_brd_default_get_cepoll(),
@@ -176,9 +176,9 @@ CSRV * csrv_start(const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 m
                           CEPOLL_RD_EVENT,
                           (const char *)"csrv_unix_accept",
                           (CEPOLL_EVENT_HANDLER)csrv_unix_accept,
-                          (void *)csrv); 
+                          (void *)csrv);
     }
-#endif 
+#endif
 
     dbg_log(SEC_0112_CSRV, 5)(LOGSTDOUT, "csrv_start: start srv sockfd %d on port %s:%ld\n",
                        srv_sockfd, c_word_to_ipv4(srv_ipaddr), srv_port);
@@ -246,17 +246,17 @@ EC_BOOL csrv_set_close_handler(CSRV *csrv, const char *name, CSRV_CLOSE_HANDLER_
 
 EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
 {
-    UINT32  client_ipaddr; 
+    UINT32  client_ipaddr;
     UINT32  client_port;
     EC_BOOL ret;
-    int     client_conn_sockfd; 
+    int     client_conn_sockfd;
 
     ret = csocket_accept(CSRV_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
 
     if(EC_TRUE == ret)
     {
         CSOCKET_CNODE *csocket_cnode;
-     
+
         dbg_log(SEC_0112_CSRV, 1)(LOGSTDOUT, "csrv_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
         csocket_cnode = csocket_cnode_new(LOC_CSRV_0003);/*here do not know the remote client srv port*/
@@ -275,13 +275,13 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
         {
             CSRV_ADD_CSOCKET_CNODE(csrv)(CSRV_MD_ID(csrv), csocket_cnode);
         }
-     
+
 
         /*note: CSOCKET_CNODE_PKT_HDR will be used for specific purpose*/
         BSET(CSOCKET_CNODE_PKT_HDR(csocket_cnode), 0, CSOCKET_CNODE_PKT_HDR_SIZE);
 
         CSOCKET_CNODE_MODI(csocket_cnode) = CSRV_MD_ID(csrv);
-     
+
         cepoll_set_event(task_brd_default_get_cepoll(),
                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                           CEPOLL_RD_EVENT,
@@ -289,13 +289,13 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
                           (CEPOLL_EVENT_HANDLER)CSRV_RD_EVENT_HANDLER(csrv),
                           (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-        
+
         cepoll_set_complete(task_brd_default_get_cepoll(),
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CSRV_COMPLETE_NAME(csrv),
                            (CEPOLL_EVENT_HANDLER)CSRV_COMPLETE_HANDLER(csrv),
                            (void *)csocket_cnode);
-                        
+
         cepoll_set_shutdown(task_brd_default_get_cepoll(),
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CSRV_CLOSE_NAME(csrv),
@@ -312,7 +312,7 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
     }
 
     (*continue_flag) = ret;
- 
+
     return (EC_TRUE);
 }
 
@@ -335,7 +335,7 @@ EC_BOOL csrv_accept(CSRV *csrv)
         {
             dbg_log(SEC_0112_CSRV, 9)(LOGSTDOUT, "[DEBUG] csrv_accept: accept No. %ld client terminate where expect %ld clients\n", idx, num);
             break;
-        }     
+        }
     }
 
     return (EC_TRUE);
@@ -343,9 +343,9 @@ EC_BOOL csrv_accept(CSRV *csrv)
 
 EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
 {
-    UINT32  client_ipaddr; 
+    UINT32  client_ipaddr;
     EC_BOOL ret;
-    int     client_conn_sockfd; 
+    int     client_conn_sockfd;
 
     ret = csocket_unix_accept(CSRV_UNIX_SOCKFD(csrv), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE);
     if(EC_TRUE == ret)
@@ -353,7 +353,7 @@ EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
         CSOCKET_CNODE *csocket_cnode;
 
         client_ipaddr = c_ipv4_to_word((const char *)"127.0.0.1");
-     
+
         dbg_log(SEC_0112_CSRV, 1)(LOGSTDOUT, "csrv_unix_accept_once: handle new sockfd %d\n", client_conn_sockfd);
 
         csocket_cnode = csocket_cnode_unix_new(CMPI_ERROR_TCID, client_conn_sockfd, CSOCKET_TYPE_TCP, client_ipaddr, CMPI_ERROR_SRVPORT);/*here do not know the remote client srv port*/
@@ -373,7 +373,7 @@ EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
         BSET(CSOCKET_CNODE_PKT_HDR(csocket_cnode), 0, CSOCKET_CNODE_PKT_HDR_SIZE);
 
         CSOCKET_CNODE_MODI(csocket_cnode) = CSRV_MD_ID(csrv);
-     
+
         cepoll_set_event(task_brd_default_get_cepoll(),
                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                           CEPOLL_RD_EVENT,
@@ -381,13 +381,13 @@ EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
                           (CEPOLL_EVENT_HANDLER)CSRV_RD_EVENT_HANDLER(csrv),
                           (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-        
+
         cepoll_set_complete(task_brd_default_get_cepoll(),
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CSRV_COMPLETE_NAME(csrv),
                            (CEPOLL_EVENT_HANDLER)CSRV_COMPLETE_HANDLER(csrv),
                            (void *)csocket_cnode);
-                        
+
         cepoll_set_shutdown(task_brd_default_get_cepoll(),
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CSRV_CLOSE_NAME(csrv),
@@ -404,7 +404,7 @@ EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
     }
 
     (*continue_flag) = ret;
- 
+
     return (EC_TRUE);
 }
 EC_BOOL csrv_unix_accept(CSRV *csrv)
@@ -426,7 +426,7 @@ EC_BOOL csrv_unix_accept(CSRV *csrv)
         {
             dbg_log(SEC_0112_CSRV, 9)(LOGSTDOUT, "[DEBUG] csrv_unix_accept: accept No. %ld client terminate where expect %ld clients\n", idx, num);
             break;
-        }     
+        }
     }
 
     return (EC_TRUE);
@@ -451,7 +451,7 @@ EC_BOOL csrv_select(CSRV *csrv, int *ret)
         dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_select: malloc FD_CSET with size %d failed\n", sizeof(FD_CSET));
         return (EC_FALSE);
     }
- 
+
     csocket_fd_clean(fd_cset);
     csocket_fd_set(CSRV_SOCKFD(csrv), fd_cset, &max_sockfd);
     if(EC_FALSE == csocket_select(max_sockfd + 1, fd_cset, NULL_PTR, NULL_PTR, &tv, ret))
@@ -459,7 +459,7 @@ EC_BOOL csrv_select(CSRV *csrv, int *ret)
         safe_free(fd_cset, LOC_CSRV_0005);
         return (EC_FALSE);
     }
- 
+
     safe_free(fd_cset, LOC_CSRV_0006);
     return (EC_TRUE);
 }
@@ -482,7 +482,7 @@ EC_BOOL csrv_handle(CSRV *csrv, CSOCKET_CNODE *csocket_cnode)
                 CSRV_DEL_CSOCKET_CNODE(csrv)(CSRV_MD_ID(csrv), csocket_cnode);
             }
             csocket_cnode_close(csocket_cnode);
-         
+
             break;
         }
         dbg_log(SEC_0112_CSRV, 9)(LOGSTDOUT, "[DEBUG] csrv_handle: CSOCKET_CNODE_SOCKFD %d is connected\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
@@ -491,7 +491,7 @@ EC_BOOL csrv_handle(CSRV *csrv, CSOCKET_CNODE *csocket_cnode)
         {
             dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_handle: process failed on sockfd %d where md id %ld, close it\n",
                                 CSOCKET_CNODE_SOCKFD(csocket_cnode), CSRV_MD_ID(csrv));
-         
+
             if(NULL_PTR != CSRV_DEL_CSOCKET_CNODE(csrv))
             {
                 CSRV_DEL_CSOCKET_CNODE(csrv)(CSRV_MD_ID(csrv), csocket_cnode);

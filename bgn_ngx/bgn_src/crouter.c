@@ -34,7 +34,7 @@ extern "C"{
 
 #include "cmutex.h"
 
-static void crouter_cfg_ident_print_xml(LOG *log, const UINT32 level)
+STATIC_CAST static void crouter_cfg_ident_print_xml(LOG *log, const UINT32 level)
 {
     UINT32 idx;
 

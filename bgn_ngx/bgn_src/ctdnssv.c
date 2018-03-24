@@ -51,9 +51,9 @@ STATIC_CAST static CTDNSSVRB_NODE *__ctdnssvrb_node(CTDNSSVRB_POOL *pool, const 
     if(CTDNSSVRB_POOL_NODE_MAX_NUM(pool) > node_pos)
     {
         CTDNSSVRB_NODE *node;
-     
+
         node = (CTDNSSVRB_NODE *)((void *)(pool->rb_nodes) + node_pos * CTDNSSVRB_POOL_NODE_SIZEOF(pool));
-     
+
         dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssvrb_node: pool %p, rb_nodes %p, node_pos %u  -> node %p\n",
                            pool, (void *)(pool->rb_nodes), node_pos, node);
         return (node);
@@ -167,7 +167,7 @@ EC_BOOL ctdnssv_item_clean(CTDNSSV_ITEM *ctdnssv_item)
 {
     CTDNSSV_ITEM_TCID(ctdnssv_item)             = CMPI_ERROR_TCID;
     CTDNSSV_ITEM_IPADDR(ctdnssv_item)           = CMPI_ERROR_IPADDR;
-    
+
     /*note:do nothing on rb_node*/
 
     return (EC_TRUE);
@@ -211,7 +211,7 @@ void ctdnssv_item_print(LOG *log, const CTDNSSV_ITEM *ctdnssv_item)
                     c_word_to_ipv4(CTDNSSV_ITEM_TCID(ctdnssv_item)),
                     c_word_to_ipv4(CTDNSSV_ITEM_IPADDR(ctdnssv_item))
                     );
-   
+
     return;
 }
 
@@ -317,7 +317,7 @@ EC_BOOL ctdnssv_node_init(CTDNSSV_NODE *ctdnssv_node)
     CTDNSSV_NODE_TCID(ctdnssv_node)             = CMPI_ERROR_TCID;
     CTDNSSV_NODE_IPADDR(ctdnssv_node)           = CMPI_ERROR_IPADDR;
     CTDNSSV_NODE_PORT(ctdnssv_node)             = CMPI_ERROR_SRVPORT;
-    
+
     return (EC_TRUE);
 }
 
@@ -326,7 +326,7 @@ EC_BOOL ctdnssv_node_clean(CTDNSSV_NODE *ctdnssv_node)
     CTDNSSV_NODE_TCID(ctdnssv_node)             = CMPI_ERROR_TCID;
     CTDNSSV_NODE_IPADDR(ctdnssv_node)           = CMPI_ERROR_IPADDR;
     CTDNSSV_NODE_PORT(ctdnssv_node)             = CMPI_ERROR_SRVPORT;
-    
+
     return (EC_TRUE);
 }
 
@@ -370,7 +370,7 @@ void ctdnssv_node_print(LOG *log, const CTDNSSV_NODE *ctdnssv_node)
                     c_word_to_ipv4(CTDNSSV_NODE_IPADDR(ctdnssv_node)),
                     CTDNSSV_NODE_PORT(ctdnssv_node)
                     );
-   
+
     return;
 }
 
@@ -389,14 +389,14 @@ CTDNSSV_NODE_MGR *ctdnssv_node_mgr_new()
 EC_BOOL ctdnssv_node_mgr_init(CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
     clist_init(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), MM_CTDNSSV_NODE, LOC_CTDNSSV_0007);
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL ctdnssv_node_mgr_clean(CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
     clist_clean(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), (CLIST_DATA_DATA_CLEANER)ctdnssv_node_free);
-    
+
     return (EC_TRUE);
 }
 
@@ -453,14 +453,14 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_new(const UINT32 fsize, int 
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_new: new service_header with %u bytes for fd %d failed\n",
                            fsize, fd);
         return (NULL_PTR);
-    }  
+    }
 
     ctdnssv_model_item_max_num(model, &node_max_num);
     node_sizeof = sizeof(CTDNSSV_ITEM);
 
-    /*init RB Nodes*/ 
+    /*init RB Nodes*/
     ctdnssvrb_pool_init(CTDNSSV_HEADER_NODES_POOL(ctdnssv_header), node_max_num, node_sizeof);
- 
+
     return (ctdnssv_header);
 }
 
@@ -528,7 +528,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_open(const UINT32 fsize, int
                            fd, errno, strerror(errno));
         return (NULL_PTR);
     }
- 
+
     return (ctdnssv_header);
 }
 
@@ -538,13 +538,13 @@ STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_flush(CTDNSSV_HEADER *ctdns
     {
         UINT32 offset;
 
-        offset = 0;     
+        offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnssv_header))
         {
             dbg_log(SEC_0051_CTDNSSV, 1)(LOGSTDOUT, "warn:__ctdnssv_header_flush: flush ctdnssv_hdr of fd %d with size %u failed\n",
                                fd, fsize);
         }
-    } 
+    }
     return (ctdnssv_header);
 }
 
@@ -566,7 +566,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_free(CTDNSSV_HEADER *ctdnssv
 
         safe_free(ctdnssv_header, LOC_CTDNSSV_0012);
     }
- 
+
     /*ctdnssv_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -576,14 +576,14 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, i
     CTDNSSV_HEADER *ctdnssv_header;
     uint32_t                node_max_num;
     uint32_t                node_sizeof;
- 
+
     ctdnssv_header = (CTDNSSV_HEADER *)mmap(NULL_PTR, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(MAP_FAILED == ctdnssv_header)
     {
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_create: mmap fd %d failed, errno = %d, errstr = %s\n",
                            fd, errno, strerror(errno));
         return (NULL_PTR);
-    }  
+    }
 
     ctdnssv_model_item_max_num(model, &node_max_num);
     node_sizeof = sizeof(CTDNSSV_ITEM);
@@ -591,10 +591,10 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, i
 
     /*init service*/
     //TODO:
-    
+
     /*init RB Nodes*/
     ctdnssvrb_pool_init(CTDNSSV_HEADER_NODES_POOL(ctdnssv_header), node_max_num, node_sizeof);
- 
+
     return (ctdnssv_header);
 }
 
@@ -611,8 +611,8 @@ STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_sync(CTDNSSV_HEADER *ctdnss
         {
             dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_sync: sync ctdnssv_hdr of fd %d with size %u done\n",
                                fd, fsize);
-        }    
-    } 
+        }
+    }
     return (ctdnssv_header);
 }
 
@@ -641,7 +641,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_close(CTDNSSV_HEADER *ctdnss
                                fd, fsize);
         }
     }
- 
+
     /*ctdnssv_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -674,7 +674,7 @@ CTDNSSV_HEADER *ctdnssv_header_sync(CTDNSSV_HEADER *ctdnssv_header, const UINT32
         return __ctdnssv_header_flush(ctdnssv_header, fsize, fd);
     }
 
-    return __ctdnssv_header_sync(ctdnssv_header, fsize, fd); 
+    return __ctdnssv_header_sync(ctdnssv_header, fsize, fd);
 }
 
 CTDNSSV_HEADER *ctdnssv_header_close(CTDNSSV_HEADER *ctdnssv_header, const UINT32 fsize, int fd)
@@ -716,10 +716,10 @@ EC_BOOL ctdnssv_clean(CTDNSSV *ctdnssv)
         safe_free(CTDNSSV_FNAME(ctdnssv), LOC_CTDNSSV_0014);
         CTDNSSV_FNAME(ctdnssv) = NULL_PTR;
     }
-    
+
     CTDNSSV_FD(ctdnssv)               = ERR_FD;
     CTDNSSV_FSIZE(ctdnssv)            = 0;
-    
+
     /*note:do nothing on pool*/
 
     return (EC_TRUE);
@@ -764,7 +764,7 @@ CTDNSSV *ctdnssv_open(const char *service_fname)
     CTDNSSV         *ctdnssv;
     CTDNSSV_HEADER  *ctdnssv_header;
     int                      fd;
-    
+
     if(EC_FALSE == c_file_access(service_fname, F_OK))
     {
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_open: service file %s not exist\n", service_fname);
@@ -792,7 +792,7 @@ CTDNSSV *ctdnssv_open(const char *service_fname)
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_open: open service file %s failed\n", service_fname);
         c_file_close(fd);
         return (NULL_PTR);
-    } 
+    }
 
     ctdnssv = ctdnssv_new();
     if(NULL_PTR == ctdnssv)
@@ -820,14 +820,14 @@ EC_BOOL ctdnssv_close(CTDNSSV *ctdnssv)
                         (char *)CTDNSSV_FNAME(ctdnssv));
         if(NULL_PTR != CTDNSSV_HDR(ctdnssv))
         {
-            ctdnssv_header_close(CTDNSSV_HDR(ctdnssv), 
-                                         CTDNSSV_FSIZE(ctdnssv), 
+            ctdnssv_header_close(CTDNSSV_HDR(ctdnssv),
+                                         CTDNSSV_FSIZE(ctdnssv),
                                          CTDNSSV_FD(ctdnssv));
             CTDNSSV_HDR(ctdnssv) = NULL_PTR;
         }
         dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] ctdnssv_close: close service '%s' end\n",
                         (char *)CTDNSSV_FNAME(ctdnssv));
-                        
+
         ctdnssv_free(ctdnssv);
     }
     return (EC_TRUE);
@@ -837,8 +837,8 @@ EC_BOOL ctdnssv_sync(CTDNSSV *ctdnssv)
 {
     if(NULL_PTR != ctdnssv && NULL_PTR != CTDNSSV_HDR(ctdnssv))
     {
-        ctdnssv_header_sync(CTDNSSV_HDR(ctdnssv), 
-                                    CTDNSSV_FSIZE(ctdnssv), 
+        ctdnssv_header_sync(CTDNSSV_HDR(ctdnssv),
+                                    CTDNSSV_FSIZE(ctdnssv),
                                     CTDNSSV_FD(ctdnssv));
     }
     return (EC_TRUE);
@@ -849,7 +849,7 @@ CTDNSSV *ctdnssv_create(const char *sp_root_dir, const char *sname, const uint8_
     CTDNSSV         *ctdnssv;
     CTDNSSV_HEADER  *ctdnssv_header;
     char                    *ctdnssv_fname;
-    
+
     UINT32                   fsize;
     int                      fd;
     uint32_t                 item_max_num;
@@ -867,7 +867,7 @@ CTDNSSV *ctdnssv_create(const char *sp_root_dir, const char *sname, const uint8_
     {
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_create: invalid model %u\n", model);
         return (NULL_PTR);
-    } 
+    }
 
     ctdnssv_fname = ctdnssv_fname_gen(sp_root_dir, sname);
     if(NULL_PTR == ctdnssv_fname)
@@ -875,7 +875,7 @@ CTDNSSV *ctdnssv_create(const char *sp_root_dir, const char *sname, const uint8_
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_create: generate ctdnssv_fname of %s, root_dir %s failed\n", sname, sp_root_dir);
         return (NULL_PTR);
     }
- 
+
     if(EC_TRUE == c_file_access(ctdnssv_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_create: servce %s '%s' exist already\n", sname, ctdnssv_fname);
@@ -935,7 +935,7 @@ EC_BOOL ctdnssv_delete(CTDNSSV *ctdnssv, const UINT32 tcid)
 {
     CTDNSSVRB_POOL            *ctdnssv_pool;
     uint32_t                   node_pos;
- 
+
     ctdnssv_pool = CTDNSSV_NODES_POOL(ctdnssv);
     return ctdnssvrb_tree_delete_data(ctdnssv_pool, &(CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool)), tcid, &node_pos);
 }
@@ -978,8 +978,8 @@ EC_BOOL ctdnssv_insert(CTDNSSV *ctdnssv, const UINT32 tcid, const UINT32 ipaddr,
         CTDNSSV_ITEM_IPADDR(ctdnssv_item) = ipaddr;
         CTDNSSV_ITEM_PORT(ctdnssv_item)   = (uint32_t)port;
         return (EC_TRUE);
-    } 
-    
+    }
+
     return (EC_FALSE);
 }
 
@@ -1003,13 +1003,13 @@ CTDNSSV_ITEM *ctdnssv_fetch(const CTDNSSV *ctdnssv, const uint32_t node_pos)
 uint32_t ctdnssv_search(CTDNSSV *ctdnssv, const UINT32 tcid)
 {
     CTDNSSVRB_POOL    *ctdnssv_pool;
-    
+
     uint32_t           node_pos;
 
     ctdnssv_pool      = CTDNSSV_NODES_POOL(ctdnssv);
 
     node_pos = ctdnssvrb_tree_search_data(ctdnssv_pool, CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool), tcid);
-    
+
     return (node_pos);
 }
 
@@ -1037,7 +1037,7 @@ STATIC_CAST static EC_BOOL __ctdnssv_finger(CTDNSSV *ctdnssv, const uint32_t nod
     }
 
     ctdnssv_pool = CTDNSSV_NODES_POOL(ctdnssv);
- 
+
     node = CTDNSSVRB_POOL_NODE(ctdnssv_pool, node_pos);
     ctdnssv_item = (CTDNSSV_ITEM *)CTDNSSV_RB_NODE_ITEM(node);
 
@@ -1062,8 +1062,8 @@ STATIC_CAST static EC_BOOL __ctdnssv_finger(CTDNSSV *ctdnssv, const uint32_t nod
     if(0 < (*left_num) && CTDNSSVRB_ERR_POS != CTDNSSVRB_NODE_RIGHT_POS(node))
     {
         __ctdnssv_finger(ctdnssv, CTDNSSVRB_NODE_RIGHT_POS(node), left_num, ctdnssv_node_mgr);
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
@@ -1071,7 +1071,7 @@ EC_BOOL ctdnssv_finger(CTDNSSV *ctdnssv, const UINT32 max_num, CTDNSSV_NODE_MGR 
 {
     CTDNSSVRB_POOL  *ctdnssv_pool;
     UINT32           left_num;
-    
+
     left_num     = max_num;
     ctdnssv_pool = CTDNSSV_NODES_POOL(ctdnssv);
 
@@ -1108,7 +1108,7 @@ EC_BOOL ctdnssv_pop(CTDNSSV *ctdnssv, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port
     {
         (*port) = CTDNSSV_ITEM_PORT(ctdnssv_item);
     }
-    
+
     ctdnssvrb_tree_delete(ctdnssv_pool, &(CTDNSSVRB_POOL_ROOT_POS(ctdnssv_pool)), node_pos);
 
     return (EC_TRUE);
@@ -1127,13 +1127,13 @@ EC_BOOL ctdnssv_show_item(LOG *log, const CTDNSSV *ctdnssv, const uint32_t node_
 
     pool = CTDNSSV_NODES_POOL(ctdnssv);
 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos); 
+    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     ctdnssv_item = ctdnssv_fetch(ctdnssv, node_pos);
 
     ctdnssv_item_print(log, ctdnssv_item);
- 
+
     return (EC_TRUE);
 }
 
@@ -1141,12 +1141,12 @@ EC_BOOL ctdnssv_node_num(const CTDNSSV *ctdnssv, UINT32 *node_num)
 {
     CTDNSSV_HEADER    *ctdnssv_header;
     CTDNSSVRB_POOL    *ctdnssv_pool;
-    
+
     ctdnssv_header    = CTDNSSV_HDR(ctdnssv);
     ctdnssv_pool      = CTDNSSV_HEADER_NODES_POOL(ctdnssv_header);
 
     (*node_num) = CTDNSSVRB_POOL_NODE_USED_NUM(ctdnssv_pool);
-    return (EC_TRUE);    
+    return (EC_TRUE);
 }
 
 

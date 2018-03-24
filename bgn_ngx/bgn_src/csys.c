@@ -800,7 +800,7 @@ UINT32 cproc_cpu_stat_get(CPROC_CPU_STAT *cproc_cpu_stat)
     return (0);
 }
 
-static UINT32 ctop_mem_str_to_uint32(char *mem_str)
+STATIC_CAST static UINT32 ctop_mem_str_to_uint32(char *mem_str)
 {
     char *last_pch;
 
@@ -814,7 +814,7 @@ static UINT32 ctop_mem_str_to_uint32(char *mem_str)
     return lrint(strtod(mem_str, (char **)0));
 }
 
-static UINT32 ctop_oline_parse(char *oline_buff, CTOP_OLINE *ctop_oline)
+STATIC_CAST static UINT32 ctop_oline_parse(char *oline_buff, CTOP_OLINE *ctop_oline)
 {
     char  *safe_ptr;
     char  *seg_ptr;
@@ -1239,7 +1239,7 @@ UINT32 crank_thread_stat_get(CRANK_THREAD_STAT *crank_thread_stat)
 }
 
 /*warning: need root priviledge*/
-static UINT32 csys_eth_stat_speed(const char *eth_name)
+STATIC_CAST static UINT32 csys_eth_stat_speed(const char *eth_name)
 {
     FILE  *rstream;
     char  *ethtool = "/sbin/ethtool";
@@ -1502,7 +1502,7 @@ UINT32 csys_eth_stat_vec_get(CSYS_ETH_VEC *csys_eth_stat_vec)
 
         //dbg_log(SEC_0077_CSYS, 9)(LOGSTDOUT, "[DEBUG] csys_eth_stat_vec_get: buff %p, next %p\n", buff, next);
         //dbg_log(SEC_0077_CSYS, 9)(LOGSTDOUT, "[DEBUG] csys_eth_stat_vec_get: buff %s\n", buff);
-     
+
         if (NULL_PTR == strchr(buff, ':'))
         {
             continue;

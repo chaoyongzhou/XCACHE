@@ -82,14 +82,14 @@ extern "C"{
 #if 0
 #define CDETECTHTTP_ASSERT(condition) do{}while(0)
 #endif
- 
-#if 1 
+
+#if 1
 //#define CDETECTHTTP_TIME_COST_FORMAT " BegTime:%u.%03u EndTime:%u.%03u Elapsed:%u "
 #define CDETECTHTTP_TIME_COST_FORMAT " %u.%03u %u.%03u %u "
 #define CDETECTHTTP_TIME_COST_VALUE(chttp_node)  \
     (uint32_t)CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node)), (uint32_t)CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)), \
     (uint32_t)CTMV_NSEC(task_brd_default_get_daytime()), (uint32_t)CTMV_MSEC(task_brd_default_get_daytime()), \
-    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)))                 
+    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)))
 #endif
 
 static EC_BOOL g_cdetecthttp_log_init = EC_FALSE;
@@ -104,14 +104,14 @@ EC_BOOL cdetecthttp_log_start()
     }
 
     g_cdetecthttp_log_init = EC_TRUE;
-    
+
     task_brd = task_brd_default_get();
 
 #if 0/*support rotate*/
     if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
     {
         CSTRING *log_file_name;
-     
+
         log_file_name = cstring_new(NULL_PTR, LOC_CDETECTHTTP_0001);
         cstring_format(log_file_name, "%s/detect_%s_%ld.log",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
@@ -126,15 +126,15 @@ EC_BOOL cdetecthttp_log_start()
         }
         else
         {
-            cstring_free(log_file_name); 
+            cstring_free(log_file_name);
         }
-    } 
+    }
 #endif
     if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
     {
         CSTRING *log_file_name;
         LOG     *log;
-     
+
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CDETECTHTTP_0002);
         cstring_format(log_file_name, "%s/detect_%s_%ld",
@@ -155,10 +155,10 @@ EC_BOOL cdetecthttp_log_start()
         else
         {
             sys_log_redirect_setup(LOGUSER08, log);
-         
+
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "[DEBUG] cdetecthttp_log_start: log_file_open '%s' -> LOGUSER08 done\n",
                                (char *)cstring_get_str(log_file_name));
-         
+
             cstring_free(log_file_name);
         }
     }
@@ -167,7 +167,7 @@ EC_BOOL cdetecthttp_log_start()
     {
         CSTRING *log_file_name;
         LOG     *log;
-     
+
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CDETECTHTTP_0003);
         cstring_format(log_file_name, "%s/debug_%s_%ld",
@@ -190,7 +190,7 @@ EC_BOOL cdetecthttp_log_start()
             sys_log_redirect_setup(LOGUSER07, log);
             cstring_free(log_file_name);
         }
-    } 
+    }
 #endif
     return (EC_TRUE);
 }
@@ -207,7 +207,7 @@ EC_BOOL cdetecthttp_commit_request(CHTTP_NODE *chttp_node)
     if(HTTP_GET == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cdetecthttp_commit_http_get, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -217,15 +217,15 @@ EC_BOOL cdetecthttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0004); 
-     
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0004);
+
         return (EC_TRUE);
     }
 
     if(HTTP_POST == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cdetecthttp_commit_http_post, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -235,7 +235,7 @@ EC_BOOL cdetecthttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0005); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0005);
 
         return (EC_TRUE);
     }
@@ -243,7 +243,7 @@ EC_BOOL cdetecthttp_commit_request(CHTTP_NODE *chttp_node)
     if(HTTP_HEAD == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cdetecthttp_commit_http_head, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -253,8 +253,8 @@ EC_BOOL cdetecthttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0006); 
-     
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CDETECTHTTP_0006);
+
         return (EC_TRUE);
     }
 
@@ -267,12 +267,12 @@ EC_BOOL cdetecthttp_commit_http_head(CHTTP_NODE *chttp_node)
     EC_BOOL ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record detect beg to handle time*/
- 
+
     if(1)
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_http_head: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -286,12 +286,12 @@ EC_BOOL cdetecthttp_commit_http_post(CHTTP_NODE *chttp_node)
     EC_BOOL ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record detect beg to handle time*/
- 
+
     if(1)
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_http_post: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -310,7 +310,7 @@ EC_BOOL cdetecthttp_commit_http_get(CHTTP_NODE *chttp_node)
                         CBUFFER_USED(CHTTP_NODE_URI(chttp_node)));
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record detect beg to handle time*/
- 
+
     if(EC_TRUE == cdetecthttp_is_http_get_resolvedns(chttp_node))
     {
         ret = cdetecthttp_commit_resolvedns_get_request(chttp_node);
@@ -338,19 +338,19 @@ EC_BOOL cdetecthttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == cdetecthttp_is_http_get_actsyscfg(chttp_node))
     {
         ret = cdetecthttp_commit_actsyscfg_get_request(chttp_node);
-    }    
+    }
     else
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_http_get: invalid uri %.*s\n",
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_commit_http_get: invalid uri %.*s", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
     }
@@ -367,7 +367,7 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
     CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR; /*clear croutine mounted point*/
 
     if(EC_DONE == ret)
-    {    
+    {
         if(NULL_PTR != CHTTP_NODE_CSOCKET_CNODE(chttp_node))
         {
             CSOCKET_CNODE *csocket_cnode;
@@ -377,7 +377,7 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
             cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-            
+
             csocket_cnode_icomplete(CHTTP_NODE_CSOCKET_CNODE(chttp_node));
             return (EC_DONE);
         }
@@ -388,9 +388,9 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
         chttp_node_free(chttp_node);
 
         return (EC_FALSE);
-        
+
     }
- 
+
     if(EC_FALSE == ret)
     {
         ret = chttp_commit_error_request(chttp_node);
@@ -401,7 +401,7 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
         CSOCKET_CNODE * csocket_cnode;
 
         /*umount from defer request queue if necessary*/
-        chttp_defer_request_queue_erase(chttp_node);     
+        chttp_defer_request_queue_erase(chttp_node);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(NULL_PTR != csocket_cnode)
@@ -411,12 +411,12 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
 
             cepoll = TASK_BRD_CEPOLL(task_brd_default_get());
             sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
-         
-            dbg_log(SEC_0045_CDETECTHTTP, 1)(LOGSTDOUT, "[DEBUG] cdetecthttp_commit_end: sockfd %d false, remove all epoll events\n", sockfd); 
+
+            dbg_log(SEC_0045_CDETECTHTTP, 1)(LOGSTDOUT, "[DEBUG] cdetecthttp_commit_end: sockfd %d false, remove all epoll events\n", sockfd);
             cepoll_del_all(cepoll, sockfd);
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-            
+
             /* umount */
             CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -435,9 +435,9 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
 
         return (EC_FALSE);
     }
- 
+
     /*EC_TRUE, EC_DONE*/
-    return (ret); 
+    return (ret);
 }
 
 EC_BOOL cdetecthttp_commit_response(CHTTP_NODE *chttp_node)
@@ -458,27 +458,27 @@ EC_BOOL cdetecthttp_commit_response(CHTTP_NODE *chttp_node)
         return (ret);
     }
 
-    ret = cepoll_set_event(task_brd_default_get_cepoll(), 
-                           CSOCKET_CNODE_SOCKFD(csocket_cnode), 
+    ret = cepoll_set_event(task_brd_default_get_cepoll(),
+                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CEPOLL_WR_EVENT,
                            (const char *)"csocket_cnode_isend",
-                           (CEPOLL_EVENT_HANDLER)csocket_cnode_isend, 
+                           (CEPOLL_EVENT_HANDLER)csocket_cnode_isend,
                            csocket_cnode);
     if(EC_FALSE == ret)
     {
         return (EC_FALSE);
     }
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
-    
+
     return (EC_AGAIN);
 }
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: resolve dns ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_resolvedns_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_resolvedns_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -494,7 +494,7 @@ static EC_BOOL __cdetecthttp_uri_is_resolvedns_get_op(const CBUFFER *uri_cbuffer
 EC_BOOL cdetecthttp_is_http_get_resolvedns(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_resolvedns: uri: '%.*s' [len %d]\n",
@@ -506,20 +506,20 @@ EC_BOOL cdetecthttp_is_http_get_resolvedns(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_resolvedns_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_resolvedns_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_resolvedns_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_resolvedns_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_resolvedns_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_resolvedns_get_request: make 'GET' response failed\n");
@@ -532,12 +532,12 @@ EC_BOOL cdetecthttp_commit_resolvedns_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_resolvedns_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_resolvedns_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * domain_str;
     CSTRING         domain_cstr;
 
@@ -552,14 +552,14 @@ EC_BOOL cdetecthttp_handle_resolvedns_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_resolvedns_get_request: no domain in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
 
     cstring_set_str(&domain_cstr, (const UINT8 *)domain_str); /*mount only*/
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     if(EC_FALSE == cdetect_dns_resolve(CSOCKET_CNODE_MODI(csocket_cnode), &domain_cstr, &ipaddr))
@@ -569,10 +569,10 @@ EC_BOOL cdetecthttp_handle_resolvedns_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_resolvedns_get_request: not found domain '%s'", domain_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
@@ -595,7 +595,7 @@ EC_BOOL cdetecthttp_make_resolvedns_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -618,13 +618,13 @@ EC_BOOL cdetecthttp_make_resolvedns_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_resolvedns_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_resolvedns_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -646,11 +646,11 @@ EC_BOOL cdetecthttp_commit_resolvedns_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: start domain ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_startdomain_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_startdomain_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -666,7 +666,7 @@ static EC_BOOL __cdetecthttp_uri_is_startdomain_get_op(const CBUFFER *uri_cbuffe
 EC_BOOL cdetecthttp_is_http_get_startdomain(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_startdomain: uri: '%.*s' [len %d]\n",
@@ -678,20 +678,20 @@ EC_BOOL cdetecthttp_is_http_get_startdomain(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_startdomain_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_startdomain_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_startdomain_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_startdomain_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_startdomain_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_startdomain_get_request: make 'GET' response failed\n");
@@ -704,12 +704,12 @@ EC_BOOL cdetecthttp_commit_startdomain_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_startdomain_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_startdomain_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * domain_str;
     CSTRING         domain_cstr;
 
@@ -723,13 +723,13 @@ EC_BOOL cdetecthttp_handle_startdomain_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_startdomain_get_request: no domain in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&domain_cstr, (const UINT8 *)domain_str);/*mount only*/
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     if(EC_FALSE == cdetect_start_domain(CSOCKET_CNODE_MODI(csocket_cnode), &domain_cstr))
@@ -739,10 +739,10 @@ EC_BOOL cdetecthttp_handle_startdomain_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_startdomain_get_request: not found domain '%s'", domain_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
@@ -764,7 +764,7 @@ EC_BOOL cdetecthttp_make_startdomain_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -787,13 +787,13 @@ EC_BOOL cdetecthttp_make_startdomain_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_startdomain_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_startdomain_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -816,11 +816,11 @@ EC_BOOL cdetecthttp_commit_startdomain_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: stop domain ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_stopdomain_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_stopdomain_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -836,7 +836,7 @@ static EC_BOOL __cdetecthttp_uri_is_stopdomain_get_op(const CBUFFER *uri_cbuffer
 EC_BOOL cdetecthttp_is_http_get_stopdomain(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_stopdomain: uri: '%.*s' [len %d]\n",
@@ -848,20 +848,20 @@ EC_BOOL cdetecthttp_is_http_get_stopdomain(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_stopdomain_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_stopdomain_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_stopdomain_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_stopdomain_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_stopdomain_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_stopdomain_get_request: make 'GET' response failed\n");
@@ -874,12 +874,12 @@ EC_BOOL cdetecthttp_commit_stopdomain_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_stopdomain_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_stopdomain_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * domain_str;
     CSTRING         domain_cstr;
 
@@ -893,13 +893,13 @@ EC_BOOL cdetecthttp_handle_stopdomain_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_stopdomain_get_request: no domain in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&domain_cstr, (const UINT8 *)domain_str); /*mount only*/
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     if(EC_FALSE == cdetect_start_domain(CSOCKET_CNODE_MODI(csocket_cnode), &domain_cstr))
@@ -909,10 +909,10 @@ EC_BOOL cdetecthttp_handle_stopdomain_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_stopdomain_get_request: not found domain '%s'", domain_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
@@ -934,7 +934,7 @@ EC_BOOL cdetecthttp_make_stopdomain_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -957,13 +957,13 @@ EC_BOOL cdetecthttp_make_stopdomain_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_stopdomain_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_stopdomain_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -985,11 +985,11 @@ EC_BOOL cdetecthttp_commit_stopdomain_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: process ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_process_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_process_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1005,7 +1005,7 @@ static EC_BOOL __cdetecthttp_uri_is_process_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL cdetecthttp_is_http_get_process(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_process: uri: '%.*s' [len %d]\n",
@@ -1017,20 +1017,20 @@ EC_BOOL cdetecthttp_is_http_get_process(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_process_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_process_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_process_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_process_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_process_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_process_get_request: make 'GET' response failed\n");
@@ -1043,12 +1043,12 @@ EC_BOOL cdetecthttp_commit_process_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_process_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_process_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * v;
     UINT32          detect_task_max_num;
 
@@ -1062,14 +1062,14 @@ EC_BOOL cdetecthttp_handle_process_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_process_get_request: no domain in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
 
     detect_task_max_num = c_str_to_word(v);
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     if(EC_FALSE == cdetect_process(CSOCKET_CNODE_MODI(csocket_cnode), detect_task_max_num))
@@ -1079,10 +1079,10 @@ EC_BOOL cdetecthttp_handle_process_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_process_get_request: internal issue");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
@@ -1101,7 +1101,7 @@ EC_BOOL cdetecthttp_make_process_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -1124,13 +1124,13 @@ EC_BOOL cdetecthttp_make_process_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_process_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_process_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -1152,11 +1152,11 @@ EC_BOOL cdetecthttp_commit_process_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: logrotate ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_logrotate_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_logrotate_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1172,7 +1172,7 @@ static EC_BOOL __cdetecthttp_uri_is_logrotate_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL cdetecthttp_is_http_get_logrotate(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_logrotate: uri: '%.*s' [len %d]\n",
@@ -1184,20 +1184,20 @@ EC_BOOL cdetecthttp_is_http_get_logrotate(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_logrotate_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_logrotate_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_logrotate_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_logrotate_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_logrotate_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_logrotate_get_request: make 'GET' response failed\n");
@@ -1210,14 +1210,14 @@ EC_BOOL cdetecthttp_commit_logrotate_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_logrotate_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
-     
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     if(EC_TRUE == __cdetecthttp_uri_is_logrotate_get_op(uri_cbuffer))
@@ -1240,7 +1240,7 @@ EC_BOOL cdetecthttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
         {
             log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
         }
-     
+
         if(EC_FALSE == super_rotate_log(super_md_id, log_index))
         {
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
@@ -1281,13 +1281,13 @@ EC_BOOL cdetecthttp_make_logrotate_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_logrotate_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }  
- 
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_logrotate_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -1309,11 +1309,11 @@ EC_BOOL cdetecthttp_commit_logrotate_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: actsyscfg ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_actsyscfg_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_actsyscfg_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1329,7 +1329,7 @@ static EC_BOOL __cdetecthttp_uri_is_actsyscfg_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL cdetecthttp_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_actsyscfg: uri: '%.*s' [len %d]\n",
@@ -1341,20 +1341,20 @@ EC_BOOL cdetecthttp_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_actsyscfg_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_actsyscfg_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_actsyscfg_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_actsyscfg_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_actsyscfg_get_request: make 'GET' response failed\n");
@@ -1362,20 +1362,20 @@ EC_BOOL cdetecthttp_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
     }
 
     ret = cdetecthttp_commit_actsyscfg_get_response(chttp_node);
- 
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_actsyscfg_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     if(EC_TRUE == __cdetecthttp_uri_is_actsyscfg_get_op(uri_cbuffer))
@@ -1413,13 +1413,13 @@ EC_BOOL cdetecthttp_make_actsyscfg_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_actsyscfg_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }  
- 
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_actsyscfg_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -1441,11 +1441,11 @@ EC_BOOL cdetecthttp_commit_actsyscfg_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: breathe ----------------------------------------*/
-static EC_BOOL __cdetecthttp_uri_is_breathe_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __cdetecthttp_uri_is_breathe_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1461,7 +1461,7 @@ static EC_BOOL __cdetecthttp_uri_is_breathe_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL cdetecthttp_is_http_get_breathe(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_is_http_get_breathe: uri: '%.*s' [len %d]\n",
@@ -1473,20 +1473,20 @@ EC_BOOL cdetecthttp_is_http_get_breathe(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL cdetecthttp_commit_breathe_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == cdetecthttp_handle_breathe_get_request(chttp_node))
     {
-        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_breathe_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_breathe_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cdetecthttp_make_breathe_get_response(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_breathe_get_request: make 'GET' response failed\n");
@@ -1499,12 +1499,12 @@ EC_BOOL cdetecthttp_commit_breathe_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_commit_breathe_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL cdetecthttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
-{    
+{
     CBYTES        *content_cbytes;
 
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
@@ -1513,17 +1513,17 @@ EC_BOOL cdetecthttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
     if(1)
     {
         //CSOCKET_CNODE * csocket_cnode;
-     
+
         //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
         breathing_static_mem();
-     
+
         dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_breathe_get_request: memory breathing done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_breathe_get_request: memory breathing done");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
@@ -1545,13 +1545,13 @@ EC_BOOL cdetecthttp_make_breathe_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_breathe_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }  
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_make_breathe_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }

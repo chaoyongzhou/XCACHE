@@ -183,9 +183,9 @@ STATIC_CAST static EC_BOOL __csfsnp_path_hash(CSFSNP *csfsnp, const uint32_t pat
 {
     ASSERT(CMD5_DIGEST_LEN == digest_max_len);
     cmd5_sum(path_len, path, digest);
- 
+
     (*path_1st_hash) = CSFSNP_1ST_CHASH_ALGO_COMPUTE(csfsnp, path_len, path);
-    (*path_2nd_hash) = CSFSNP_2ND_CHASH_ALGO_COMPUTE(csfsnp, path_len, path); 
+    (*path_2nd_hash) = CSFSNP_2ND_CHASH_ALGO_COMPUTE(csfsnp, path_len, path);
 
     return (EC_TRUE);
 }
@@ -352,7 +352,7 @@ EC_BOOL csfsnp_fnode_cmp(const CSFSNP_FNODE *csfsnp_fnode_1st, const CSFSNP_FNOD
     {
         return (EC_FALSE);
     }
- 
+
     for(replica_pos = 0; replica_pos < CSFSNP_FNODE_REPNUM(csfsnp_fnode_1st); replica_pos ++)
     {
         if(EC_FALSE == csfsnp_fnode_check_inode_exist(CSFSNP_FNODE_INODE(csfsnp_fnode_1st, replica_pos), csfsnp_fnode_2nd))
@@ -466,7 +466,7 @@ CSFSNP_ITEM *csfsnp_item_new()
 EC_BOOL csfsnp_item_init(CSFSNP_ITEM *csfsnp_item)
 {
     CSFSNP_ITEM_C_TIME(csfsnp_item)  = 0;
- 
+
     CSFSNP_ITEM_KLEN(csfsnp_item)    = 0;
     BSET(CSFSNP_ITEM_KEY(csfsnp_item), '\0', CSFSNP_KEY_MAX_SIZE);
 
@@ -474,7 +474,7 @@ EC_BOOL csfsnp_item_init(CSFSNP_ITEM *csfsnp_item)
     CSFSNP_ITEM_STAT(csfsnp_item)       = CSFSNP_ITEM_STAT_IS_NOT_USED;
 
     csfsnp_fnode_init(CSFSNP_ITEM_FNODE(csfsnp_item));
- 
+
     /*note:do nothing on rb_node*/
 
     return (EC_TRUE);
@@ -483,15 +483,15 @@ EC_BOOL csfsnp_item_init(CSFSNP_ITEM *csfsnp_item)
 EC_BOOL csfsnp_item_clean(CSFSNP_ITEM *csfsnp_item)
 {
     CSFSNP_ITEM_C_TIME(csfsnp_item)  = 0;
- 
+
     CSFSNP_ITEM_KLEN(csfsnp_item)    = 0;
     BSET(CSFSNP_ITEM_KEY(csfsnp_item), '\0', CSFSNP_KEY_MAX_SIZE);
 
     CSFSNP_ITEM_BUCKET_POS(csfsnp_item) = CSFSNPRB_ERR_POS;
     CSFSNP_ITEM_STAT(csfsnp_item)       = CSFSNP_ITEM_STAT_IS_NOT_USED;
- 
+
     csfsnp_fnode_clean(CSFSNP_ITEM_FNODE(csfsnp_item));
- 
+
     /*note:do nothing on rb_node*/
 
     return (EC_TRUE);
@@ -519,9 +519,9 @@ EC_BOOL csfsnp_item_clone(const CSFSNP_ITEM *csfsnp_item_src, CSFSNP_ITEM *csfsn
 
     CSFSNP_ITEM_BUCKET_POS(csfsnp_item_des) = CSFSNP_ITEM_BUCKET_POS(csfsnp_item_src);
     CSFSNP_ITEM_STAT(csfsnp_item_des)       = CSFSNP_ITEM_STAT(csfsnp_item_src);
-  
+
     csfsnp_fnode_clone(CSFSNP_ITEM_FNODE(csfsnp_item_src), CSFSNP_ITEM_FNODE(csfsnp_item_des));
- 
+
     return (EC_TRUE);
 }
 
@@ -692,7 +692,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_new(const uint32_t np_id, cons
     CSFSNP_HEADER_NP_ID(csfsnp_header)     = np_id;
     CSFSNP_HEADER_NP_MODEL(csfsnp_header)  = np_model;
 
-    /*init rb nodes*/ 
+    /*init rb nodes*/
     csfsnprb_pool_init(CSFSNP_HEADER_ITEMS_POOL(csfsnp_header), node_max_num, node_sizeof);
 
     /*init buckets*/
@@ -704,11 +704,11 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_new(const uint32_t np_id, cons
     for(bucket_pos = 0; bucket_pos < bucket_max_num; bucket_pos ++)
     {
         *(bucket + bucket_pos) = CSFSNPRB_ERR_POS;
-    } 
+    }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_new: new header of np %u with model %u, bucket max num %u done\n",
                         np_id, np_model, bucket_max_num);
- 
+
     return (csfsnp_header);
 }
 
@@ -734,7 +734,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_load(const uint32_t np_id, con
         return (NULL_PTR);
     }
 
-    dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_load: load header of np %u done\n", np_id); 
+    dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_load: load header of np %u done\n", np_id);
 
     return ((CSFSNP_HEADER *)buff);
 }
@@ -745,7 +745,7 @@ STATIC_CAST static CSFSNP_HEADER * __csfsnp_header_flush(CSFSNP_HEADER *csfsnp_h
     {
         UINT32 offset;
 
-        offset = 0;     
+        offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)csfsnp_header))
         {
             dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_flush: flush header of np %u fd %d with size %u failed\n",
@@ -753,9 +753,9 @@ STATIC_CAST static CSFSNP_HEADER * __csfsnp_header_flush(CSFSNP_HEADER *csfsnp_h
         }
         else
         {
-            dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_flush: flush header of np %u done\n", np_id); 
+            dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_flush: flush header of np %u done\n", np_id);
         }
-    } 
+    }
     return (csfsnp_header);
 }
 
@@ -777,9 +777,9 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_free(CSFSNP_HEADER *csfsnp_hea
 
         safe_free(csfsnp_header, LOC_CSFSNP_0010);
 
-        dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_free: free header of np %u done\n", np_id); 
+        dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_free: free header of np %u done\n", np_id);
     }
- 
+
     /*csfsnp_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -798,7 +798,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_open(const uint32_t np_id, con
     }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_open: mmap header of np %u done\n", np_id);
- 
+
     return (csfsnp_header);
 }
 
@@ -810,7 +810,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_create(const uint32_t np_id, c
     uint32_t node_sizeof;
     uint32_t bucket_pos;
     UINT32   bucket_offset;
-    UINT32   expect_fsize; 
+    UINT32   expect_fsize;
 
     csfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CSFSNP_ITEM);
@@ -836,14 +836,14 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_create(const uint32_t np_id, c
         dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_open: mmap np %u with fd %d failed, errno = %d, errorstr = %s\n",
                            np_id, fd, errno, strerror(errno));
         return (NULL_PTR);
-    }  
+    }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_create: fsize %lu, node_max_num %u, node_sizeof %u\n", fsize, node_max_num, node_sizeof);
 
     CSFSNP_HEADER_NP_ID(csfsnp_header)    = np_id;
     CSFSNP_HEADER_NP_MODEL(csfsnp_header) = np_model;
 
-    /*init rb nodes*/ 
+    /*init rb nodes*/
     csfsnprb_pool_init(CSFSNP_HEADER_ITEMS_POOL(csfsnp_header), node_max_num, node_sizeof);
 
     /*init buckets*/
@@ -859,7 +859,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_create(const uint32_t np_id, c
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_create: mmap header of np %u with model %u, bucket max num %u done\n",
                         np_id, np_model, bucket_max_num);
-                     
+
     return (csfsnp_header);
 }
 
@@ -876,8 +876,8 @@ STATIC_CAST static CSFSNP_HEADER * __csfsnp_header_sync(CSFSNP_HEADER *csfsnp_he
         {
             dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_sync: sync header of np %u fd %d with size %u done\n",
                                np_id, fd, fsize);
-        }        
-    } 
+        }
+    }
     return (csfsnp_header);
 }
 
@@ -890,7 +890,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_close(CSFSNP_HEADER *csfsnp_he
             dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: sync header of np %u fd %d with size %u failed\n",
                                np_id, fd, fsize);
         }
-     
+
         if(0 != munmap(csfsnp_header, fsize))
         {
             dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: munmap header of np %u fd %d with size %u failed\n",
@@ -899,7 +899,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_close(CSFSNP_HEADER *csfsnp_he
     }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_close: close header of np %u done\n", np_id);
- 
+
     /*csfsnp_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -921,7 +921,7 @@ CSFSNP_HEADER *csfsnp_header_sync(CSFSNP_HEADER *csfsnp_header, const uint32_t n
         return __csfsnp_header_flush(csfsnp_header, np_id, fsize, fd);
     }
 
-    return __csfsnp_header_sync(csfsnp_header, np_id, fsize, fd); 
+    return __csfsnp_header_sync(csfsnp_header, np_id, fsize, fd);
 }
 
 CSFSNP_HEADER *csfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
@@ -947,15 +947,15 @@ CSFSNP_HEADER *csfsnp_header_close(CSFSNP_HEADER *csfsnp_header, const uint32_t 
 EC_BOOL csfsnp_header_init(CSFSNP_HEADER *csfsnp_header, const uint32_t np_id, const uint8_t np_model, const uint8_t first_chash_algo_id, const uint8_t second_chash_algo_id, const uint32_t bucket_max_num)
 {
     uint32_t node_max_num;
- 
+
     CSFSNP_HEADER_NP_ID(csfsnp_header)         = np_id;
     CSFSNP_HEADER_NP_MODEL(csfsnp_header)      = np_model;
- 
+
     CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header)  = first_chash_algo_id;
     CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)  = second_chash_algo_id;
 
     csfsnp_model_item_max_num(np_model, &node_max_num);
- 
+
     CSFSNP_HEADER_BUCKET_MAX_NUM(csfsnp_header)     = bucket_max_num;
 
     /*do nothing on CSFSNPRB_POOL pool*/
@@ -967,7 +967,7 @@ EC_BOOL csfsnp_header_clean(CSFSNP_HEADER *csfsnp_header)
 {
     CSFSNP_HEADER_NP_ID(csfsnp_header)              = CSFSNP_ERR_ID;
     CSFSNP_HEADER_NP_MODEL(csfsnp_header)           = CSFSNP_ERR_MODEL;
- 
+
     CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header)  = CHASH_ERR_ALGO_ID;
     CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)  = CHASH_ERR_ALGO_ID;
 
@@ -991,7 +991,7 @@ CSFSNP *csfsnp_new()
 }
 
 EC_BOOL csfsnp_init(CSFSNP *csfsnp)
-{ 
+{
     CSFSNP_FD(csfsnp)               = ERR_FD;
     CSFSNP_FSIZE(csfsnp)            = 0;
     CSFSNP_FNAME(csfsnp)            = NULL_PTR;
@@ -1016,7 +1016,7 @@ EC_BOOL csfsnp_clean(CSFSNP *csfsnp)
         csfsnp_header_close(CSFSNP_HDR(csfsnp), CSFSNP_ID(csfsnp), CSFSNP_FSIZE(csfsnp), CSFSNP_FD(csfsnp));
         CSFSNP_HDR(csfsnp) = NULL_PTR;
     }
- 
+
     if(ERR_FD != CSFSNP_FD(csfsnp))
     {
         c_file_close(CSFSNP_FD(csfsnp));
@@ -1033,7 +1033,7 @@ EC_BOOL csfsnp_clean(CSFSNP *csfsnp)
 
     CSFSNP_RETIRE_NODE_POS(csfsnp)  = CSFSNPRB_ERR_POS;
     CSFSNP_DEL_SIZE(csfsnp)         = 0;
-    CSFSNP_RECYCLE_SIZE(csfsnp)     = 0; 
+    CSFSNP_RECYCLE_SIZE(csfsnp)     = 0;
 
     CSFSNP_BUCKET_ADDR(csfsnp)      = NULL_PTR;
 
@@ -1140,7 +1140,7 @@ STATIC_CAST static const CSFSNP_ITEM *__csfsnp_bucket_find(const CSFSNP *csfsnp,
     {
         const CSFSNPRB_NODE *node;
         const CSFSNP_ITEM   *item;
-     
+
         node = CSFSNPRB_POOL_NODE(pool, node_pos);
         item = CSFSNP_RB_NODE_ITEM(node);
 
@@ -1191,14 +1191,14 @@ STATIC_CAST static uint32_t __csfsnp_bucket_insert(CSFSNP *csfsnp, const uint32_
         return (CSFSNPRB_ERR_POS);
     }
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_bucket_insert: bucket %u, root %u => %u\n", bucket_pos, CSFSNP_BUCKET(csfsnp, bucket_pos), root_pos);
-    CSFSNP_BUCKET(csfsnp, bucket_pos) = root_pos; 
+    CSFSNP_BUCKET(csfsnp, bucket_pos) = root_pos;
     return (insert_offset);
 }
 
 STATIC_CAST static EC_BOOL __csfsnp_bucket_delete(CSFSNP *csfsnp, const uint32_t first_hash, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
 {
     CSFSNP_ITEM *csfsnp_item;
- 
+
     uint32_t node_pos;
     uint32_t bucket_pos;
     uint32_t root_pos;
@@ -1221,7 +1221,7 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_delete(CSFSNP *csfsnp, const uint32_t
     }
 
     csfsnprb_tree_delete(CSFSNP_ITEMS_POOL(csfsnp), &root_pos, node_pos);
- 
+
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_bucket_delete: bucket %u: root %u => %u\n", bucket_pos, CSFSNP_BUCKET(csfsnp, bucket_pos), root_pos);
     CSFSNP_BUCKET(csfsnp, bucket_pos) = root_pos;
 
@@ -1233,10 +1233,10 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_delete(CSFSNP *csfsnp, const uint32_t
         csfsnp_fnode = CSFSNP_ITEM_FNODE(csfsnp_item);
         CSFSNP_DEL_SIZE(csfsnp) += CSFSNP_FNODE_FILESZ(csfsnp_fnode);
         CSFSNP_HEADER_DEL_ITEMS_CUR_NUM(CSFSNP_HDR(csfsnp)) ++;
-     
+
         csfsnp_item_clean(csfsnp_item);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1252,7 +1252,7 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_delete_item(CSFSNP *csfsnp, const uin
     root_pos = CSFSNP_BUCKET(csfsnp, bucket_pos);
 
     csfsnprb_tree_delete(CSFSNP_ITEMS_POOL(csfsnp), &root_pos, node_pos);
- 
+
     CSFSNP_BUCKET(csfsnp, bucket_pos) = root_pos;
 
     csfsnp_item = csfsnp_fetch(csfsnp, node_pos);
@@ -1261,12 +1261,12 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_delete_item(CSFSNP *csfsnp, const uin
         CSFSNP_FNODE *csfsnp_fnode;
 
         csfsnp_fnode = CSFSNP_ITEM_FNODE(csfsnp_item);
-        CSFSNP_DEL_SIZE(csfsnp) += CSFSNP_FNODE_FILESZ(csfsnp_fnode); 
+        CSFSNP_DEL_SIZE(csfsnp) += CSFSNP_FNODE_FILESZ(csfsnp_fnode);
         CSFSNP_HEADER_DEL_ITEMS_CUR_NUM(CSFSNP_HDR(csfsnp)) ++;
 
         csfsnp_item_clean(csfsnp_item);
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
@@ -1300,7 +1300,7 @@ uint32_t csfsnp_search_no_lock(CSFSNP *csfsnp, const uint32_t path_len, const ui
 {
     uint8_t  digest[ CMD5_DIGEST_LEN ];
     uint32_t path_1st_hash;
-    uint32_t path_2nd_hash; 
+    uint32_t path_2nd_hash;
 
     __csfsnp_path_hash(csfsnp, path_len, path, CMD5_DIGEST_LEN, digest, &path_1st_hash, &path_2nd_hash);
 
@@ -1309,7 +1309,7 @@ uint32_t csfsnp_search_no_lock(CSFSNP *csfsnp, const uint32_t path_len, const ui
         sys_log(LOGSTDOUT, "[DEBUG] csfsnp_search_no_lock: ");
         __csfsnp_print_hash(LOGSTDOUT, path_len, path, path_1st_hash, path_2nd_hash, CMD5_DIGEST_LEN, digest);
     }
- 
+
     return __csfsnp_bucket_search(csfsnp, path_1st_hash, path_2nd_hash, CMD5_DIGEST_LEN, digest);
 }
 
@@ -1340,14 +1340,14 @@ uint32_t csfsnp_insert_no_lock(CSFSNP *csfsnp, const uint32_t path_len, const ui
         sys_log(LOGSTDOUT, "[DEBUG] csfsnp_insert_no_lock: ");
         __csfsnp_print_hash(LOGSTDOUT, path_len, path, path_1st_hash, path_2nd_hash, CMD5_DIGEST_LEN, digest);
     }
- 
+
     node_pos = __csfsnp_bucket_insert(csfsnp, path_1st_hash, path_2nd_hash, CMD5_DIGEST_LEN, digest);
     if(CSFSNPRB_ERR_POS == node_pos)
     {
         dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:csfsnp_insert_no_lock: insert '%.*s' failed\n", path_len, path);
         return (CSFSNPRB_ERR_POS);
     }
- 
+
     csfsnp_item = csfsnp_fetch(csfsnp, node_pos);
     csfsnp_item_set_key(csfsnp_item, CMD5_DIGEST_LEN, digest);
     csfsnp_fnode_init(CSFSNP_ITEM_FNODE(csfsnp_item));
@@ -1430,8 +1430,8 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_update(CSFSNP * csfsnp, CSFSNPRB_POOL
     {
         return (EC_TRUE);
     }
- 
-    node  = CSFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CSFSNPRB_POOL_NODE(pool, node_pos);
     if(CSFSNPRB_ERR_POS != CSFSNPRB_NODE_LEFT_POS(node))
     {
         __csfsnp_bucket_update(csfsnp, pool, CSFSNPRB_NODE_LEFT_POS(node),
@@ -1451,8 +1451,8 @@ STATIC_CAST static EC_BOOL __csfsnp_bucket_update(CSFSNP * csfsnp, CSFSNPRB_POOL
         __csfsnp_bucket_update(csfsnp, pool, CSFSNPRB_NODE_RIGHT_POS(node),
                                src_disk_no, src_block_no, src_page_no,
                                des_disk_no, des_block_no, des_page_no);
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
@@ -1465,7 +1465,7 @@ STATIC_CAST static EC_BOOL __csfsnp_update_one_bucket(CSFSNP *csfsnp, const uint
 
     return __csfsnp_bucket_update(csfsnp, pool, CSFSNP_BUCKET(csfsnp, bucket_pos),
                                    src_disk_no, src_block_no, src_page_no,
-                                   des_disk_no, des_block_no, des_page_no); 
+                                   des_disk_no, des_block_no, des_page_no);
 }
 
 EC_BOOL csfsnp_update_all_buckets(CSFSNP *csfsnp,
@@ -1476,7 +1476,7 @@ EC_BOOL csfsnp_update_all_buckets(CSFSNP *csfsnp,
     uint32_t bucket_num;
     uint32_t bucket_pos;
 
-    bucket_num = CSFSNP_BUCKET_MAX_NUM(csfsnp); 
+    bucket_num = CSFSNP_BUCKET_MAX_NUM(csfsnp);
     for(bucket_pos = 0; bucket_pos < bucket_num; bucket_pos ++)
     {
         if(EC_FALSE == __csfsnp_update_one_bucket(csfsnp, bucket_pos,
@@ -1502,7 +1502,7 @@ EC_BOOL csfsnp_item_update(CSFSNP *csfsnp, CSFSNP_ITEM *csfsnp_item,
 
     return csfsnp_fnode_update(csfsnp, CSFSNP_ITEM_FNODE(csfsnp_item),
                                src_disk_no, src_block_no, src_page_no,
-                               des_disk_no, des_block_no, des_page_no);    
+                               des_disk_no, des_block_no, des_page_no);
 }
 
 EC_BOOL csfsnp_update_no_lock(CSFSNP *csfsnp,
@@ -1534,14 +1534,14 @@ CSFSNP_ITEM *csfsnp_get(CSFSNP *csfsnp, const uint32_t path_len, const uint8_t *
 EC_BOOL csfsnp_delete(CSFSNP *csfsnp, const uint32_t path_len, const uint8_t *path)
 {
     uint8_t  digest[ CMD5_DIGEST_LEN ];
- 
+
     uint32_t path_1st_hash;
     uint32_t path_2nd_hash;
 
     __csfsnp_path_hash(csfsnp, path_len, path, CMD5_DIGEST_LEN, digest, &path_1st_hash, &path_2nd_hash);
 
     CSFSNP_WRLOCK(csfsnp, LOC_CSFSNP_0020);
- 
+
     if(EC_FALSE == __csfsnp_bucket_delete(csfsnp, path_1st_hash, path_2nd_hash, CMD5_DIGEST_LEN, digest))
     {
         CSFSNP_UNLOCK(csfsnp, LOC_CSFSNP_0021);
@@ -1550,7 +1550,7 @@ EC_BOOL csfsnp_delete(CSFSNP *csfsnp, const uint32_t path_len, const uint8_t *pa
         return (EC_FALSE);
     }
     CSFSNP_UNLOCK(csfsnp, LOC_CSFSNP_0022);
- 
+
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_delete: delete '%.*s' done\n", path_len, path);
     return (EC_TRUE);
 }
@@ -1584,7 +1584,7 @@ EC_BOOL csfsnp_umount_item(CSFSNP *csfsnp, const uint32_t node_pos)
     if(NULL_PTR == csfsnp_item)
     {
         return (EC_FALSE);
-    } 
+    }
 
     __csfsnp_bucket_delete_item(csfsnp, CSFSNP_ITEM_BUCKET_POS(csfsnp_item), node_pos);
 
@@ -1621,8 +1621,8 @@ STATIC_CAST static EC_BOOL __csfsnp_count_bucket_file_size(CSFSNP * csfsnp, CSFS
     {
         return (EC_TRUE);
     }
- 
-    node  = CSFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CSFSNPRB_POOL_NODE(pool, node_pos);
     if(CSFSNPRB_ERR_POS != CSFSNPRB_NODE_LEFT_POS(node))
     {
         __csfsnp_count_bucket_file_size(csfsnp, pool, CSFSNPRB_NODE_LEFT_POS(node), file_size);
@@ -1634,8 +1634,8 @@ STATIC_CAST static EC_BOOL __csfsnp_count_bucket_file_size(CSFSNP * csfsnp, CSFS
     if(CSFSNPRB_ERR_POS != CSFSNPRB_NODE_RIGHT_POS(node))
     {
         __csfsnp_count_bucket_file_size(csfsnp, pool, CSFSNPRB_NODE_RIGHT_POS(node), file_size);
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
@@ -1698,7 +1698,7 @@ CSFSNP *csfsnp_open(const char *np_root_dir, const uint32_t np_id)
         safe_free(np_fname, LOC_CSFSNP_0025);
         c_file_close(fd);
         return (NULL_PTR);
-    } 
+    }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_open: np %u, file size %lu\n", np_id, fsize);
 
@@ -1709,7 +1709,7 @@ CSFSNP *csfsnp_open(const char *np_root_dir, const uint32_t np_id)
         safe_free(np_fname, LOC_CSFSNP_0026);
         c_file_close(fd);
         return (NULL_PTR);
-    } 
+    }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_open: np %u, open header done\n", np_id);
 
@@ -1727,7 +1727,7 @@ CSFSNP *csfsnp_open(const char *np_root_dir, const uint32_t np_id)
     CSFSNP_BUCKET_ADDR(csfsnp)= (uint32_t *)(((uint8_t *)csfsnp_header) + CSFSNP_HEADER_BUCKET_OFFSET(csfsnp_header));
 
     CSFSNP_1ST_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header));
-    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)); 
+    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header));
 
     CSFSNP_FD(csfsnp)    = fd;
     CSFSNP_FSIZE(csfsnp) = fsize;
@@ -1789,7 +1789,7 @@ CSFSNP *csfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     }
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_create: np %u => np fname %s\n", np_id, np_fname);
- 
+
     if(EC_TRUE == c_file_access(np_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:csfsnp_create: np %u exist already\n", np_id);
@@ -1826,7 +1826,7 @@ CSFSNP *csfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
         return (NULL_PTR);
     }
     CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header) = hash_1st_algo_id;
-    CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header) = hash_2nd_algo_id; 
+    CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header) = hash_2nd_algo_id;
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_create: np %u: create header done\n", np_id);
 
@@ -1840,19 +1840,19 @@ CSFSNP *csfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
         return (NULL_PTR);
     }
     CSFSNP_HDR(csfsnp) = csfsnp_header;
- 
+
     CSFSNP_BUCKET_ADDR(csfsnp) = (uint32_t *)(((uint8_t *)csfsnp_header) + CSFSNP_HEADER_BUCKET_OFFSET(csfsnp_header));
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_create: csfsnp_header = %p, offset = %u, bucket addr %p\n",
                         csfsnp_header, CSFSNP_HEADER_BUCKET_OFFSET(csfsnp_header), CSFSNP_BUCKET_ADDR(csfsnp));
 
     CSFSNP_1ST_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header));
-    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)); 
+    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header));
 
     CSFSNP_FD(csfsnp)    = fd;
     CSFSNP_FSIZE(csfsnp) = fsize;
     CSFSNP_FNAME(csfsnp) = (uint8_t *)np_fname;
 
-    ASSERT(np_id == CSFSNP_HEADER_NP_ID(csfsnp_header)); 
+    ASSERT(np_id == CSFSNP_HEADER_NP_ID(csfsnp_header));
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] csfsnp_create: create np %u done\n", np_id);
 
@@ -1880,8 +1880,8 @@ STATIC_CAST static EC_BOOL __csfsnp_show_one_bucket(LOG *log, const CSFSNP * csf
     {
         return (EC_TRUE);
     }
- 
-    node  = CSFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CSFSNPRB_POOL_NODE(pool, node_pos);
     if(CSFSNPRB_ERR_POS != CSFSNPRB_NODE_LEFT_POS(node))
     {
         __csfsnp_show_one_bucket(log, csfsnp, pool, CSFSNPRB_NODE_LEFT_POS(node));
@@ -1893,8 +1893,8 @@ STATIC_CAST static EC_BOOL __csfsnp_show_one_bucket(LOG *log, const CSFSNP * csf
     if(CSFSNPRB_ERR_POS != CSFSNPRB_NODE_RIGHT_POS(node))
     {
         __csfsnp_show_one_bucket(log, csfsnp, pool, CSFSNPRB_NODE_RIGHT_POS(node));
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
@@ -1903,7 +1903,7 @@ EC_BOOL csfsnp_show_one_bucket(LOG *log, const CSFSNP *csfsnp, const uint32_t bu
 {
     const CSFSNPRB_POOL *pool;
     pool = CSFSNP_ITEMS_POOL(csfsnp);
- 
+
     return __csfsnp_show_one_bucket(log, csfsnp, pool, CSFSNP_BUCKET(csfsnp, bucket_pos));
 }
 
@@ -1954,7 +1954,7 @@ CSFSNP *csfsnp_mem_create(const uint32_t np_id, const uint8_t np_model, const ui
         return (NULL_PTR);
     }
     CSFSNP_HDR(csfsnp) = csfsnp_header;
- 
+
     CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header)  = hash_1st_algo_id;
     CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)  = hash_2nd_algo_id;
 
@@ -1963,7 +1963,7 @@ CSFSNP *csfsnp_mem_create(const uint32_t np_id, const uint8_t np_model, const ui
                         csfsnp_header, CSFSNP_HEADER_BUCKET_OFFSET(csfsnp_header), CSFSNP_BUCKET_ADDR(csfsnp));
 
     CSFSNP_1ST_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_1ST_CHASH_ALGO_ID(csfsnp_header));
-    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header)); 
+    CSFSNP_2ND_CHASH_ALGO(csfsnp) = chash_algo_fetch(CSFSNP_HEADER_2ND_CHASH_ALGO_ID(csfsnp_header));
 
     CSFSNP_FD(csfsnp)    = fd;
     CSFSNP_FSIZE(csfsnp) = fsize;

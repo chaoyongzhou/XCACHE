@@ -47,7 +47,7 @@ CSFSCONHASH_RNODE *csfsconhash_rnode_make(const uint32_t tcid, const uint16_t re
         CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode) = replicas;
         CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode)   = CSFSCONHASH_RNODE_IS_UP;
         CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)     = tcid;
-     
+
         CSFSCONHASH_RNODE_COUNTER_CLR(csfsconhash_rnode);
     }
     return (csfsconhash_rnode);
@@ -58,7 +58,7 @@ EC_BOOL csfsconhash_rnode_init(CSFSCONHASH_RNODE *csfsconhash_rnode)
     CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode) = 0;
     CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode)   = CSFSCONHASH_RNODE_IS_ERR;
     CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)     = (uint32_t)CMPI_ERROR_TCID;
- 
+
     CSFSCONHASH_RNODE_COUNTER_CLR(csfsconhash_rnode);
     return (EC_TRUE);
 }
@@ -157,7 +157,7 @@ EC_BOOL csfsconhash_rnode_is_equal(const CSFSCONHASH_RNODE *csfsconhash_rnode_1s
     {
         return (EC_FALSE);
     }
-#endif 
+#endif
     return (EC_TRUE);
 }
 
@@ -171,8 +171,8 @@ EC_BOOL csfsconhash_rnode_cmp_tcid(const CSFSCONHASH_RNODE *csfsconhash_rnode_1s
     if(NULL_PTR == csfsconhash_rnode_1st || NULL_PTR == csfsconhash_rnode_2nd)
     {
         return (EC_FALSE);
-    } 
- 
+    }
+
     if(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode_1st) != CSFSCONHASH_RNODE_TCID(csfsconhash_rnode_2nd))
     {
         return (EC_FALSE);
@@ -189,7 +189,7 @@ void csfsconhash_rnode_print(LOG *log, const CSFSCONHASH_RNODE *csfsconhash_rnod
                     CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                     csfsconhash_rnode_status(csfsconhash_rnode)
                    );
-#endif/*(SWITCH_OFF == CSFSCONHASH_RNODE_DEBUG)*/                
+#endif/*(SWITCH_OFF == CSFSCONHASH_RNODE_DEBUG)*/
 #if(SWITCH_ON == CSFSCONHASH_RNODE_DEBUG)
     sys_log(log, "csfsconhash_rnode %p: tcid %s, replicas %u, status %s, counter %ld\n",
                     csfsconhash_rnode,
@@ -302,10 +302,10 @@ EC_BOOL csfsconhash_vnode_is_equal(const CSFSCONHASH_VNODE *csfsconhash_vnode_1s
     {
         dbg_log(SEC_0170_CSFSCONHASH, 6)(LOGSTDOUT, "[DEBUG] csfsconhash_vnode_is_equal: pos: %u != %u\n",
                            CSFSCONHASH_VNODE_POS(csfsconhash_vnode_1st),
-                           CSFSCONHASH_VNODE_POS(csfsconhash_vnode_2nd)); 
+                           CSFSCONHASH_VNODE_POS(csfsconhash_vnode_2nd));
         return (EC_FALSE);
     }
-#endif 
+#endif
     return (EC_TRUE);
 }
 
@@ -319,7 +319,7 @@ int csfsconhash_vnode_cmp(const CSFSCONHASH_VNODE *csfsconhash_vnode_1st, const 
     if(CSFSCONHASH_VNODE_HASH(csfsconhash_vnode_1st) < CSFSCONHASH_VNODE_HASH(csfsconhash_vnode_2nd))
     {
         return (-1);
-    } 
+    }
     return (0);
 }
 
@@ -336,21 +336,21 @@ void csfsconhash_vnode_print(LOG *log, const CSFSCONHASH_VNODE *csfsconhash_vnod
 CSFSCONHASH *csfsconhash_new(const UINT32 hash_id)
 {
     CSFSCONHASH *csfsconhash;
- 
+
     alloc_static_mem(MM_CSFSCONHASH, &csfsconhash, LOC_CSFSCONHASH_0007);
     if(NULL_PTR == csfsconhash)
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_new: alloc csfsconhash failed\n");
         return (NULL_PTR);
     }
- 
+
     if(EC_FALSE == csfsconhash_init(csfsconhash, hash_id))
     {
         free_static_mem(MM_CSFSCONHASH, csfsconhash, LOC_CSFSCONHASH_0008);
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_new: init csfsconhash failed\n");
         return (NULL_PTR);
     }
- 
+
     return (csfsconhash);
 }
 
@@ -366,7 +366,7 @@ EC_BOOL csfsconhash_init(CSFSCONHASH *csfsconhash, const UINT32 hash_id)
 
     cvector_init(CSFSCONHASH_RNODE_VEC(csfsconhash), 0, MM_CSFSCONHASH_RNODE, CVECTOR_LOCK_ENABLE, LOC_CSFSCONHASH_0009);
     crb_tree_init(CSFSCONHASH_VNODE_TREE(csfsconhash), (CRB_DATA_CMP)csfsconhash_vnode_cmp, (CRB_DATA_FREE)csfsconhash_vnode_free,(CRB_DATA_PRINT)csfsconhash_vnode_print);
- 
+
     return (EC_TRUE);
 }
 
@@ -409,8 +409,8 @@ void csfsconhash_print(LOG *log, const CSFSCONHASH *csfsconhash)
     {
         sys_log(log, "csfsconhash %p: vnode tree:\n", csfsconhash);
         crb_tree_print(log, CSFSCONHASH_VNODE_TREE(csfsconhash));
-    } 
- 
+    }
+
     return;
 }
 
@@ -422,7 +422,7 @@ void csfsconhash_print_rnode_vec(LOG *log, const CSFSCONHASH *csfsconhash)
 
     sys_log(log, "csfsconhash %p: rnode vec:\n", csfsconhash);
     cvector_print(log, CSFSCONHASH_RNODE_VEC(csfsconhash), (CVECTOR_DATA_PRINT)csfsconhash_rnode_print);
- 
+
     return;
 }
 
@@ -431,10 +431,10 @@ void csfsconhash_print_vnode_tree(LOG *log, const CSFSCONHASH *csfsconhash)
     sys_log(log, "csfsconhash %p: hash_id %ld\n",
                     csfsconhash,
                     CSFSCONHASH_HASH_ID(csfsconhash));
-                 
+
     sys_log(log, "csfsconhash %p: vnode tree:\n", csfsconhash);
     crb_tree_print(log, CSFSCONHASH_VNODE_TREE(csfsconhash));
- 
+
     return;
 }
 
@@ -448,12 +448,12 @@ CRB_NODE *csfsconhash_add_vnode(CSFSCONHASH *csfsconhash, const CSFSCONHASH_VNOD
     return crb_tree_insert_data(CSFSCONHASH_VNODE_TREE(csfsconhash), (void *)csfsconhash_vnode);
 }
 
-static uint32_t __csfsconhash_hash_vnode(CSFSCONHASH *csfsconhash, const uint32_t tcid, const uint16_t replica, const UINT32 salt)
+STATIC_CAST static uint32_t __csfsconhash_hash_vnode(CSFSCONHASH *csfsconhash, const uint32_t tcid, const uint16_t replica, const UINT32 salt)
 {
     char     str[64];
     uint32_t len;
     uint32_t hash;
- 
+
     len  = snprintf(str, sizeof(str), "%s.%u.%ld", c_word_to_ipv4(tcid), (uint32_t)(replica * replica), salt);
     hash = (uint32_t)CSFSCONHASH_HASH_FUNC(csfsconhash)(len, (UINT8 *)str);
 
@@ -463,7 +463,7 @@ static uint32_t __csfsconhash_hash_vnode(CSFSCONHASH *csfsconhash, const uint32_
 EC_BOOL csfsconhash_add_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 csfsconhash_rnode_pos)
 {
     CSFSCONHASH_RNODE *csfsconhash_rnode;
- 
+
     uint32_t tcid;
     uint16_t replica;
 
@@ -481,7 +481,7 @@ EC_BOOL csfsconhash_add_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 cs
     for(replica = 0; replica < CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode); replica ++)
     {
         uint32_t hash;
-     
+
         CSFSCONHASH_VNODE *csfsconhash_vnode;
         CRB_NODE          *crb_node;
 
@@ -509,22 +509,22 @@ EC_BOOL csfsconhash_add_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 cs
         {
             CSFSCONHASH_VNODE *csfsconhash_vnode_duplicate;
             CSFSCONHASH_RNODE *csfsconhash_rnode_duplicate;
-         
+
             csfsconhash_vnode_duplicate = (CSFSCONHASH_VNODE *)CRB_NODE_DATA(crb_node);
             csfsconhash_rnode_duplicate = (CSFSCONHASH_RNODE *)cvector_get(CSFSCONHASH_RNODE_VEC(csfsconhash), CSFSCONHASH_VNODE_POS(csfsconhash_vnode_duplicate));
-         
+
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: found duplicate vnode:\n");
-         
+
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: found duplicate vnode:[1]\n");
             csfsconhash_vnode_print(LOGSTDOUT, csfsconhash_vnode);
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: found duplicate rnode:[1]\n");
             csfsconhash_rnode_print(LOGSTDOUT, csfsconhash_rnode);
-         
+
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: found duplicate vnode:[2]\n");
             csfsconhash_vnode_print(LOGSTDOUT, csfsconhash_vnode_duplicate);
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: found duplicate rnode:[2]\n");
             csfsconhash_rnode_print(LOGSTDOUT, csfsconhash_rnode_duplicate);
-         
+
             csfsconhash_vnode_free(csfsconhash_vnode);
 
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_add_vnode_replicas: pls make sure hash is unique!\n");
@@ -538,7 +538,7 @@ EC_BOOL csfsconhash_add_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 cs
 EC_BOOL csfsconhash_del_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 csfsconhash_rnode_pos)
 {
     CSFSCONHASH_RNODE *csfsconhash_rnode;
- 
+
     uint32_t tcid;
     uint16_t replica;
 
@@ -556,9 +556,9 @@ EC_BOOL csfsconhash_del_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 cs
     for(replica = 0; replica < CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode); replica ++)
     {
         uint32_t hash;
-     
+
         CSFSCONHASH_VNODE *csfsconhash_vnode;
-     
+
         hash = __csfsconhash_hash_vnode(csfsconhash, tcid, replica, csfsconhash_rnode_pos);
 
         csfsconhash_vnode = csfsconhash_vnode_make(hash, (uint16_t)csfsconhash_rnode_pos);
@@ -576,7 +576,7 @@ EC_BOOL csfsconhash_del_vnode_replicas(CSFSCONHASH *csfsconhash, const UINT32 cs
             csfsconhash_vnode_free(csfsconhash_vnode);
             return (EC_FALSE);
         }
-     
+
         csfsconhash_vnode_free(csfsconhash_vnode);
     }
 
@@ -604,7 +604,7 @@ EC_BOOL csfsconhash_add_node(CSFSCONHASH *csfsconhash, const uint32_t tcid, cons
                            csfsconhash_rnode_status(csfsconhash_rnode));
         return (EC_FALSE);
     }
- 
+
     csfsconhash_rnode = csfsconhash_rnode_make(tcid, replicas);
     if(NULL_PTR == csfsconhash_rnode)
     {
@@ -621,7 +621,7 @@ EC_BOOL csfsconhash_add_node(CSFSCONHASH *csfsconhash, const uint32_t tcid, cons
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                            csfsconhash_rnode_status(csfsconhash_rnode));
-                        
+
         csfsconhash_rnode_free(csfsconhash_rnode);
         return (EC_FALSE);
     }
@@ -636,7 +636,7 @@ EC_BOOL csfsconhash_add_node(CSFSCONHASH *csfsconhash, const uint32_t tcid, cons
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode));
 
         csfsconhash_del_vnode_replicas(csfsconhash, csfsconhash_rnode_pos);/*roll back*/
-     
+
         cvector_set(CSFSCONHASH_RNODE_VEC(csfsconhash), csfsconhash_rnode_pos, NULL_PTR);
         csfsconhash_rnode_free(csfsconhash_rnode);
         return (EC_FALSE);
@@ -645,7 +645,7 @@ EC_BOOL csfsconhash_add_node(CSFSCONHASH *csfsconhash, const uint32_t tcid, cons
     dbg_log(SEC_0170_CSFSCONHASH, 9)(LOGSTDOUT, "[DEBUG] csfsconhash_add_node: rnode (tcid %s, replicas %u, status %s) add => OK\n",
                        c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                        CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
-                       csfsconhash_rnode_status(csfsconhash_rnode)); 
+                       csfsconhash_rnode_status(csfsconhash_rnode));
     return (EC_TRUE);
 }
 
@@ -668,7 +668,7 @@ EC_BOOL csfsconhash_del_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
     }
 
     csfsconhash_rnode = (CSFSCONHASH_RNODE *)cvector_get(CSFSCONHASH_RNODE_VEC(csfsconhash), csfsconhash_rnode_pos);
- 
+
     ASSERT(0 == (csfsconhash_rnode_pos >> 16));
 
     /*del vnode replicas*/
@@ -677,7 +677,7 @@ EC_BOOL csfsconhash_del_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_del_node: del vnode replicas of rnode (tcid %s, replicas %u, status %s) failed\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
-                           csfsconhash_rnode_status(csfsconhash_rnode));     
+                           csfsconhash_rnode_status(csfsconhash_rnode));
         return (EC_FALSE);
     }
 
@@ -685,11 +685,11 @@ EC_BOOL csfsconhash_del_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
                        c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                        CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                        csfsconhash_rnode_status(csfsconhash_rnode));
-                    
+
     /*del rnode*/
     cvector_set(CSFSCONHASH_RNODE_VEC(csfsconhash), csfsconhash_rnode_pos, NULL_PTR);
     csfsconhash_rnode_free(csfsconhash_rnode);
- 
+
     return (EC_TRUE);
 }
 
@@ -704,7 +704,7 @@ EC_BOOL csfsconhash_up_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
                                                  (void *)&csfsconhash_rnode_t,
                                                  (CVECTOR_DATA_CMP)csfsconhash_rnode_cmp_tcid);
     if(CVECTOR_ERR_POS == csfsconhash_rnode_pos)
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_up_node: not found rnode with tcid %s\n",
                            c_word_to_ipv4(tcid));
         return (EC_FALSE);
@@ -715,27 +715,27 @@ EC_BOOL csfsconhash_up_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
     csfsconhash_rnode = (CSFSCONHASH_RNODE *)cvector_get(CSFSCONHASH_RNODE_VEC(csfsconhash), csfsconhash_rnode_pos);
 
     if(CSFSCONHASH_RNODE_IS_UP == CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode))
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 9)(LOGSTDOUT, "[DEBUG] csfsconhash_up_node: rnode (tcid %s, replicas %u, status %s) is already up\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                            csfsconhash_rnode_status(csfsconhash_rnode));
         return (EC_TRUE);
     }
-#if 0 
+#if 0
     if(CSFSCONHASH_RNODE_IS_DOWN != CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode))
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_up_node: rnode (tcid %s, replicas %u, status %s) is not down\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                            csfsconhash_rnode_status(csfsconhash_rnode));
         return (EC_FALSE);
     }
-#endif 
+#endif
 
     if(CSFSCONHASH_ERR_REPLICAS == CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode)
     || CSFSCONHASH_ANY_REPLICAS == CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode))
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_up_node: rnode (tcid %s, replicas %u, status %s) has invalid replica\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
@@ -761,7 +761,7 @@ EC_BOOL csfsconhash_up_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
                        c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                        CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                        csfsconhash_rnode_status(csfsconhash_rnode));
-                    
+
     return (EC_TRUE);
 }
 
@@ -776,7 +776,7 @@ EC_BOOL csfsconhash_down_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
                                                  (void *)&csfsconhash_rnode_t,
                                                  (CVECTOR_DATA_CMP)csfsconhash_rnode_cmp_tcid);
     if(CVECTOR_ERR_POS == csfsconhash_rnode_pos)
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_down_node: not found rnode with tcid %s\n",
                            c_word_to_ipv4(tcid));
         return (EC_FALSE);
@@ -787,16 +787,16 @@ EC_BOOL csfsconhash_down_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
     csfsconhash_rnode = (CSFSCONHASH_RNODE *)cvector_get(CSFSCONHASH_RNODE_VEC(csfsconhash), csfsconhash_rnode_pos);
 
     if(CSFSCONHASH_RNODE_IS_DOWN == CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode))
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 9)(LOGSTDOUT, "[DEBUG] csfsconhash_down_node: rnode (tcid %s, replicas %u, status %s) is already down\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                            csfsconhash_rnode_status(csfsconhash_rnode));
         return (EC_TRUE);
     }
-#if 0 
+#if 0
     if(CSFSCONHASH_RNODE_IS_UP != CSFSCONHASH_RNODE_STATUS(csfsconhash_rnode))
-    {    
+    {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_down_node: rnode (tcid %s, replicas %u, status %s) is not up\n",
                            c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                            CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
@@ -820,7 +820,7 @@ EC_BOOL csfsconhash_down_node(CSFSCONHASH *csfsconhash, const uint32_t tcid)
                        c_word_to_ipv4(CSFSCONHASH_RNODE_TCID(csfsconhash_rnode)),
                        CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode),
                        csfsconhash_rnode_status(csfsconhash_rnode));
-                    
+
     return (EC_TRUE);
 }
 
@@ -839,7 +839,7 @@ EC_BOOL csfsconhash_has_node(const CSFSCONHASH *csfsconhash, const uint32_t tcid
                            c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -873,8 +873,8 @@ CSFSCONHASH_RNODE *csfsconhash_lookup_rnode(const CSFSCONHASH *csfsconhash, cons
 
     if(EC_TRUE == crb_tree_is_empty(CSFSCONHASH_VNODE_TREE(csfsconhash)))
     {
-        dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_lookup_rnode: vnode tree is empty\n"); 
-        return (NULL_PTR); 
+        dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_lookup_rnode: vnode tree is empty\n");
+        return (NULL_PTR);
     }
 
     CSFSCONHASH_VNODE_HASH(&csfsconhash_vnode_t) = hash;
@@ -882,7 +882,7 @@ CSFSCONHASH_RNODE *csfsconhash_lookup_rnode(const CSFSCONHASH *csfsconhash, cons
     if(NULL_PTR == crb_node)
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_lookup_rnode: hash %x, should never reach here due to rbtree be circled\n",
-                           hash); 
+                           hash);
         return (NULL_PTR);
     }
 
@@ -890,9 +890,9 @@ CSFSCONHASH_RNODE *csfsconhash_lookup_rnode(const CSFSCONHASH *csfsconhash, cons
     if(NULL_PTR == csfsconhash_vnode)
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_lookup_rnode: hash %x, crb_node %p, should never reach here due to CRB_NODE_DATA be null!\n",
-                           hash, crb_node); 
+                           hash, crb_node);
         return (NULL_PTR);
-    } 
+    }
 #if 0
     if(do_log(SEC_0170_CSFSCONHASH, 9))
     {
@@ -905,7 +905,7 @@ CSFSCONHASH_RNODE *csfsconhash_lookup_rnode(const CSFSCONHASH *csfsconhash, cons
     if(NULL_PTR == csfsconhash_rnode)
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_lookup_rnode: hash %x, rnode_pos %u, should never reach here due to rnode not existing\n",
-                           hash, CSFSCONHASH_VNODE_POS(csfsconhash_vnode)); 
+                           hash, CSFSCONHASH_VNODE_POS(csfsconhash_vnode));
         return (NULL_PTR);
     }
     return (csfsconhash_rnode);
@@ -930,12 +930,12 @@ EC_BOOL csfsconhash_flush_size(const CSFSCONHASH *csfsconhash, UINT32 *size)
 EC_BOOL csfsconhash_rnode_flush(const CSFSCONHASH_RNODE *csfsconhash_rnode, int fd, UINT32 *offset)
 {
     UINT32   osize;/*write once size*/
- 
+
     if(NULL_PTR == csfsconhash_rnode)
     {
         uint32_t     tcid;
         uint16_t     replicas;
- 
+
         replicas = CSFSCONHASH_ERR_REPLICAS;
         tcid     = (uint32_t)CMPI_ERROR_TCID;
 
@@ -951,7 +951,7 @@ EC_BOOL csfsconhash_rnode_flush(const CSFSCONHASH_RNODE *csfsconhash_rnode, int 
         {
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_rnode_flush: flush tcid at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
-        }     
+        }
     }
     else
     {
@@ -967,7 +967,7 @@ EC_BOOL csfsconhash_rnode_flush(const CSFSCONHASH_RNODE *csfsconhash_rnode, int 
         {
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_rnode_flush: flush tcid at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
-        }     
+        }
     }
     return (EC_TRUE);
 }
@@ -996,19 +996,19 @@ EC_BOOL csfsconhash_rnode_load(CSFSCONHASH_RNODE *csfsconhash_rnode, int fd, UIN
 EC_BOOL csfsconhash_flush_rnodes(const CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
 {
     UINT32   osize;/*write once size*/
- 
+
     UINT32   rnode_num;
     UINT32   rnode_pos;
 
     rnode_num = cvector_size(CSFSCONHASH_RNODE_VEC(csfsconhash));
- 
+
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(rnode_num)))
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_flush_rnodes: flush rnode_num at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     for(rnode_pos = 0; rnode_pos < rnode_num; rnode_pos ++)
     {
         CSFSCONHASH_RNODE *csfsconhash_rnode;
@@ -1020,13 +1020,13 @@ EC_BOOL csfsconhash_flush_rnodes(const CSFSCONHASH *csfsconhash, int fd, UINT32 
         }
     }
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL csfsconhash_load_rnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
 {
     UINT32   osize;/*write once size*/
- 
+
     UINT32   rnode_num;
     UINT32   rnode_pos;
 
@@ -1036,7 +1036,7 @@ EC_BOOL csfsconhash_load_rnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load_rnodes: load rnode_num at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     for(rnode_pos = 0; rnode_pos < rnode_num; rnode_pos ++)
     {
         CSFSCONHASH_RNODE *csfsconhash_rnode;
@@ -1047,14 +1047,14 @@ EC_BOOL csfsconhash_load_rnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load_rnodes: new rnode at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
-     
+
         if(EC_FALSE == csfsconhash_rnode_load(csfsconhash_rnode, fd, offset))
         {
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load_rnodes: load rnode %u# at offset %u of fd %d failed\n", rnode_pos, (*offset), fd);
             csfsconhash_rnode_free(csfsconhash_rnode);
             return (EC_FALSE);
         }
-     
+
         if(CSFSCONHASH_ERR_REPLICAS == CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode)
         && ((uint32_t)CMPI_ERROR_TCID) == CSFSCONHASH_RNODE_TCID(csfsconhash_rnode))
         {
@@ -1067,7 +1067,7 @@ EC_BOOL csfsconhash_load_rnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
         }
     }
 
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL csfsconhash_vnode_flush(const CSFSCONHASH_VNODE *csfsconhash_vnode, int fd, UINT32 *offset)
@@ -1080,14 +1080,14 @@ EC_BOOL csfsconhash_vnode_flush(const CSFSCONHASH_VNODE *csfsconhash_vnode, int 
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_vnode_flush: flush hash at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSCONHASH_VNODE_POS(csfsconhash_vnode))))
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_vnode_flush: flush pos at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1111,14 +1111,14 @@ EC_BOOL csfsconhash_vnode_load(CSFSCONHASH_VNODE *csfsconhash_vnode, int fd, UIN
     return (EC_TRUE);
 }
 
-static EC_BOOL __csfsconhash_flush_vnodes_inorder(const CSFSCONHASH *csfsconhash, const CRB_NODE *node, int fd, UINT32 *offset)
+STATIC_CAST static EC_BOOL __csfsconhash_flush_vnodes_inorder(const CSFSCONHASH *csfsconhash, const CRB_NODE *node, int fd, UINT32 *offset)
 {
     CSFSCONHASH_VNODE *csfsconhash_vnode;
     if(NULL_PTR == node)
     {
         return (EC_TRUE);
     }
- 
+
     if(NULL_PTR != CRB_NODE_LEFT(node))
     {
         if(EC_FALSE == __csfsconhash_flush_vnodes_inorder(csfsconhash, CRB_NODE_LEFT(node), fd, offset))
@@ -1134,7 +1134,7 @@ static EC_BOOL __csfsconhash_flush_vnodes_inorder(const CSFSCONHASH *csfsconhash
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: data of crb node %p is null at offset %u of fd %d failed\n", node, (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csfsconhash_vnode_flush(csfsconhash_vnode, fd, offset))
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: flush vnode %p at offset %u of fd %d failed\n", csfsconhash_vnode, (*offset), fd);
@@ -1148,17 +1148,17 @@ static EC_BOOL __csfsconhash_flush_vnodes_inorder(const CSFSCONHASH *csfsconhash
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:__csfsconhash_flush_vnodes_inorder: flush right subtree %p at offset %u of fd %d failed\n", CRB_NODE_RIGHT(node), (*offset), fd);
             return (EC_FALSE);
         }
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 
 EC_BOOL csfsconhash_flush_vnodes(const CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
 {
     UINT32   osize;/*write once size*/
- 
+
     uint32_t   vnode_num;
- 
+
     vnode_num = crb_tree_node_num(CSFSCONHASH_VNODE_TREE(csfsconhash));
 
     osize = sizeof(UINT32);
@@ -1180,10 +1180,10 @@ EC_BOOL csfsconhash_flush_vnodes(const CSFSCONHASH *csfsconhash, int fd, UINT32 
 EC_BOOL csfsconhash_load_vnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
 {
     UINT32   osize;/*write once size*/
- 
+
     uint32_t   vnode_num;
     uint32_t   vnode_pos;
- 
+
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(vnode_num)))
     {
@@ -1201,13 +1201,13 @@ EC_BOOL csfsconhash_load_vnodes(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load_vnodes: new vnode at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
-     
+
         if(EC_FALSE == csfsconhash_vnode_load(csfsconhash_vnode, fd, offset))
         {
             dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load_vnodes: load vnode %u# at offset %u of fd %d failed\n", vnode_pos, (*offset), fd);
             csfsconhash_vnode_free(csfsconhash_vnode);
             return (EC_FALSE);
-        }     
+        }
 
         if(NULL_PTR == csfsconhash_add_vnode(csfsconhash, csfsconhash_vnode))
         {
@@ -1230,7 +1230,7 @@ EC_BOOL csfsconhash_flush(const CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_flush: flush hash id at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*flush rnode vec*/
     if(EC_FALSE == csfsconhash_flush_rnodes(csfsconhash, fd, offset))
@@ -1245,7 +1245,7 @@ EC_BOOL csfsconhash_flush(const CSFSCONHASH *csfsconhash, int fd, UINT32 *offset
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_flush: flush vnodes at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1260,20 +1260,20 @@ EC_BOOL csfsconhash_load(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load: load hash id at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     CSFSCONHASH_HASH_FUNC(csfsconhash) = chash_algo_fetch(CSFSCONHASH_HASH_ID(csfsconhash));
     if(NULL_PTR == CSFSCONHASH_HASH_FUNC(csfsconhash))
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load: invalid hash id %ld\n", CSFSCONHASH_HASH_ID(csfsconhash));
         return (EC_FALSE);
-    } 
+    }
 
     /*load rnode vec*/
     if(EC_FALSE == csfsconhash_load_rnodes(csfsconhash, fd, offset))
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load: load rnodes at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*load vnode tree*/
     if(EC_FALSE == csfsconhash_load_vnodes(csfsconhash, fd, offset))
@@ -1281,7 +1281,7 @@ EC_BOOL csfsconhash_load(CSFSCONHASH *csfsconhash, int fd, UINT32 *offset)
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "error:csfsconhash_load: load vnodes at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1327,8 +1327,8 @@ EC_BOOL csfsconhash_is_equal(const CSFSCONHASH *csfsconhash_1st, const CSFSCONHA
     {
         dbg_log(SEC_0170_CSFSCONHASH, 0)(LOGSTDOUT, "csfsconhash_is_equal: vnodes is not equal\n");
         return (EC_FALSE);
-    } 
- 
+    }
+
     return (EC_TRUE);
 }
 

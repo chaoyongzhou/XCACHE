@@ -55,7 +55,7 @@ TYPE_CONV_ITEM * dbg_query_type_conv_item_by_mm(const UINT32 var_mm_type)
         dbg_log(SEC_0047_DEBUG, 0)(LOGSTDOUT, "error:dbg_query_type_conv_item_by_mm: fetch type conv vec failed\n");
         return (NULL_PTR);
     }
- 
+
     for(var_dbg_type = 0; var_dbg_type < cvector_size(type_conv_vec); var_dbg_type ++)
     {
         TYPE_CONV_ITEM *type_conv_item;;
@@ -281,7 +281,7 @@ UINT32 dbg_tiny_caller(const UINT32 func_para_num, const UINT32 func_addr, ...)
 EC_BOOL dbg_caller(const UINT32 func_addr, const UINT32 func_para_num, UINT32 *func_para_value, UINT32 *func_ret_val)
 {
     UINT32 func_ret_value;
- 
+
 #if (16 != MAX_NUM_OF_FUNC_PARAS)
 #error "fatal error:debug.c::dbg_caller MAX_NUM_OF_FUNC_PARAS != 16"
 #endif
@@ -392,7 +392,7 @@ EC_BOOL dbg_caller(const UINT32 func_addr, const UINT32 func_para_num, UINT32 *f
     #undef PARA_LIST_15
     #undef PARA_LIST_16
 
-    #undef FUNC_CALL 
+    #undef FUNC_CALL
 }
 
 FUNC_ADDR_MGR * dbg_fetch_func_addr_mgr_by_md_type(const UINT32 md_type)
@@ -456,9 +456,9 @@ void dbg_exit( UINT32  module_type,UINT32  module_id)
     exit( 4 );
 #if 0
     TASK_BRD *task_brd;
- 
+
     task_brd = task_brd_default_get();
- 
+
     if(CTHREAD_GET_TID() == CTHREAD_FETCH_TID(TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd), CTHREAD_TID_OFFSET))
     {
         dbg_log(SEC_0047_DEBUG, 5)(LOGSTDOUT, "dbg_exit: cancel coroutine\n");
@@ -472,9 +472,9 @@ void dbg_exit( UINT32  module_type,UINT32  module_id)
         dbg_log(SEC_0047_DEBUG, 5)(LOGSTDOUT, "dbg_exit: cancel thread %u\n", cthread_id);
 
         /*kill thread self*/
-        cthread_cancel(cthread_id); 
+        cthread_cancel(cthread_id);
     }
-#endif 
+#endif
 }
 
 /*get one char which is excluded comments from the file*/

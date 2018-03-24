@@ -318,7 +318,7 @@ EC_BOOL cmutex_attr_set(CMUTEX_ATTR  *mutex_attr, const UINT32 flag, const UINT3
 
             return (ret_val);
         }
-    } 
+    }
 
     //if(CMUTEX_RECURSIVE_NP & flag)
     else
@@ -388,7 +388,7 @@ EC_BOOL cmutex_init(CMUTEX *cmutex, const UINT32 flag, const UINT32 location)
 
     CMUTEX_INIT_LOCATION(cmutex);
     //CMUTEX_CHECK_LOCK_VALIDITY(cmutex, CMUTEX_OP_INIT, location);
- 
+
 
     CMUTEX_SET_LOCATION(cmutex, CMUTEX_OP_INIT, location);
 
@@ -513,7 +513,7 @@ EC_BOOL cmutex_lock(CMUTEX *cmutex, const UINT32 location)
     int ret_val;
 
     cmutex_dbg_log(SEC_0083_CMUTEX, 9)(LOGSTDOUT, "[DEBUG] cmutex_lock: cmutex %p: lock at %s:%ld\n", cmutex, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-  
+
     CMUTEX_CHECK_LOCK_VALIDITY(cmutex, CMUTEX_OP_LOCK, location);
 #if 1
     /*when  lock, must __m_kind = 1*/
@@ -877,7 +877,7 @@ EC_BOOL ccond_wait(CCOND *ccond, const UINT32 location)
     //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] wait %p, location %ld, __nwaiters %d, __kind %d [1]\n", CTHREAD_GET_TID(), ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
     //cmutex_print("[DEBUG][CCOND] wait[1]", CCOND_MUTEX(ccond));
     //ccond_print_var("[DEBUG][CCOND] wait[1]", ccond);
- 
+
 #if 1
     ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
     if(0 != ret_val)
@@ -969,7 +969,7 @@ EC_BOOL ccond_release(CCOND *ccond, const UINT32 location)
     //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release %p, location %ld, __nwaiters %d, __kind %d [1]\n", CTHREAD_GET_TID(),ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
     //cmutex_print("[DEBUG][CCOND] release[1]", CCOND_MUTEX(ccond));
     //ccond_print_var("[DEBUG][CCOND] release[1]", ccond);
- 
+
     ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
     if(0 != ret_val)
     {
@@ -981,7 +981,7 @@ EC_BOOL ccond_release(CCOND *ccond, const UINT32 location)
 
     //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release %p, location %ld, __nwaiters %d, __kind %d [2]\n", CTHREAD_GET_TID(),ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
     //cmutex_print("[DEBUG][CCOND] release[2]", CCOND_MUTEX(ccond));
-    //ccond_print_var("[DEBUG][CCOND] release[2]", ccond); 
+    //ccond_print_var("[DEBUG][CCOND] release[2]", ccond);
 
     if(0 < CCOND_COUNTER(ccond))
     {
@@ -995,7 +995,7 @@ EC_BOOL ccond_release(CCOND *ccond, const UINT32 location)
         {
             cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_release: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         }
-    } 
+    }
 
     ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
     if(0 != ret_val)

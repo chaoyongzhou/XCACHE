@@ -40,7 +40,7 @@ extern "C"{
 
 #include "findex.inc"
 
-static uint32_t __chfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)
+STATIC_CAST static uint32_t __chfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)
 {
     uint8_t   digest[ CMD5_DIGEST_LEN ];
     uint32_t  hash_val;
@@ -53,7 +53,7 @@ static uint32_t __chfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *p
              | ((uint32_t)(digest[ 2 ] <<  8))
              | ((uint32_t)(digest[ 3 ] <<  0))
              );
-    return (hash_val);          
+    return (hash_val);
 }
 
 CHFSNP_MGR *chfsnp_mgr_new()
@@ -73,8 +73,8 @@ EC_BOOL chfsnp_mgr_init(CHFSNP_MGR *chfsnp_mgr)
 {
     CHFSNP_MGR_CRWLOCK_INIT(chfsnp_mgr, LOC_CHFSNPMGR_0002);
     CHFSNP_MGR_CMUTEX_INIT(chfsnp_mgr, LOC_CHFSNPMGR_0003);
- 
-    cstring_init(CHFSNP_MGR_DB_ROOT_DIR(chfsnp_mgr), NULL_PTR); 
+
+    cstring_init(CHFSNP_MGR_DB_ROOT_DIR(chfsnp_mgr), NULL_PTR);
 
     CHFSNP_MGR_NP_MODEL(chfsnp_mgr) = CHFSNP_ERR_MODEL;
     CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr) = (uint8_t)CHASH_ERR_ALGO_ID;
@@ -83,7 +83,7 @@ EC_BOOL chfsnp_mgr_init(CHFSNP_MGR *chfsnp_mgr)
     CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr)           = 0;
 
     cvector_init(CHFSNP_MGR_NP_VEC(chfsnp_mgr), 0, MM_CHFSNP, CVECTOR_LOCK_ENABLE, LOC_CHFSNPMGR_0004);
- 
+
     return (EC_TRUE);
 }
 
@@ -91,8 +91,8 @@ EC_BOOL chfsnp_mgr_clean(CHFSNP_MGR *chfsnp_mgr)
 {
     CHFSNP_MGR_CRWLOCK_CLEAN(chfsnp_mgr, LOC_CHFSNPMGR_0005);
     CHFSNP_MGR_CMUTEX_CLEAN(chfsnp_mgr, LOC_CHFSNPMGR_0006);
- 
-    cstring_clean(CHFSNP_MGR_DB_ROOT_DIR(chfsnp_mgr)); 
+
+    cstring_clean(CHFSNP_MGR_DB_ROOT_DIR(chfsnp_mgr));
 
     CHFSNP_MGR_NP_MODEL(chfsnp_mgr) = CHFSNP_ERR_MODEL;
     CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr) = (uint8_t)CHASH_ERR_ALGO_ID;
@@ -100,7 +100,7 @@ EC_BOOL chfsnp_mgr_clean(CHFSNP_MGR *chfsnp_mgr)
     CHFSNP_MGR_NP_ITEM_MAX_NUM(chfsnp_mgr)      = 0;
     CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr)           = 0;
 
-    cvector_clean(CHFSNP_MGR_NP_VEC(chfsnp_mgr), (CVECTOR_DATA_CLEANER)chfsnp_free, LOC_CHFSNPMGR_0007);    
+    cvector_clean(CHFSNP_MGR_NP_VEC(chfsnp_mgr), (CVECTOR_DATA_CLEANER)chfsnp_free, LOC_CHFSNPMGR_0007);
 
     return (EC_TRUE);
 }
@@ -153,30 +153,30 @@ EC_BOOL chfsnp_mgr_close_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id)
     return (EC_TRUE);
 }
 
-static char *__chfsnp_mgr_gen_db_name(const char *root_dir)
+STATIC_CAST static char *__chfsnp_mgr_gen_db_name(const char *root_dir)
 {
     const char *fields[ 2 ];
- 
+
     fields[ 0 ] = root_dir;
     fields[ 1 ] = CHFSNP_DB_NAME;
- 
+
     return c_str_join((char *)"/", fields, 2);
 }
 
-static EC_BOOL __chfsnp_mgr_load_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __chfsnp_mgr_load_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
 {
     UINT32 chfsnp_mgr_db_size;
     UINT8* chfsnp_mgr_db_buff;
     UINT32 chfsnp_mgr_db_offset;
 
     uint32_t chfsnp_id;
- 
+
     /*init offset*/
     chfsnp_mgr_db_offset = 0;
 
     /*CHFSNP_MGR_NP_MODEL*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MODEL(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MODEL(chfsnp_mgr));
     if(EC_FALSE == c_file_load(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_load_db: load np model failed\n");
@@ -185,34 +185,34 @@ static EC_BOOL __chfsnp_mgr_load_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
 
     /*CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr));
     if(EC_FALSE == c_file_load(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_load_db: load 1st chash algo id failed\n");
         return (EC_FALSE);
-    } 
+    }
 
     /*CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID(chfsnp_mgr));
     if(EC_FALSE == c_file_load(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_load_db: load 2nd chash algo id failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     /*CHFSNP_MGR_NP_ITEM_MAX_NUM*/
     chfsnp_mgr_db_size   = sizeof(uint32_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_ITEM_MAX_NUM(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_ITEM_MAX_NUM(chfsnp_mgr));
     if(EC_FALSE == c_file_load(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_load_db: load item max num failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     /*CHFSNP_MGR_NP_MAX_NUM*/
     chfsnp_mgr_db_size   = sizeof(uint32_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr));
     if(EC_FALSE == c_file_load(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_load_db: load disk max num failed\n");
@@ -228,7 +228,7 @@ static EC_BOOL __chfsnp_mgr_load_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
     return (EC_TRUE);
 }
 
-static EC_BOOL __chfsnp_mgr_flush_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
+STATIC_CAST static EC_BOOL __chfsnp_mgr_flush_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
 {
     UINT32 chfsnp_mgr_db_size;
     UINT8* chfsnp_mgr_db_buff;
@@ -239,7 +239,7 @@ static EC_BOOL __chfsnp_mgr_flush_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
 
     /*CHFSNP_MGR_NP_MODEL*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MODEL(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MODEL(chfsnp_mgr));
     if(EC_FALSE == c_file_flush(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_flush_db: flush np model failed");
@@ -248,34 +248,34 @@ static EC_BOOL __chfsnp_mgr_flush_db(CHFSNP_MGR *chfsnp_mgr, int chfsnp_mgr_fd)
 
     /*CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_1ST_CHASH_ALGO_ID(chfsnp_mgr));
     if(EC_FALSE == c_file_flush(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_flush_db: flush 1st chash algo id failed");
         return (EC_FALSE);
-    } 
+    }
 
     /*CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID*/
     chfsnp_mgr_db_size   = sizeof(uint8_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_2ND_CHASH_ALGO_ID(chfsnp_mgr));
     if(EC_FALSE == c_file_flush(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_flush_db: flush 2nd chash algo id failed");
         return (EC_FALSE);
-    }  
+    }
 
     /*CHFSNP_MGR_NP_ITEM_MAX_NUM*/
     chfsnp_mgr_db_size   = sizeof(uint32_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_ITEM_MAX_NUM(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_ITEM_MAX_NUM(chfsnp_mgr));
     if(EC_FALSE == c_file_flush(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_flush_db: flush item max num failed");
         return (EC_FALSE);
-    }  
+    }
 
     /*CHFSNP_MGR_NP_MAX_NUM*/
     chfsnp_mgr_db_size   = sizeof(uint32_t);
-    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr)); 
+    chfsnp_mgr_db_buff   = (UINT8 *)&(CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr));
     if(EC_FALSE == c_file_flush(chfsnp_mgr_fd, &chfsnp_mgr_db_offset, chfsnp_mgr_db_size, chfsnp_mgr_db_buff))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_flush_db: flush disk max num failed");
@@ -370,7 +370,7 @@ EC_BOOL chfsnp_mgr_create_db(CHFSNP_MGR *chfsnp_mgr, const CSTRING *chfsnp_db_ro
 
         safe_free(chfsnp_mgr_db_name, LOC_CHFSNPMGR_0015);
         return (EC_FALSE);
-    } 
+    }
 
     c_file_close(chfsnp_mgr_fd);
     chfsnp_mgr_fd = ERR_FD;
@@ -478,7 +478,7 @@ EC_BOOL chfsnp_mgr_load(CHFSNP_MGR *chfsnp_mgr, const CSTRING *chfsnp_db_root_di
 EC_BOOL chfsnp_mgr_sync_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id)
 {
     CHFSNP *chfsnp;
- 
+
     chfsnp = (CHFSNP *)cvector_get_no_lock(CHFSNP_MGR_NP_VEC(chfsnp_mgr), chfsnp_id);
     if(NULL_PTR != chfsnp)
     {
@@ -515,7 +515,7 @@ EC_BOOL chfsnp_mgr_show_np(LOG *log, CHFSNP_MGR *chfsnp_mgr, const uint32_t chfs
 
     chfsnp = (CHFSNP *)cvector_get_no_lock(CHFSNP_MGR_NP_VEC(chfsnp_mgr), chfsnp_id);
     if(NULL_PTR == chfsnp)
-    {     
+    {
         /*try to open the np and print it*/
         chfsnp = chfsnp_mgr_open_np(chfsnp_mgr, chfsnp_id);
         if(NULL_PTR == chfsnp)
@@ -529,14 +529,14 @@ EC_BOOL chfsnp_mgr_show_np(LOG *log, CHFSNP_MGR *chfsnp_mgr, const uint32_t chfs
         chfsnp_mgr_close_np(chfsnp_mgr, chfsnp_id);
     }
     else
-    {    
+    {
         chfsnp_print(log, chfsnp);
     }
 
     return (EC_TRUE);
 }
 
-static uint32_t __chfsnp_mgr_get_np_id_of_path(const CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path)
+STATIC_CAST static uint32_t __chfsnp_mgr_get_np_id_of_path(const CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path)
 {
     uint32_t chfsnp_num;
     uint32_t chfsnp_id;
@@ -548,7 +548,7 @@ static uint32_t __chfsnp_mgr_get_np_id_of_path(const CHFSNP_MGR *chfsnp_mgr, con
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:__chfsnp_mgr_get_np_id_of_path: chfsnp num is zero\n");
         return (CHFSNP_ERR_ID);
     }
- 
+
     if(1 == chfsnp_num)
     {
         chfsnp_id = 0;
@@ -562,7 +562,7 @@ static uint32_t __chfsnp_mgr_get_np_id_of_path(const CHFSNP_MGR *chfsnp_mgr, con
     return (chfsnp_id);
 }
 
-static CHFSNP *__chfsnp_mgr_get_np_of_id(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id)
+STATIC_CAST static CHFSNP *__chfsnp_mgr_get_np_of_id(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id)
 {
     CHFSNP  * chfsnp;
 
@@ -575,15 +575,15 @@ static CHFSNP *__chfsnp_mgr_get_np_of_id(CHFSNP_MGR *chfsnp_mgr, const uint32_t 
         return (NULL_PTR);
     }
     CHFSNP_MGR_CMUTEX_UNLOCK(chfsnp_mgr, LOC_CHFSNPMGR_0023);
- 
-    return (chfsnp);        
+
+    return (chfsnp);
 }
 
-static CHFSNP *__chfsnp_mgr_get_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path, uint32_t *np_id)
+STATIC_CAST static CHFSNP *__chfsnp_mgr_get_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path, uint32_t *np_id)
 {
     CHFSNP  * chfsnp;
     uint32_t  chfsnp_id;
- 
+
     chfsnp_id = __chfsnp_mgr_get_np_id_of_path(chfsnp_mgr, path_len, path);
     if(CHFSNP_ERR_ID == chfsnp_id)
     {
@@ -605,16 +605,16 @@ static CHFSNP *__chfsnp_mgr_get_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_l
     {
         (*np_id) = chfsnp_id;
     }
- 
-    return (chfsnp);        
+
+    return (chfsnp);
 }
 
 EC_BOOL chfsnp_mgr_search(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path, uint32_t *searched_chfsnp_id)
 {
     CHFSNP   *chfsnp;
-    uint32_t  chfsnp_id; 
+    uint32_t  chfsnp_id;
     uint32_t  node_pos;
- 
+
     chfsnp = __chfsnp_mgr_get_np(chfsnp_mgr, path_len, path, &chfsnp_id);
     if(NULL_PTR == chfsnp)
     {
@@ -640,9 +640,9 @@ EC_BOOL chfsnp_mgr_search(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const
 CHFSNP_ITEM *chfsnp_mgr_search_item(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path)
 {
     CHFSNP   *chfsnp;
-    uint32_t  chfsnp_id; 
+    uint32_t  chfsnp_id;
     uint32_t  node_pos;
- 
+
     chfsnp = __chfsnp_mgr_get_np(chfsnp_mgr, path_len, path, &chfsnp_id);
     if(NULL_PTR == chfsnp)
     {
@@ -669,7 +669,7 @@ CHFSNP_MGR *chfsnp_mgr_create(const uint8_t chfsnp_model,
     CHFSNP_MGR *chfsnp_mgr;
     uint32_t chfsnp_item_max_num;
     uint32_t chfsnp_id;
- 
+
     if(EC_FALSE == chfsnp_model_item_max_num(chfsnp_model , &chfsnp_item_max_num))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:chfsnp_mgr_create: invalid chfsnp model %u\n", chfsnp_model);
@@ -699,7 +699,7 @@ CHFSNP_MGR *chfsnp_mgr_create(const uint8_t chfsnp_model,
             return (NULL_PTR);
         }
         chfsnp_close(chfsnp);
-     
+
         cvector_push_no_lock(CHFSNP_MGR_NP_VEC(chfsnp_mgr), (void *)NULL_PTR);
     }
 
@@ -758,7 +758,7 @@ CHFSNP_MGR * chfsnp_mgr_open(const CSTRING *chfsnp_db_root_dir)
 }
 
 EC_BOOL chfsnp_mgr_close(CHFSNP_MGR *chfsnp_mgr)
-{ 
+{
     if(NULL_PTR != chfsnp_mgr)
     {
         CHFSNP_MGR_CMUTEX_LOCK(chfsnp_mgr, LOC_CHFSNPMGR_0029);
@@ -796,7 +796,7 @@ EC_BOOL chfsnp_mgr_write(CHFSNP_MGR *chfsnp_mgr, const CSTRING *file_path, const
     }
 
     CHFSNP_ITEM_C_TIME(chfsnp_item) = task_brd_default_get_time();
- 
+
     if(EC_FALSE == chfsnp_fnode_import(chfsnp_fnode, CHFSNP_ITEM_FNODE(chfsnp_item)))
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:chfsnp_mgr_write: import fnode to item failed where path %s\n", (char *)cstring_get_str(file_path));
@@ -832,9 +832,9 @@ EC_BOOL chfsnp_mgr_read(CHFSNP_MGR *chfsnp_mgr, const CSTRING *file_path, CHFSNP
         chfsnp_item = chfsnp_fetch(chfsnp, node_pos);
         return chfsnp_fnode_import(CHFSNP_ITEM_FNODE(chfsnp_item), chfsnp_fnode);
     }
- 
+
     dbg_log(SEC_0065_CHFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] chfsnp_mgr_read: search nothing for path '%s'\n", (char *)cstring_get_str(file_path));
-    return (EC_FALSE); 
+    return (EC_FALSE);
 }
 
 EC_BOOL chfsnp_mgr_delete(CHFSNP_MGR *chfsnp_mgr, const CSTRING *path)
@@ -875,9 +875,9 @@ EC_BOOL chfsnp_mgr_retire_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id, c
                     chfsnp_id, nsec, expect_num, max_step);
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0065_CHFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] chfsnp_mgr_retire_np: retire np %u where nsec %ld done\n", chfsnp_id, nsec);
- 
+
     return (EC_TRUE);
 }
 
@@ -897,9 +897,9 @@ EC_BOOL chfsnp_mgr_recycle_np(CHFSNP_MGR *chfsnp_mgr, const uint32_t chfsnp_id, 
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:chfsnp_mgr_recycle_np: recycle np %u failed\n", chfsnp_id);
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0065_CHFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] chfsnp_mgr_recycle_np: recycle np %u done\n", chfsnp_id);
- 
+
     return (EC_TRUE);
 }
 
@@ -912,7 +912,7 @@ EC_BOOL chfsnp_mgr_file_num(CHFSNP_MGR *chfsnp_mgr, UINT32 *file_num)
     for(chfsnp_id = 0; chfsnp_id < CHFSNP_MGR_NP_MAX_NUM(chfsnp_mgr); chfsnp_id ++)
     {
         CHFSNP*chfsnp;
-     
+
         chfsnp = chfsnp_mgr_open_np(chfsnp_mgr, chfsnp_id);
         if(NULL_PTR == chfsnp)
         {
@@ -943,11 +943,11 @@ EC_BOOL chfsnp_mgr_file_size(CHFSNP_MGR *chfsnp_mgr, const CSTRING *path_cstr, U
     {
         dbg_log(SEC_0065_CHFSNPMGR, 0)(LOGSTDOUT, "error:chfsnp_mgr_file_size: get size of file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
-    } 
+    }
 
     (*file_size) = cur_file_size;
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 EC_BOOL chfsnp_mgr_show_cached_np(LOG *log, const CHFSNP_MGR *chfsnp_mgr)

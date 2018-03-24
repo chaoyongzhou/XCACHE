@@ -117,7 +117,7 @@ UINT32 crfsgw_start(ngx_http_request_t *r)
     TASK_BRD   *task_brd;
 
     task_brd = task_brd_default_get();
-   
+
     crfsgw_md_id = cbc_md_new(MD_CRFSGW, sizeof(CRFSGW_MD));
     if(CMPI_ERROR_MODI == crfsgw_md_id)
     {
@@ -129,10 +129,10 @@ UINT32 crfsgw_start(ngx_http_request_t *r)
     crfsgw_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem();  
+    init_static_mem();
 
     /* init */
-   
+
     CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md) = r;
 
     /*TODO: load all variables into module*/
@@ -143,7 +143,7 @@ UINT32 crfsgw_start(ngx_http_request_t *r)
 
     CRFSGW_MD_CONTENT_LENGTH(crfsgw_md)   = 0;
 
-    CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md)   = 0; 
+    CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md)   = 0;
 
     CRFSGW_MD_NGX_LOC(crfsgw_md)          = LOC_NONE_END;
     CRFSGW_MD_NGX_RC(crfsgw_md)           = NGX_OK;
@@ -174,7 +174,7 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
         dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_end: crfsgw_md_id = %u not exist.\n", crfsgw_md_id);
         dbg_exit(MD_CRFSGW, crfsgw_md_id);
     }
-   
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < crfsgw_md->usedcounter )
     {
@@ -196,11 +196,11 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
 
     CRFSGW_MD_CONTENT_LENGTH(crfsgw_md) = 0;
 
-    CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md) = 0; 
+    CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md) = 0;
 
     CRFSGW_MD_NGX_LOC(crfsgw_md)        = LOC_NONE_END;
     CRFSGW_MD_NGX_RC(crfsgw_md)         = NGX_OK;
-   
+
     /* free module */
     crfsgw_md->usedcounter = 0;
 
@@ -213,7 +213,7 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
 EC_BOOL crfsgw_get_ngx_rc(const UINT32 crfsgw_md_id, ngx_int_t *rc, UINT32 *location)
 {
     CRFSGW_MD                  *crfsgw_md;
-   
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -242,7 +242,7 @@ EC_BOOL crfsgw_get_ngx_rc(const UINT32 crfsgw_md_id, ngx_int_t *rc, UINT32 *loca
 EC_BOOL crfsgw_set_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const UINT32 location)
 {
     CRFSGW_MD                  *crfsgw_md;
-   
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -259,16 +259,16 @@ EC_BOOL crfsgw_set_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const U
     if(NGX_OK != CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "ignore rc %d due to its %d now\n", 
-                                                rc, CRFSGW_MD_NGX_RC(crfsgw_md));    
+                                                "ignore rc %d due to its %d now\n",
+                                                rc, CRFSGW_MD_NGX_RC(crfsgw_md));
         return (EC_TRUE);
     }
-    
+
     CRFSGW_MD_NGX_RC(crfsgw_md)  = rc;
     CRFSGW_MD_NGX_LOC(crfsgw_md) = location;
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_set_ngx_rc: "
-                                            "set rc %d\n", 
+                                            "set rc %d\n",
                                             rc);
 
     return (EC_TRUE);
@@ -279,7 +279,7 @@ EC_BOOL crfsgw_set_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const U
 EC_BOOL crfsgw_override_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const UINT32 location)
 {
     CRFSGW_MD                  *crfsgw_md;
-   
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -295,29 +295,29 @@ EC_BOOL crfsgw_override_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, co
     if(rc == CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "ignore same rc %d\n", 
-                                                rc);    
+                                                "ignore same rc %d\n",
+                                                rc);
         return (EC_TRUE);
     }
 
     if(NGX_OK != CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "modify rc %d => %d\n", 
-                                                CRFSGW_MD_NGX_RC(crfsgw_md), rc);    
+                                                "modify rc %d => %d\n",
+                                                CRFSGW_MD_NGX_RC(crfsgw_md), rc);
         CRFSGW_MD_NGX_RC(crfsgw_md)  = rc;
         CRFSGW_MD_NGX_LOC(crfsgw_md) = location;
 
         return (EC_TRUE);
     }
-    
+
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                            "set rc %d\n", 
+                                            "set rc %d\n",
                                             rc);
 
     CRFSGW_MD_NGX_RC(crfsgw_md)  = rc;
     CRFSGW_MD_NGX_LOC(crfsgw_md) = location;
-    
+
     return (EC_TRUE);
 }
 
@@ -325,10 +325,10 @@ EC_BOOL crfsgw_override_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, co
 EC_BOOL crfsgw_get_rfs_server(const UINT32 crfsgw_md_id, const CSTRING *cache_uri_cstr, UINT32 *cache_srv_tcid, UINT32 *cache_srv_ipaddr, UINT32 *cache_srv_port)
 {
     CRFSGW_MD                  *crfsgw_md;
-    
+
     const char                 *k;
     char                       *v;
-   
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -341,8 +341,8 @@ EC_BOOL crfsgw_get_rfs_server(const UINT32 crfsgw_md_id, const CSTRING *cache_ur
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(), 
-                                                cache_uri_cstr, 
+    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+                                                cache_uri_cstr,
                                                 cache_srv_tcid, cache_srv_ipaddr, cache_srv_port))
     {
         dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_get_rfs_server: "
@@ -355,7 +355,7 @@ EC_BOOL crfsgw_get_rfs_server(const UINT32 crfsgw_md_id, const CSTRING *cache_ur
                                            "fetch cache server (tcid %s, http %s:%ld) of '%s' done\n",
                                            c_word_to_ipv4(*cache_srv_tcid),
                                            c_word_to_ipv4(*cache_srv_ipaddr), (*cache_srv_port),
-                                           (char *)cstring_get_str(cache_uri_cstr));    
+                                           (char *)cstring_get_str(cache_uri_cstr));
 
     k = (const char *)"cache_srv_tcid";
     v = c_word_to_ipv4(*cache_srv_tcid);
@@ -367,19 +367,19 @@ EC_BOOL crfsgw_get_rfs_server(const UINT32 crfsgw_md_id, const CSTRING *cache_ur
 
     k = (const char *)"cache_srv_port";
     v = c_word_to_str(*cache_srv_port);
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), k, v);  
-    
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), k, v);
+
     return (EC_TRUE);
 }
 
 EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
 
     char                        *v;
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -391,7 +391,7 @@ EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
 #endif/*CRFSGW_DEBUG_SWITCH*/
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
-  
+
     r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
 
     if(EC_FALSE == cngx_get_req_uri(r, &v) || NULL_PTR == v)
@@ -410,7 +410,7 @@ EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_get_cache_path: "
                                                "[cngx] get args '%s'\n",
-                                               v); 
+                                               v);
 
         if(EC_FALSE == cstring_append_str(cache_path, (const UINT8 *)"?"))
         {
@@ -419,7 +419,7 @@ EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
             safe_free(v, LOC_CRFSGW_0002);
             return (EC_FALSE);
         }
-        
+
         if(EC_FALSE == cstring_append_str(cache_path, (const UINT8 *)v))
         {
             dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_get_cache_path: "
@@ -430,9 +430,9 @@ EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
         }
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_get_cache_path: "
                                                "append args '%s' to cache_path done\n",
-                                               v); 
+                                               v);
         safe_free(v, LOC_CRFSGW_0004);
-    }    
+    }
 
     return (EC_TRUE);
 }
@@ -445,13 +445,13 @@ EC_BOOL crfsgw_get_cache_path(const UINT32 crfsgw_md_id, CSTRING *cache_path)
 EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
 
     char                        *method_str;
     char                        *uri_str;
     CSTRING                      cache_path;
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -463,9 +463,9 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
 #endif/*CRFSGW_DEBUG_SWITCH*/
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
-  
+
     r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
-   
+
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_handler: enter\n");
 
     /*priority: if set debug on when module starting, ignore switch in cngx http req header*/
@@ -493,10 +493,10 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
 
         crfsgw_set_ngx_rc(crfsgw_md_id, NGX_HTTP_BAD_REQUEST, LOC_CRFSGW_0006);
 
-        safe_free(method_str, LOC_CRFSGW_0007);  
+        safe_free(method_str, LOC_CRFSGW_0007);
         cstring_clean(&cache_path);
         return (EC_FALSE);
-    }    
+    }
 
     uri_str = (char *)cstring_get_str(&cache_path);
 
@@ -506,9 +506,9 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
                                                "dispatch ('%s', '%s') failed\n",
                                                method_str, uri_str);
 
-        crfsgw_set_ngx_rc(crfsgw_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CRFSGW_0008); 
+        crfsgw_set_ngx_rc(crfsgw_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CRFSGW_0008);
 
-        safe_free(method_str, LOC_CRFSGW_0009);  
+        safe_free(method_str, LOC_CRFSGW_0009);
         cstring_clean(&cache_path);
         return (EC_FALSE);
     }
@@ -516,7 +516,7 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_handler: "
                                            "dispatch ('%s', '%s') done\n",
                                            method_str, uri_str);
-    safe_free(method_str, LOC_CRFSGW_0010);  
+    safe_free(method_str, LOC_CRFSGW_0010);
     cstring_clean(&cache_path);
 
     return (EC_TRUE);
@@ -525,7 +525,7 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
 EC_BOOL crfsgw_content_dispatch(const UINT32 crfsgw_md_id, const char *method_str, const char *uri_str)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -542,7 +542,7 @@ EC_BOOL crfsgw_content_dispatch(const UINT32 crfsgw_md_id, const char *method_st
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch: "
                                                "dispatch method '%s'\n",
-                                               method_str);    
+                                               method_str);
         return crfsgw_content_dispatch_get_request(crfsgw_md_id, uri_str);
     }
 
@@ -555,10 +555,10 @@ EC_BOOL crfsgw_content_dispatch(const UINT32 crfsgw_md_id, const char *method_st
 EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const char *uri_str)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
     uint32_t                     uri_len;
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -575,8 +575,8 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
 
     uri_len = (uint32_t)strlen(uri_str);
 
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                        (const char *)"cache_uri", 
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                        (const char *)"cache_uri",
                         (const char *)uri_str);
 
     if(CONST_STR_LEN("/getsmf/") < uri_len
@@ -593,27 +593,27 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
     {
         const char          *path;
 
-        path = uri_str + CONST_STR_LEN("/dsmf/") - 1;    
+        path = uri_str + CONST_STR_LEN("/dsmf/") - 1;
         return crfsgw_content_dispatch_get_request_dsmf(crfsgw_md_id, path);
-    }   
+    }
 
     if(CONST_STR_LEN("/ddir/") < uri_len
     && EC_TRUE == c_memcmp((const uint8_t *)uri_str, CONST_UINT8_STR_AND_LEN("/ddir/")))
     {
         const char          *path;
 
-        path = uri_str + CONST_STR_LEN("/ddir/") - 1;    
+        path = uri_str + CONST_STR_LEN("/ddir/") - 1;
         return crfsgw_content_dispatch_get_request_ddir(crfsgw_md_id, path);
-    }    
+    }
 #if 0
     if(CONST_STR_LEN("/qtree") <= uri_len
     && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/qtree")))
     {
         const char          *path;
 
-        path = uri_str + CONST_STR_LEN("/qtree");    
+        path = uri_str + CONST_STR_LEN("/qtree");
         return crfsgw_content_dispatch_get_request_qtree(crfsgw_md_id, path);
-    }    
+    }
 #endif
     dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_dispatch_get_request: "
                                            "reject to dispatch uri '%s'\n",
@@ -621,8 +621,8 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
 
     CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_NOT_IMPLEMENTED;
 
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                        (const char *)"error", 
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                        (const char *)"error",
                         (const char *)"reject to dispatch");
 
     return crfsgw_content_send_response(crfsgw_md_id);
@@ -631,7 +631,7 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
 EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, const char *path)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
 
     CBYTES                       seg_cbytes;
@@ -640,7 +640,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
     UINT32                       cache_srv_tcid;
     UINT32                       cache_srv_ipaddr;
     UINT32                       cache_srv_port;/*http port*/
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -660,14 +660,14 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
                                            path);
 
 
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                        (const char *)"cache_path", 
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                        (const char *)"cache_path",
                         (const char *)path);
-                        
+
     cstring_set_str(&cache_uri_cstr, (const UINT8 *)path);
 
-    if(EC_FALSE == crfsgw_get_rfs_server(crfsgw_md_id, 
-                                        &cache_uri_cstr, 
+    if(EC_FALSE == crfsgw_get_rfs_server(crfsgw_md_id,
+                                        &cache_uri_cstr,
                                         &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
         dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_dispatch_get_request_getsmf: "
@@ -675,20 +675,20 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
                                                (char *)cstring_get_str(&cache_uri_cstr));
 
         CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_BAD_GATEWAY;
-                            
-        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                            (const char *)"error", 
+
+        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                            (const char *)"error",
                             (const char *)"fetch cache server failed");
-                            
+
         cstring_unset(&cache_uri_cstr);
-        
+
         return crfsgw_content_send_response(crfsgw_md_id);
     }
 
     cbytes_init(&seg_cbytes);
 
-    if(EC_FALSE == ccache_file_read(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port, 
-                                    &cache_uri_cstr, 
+    if(EC_FALSE == ccache_file_read(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port,
+                                    &cache_uri_cstr,
                                     CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, /*whole seg file*/
                                     &seg_cbytes))
     {
@@ -697,44 +697,44 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
                                                (char *)cstring_get_str(&cache_uri_cstr));
 
         CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_NOT_FOUND;
-                            
-        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                            (const char *)"error", 
+
+        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                            (const char *)"error",
                             (const char *)"read cache failed");
-                            
+
         cstring_unset(&cache_uri_cstr);
         cbytes_clean(&seg_cbytes);
-        
+
         return crfsgw_content_send_response(crfsgw_md_id);
     }
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_getsmf: "
                                             "read '%s', %ld bytes from cache done\n",
-                                            (char *)cstring_get_str(&cache_uri_cstr), 
-                                            cbytes_len(&seg_cbytes));      
+                                            (char *)cstring_get_str(&cache_uri_cstr),
+                                            cbytes_len(&seg_cbytes));
 
     CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_OK;
-    
+
     /*handover body*/
     cbytes_handover(&seg_cbytes, CHTTP_RSP_BODY(CRFSGW_MD_CHTTP_RSP(crfsgw_md)));
-    
+
     cstring_unset(&cache_uri_cstr);
     cbytes_clean(&seg_cbytes);
-    
+
     return crfsgw_content_send_response(crfsgw_md_id);
 }
 
 EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, const char *path)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
 
     CSTRING                      cache_uri_cstr;
     UINT32                       cache_srv_tcid;
     UINT32                       cache_srv_ipaddr;
     UINT32                       cache_srv_port;/*http port*/
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -753,14 +753,14 @@ EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, cons
                                            "path = '%s'\n",
                                            path);
 
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                        (const char *)"cache_path", 
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                        (const char *)"cache_path",
                         (const char *)path);
-                            
+
     cstring_set_str(&cache_uri_cstr, (const UINT8 *)path);
 
-    if(EC_FALSE == crfsgw_get_rfs_server(crfsgw_md_id, 
-                                        &cache_uri_cstr, 
+    if(EC_FALSE == crfsgw_get_rfs_server(crfsgw_md_id,
+                                        &cache_uri_cstr,
                                         &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
         dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_dispatch_get_request_dsmf: "
@@ -769,16 +769,16 @@ EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, cons
 
         CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_BAD_GATEWAY;
 
-        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                            (const char *)"error", 
+        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                            (const char *)"error",
                             (const char *)"fetch cache server failed");
-                            
+
         cstring_unset(&cache_uri_cstr);
-        
+
         return crfsgw_content_send_response(crfsgw_md_id);
     }
 
-    if(EC_FALSE == ccache_file_retire(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port, 
+    if(EC_FALSE == ccache_file_retire(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port,
                                     &cache_uri_cstr))
     {
         dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_dispatch_get_request_dsmf: "
@@ -786,35 +786,35 @@ EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, cons
                                                (char *)cstring_get_str(&cache_uri_cstr));
 
         CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_FORBIDDEN;
-                            
-        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                            (const char *)"error", 
+
+        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                            (const char *)"error",
                             (const char *)"retire cache failed");
-                            
+
         cstring_unset(&cache_uri_cstr);
-        
+
         return crfsgw_content_send_response(crfsgw_md_id);
     }
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_dsmf: "
                                             "retire '%s' from cache done\n",
-                                            (char *)cstring_get_str(&cache_uri_cstr));      
+                                            (char *)cstring_get_str(&cache_uri_cstr));
 
     CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_OK;
-    
+
     cstring_unset(&cache_uri_cstr);
-    
+
     return crfsgw_content_send_response(crfsgw_md_id);
 }
 
 EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, const char *path)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
 
     CSTRING                      cache_uri_cstr;
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -833,10 +833,10 @@ EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, cons
                                            "path = '%s'\n",
                                            path);
 
-    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                        (const char *)"cache_path", 
+    chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                        (const char *)"cache_path",
                         (const char *)path);
-                        
+
     cstring_set_str(&cache_uri_cstr, (const UINT8 *)path);
 
     if(EC_FALSE == ccache_dir_delete(&cache_uri_cstr))
@@ -846,36 +846,36 @@ EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, cons
                                                (char *)cstring_get_str(&cache_uri_cstr));
 
         CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_FORBIDDEN;
-        
-        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md), 
-                            (const char *)"error", 
+
+        chttp_rsp_add_header(CRFSGW_MD_CHTTP_RSP(crfsgw_md),
+                            (const char *)"error",
                             (const char *)"ddir cache failed");
-                            
+
         cstring_unset(&cache_uri_cstr);
-        
+
         return crfsgw_content_send_response(crfsgw_md_id);
     }
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_ddir: "
                                             "ddir '%s' from cache done\n",
-                                            (char *)cstring_get_str(&cache_uri_cstr));      
+                                            (char *)cstring_get_str(&cache_uri_cstr));
 
     CHTTP_RSP_STATUS(CRFSGW_MD_CHTTP_RSP(crfsgw_md)) = CHTTP_OK;
-    
+
     cstring_unset(&cache_uri_cstr);
-    
+
     return crfsgw_content_send_response(crfsgw_md_id);
 }
 
 EC_BOOL crfsgw_content_header_out_filter(const UINT32 crfsgw_md_id)
 {
     CRFSGW_MD                   *crfsgw_md;
-   
+
     CBYTES                      *body;
 
     const char                  *k;
-    char                        *v;    
-    
+    char                        *v;
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -896,16 +896,16 @@ EC_BOOL crfsgw_content_header_out_filter(const UINT32 crfsgw_md_id)
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_header_out_filter: "
                                            "renew header '%s':'%s' done\n",
-                                           k, v); 
+                                           k, v);
     return (EC_TRUE);
 }
 
 EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
 {
     CRFSGW_MD                 *crfsgw_md;
-   
+
     ngx_http_request_t          *r;
-    
+
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
     {
@@ -919,7 +919,7 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
     r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
- 
+
     /*send header*/
     if(EC_TRUE == cngx_need_send_header(r))
     {
@@ -930,16 +930,16 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
             crfsgw_set_ngx_rc(crfsgw_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CRFSGW_0011);
             return (EC_FALSE);
         }
-        
+
         cngx_import_header_out(r, CRFSGW_MD_CHTTP_RSP(crfsgw_md));
-        
+
         cngx_disable_write_delayed(r);
 
         if(EC_FALSE == chttp_rsp_has_body(CRFSGW_MD_CHTTP_RSP(crfsgw_md)))
         {
             cngx_set_header_only(r);
         }
-        
+
         if(EC_FALSE == cngx_send_header(r, &(CRFSGW_MD_NGX_RC(crfsgw_md))))
         {
             dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_send_response: "
@@ -950,7 +950,7 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_send_response: "
                                                "send header done\n");
     }
-    
+
     /*send body*/
     if(EC_TRUE == chttp_rsp_has_body(CRFSGW_MD_CHTTP_RSP(crfsgw_md)))
     {
@@ -962,13 +962,13 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
 
         data = CBYTES_BUF(body);
         len  = (uint32_t)CBYTES_LEN(body);
-        if(EC_FALSE == cngx_send_body(r, data, len, 
+        if(EC_FALSE == cngx_send_body(r, data, len,
                                        CNGX_SEND_BODY_NO_MORE_FLAG | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
                                        &(CRFSGW_MD_NGX_RC(crfsgw_md))))
         {
             dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_send_response: "
                                                     "send body failed\n");
-            
+
             return (EC_FALSE);
         }
 
@@ -976,11 +976,11 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
 
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_send_response: "
                                                "send body done => complete %ld bytes\n",
-                                               CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md));        
+                                               CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md));
     }
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_send_response: "
-                                           "send response done\n");    
+                                           "send response done\n");
     return (EC_TRUE);
 }
 

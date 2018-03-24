@@ -139,15 +139,15 @@ UINT32 crfsc_free_module_static_mem(const UINT32 crfsc_md_id)
 }
 
 STATIC_CAST static EC_BOOL __crfsc_start_all_rfs(UINT32 crfsc_md_id, const CSTRING *crfs_root_dir)
-{ 
+{
     EC_BOOL ret;
 
     ret = EC_FALSE;
- 
+
     for(;;)
     {
         UINT32 crfs_md_id;
-     
+
         crfs_md_id = crfs_start(crfs_root_dir);
         if(CMPI_ERROR_MODI == crfs_md_id)
         {
@@ -179,7 +179,7 @@ STATIC_CAST static EC_BOOL __crfsc_end_all_rfs(UINT32 crfsc_md_id)
     UINT32    crfs_pos;
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     crfs_num = cvector_size(CRFSC_MD_CRFS_VEC(crfsc_md));
     for(crfs_pos = 0; crfs_pos < crfs_num; crfs_pos ++)
     {
@@ -209,7 +209,7 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
     TASK_BRD *task_brd;
 
     task_brd = task_brd_default_get();
- 
+
     crfsc_md_id = cbc_md_new(MD_CRFSC, sizeof(CRFSC_MD));
     if(CMPI_ERROR_MODI == crfsc_md_id)
     {
@@ -235,12 +235,12 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
         if(EC_FALSE == __crfsc_load_dt(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md), CRFSC_MD_STANDBY_DIRTAB(crfsc_md), CRFSC_MD_ROOT_DIR(crfsc_md)))
         {
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_start: load dt failed\n");
-         
+
             cvector_clean(CRFSC_MD_CRFS_VEC(crfsc_md), (CVECTOR_DATA_CLEANER)mod_node_free, LOC_CRFSC_0002);
             crfsdt_clean(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md));
             crfsdt_clean(CRFSC_MD_STANDBY_DIRTAB(crfsc_md));
             cstring_clean(CRFSC_MD_ROOT_DIR(crfsc_md));
-         
+
             return (CMPI_ERROR_MODI);
         }
     }
@@ -257,10 +257,10 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
         cstring_clean(CRFSC_MD_ROOT_DIR(crfsc_md));
 
         cbc_md_free(MD_CRFSC, crfsc_md_id);
-     
+
         return (CMPI_ERROR_MODI);
     }
- 
+
     crfsc_md->usedcounter = 1;
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsc_end, crfsc_md_id);
@@ -293,7 +293,7 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
             ASSERT(0); /*chttp_rest_list_push interface issue*/
             //chttp_rest_list_push((const char *)CRFSCHTTP_REST_API_NAME, crfschttp_commit_request);
         }
-    } 
+    }
 
     return ( crfsc_md_id );
 }
@@ -315,7 +315,7 @@ void crfsc_end(const UINT32 crfsc_md_id)
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: crfsc_md_id = %ld not exist.\n", crfsc_md_id);
         dbg_exit(MD_CRFSC, crfsc_md_id);
     }
- 
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < crfsc_md->usedcounter )
     {
@@ -339,13 +339,13 @@ void crfsc_end(const UINT32 crfsc_md_id)
         {
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_end: flush dt failed\n");
         }
-    } 
-     
+    }
+
     cvector_clean(CRFSC_MD_CRFS_VEC(crfsc_md), (CVECTOR_DATA_CLEANER)mod_node_free, LOC_CRFSC_0005);
     crfsdt_clean(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md));
     crfsdt_clean(CRFSC_MD_STANDBY_DIRTAB(crfsc_md));
     cstring_clean(CRFSC_MD_ROOT_DIR(crfsc_md));
- 
+
     /* free module : */
     //crfsc_free_module_static_mem(crfsc_md_id);
 
@@ -490,7 +490,7 @@ STATIC_CAST static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_m
 
     UINT32        crfs_num;
     UINT32        crfs_pos;
- 
+
     UINT32        hash;
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
@@ -501,9 +501,9 @@ STATIC_CAST static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_m
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:__crfsc_get_rfs_modi_of_file_path: no RFS open\n");
         return (CMPI_ERROR_MODI);
     }
- 
+
     hash = (uint32_t)MD5_hash(cstring_get_len(file_path), cstring_get_str(file_path));
- 
+
     crfs_pos   = (hash % crfs_num);
     crfs_md_id = __crfsc_get_modi(crfsc_md_id, crfs_pos);
     if(CMPI_ERROR_MODI == crfs_md_id)
@@ -511,7 +511,7 @@ STATIC_CAST static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_m
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:__crfsc_get_rfs_modi_of_file_path: invalid RFS modi at %ld# (max %ld)\n",
                            crfs_pos, crfs_num);
         return (CMPI_ERROR_MODI);
-    } 
+    }
 
     return (crfs_md_id);
 }
@@ -519,7 +519,7 @@ STATIC_CAST static UINT32 __crfsc_get_rfs_modi_of_file_path(const UINT32 crfsc_m
 /*get mod_node of CRFSC*/
 STATIC_CAST static EC_BOOL __crfsc_get_rfsc_mod_node_of_file_path(const UINT32 crfsc_md_id, const CRFSDT *crfsdt, const CSTRING *file_path, MOD_NODE *mod_node)
 {
-    CRFSDT_PNODE      *crfsdt_pnode; 
+    CRFSDT_PNODE      *crfsdt_pnode;
     CRFSCONHASH_RNODE *crfsconhash_rnode;
 
     uint32_t           hash;
@@ -598,7 +598,7 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -663,23 +663,23 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         UINT32  *ret;
 
         ret = (UINT32  *)cvector_get(ret_vec, crfs_mod_node_idx);
-     
+
         if(EC_TRUE == result)
         {
             free_static_mem(MM_UINT32, ret, LOC_CRFSC_0011);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         if(EC_FALSE == (*ret))
         {
             free_static_mem(MM_UINT32, ret, LOC_CRFSC_0012);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_TRUE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -719,14 +719,14 @@ EC_BOOL crfsc_find_file_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     crfs_md_id = __crfsc_get_rfs_modi_of_file_path(crfsc_md_id, file_path);
     if(CMPI_ERROR_MODI == crfs_md_id)
     {
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_find_file_ep: no RFS for file '%s'\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    } 
+    }
 
     return crfs_find_file(crfs_md_id, file_path);
 }
@@ -735,7 +735,7 @@ EC_BOOL crfsc_find_file(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -786,14 +786,14 @@ EC_BOOL crfsc_find_file_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     crfs_md_id = __crfsc_get_rfs_modi_of_file_path(crfsc_md_id, file_path);
     if(CMPI_ERROR_MODI == crfs_md_id)
     {
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_find_file_b_ep: no RFS for bigfile '%s'\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    } 
+    }
 
     return crfs_find_file_b(crfs_md_id, file_path);
 }
@@ -802,7 +802,7 @@ EC_BOOL crfsc_find_file_b(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -880,7 +880,7 @@ EC_BOOL crfsc_is_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 EC_BOOL crfsc_write_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -906,7 +906,7 @@ EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CB
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -927,7 +927,7 @@ EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CB
                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
- 
+
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
@@ -946,7 +946,7 @@ EC_BOOL crfsc_write(const UINT32 crfsc_md_id, const CSTRING *file_path, const CB
 EC_BOOL crfsc_read_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -972,7 +972,7 @@ EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *c
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1011,7 +1011,7 @@ EC_BOOL crfsc_read(const UINT32 crfsc_md_id, const CSTRING *file_path, CBYTES *c
 EC_BOOL crfsc_write_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1037,7 +1037,7 @@ EC_BOOL crfsc_write_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1077,7 +1077,7 @@ EC_BOOL crfsc_write_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32
 EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1103,7 +1103,7 @@ EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1143,7 +1143,7 @@ EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 
 EC_BOOL crfsc_create_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t *file_size)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1169,7 +1169,7 @@ EC_BOOL crfsc_create_b(const UINT32 crfsc_md_id, const CSTRING *file_path, const
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1207,7 +1207,7 @@ EC_BOOL crfsc_create_b(const UINT32 crfsc_md_id, const CSTRING *file_path, const
 EC_BOOL crfsc_write_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1233,7 +1233,7 @@ EC_BOOL crfsc_write_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1271,7 +1271,7 @@ EC_BOOL crfsc_write_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64
 EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1297,7 +1297,7 @@ EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1370,7 +1370,7 @@ EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_fetch_block_fd_b_ep: no RFS for file '%s'\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    }  
+    }
 
     return crfs_fetch_block_fd_b(crfs_md_id, file_path, offset, block_size, block_fd);
 }
@@ -1383,7 +1383,7 @@ EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_
 EC_BOOL crfsc_renew_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1409,7 +1409,7 @@ EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1447,7 +1447,7 @@ EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path)
 EC_BOOL crfsc_delete_file_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1473,7 +1473,7 @@ EC_BOOL crfsc_delete_file(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1511,7 +1511,7 @@ EC_BOOL crfsc_delete_file(const UINT32 crfsc_md_id, const CSTRING *file_path)
 EC_BOOL crfsc_delete_file_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1537,7 +1537,7 @@ EC_BOOL crfsc_delete_file_b(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1609,7 +1609,7 @@ EC_BOOL crfsc_delete_dir_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         {
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_delete_dir_ep: del dir '%s' from RFS %ld# failed\n",
                                 (char *)cstring_get_str(dir_path), crfs_md_id);
-     
+
             result = EC_FALSE;
         }
     }
@@ -1627,7 +1627,7 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -1690,7 +1690,7 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
     for(crfs_mod_node_idx = 0; crfs_mod_node_idx < crfs_mod_node_num; crfs_mod_node_idx ++)
     {
         UINT32  *ret;
-     
+
         ret = (UINT32  *)cvector_get_no_lock(ret_vec, crfs_mod_node_idx);
         if(EC_TRUE == (*ret))
         {
@@ -1698,9 +1698,9 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -1745,7 +1745,7 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
     if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
     {
         return crfsc_delete_file_b(crfsc_md_id, path);
-    } 
+    }
 
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
@@ -1775,7 +1775,7 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
 EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1801,7 +1801,7 @@ EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const C
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1839,7 +1839,7 @@ EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const C
 EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1865,7 +1865,7 @@ EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_I
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1904,7 +1904,7 @@ EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_I
 EC_BOOL crfsc_file_size_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *file_size)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1930,7 +1930,7 @@ EC_BOOL crfsc_file_size(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -1968,7 +1968,7 @@ EC_BOOL crfsc_file_size(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
 EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -1994,7 +1994,7 @@ EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, u
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -2032,7 +2032,7 @@ EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, u
 EC_BOOL crfsc_file_md5sum_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CMD5_DIGEST *md5sum)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2058,7 +2058,7 @@ EC_BOOL crfsc_file_md5sum(const UINT32 crfsc_md_id, const CSTRING *file_path, CM
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -2097,7 +2097,7 @@ EC_BOOL crfsc_file_md5sum(const UINT32 crfsc_md_id, const CSTRING *file_path, CM
 EC_BOOL crfsc_file_md5sum_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 seg_no, CMD5_DIGEST *md5sum)
 {
     UINT32  crfs_md_id;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2123,7 +2123,7 @@ EC_BOOL crfsc_file_md5sum_b(const UINT32 crfsc_md_id, const CSTRING *file_path, 
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -2222,7 +2222,7 @@ EC_BOOL crfsc_recycle_ep(const UINT32 crfsc_md_id)
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_recycle_ep: recycle RFS %ld# failed\n",
-                                crfs_md_id);         
+                                crfs_md_id);
         }
     }
     return (result);
@@ -2238,7 +2238,7 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -2302,9 +2302,9 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -2326,7 +2326,7 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
 EC_BOOL crfsc_add_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING *path)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2344,7 +2344,7 @@ EC_BOOL crfsc_add_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING
 EC_BOOL crfsc_del_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING *path)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2362,7 +2362,7 @@ EC_BOOL crfsc_del_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING
 EC_BOOL crfsc_has_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING *path)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2374,14 +2374,14 @@ EC_BOOL crfsc_has_dir(const UINT32 crfsc_md_id, const UINT32 tcid, const CSTRING
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     return crfsdt_has(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md), tcid, path);
 }
 
 STATIC_CAST static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir)
 {
     CSTRING  *dt_fname;
-     
+
     dt_fname = cstring_make("%s/%s", (char *)cstring_get_str(crfs_root_dir), CRFSC_DIRTAB_FNAME);
     if(NULL_PTR == dt_fname)
     {
@@ -2403,7 +2403,7 @@ STATIC_CAST static EC_BOOL __crfsc_exist_dt(const CSTRING *crfs_root_dir)
 EC_BOOL crfsc_exist_dt(const UINT32 crfsc_md_id)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2427,7 +2427,7 @@ EC_BOOL crfsc_exist_dt(const UINT32 crfsc_md_id)
 EC_BOOL crfsc_clone_dt(const UINT32 crfsc_md_id)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2448,7 +2448,7 @@ EC_BOOL crfsc_clone_dt(const UINT32 crfsc_md_id)
 EC_BOOL crfsc_rollback_dt(const UINT32 crfsc_md_id)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2460,7 +2460,7 @@ EC_BOOL crfsc_rollback_dt(const UINT32 crfsc_md_id)
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     CRFSC_MD_DT_ACTIVE_FLAG(crfsc_md) ^= 1;
 
     return (EC_TRUE);
@@ -2472,7 +2472,7 @@ EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id)
     CSTRING  *dt_fname;
     UINT32    offset;
     int       dt_fd;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2484,7 +2484,7 @@ EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id)
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     dt_fname = cstring_make("%s/%s", (char *)cstring_get_str(CRFSC_MD_ROOT_DIR(crfsc_md)), CRFSC_DIRTAB_FNAME);
     if(NULL_PTR == dt_fname)
     {
@@ -2510,7 +2510,7 @@ EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id)
                            (char *)cstring_get_str(dt_fname));
 
         c_file_unlink((char *)cstring_get_str(dt_fname));
-     
+
         cstring_free(dt_fname);
         c_file_close(dt_fd);
         return (EC_FALSE);
@@ -2522,15 +2522,15 @@ EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id)
                            (char *)cstring_get_str(dt_fname));
 
         c_file_unlink((char *)cstring_get_str(dt_fname));
-     
+
         cstring_free(dt_fname);
         c_file_close(dt_fd);
         return (EC_FALSE);
-    } 
- 
+    }
+
     cstring_free(dt_fname);
     c_file_close(dt_fd);
- 
+
     return (EC_TRUE);
 }
 
@@ -2551,7 +2551,7 @@ STATIC_CAST static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:__crfsc_load_dt: standby dt is not empty, give up loading\n");
         return (EC_FALSE);
     }
- 
+
     dt_fname = cstring_make("%s/%s", (char *)cstring_get_str(crfs_root_dir), CRFSC_DIRTAB_FNAME);
     if(NULL_PTR == dt_fname)
     {
@@ -2586,18 +2586,18 @@ STATIC_CAST static EC_BOOL __crfsc_load_dt(CRFSDT *crfsdt_active, CRFSDT *crfsdt
         cstring_free(dt_fname);
         c_file_close(dt_fd);
         return (EC_FALSE);
-    } 
- 
+    }
+
     cstring_free(dt_fname);
     c_file_close(dt_fd);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL crfsc_load_dt(const UINT32 crfsc_md_id)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2623,7 +2623,7 @@ EC_BOOL crfsc_load_dt(const UINT32 crfsc_md_id)
 void crfsc_print_dt(const UINT32 crfsc_md_id, LOG *log)
 {
     CRFSC_MD *crfsc_md;
- 
+
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
     {
@@ -2635,13 +2635,13 @@ void crfsc_print_dt(const UINT32 crfsc_md_id, LOG *log)
 #endif/*CRFSC_DEBUG_SWITCH*/
 
     crfsc_md = CRFSC_MD_GET(crfsc_md_id);
- 
+
     sys_log(log, "active dirtab is \n");
     crfsdt_print(log, CRFSC_MD_ACTIVE_DIRTAB(crfsc_md));
- 
+
     sys_log(log, "standby dirtab is \n");
     crfsdt_print(log, CRFSC_MD_STANDBY_DIRTAB(crfsc_md));
- 
+
     return;
 }
 
@@ -2684,18 +2684,18 @@ EC_BOOL crfsc_trans_dir_pre_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_pre_ep: transfer dir '%s' in RFS %ld# beg\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);         
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
 
         if(EC_FALSE == crfs_transfer_pre(crfs_md_id, crfsc_md_id, dir_path, crfsdt_pnode))
         {
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_pre_ep: transfer dir '%s' in RFS %ld# failed\n",
-                                (char *)cstring_get_str(dir_path), crfs_md_id);         
+                                (char *)cstring_get_str(dir_path), crfs_md_id);
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_pre_ep: transfer dir '%s' in RFS %ld# end\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);        
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
     }
     return (result);
 }
@@ -2712,7 +2712,7 @@ EC_BOOL crfsc_trans_dir_pre(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -2743,8 +2743,8 @@ EC_BOOL crfsc_trans_dir_pre(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_pre: lookup pnode of dir '%s' in standby dt failed\n",
                            (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
-    } 
- 
+    }
+
     mod_mgr = __crfsc_make_mod_mgr_by_pnode(crfsc_md_id, crfsdt_pnode_src);
     if(NULL_PTR == mod_mgr)
     {
@@ -2791,9 +2791,9 @@ EC_BOOL crfsc_trans_dir_pre(const UINT32 crfsc_md_id, const CSTRING *dir_path)
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -2852,18 +2852,18 @@ EC_BOOL crfsc_trans_dir_handle_ep(const UINT32 crfsc_md_id, const CSTRING *dir_p
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_handle_ep: transfer dir '%s' handle in RFS %ld# beg\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);         
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
 
         if(EC_FALSE == crfs_transfer_handle(crfs_md_id, crfsc_md_id, dir_path, crfsdt_pnode))
         {
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_handle_ep: transfer dir '%s' handle in RFS %ld# failed\n",
-                                (char *)cstring_get_str(dir_path), crfs_md_id);         
+                                (char *)cstring_get_str(dir_path), crfs_md_id);
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_handle_ep: transfer dir '%s' handle in RFS %ld# end\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);        
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
     }
     return (result);
 }
@@ -2880,7 +2880,7 @@ EC_BOOL crfsc_trans_dir_handle(const UINT32 crfsc_md_id, const CSTRING *dir_path
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -2911,7 +2911,7 @@ EC_BOOL crfsc_trans_dir_handle(const UINT32 crfsc_md_id, const CSTRING *dir_path
                            (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
     }
- 
+
     mod_mgr = __crfsc_make_mod_mgr_by_pnode(crfsc_md_id, crfsdt_pnode_src);
     if(NULL_PTR == mod_mgr)
     {
@@ -2936,7 +2936,7 @@ EC_BOOL crfsc_trans_dir_handle(const UINT32 crfsc_md_id, const CSTRING *dir_path
         UINT32   *ret;
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0031);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
@@ -2958,9 +2958,9 @@ EC_BOOL crfsc_trans_dir_handle(const UINT32 crfsc_md_id, const CSTRING *dir_path
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -3018,18 +3018,18 @@ EC_BOOL crfsc_trans_dir_post_ep(const UINT32 crfsc_md_id, const CSTRING *dir_pat
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_post_ep: transfer dir '%s' post clean in RFS %ld# beg\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);         
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
 
         if(EC_FALSE == crfs_transfer_post(crfs_md_id, crfsc_md_id, dir_path, crfsdt_pnode))
         {
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_post_ep: transfer dir '%s' post clean in RFS %ld# failed\n",
-                                (char *)cstring_get_str(dir_path), crfs_md_id);         
+                                (char *)cstring_get_str(dir_path), crfs_md_id);
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_post_ep: transfer dir '%s' post clean in RFS %ld# end\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);        
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
     }
     return (result);
 }
@@ -3037,7 +3037,7 @@ EC_BOOL crfsc_trans_dir_post_ep(const UINT32 crfsc_md_id, const CSTRING *dir_pat
 EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 {
     CRFSC_MD     *crfsc_md;
- 
+
     CRFSDT_PNODE *crfsdt_pnode_src;
     CRFSDT_PNODE *crfsdt_pnode_des;
 
@@ -3046,7 +3046,7 @@ EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -3076,8 +3076,8 @@ EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_post: lookup pnode of dir '%s' in standby dt failed\n",
                            (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
-    } 
- 
+    }
+
     mod_mgr = __crfsc_make_mod_mgr_by_pnode(crfsc_md_id, crfsdt_pnode_src);
     if(NULL_PTR == mod_mgr)
     {
@@ -3102,7 +3102,7 @@ EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         UINT32   *ret;
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0036);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
@@ -3124,9 +3124,9 @@ EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path)
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -3184,18 +3184,18 @@ EC_BOOL crfsc_trans_dir_recycle_ep(const UINT32 crfsc_md_id, const CSTRING *dir_
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_recycle_ep: transfer dir '%s' recycle in RFS %ld# beg\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);         
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
 
         if(EC_FALSE == crfs_transfer_recycle(crfs_md_id, crfsc_md_id, dir_path, crfsdt_pnode))
         {
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_recycle_ep: transfer dir '%s' recycle in RFS %ld# failed\n",
-                                (char *)cstring_get_str(dir_path), crfs_md_id);         
+                                (char *)cstring_get_str(dir_path), crfs_md_id);
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_recycle_ep: transfer dir '%s' recycle in RFS %ld# end\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);        
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
     }
     return (result);
 }
@@ -3212,7 +3212,7 @@ EC_BOOL crfsc_trans_dir_recycle(const UINT32 crfsc_md_id, const CSTRING *dir_pat
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -3243,7 +3243,7 @@ EC_BOOL crfsc_trans_dir_recycle(const UINT32 crfsc_md_id, const CSTRING *dir_pat
                            (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
     }
- 
+
     mod_mgr = __crfsc_make_mod_mgr_by_pnode(crfsc_md_id, crfsdt_pnode_src);
     if(NULL_PTR == mod_mgr)
     {
@@ -3268,7 +3268,7 @@ EC_BOOL crfsc_trans_dir_recycle(const UINT32 crfsc_md_id, const CSTRING *dir_pat
         UINT32   *ret;
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0041);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
@@ -3290,9 +3290,9 @@ EC_BOOL crfsc_trans_dir_recycle(const UINT32 crfsc_md_id, const CSTRING *dir_pat
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -3351,18 +3351,18 @@ EC_BOOL crfsc_trans_dir_whole_ep(const UINT32 crfsc_md_id, const CSTRING *dir_pa
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_whole_ep: transfer dir '%s' in RFS %ld# beg\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);         
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
 
         if(EC_FALSE == crfs_transfer(crfs_md_id, crfsc_md_id, dir_path, crfsdt_pnode))
         {
             result = EC_FALSE;
 
             dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_trans_dir_whole_ep: transfer dir '%s' in RFS %ld# failed\n",
-                                (char *)cstring_get_str(dir_path), crfs_md_id);         
+                                (char *)cstring_get_str(dir_path), crfs_md_id);
         }
 
         dbg_log(SEC_0143_CRFSC, 9)(LOGSTDOUT, "[DEBUG] crfsc_trans_dir_whole_ep: transfer dir '%s' in RFS %ld# end\n",
-                            (char *)cstring_get_str(dir_path), crfs_md_id);        
+                            (char *)cstring_get_str(dir_path), crfs_md_id);
     }
     return (result);
 }
@@ -3379,7 +3379,7 @@ EC_BOOL crfsc_trans_dir_whole(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
     UINT32        crfs_mod_node_num;
     UINT32        crfs_mod_node_idx;
- 
+
     CVECTOR      *ret_vec;
     EC_BOOL       result;
 
@@ -3410,7 +3410,7 @@ EC_BOOL crfsc_trans_dir_whole(const UINT32 crfsc_md_id, const CSTRING *dir_path)
                            (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
     }
- 
+
     mod_mgr = __crfsc_make_mod_mgr_by_pnode(crfsc_md_id, crfsdt_pnode_src);
     if(NULL_PTR == mod_mgr)
     {
@@ -3457,9 +3457,9 @@ EC_BOOL crfsc_trans_dir_whole(const UINT32 crfsc_md_id, const CSTRING *dir_path)
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
-     
+
         result = EC_FALSE;
-     
+
         if(do_log(SEC_0143_CRFSC, 9))
         {
             MOD_NODE *mod_node;
@@ -3484,7 +3484,7 @@ EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const 
 {
     CRFSC_MD          *crfsc_md;
 
-    MOD_NODE           recv_mod_node; 
+    MOD_NODE           recv_mod_node;
     EC_BOOL            result;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -3505,7 +3505,7 @@ EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const 
                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
- 
+
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,

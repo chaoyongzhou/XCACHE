@@ -1969,7 +1969,7 @@ http_flags_str(unsigned int flags)
     {
         len += http_flags_str_append(flags_str, size, len, "F_CONNECTION_KEEP_ALIVE");
     }
- 
+
     if(flags & F_CONNECTION_CLOSE)
     {
         len += http_flags_str_append(flags_str, size, len, "F_CONNECTION_CLOSE");

@@ -104,7 +104,7 @@ CSOCKET_CNODE *cconnp_reserve(CCONNP *cconnp)
     ASSERT(BIT_TRUE == CSOCKET_CNODE_REUSING(csocket_cnode));
 
     if(BIT_TRUE == CSOCKET_CNODE_READING(csocket_cnode))
-    {   
+    {
         cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
         CSOCKET_CNODE_READING(csocket_cnode)     = BIT_FALSE;
     }
@@ -116,10 +116,10 @@ CSOCKET_CNODE *cconnp_reserve(CCONNP *cconnp)
     csocket_cnode_reset_shutdown_callback(csocket_cnode);
 
     /*not sure the csocket_cnode would be returned back or not*/
-  
+
     dbg_log(SEC_0154_CCONNP, 5)(LOGSTDOUT, "[DEBUG] cconnp_reserve: pop sockfd %d to server %s:%ld done\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));  
+                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
     return (csocket_cnode);
 }
 
@@ -129,23 +129,23 @@ EC_BOOL cconnp_release(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode)
     CQUEUE_DATA *cqueue_data;
 
     ASSERT(BIT_TRUE == CSOCKET_CNODE_REUSING(csocket_cnode));
- 
+
     cqueue_data = cqueue_push(CCONNP_IDLE_CONN_QUEUE(cconnp), (void *)csocket_cnode);
     if(NULL_PTR == cqueue_data)
     {
         dbg_log(SEC_0154_CCONNP, 0)(LOGSTDOUT, "error:cconnp_release: push sockfd %d to server %s:%ld failed\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
-                        
+
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
         return (EC_TRUE);
     }
 
     /*clean event*/
     cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    CSOCKET_CNODE_READING(csocket_cnode)     = BIT_FALSE;   
-    CSOCKET_CNODE_WRITING(csocket_cnode)     = BIT_FALSE;   
-   
+    CSOCKET_CNODE_READING(csocket_cnode)     = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode)     = BIT_FALSE;
+
     /*reset*/
     csocket_cnode_reset_recv_callback(csocket_cnode);
     csocket_cnode_reset_send_callback(csocket_cnode);
@@ -154,21 +154,21 @@ EC_BOOL cconnp_release(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode)
     csocket_cnode_reset_timeout_callback(csocket_cnode);
 
     /*push*/
-    csocket_cnode_push_recv_callback(csocket_cnode, 
-                                      (const char *)"cconnp_erase", 
-                                      (UINT32)cconnp,
-                                      (UINT32)cconnp_erase); 
-
-     csocket_cnode_push_timeout_callback(csocket_cnode, 
-                                      (const char *)"cconnp_erase", 
+    csocket_cnode_push_recv_callback(csocket_cnode,
+                                      (const char *)"cconnp_erase",
                                       (UINT32)cconnp,
                                       (UINT32)cconnp_erase);
 
-    csocket_cnode_push_shutdown_callback(csocket_cnode, 
-                                      (const char *)"cconnp_erase", 
+     csocket_cnode_push_timeout_callback(csocket_cnode,
+                                      (const char *)"cconnp_erase",
                                       (UINT32)cconnp,
                                       (UINT32)cconnp_erase);
-                                      
+
+    csocket_cnode_push_shutdown_callback(csocket_cnode,
+                                      (const char *)"cconnp_erase",
+                                      (UINT32)cconnp,
+                                      (UINT32)cconnp_erase);
+
     /*when idle, client should never receive data to server. if RD event happen, connection must be broken*/
     cepoll_set_event(task_brd_default_get_cepoll(),
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
@@ -177,7 +177,7 @@ EC_BOOL cconnp_release(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode)
                     (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv,
                     (void *)csocket_cnode);
     CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-    
+
     cepoll_set_shutdown(task_brd_default_get_cepoll(),
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
                     (const char *)"csocket_cnode_ishutdown",
@@ -190,36 +190,36 @@ EC_BOOL cconnp_release(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode)
                     (const char *)"csocket_cnode_itimeout",
                     (CEPOLL_EVENT_HANDLER)csocket_cnode_itimeout,
                     (void *)csocket_cnode);
-                 
+
     dbg_log(SEC_0154_CCONNP, 5)(LOGSTDOUT, "[DEBUG] cconnp_release: push sockfd %d to server %s:%ld done\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp)); 
+                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
     return (EC_TRUE);
 }
 
 EC_BOOL cconnp_erase(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode)
 {
     CQUEUE_DATA *cqueue_data;
-    
+
     if(BIT_TRUE == CSOCKET_CNODE_REUSING(csocket_cnode))
     {
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
     }
-    
+
     cqueue_data = cqueue_search(CCONNP_IDLE_CONN_QUEUE(cconnp), (void *)csocket_cnode, NULL_PTR);
     if(NULL_PTR == cqueue_data)
     {
         dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_erase: not found sockfd %d to server %s:%ld\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                        CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));     
+                        CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
         return (EC_TRUE);
     }
     cqueue_erase(CCONNP_IDLE_CONN_QUEUE(cconnp), cqueue_data);
 
     dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_erase: erase sockfd %d to server %s:%ld done\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp)); 
-    
+                    CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
+
     return (EC_TRUE);
 }
 
@@ -245,11 +245,11 @@ int cconnp_cmp(const CCONNP *cconnp_1, const CCONNP *cconnp_2)
         {
             dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_cmp: "
                                                    "(tcid %s, ip %s, port %ld) <---> (tcid %s, ip %s, port %ld)\n",
-                                                   c_word_to_ipv4(CCONNP_SRV_TCID(cconnp_1)), 
+                                                   c_word_to_ipv4(CCONNP_SRV_TCID(cconnp_1)),
                                                    c_word_to_ipv4(CCONNP_SRV_IPADDR(cconnp_1)),
                                                    CCONNP_SRV_PORT(cconnp_1),
-                                                   
-                                                   c_word_to_ipv4(CCONNP_SRV_TCID(cconnp_2)), 
+
+                                                   c_word_to_ipv4(CCONNP_SRV_TCID(cconnp_2)),
                                                    c_word_to_ipv4(CCONNP_SRV_IPADDR(cconnp_2)),
                                                    CCONNP_SRV_PORT(cconnp_2));
         }
@@ -259,11 +259,11 @@ int cconnp_cmp(const CCONNP *cconnp_1, const CCONNP *cconnp_2)
                                                    "(ip %s, port %ld) <---> (ip %s, port %ld)\n",
                                                    c_word_to_ipv4(CCONNP_SRV_IPADDR(cconnp_1)),
                                                    CCONNP_SRV_PORT(cconnp_1),
-                                                   
+
                                                    c_word_to_ipv4(CCONNP_SRV_IPADDR(cconnp_2)),
                                                    CCONNP_SRV_PORT(cconnp_2));
         }
-    }                                       
+    }
     if(CMPI_ANY_TCID != CCONNP_SRV_TCID(cconnp_1) && CMPI_ANY_TCID != CCONNP_SRV_TCID(cconnp_2))
     {
         if(CCONNP_SRV_TCID(cconnp_1) > CCONNP_SRV_TCID(cconnp_2))
@@ -368,7 +368,7 @@ CCONNP *cconnp_mgr_add(CCONNP_MGR *cconnp_mgr, const UINT32 srv_tcid, const UINT
     CCONNP_SRV_TCID(cconnp)   = srv_tcid;
     CCONNP_SRV_IPADDR(cconnp) = srv_ipaddr;
     CCONNP_SRV_PORT(cconnp)   = srv_port;
- 
+
     crb_node = crb_tree_insert_data(CCONNP_MGR_TREE(cconnp_mgr), (void *)cconnp);
     if(NULL_PTR == crb_node)
     {
@@ -410,7 +410,7 @@ CCONNP *cconnp_mgr_search(CCONNP_MGR *cconnp_mgr, const UINT32 srv_tcid, const U
     CCONNP_SRV_TCID(cconnp)   = srv_tcid;
     CCONNP_SRV_IPADDR(cconnp) = srv_ipaddr;
     CCONNP_SRV_PORT(cconnp)   = srv_port;
- 
+
     crb_node = crb_tree_search_data(CCONNP_MGR_TREE(cconnp_mgr), (void *)cconnp);
     if(NULL_PTR == crb_node)
     {
@@ -440,7 +440,7 @@ CSOCKET_CNODE *cconnp_mgr_reserve(CCONNP_MGR *cconnp_mgr, const UINT32 srv_tcid,
     {
         dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_mgr_reserve: not found cconnp srv %s:%ld, tcid %s\n",
                             c_word_to_ipv4(srv_ipaddr), srv_port,
-                            c_word_to_ipv4(srv_tcid)); 
+                            c_word_to_ipv4(srv_tcid));
         return (NULL_PTR);
     }
 
@@ -449,13 +449,13 @@ CSOCKET_CNODE *cconnp_mgr_reserve(CCONNP_MGR *cconnp_mgr, const UINT32 srv_tcid,
     {
         dbg_log(SEC_0154_CCONNP, 0)(LOGSTDOUT, "error:cconnp_mgr_reserve: reserve csocket_cnode from cconnp srv %s:%ld, tcid %s failed\n",
                             c_word_to_ipv4(srv_ipaddr), srv_port,
-                            c_word_to_ipv4(srv_tcid)); 
+                            c_word_to_ipv4(srv_tcid));
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_mgr_reserve: reserve csocket_cnode from cconnp srv %s:%ld, tcid %s done\n",
                             c_word_to_ipv4(srv_ipaddr), srv_port,
-                            c_word_to_ipv4(srv_tcid)); 
+                            c_word_to_ipv4(srv_tcid));
     return (csocket_cnode);
 }
 
@@ -469,7 +469,7 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
         dbg_log(SEC_0154_CCONNP, 0)(LOGSTDOUT, "error:cconnp_mgr_release: sockfd %d to srv %s:%ld, tcid %s is not reusing\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode),
                             CSOCKET_CNODE_IPADDR_STR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
-                            CSOCKET_CNODE_TCID_STR(csocket_cnode)); 
+                            CSOCKET_CNODE_TCID_STR(csocket_cnode));
         return (EC_FALSE);
     }
 
@@ -479,7 +479,7 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
         dbg_log(SEC_0154_CCONNP, 9)(LOGSTDOUT, "[DEBUG] cconnp_mgr_release: not found cconnp srv %s:%ld, tcid %s for sockfd %d => unset reusing\n",
                             CSOCKET_CNODE_IPADDR_STR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
                             CSOCKET_CNODE_TCID_STR(csocket_cnode),
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode)); 
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
         return (EC_TRUE);
     }
@@ -489,7 +489,7 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
         dbg_log(SEC_0154_CCONNP, 0)(LOGSTDOUT, "error:cconnp_mgr_reserve: release sockfd %d to cconnp srv %s:%ld, tcid %s failed\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode),
                             CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp),
-                            CCONNP_SRV_TCID_STR(cconnp));   
+                            CCONNP_SRV_TCID_STR(cconnp));
         return (EC_FALSE);
     }
 

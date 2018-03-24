@@ -45,7 +45,7 @@ EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, 
 {
     char        *command;
     uint32_t     length;
-    
+
     command = readline(prompt);
     if(NULL_PTR == command)
     {
@@ -75,12 +75,12 @@ EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, 
     BCOPY(command, cmd, length + 1);
     (*len) = length;
 
-    free(command);    
+    free(command);
 
     if(1 == (*len) && '!' == cmd[ 0 ])
     {
         dbg_log(SEC_0003_CCONSOLE, 1)(LOGSTDOUT, "error:cconsole_cmd_get: ignore invalid cmd '%s'\n", cmd);
-        return (EC_AGAIN);/*ignore*/    
+        return (EC_AGAIN);/*ignore*/
     }
 
     if('!' == cmd[ 0 ])
@@ -93,8 +93,8 @@ EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, 
             dbg_log(SEC_0003_CCONSOLE, 1)(LOGSTDOUT, "[DEBUG] cconsole_cmd_get: ignore invalid cmd '%s'\n", cmd);
             return (EC_AGAIN);/*ignore*/
         }
-        
-        hist_idx = c_chars_to_uint32_t(cmd + 1, (*len) - 1); 
+
+        hist_idx = c_chars_to_uint32_t(cmd + 1, (*len) - 1);
 
         command = (char *)cconsole_cmd_get_history(hist_idx);
         if(NULL_PTR == command)
@@ -102,17 +102,17 @@ EC_BOOL cconsole_cmd_get(const char *prompt, char *cmd, const uint32_t max_len, 
             dbg_log(SEC_0003_CCONSOLE, 1)(LOGSTDOUT, "[DEBUG] cconsole_cmd_get: get history cmd failed when ask for '%s'\n", cmd);
             return (EC_AGAIN);/*ignore*/
         }
-        
+
         length  = strlen(command);
 
         if(length >= max_len)
         {
             dbg_log(SEC_0003_CCONSOLE, 0)(LOGSTDOUT, "error:cconsole_cmd_get: ignore overflow history cmd '%s'\n", command);
             return (EC_AGAIN);/*ignore*/
-        }     
+        }
 
         BCOPY(command, cmd, length + 1);
-        (*len) = length;        
+        (*len) = length;
     }
 
     return (EC_TRUE);
@@ -127,9 +127,9 @@ EC_BOOL cconsole_cmd_add_history(const char *cmd)
 const char *cconsole_cmd_get_history(const uint32_t hist_idx)
 {
     HIST_ENTRY      *hist_entry;
-    
+
     if((int)hist_idx > history_length)
-    {   
+    {
         return (NULL_PTR);
     }
 

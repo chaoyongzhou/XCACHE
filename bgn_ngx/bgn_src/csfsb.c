@@ -192,18 +192,18 @@ STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_search_from(const CSFSB *csf
                 dbg_log(SEC_0166_CSFSB, 9)(LOGSTDOUT, "[DEBUG] __csfsb_page_used_bitmap_search_from: int_nth %u, bit_nth %u, e %08x, val %08x\n",
                                 int_nth, bit_nth, e, val);
                 /*do nothing*/
-            }     
+            }
 
             dbg_log(SEC_0166_CSFSB, 9)(LOGSTDOUT, "[DEBUG] __csfsb_page_used_bitmap_search_from: int_nth %u, bit_nth %u, e %08x, val %08x [SUCC]\n",
                                 int_nth, bit_nth, e, val);
-                             
+
             (*bit_pos) = (int_nth << 5) + bit_nth;
 
             return (EC_TRUE);
         }
         nbits += (32 - bit_nth);
     }
- 
+
     dbg_log(SEC_0166_CSFSB, 9)(LOGSTDOUT, "[DEBUG] __csfsb_page_used_bitmap_search_from: int_nth %u, bit_nth %u [FAIL]\n",
                         int_nth, bit_nth);
     return (EC_FALSE);
@@ -230,7 +230,7 @@ STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_is(const CSFSB *csfsb, const
     }
 
     e = (page_used_bitmap[ int_nth ] & ((uint32_t)(1 << bit_nth)));
- 
+
     if(0 == e && 0 == bit_val)
     {
         return (EC_TRUE);
@@ -240,7 +240,7 @@ STATIC_CAST static EC_BOOL __csfsb_page_used_bitmap_is(const CSFSB *csfsb, const
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -264,7 +264,7 @@ STATIC_CAST static void __csfsb_page_used_bitmap_print(LOG *log, const CSFSB *cs
         {
             continue;
         }
-     
+
         sys_print(log, "[%8d INT] ", int_nth);
 
         /*print bits from Lo to Hi*/
@@ -288,7 +288,7 @@ STATIC_CAST static uint16_t __csfsb_page_used_bitmap_count_bits(const CSFSB *csf
 
     page_used_bitmap = (uint32_t *)CSFSB_PAGE_USED_BITMAP_TBL(csfsb);
     page_max_num     = CSFSB_PAGE_MAX_NUM(csfsb);
- 
+
     bits_count = 0;
 
     for(int_nth = 0; int_nth <= (page_max_num >> 5); int_nth ++)
@@ -296,7 +296,7 @@ STATIC_CAST static uint16_t __csfsb_page_used_bitmap_count_bits(const CSFSB *csf
         uint32_t val;
 
         val = page_used_bitmap[ int_nth ];
-     
+
         bits_count += g_nbits_per_byte[ (uint8_t)((val >>  0) & 0xFF) ];
         bits_count += g_nbits_per_byte[ (uint8_t)((val >>  8) & 0xFF) ];
         bits_count += g_nbits_per_byte[ (uint8_t)((val >> 16) & 0xFF) ];
@@ -372,7 +372,7 @@ STATIC_CAST static EC_BOOL __csfsb_page_np_node_pos_clean(CSFSB *csfsb, const ui
 CSFSB *csfsb_new(const uint32_t np_node_err_pos)
 {
     CSFSB *csfsb;
- 
+
     alloc_static_mem(MM_CSFSB, &csfsb, LOC_CSFSB_0001);
     if(NULL_PTR == csfsb)
     {
@@ -388,11 +388,11 @@ CSFSB *csfsb_new(const uint32_t np_node_err_pos)
 EC_BOOL csfsb_init(CSFSB *csfsb, const uint32_t np_node_err_pos)
 {
     ASSERT_CSFSB_PAD_SIZE();
- 
+
     if(NULL_PTR != csfsb)
     {
         CSFSB_PAGE_MAX_NUM(csfsb) = CSFSB_PAGE_NUM;/*note: init page max num at first!*/
-     
+
         __csfsb_page_used_bitmap_init(csfsb);
         __csfsb_page_np_node_pos_init(csfsb, np_node_err_pos);
     }
@@ -409,7 +409,7 @@ void csfsb_clean(CSFSB *csfsb, const uint32_t np_node_err_pos)
 
         CSFSB_PAGE_MAX_NUM(csfsb) = 0;/*note: clean page max num at last!*/
     }
-    return; 
+    return;
 }
 
 EC_BOOL csfsb_free(CSFSB *csfsb, const uint32_t np_node_err_pos)
@@ -462,23 +462,23 @@ EC_BOOL csfsb_new_space(CSFSB *csfsb, const uint16_t page_num, const uint16_t pa
         dbg_log(SEC_0166_CSFSB, 9)(LOGSTDOUT, "[DEBUG] csfsb_new_space: trigger npp %p to recycle node_pos %u\n", npp, np_node_pos);
 
         ASSERT(NULL_PTR != recycle);
- 
+
         if(EC_FALSE == recycle(npp, np_node_pos))
         {
             dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_new_space: npp %p to recycle node_pos %u failed\n", npp, np_node_pos);
-     
+
             return (EC_FALSE);
         }
 
         /*cleanup*/
         __csfsb_page_used_bitmap_clear(csfsb, page_no_cur);
         CSFSB_PAGE_NP_NODE_POS_TBL(csfsb)[ page_no_cur ] = np_node_err_pos;
-     
+
         dbg_log(SEC_0166_CSFSB, 9)(LOGSTDOUT, "[DEBUG] csfsb_new_space: npp %p to recycle node_pos %u done\n", npp, np_node_pos);
     }
 
     dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_new_space: page num %u, new space from page_no %u failed\n", page_num, page_no);
- 
+
     return (EC_FALSE);
 }
 
@@ -543,8 +543,8 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: write CSFSB_PAGE_USED_BITMAP_TBL at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
- 
+    }
+
     /*flush CSFSB_PAGE_NP_NODE_POS_TBL*/
     osize = CSFSB_PAGE_NUM  * sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CSFSB_PAGE_NP_NODE_POS_TBL(csfsb)))
@@ -554,7 +554,7 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     }
 
     DEBUG(CSFSB_ASSERT(sizeof(CSFSB) == (*offset) - offset_saved));
-                        
+
     return (EC_TRUE);
 }
 
@@ -569,7 +569,7 @@ EC_BOOL csfsb_load(CSFSB *csfsb, int fd, UINT32 *offset)
         dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_MAX_NUM with %u bytes at offset %u of fd %d failed\n",
                             osize, (*offset), fd);
         return (EC_FALSE);
-    }  
+    }
 
     /*skip rsvd01*/
     (*offset) += CSFSB_PAD_SIZE * sizeof(uint8_t);
@@ -589,7 +589,7 @@ EC_BOOL csfsb_load(CSFSB *csfsb, int fd, UINT32 *offset)
         dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_NP_NODE_POS_TBL at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 

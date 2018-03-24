@@ -11,7 +11,7 @@ extern "C"{
 
 #include "db_internal.h"
 
-static int __safe_strncmp(const uint8_t *str_1st, const uint8_t *str_2nd, size_t n, const word_t location)
+STATIC_CAST static int __safe_strncmp(const uint8_t *str_1st, const uint8_t *str_2nd, size_t n, const word_t location)
 {
     return memcmp(str_1st, str_2nd, n);
 }

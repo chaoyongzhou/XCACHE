@@ -358,12 +358,12 @@ EC_BOOL cproc_isend(CPROC *cproc, const UINT32 recv_rank, const UINT32 msg_tag, 
     msg_len = TASK_NODE_BUFF_LEN(task_node);
     pos = 0;
 
-#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)    
+#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
     cmpi_encode_uint32(CMPI_LOCAL_COMM, msg_len, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &pos);
     cmpi_encode_uint32(CMPI_LOCAL_COMM, msg_tag, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &pos);
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 
-#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)    
+#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
     cmpi_encode_uint32_compressed_uint32_t(CMPI_LOCAL_COMM, msg_len, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &pos);
     cmpi_encode_uint32_compressed_uint8_t(CMPI_LOCAL_COMM, msg_tag, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &pos);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
@@ -402,12 +402,12 @@ TASK_NODE *cproc_fetch_task_node(CPROC *cproc, CPROC_ITEM *cproc_item)
         task_brd = task_brd_default_get();
 
         pos = 0;
-#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_decode_uint32(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &len);
         cmpi_decode_uint32(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &tag);
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 
-#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_decode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &len);
         cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &tag);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/

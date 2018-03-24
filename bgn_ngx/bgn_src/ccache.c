@@ -39,7 +39,7 @@ int ccache_on_message_begin(http_parser_t* http_parser)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_message_begin: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
@@ -58,13 +58,13 @@ int ccache_on_headers_complete(http_parser_t* http_parser, const char* last, siz
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_headers_complete: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_headers_complete: "
-                                            "http_parser %p done\n", 
+                                            "http_parser %p done\n",
                                             http_parser);
     return (0);/*succ*/
 }
@@ -77,13 +77,13 @@ int ccache_on_message_complete(http_parser_t* http_parser)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_message_complete: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_message_complete: "
-                                            "http_parser %p done\n", 
+                                            "http_parser %p done\n",
                                             http_parser);
     return (0);
 }
@@ -96,7 +96,7 @@ int ccache_on_url(http_parser_t* http_parser, const char* at, size_t length)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_url: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
@@ -117,7 +117,7 @@ int ccache_on_status(http_parser_t* http_parser, const char* at, size_t length)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_status: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
@@ -125,8 +125,8 @@ int ccache_on_status(http_parser_t* http_parser, const char* at, size_t length)
     CHTTP_RSP_STATUS(chttp_rsp) = http_parser->status_code;
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_status: "
-                                            "http_parser %p => status %d done\n", 
-                                            http_parser, http_parser->status_code);    
+                                            "http_parser %p => status %d done\n",
+                                            http_parser, http_parser->status_code);
 
     return (0);
 }
@@ -140,7 +140,7 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_field: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
@@ -158,7 +158,7 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     cstrkv_mgr_add_kv(CHTTP_RSP_HEADER(chttp_rsp), cstrkv);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_field: "
-                                            "chttp_rsp %p, Header field: '%.*s'\n", 
+                                            "chttp_rsp %p, Header field: '%.*s'\n",
                                             chttp_rsp, (int)length, at);
     return (0);
 }
@@ -172,11 +172,11 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_value: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
- 
+
     cstrkv = cstrkv_mgr_last_kv(CHTTP_RSP_HEADER(chttp_rsp));
     if(NULL_PTR == cstrkv)
     {
@@ -188,9 +188,9 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0002);
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_value: "
-                                            "chttp_rsp %p, Header value: '%.*s'\n", 
+                                            "chttp_rsp %p, Header value: '%.*s'\n",
                                             chttp_rsp, (int)length, at);
- 
+
     return (0);
 }
 
@@ -202,7 +202,7 @@ int ccache_on_body(http_parser_t* http_parser, const char* at, size_t length)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_body: "
-                                                "http_parser %p -> chttp_rsp is null\n", 
+                                                "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
@@ -234,12 +234,12 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
     http_parser_setting.on_header_value     = ccache_on_header_value;
     http_parser_setting.on_headers_complete = ccache_on_headers_complete;
     http_parser_setting.on_body             = ccache_on_body;
-    http_parser_setting.on_message_complete = ccache_on_message_complete;    
+    http_parser_setting.on_message_complete = ccache_on_message_complete;
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: to parse '%.*s'\n",
                 CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
 
-    parsed_len = http_parser_execute(&http_parser, &http_parser_setting, 
+    parsed_len = http_parser_execute(&http_parser, &http_parser_setting,
                                      (char *)CBYTES_BUF(header_cbytes), CBYTES_LEN(header_cbytes));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: "
@@ -255,10 +255,10 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
                             HTTP_PARSER_ERRNO(&http_parser),
                             http_errno_name(HTTP_PARSER_ERRNO(&http_parser)),
                             http_errno_description(HTTP_PARSER_ERRNO(&http_parser))
-                            ); 
-        return (EC_FALSE);                     
+                            );
+        return (EC_FALSE);
     }
-    
+
     ASSERT(parsed_len == (uint32_t)CBYTES_LEN(header_cbytes));
 
     if(do_log(SEC_0177_CCACHE, 9))
@@ -268,7 +268,7 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -321,86 +321,86 @@ EC_BOOL ccache_file_notify(const UINT32 store_srv_tcid, const UINT32 store_srv_i
     return ccache_file_notify_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path);
 }
 
-EC_BOOL ccache_file_lock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_lock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_lock_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        return ccache_file_lock_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                         file_path, expire_nsec, auth_token,locked_already);
     }
 
-    return ccache_file_lock_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+    return ccache_file_lock_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                     file_path, expire_nsec, auth_token,locked_already);
 }
 
-EC_BOOL ccache_file_unlock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_unlock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                 const CSTRING *file_path, const CSTRING *auth_token)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_unlock_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        return ccache_file_unlock_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                             file_path, auth_token);
     }
 
-    return ccache_file_unlock_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+    return ccache_file_unlock_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                         file_path, auth_token);
 }
 
-EC_BOOL ccache_file_read(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_read(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                             CBYTES  *cbytes)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_read_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        return ccache_file_read_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                             file_path, store_start_offset, store_end_offset,
                             cbytes);
     }
 
-    return ccache_file_read_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+    return ccache_file_read_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                         file_path, store_start_offset, store_end_offset,
                         cbytes);
 }
 
-EC_BOOL ccache_file_retire(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_retire(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_retire_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        return ccache_file_retire_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                             file_path);
     }
 
-    return ccache_file_retire_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+    return ccache_file_retire_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                        file_path);
 }
 
-EC_BOOL ccache_file_wait(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                             CBYTES *content_cbytes, UINT32 *data_ready)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_wait_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        return ccache_file_wait_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                           file_path, store_start_offset, store_end_offset,
                                           content_cbytes, data_ready);
     }
 
-    return ccache_file_wait_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+    return ccache_file_wait_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                      file_path, store_start_offset, store_end_offset,
                                      content_cbytes, data_ready);
 }
 
-EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES *content_cbytes)
 {
     UINT32  data_ready;
 
-    if(EC_FALSE == ccache_file_wait(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
-                                    file_path, 
-                                    store_start_offset, store_end_offset, 
+    if(EC_FALSE == ccache_file_wait(store_srv_tcid, store_srv_ipaddr, store_srv_port,
+                                    file_path,
+                                    store_start_offset, store_end_offset,
                                     content_cbytes, &data_ready))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_and_read: wait file '%s' from cache failed\n",
@@ -414,9 +414,9 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
         UINT32         timeout_msec;
 
         UINT32         tag;
-        
+
         timeout_msec = 60 * 1000;
-        tag          = MD_CRFS;     
+        tag          = MD_CRFS;
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: cond wait '%s' => go\n",
                         (char *)cstring_get_str(file_path));
@@ -425,11 +425,11 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_and_read: cond wait '%s' failed\n",
                         (char *)cstring_get_str(file_path));
             return (EC_FALSE);
-        }   
+        }
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: cond wait '%s' <= back\n",
-                        (char *)cstring_get_str(file_path));        
+                        (char *)cstring_get_str(file_path));
 
-        if(EC_FALSE == ccache_file_read(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
+        if(EC_FALSE == ccache_file_read(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                         file_path, store_start_offset, store_end_offset,
                                         content_cbytes))
         {
@@ -439,43 +439,43 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
         }
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: read '%s' from cache done\n",
-                    (char *)cstring_get_str(file_path)); 
-    }  
+                    (char *)cstring_get_str(file_path));
+    }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: wait_and_read '%s' with len %ld from cache done\n",
-                    (char *)cstring_get_str(file_path), CBYTES_LEN(content_cbytes)); 
+                    (char *)cstring_get_str(file_path), CBYTES_LEN(content_cbytes));
 
-    return (EC_TRUE);                
+    return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_wait_ready(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait_ready(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path,
                             UINT32 *data_ready)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_file_wait_ready_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
-                                                file_path, 
+        return ccache_file_wait_ready_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port,
+                                                file_path,
                                                 data_ready);
     }
 
-    return ccache_file_wait_ready_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, 
-                                           file_path, 
+    return ccache_file_wait_ready_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port,
+                                           file_path,
                                            data_ready);
 }
 
-EC_BOOL ccache_wait_http_headers(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_wait_http_headers(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                     const CSTRING *file_path,
                                     const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_wait_http_headers_over_http(store_srv_tcid,  store_srv_ipaddr,  store_srv_port, 
+        return ccache_wait_http_headers_over_http(store_srv_tcid,  store_srv_ipaddr,  store_srv_port,
                                                   file_path,
                                                   cstrkv_mgr, header_ready);
     }
 
-    return ccache_wait_http_headers_over_bgn(store_srv_tcid,  store_srv_ipaddr,  store_srv_port, 
+    return ccache_wait_http_headers_over_bgn(store_srv_tcid,  store_srv_ipaddr,  store_srv_port,
                                              file_path,
                                              cstrkv_mgr, header_ready);
 }
@@ -490,19 +490,19 @@ EC_BOOL ccache_dir_delete(const CSTRING *file_path)
     return ccache_dir_delete_over_bgn(file_path);
 }
 
-EC_BOOL ccache_billing_set(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port, 
-                              const CSTRING *billing_flags, 
-                              const CSTRING *billing_domain, const CSTRING *billing_client_type, 
+EC_BOOL ccache_billing_set(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port,
+                              const CSTRING *billing_flags,
+                              const CSTRING *billing_domain, const CSTRING *billing_client_type,
                               const UINT32 send_len, const UINT32 recv_len)
 {
     if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
     {
-        return ccache_billing_set_over_http(billing_srv_ipaddr, billing_srv_port, 
-                                            billing_flags, billing_domain, billing_client_type, 
+        return ccache_billing_set_over_http(billing_srv_ipaddr, billing_srv_port,
+                                            billing_flags, billing_domain, billing_client_type,
                                             send_len, recv_len);
     }
 
-    dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_billing_set: not support bgn interface\n"); 
+    dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_billing_set: not support bgn interface\n");
     return (EC_FALSE);
 }
 
@@ -513,7 +513,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
- 
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -528,14 +528,14 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)c_word_to_str(CBYTES_LEN(cbytes)));
 
     cbytes_mount(CHTTP_REQ_BODY(&chttp_req), CBYTES_LEN(cbytes), CBYTES_BUF(cbytes));/*zero copy*/
- 
+
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_write_over_http: store '%.*s' with size %ld to %s:%ld failed\n",
                         CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         CBYTES_LEN(cbytes),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-                     
+
         cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
 
         chttp_req_clean(&chttp_req);
@@ -546,7 +546,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
             /*anyway, unlock the possible locked-file*/
             ccache_file_unlock(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path, auth_token);
         }
-     
+
         return (EC_FALSE);
     }
 
@@ -555,7 +555,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
                     CBYTES_LEN(cbytes),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
- 
+
     cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
 
     chttp_req_clean(&chttp_req);
@@ -588,8 +588,8 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
                 CSTRING_LEN(file_path), CSTRING_STR(file_path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
                 c_word_to_ipv4(store_srv_tcid));
 
-    ret = EC_FALSE;         
-    
+    ret = EC_FALSE;
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
             &recv_mod_node,
             &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, auth_token);
@@ -602,12 +602,12 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
     CLIST_DATA  *clist_data;
- 
+
     uint32_t     idx;
- 
+
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -625,7 +625,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
 
         char     renew_key_tag[ 16 ];
         char     renew_val_tag[ 16 ];
-     
+
         cstrkv = CLIST_DATA_DATA(clist_data);
         if(NULL_PTR == cstrkv)
         {
@@ -665,10 +665,10 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_renew_headers_over_http: renew headers of '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -678,7 +678,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
         /*after store data, unlock the possible locked-file*/
         ccache_file_unlock(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path, auth_token);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -700,7 +700,7 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
                     c_word_to_ipv4(store_srv_tcid));
 
     ret = EC_FALSE;
-    
+
     if(NULL_PTR != auth_token)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
@@ -711,19 +711,19 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                 &recv_mod_node,
-                &ret, FI_crfs_renew_http_headers, CMPI_ERROR_MODI, file_path, cstrkv_mgr);    
+                &ret, FI_crfs_renew_http_headers, CMPI_ERROR_MODI, file_path, cstrkv_mgr);
     }
-    return (EC_TRUE);                    
+    return (EC_TRUE);
 }
 
 EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
- 
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
@@ -757,10 +757,10 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_notify_over_http: file_notify '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
@@ -783,7 +783,7 @@ EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_notify_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
                 CSTRING_LEN(file_path), CSTRING_STR(file_path),
                 c_word_to_ipv4(store_srv_tcid));
- 
+
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                     &recv_mod_node,
                     NULL_PTR, FI_crfs_file_notify, CMPI_ERROR_MODI, file_path);
@@ -791,9 +791,9 @@ EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port, 
-                                           const CSTRING *billing_flags, 
-                                           const CSTRING *billing_domain, const CSTRING *billing_client_type, 
+EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port,
+                                           const CSTRING *billing_flags,
+                                           const CSTRING *billing_domain, const CSTRING *billing_client_type,
                                            const UINT32 send_len, const UINT32 recv_len)
 {
     CHTTP_REQ    chttp_req;
@@ -801,7 +801,7 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req, billing_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req, billing_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
@@ -842,11 +842,11 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_billing_set_over_http: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => OK\n",
                     CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
                     CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
-                    send_len, recv_len); 
+                    send_len, recv_len);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
@@ -854,18 +854,18 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already)
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
 
     char        *v;
- 
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-   
+
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
@@ -878,7 +878,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
     chttp_req_add_header(&chttp_req, (const char *)"Expires", (char *)c_word_to_str(expire_nsec));
     chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(task_brd_default_get_tcid()));
- 
+
     (*locked_already) = EC_FALSE;
 
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
@@ -927,8 +927,8 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
-    } 
- 
+    }
+
     v = chttp_rsp_get_header(&chttp_rsp, (const char *)"auth-token");
     if(NULL_PTR == v)
     {
@@ -954,7 +954,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already)
 {
     MOD_NODE     recv_mod_node;
@@ -966,11 +966,11 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_file_lock, CMPI_ERROR_MODI, task_brd_default_get_tcid(), 
+             FI_crfs_file_lock, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
              file_path, expire_nsec, auth_token, locked_already);
 
     if(EC_FALSE == ret)
@@ -1000,7 +1000,7 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                            const CSTRING *file_path, const CSTRING *auth_token)
 {
     CHTTP_REQ    chttp_req;
@@ -1046,7 +1046,7 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_http: unlock_req '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
@@ -1054,19 +1054,19 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                            const CSTRING *file_path, const CSTRING *auth_token)
 {
     MOD_NODE     recv_mod_node;
     EC_BOOL      ret;
- 
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -1077,7 +1077,7 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: unlock_req '%.*s' on %s => failed\n",
                     CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
-                 
+
         return (EC_FALSE);
     }
 
@@ -1088,7 +1088,7 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES  *content_cbytes)
 {
@@ -1096,7 +1096,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     CHTTP_RSP    chttp_rsp;
 
     CSTRING     *uri;
- 
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -1110,7 +1110,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' from %s:%ld start ...\n",
                         CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-                     
+
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
@@ -1124,11 +1124,11 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
 
         store_offset = store_start_offset;
         store_size   = store_end_offset - store_start_offset + 1;
-     
+
         chttp_req_add_header(&chttp_req, (const char *)"store-offset", (char *)c_uint32_t_to_str(store_offset));
         chttp_req_add_header(&chttp_req, (const char *)"store-size"  , (char *)c_uint32_t_to_str(store_size));
     }
- 
+
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
@@ -1146,7 +1146,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' on %s:%ld back\n",
                     CSTRING_LEN(file_path), CSTRING_STR(file_path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
@@ -1162,7 +1162,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(file_path), CSTRING_STR(file_path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(EC_TRUE == chttp_rsp_has_body(&chttp_rsp))
     {
@@ -1179,7 +1179,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES  *content_cbytes)
 {
@@ -1193,7 +1193,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
 
     ret = EC_FALSE;
-    
+
     if(CHTTP_SEG_ERR_OFFSET != store_start_offset
     && CHTTP_SEG_ERR_OFFSET != store_end_offset
     && store_end_offset >= store_start_offset)
@@ -1203,11 +1203,11 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         store_offset = store_start_offset;
         store_size   = store_end_offset + 1 - store_start_offset;
-        
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-            &recv_mod_node, 
+
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+            &recv_mod_node,
             &ret, FI_crfs_read_e, CMPI_ERROR_MODI, file_path, &store_offset, store_size, content_cbytes);
-        
+
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read_e '%s' from cache failed\n",
@@ -1217,15 +1217,15 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         }
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read_e '%s' from cache done\n",
-                    (char *)cstring_get_str(file_path));     
+                    (char *)cstring_get_str(file_path));
 
         return (EC_TRUE);
     }
 
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-        &recv_mod_node, 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+        &recv_mod_node,
         &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, content_cbytes);
-    
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read '%s' from cache failed\n",
@@ -1235,12 +1235,12 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read '%s' from cache done\n",
-                (char *)cstring_get_str(file_path));  
-                
+                (char *)cstring_get_str(file_path));
+
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                          const CSTRING *file_path)
 {
     CHTTP_REQ    chttp_req;
@@ -1266,7 +1266,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
- 
+
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_http: file_retire '%.*s' on %s:%ld failed\n",
@@ -1300,9 +1300,9 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                          const CSTRING *file_path)
-{   
+{
     MOD_NODE                     recv_mod_node;
     EC_BOOL                      ret;
 
@@ -1310,13 +1310,13 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
-   
+
     ret = EC_FALSE;
 
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-        &recv_mod_node, 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+        &recv_mod_node,
         &ret, FI_crfs_delete, CMPI_ERROR_MODI, file_path, (UINT32)CRFSNP_ITEM_FILE_IS_REG);
-    
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_bgn: file_retire '%s' on %s failed\n",
@@ -1328,13 +1328,13 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_bgn: file_retire '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
-                c_word_to_ipv4(store_srv_tcid));    
-    
+                c_word_to_ipv4(store_srv_tcid));
+
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
-                                        const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset, 
+EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
+                                        const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES *content_cbytes, UINT32 *data_ready)
 {
     CHTTP_REQ    chttp_req;
@@ -1375,11 +1375,11 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
 
         store_offset = store_start_offset;
         store_size   = store_end_offset - store_start_offset + 1;
-        
+
         chttp_req_add_header(&chttp_req, (const char *)"store-offset", (char *)c_word_to_str(store_offset));
-        chttp_req_add_header(&chttp_req, (const char *)"store-size", (char *)c_word_to_str(store_size));    
+        chttp_req_add_header(&chttp_req, (const char *)"store-size", (char *)c_word_to_str(store_size));
     }
- 
+
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_http: file_wait '%.*s' on %s:%ld failed\n",
@@ -1438,10 +1438,10 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES *content_cbytes, UINT32 *data_ready)
-{   
+{
     if(CHTTP_SEG_ERR_OFFSET != store_start_offset
     && CHTTP_SEG_ERR_OFFSET != store_end_offset
     && store_end_offset >= store_start_offset)
@@ -1454,19 +1454,19 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         store_offset = store_start_offset;
         store_size   = store_end_offset - store_start_offset + 1;
-        
+
         MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
         MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
-       
+
         ret = EC_FALSE;
 
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-            &recv_mod_node, 
-            &ret, FI_crfs_file_wait_e, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path, 
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+            &recv_mod_node,
+            &ret, FI_crfs_file_wait_e, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path,
             &store_offset, store_size, content_cbytes, data_ready);
-        
+
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
@@ -1478,8 +1478,8 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
-                    c_word_to_ipv4(store_srv_tcid));    
-    
+                    c_word_to_ipv4(store_srv_tcid));
+
     }
     else
     {
@@ -1490,13 +1490,13 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
         MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
-       
+
         ret = EC_FALSE;
 
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-            &recv_mod_node, 
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+            &recv_mod_node,
             &ret, FI_crfs_file_wait, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path, content_cbytes, data_ready);
-        
+
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
@@ -1508,13 +1508,13 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
-                    c_word_to_ipv4(store_srv_tcid));    
-    
+                    c_word_to_ipv4(store_srv_tcid));
+
     }
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                 const CSTRING *file_path,
                                                 UINT32 *data_ready)
 {
@@ -1592,12 +1592,12 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                 const CSTRING *file_path,
                                                 UINT32 *data_ready)
-{   
+{
     MOD_NODE                     recv_mod_node;
-    
+
     EC_BOOL                      ret;
     UINT32                       data_ready_t;
 
@@ -1605,14 +1605,14 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
-   
+
     ret = EC_FALSE;
 
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-        &recv_mod_node, 
-        &ret, FI_crfs_file_wait_ready, CMPI_ERROR_MODI, task_brd_default_get_tcid(), 
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+        &recv_mod_node,
+        &ret, FI_crfs_file_wait_ready, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
         file_path, &data_ready_t);
-    
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_bgn: file_retire '%s' on %s failed\n",
@@ -1629,12 +1629,12 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_ready_over_bgn: file_retire '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
-                c_word_to_ipv4(store_srv_tcid));    
-    
+                c_word_to_ipv4(store_srv_tcid));
+
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                     const CSTRING *file_path,
                                                     const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
@@ -1669,7 +1669,7 @@ EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UI
 
         char     wait_key_tag[ 16 ];
         char     wait_val_tag[ 16 ];
-     
+
         cstrkv = CLIST_DATA_DATA(clist_data);
         if(NULL_PTR == cstrkv)
         {
@@ -1736,7 +1736,7 @@ EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UI
     return (EC_TRUE);
 }
 
-EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, 
+EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                     const CSTRING *file_path,
                                                     const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
@@ -1749,11 +1749,11 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
 
     ret = EC_FALSE;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_wait_http_headers, CMPI_ERROR_MODI, task_brd_default_get_tcid(), 
+             FI_crfs_wait_http_headers, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
              file_path, cstrkv_mgr, header_ready);
 
     if(EC_FALSE == ret)
@@ -1761,14 +1761,14 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => failed\n",
                     CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
-                 
+
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => OK\n",
                     CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
- 
+
     return (EC_TRUE);
 }
 
@@ -1784,7 +1784,7 @@ EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path)
     EC_BOOL      ret;
 
     task_brd = task_brd_default_get();
- 
+
     crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
     if(CMPI_ERROR_MODI == crfsmon_md_id)
     {
@@ -1800,7 +1800,7 @@ EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path)
     }
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFS_NODE      crfs_node;
@@ -1821,7 +1821,7 @@ EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path)
                     );
             crfs_node_clean(&crfs_node);
             continue;
-        }    
+        }
 
         MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
         MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
@@ -1855,7 +1855,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
     EC_BOOL      ret;
 
     task_brd = task_brd_default_get();
- 
+
     crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
     if(CMPI_ERROR_MODI == crfsmon_md_id)
     {
@@ -1871,7 +1871,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
     }
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFS_NODE      crfs_node;
@@ -1892,7 +1892,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
                     );
             crfs_node_clean(&crfs_node);
             continue;
-        }    
+        }
 
         MOD_NODE_TCID(&recv_mod_node) = CRFS_NODE_TCID(&crfs_node);
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;

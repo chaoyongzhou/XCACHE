@@ -209,7 +209,7 @@ EC_BOOL cstrkv_mgr_init(CSTRKV_MGR *cstrkv_mgr)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cstrkv_free(CSTRKV *cstrkv)/*for debug only*/
+STATIC_CAST static EC_BOOL __cstrkv_free(CSTRKV *cstrkv)/*for debug only*/
 {
     return cstrkv_free(cstrkv);
 }
@@ -239,7 +239,7 @@ UINT32  cstrkv_mgr_size(const CSTRKV_MGR *cstrkv_mgr)
 EC_BOOL cstrkv_mgr_del_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
     CSTRKV      *cstrkv_deleted;
-    
+
     cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp);
     if(NULL_PTR != cstrkv_deleted)
     {
@@ -251,7 +251,7 @@ EC_BOOL cstrkv_mgr_del_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 EC_BOOL cstrkv_mgr_del_key_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
     CSTRKV      *cstrkv_deleted;
-    
+
     cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_ignore_case_cmp_key);
     if(NULL_PTR != cstrkv_deleted)
     {
@@ -263,7 +263,7 @@ EC_BOOL cstrkv_mgr_del_key_ignore_case(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cst
 EC_BOOL cstrkv_mgr_del(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
     CSTRKV      *cstrkv_deleted;
-    
+
     cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp);
     if(NULL_PTR != cstrkv_deleted)
     {
@@ -275,26 +275,26 @@ EC_BOOL cstrkv_mgr_del(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 EC_BOOL cstrkv_mgr_del_key(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
     CSTRKV      *cstrkv_deleted;
-    
+
     cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_key);
     if(NULL_PTR != cstrkv_deleted)
     {
         cstrkv_free(cstrkv_deleted);
     }
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL cstrkv_mgr_del_val(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 {
     CSTRKV      *cstrkv_deleted;
-    
+
     cstrkv_deleted = clist_del(CSTRKV_MGR_LIST(cstrkv_mgr), (void *)cstrkv, (CLIST_DATA_DATA_CMP)cstrkv_cmp_val);
     if(NULL_PTR != cstrkv_deleted)
     {
         cstrkv_free(cstrkv_deleted);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -349,7 +349,7 @@ EC_BOOL cstrkv_mgr_add_kv(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv)
 EC_BOOL cstrkv_mgr_add_kv_chars(CSTRKV_MGR *cstrkv_mgr, const char *key, const uint32_t klen, const char *val, const uint32_t vlen)
 {
     CSTRKV *cstrkv;
- 
+
     cstrkv = cstrkv_new(NULL_PTR, NULL_PTR);
     if(NULL_PTR == cstrkv)
     {
@@ -366,7 +366,7 @@ EC_BOOL cstrkv_mgr_add_kv_chars(CSTRKV_MGR *cstrkv_mgr, const char *key, const u
 EC_BOOL cstrkv_mgr_add_kv_str(CSTRKV_MGR *cstrkv_mgr, const char *key, const char *val)
 {
     CSTRKV *cstrkv;
- 
+
     cstrkv = cstrkv_new(key, val);
     if(NULL_PTR == cstrkv)
     {
@@ -680,7 +680,7 @@ EC_BOOL cstrkv_mgr_walk(const CSTRKV_MGR *cstrkv_mgr, void *data, EC_BOOL (*walk
     return (EC_TRUE);
 }
 
-static EC_BOOL __cstrkv_mgr_clone_cstrkv(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv_src)
+STATIC_CAST static EC_BOOL __cstrkv_mgr_clone_cstrkv(CSTRKV_MGR *cstrkv_mgr, const CSTRKV *cstrkv_src)
 {
     CSTRKV *cstrkv_des;
 

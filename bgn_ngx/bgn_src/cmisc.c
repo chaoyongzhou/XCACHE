@@ -180,7 +180,7 @@ static char  *g_week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 
 static char  *g_months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-                        
+
 EC_BOOL cmisc_init(UINT32 location)
 {
     c_mutex_init(&g_cmisc_str_cmutex, CMUTEX_PROCESS_PRIVATE, location);
@@ -396,7 +396,7 @@ EC_BOOL c_ipv4_is_ok(const char *ipv4_str)
             num = 0; /*reset*/
             continue;
         }
-     
+
         if('0' > ch || '9' < ch)
         {
             return (EC_FALSE);
@@ -428,7 +428,7 @@ UINT32 c_ipv4_to_word(const char *ipv4_str)
         ASSERT( 256 > c);
         ASSERT( 256 > d);
     }
- 
+
     return ((a << 24) | (b << 16) | (c << 8) | (d));
     //return (ntohl(inet_addr(ipv4_str)));
 }
@@ -605,7 +605,7 @@ char *c_uint8_t_to_bin_str(const uint8_t num)
 
     len = sizeof(uint8_t) * BYTESIZE;
     e = (uint8_t)(1 << (len - 1));
- 
+
     for(pch = str_cache; len > 0; len --, e >>= 1)
     {
         if(num & e)
@@ -636,7 +636,7 @@ char *c_uint16_t_to_bin_str(const uint16_t num)
 
     len = sizeof(uint16_t) * BYTESIZE;
     e = (uint16_t)(1 << (len - 1));
- 
+
     for(pch = str_cache; len > 0; len --, e >>= 1)
     {
         if(num & e)
@@ -667,7 +667,7 @@ char *c_uint32_t_to_bin_str(const uint32_t num)
 
     len = sizeof(uint32_t) * BYTESIZE;
     e = (uint32_t)(1 << (len - 1));
- 
+
     for(pch = str_cache; len > 0; len --, e >>= 1)
     {
         if(num & e)
@@ -698,7 +698,7 @@ char *c_word_to_bin_str(const word_t num)
 
     len = sizeof(word_t) * BYTESIZE;
     e = (word_t)(1 << (len - 1));
- 
+
     for(pch = str_cache; len > 0; len --, e >>= 1)
     {
         if(num & e)
@@ -718,7 +718,7 @@ char *c_word_to_bin_str(const word_t num)
 uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
 {
     uint64_t  c;            /* current char */
-    uint64_t  negs; 
+    uint64_t  negs;
     uint64_t  total;     /* current total */
     UINT32    pos;
 
@@ -753,7 +753,7 @@ uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
 uint64_t c_str_to_uint64_t(const char *str)
 {
     uint64_t  c;            /* current char */
-    uint64_t  negs; 
+    uint64_t  negs;
     uint64_t  total;     /* current total */
     UINT32    pos;
 
@@ -1062,13 +1062,13 @@ EC_BOOL c_str_split_to_cstr_list(const char *str, const int len, const char *del
     while ((field = strtok_r(NULL_PTR, delim, &saveptr)) != NULL_PTR)
     {
         CSTRING *cstr;
-     
+
         cstr = cstring_new((UINT8 *)field, LOC_CMISC_0028);
         if(NULL_PTR == cstr)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_split_to_cstr_list: new cstring '%s' failed\n",
                         field);
-                     
+
             safe_free(string, LOC_CMISC_0029);
             return (EC_FALSE);
         }
@@ -1077,7 +1077,7 @@ EC_BOOL c_str_split_to_cstr_list(const char *str, const int len, const char *del
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_split_to_cstr_list: push '%s' to list failed\n",
                         field);
-                     
+
             cstring_free(cstr);
             safe_free(string, LOC_CMISC_0030);
             return (EC_FALSE);
@@ -1124,16 +1124,16 @@ EC_BOOL c_cstr_list_join_to_str(char *str, const int max_len, int *len, const ch
                                                   "join [%d] cstring '%s' but no more space\n",
                                                   idx, (char *)cstring_get_str(tmp_cstr));
 
-         
-            return (EC_FALSE);                                   
+
+            return (EC_FALSE);
         }
         dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cstr_list_join_to_str: "
                                               "join [%d] cstring '%s' done\n",
-                                              idx, (char *)cstring_get_str(tmp_cstr));     
+                                              idx, (char *)cstring_get_str(tmp_cstr));
 
         BCOPY(cstring_get_str(tmp_cstr), cur, tmp_len);
         cur      += tmp_len;
-        left_len -= tmp_len;     
+        left_len -= tmp_len;
 
         if(last_node != clist_data)
         {
@@ -1141,7 +1141,7 @@ EC_BOOL c_cstr_list_join_to_str(char *str, const int max_len, int *len, const ch
             {
                 dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cstr_list_join_to_str: "
                                                       "no more space to accept next after [%d] cstring'\n",
-                                                      idx);         
+                                                      idx);
                 return (EC_FALSE);
             }
 
@@ -1236,9 +1236,9 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd)
 {
     char *des_str;
     UINT32 des_str_len;
- 
+
     char *src;
-    char *des; 
+    char *des;
 
     des_str_len = strlen(src_str_1st) + strlen(src_str_2nd) + 1;
     des_str = safe_malloc(des_str_len, LOC_CMISC_0033);
@@ -1249,7 +1249,7 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd)
     }
 
     des = des_str;
- 
+
     src = (char *)src_str_1st;
     while( '\0' != (*src))
     {
@@ -1264,13 +1264,13 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd)
 
     (*des) = '\0';
 
-    return (des_str); 
+    return (des_str);
 }
 
 char *c_str_dup(const char *str)
 {
     char *dup_str;
- 
+
     dup_str = (char *)safe_malloc(strlen(str) + 1, LOC_CMISC_0034);
     if(NULL_PTR == dup_str)
     {
@@ -1307,7 +1307,7 @@ EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str)
     {
         return (EC_FALSE);
     }
- 
+
     str_tmp = c_str_dup(tags_str);
     if(NULL_PTR == str_tmp)
     {
@@ -1331,7 +1331,7 @@ EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str)
 EC_BOOL c_char_is_in(const char ch, const char *chars, const uint32_t len)
 {
     uint32_t  idx;
-    
+
     for(idx = 0; idx < len; idx ++)
     {
         if(ch == chars[ idx ])
@@ -1359,7 +1359,7 @@ char *c_str_skip_space(const char *start, const char *end)
 char *c_str_ltrim(char *str, const char ch)
 {
     char *t;
- 
+
     for(t = str; '\0' != (*t) && ch == (*t); t ++ )
     {
         /*do nothing*/
@@ -1387,7 +1387,7 @@ char *c_str_rtrim(char *str, const char ch)
     {
         /*do nothing*/
     }
- 
+
     for(-- t; t >= str && ch == (*t); t -- )
     {
         /*do nothing*/
@@ -1410,7 +1410,7 @@ char *c_str_trim(char *str, const char ch)
 char *c_str_ltrim_chars(char *str, const char *chars, const uint32_t len)
 {
     char *t;
- 
+
     for(t = str; '\0' != (*t) && EC_TRUE == c_char_is_in(*t, chars, len); t ++ )
     {
         /*do nothing*/
@@ -1438,7 +1438,7 @@ char *c_str_rtrim_chars(char *str, const char *chars, const uint32_t len)
     {
         /*do nothing*/
     }
- 
+
     for(-- t; t >= str && EC_TRUE == c_char_is_in(*t, chars, len); t -- )
     {
         /*do nothing*/
@@ -1460,7 +1460,7 @@ char *c_str_trim_chars(char *str, const char *chars, const uint32_t len)
 char *c_str_ltrim_space(char *str)
 {
     char *t;
- 
+
     for(t = str; '\0' != (*t) && 0 != isspace(*t); t ++ )
     {
         /*do nothing*/
@@ -1488,7 +1488,7 @@ char *c_str_rtrim_space(char *str)
     {
         /*do nothing*/
     }
- 
+
     for(-- t; t >= str && 0 != isspace(*t); t -- )
     {
         /*do nothing*/
@@ -1524,7 +1524,7 @@ char *c_str_del(char *str, const char ch)
     }
 
     (*s) = '\0';
- 
+
     return (str);
 }
 
@@ -1548,7 +1548,7 @@ char c_str_last_char(const char *str)
 char *c_str_sub(const char *str, const char *sub, const char sub_terminate_char, UINT32 *sub_len)
 {
     char      *s;
- 
+
     s = strstr(str, sub);
     if(NULL_PTR == s)
     {
@@ -1570,7 +1570,7 @@ char *c_str_sub(const char *str, const char *sub, const char sub_terminate_char,
 
         (*sub_len) = (p - s);
     }
- 
+
     return (s);
 }
 
@@ -1649,7 +1649,7 @@ char *c_str_seperate (char **stringp, const char *delim)
     {
         return (NULL_PTR);
     }
- 
+
     if (NULL_PTR == *delim)
     {
         ptr = start + strlen (start);
@@ -1660,7 +1660,7 @@ char *c_str_seperate (char **stringp, const char *delim)
          *   char *strpbrk(const char *s, const char *accept)
          *   The strpbrk() function returns a pointer to the character in s that
          *   matches 'one' of the characters in accept, or NULL if no such character is found.
-         **/     
+         **/
         ptr = strpbrk (start, delim);
         if (NULL_PTR == ptr)
         {
@@ -1678,7 +1678,7 @@ char *c_str_seperate (char **stringp, const char *delim)
 char *c_chars_dup(const char *str_chars, const uint32_t len)
 {
     char *dup_str;
- 
+
     dup_str = (char *)safe_malloc(len + 1, LOC_CMISC_0038);
     if(NULL_PTR == dup_str)
     {
@@ -1737,12 +1737,12 @@ EC_BOOL c_parse_location(const char *v, char **host, char **port, char **uri)
             return (EC_FALSE);
         }
         dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_parse_location: host = '%s', [hlen %u]\n", (*host), hlen);
-     
+
         if(p != e)
         {
             p ++;
             plen = e - p;
-         
+
             (*port) = c_chars_dup(p, plen);
             if(NULL_PTR == *port)
             {
@@ -1754,7 +1754,7 @@ EC_BOOL c_parse_location(const char *v, char **host, char **port, char **uri)
         else
         {
             (*port) = NULL_PTR;
-        }         
+        }
 
         ulen = vlen - (e - s);
         (*uri) = c_chars_dup(e, ulen);
@@ -1778,7 +1778,7 @@ EC_BOOL c_parse_location(const char *v, char **host, char **port, char **uri)
         return (EC_FALSE);
     }
     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_parse_location: uri = '%s', [plen %u]\n", (*uri), vlen);
- 
+
     return (EC_TRUE);
 }
 
@@ -1804,12 +1804,12 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
     char  *buff;
     UINT32 len;
     UINT32 char_pos;
- 
+
     UINT32 beg_pos;
     UINT32 cur_pos;
 
     UINT32 cvec_size; /* compute size only once to avoid invoking cvector_size() in every loop */
- 
+
     if(EC_TRUE == cvector_is_empty(uint32_vec))
     {
         return (NULL_PTR);
@@ -1828,12 +1828,12 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
     CVECTOR_LOCK(uint32_vec, LOC_CMISC_0040);
 
     cvec_size = cvector_size(uint32_vec);
- 
+
     for(beg_pos = 0; beg_pos < cvec_size; beg_pos ++)
     {
         UINT32 beg_num;
         UINT32 end_num;
-     
+
         beg_num = (UINT32)cvector_get_no_lock(uint32_vec, beg_pos);
         end_num = beg_num;
 
@@ -1850,7 +1850,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
             {
                 -- cur_pos;
                 break;/*terminate inner loop*/
-            }         
+            }
         }
 
         /*okay, we obtain the [beg_num, end_num]*/
@@ -1866,7 +1866,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
         else if(beg_num + 1 == end_num)
         {
             char_pos += snprintf(buff + char_pos, len - char_pos, "%ld,%ld", beg_num, end_num);
-        }     
+        }
         else
         {
             char_pos += snprintf(buff + char_pos, len - char_pos, "%ld-%ld", beg_num, end_num);
@@ -1881,7 +1881,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
 }
 
 char *c_bytes_to_hex_str(const UINT8 *bytes, const UINT32 len)
-{ 
+{
     char *str;
     UINT32 byte_pos;
     UINT32 char_pos;
@@ -1951,7 +1951,7 @@ EC_BOOL c_hex_str_to_bytes(const char *str, UINT8 **bytes, UINT32 *len)
 }
 
 char *c_md5_to_hex_str(const uint8_t *md5)
-{ 
+{
     uint32_t byte_pos;
     uint32_t char_pos;
     uint32_t end_pos;
@@ -1976,7 +1976,7 @@ char *c_md5_to_hex_str(const uint8_t *md5)
 }
 
 uint32_t c_md5_to_hex_chars(const uint8_t *md5, char *chars, const uint32_t max_len)
-{ 
+{
     uint32_t byte_pos;
     uint32_t char_pos;
     uint32_t end_pos;
@@ -2005,7 +2005,7 @@ EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len)
         {
             continue;
         }
-     
+
         return (EC_FALSE);
     }
 
@@ -2030,24 +2030,24 @@ char *c_dirname(const char *path_name)
     if('\0' == (*ptr))
     {
         return c_str_dup((const char *)".");
-    }    
+    }
 
     len = strlen(path_name);
     dir_name = safe_malloc(len + 1, LOC_CMISC_0046);
 
     end = path_name + len - 1;
     while(end > path_name && '/' == (*end)) { end --; }
-    
+
     for(src = path_name, des = dir_name; src <= end; )
     {
         int count;
-        
+
         if('/' != (*src))
         {
             (*des ++) = (*src ++);
             continue;
         }
-        
+
         while('/' == (*src)) { src ++; }
 
         for(count = 0; '.' == (*src); count ++, src ++)
@@ -2091,7 +2091,7 @@ char *c_dirname(const char *path_name)
 
     while(des > dir_name && '/' != (*--des)){ /*do nothing*/ }
     while(des > dir_name && '/' == (*--des)){ /*do nothing*/ }
-    
+
     (*++des) = '\0';
 
     return (dir_name);
@@ -2214,9 +2214,9 @@ EC_BOOL c_dir_remove(const char *pathname)
     if(0 != remove(pathname))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dir_remove: "
-                                              "remove '%s' failed, errno = %d, errstr = %s\n", 
+                                              "remove '%s' failed, errno = %d, errstr = %s\n",
                                               pathname, errno, strerror(errno));
-        
+
         return (EC_FALSE);
     }
 
@@ -2293,7 +2293,7 @@ EC_BOOL c_file_flush(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *bu
     }
 
     ASSERT(csize == wsize);
- 
+
     (*offset) += csize;
     return (EC_TRUE);
 }
@@ -2318,7 +2318,7 @@ EC_BOOL c_file_write(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *bu
         }
 
         wsize_t = write(fd, buff + csize, osize);
-     
+
         if(0 > wsize_t)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write: write data to offset %ld failed where wsize %ld, csize %ld, osize %ld, wsize_t %ld, errno %d, errstr %s\n",
@@ -2370,7 +2370,7 @@ EC_BOOL c_file_pad(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 ch)
     }
 
     ASSERT(csize == wsize);
- 
+
     (*offset) += csize;
     return (EC_TRUE);
 }
@@ -2407,7 +2407,7 @@ EC_BOOL c_file_load(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     }
 
     ASSERT(csize == rsize);
- 
+
     (*offset) += csize;
     return (EC_TRUE);
 }
@@ -2444,7 +2444,7 @@ EC_BOOL c_file_read(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
         if(0 == rsize_t)
         {
             (*offset) += csize;
-            return (EC_TRUE);     
+            return (EC_TRUE);
         }
     }
 
@@ -2459,47 +2459,47 @@ CBYTES *c_file_load_whole(const char *file_name)
     UINT32            file_offset;
 
     int               file_fd;
-    
+
     if(EC_FALSE == c_file_access(file_name, F_OK))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                               "file '%s' not exist\n",
-                                              file_name);     
+                                              file_name);
         return (NULL_PTR);
     }
-    
+
     file_fd = c_file_open(file_name, O_RDONLY, 0666);
     if(ERR_FD == file_fd)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                               "open file '%s' failed\n",
-                                              file_name);    
-        return (NULL_PTR);        
+                                              file_name);
+        return (NULL_PTR);
     }
 
     if(EC_FALSE == c_file_size(file_fd, &file_size))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                               "size of file '%s' failed\n",
-                                              file_name);    
+                                              file_name);
         c_file_close(file_fd);
-        return (NULL_PTR);        
+        return (NULL_PTR);
     }
 
     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_load_whole: "
                                           "file '%s', size %ld\n",
                                           file_name,
-                                          file_size);      
+                                          file_size);
 
     file_content = cbytes_new(file_size);
     if(NULL_PTR == file_content)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                              "new cbytes with size %ld failed\n",
-                                             file_size);    
+                                             file_size);
         c_file_close(file_fd);
-        return (NULL_PTR);        
-    }    
+        return (NULL_PTR);
+    }
 
     file_offset = 0;
 
@@ -2507,10 +2507,10 @@ CBYTES *c_file_load_whole(const char *file_name)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
                                               "load file '%s' failed\n",
-                                              file_name);    
+                                              file_name);
         cbytes_free(file_content);
         c_file_close(file_fd);
-        return (NULL_PTR);        
+        return (NULL_PTR);
     }
 
     if(file_offset != file_size)
@@ -2519,10 +2519,10 @@ CBYTES *c_file_load_whole(const char *file_name)
                                               "load file '%s', expect %ld but read %ld bytes\n",
                                               file_name,
                                               file_size,
-                                              file_offset);    
+                                              file_offset);
         cbytes_free(file_content);
         c_file_close(file_fd);
-        return (NULL_PTR);        
+        return (NULL_PTR);
     }
     c_file_close(file_fd);
 
@@ -2552,7 +2552,7 @@ EC_BOOL c_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *b
     }
 
     ASSERT(csize == wsize);
- 
+
     (*offset) += csize;
     return (EC_TRUE);
 }
@@ -2585,7 +2585,7 @@ EC_BOOL c_file_ppad(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 ch)
     }
 
     ASSERT(csize == wsize);
- 
+
     (*offset) += csize;
     return (EC_TRUE);
 }
@@ -2615,7 +2615,7 @@ EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     }
 
     ASSERT(csize == rsize);
- 
+
     (*offset) += csize;
 
     //dbg_log(SEC_0013_CMISC, 5)(LOGSTDOUT, "cdfsnp_buff_load: load %ld bytes\n", rsize);
@@ -2718,7 +2718,7 @@ EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
 
     if(offset != fsize)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: expect %ld but read %ld bytes\n", 
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: expect %ld but read %ld bytes\n",
                         fsize, offset);
         cbytes_free(content);
         return (EC_FALSE);
@@ -2727,7 +2727,7 @@ EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
     cmd5_sum((uint32_t)fsize, CBYTES_BUF(content), digest);
 
     cbytes_free(content);
-    
+
     return (EC_TRUE);
 }
 
@@ -2741,8 +2741,8 @@ EC_BOOL c_file_unlink(const char *filename)
     if(0 != unlink(filename))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_unlink: "
-                                              "unlink '%s' failed, errno = %d, errstr = %s\n", 
-                                              filename, errno, strerror(errno));    
+                                              "unlink '%s' failed, errno = %d, errstr = %s\n",
+                                              filename, errno, strerror(errno));
         return (EC_FALSE);
     }
 
@@ -2760,9 +2760,9 @@ EC_BOOL c_file_remove(const char *filename)
     if(0 != remove(filename))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_remove: "
-                                              "remove '%s' failed, errno = %d, errstr = %s\n", 
+                                              "remove '%s' failed, errno = %d, errstr = %s\n",
                                               filename, errno, strerror(errno));
-        
+
         return (EC_FALSE);
     }
 
@@ -2779,9 +2779,9 @@ EC_BOOL c_file_rename(const char *src_filename, const char *des_filename)
     if(0 != rename(src_filename, des_filename))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_rename: "
-                                              "rename '%s' to '%s' failed, errno = %d, errstr = %s\n", 
+                                              "rename '%s' to '%s' failed, errno = %d, errstr = %s\n",
                                               src_filename, des_filename, errno, strerror(errno));
-        
+
         return (EC_FALSE);
     }
 
@@ -2872,7 +2872,7 @@ void c_history_push(char **history, const int max, int *size, const char *str)
         history[ pos - 1 ] = history[ pos ];
     }
     history[ pos - 1 ] = (char *)str;
- 
+
     return;
 }
 
@@ -2915,7 +2915,7 @@ void c_uint16_lo2hi_bits_print(LOG *log, const uint16_t num)
         sys_print(log, "%2d ", (t & 1));
     }
     sys_print(log, "\n");
- 
+
     return;
 }
 
@@ -2934,13 +2934,13 @@ void c_uint16_hi2lo_bits_print(LOG *log, const uint16_t num)
 
     bit_nth = sizeof(uint16_t) * BYTESIZE;
     e = (uint16_t)(~(((uint16_t)~0) >> 1));
- 
+
     for(t = num; 0 < bit_nth; bit_nth --, t <<= 1)
     {
         sys_print(log, "%2d ", (t & e)?1:0);
     }
     sys_print(log, "\n");
- 
+
     return;
 }
 
@@ -3113,7 +3113,7 @@ ctime_t c_time(ctime_t *timestamp)
     for(;;)
     {
         ctime_t t;
-     
+
         t = time(timestamp);
         if(0 < t)
         {
@@ -3173,8 +3173,8 @@ void c_mutex_print(pthread_mutex_t *mutex)
                     mutex->__m_owner,
                     mutex->__m_kind
             );
-    fflush(stdout);         
-#endif 
+    fflush(stdout);
+#endif
 #if 1
     fprintf(stdout, "c_mutex_print: mutex %lx: __m_lock = %d, __m_reserved = %d, __m_count = %d, __m_owner = %d, __m_kind = %d\n",
                     (UINT32)((void *)mutex),
@@ -3184,8 +3184,8 @@ void c_mutex_print(pthread_mutex_t *mutex)
                     mutex->__data.__owner,
                     mutex->__data.__kind
             );
-    fflush(stdout);         
-#endif 
+    fflush(stdout);
+#endif
 
     return;
 }
@@ -3639,7 +3639,7 @@ EC_BOOL c_mutex_attr_set(CMUTEX_ATTR  *mutex_attr, const UINT32 flag, const UINT
 
             return (ret_val);
         }
-    } 
+    }
 
     //if(CMUTEX_RECURSIVE_NP & flag)
     else
@@ -3864,7 +3864,7 @@ EC_BOOL c_cond_wait(CCOND *ccond, const UINT32 location)
     int ret_val;
 
     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_cond_wait: ccond %p: wait at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
- 
+
 #if 1
     ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
     if(0 != ret_val)
@@ -3950,7 +3950,7 @@ EC_BOOL c_cond_release(CCOND *ccond, const UINT32 location)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_release: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         }
-    } 
+    }
 
     ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
     if(0 != ret_val)
@@ -4101,12 +4101,12 @@ void c_backtrace_dump_details(LOG *log, ucontext_t *ucontext)
 
         ip = bp[1];
         bp = (void **)bp[0];
-    } 
+    }
 #endif /*(__X86 == CMISC_PLATFORM || __IA64 == CMISC_PLATFORM)*/
 
 #if (__X86 != CMISC_PLATFORM && __IA64 != CMISC_PLATFORM)
     dbg_log(SEC_0013_CMISC, 5)(LOGSTDOUT, "c_backtrace_dump_details: stack trace (non-dedicated) beg\n");
- 
+
     size    = backtrace(bt, sizeof(bt)/sizeof(bt[0]));
     strings = backtrace_symbols(bt, size);
 
@@ -4129,14 +4129,14 @@ void c_backtrace_dump(LOG *log)
     size_t idx;
 
     sys_log(log, "c_backtrace_dump: stack trace beg\n");
- 
+
     size    = backtrace(bt, sizeof(bt)/sizeof(bt[0]));
     strings = backtrace_symbols(bt, size);
 
     for(idx = 0; idx < size; ++ idx)
     {
         sys_log(log, "c_backtrace_dump: %s\n", strings[idx]);
-    } 
+    }
 
     sys_log(log, "c_backtrace_dump: stack trace end\n");
     return;
@@ -4557,7 +4557,7 @@ char *c_http_time(time_t t)
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
     c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0061);
- 
+
     c_gmtime(t, &ctm);
 
     snprintf(str_cache, CMISC_BUFF_LEN, "%s, %02d %s %4d %02d:%02d:%02d GMT",
@@ -4586,7 +4586,7 @@ UINT32 c_hash_strlow(const uint8_t *src, const uint32_t slen, uint8_t **des)
         {
             (*des) = NULL_PTR;
         }
-                 
+
         return ((UINT32)~0);
     }
 
@@ -4636,26 +4636,26 @@ char *c_get_day_time_str()
 
     tv_msec = (int)(cur_timev->tv_usec / 1000);
     tv_usec = (int)(cur_timev->tv_usec % 1000);
-    
+
     time_str = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
 
     snprintf(time_str, CMISC_BUFF_LEN, "%4d%02d%02d%02d%02d%02d%03d%03d",
                                        TIME_IN_YMDHMS(cur_time),
                                        tv_msec, tv_usec);
-    
+
     return (time_str);
 }
 
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
-{   
+{
     TASKS_CFG         *detect_tasks_cfg;
 
     CSTRING            domain;
 
     MOD_NODE           recv_mod_node;
     EC_BOOL            ret;
-    
+
     if(EC_TRUE == c_ipv4_is_ok(host_name))
     {
         (*ipv4)  = c_ipv4_to_word(host_name);
@@ -4670,24 +4670,24 @@ EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*cdetect_md_id = 0*/
-    
+
     ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
              FI_cdetect_dns_resolve, CMPI_ERROR_MODI, &domain, ipv4);
-             
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve_by_detect: detect resolve '%s' on tcid '%s' failed\n",
-                    (char *)cstring_get_str(&domain), 
-                    TASKS_CFG_TCID_STR(detect_tasks_cfg));    
+                    (char *)cstring_get_str(&domain),
+                    TASKS_CFG_TCID_STR(detect_tasks_cfg));
         return (EC_FALSE);
     }
     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve_by_detect: detect resolve '%s' on tcid '%s': %s\n",
-                (char *)cstring_get_str(&domain), 
+                (char *)cstring_get_str(&domain),
                 TASKS_CFG_TCID_STR(detect_tasks_cfg),
-                c_word_to_ipv4(*ipv4));      
+                c_word_to_ipv4(*ipv4));
     return (EC_TRUE);
 }
 
@@ -4697,7 +4697,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
     struct addrinfo  hints;
     struct addrinfo *answer;
     struct addrinfo *ptr;
-    
+
     int              ret;
     uint32_t         idx;
 
@@ -4722,13 +4722,13 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
         if(EAI_SYSTEM == ret)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
-                                                  "resolve host '%s' failed, errno %d, errstr %s\n", 
+                                                  "resolve host '%s' failed, errno %d, errstr %s\n",
                                                   host_name, errno, strerror(errno));
         }
         else
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
-                                                  "resolve host '%s' failed, err: %s\n", 
+                                                  "resolve host '%s' failed, err: %s\n",
                                                   host_name, gai_strerror(ret));
         }
         return (EC_FALSE);
@@ -4737,31 +4737,31 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
     /*debug*/
     if(do_log(SEC_0013_CMISC, 9))
     {
-        for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++) 
+        for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++)
         {
-            switch (ptr->ai_family) 
+            switch (ptr->ai_family)
             {
                 case AF_UNSPEC:
                 {
                     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                           "[%u] host '%s' => "
                                                           "family Unspecified\n",
-                                                          idx, host_name);                    
+                                                          idx, host_name);
                     break;
                 }
                 case AF_INET:
                 {
                     struct sockaddr_in *sockaddr_ipv4;
                     char               *ipv4_str;
-                    
+
                     sockaddr_ipv4 = (struct sockaddr_in *) ptr->ai_addr;
                     ipv4_str      = c_inet_ntos(&(sockaddr_ipv4->sin_addr));
-                    
+
                     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                           "[%u] host '%s' => "
                                                           "family: AF_INET (IPv4), ip: %s\n",
-                                                          idx, host_name, ipv4_str);                  
-                    
+                                                          idx, host_name, ipv4_str);
+
                     break;
                 }
                 case AF_INET6:
@@ -4769,7 +4769,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                           "[%u] host '%s' => "
                                                           "family: AF_INET6 (IPv6)\n",
-                                                          idx, host_name);                    
+                                                          idx, host_name);
                     break;
                 }
                 default:
@@ -4777,7 +4777,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                           "[%u] host '%s' => "
                                                           "family: Other %ld\n",
-                                                          idx, host_name, ptr->ai_family);                    
+                                                          idx, host_name, ptr->ai_family);
                     break;
                 }
             }
@@ -4785,12 +4785,12 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
         dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                               "host '%s' => "
                                               "total %u results\n",
-                                              host_name, idx); 
-    }    
-    
-    for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++) 
-    {   
-        switch (ptr->ai_family) 
+                                              host_name, idx);
+    }
+
+    for(ptr = answer, idx = 0; NULL_PTR != ptr; ptr = ptr->ai_next, idx ++)
+    {
+        switch (ptr->ai_family)
         {
             case AF_UNSPEC:
             {
@@ -4805,19 +4805,19 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                 struct sockaddr_in *sockaddr_ipv4;
                 char               *ipv4_str;
 
-                
+
                 sockaddr_ipv4 = (struct sockaddr_in *) ptr->ai_addr;
                 ipv4_str      = c_inet_ntos(&(sockaddr_ipv4->sin_addr));
-                
+
                 dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                       "[%u] host '%s' => "
                                                       "family: AF_INET (IPv4), ip: %s\n",
-                                                      idx, host_name, sockaddr_ipv4);                  
-                
+                                                      idx, host_name, sockaddr_ipv4);
+
                 (*ipv4)  = c_ipv4_to_word(ipv4_str); /*select the first one*/
-                
+
                 freeaddrinfo(answer);
-                
+
                 return (EC_TRUE); /*terminate*/
             }
             case AF_INET6: /*not support yet*/
@@ -4825,7 +4825,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                 dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
                                                       "[%u] host '%s' => "
                                                       "family: AF_INET6 (IPv6)\n",
-                                                      idx, host_name);                    
+                                                      idx, host_name);
                 break;
             }
             default:
@@ -4833,14 +4833,14 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                 dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
                                                       "[%u] host '%s' => "
                                                       "family: Other %ld\n",
-                                                      idx, host_name, ptr->ai_family);                    
+                                                      idx, host_name, ptr->ai_family);
                 break;
             }
         }
     }
 
     freeaddrinfo(answer);
-    
+
     /*never reach here*/
     return (EC_FALSE);
 }
@@ -4874,7 +4874,7 @@ EC_BOOL c_dns_resolve_obsolete(const char *host_name, UINT32 *ipv4)
         for(idx = 0; ; idx ++)
         {
             struct in_addr addr;
-         
+
             if(0 == host->h_addr_list[ idx ])
             {
                 break;
@@ -4894,11 +4894,11 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
-    
+
     char        *tcid_str;
     char        *ipv4_str;
     char        *port_str;
- 
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -4910,15 +4910,15 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(tcid));
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
- 
+
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s' failed\n",
                         c_word_to_ipv4(tcid));
-                     
+
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
-     
+
         return (EC_FALSE);
     }
     chttp_req_clean(&chttp_req);
@@ -4927,7 +4927,7 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s' => status %u\n",
                         c_word_to_ipv4(tcid),
-                        CHTTP_RSP_STATUS(&chttp_rsp));    
+                        CHTTP_RSP_STATUS(&chttp_rsp));
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
@@ -4939,7 +4939,7 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     if(NULL_PTR == tcid_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'tcid' header\n",
-                        c_word_to_ipv4(tcid));    
+                        c_word_to_ipv4(tcid));
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
@@ -4947,23 +4947,23 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     if(NULL_PTR == ipv4_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'ip' header\n",
-                        c_word_to_ipv4(tcid));    
+                        c_word_to_ipv4(tcid));
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
-    }    
+    }
 
     if(NULL_PTR == port_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp has no 'port' header\n",
-                        c_word_to_ipv4(tcid));    
+                        c_word_to_ipv4(tcid));
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
-    }     
+    }
 
     if(c_ipv4_to_word(tcid_str) != tcid)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_tdns_resolve: tdns resolve tcid '%s', rsp tcid '%s' mismatched\n",
-                        c_word_to_ipv4(tcid), tcid_str);    
+                        c_word_to_ipv4(tcid), tcid_str);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
@@ -4972,8 +4972,8 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     (*port) = c_str_to_word(port_str);
 
     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_tdns_resolve: tdns resolve tcid '%s' => ip '%s', port %ld\n",
-                    c_word_to_ipv4(tcid), ipv4_str, port_str); 
-                    
+                    c_word_to_ipv4(tcid), ipv4_str, port_str);
+
     chttp_rsp_clean(&chttp_rsp);
 
     return (EC_TRUE);
@@ -4982,12 +4982,12 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
 UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
 {
     CSET_DATA       *cset_data;
-    
+
     UINT32           ipaddr; /*host ipaddr for internet*/
     UINT32           ipaddr_priv_a;/*class A*/
     UINT32           ipaddr_priv_b;/*class B*/
     UINT32           ipaddr_priv_c;/*class C*/
-    
+
     ipaddr        = CMPI_ERROR_IPADDR;
     ipaddr_priv_a = CMPI_ERROR_IPADDR;
     ipaddr_priv_b = CMPI_ERROR_IPADDR;
@@ -5012,7 +5012,7 @@ UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
         {
             ipaddr_priv_b = CNETCARD_IPV4VAL(cnetcard);
             continue;
-        }    
+        }
 
         if(c_ipv4_to_word("192.168.0.0") <= CNETCARD_IPV4VAL(cnetcard)
         && CNETCARD_IPV4VAL(cnetcard) <= c_ipv4_to_word("192.168.255.255"))
@@ -5024,7 +5024,7 @@ UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
         if(c_ipv4_to_word("127.0.0.1") == CNETCARD_IPV4VAL(cnetcard))
         {
             continue;
-        }        
+        }
 
         ipaddr = CNETCARD_IPV4VAL(cnetcard);
         break; /*terminate*/
@@ -5033,7 +5033,7 @@ UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
     if(CMPI_ERROR_IPADDR != ipaddr)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
+                        c_word_to_ipv4(ipaddr));
         return(ipaddr);
     }
 
@@ -5041,7 +5041,7 @@ UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
     {
         ipaddr = ipaddr_priv_a;
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-A ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
+                        c_word_to_ipv4(ipaddr));
         return(ipaddr);
     }
 
@@ -5049,23 +5049,23 @@ UINT32 c_finger_ip_from_netcards(const CSET *cnetcard_set)
     {
         ipaddr = ipaddr_priv_b;
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-B ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
+                        c_word_to_ipv4(ipaddr));
         return(ipaddr);
-    }   
+    }
 
     if(CMPI_ERROR_IPADDR != ipaddr_priv_c)
     {
         ipaddr = ipaddr_priv_c;
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect private class-C ip '%s'\n",
-                        c_word_to_ipv4(ipaddr));        
+                        c_word_to_ipv4(ipaddr));
         return(ipaddr);
-    }         
+    }
 
     ipaddr = c_ipv4_to_word("127.0.0.1");
 
     dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_finger_ip_from_netcards: collect none ip, reset to '%s'\n",
-                    c_word_to_ipv4(ipaddr));   
-                    
+                    c_word_to_ipv4(ipaddr));
+
     return(ipaddr);
 }
 

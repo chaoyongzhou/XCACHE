@@ -25,7 +25,7 @@ extern "C"{
 
 static CARRAY *g_cbc = NULL_PTR;
 
-static void cbc_data_cleaner(void *data)
+STATIC_CAST static void cbc_data_cleaner(void *data)
 {
     if(data)
     {
@@ -71,7 +71,7 @@ EC_BOOL cbc_md_reg(const UINT32 md_type, const UINT32 md_capaciy)
     {
         cbc_new(MM_END);
     }
-    
+
     CARRAY_LOCK(g_cbc, LOC_CBC_0004);
     if(md_type >= carray_size(g_cbc))
     {
@@ -132,7 +132,7 @@ EC_BOOL cbc_md_unreg_all()
     {
         return (EC_FALSE);
     }
-    
+
     for(md_type = 0; md_type < carray_size(g_cbc); md_type ++)
     {
         cbc_md_unreg(md_type);
@@ -147,7 +147,7 @@ UINT32 cbc_md_capacity(const UINT32 md_type)
     if(NULL_PTR == g_cbc)
     {
         return (0);
-    }    
+    }
 
     md_cindex = (CINDEX *)carray_get(g_cbc, md_type);
     if(NULL_PTR == md_cindex)
@@ -180,7 +180,7 @@ void *cbc_md_get(const UINT32 md_type, const UINT32 pos)
     {
         return (NULL_PTR);
     }
-    
+
     md_cindex = (CINDEX *)carray_get(g_cbc, md_type);
     if(0 == md_cindex)
     {

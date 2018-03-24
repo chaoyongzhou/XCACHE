@@ -40,7 +40,7 @@ extern "C"{
 #define SAFE_CLIST_FREE(clist, __location__)                 free_static_mem(MM_CLIST, (void *)(clist), (__location__))
 #endif
 
-static CLIST_DATA *clist_data_malloc_default()
+STATIC_CAST static CLIST_DATA *clist_data_malloc_default()
 {
     CLIST_DATA *clist_data;
     SAFE_CLIST_DATA_MALLOC(clist_data, LOC_CLIST_0001);
@@ -48,19 +48,19 @@ static CLIST_DATA *clist_data_malloc_default()
 
 }
 
-static void clist_data_free_default(CLIST_DATA *clist_data)
+STATIC_CAST static void clist_data_free_default(CLIST_DATA *clist_data)
 {
     SAFE_CLIST_DATA_FREE(clist_data, LOC_CLIST_0002);
     return;
 }
 
 /*for safe reason, when data handler is not given, set to default null function*/
-static EC_BOOL clist_null_default(void *data)
+STATIC_CAST static EC_BOOL clist_null_default(void *data)
 {
     return (EC_TRUE);
 }
 
-static EC_BOOL clist_cmp_default(const void *data_1, const void *data_2)
+STATIC_CAST static EC_BOOL clist_cmp_default(const void *data_1, const void *data_2)
 {
     if(data_1 == data_2)
     {
@@ -69,7 +69,7 @@ static EC_BOOL clist_cmp_default(const void *data_1, const void *data_2)
     return (EC_FALSE);
 }
 
-static EC_BOOL clist_walker_default(const void *data_1, const void *data_2)
+STATIC_CAST static EC_BOOL clist_walker_default(const void *data_1, const void *data_2)
 {
     if(data_1 <= data_2)
     {
@@ -448,8 +448,8 @@ void *clist_front(const CLIST *clist)
     {
         CLIST_UNLOCK(clist, LOC_CLIST_0038);
         return (void *)0;
-    }    
-   
+    }
+
     data = CLIST_DATA_DATA(clist_data);
 
     CLIST_UNLOCK(clist, LOC_CLIST_0039);
@@ -610,7 +610,7 @@ void clist_print(LOG *log, const CLIST *clist, void (*print)(LOG *, const void *
     UINT32 pos;
 
     CLIST_LOCK(clist, LOC_CLIST_0062);
-#if 0 
+#if 0
     if(EC_TRUE == CLIST_IS_EMPTY(clist))
     {
         sys_log(log, "(null)\n");
@@ -1081,12 +1081,12 @@ void clist_handover(CLIST *clist_src, CLIST *clist_des)
     while( EC_FALSE == CLIST_IS_EMPTY(clist_src) )
     {
         CLIST_DATA *clist_data;
-     
+
         clist_data = CLIST_FIRST_NODE(clist_src);
         CLIST_DATA_DEL(clist_data);
 
         CLIST_DATA_ADD_BACK(clist_des, clist_data);
-    } 
+    }
 
     clist_des->size = clist_src->size;
     clist_src->size = 0;
@@ -1094,7 +1094,7 @@ void clist_handover(CLIST *clist_src, CLIST *clist_des)
     return;
 }
 
-static CLIST_DATA *__clist_get_most_small_no_lock(CLIST *clist, EC_BOOL (*cmp)(const void *, const void *))
+STATIC_CAST static CLIST_DATA *__clist_get_most_small_no_lock(CLIST *clist, EC_BOOL (*cmp)(const void *, const void *))
 {
     CLIST_DATA *clist_data_des;/*to return*/
     CLIST_DATA *clist_data_cur;
@@ -1104,7 +1104,7 @@ static CLIST_DATA *__clist_get_most_small_no_lock(CLIST *clist, EC_BOOL (*cmp)(c
     {
         return (NULL_PTR);
     }
- 
+
     for(clist_data_cur = CLIST_DATA_NEXT(clist_data_des);  clist_data_cur != CLIST_NULL_NODE(clist); clist_data_cur = CLIST_DATA_NEXT(clist_data_cur))
     {
         if(EC_FALSE == cmp(CLIST_DATA_DATA(clist_data_des), CLIST_DATA_DATA(clist_data_cur)))
@@ -1116,7 +1116,7 @@ static CLIST_DATA *__clist_get_most_small_no_lock(CLIST *clist, EC_BOOL (*cmp)(c
     return (clist_data_des);
 }
 
-static void __clist_move(CLIST *clist_src, CLIST *clist_des)
+STATIC_CAST static void __clist_move(CLIST *clist_src, CLIST *clist_des)
 {
     LIST_NODE *head_src;
     LIST_NODE *head_des;
@@ -1140,7 +1140,7 @@ void clist_bubble_sort(CLIST *clist, EC_BOOL (*cmp)(const void *, const void *))
     CLIST_DATA *clist_data;
 
     CLIST_HEAD_INIT(&clist_t);
- 
+
     CLIST_LOCK(clist, LOC_CLIST_0116);
     __clist_move(clist, &clist_t);
     CLIST_UNLOCK(clist, LOC_CLIST_0117);
@@ -1899,12 +1899,12 @@ void clist_handover_no_lock(CLIST *clist_src, CLIST *clist_des)
     while( EC_FALSE == CLIST_IS_EMPTY(clist_src) )
     {
         CLIST_DATA *clist_data;
-     
+
         clist_data = CLIST_FIRST_NODE(clist_src);
         CLIST_DATA_DEL(clist_data);
 
         CLIST_DATA_ADD_BACK(clist_des, clist_data);
-    } 
+    }
 
     clist_des->size = clist_src->size;
     clist_src->size = 0;
@@ -1918,7 +1918,7 @@ void clist_bubble_sort_no_lock(CLIST *clist, EC_BOOL (*cmp)(const void *, const 
     CLIST_DATA *clist_data;
 
     CLIST_HEAD_INIT(&clist_t);
- 
+
     __clist_move(clist, &clist_t);
 
     while(NULL_PTR != (clist_data = __clist_get_most_small_no_lock(&clist_t, cmp)))

@@ -36,7 +36,7 @@ EC_BOOL csem_unamed_init(CSEM *csem, const int pshared, const uint32_t value, co
                        csem, pshared, value,
                        errno, strerror(errno),
                        MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-    return (EC_FALSE);                    
+    return (EC_FALSE);
 }
 
 /*decrements  (locks)  the  semaphore*/
@@ -99,7 +99,7 @@ EC_BOOL csem_unamed_clean(CSEM *csem, const UINT32 location)
 CSEM *csem_named_new(const uint8_t *name, const UINT32 location)
 {
     CSEM  *csem;
- 
+
     alloc_static_mem(MM_CSEM, &csem, location);
     if(NULL_PTR == csem)
     {
@@ -147,7 +147,7 @@ EC_BOOL csem_named_clean(CSEM *csem, const UINT32 location)
                            csem,
                            errno, strerror(errno),
                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        return (EC_FALSE);                        
+        return (EC_FALSE);
     }
 
     if(NULL_PTR == CSEM_NAME_CSTR(csem))
@@ -163,12 +163,12 @@ EC_BOOL csem_named_clean(CSEM *csem, const UINT32 location)
                            sem_name,
                            errno, strerror(errno),
                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        return (EC_FALSE);                        
+        return (EC_FALSE);
     }
 
     cstring_free(CSEM_NAME_CSTR(csem));
     CSEM_NAME_CSTR(csem) = NULL_PTR;
- 
+
     return (EC_TRUE);
 }
 
@@ -281,10 +281,10 @@ EC_BOOL csem_named_unlink(const uint8_t *name, const UINT32 location)
         dbg_log(SEC_0029_CSEM, 1)(LOGSTDOUT, "warn:csem_named_unlink: unlink sem name is null at %s:%ld\n",
                            name,
                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
- 
+
         return (EC_TRUE);
     }
- 
+
     if(0 == sem_unlink((char *)name))
     {
         return (EC_TRUE);

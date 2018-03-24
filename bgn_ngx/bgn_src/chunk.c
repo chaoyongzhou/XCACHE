@@ -74,9 +74,9 @@ EC_BOOL chunk_reset(CHUNK *chunk)
 {
     if (NULL_PTR != chunk)
     {
-        cbuffer_reset(CHUNK_BUFFER(chunk));     
+        cbuffer_reset(CHUNK_BUFFER(chunk));
     }
- 
+
     CHUNK_OFFSET(chunk) = 0;
     return (EC_TRUE);
 }
@@ -97,7 +97,7 @@ EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len)
         cbuffer_left_shift_out(CHUNK_BUFFER(chunk), NULL_PTR, CHUNK_OFFSET(chunk));
         CHUNK_OFFSET(chunk) = 0;
     }
- 
+
     cbuffer_umount(CHUNK_BUFFER(chunk), data, len);
     return (EC_TRUE);
 }
@@ -133,7 +133,7 @@ uint32_t chunk_append_format(CHUNK *chunk, const char *format, ...)
     va_copy(params, ap);
 
     len = cbuffer_append_vformat(CHUNK_BUFFER(chunk), format, params);
- 
+
     va_end(ap);
 
     return (len);
@@ -153,10 +153,10 @@ uint32_t chunk_shift(CHUNK *chunk, uint8_t *data, const uint32_t max_size)
 {
     uint32_t used;
     uint32_t shift_size;
- 
+
     used = CBUFFER_USED(CHUNK_BUFFER(chunk));
     shift_size  = DMIN(used, max_size);
- 
+
     cbuffer_left_shift_out(CHUNK_BUFFER(chunk), data, shift_size);
     return (shift_size);
 }
@@ -195,10 +195,10 @@ CHUNK_MGR *chunk_mgr_new(void)
 EC_BOOL chunk_mgr_init(CHUNK_MGR *chunk_mgr)
 {
     clist_init(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), MM_CHUNK, LOC_CHUNK_0004);
- 
+
     CHUNCK_MGR_NBYTES_IN(chunk_mgr)  = 0;
     CHUNCK_MGR_NBYTES_OUT(chunk_mgr) = 0;
- 
+
     return (EC_TRUE);
 }
 
@@ -207,10 +207,10 @@ EC_BOOL chunk_mgr_clean(CHUNK_MGR *chunk_mgr)
     dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_clean: chunk_mgr %p free chunks\n", chunk_mgr);
 
     clist_clean(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), (CLIST_DATA_DATA_CLEANER)chunk_free);
- 
+
     CHUNCK_MGR_NBYTES_IN(chunk_mgr)  = 0;
     CHUNCK_MGR_NBYTES_OUT(chunk_mgr) = 0;
- 
+
     return (EC_TRUE);
 }
 
@@ -231,7 +231,7 @@ uint64_t chunk_mgr_total_length(const CHUNK_MGR *chunk_mgr)
     CLIST_DATA *clist_data;
 
     len = 0;
- 
+
     CLIST_LOOP_NEXT(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), clist_data)
     {
         CHUNK   *chunk;
@@ -251,7 +251,7 @@ uint64_t chunk_mgr_send_length(const CHUNK_MGR *chunk_mgr)
     CLIST_DATA *clist_data;
 
     len = 0;
- 
+
     CLIST_LOOP_NEXT(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), clist_data)
     {
         CHUNK   *chunk;
@@ -310,7 +310,7 @@ EC_BOOL chunk_mgr_append_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const u
     {
         CHUNK   *chunk;
         uint32_t burn_len;
-     
+
         chunk = chunk_mgr_last_chunk(chunk_mgr);
         if(NULL_PTR == chunk || 0 == chunk_room(chunk))
         {
@@ -327,7 +327,7 @@ EC_BOOL chunk_mgr_append_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const u
             {
                 csize = CHUNK_MAX_SIZE;
             }
-         
+
             chunk = chunk_new(csize);
             if(NULL_PTR == chunk)
             {
@@ -335,7 +335,7 @@ EC_BOOL chunk_mgr_append_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const u
                 return (EC_FALSE);
             }
             dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_append_data: new chunk with size %d done\n", csize);
-         
+
             chunk_mgr_add_chunk(chunk_mgr, chunk);
         }
 
@@ -357,7 +357,7 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
     {
         CHUNK   *chunk;
         uint32_t burn_len;
-     
+
         chunk = chunk_mgr_last_chunk(chunk_mgr);
         if(NULL_PTR == chunk || 0 == chunk_room(chunk))
         {
@@ -370,7 +370,7 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
             {
                 csize = tsize;
             }
-         
+
             chunk = chunk_new(csize);
             if(NULL_PTR == chunk)
             {
@@ -378,7 +378,7 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
                 return (EC_FALSE);
             }
             dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_append_data_min: new chunk with size %d done\n", csize);
-         
+
             chunk_mgr_add_chunk(chunk_mgr, chunk);
         }
 
@@ -418,7 +418,7 @@ EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *si
         dbg_log(SEC_0099_CHUNK, 0)(LOGSTDOUT, "error:chunk_mgr_umount_data: chunk num %ld > 1\n", chunk_num);
         return (EC_FALSE);
     }
- 
+
     if(0 == chunk_num)
     {
         if(NULL_PTR != data)
@@ -438,7 +438,7 @@ EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *si
         dbg_log(SEC_0099_CHUNK, 0)(LOGSTDOUT, "error:chunk_mgr_umount_data: chunk num is 1 but chunk is null\n");
         return (EC_FALSE);
     }
- 
+
     chunk_umount(chunk, data, size);
     chunk_free(chunk);
 
@@ -452,7 +452,7 @@ EC_BOOL chunk_mgr_export(CHUNK_MGR *chunk_mgr, UINT8 *data, const UINT32 len, UI
     uint8_t    *data_des;
 
     data_des = data;
-    left_len = len; 
+    left_len = len;
 
     CLIST_LOOP_NEXT(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), clist_data)
     {
@@ -461,7 +461,7 @@ EC_BOOL chunk_mgr_export(CHUNK_MGR *chunk_mgr, UINT8 *data, const UINT32 len, UI
 
         chunk = (CHUNK *)CLIST_DATA_DATA(clist_data);
         burn_len = chunk_export(chunk, data_des, (uint32_t)left_len);
-     
+
         data_des += burn_len;
         left_len -= burn_len;
     }
@@ -483,7 +483,7 @@ EC_BOOL chunk_mgr_shift(CHUNK_MGR *chunk_mgr, const uint32_t data_max_len, uint8
     CHUNK      *chunk;
 
     data_des = data;
-    left_len = data_max_len; 
+    left_len = data_max_len;
 
     while(0 < left_len && NULL_PTR != (chunk = chunk_mgr_first_chunk(chunk_mgr)))
     {
@@ -515,7 +515,7 @@ EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len)
 
     CLIST_DATA *clist_data;
     UINT32      left_len;
-    uint8_t    *data_des; 
+    uint8_t    *data_des;
 
     total_len = chunk_mgr_total_length(chunk_mgr);
     if(0 == total_len)
@@ -527,7 +527,7 @@ EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len)
         }
         return (EC_TRUE);
     }
- 
+
     (*data) = safe_malloc(total_len, LOC_CHUNK_0006);
     if(NULL_PTR == (*data))
     {
@@ -536,7 +536,7 @@ EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len)
     }
 
     data_des = (*data);
-    left_len = total_len; 
+    left_len = total_len;
 
     CLIST_LOOP_NEXT(CHUNCK_MGR_CHUNK_LIST(chunk_mgr), clist_data)
     {
@@ -545,11 +545,11 @@ EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len)
 
         chunk = (CHUNK *)CLIST_DATA_DATA(clist_data);
         burn_len = chunk_export(chunk, data_des, (uint32_t)left_len);
-     
+
         data_des += burn_len;
         left_len -= burn_len;
     }
- 
+
     ASSERT(0 == left_len);
 
     if(NULL_PTR != len)

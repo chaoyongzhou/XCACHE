@@ -58,7 +58,7 @@ STATIC_CAST static uint8_t *__csfsv_new_disk_fname(const CSFSV *csfsv, const uin
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:__csfsv_new_disk_fname: csfsv fname is null\n");
         return (NULL_PTR);
     }
- 
+
     csfsd_dname = c_dirname((const char *)CSFSV_FNAME(csfsv));
     if(NULL_PTR == csfsd_dname)
     {
@@ -76,7 +76,7 @@ STATIC_CAST static uint8_t *__csfsv_new_disk_fname(const CSFSV *csfsv, const uin
         safe_free(csfsd_dname, LOC_CSFSV_0001);
         return (NULL_PTR);
     }
- 
+
     safe_free(csfsd_dname, LOC_CSFSV_0002);
     return ((uint8_t *)csfsd_fname);
 }
@@ -88,7 +88,7 @@ STATIC_CAST static EC_BOOL __csfsv_free_disk_fname(const CSFSV *csfsv, uint8_t *
         safe_free(csfsd_fname, LOC_CSFSV_0003);
     }
     return (EC_TRUE);
-} 
+}
 
 STATIC_CAST static CSFSV_HDR *__csfsv_hdr_load(CSFSV *csfsv)
 {
@@ -119,14 +119,14 @@ STATIC_CAST static EC_BOOL __csfsv_hdr_flush(CSFSV *csfsv)
     {
         UINT32 offset;
 
-        offset = 0;     
+        offset = 0;
         if(EC_FALSE == c_file_flush(CSFSV_FD(csfsv), &offset, CSFSV_FSIZE(csfsv), (const UINT8 *)CSFSV_HEADER(csfsv)))
         {
             dbg_log(SEC_0164_CSFSV, 1)(LOGSTDOUT, "warn:__csfsv_hdr_flush: flush csfsv_hdr to fd %d with size %u failed\n",
                         CSFSV_FD(csfsv), CSFSV_FSIZE(csfsv));
             return (EC_FALSE);
         }
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -150,7 +150,7 @@ STATIC_CAST static EC_BOOL __csfsv_hdr_free(CSFSV *csfsv)
         safe_free(CSFSV_HEADER(csfsv), LOC_CSFSV_0007);
         CSFSV_HEADER(csfsv) = NULL_PTR;
     }
- 
+
     /*csfsv_hdr cannot be accessed again*/
     return (EC_TRUE);
 }
@@ -173,14 +173,14 @@ STATIC_CAST static CSFSV_HDR *__csfsv_hdr_new(CSFSV *csfsv)
     if(EC_FALSE == csfsv_hdr_init(csfsv))
     {
         CSFSV_HEADER(csfsv) = NULL_PTR;
-     
+
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDERR, "error:__csfsv_hdr_new: init csfsv failed\n");
         safe_free(csfsv_hdr, LOC_CSFSV_0009);
-     
+
         return (NULL_PTR);
     }
- 
- 
+
+
     return (csfsv_hdr);
 }
 
@@ -206,7 +206,7 @@ CSFSV_HDR *csfsv_hdr_create(CSFSV *csfsv)
         munmap(csfsv_hdr, CSFSV_FSIZE(csfsv));
         return (NULL_PTR);
     }
- 
+
     return (csfsv_hdr);
 }
 
@@ -259,7 +259,7 @@ STATIC_CAST static CSFSV_HDR *__csfsv_hdr_open(CSFSV *csfsv)
                            (char *)CSFSV_FNAME(csfsv), CSFSV_FD(csfsv), errno, strerror(errno));
         return (NULL_PTR);
     }
- 
+
     return (csfsv_hdr);
 }
 
@@ -282,14 +282,14 @@ STATIC_CAST static EC_BOOL __csfsv_hdr_close(CSFSV *csfsv)
             dbg_log(SEC_0164_CSFSV, 1)(LOGSTDOUT, "warn:__csfsv_hdr_close: sync csfsv_hdr of %s with size %u failed\n",
                                CSFSV_FNAME(csfsv), CSFSV_FSIZE(csfsv));
         }
-     
+
         if(0 != munmap(CSFSV_HEADER(csfsv), CSFSV_FSIZE(csfsv)))
         {
             dbg_log(SEC_0164_CSFSV, 1)(LOGSTDOUT, "warn:__csfsv_hdr_close: munmap csfsv of %s with size %u failed\n",
                                CSFSV_FNAME(csfsv), CSFSV_FSIZE(csfsv));
         }
-    
-        CSFSV_HEADER(csfsv) = NULL_PTR;     
+
+        CSFSV_HEADER(csfsv) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -313,7 +313,7 @@ STATIC_CAST static EC_BOOL __csfsv_hdr_sync(CSFSV *csfsv)
         {
             dbg_log(SEC_0164_CSFSV, 1)(LOGSTDOUT, "warn:__csfsv_hdr_sync: sync csfsv_hdr of %s with size %u failed\n",
                                CSFSV_FNAME(csfsv), CSFSV_FSIZE(csfsv));
-        }     
+        }
     }
 
     return (EC_TRUE);
@@ -340,7 +340,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     UINT32 osize;/*flush once size*/
 
     DEBUG(UINT32 offset_saved = *offset;);
- 
+
     /*flush CSFSV_HDR_CUR_DISK_NO*/
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSV_HDR_CUR_DISK_NO(csfsv_hdr))))
@@ -363,7 +363,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_PAGE_NO at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*flush CSFSV_HDR_DISK_NUM*/
     osize = sizeof(uint16_t);
@@ -372,14 +372,14 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
- 
+
     /*skip rsvd01*/
     osize = CSFSV_HDR_PAD_SIZE * sizeof(uint8_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: pad %ld bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     DEBUG(CSFSV_ASSERT(sizeof(CSFSV_HDR) == (*offset) - offset_saved));
 
@@ -396,7 +396,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_DISK_NO at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*load CSFSV_HDR_CUR_BLOCK_NO*/
     osize = sizeof(uint16_t);
@@ -404,7 +404,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_BLOCK_NO at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
 
     /*load CSFSV_HDR_CUR_PAGE_NO*/
@@ -413,7 +413,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_PAGE_NO at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
 
     /*load CSFSV_HDR_DISK_NUM*/
@@ -422,7 +422,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*skip rsvd01*/
     (*offset) += CSFSV_HDR_PAD_SIZE * sizeof(uint8_t);
@@ -519,11 +519,11 @@ EC_BOOL csfsv_free(CSFSV *csfsv)
 CSFSV *csfsv_open(const uint8_t *csfsv_fname, const uint32_t np_node_err_pos, CSFSNP_RECYCLE np_node_recycle, void *npp)
 {
     CSFSV      *csfsv;
- 
+
     uint16_t    disk_no;
 
     UINT32      fsize;
- 
+
     if(EC_FALSE == c_file_access((const char *)csfsv_fname, F_OK))
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_open: %s not exist\n", csfsv_fname);
@@ -582,7 +582,7 @@ CSFSV *csfsv_open(const uint8_t *csfsv_fname, const uint32_t np_node_err_pos, CS
         /*try to mount the disk. ignore any failure*/
         csfsv_mount_disk(csfsv, disk_no);
     }
- 
+
     return (csfsv);
 }
 
@@ -591,7 +591,7 @@ EC_BOOL csfsv_close(CSFSV *csfsv)
     if(NULL_PTR != csfsv)
     {
         uint16_t disk_no;
-     
+
         /*clean disks*/
         for(disk_no = 0; disk_no < CSFSV_MAX_DISK_NUM; disk_no ++)
         {
@@ -601,7 +601,7 @@ EC_BOOL csfsv_close(CSFSV *csfsv)
                 CSFSV_DISK_CSFSD(csfsv, disk_no) = NULL_PTR;
             }
         }
- 
+
         csfsv_hdr_close(csfsv);
 
         if(ERR_FD != CSFSV_FD(csfsv))
@@ -626,7 +626,7 @@ EC_BOOL csfsv_sync(CSFSV *csfsv)
     if(NULL_PTR != csfsv)
     {
         uint16_t disk_no;
-     
+
         /*clean disks*/
         for(disk_no = 0; disk_no < CSFSV_MAX_DISK_NUM; disk_no ++)
         {
@@ -635,7 +635,7 @@ EC_BOOL csfsv_sync(CSFSV *csfsv)
                 csfsd_sync(CSFSV_DISK_CSFSD(csfsv, disk_no));
             }
         }
- 
+
         csfsv_hdr_sync(csfsv);
     }
     return (EC_TRUE);
@@ -685,7 +685,7 @@ EC_BOOL csfsv_clean(CSFSV *csfsv)
     for(disk_no = 0; disk_no < CSFSV_MAX_DISK_NUM; disk_no ++)
     {
         if(NULL_PTR != CSFSV_DISK_CSFSD(csfsv, disk_no))
-        {        
+        {
             safe_free(CSFSV_DISK_CSFSD(csfsv, disk_no), LOC_CSFSV_0017);
             CSFSV_DISK_CSFSD(csfsv, disk_no) = NULL_PTR;
         }
@@ -693,7 +693,7 @@ EC_BOOL csfsv_clean(CSFSV *csfsv)
 
     //CSFSV_NP_NODE_ERR_POS(csfsv) = xxx;
     CSFSV_NP_NODE_RECYCLE(csfsv) = NULL_PTR;
-    CSFSV_NPP(csfsv)             = NULL_PTR; 
+    CSFSV_NPP(csfsv)             = NULL_PTR;
 
     if(NULL_PTR != CSFSV_HEADER(csfsv))
     {
@@ -701,8 +701,8 @@ EC_BOOL csfsv_clean(CSFSV *csfsv)
         safe_free(CSFSV_HEADER(csfsv), LOC_CSFSV_0018);
         CSFSV_HEADER(csfsv) = NULL_PTR;
     }
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 EC_BOOL csfsv_set_np(CSFSV *csfsv, const uint32_t np_node_err_pos, CSFSNP_RECYCLE np_node_recycle, void *npp)
@@ -740,7 +740,7 @@ STATIC_CAST static EC_BOOL __csfsv_rmv_disk(CSFSV *csfsv, const uint16_t disk_no
         __csfsv_free_disk_fname(csfsv, csfsd_fname);
         return (EC_FALSE);
     }
- 
+
     __csfsv_free_disk_fname(csfsv, csfsd_fname);
 
     return (EC_TRUE);
@@ -769,9 +769,9 @@ EC_BOOL csfsv_add_disk(CSFSV *csfsv, const uint16_t disk_no)
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_add_disk: new disk %u fname failed\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_add_disk: try to create disk %s ...\n", csfsd_fname);
- 
+
     csfsd = csfsd_new(csfsd_fname, CSFSD_MAX_BLOCK_NUM, CSFSV_NP_NODE_ERR_POS(csfsv), CSFSV_NP_NODE_RECYCLE(csfsv), CSFSV_NPP(csfsv));
     if(NULL_PTR == csfsd)
     {
@@ -779,8 +779,8 @@ EC_BOOL csfsv_add_disk(CSFSV *csfsv, const uint16_t disk_no)
         __csfsv_free_disk_fname(csfsv, csfsd_fname);
         return (EC_FALSE);
     }
- 
-    dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_add_disk: create disk %s done\n", csfsd_fname); 
+
+    dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_add_disk: create disk %s done\n", csfsd_fname);
     __csfsv_free_disk_fname(csfsv, csfsd_fname);
 
     /*add disk to volume*/
@@ -811,13 +811,13 @@ EC_BOOL csfsv_del_disk(CSFSV *csfsv, const uint16_t disk_no)
     CSFSV_DISK_NUM(csfsv) --;
     CSFSV_DISK_CSFSD(csfsv, disk_no) = NULL_PTR;
 
-    csfsd_close(csfsd); 
+    csfsd_close(csfsd);
 
     if(EC_FALSE == __csfsv_rmv_disk(csfsv, disk_no))
     {
         dbg_log(SEC_0164_CSFSV, 1)(LOGSTDOUT, "warn:csfsv_del_disk: rmv disk %u failed, should remove it manually\n", disk_no);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -851,10 +851,10 @@ EC_BOOL csfsv_mount_disk(CSFSV *csfsv, const uint16_t disk_no)
         __csfsv_free_disk_fname(csfsv, csfsd_fname);
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_mount_disk: try to mount disk %u from %s ...\n", disk_no, csfsd_fname);
     dbg_log(SEC_0164_CSFSV, 9)(LOGSTDOUT, "[DEBUG] csfsv_mount_disk: check CSFSD_MAX_BLOCK_NUM = %d\n", CSFSD_MAX_BLOCK_NUM);
- 
+
     csfsd = csfsd_open(csfsd_fname);
     if(NULL_PTR == csfsd)
     {
@@ -862,8 +862,8 @@ EC_BOOL csfsv_mount_disk(CSFSV *csfsv, const uint16_t disk_no)
         __csfsv_free_disk_fname(csfsv, csfsd_fname);
         return (EC_FALSE);
     }
- 
-    dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_mount_disk: open disk %s done\n", csfsd_fname); 
+
+    dbg_log(SEC_0164_CSFSV, 3)(LOGSTDOUT, "info:csfsv_mount_disk: open disk %s done\n", csfsd_fname);
     __csfsv_free_disk_fname(csfsv, csfsd_fname);
 
     csfsd_set_np(csfsd, CSFSV_NP_NODE_ERR_POS(csfsv), CSFSV_NP_NODE_RECYCLE(csfsv), CSFSV_NPP(csfsv));
@@ -871,7 +871,7 @@ EC_BOOL csfsv_mount_disk(CSFSV *csfsv, const uint16_t disk_no)
     /*add disk to volume*/
     CSFSV_DISK_CSFSD(csfsv, disk_no) = csfsd;
 
-    dbg_log(SEC_0164_CSFSV, 9)(LOGSTDOUT, "[DEBUG] csfsv_mount_disk: disk %u done\n", disk_no); 
+    dbg_log(SEC_0164_CSFSV, 9)(LOGSTDOUT, "[DEBUG] csfsv_mount_disk: disk %u done\n", disk_no);
 
     return (EC_TRUE);
 }
@@ -884,7 +884,7 @@ EC_BOOL csfsv_umount_disk(CSFSV *csfsv, const uint16_t disk_no)
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_umount_disk: disk %u overflow the max disk num %u\n", disk_no, CSFSV_MAX_DISK_NUM);
         return (EC_FALSE);
-    } 
+    }
 
     csfsd = CSFSV_DISK_CSFSD(csfsv, disk_no);
     if(NULL_PTR == csfsd)
@@ -892,24 +892,24 @@ EC_BOOL csfsv_umount_disk(CSFSV *csfsv, const uint16_t disk_no)
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_umount_disk: disk %u not exist\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     CSFSV_DISK_CSFSD(csfsv, disk_no) = NULL_PTR;
- 
+
     csfsd_close(csfsd);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL csfsv_new_space(CSFSV *csfsv, const uint32_t size, uint16_t *disk_no, uint16_t *block_no, uint16_t *page_no)
 {
     CSFSD    *csfsd;
- 
+
     uint16_t page_num;
- 
+
     uint16_t disk_no_t;
     uint16_t block_no_t;
     uint16_t page_no_t;
- 
+
     CSFSV_ASSERT(0 < size);
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < size)
@@ -957,7 +957,7 @@ EC_BOOL csfsv_new_space(CSFSV *csfsv, const uint32_t size, uint16_t *disk_no, ui
                 CSFSV_CUR_DISK_NO(csfsv)  = disk_no_t;
                 CSFSV_CUR_BLOCK_NO(csfsv) = block_no_t;
                 CSFSV_CUR_PAGE_NO(csfsv)  = page_no_t + page_num;
-             
+
                 return (EC_TRUE);
             }
         }
@@ -1001,13 +1001,13 @@ EC_BOOL csfsv_flush_size(const CSFSV *csfsv, UINT32 *size)
 {
     uint16_t disk_no;
 
-    csfsv_hdr_flush_size(CSFSV_HEADER(csfsv), size); 
- 
+    csfsv_hdr_flush_size(CSFSV_HEADER(csfsv), size);
+
     for(disk_no = 0; disk_no < CSFSV_MAX_DISK_NUM; disk_no ++)
     {
         if(NULL_PTR != CSFSV_DISK_NODE(csfsv, disk_no))
         {
-            (*size) += sizeof(uint16_t);/*disk_no*/     
+            (*size) += sizeof(uint16_t);/*disk_no*/
             csfsd_flush_size(CSFSV_DISK_NODE(csfsv, disk_no), size);
         }
     }
@@ -1017,7 +1017,7 @@ EC_BOOL csfsv_flush_size(const CSFSV *csfsv, UINT32 *size)
 EC_BOOL csfsv_flush(const CSFSV *csfsv, int fd, UINT32 *offset)
 {
     UINT32   osize;
-    uint16_t disk_no; 
+    uint16_t disk_no;
 
     DEBUG(UINT32 offset_saved = *offset;);
 
@@ -1044,7 +1044,7 @@ EC_BOOL csfsv_flush(const CSFSV *csfsv, int fd, UINT32 *offset)
         {
             dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush disk_no at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
-        }     
+        }
 
         /*flush disk*/
         if(EC_FALSE == csfsd_flush(CSFSV_DISK_NODE(csfsv, disk_no), fd, offset))
@@ -1054,16 +1054,16 @@ EC_BOOL csfsv_flush(const CSFSV *csfsv, int fd, UINT32 *offset)
             return (EC_FALSE);
         }
     }
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
 {
     UINT32   osize;
- 
+
     uint16_t disk_num;
-    uint16_t disk_idx; 
+    uint16_t disk_idx;
     uint16_t disk_no;
 
     if(NULL_PTR == CSFSV_HEADER(csfsv))
@@ -1104,21 +1104,21 @@ EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
         {
             dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load disk_no at offset %u of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
-        }  
+        }
 
         if(CSFSV_MAX_DISK_NUM <= disk_no)
         {
             dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: loaded disk_no %u overflow!\n", disk_no);
             return (EC_FALSE);
-        }     
-     
+        }
+
         CSFSV_DISK_CSFSD(csfsv, disk_no) = safe_malloc(sizeof(CSFSD), LOC_CSFSV_0020);
         if(NULL_PTR == CSFSV_DISK_CSFSD(csfsv, disk_no))
         {
             dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: malloc block %u failed\n", disk_no);
             return (EC_FALSE);
         }
-     
+
         if(EC_FALSE == csfsd_load(CSFSV_DISK_CSFSD(csfsv, disk_no), fd, offset))
         {
             dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load CSFSV_DISK_NODE of disk_no %u at offset %u of fd %d failed\n",
@@ -1133,7 +1133,7 @@ EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
 void csfsv_print(LOG *log, const CSFSV *csfsv)
 {
     CSFSV_ASSERT(NULL_PTR != csfsv);
- 
+
     sys_log(log, "csfsv_print: csfsv %p, disk num %u, cur (disk %u, block %u, page %u)\n", csfsv,
                  CSFSV_DISK_NUM(csfsv),
                  CSFSV_CUR_DISK_NO(csfsv), CSFSV_CUR_BLOCK_NO(csfsv), CSFSV_CUR_PAGE_NO(csfsv));
@@ -1151,7 +1151,7 @@ void csfsv_print(LOG *log, const CSFSV *csfsv)
         }
     }
 
-    return; 
+    return;
 }
 
 #ifdef __cplusplus

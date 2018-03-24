@@ -91,26 +91,26 @@ EC_BOOL cepoll_node_init(CEPOLL_NODE *cepoll_node)
     CEPOLL_NODE_TIMEOUT_NAME(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_NAME(cepoll_node)    = NULL_PTR;
     CEPOLL_NODE_COMPLETE_NAME(cepoll_node)    = NULL_PTR;
-    
+
     CEPOLL_NODE_RD_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_WR_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_ARG(cepoll_node)      = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_COMPLETE_ARG(cepoll_node)     = NULL_PTR;
- 
+
     CEPOLL_NODE_RD_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_WR_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_HANDLER(cepoll_node)  = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node) = NULL_PTR;
     CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node) = NULL_PTR;
- 
+
     CEPOLL_NODE_EVENTS(cepoll_node)           = 0;
     CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node)     = 0;
     CEPOLL_NODE_NTIME_TS(cepoll_node)         = 0;
     CEPOLL_NODE_COUNTER(cepoll_node)          = 0;
 
     CEPOLL_NODE_CRB_NODE(cepoll_node)         = NULL_PTR;
- 
+
     return (EC_TRUE);
 }
 
@@ -119,26 +119,26 @@ EC_BOOL cepoll_node_clean(CEPOLL_NODE *cepoll_node)
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_node_clear: sockfd %d\n", CEPOLL_NODE_SOCKFD(cepoll_node));
 
     CEPOLL_NODE_USED_FLAG(cepoll_node)        = CEPOLL_NODE_NOT_USED_FLAG;
-    CEPOLL_NODE_SOCKFD(cepoll_node)           = ERR_FD; 
+    CEPOLL_NODE_SOCKFD(cepoll_node)           = ERR_FD;
 
     CEPOLL_NODE_RD_NAME(cepoll_node)          = NULL_PTR;
     CEPOLL_NODE_WR_NAME(cepoll_node)          = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_NAME(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_NAME(cepoll_node)    = NULL_PTR;
     CEPOLL_NODE_COMPLETE_NAME(cepoll_node)    = NULL_PTR;
-    
+
     CEPOLL_NODE_RD_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_WR_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_ARG(cepoll_node)      = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_COMPLETE_ARG(cepoll_node)     = NULL_PTR;
- 
+
     CEPOLL_NODE_RD_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_WR_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_HANDLER(cepoll_node)  = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node) = NULL_PTR;
     CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node) = NULL_PTR;
- 
+
     CEPOLL_NODE_EVENTS(cepoll_node)           = 0;
     CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node)     = 0;
     CEPOLL_NODE_NTIME_TS(cepoll_node)         = 0;
@@ -161,19 +161,19 @@ EC_BOOL cepoll_node_clear(CEPOLL_NODE *cepoll_node)
     CEPOLL_NODE_TIMEOUT_NAME(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_NAME(cepoll_node)    = NULL_PTR;
     CEPOLL_NODE_COMPLETE_NAME(cepoll_node)    = NULL_PTR;
-    
+
     CEPOLL_NODE_RD_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_WR_ARG(cepoll_node)           = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_ARG(cepoll_node)      = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node)     = NULL_PTR;
     CEPOLL_NODE_COMPLETE_ARG(cepoll_node)     = NULL_PTR;
- 
+
     CEPOLL_NODE_RD_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_WR_HANDLER(cepoll_node)       = NULL_PTR;
     CEPOLL_NODE_TIMEOUT_HANDLER(cepoll_node)  = NULL_PTR;
     CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node) = NULL_PTR;
     CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node) = NULL_PTR;
- 
+
     CEPOLL_NODE_EVENTS(cepoll_node)           = 0;
     CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node)     = 0;
     CEPOLL_NODE_NTIME_TS(cepoll_node)         = 0;
@@ -188,13 +188,13 @@ EC_BOOL cepoll_node_clear(CEPOLL_NODE *cepoll_node)
 EC_BOOL cepoll_node_set_used(CEPOLL_NODE *cepoll_node)
 {
     CEPOLL_NODE_USED_FLAG(cepoll_node)        = CEPOLL_NODE_IS_USED_FLAG;
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 EC_BOOL cepoll_node_set_not_used(CEPOLL_NODE *cepoll_node)
 {
     CEPOLL_NODE_USED_FLAG(cepoll_node)        = CEPOLL_NODE_NOT_USED_FLAG;
-    return (EC_TRUE); 
+    return (EC_TRUE);
 }
 
 /*expire time = last access time + timeout*/
@@ -205,7 +205,7 @@ int cepoll_node_cmp_expire_time(const CEPOLL_NODE *cepoll_node_1st, const CEPOLL
 
     expire_time_1st = CEPOLL_NODE_NTIME_TS(cepoll_node_1st);
     expire_time_2nd = CEPOLL_NODE_NTIME_TS(cepoll_node_2nd);
- 
+
     if(expire_time_1st < expire_time_2nd)
     {
         return (-1);
@@ -224,7 +224,7 @@ int cepoll_node_cmp_expire_time(const CEPOLL_NODE *cepoll_node_1st, const CEPOLL
     if(CEPOLL_NODE_COUNTER(cepoll_node_1st) > CEPOLL_NODE_COUNTER(cepoll_node_2nd))
     {
         return (1);
-    } 
+    }
 
     return (0);
 }
@@ -274,14 +274,14 @@ EC_BOOL cepoll_init(CEPOLL *cepoll, const int epoll_max_event_num)
     crb_tree_init(CEPOLL_TIMEOUT_TREE(cepoll),
                   (CRB_DATA_CMP)cepoll_node_cmp_expire_time,
                   (CRB_DATA_FREE)NULL_PTR,
-                  (CRB_DATA_PRINT)cepoll_node_print); 
- 
+                  (CRB_DATA_PRINT)cepoll_node_print);
+
     size = ((UINT32)1) * sizeof(CEPOLL_EVENT) * epoll_max_event_num;
     epoll_event_tab = (CEPOLL_EVENT *)safe_malloc(size, LOC_CEPOLL_0004);
     if(NULL_PTR == epoll_event_tab)
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_init: malloc %d cepoll events failed\n", epoll_max_event_num);
-        return (EC_FALSE);     
+        return (EC_FALSE);
     }
 
     size = ((UINT32)1) * sizeof(CEPOLL_NODE) * CEPOLL_MAX_FD_NUM;
@@ -290,7 +290,7 @@ EC_BOOL cepoll_init(CEPOLL *cepoll, const int epoll_max_event_num)
     {
         safe_free(epoll_event_tab, LOC_CEPOLL_0006);
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_init: malloc %d cepoll nodes failed\n", CEPOLL_MAX_FD_NUM);
-        return (EC_FALSE);     
+        return (EC_FALSE);
     }
 
     for(sockfd = 0; sockfd < CEPOLL_MAX_FD_NUM; sockfd ++)
@@ -298,7 +298,7 @@ EC_BOOL cepoll_init(CEPOLL *cepoll, const int epoll_max_event_num)
         CEPOLL_NODE *cepoll_node;
 
         cepoll_node = &(epoll_node_tab[ sockfd ]);
-     
+
         cepoll_node_init(cepoll_node);
         CEPOLL_NODE_SOCKFD(cepoll_node)    = sockfd;
         CEPOLL_NODE_USED_FLAG(cepoll_node) = CEPOLL_NODE_IS_USED_FLAG;
@@ -326,7 +326,7 @@ EC_BOOL cepoll_init(CEPOLL *cepoll, const int epoll_max_event_num)
     CEPOLL_LOOP_NAME(cepoll)    = NULL_PTR;
     CEPOLL_LOOP_HANDLER(cepoll) = NULL_PTR;
     CEPOLL_LOOP_ARG(cepoll)     = NULL_PTR;
- 
+
     return (EC_TRUE);
 }
 
@@ -348,18 +348,18 @@ EC_BOOL cepoll_clean(CEPOLL *cepoll)
     {
         safe_free(CEPOLL_NODE_TAB(cepoll), LOC_CEPOLL_0010);
         CEPOLL_NODE_TAB(cepoll) = NULL_PTR;
-    } 
+    }
 
     CEPOLL_EVENT_NUM(cepoll) = 0;
 
     CEPOLL_LOOP_NAME(cepoll)    = NULL_PTR;
     CEPOLL_LOOP_HANDLER(cepoll) = NULL_PTR;
-    CEPOLL_LOOP_ARG(cepoll)     = NULL_PTR; 
+    CEPOLL_LOOP_ARG(cepoll)     = NULL_PTR;
 
     crb_tree_clean(CEPOLL_TIMEOUT_TREE(cepoll));
     CEPOLL_CLEAN_LOCK(cepoll, LOC_CEPOLL_0011);
     CEPOLL_COUNTER(cepoll) = 0;
- 
+
     return (EC_TRUE);
 }
 
@@ -423,7 +423,7 @@ int cepoll_fetch_sockfd(const CEPOLL *cepoll, const CEPOLL_NODE *cepoll_node)
     }
 
     sockfd = (int)(offset / sizeof(CEPOLL_NODE));
-    return (sockfd); 
+    return (sockfd);
 }
 
 EC_BOOL cepoll_add(CEPOLL *cepoll, const int sockfd, const uint32_t events)
@@ -433,8 +433,8 @@ EC_BOOL cepoll_add(CEPOLL *cepoll, const int sockfd, const uint32_t events)
     CEPOLL_EVENT_TYPE(&cepoll_event) = events;
     CEPOLL_EVENT_FD(&cepoll_event)   = sockfd;
 
-    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_add: sockfd %d add event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events)); 
- 
+    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_add: sockfd %d add event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events));
+
     if(0 != epoll_ctl(CEPOLL_FD(cepoll), EPOLL_CTL_ADD, sockfd, &cepoll_event))
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_add: EPOLL_CTL_ADD failed, sockfd %d, errno = %d, errstr = %s\n",
@@ -452,8 +452,8 @@ EC_BOOL cepoll_del(CEPOLL *cepoll, const int sockfd, const uint32_t events)
     CEPOLL_EVENT_TYPE(&cepoll_event) = events;
     CEPOLL_EVENT_FD(&cepoll_event)   = sockfd;
 
-    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del: sockfd %d del event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events)); 
- 
+    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del: sockfd %d del event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events));
+
     if(0 != epoll_ctl(CEPOLL_FD(cepoll), EPOLL_CTL_DEL, sockfd, &cepoll_event))
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_del: EPOLL_CTL_DEL failed, sockfd %d, errno = %d, errstr = %s\n",
@@ -471,8 +471,8 @@ EC_BOOL cepoll_mod(CEPOLL *cepoll, const int sockfd, const uint32_t events)
     CEPOLL_EVENT_TYPE(&cepoll_event) = events;/*modify to events*/
     CEPOLL_EVENT_FD(&cepoll_event)   = sockfd;
 
-    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_mod: sockfd %d mod to event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events)); 
- 
+    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_mod: sockfd %d mod to event:%c%c%c%c\n", sockfd, CEPOLL_ALL_EVENT_CHARS(events));
+
     if(0 != epoll_ctl(CEPOLL_FD(cepoll), EPOLL_CTL_MOD, sockfd, &cepoll_event))
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_mod: EPOLL_CTL_MOD failed, sockfd %d, errno = %d, errstr = %s\n",
@@ -500,14 +500,14 @@ EC_BOOL cepoll_set_reader(CEPOLL *cepoll, const int sockfd, const char *name, CE
         dbg_log(SEC_0072_CEPOLL, 2)(LOGSTDOUT, "warn:cepoll_set_reader:sockfd %d change RD_ARG from %p to %p\n",
                             sockfd, CEPOLL_NODE_RD_ARG(cepoll_node), rd_handler);
         //return (EC_FALSE);
-    } 
+    }
 #endif
     CEPOLL_NODE_RD_NAME(cepoll_node)    = name;
     CEPOLL_NODE_RD_HANDLER(cepoll_node) = rd_handler;
     CEPOLL_NODE_RD_ARG(cepoll_node)     = arg;
     CEPOLL_NODE_USED_FLAG(cepoll_node)  = CEPOLL_NODE_IS_USED_FLAG;
- 
-    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_reader: sockfd %d rd (func %s, handler %p, arg %p) done\n", 
+
+    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_reader: sockfd %d rd (func %s, handler %p, arg %p) done\n",
                         sockfd, name, rd_handler, arg);
     return (EC_TRUE);
 }
@@ -529,14 +529,14 @@ EC_BOOL cepoll_set_writer(CEPOLL *cepoll, const int sockfd, const char *name, CE
         dbg_log(SEC_0072_CEPOLL, 2)(LOGSTDOUT, "warn:cepoll_set_writer:sockfd %d change WR_ARG from %p to %p\n",
                             sockfd, CEPOLL_NODE_WR_ARG(cepoll_node), wr_handler);
         //return (EC_FALSE);
-    } 
+    }
 #endif
     CEPOLL_NODE_WR_NAME(cepoll_node)    = name;
     CEPOLL_NODE_WR_HANDLER(cepoll_node) = wr_handler;
     CEPOLL_NODE_WR_ARG(cepoll_node)     = arg;
     CEPOLL_NODE_USED_FLAG(cepoll_node)  = CEPOLL_NODE_IS_USED_FLAG;
- 
-    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_writer: sockfd %d set wr (func %s, handler %p, arg %p) done\n", 
+
+    dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_writer: sockfd %d set wr (func %s, handler %p, arg %p) done\n",
                         sockfd, name, wr_handler, arg);
     return (EC_TRUE);
 }
@@ -616,7 +616,7 @@ EC_BOOL cepoll_set_timeout(CEPOLL *cepoll, const int sockfd, const uint32_t time
         dbg_log(SEC_0072_CEPOLL, 2)(LOGSTDOUT, "warn:cepoll_set_timeout:sockfd %d change TIMEOUT_ARG from %p to %p\n",
                             sockfd, CEPOLL_NODE_TIMEOUT_ARG(cepoll_node), timeout_handler);
         //return (EC_FALSE);
-    } 
+    }
 #endif
     CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node)    = timeout_nsec;
     CEPOLL_NODE_NTIME_TS(cepoll_node)        = task_brd_default_get_time() + CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node);
@@ -629,7 +629,7 @@ EC_BOOL cepoll_set_timeout(CEPOLL *cepoll, const int sockfd, const uint32_t time
     if(0 < CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node))
     {
         CRB_NODE *crb_node;
-        CEPOLL_LOCK(cepoll, LOC_CEPOLL_0013);     
+        CEPOLL_LOCK(cepoll, LOC_CEPOLL_0013);
         if(NULL_PTR != CEPOLL_NODE_CRB_NODE(cepoll_node))/*prevent from set timeout again*/
         {
             crb_tree_delete(CEPOLL_TIMEOUT_TREE(cepoll), CEPOLL_NODE_CRB_NODE(cepoll_node));
@@ -638,7 +638,7 @@ EC_BOOL cepoll_set_timeout(CEPOLL *cepoll, const int sockfd, const uint32_t time
         CEPOLL_NODE_COUNTER(cepoll_node) = ++ CEPOLL_COUNTER(cepoll);
         crb_node = crb_tree_insert_data(CEPOLL_TIMEOUT_TREE(cepoll), (void *)cepoll_node);
         CEPOLL_UNLOCK(cepoll, LOC_CEPOLL_0014);
-     
+
         if(NULL_PTR == crb_node)
         {
             dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_set_timeout:sockfd %d cepll_node %p insert to tree %p failed\n",
@@ -657,12 +657,12 @@ EC_BOOL cepoll_set_timeout(CEPOLL *cepoll, const int sockfd, const uint32_t time
 
         CEPOLL_NODE_CRB_NODE(cepoll_node) = crb_node;
     }
- 
+
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_timeout: sockfd %d, next %d, timeout %d sec, (func %s, handler %p, arg %p) done\n",
                        sockfd,
                        CEPOLL_NODE_NTIME_TS(cepoll_node), CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node),
-                       CEPOLL_NODE_TIMEOUT_NAME(cepoll_node), 
-                       CEPOLL_NODE_TIMEOUT_HANDLER(cepoll_node), 
+                       CEPOLL_NODE_TIMEOUT_NAME(cepoll_node),
+                       CEPOLL_NODE_TIMEOUT_HANDLER(cepoll_node),
                        CEPOLL_NODE_TIMEOUT_ARG(cepoll_node));
 
     rlog(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_timeout: sockfd %d, mounted: %p\n",
@@ -709,7 +709,7 @@ EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event)
 {
     CEPOLL_NODE *cepoll_node;
     uint32_t events_src;
-    uint32_t events_des; 
+    uint32_t events_des;
 
     if(0 > sockfd || CEPOLL_MAX_FD_NUM <= sockfd)
     {
@@ -723,10 +723,10 @@ EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event)
     if(CEPOLL_RD_EVENT == event)
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_event: sockfd %d del reader (func %s, handler %p, arg %p)\n",
-                            sockfd, 
-                            CEPOLL_NODE_RD_NAME(cepoll_node), 
-                            CEPOLL_NODE_RD_HANDLER(cepoll_node), 
-                            CEPOLL_NODE_RD_ARG(cepoll_node));     
+                            sockfd,
+                            CEPOLL_NODE_RD_NAME(cepoll_node),
+                            CEPOLL_NODE_RD_HANDLER(cepoll_node),
+                            CEPOLL_NODE_RD_ARG(cepoll_node));
 
         /*del reader*/
         CEPOLL_NODE_RD_NAME(cepoll_node)    = NULL_PTR;
@@ -736,12 +736,12 @@ EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event)
     else if(CEPOLL_WR_EVENT == event)
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_event: sockfd %d del writer (func %s, handler %p, arg %p)\n",
-                            sockfd, 
+                            sockfd,
                             CEPOLL_NODE_WR_NAME(cepoll_node),
-                            CEPOLL_NODE_WR_HANDLER(cepoll_node), 
-                            CEPOLL_NODE_WR_ARG(cepoll_node));     
+                            CEPOLL_NODE_WR_HANDLER(cepoll_node),
+                            CEPOLL_NODE_WR_ARG(cepoll_node));
 
-        /*del writer*/ 
+        /*del writer*/
         CEPOLL_NODE_WR_NAME(cepoll_node)    = NULL_PTR;
         CEPOLL_NODE_WR_HANDLER(cepoll_node) = NULL_PTR;
         CEPOLL_NODE_WR_ARG(cepoll_node)     = NULL_PTR;
@@ -758,13 +758,13 @@ EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event)
         return (EC_TRUE);
     }
 
-    events_des = (events_src & (~event)); 
+    events_des = (events_src & (~event));
     CEPOLL_NODE_EVENTS(cepoll_node) = events_des;
 
     if(events_des & (CEPOLL_RD_EVENT | CEPOLL_WR_EVENT))/*fuck trap!*/
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_event: sockfd %d modify events %c%c%c%c => %c%c%c%c\n",
-                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));     
+                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));
         return cepoll_mod(cepoll, sockfd, events_des);
     }
 
@@ -794,12 +794,12 @@ EC_BOOL cepoll_del_events(CEPOLL *cepoll, const int sockfd, const uint32_t event
                         sockfd,
                         CEPOLL_ALL_EVENT_CHARS(events_src),
                         CEPOLL_ALL_EVENT_CHARS(events_des));
- 
+
     events_t = (events_src & events);
     CEPOLL_NODE_EVENTS(cepoll_node) = events_des;
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_events: CEPOLL_NODE_EVENTS of sockfd %d changed to %d: %c%c%c%c\n",
                        sockfd, CEPOLL_NODE_EVENTS(cepoll_node), CEPOLL_ALL_EVENT_CHARS(events_des));
- 
+
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_events: sockfd %d del epoll events %c%c%c%c\n",
                         sockfd, CEPOLL_ALL_EVENT_CHARS(events_t));
 
@@ -807,7 +807,7 @@ EC_BOOL cepoll_del_events(CEPOLL *cepoll, const int sockfd, const uint32_t event
     {
         return cepoll_del(cepoll, sockfd, events_t);
     }
-                     
+
     return (EC_TRUE);
 }
 
@@ -825,16 +825,16 @@ EC_BOOL cepoll_del_all(CEPOLL *cepoll, const int sockfd)
     cepoll_node = CEPOLL_FETCH_NODE(cepoll, sockfd);
     events      = CEPOLL_NODE_EVENTS(cepoll_node);
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_all: sockfd %d del all epoll events %c%c%c%c\n",
-                       sockfd, CEPOLL_ALL_EVENT_CHARS(events)); 
+                       sockfd, CEPOLL_ALL_EVENT_CHARS(events));
 
     if(NULL_PTR != CEPOLL_NODE_CRB_NODE(cepoll_node))
     {
         CEPOLL_LOCK(cepoll, LOC_CEPOLL_0015);
         crb_tree_delete(CEPOLL_TIMEOUT_TREE(cepoll), CEPOLL_NODE_CRB_NODE(cepoll_node));
         CEPOLL_NODE_CRB_NODE(cepoll_node) = NULL_PTR;
-        CEPOLL_UNLOCK(cepoll, LOC_CEPOLL_0016);        
+        CEPOLL_UNLOCK(cepoll, LOC_CEPOLL_0016);
     }
- 
+
     if((CEPOLL_IN | CEPOLL_OUT) & events)
     {
         CEPOLL_NODE_EVENTS(cepoll_node) &= (~events);
@@ -885,7 +885,7 @@ EC_BOOL cepoll_set_event(CEPOLL *cepoll, const int sockfd, const uint32_t event,
         CEPOLL_NODE_USED_FLAG(cepoll_node)  = CEPOLL_NODE_IS_USED_FLAG;
 
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_event: sockfd %d set reader (func %s, handler %p, arg %p)\n",
-                            sockfd, name, handler, arg);     
+                            sockfd, name, handler, arg);
     }
     else if(CEPOLL_WR_EVENT == event)
     {
@@ -893,9 +893,9 @@ EC_BOOL cepoll_set_event(CEPOLL *cepoll, const int sockfd, const uint32_t event,
         CEPOLL_NODE_WR_HANDLER(cepoll_node) = handler;
         CEPOLL_NODE_WR_ARG(cepoll_node)     = arg;
         CEPOLL_NODE_USED_FLAG(cepoll_node)  = CEPOLL_NODE_IS_USED_FLAG;
-     
+
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_event: sockfd %d set writer (func %s, handler %p, arg %p)\n",
-                            sockfd, name, handler, arg);             
+                            sockfd, name, handler, arg);
     }
     else
     {
@@ -907,24 +907,24 @@ EC_BOOL cepoll_set_event(CEPOLL *cepoll, const int sockfd, const uint32_t event,
     if(0 != (events_src & event))/*event already exist*/
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_event: sockfd %d set nothing where src event:%c%c%c%c [%x]\n",
-                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), events_src);    
+                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), events_src);
         return (EC_TRUE);
     }
 
     events_des = (events_src | event | CEPOLL_HUP | CEPOLL_ERR);
     CEPOLL_NODE_EVENTS(cepoll_node) = events_des;
- 
+
     if(0 != (events_src & (~(CEPOLL_HUP | CEPOLL_ERR))))/*if some event exist, modify*/
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_event: sockfd %d modify events %c%c%c%c => %c%c%c%c\n",
                             sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));
-        return cepoll_mod(cepoll, sockfd, events_des); 
+        return cepoll_mod(cepoll, sockfd, events_des);
     }
 
     /*if no event exist, add*/
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_event: sockfd %d add events %c%c%c%c => %c%c%c%c\n",
                         sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));
-                     
+
     return cepoll_add(cepoll, sockfd, events_des);
 }
 
@@ -961,7 +961,7 @@ EC_BOOL cepoll_set_events(CEPOLL *cepoll, const int sockfd, const uint32_t event
     if(0 < (events_src & (~(CEPOLL_HUP | CEPOLL_ERR))))
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_events:sockfd %d mod event:%c%c%c%c --> %c%c%c%c\n",
-                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des)); 
+                            sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));
         CEPOLL_NODE_EVENTS(cepoll_node) = events_des;
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_set_events: CEPOLL_NODE_EVENTS of sockfd %d changed to %c%c%c%c [2]\n", sockfd, CEPOLL_ALL_EVENT_CHARS(CEPOLL_NODE_EVENTS(cepoll_node)));
         return cepoll_mod(cepoll, sockfd, events_des);
@@ -978,8 +978,8 @@ EC_BOOL cepoll_set_loop_handler(CEPOLL *cepoll, const char *name, CEPOLL_LOOP_HA
     if(NULL_PTR != CEPOLL_LOOP_HANDLER(cepoll))
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_set_loop_handler: loop (func %s, handler %p, arg %p) was set already\n",
-                            CEPOLL_LOOP_NAME(cepoll), 
-                            CEPOLL_LOOP_HANDLER(cepoll), 
+                            CEPOLL_LOOP_NAME(cepoll),
+                            CEPOLL_LOOP_HANDLER(cepoll),
                             CEPOLL_LOOP_ARG(cepoll));
         return (EC_FALSE);
     }
@@ -997,16 +997,16 @@ EC_BOOL cepoll_update_atime(CEPOLL *cepoll, const int sockfd)
 {
     CEPOLL_NODE  *cepoll_node;
     CTIMET        next_access_time_old;
- 
-    cepoll_node  = CEPOLL_FETCH_NODE(cepoll, sockfd);     
+
+    cepoll_node  = CEPOLL_FETCH_NODE(cepoll, sockfd);
     if(NULL_PTR == cepoll_node)
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_update_atime: sockfd %d not register cepoll node\n", sockfd);
-        return (EC_FALSE);                             
+        return (EC_FALSE);
     }
 
     next_access_time_old = CEPOLL_NODE_NTIME_TS(cepoll_node);
- 
+
     /*update last access time and next access_time*/
     CEPOLL_NODE_NTIME_TS(cepoll_node) = task_brd_default_get_time() + CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node);
 
@@ -1039,7 +1039,7 @@ EC_BOOL cepoll_update_atime(CEPOLL *cepoll, const int sockfd)
             CEPOLL_NODE_CRB_NODE(cepoll_node) = NULL_PTR;
             return (EC_FALSE);
         }
-     
+
         CEPOLL_NODE_CRB_NODE(cepoll_node) = crb_node;
     }
 
@@ -1047,9 +1047,9 @@ EC_BOOL cepoll_update_atime(CEPOLL *cepoll, const int sockfd)
 }
 
 EC_BOOL cepoll_handle(CEPOLL *cepoll,  const int sockfd, const uint32_t events, CEPOLL_NODE  *cepoll_node)
-{                   
+{
     if(events & (CEPOLL_HUP | CEPOLL_ERR))
-    { 
+    {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_handle: sockfd %d trigger event HP or ERR\n", sockfd);
         return (EC_FALSE);
     }
@@ -1057,28 +1057,28 @@ EC_BOOL cepoll_handle(CEPOLL *cepoll,  const int sockfd, const uint32_t events, 
     if((events & CEPOLL_IN) && (NULL_PTR != CEPOLL_NODE_RD_HANDLER(cepoll_node)))
     {
         EC_BOOL ret;
-     
+
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: try to read on sockfd %d, rd (func %s, handler %p, arg %p)\n",
-                            sockfd, 
-                            CEPOLL_NODE_RD_NAME(cepoll_node), 
-                            CEPOLL_NODE_RD_HANDLER(cepoll_node), 
+                            sockfd,
+                            CEPOLL_NODE_RD_NAME(cepoll_node),
+                            CEPOLL_NODE_RD_HANDLER(cepoll_node),
                             CEPOLL_NODE_RD_ARG(cepoll_node));
         ret = CEPOLL_NODE_RD_HANDLER(cepoll_node)(CEPOLL_NODE_RD_ARG(cepoll_node));
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_handle: sockfd %d read failed, rd (func %s, handler %p, arg %p)\n", 
-                            sockfd, 
-                            CEPOLL_NODE_RD_NAME(cepoll_node), 
-                            CEPOLL_NODE_RD_HANDLER(cepoll_node), 
+            dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_handle: sockfd %d read failed, rd (func %s, handler %p, arg %p)\n",
+                            sockfd,
+                            CEPOLL_NODE_RD_NAME(cepoll_node),
+                            CEPOLL_NODE_RD_HANDLER(cepoll_node),
                             CEPOLL_NODE_RD_ARG(cepoll_node));
             return (EC_FALSE);
         }
         if(EC_DONE == ret)
         {
-            dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: sockfd %d read done, rd (func %s, handler %p, arg %p)\n", 
-                            sockfd, 
-                            CEPOLL_NODE_RD_NAME(cepoll_node), 
-                            CEPOLL_NODE_RD_HANDLER(cepoll_node), 
+            dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: sockfd %d read done, rd (func %s, handler %p, arg %p)\n",
+                            sockfd,
+                            CEPOLL_NODE_RD_NAME(cepoll_node),
+                            CEPOLL_NODE_RD_HANDLER(cepoll_node),
                             CEPOLL_NODE_RD_ARG(cepoll_node));
             return (EC_DONE);
         }
@@ -1087,36 +1087,36 @@ EC_BOOL cepoll_handle(CEPOLL *cepoll,  const int sockfd, const uint32_t events, 
     if((events & CEPOLL_OUT) && (NULL_PTR != CEPOLL_NODE_WR_HANDLER(cepoll_node)))
     {
         EC_BOOL ret;
-     
-        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: try to write on sockfd %d, wr (func %s, handler %p, arg %p)\n", 
-                            sockfd, 
-                            CEPOLL_NODE_WR_NAME(cepoll_node), 
-                            CEPOLL_NODE_WR_HANDLER(cepoll_node), 
+
+        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: try to write on sockfd %d, wr (func %s, handler %p, arg %p)\n",
+                            sockfd,
+                            CEPOLL_NODE_WR_NAME(cepoll_node),
+                            CEPOLL_NODE_WR_HANDLER(cepoll_node),
                             CEPOLL_NODE_WR_ARG(cepoll_node));
         ret = CEPOLL_NODE_WR_HANDLER(cepoll_node)(CEPOLL_NODE_WR_ARG(cepoll_node));
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_handle: sockfd %d write failed, wr (func %s, handler %p, arg %p)\n", 
-                                sockfd, 
-                                CEPOLL_NODE_WR_NAME(cepoll_node), 
-                                CEPOLL_NODE_WR_HANDLER(cepoll_node), 
-                                CEPOLL_NODE_WR_ARG(cepoll_node));      
+            dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_handle: sockfd %d write failed, wr (func %s, handler %p, arg %p)\n",
+                                sockfd,
+                                CEPOLL_NODE_WR_NAME(cepoll_node),
+                                CEPOLL_NODE_WR_HANDLER(cepoll_node),
+                                CEPOLL_NODE_WR_ARG(cepoll_node));
             return (EC_FALSE);
         }
 
         if(EC_DONE == ret)/*prevent from error reporting*/
         {
-            dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: sockfd %d write done, wr (func %s, handler %p, arg %p)\n", 
-                                sockfd, 
-                                CEPOLL_NODE_WR_NAME(cepoll_node), 
-                                CEPOLL_NODE_WR_HANDLER(cepoll_node), 
+            dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: sockfd %d write done, wr (func %s, handler %p, arg %p)\n",
+                                sockfd,
+                                CEPOLL_NODE_WR_NAME(cepoll_node),
+                                CEPOLL_NODE_WR_HANDLER(cepoll_node),
                                 CEPOLL_NODE_WR_ARG(cepoll_node));
             return (EC_DONE);
         }
-    } 
+    }
 
     //dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle: try nothing on sockfd %d\n", sockfd);
- 
+
     return (EC_TRUE);
 }
 
@@ -1134,10 +1134,10 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
     {
         CRB_NODE              *crb_node;
         CEPOLL_NODE           *cepoll_node;
-     
+
         CEPOLL_EVENT_HANDLER   timeout_handler;
         void                  *timeout_arg;
-     
+
         int sockfd;
 
         crb_node = (CRB_NODE *)crb_tree_first_node(CEPOLL_TIMEOUT_TREE(cepoll));
@@ -1145,7 +1145,7 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
         {
             break;
         }
-     
+
         cepoll_node = (CEPOLL_NODE *)CRB_NODE_DATA(crb_node);
         if(NULL_PTR == cepoll_node)
         {
@@ -1159,7 +1159,7 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
 
         /*handle one timeout node*/
         timeout_num ++;
-     
+
         sockfd = CEPOLL_NODE_SOCKFD(cepoll_node);
 
         dbg_log(SEC_0072_CEPOLL, 1)(LOGSTDOUT, "[DEBUG] cepoll_timeout: sockfd %d, cur %u, next %u, timeout_nsec %u\n",
@@ -1178,7 +1178,7 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
 
         cepoll_del_all(cepoll, sockfd);
         /*cepoll_clear_node(cepoll, sockfd);*//*refer: csocket_cnode_close*/
-     
+
         if(NULL_PTR != timeout_handler)
         {
             timeout_handler(timeout_arg); /*timeout handler should close socket*/
@@ -1199,7 +1199,7 @@ EC_BOOL cepoll_loop(CEPOLL *cepoll)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cepoll_no_error(const int ierrno)
+STATIC_CAST static EC_BOOL __cepoll_no_error(const int ierrno)
 {
     switch (ierrno)
     {
@@ -1210,9 +1210,9 @@ static EC_BOOL __cepoll_no_error(const int ierrno)
 #endif/*(EAGAIN != EWOULDBLOCK)*/
         case EALREADY:
         case EINTR:
-#ifdef ERESTART     
+#ifdef ERESTART
         case ERESTART:
-#endif/*ERESTART*/     
+#endif/*ERESTART*/
             return (EC_TRUE);
         default:
             dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "warn:__cepoll_no_error: errno = %d, errstr = %s\n", ierrno, strerror(ierrno));
@@ -1231,22 +1231,22 @@ void cepoll_handle_routine(CEPOLL *cepoll, const UINT32 sockfd_idx)
     uint32_t      events_t;
 
     EC_BOOL       ret;
- 
+
     cepoll_event = CEPOLL_FETCH_EVENT(cepoll, sockfd_idx);
     sockfd       = CEPOLL_EVENT_FD(cepoll_event);
     events_t     = CEPOLL_EVENT_TYPE(cepoll_event);
- 
-    cepoll_node  = CEPOLL_FETCH_NODE(cepoll, sockfd);     
+
+    cepoll_node  = CEPOLL_FETCH_NODE(cepoll, sockfd);
     if(NULL_PTR == cepoll_node)
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd_idx %d: sockfd %d not register cepoll node\n", sockfd_idx, sockfd);
-        return;                             
+        return;
     }
 
     if(CEPOLL_NODE_NOT_USED_FLAG == CEPOLL_NODE_USED_FLAG(cepoll_node))
     {
         dbg_log(SEC_0072_CEPOLL, 2)(LOGSTDOUT, "warn:cepoll_handle_routine: sockfd_idx %d: sockfd %d not used\n", sockfd_idx, sockfd);
-        return;                             
+        return;
     }
 
     dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd %d trigger %c%c%c%c of %c%c%c%c\n",
@@ -1261,16 +1261,16 @@ void cepoll_handle_routine(CEPOLL *cepoll, const UINT32 sockfd_idx)
     {
         CEPOLL_EVENT_HANDLER     handler;
         void                    *arg;
-     
-        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd %d trigger shutdown (func %s, handler %p, arg %p) and epoll events remove\n", 
+
+        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd %d trigger shutdown (func %s, handler %p, arg %p) and epoll events remove\n",
                             sockfd,
-                            CEPOLL_NODE_SHUTDOWN_NAME(cepoll_node), 
-                            CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node), 
-                            CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node)); 
+                            CEPOLL_NODE_SHUTDOWN_NAME(cepoll_node),
+                            CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node),
+                            CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node));
 
         handler = CEPOLL_NODE_SHUTDOWN_HANDLER(cepoll_node);
         arg     = CEPOLL_NODE_SHUTDOWN_ARG(cepoll_node);
-     
+
         cepoll_del_all(cepoll, sockfd);/*epoll del before socket closing*/
         /*cepoll_clear_node(cepoll, sockfd);*//*refer: csocket_cnode_close*/
 
@@ -1285,11 +1285,11 @@ void cepoll_handle_routine(CEPOLL *cepoll, const UINT32 sockfd_idx)
         CEPOLL_EVENT_HANDLER     handler;
         void                    *arg;
 
-        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd %d trigger complete (func %s, handler %p, arg %p) and epoll events remove\n", 
+        dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_handle_routine: sockfd %d trigger complete (func %s, handler %p, arg %p) and epoll events remove\n",
                             sockfd,
-                            CEPOLL_NODE_COMPLETE_NAME(cepoll_node), 
-                            CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node), 
-                            CEPOLL_NODE_COMPLETE_ARG(cepoll_node));  
+                            CEPOLL_NODE_COMPLETE_NAME(cepoll_node),
+                            CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node),
+                            CEPOLL_NODE_COMPLETE_ARG(cepoll_node));
 
         handler = CEPOLL_NODE_COMPLETE_HANDLER(cepoll_node);
         arg     = CEPOLL_NODE_COMPLETE_ARG(cepoll_node);
@@ -1299,7 +1299,7 @@ void cepoll_handle_routine(CEPOLL *cepoll, const UINT32 sockfd_idx)
          * note:
          *  must not call cepoll_clear_node due to the sockfd may be re-used,
          *  and if call it, the handler and arg and parameters would be cleanup,
-         *  thus timeout, shutdown, complete procedure would never be triggered again.  
+         *  thus timeout, shutdown, complete procedure would never be triggered again.
          *
          */
         /*cepoll_clear_node(cepoll, sockfd);*/
@@ -1307,7 +1307,7 @@ void cepoll_handle_routine(CEPOLL *cepoll, const UINT32 sockfd_idx)
         if(NULL_PTR != handler)
         {
             handler(arg);/*shutdown handler should close socket*/
-        }         
+        }
     }
     return;
 }
@@ -1328,7 +1328,7 @@ EC_BOOL cepoll_wait(CEPOLL *cepoll, int timeout_ms)
     if(0 > sockfd_num)
     {
         dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_wait: errno = %d, errstr = %s\n", errno, strerror(errno));
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
 #endif
 
@@ -1336,7 +1336,7 @@ EC_BOOL cepoll_wait(CEPOLL *cepoll, int timeout_ms)
     CEPOLL_DBG("[DEBUG] cepoll_wait: before wait\n");
     sockfd_num = epoll_wait(CEPOLL_FD(cepoll), CEPOLL_EVENT_TAB(cepoll), CEPOLL_EVENT_NUM(cepoll), timeout_ms);
     CEPOLL_DBG("[DEBUG] cepoll_wait: after wait\n");
- 
+
     if(0 > sockfd_num)
     {
         int errcode;
@@ -1348,7 +1348,7 @@ EC_BOOL cepoll_wait(CEPOLL *cepoll, int timeout_ms)
     }
 #endif
     //dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_wait: epoll_wait end and sockfd_num %d >= 0\n", sockfd_num);
- 
+
     /*no file descriptor became ready during the requested timeout milliseconds*/
     if (0 == sockfd_num)/*due to timeout*/
     {
@@ -1360,7 +1360,7 @@ EC_BOOL cepoll_wait(CEPOLL *cepoll, int timeout_ms)
     for(sockfd_idx = 0 ; sockfd_idx < sockfd_num; sockfd_idx ++)
     {
         UINT32 sockfd_idx_t;
-        
+
 #if (SWITCH_ON == NGX_BGN_SWITCH)
         CROUTINE_NODE  *croutine_node;
 
@@ -1372,13 +1372,13 @@ EC_BOOL cepoll_wait(CEPOLL *cepoll, int timeout_ms)
             dbg_log(SEC_0072_CEPOLL, 0)(LOGSTDOUT, "error:cepoll_wait: cthread load for cepoll_handle_routine failed\n");
             break;
         }
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CEPOLL_0021); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CEPOLL_0021);
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
         sockfd_idx_t = sockfd_idx;
         cepoll_handle_routine(cepoll, sockfd_idx_t);
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/ 
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     }
 
     return (EC_TRUE);

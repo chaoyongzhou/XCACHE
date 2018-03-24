@@ -183,7 +183,7 @@ STATIC_CAST static EC_BOOL __dhcp_if_add_route(int sock, const char *netcard, co
     domain = AF_INET;/*xxx*/
 #if 0
     socklen_t info_len;
- 
+
     info_len = sizeof(domain);
 
     if( 0 != getsockopt( sock, SOL_SOCKET, SO_DOMAIN, (char *)&domain, &info_len ) )
@@ -211,7 +211,7 @@ STATIC_CAST static EC_BOOL __dhcp_if_add_route(int sock, const char *netcard, co
 
     rt.rt_flags |= RTF_UP;
     rt.rt_dev    = (char *)netcard;
- 
+
     if (ioctl(sock, SIOCADDRT, &rt) < 0)
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:__dhcp_if_add_route: add route of dev %s failed, errno = %d, errstr = %s\n",
@@ -1815,7 +1815,7 @@ EC_BOOL dhcp_rsp_packet_handle(const DHCP_PACKET *rsp_dhcp_pkt, INET_INFO *recv_
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_rsp_packet_handle: enable netcard onboot failed\n");
         return (EC_FALSE);
     }
-#endif 
+#endif
     return (EC_TRUE);
 #else
     dbg_log(SEC_0084_DHCP, 9)(LOGSTDOUT, "[DEBUG] dhcp_rsp_packet_handle: NOT SET IPADDR TO NETCARD!\n");

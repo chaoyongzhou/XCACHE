@@ -405,15 +405,15 @@ UINT32 cvector_add(CVECTOR *cvector, const void *data)
     if( pos < cvector->capacity )
     {
         cvector->data[ pos ] = (void *)data;
-        cvector->size ++; 
-     
+        cvector->size ++;
+
         CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0019);
         return (pos);
     }
 
-    pos = cvector_push_no_lock(cvector, data); 
+    pos = cvector_push_no_lock(cvector, data);
     CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0020);
- 
+
     return (pos);
 }
 
@@ -443,14 +443,14 @@ UINT32 cvector_push_in_order(CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(
             return CVECTOR_ERR_POS;
         }
     }
- 
+
     if(NULL_PTR == cmp)
     {
         cmp = cvector_asc_cmp_default; /* default in increasing order */
     }
     CVECTOR_LOCK(cvector, LOC_CVECTOR_0021);
     pos = cvector->size;
- 
+
     for( ; 0 < pos -- ; )
     {
         if(NULL_PTR == cvector->data[ pos ])
@@ -464,13 +464,13 @@ UINT32 cvector_push_in_order(CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(
         {
             break;
         }
-     
+
         cvector->data[ pos + 1 ] = cvector->data[ pos ];
     }
- 
+
     cvector->data[ ++ pos ] = (void *)data;
     cvector->size ++;
- 
+
     CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0022);
     return (pos);
 }
@@ -489,14 +489,14 @@ UINT32 cvector_push_in_order_no_lock(CVECTOR *cvector, const void *data, EC_BOOL
             return CVECTOR_ERR_POS;
         }
     }
- 
+
     if(NULL_PTR == cmp)
     {
         cmp = cvector_asc_cmp_default; /* default in increasing order */
     }
 
     pos = cvector->size;
- 
+
     for( ; 0 < pos -- ; )
     {
         if(NULL_PTR == cvector->data[ pos ])
@@ -510,13 +510,13 @@ UINT32 cvector_push_in_order_no_lock(CVECTOR *cvector, const void *data, EC_BOOL
         {
             break;
         }
-     
+
         cvector->data[ pos + 1 ] = cvector->data[ pos ];
     }
- 
+
     cvector->data[ ++ pos ] = (void *)data;
     cvector->size ++;
- 
+
     return (pos);
 }
 
@@ -1659,13 +1659,13 @@ UINT32 cvector_add_no_lock(CVECTOR *cvector, const void *data)
     if( pos < cvector->capacity )
     {
         cvector->data[ pos ] = (void *)data;
-        cvector->size ++; 
-     
+        cvector->size ++;
+
         return (pos);
     }
 
-    pos = cvector_push_no_lock(cvector, data); 
- 
+    pos = cvector_push_no_lock(cvector, data);
+
     return (pos);
 }
 

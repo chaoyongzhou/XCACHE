@@ -150,7 +150,7 @@ void kbuff_free_0(KBUFF *kbuff)
     return;
 }
 
-static void kbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const UINT32 count)
+STATIC_CAST static void kbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const UINT32 count)
 {
     sys_print(LOGSTDOUT, "%02x ", ch);
 
@@ -165,7 +165,7 @@ static void kbuff_print_one_char_with_alignment(LOG *log, const UINT8 ch, const 
     return;
 }
 
-static void kbuff_print_end_with_alignment(LOG *log, const UINT32 count)
+STATIC_CAST static void kbuff_print_end_with_alignment(LOG *log, const UINT32 count)
 {
     if(0 != (count % KBUFF_PRINT_LINE_WIDETH))
     {
@@ -175,7 +175,7 @@ static void kbuff_print_end_with_alignment(LOG *log, const UINT32 count)
 }
 
 
-static void kbuff_print_cache(LOG *log, const KBUFF *kbuff)
+STATIC_CAST static void kbuff_print_cache(LOG *log, const KBUFF *kbuff)
 {
     UINT32 pos;
     UINT32 count;

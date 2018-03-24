@@ -258,7 +258,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs write"   , "hsrfs <id> write file <name> with content <string> [to memcache] on tcid <tcid> at <console|log>");
     /* check whether file is in memory cache */
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs check"   , "hsrfs <id> check memcache file <name> on tcid <tcid> at <console|log>");
- 
+
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs create"  , "hsrfs <id> create bigfile <name> with size <file size> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs read"    , "hsrfs <id> read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs download", "hsrfs <id> download bigfile <name> to file <name> on tcid <tcid> at <console|log>");
@@ -282,7 +282,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs count"   , "hsrfs <id> count file size of <path> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs qfile"   , "hsrfs <id> qfile <file> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs qdir"    , "hsrfs <id> qdir <dir> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsrfs qlist"   , "hsrfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>"); 
+    api_cmd_help_vec_create(cmd_help_vec, "hsrfs qlist"   , "hsrfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs show"    , "hsrfs <id> show npp on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs show"    , "hsrfs <id> show dn on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs show"    , "hsrfs <id> show cached np on tcid <tcid> at <console|log>");
@@ -319,7 +319,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc dt"      , "hsrfsc {flush|load|clone|rollback|show} dt on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc trans"   , "hsrfsc trans dir <name> {whole|prepare|handle|post|recycle} on tcid <tcid> at <console|log>");
 
-#endif 
+#endif
 #if 0
     api_cmd_help_vec_create(cmd_help_vec, "hshfs create"  , "hshfs create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hshfs create"  , "hshfs create dn with root <root dir> on tcid <tcid> at <console|log>");
@@ -341,7 +341,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hshfs show"    , "hshfs show npp on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hshfs show"    , "hshfs show dn on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hshfs show"    , "hshfs show cached np on tcid <tcid> at <console|log>");
-    //api_cmd_help_vec_create(cmd_help_vec, "hshfs show"    , "hshfs show specific np <id> on tcid <tcid> at <console|log>"); 
+    //api_cmd_help_vec_create(cmd_help_vec, "hshfs show"    , "hshfs show specific np <id> on tcid <tcid> at <console|log>");
 #endif
 
 #if 0
@@ -363,7 +363,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show npp on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show dn on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show cached np on tcid <tcid> at <console|log>");
-    //api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show specific np <id> on tcid <tcid> at <console|log>"); 
+    //api_cmd_help_vec_create(cmd_help_vec, "hssfs show"    , "hssfs show specific np <id> on tcid <tcid> at <console|log>");
 #endif
 
 #if 1
@@ -405,7 +405,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "p2p cmd"     , "p2p deliver <service> <cmd> in {all | network <level> {all | tcid <tcid>}} on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "p2p online"  , "p2p online <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "p2p offline" , "p2p offline <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>");
-    
+
 #endif
 
 #if 0
@@ -438,7 +438,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_diag_mem_all                , "diag mem all on all at %s"                       , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_diag_mem                    , "diag mem all on tcid %t rank %n at %s"           , tcid, rank, where);
-    
+
     api_cmd_comm_define(cmd_tree, api_cmd_ui_diag_csocket_cnode_all      , "diag socket on all at %s"                       , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_diag_csocket_cnode          , "diag socket on tcid %t rank %n at %s"           , tcid, rank, where);
 
@@ -702,15 +702,15 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_write            , "hsrfs %n write file %s with content %s on tcid %t at %s", rank, where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_write_memc       , "hsrfs %n write file %s with content %s to memcache on tcid %t at %s", rank, where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_update_memc      , "hsrfs %n update file %s with content %s to memcache on tcid %t at %s", rank, where, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_check_memc       , "hsrfs %n check memcache file %s on tcid %t at %s", rank, where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_check_memc       , "hsrfs %n check memcache file %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_create_b         , "hsrfs %n create bigfile %s with size %N on tcid %t at %s", rank, where, offset64, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_read_b           , "hsrfs %n read bigfile %s from offset %N max %n on tcid %t at %s", rank, where, offset64, rank, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_write_b          , "hsrfs %n write bigfile %s with content %s at offset %N on tcid %t at %s", rank, where, where, offset64, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_delete_b         , "hsrfs %n delete bigfile %s on tcid %t at %s", rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_download_b       , "hsrfs %n download bigfile %s to file %s on tcid %t at %s", rank, where, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_upload_b         , "hsrfs %n upload file %s to bigfile %s on tcid %t at %s", rank, where, where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_write_b          , "hsrfs %n write bigfile %s with content %s at offset %N on tcid %t at %s", rank, where, where, offset64, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_delete_b         , "hsrfs %n delete bigfile %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_download_b       , "hsrfs %n download bigfile %s to file %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_upload_b         , "hsrfs %n upload file %s to bigfile %s on tcid %t at %s", rank, where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_mkdir            , "hsrfs %n mkdir %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_search           , "hsrfs %n search %s on tcid %t at %s", rank, where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_search           , "hsrfs %n search %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_delete_file      , "hsrfs %n delete file %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_delete_dir       , "hsrfs %n delete dir %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_delete_path      , "hsrfs %n delete path %s on tcid %t at %s", rank, where, tcid, where);
@@ -730,22 +730,22 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_show_specific_np , "hsrfs %n show specific np %n on tcid %t at %s", rank, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_show_locked_files, "hsrfs %n show locked files on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_md5sum           , "hsrfs %n md5sum file %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_md5sum_b         , "hsrfs %n md5sum bigfile %s seg %n on tcid %t at %s", rank, where, rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_np_snapshot      , "hsrfs %n snapshot np %n to path %s on tcid %t at %s", rank, rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_npp_snapshot     , "hsrfs %n snapshot npp to path %s on tcid %t at %s", rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_disk_snapshot    , "hsrfs %n snapshot disk %n to path %s on tcid %t at %s", rank, rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_dn_snapshot      , "hsrfs %n snapshot dn to path %s on tcid %t at %s", rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_vol_snapshot     , "hsrfs %n snapshot vol to path %s on tcid %t at %s", rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_all_snapshot     , "hsrfs %n snapshot all to path %s on tcid %t at %s", rank, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_create_backup    , "hsrfs %n create backup np %s dn %s op %s on tcid %t at %s", rank, where, where, where,tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_open_backup      , "hsrfs %n open backup np %s dn %s op %s on tcid %t at %s", rank, where, where, where,tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_close_backup     , "hsrfs %n close backup on tcid %t at %s", rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_show_backup      , "hsrfs %n show backup on tcid %t at %s", rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_start_sync       , "hsrfs %n start sync on tcid %t at %s", rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_end_sync         , "hsrfs %n end sync on tcid %t at %s", rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_replay           , "hsrfs %n replay on tcid %t at %s", rank, tcid, where);   
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_md5sum_b         , "hsrfs %n md5sum bigfile %s seg %n on tcid %t at %s", rank, where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_np_snapshot      , "hsrfs %n snapshot np %n to path %s on tcid %t at %s", rank, rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_npp_snapshot     , "hsrfs %n snapshot npp to path %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_disk_snapshot    , "hsrfs %n snapshot disk %n to path %s on tcid %t at %s", rank, rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_dn_snapshot      , "hsrfs %n snapshot dn to path %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_vol_snapshot     , "hsrfs %n snapshot vol to path %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_all_snapshot     , "hsrfs %n snapshot all to path %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_create_backup    , "hsrfs %n create backup np %s dn %s op %s on tcid %t at %s", rank, where, where, where,tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_open_backup      , "hsrfs %n open backup np %s dn %s op %s on tcid %t at %s", rank, where, where, where,tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_close_backup     , "hsrfs %n close backup on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_show_backup      , "hsrfs %n show backup on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_start_sync       , "hsrfs %n start sync on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_end_sync         , "hsrfs %n end sync on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_replay           , "hsrfs %n replay on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_count_file_num   , "hsrfs %n count file num of %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_count_file_size  , "hsrfs %n count file size of %s on tcid %t at %s", rank, where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_count_file_size  , "hsrfs %n count file size of %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qfile            , "hsrfs %n qfile %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qdir             , "hsrfs %n qdir %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qlist_path_of_np , "hsrfs %n qlist %s full of np %n on tcid %t at %s", rank, where, rank, tcid, where);
@@ -761,19 +761,19 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write           , "hsrfsc write file %s with content %s on tcid %t at %s", where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_create_b        , "hsrfsc create bigfile %s with size %N on tcid %t at %s", where, offset64, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_read_b          , "hsrfsc read bigfile %s from offset %N max %n on tcid %t at %s", where, offset64, rank, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write_b         , "hsrfsc write bigfile %s with content %s at offset %N on tcid %t at %s", where, where, offset64, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_delete_b        , "hsrfsc delete bigfile %s on tcid %t at %s", where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_download_b      , "hsrfsc download bigfile %s to file %s on tcid %t at %s", where, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_upload_b        , "hsrfsc upload file %s to bigfile %s on tcid %t at %s", where, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_search_file     , "hsrfsc search file %s on tcid %t at %s", where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_search_dir      , "hsrfsc search dir %s on tcid %t at %s", where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_write_b         , "hsrfsc write bigfile %s with content %s at offset %N on tcid %t at %s", where, where, offset64, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_delete_b        , "hsrfsc delete bigfile %s on tcid %t at %s", where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_download_b      , "hsrfsc download bigfile %s to file %s on tcid %t at %s", where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_upload_b        , "hsrfsc upload file %s to bigfile %s on tcid %t at %s", where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_search_file     , "hsrfsc search file %s on tcid %t at %s", where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_search_dir      , "hsrfsc search dir %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_delete_file     , "hsrfsc delete file %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_delete_dir      , "hsrfsc delete dir %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_delete_path     , "hsrfsc delete path %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_recycle         , "hsrfsc recycle on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_md5sum          , "hsrfsc md5sum file %s on tcid %t at %s", where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_md5sum_b        , "hsrfsc md5sum bigfile %s seg %n on tcid %t at %s", where, rank, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_count_file_size , "hsrfsc count file size of %s on tcid %t at %s", where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_md5sum_b        , "hsrfsc md5sum bigfile %s seg %n on tcid %t at %s", where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_count_file_size , "hsrfsc count file size of %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_qfile           , "hsrfsc qfile %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_add_dir         , "hsrfsc add dir %s %t on tcid %t at %s", where, tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_del_dir         , "hsrfsc del dir %s %t on tcid %t at %s", where, tcid, tcid, where);
@@ -809,7 +809,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_show_cached_np   , "hshfs show cached np on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_show_specific_np , "hshfs show specific np %n on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_count_file_num   , "hshfs count file num on tcid %t at %s", tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_count_file_size  , "hshfs count file size of %s on tcid %t at %s", where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_count_file_size  , "hshfs count file size of %s on tcid %t at %s", where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_create_npp       , "hssfs create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_create_dn        , "hssfs create dn with root %s on tcid %t at %s", where, tcid, where);
@@ -829,7 +829,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_show_cached_np   , "hssfs show cached np on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_show_specific_np , "hssfs show specific np %n on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_count_file_num   , "hssfs count file num on tcid %t at %s", tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_count_file_size  , "hssfs count file size of %s on tcid %t at %s", where, tcid, where); 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_csfs_count_file_size  , "hssfs count file size of %s on tcid %t at %s", where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_create_npp       , "tdns create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_start            , "tdns start from root %s on tcid %t", where, where, tcid);
@@ -877,9 +877,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_deliver_cmd_all   , "p2p deliver %s %s in all on tcid %t at %s", where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_online            , "p2p online %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cp2p_offline           , "p2p offline %s network %n tcid %t on tcid %t at %s", where, rank, tcid, tcid, where);
-    
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_download_file         , "download file %s to %s from tcid %t at %s", where, where, tcid, where); 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_upload_file           , "upload file %s to %s on tcid %t at %s", where, where, tcid, where); 
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_download_file         , "download file %s to %s from tcid %t at %s", where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_upload_file           , "upload file %s to %s on tcid %t at %s", where, where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_log_level_all    , "show log level on all at %s"            , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_log_level        , "show log level on tcid %t rank %n at %s", tcid, rank, where);
@@ -971,20 +971,20 @@ void api_cmd_ui_do_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *cm
 }
 
 EC_BOOL api_cmd_ui_task_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec)
-{   
+{
     char        *cmd;
 
     cmd = (char *)api_cmd_line_buff;
 
     api_cmd_ui_do_once(cmd_tree, cmd_help_vec, (char *)cmd);
-   
+
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_ui_clear_cmd()
 {
     char        *cmd;
-    
+
     cmd = (char *)api_cmd_line_buff;
 
     cmd[ 0 ] = '\0';
@@ -999,13 +999,13 @@ EC_BOOL api_cmd_ui_get_cmd()
 
     uint32_t     len;
     EC_BOOL      ret;
-    
+
     prompt = api_cmd_prompt;
     cmd    = (char *)api_cmd_line_buff;
     size   = api_cmd_line_buff_size;
-    
+
     ret = cconsole_cmd_get(prompt, cmd, size, &len);
-    
+
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_get_cmd: quit console due to get cmd failed\n");
@@ -1017,7 +1017,7 @@ EC_BOOL api_cmd_ui_get_cmd()
     {
         return (EC_TRUE);
     }
-    
+
     /*quit*/
     if(EC_TRUE == c_str_is_in(cmd, (const char *)":", (const char *)"exit:quit"))
     {
@@ -1025,7 +1025,7 @@ EC_BOOL api_cmd_ui_get_cmd()
         csig_stop(SIGHUP);
         return (EC_FALSE);
     }
-    
+
     /*add command to history*/
     cconsole_cmd_add_history(cmd);
 
@@ -1035,7 +1035,7 @@ EC_BOOL api_cmd_ui_get_cmd()
         cconsole_cmd_print_history(LOGCONSOLE);
         return (EC_TRUE);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -1123,9 +1123,9 @@ EC_BOOL api_cmd_ui_task_preface()
 
 /*readline thread to get a command from console*/
 EC_BOOL api_cmd_ui_task()
-{ 
+{
     cconsole_catach_signals_disable();
-    
+
     api_cmd_ui_task_preface();
 
     for(;;)
@@ -1142,11 +1142,11 @@ EC_BOOL api_cmd_ui_task()
     }
 
     cconsole_cmd_clear_history();
-   
+
     return (EC_FALSE);
 }
 
-static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank, const UINT32 modi)
+STATIC_CAST static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank, const UINT32 modi)
 {
     TASK_BRD  *task_brd;
     TASKC_MGR *taskc_mgr;
@@ -1168,17 +1168,17 @@ static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const UINT32 incl
     {
         UINT32      incl_ipv4;
         UINT32      incl_port;
-        
+
         if(EC_TRUE == c_tdns_resolve(incl_tcid, &incl_ipv4, &incl_port))
         {
             MOD_NODE   *remote_mod_node;
-            
+
             dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_gen_mod_mgr: "
                                                 "tdns resolve '%s' => ip '%s', port %ld\n",
                                                 c_word_to_ipv4(incl_tcid),
                                                 c_word_to_ipv4(incl_ipv4),
                                                 incl_port);
-            
+
             mod_node_alloc(&remote_mod_node);
 
             MOD_NODE_TCID(remote_mod_node) = incl_tcid;
@@ -1186,14 +1186,14 @@ static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const UINT32 incl
             MOD_NODE_RANK(remote_mod_node) = incl_rank;
             MOD_NODE_MODI(remote_mod_node) = modi;
 
-            cvector_push(MOD_MGR_REMOTE_LIST(mod_mgr), remote_mod_node);   
+            cvector_push(MOD_MGR_REMOTE_LIST(mod_mgr), remote_mod_node);
         }
     }
-    
+
     return (mod_mgr);
 }
 
-static LOG *api_cmd_ui_get_log(const CSTRING *where)
+STATIC_CAST static LOG *api_cmd_ui_get_log(const CSTRING *where)
 {
     if(0 == strcmp("log", (char *)cstring_get_str(where)))
     {
@@ -1210,7 +1210,7 @@ static LOG *api_cmd_ui_get_log(const CSTRING *where)
     return (LOGSTDNULL);
 }
 
-static UINT32 api_cmd_ui_get_cdfsnp_mode(const CSTRING *db_mode)
+STATIC_CAST static UINT32 api_cmd_ui_get_cdfsnp_mode(const CSTRING *db_mode)
 {
     UINT8  cdfsnp_mode_str[32];
     UINT32 cdfsnp_mode;
@@ -2200,7 +2200,7 @@ EC_BOOL api_cmd_ui_clean_mem_all(CMD_PARA_VEC * param)
         mod_mgr_print(LOGSTDOUT, mod_mgr);
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_clean_mem_all end ----------------------------------\n");
     }
-#endif 
+#endif
 #if 1
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2242,7 +2242,7 @@ EC_BOOL api_cmd_ui_breathing_mem(CMD_PARA_VEC * param)
         mod_mgr_print(LOGSTDOUT, mod_mgr);
         sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_breathing_mem end ----------------------------------\n");
     }
-#endif 
+#endif
 
 #if 1
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -2792,7 +2792,7 @@ EC_BOOL api_cmd_ui_say_hello(CMD_PARA_VEC * param)
 #endif
 
     report_vec = cvector_new(0, MM_UINT32, LOC_API_0098);
-    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0099); 
+    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0099);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2800,7 +2800,7 @@ EC_BOOL api_cmd_ui_say_hello(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
         CSTRING *cstring;
-     
+
         cstring = cstring_new(NULL_PTR, LOC_API_0100);
         cvector_push(hello_vec, (void *)cstring);
 
@@ -2837,7 +2837,7 @@ EC_BOOL api_cmd_ui_say_hello(CMD_PARA_VEC * param)
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         free_static_mem(MM_UINT32, ret, LOC_API_0102);
-     
+
     }
 
     cvector_free(hello_vec, LOC_API_0103);
@@ -2883,7 +2883,7 @@ EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
 #endif
 
     report_vec = cvector_new(0, MM_UINT32, LOC_API_0105);
-    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0106); 
+    hello_vec = cvector_new(0, MM_CSTRING, LOC_API_0106);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
@@ -2891,7 +2891,7 @@ EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
     {
         UINT32 *ret;
         CSTRING *cstring;
-     
+
         cstring = cstring_new(NULL_PTR, LOC_API_0107);
         cvector_push(hello_vec, (void *)cstring);
 
@@ -2928,7 +2928,7 @@ EC_BOOL api_cmd_ui_say_hello_all(CMD_PARA_VEC * param)
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         free_static_mem(MM_UINT32, ret, LOC_API_0109);
-     
+
     }
 
     cvector_free(hello_vec, LOC_API_0110);
@@ -2988,7 +2988,7 @@ EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
         UINT32 *ret;
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0113);
         cvector_push(report_vec, (void *)ret);
 
@@ -3017,7 +3017,7 @@ EC_BOOL api_cmd_ui_say_hello_loop(CMD_PARA_VEC * param)
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         free_static_mem(MM_UINT32, ret, LOC_API_0114);
-     
+
     }
 
     cvector_free(report_vec, LOC_API_0115);
@@ -3070,7 +3070,7 @@ EC_BOOL api_cmd_ui_say_hello_loop_all(CMD_PARA_VEC * param)
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
         UINT32 *ret;
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0117);
         cvector_push(report_vec, (void *)ret);
 
@@ -3098,7 +3098,7 @@ EC_BOOL api_cmd_ui_say_hello_loop_all(CMD_PARA_VEC * param)
         }
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_API_0118);     
+        free_static_mem(MM_UINT32, ret, LOC_API_0118);
     }
 
     cvector_free(report_vec, LOC_API_0119);
@@ -3219,7 +3219,7 @@ EC_BOOL api_cmd_ui_rotate_log(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_tcid(param   , 1, &tcid);
     api_cmd_para_vec_get_uint32(param , 2, &rank);
     api_cmd_para_vec_get_cstring(param, 3, &where);
- 
+
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "rotate log %ld on tcid %s, rank %ld at %s\n",
                         log_index,
                         c_word_to_ipv4((tcid)),
@@ -3274,7 +3274,7 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(where));
 
     report_vec = cvector_new(0, MM_UINT32, LOC_API_0120);
- 
+
     mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -3287,7 +3287,7 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
         cvector_push(report_vec, (void *)ret);
 
         (*ret) = EC_FALSE;
-     
+
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_rotate_log, CMPI_ERROR_MODI, log_index);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -3315,7 +3315,7 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param)
         free_static_mem(MM_UINT32, ret, LOC_API_0122);
     }
 
-    cvector_free(report_vec, LOC_API_0123); 
+    cvector_free(report_vec, LOC_API_0123);
 
     mod_mgr_free(mod_mgr);
 
@@ -3336,7 +3336,7 @@ EC_BOOL api_cmd_ui_do_test(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_tcid(param   , 0, &tcid);
     api_cmd_para_vec_get_uint32(param , 1, &rank);
     api_cmd_para_vec_get_cstring(param, 2, &where);
- 
+
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "do test on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4((tcid)),
                         rank,
@@ -10683,7 +10683,7 @@ EC_BOOL api_cmd_ui_cbgt_create_root_table(CMD_PARA_VEC * param)
 
     des_mod_mgr = NULL_PTR;
     cbytes_init(&root_table_name_bytes);
- 
+
     cbytes_mount(&root_table_name_bytes, cstring_get_len(root_table_name), cstring_get_str(root_table_name));
     MOD_NODE_TCID(&error_mod_node) = CMPI_ERROR_TCID;
     MOD_NODE_COMM(&error_mod_node) = CMPI_ERROR_COMM;
@@ -10699,7 +10699,7 @@ EC_BOOL api_cmd_ui_cbgt_create_root_table(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-static EC_BOOL __api_cmd_ui_cbgt_query_root_table(const CSTRING *root_path, UINT32 *root_table_id, MOD_NODE *root_mod_node)
+STATIC_CAST static EC_BOOL __api_cmd_ui_cbgt_query_root_table(const CSTRING *root_path, UINT32 *root_table_id, MOD_NODE *root_mod_node)
 {
     UINT32   cbgt_md_id;
 
@@ -10790,7 +10790,7 @@ EC_BOOL api_cmd_ui_cbgt_create_user_table(CMD_PARA_VEC * param)
     {
         CBYTES *colf_bytes;
         char   *colf_name;
-    
+
         colf_bytes = cbytes_new(0);
         if(NULL_PTR == colf_bytes)
         {
@@ -10961,7 +10961,7 @@ EC_BOOL api_cmd_ui_cbgt_delete_colf_table(CMD_PARA_VEC * param)
 
     cbytes_init(&user_table_name_bytes);
     cbytes_init(&colf_name_bytes);
- 
+
     cbytes_mount(&user_table_name_bytes, strlen(fields[0]), (UINT8 *)fields[0]);
     cbytes_mount(&colf_name_bytes      , strlen(fields[1]), (UINT8 *)fields[1]);
 
@@ -11139,7 +11139,7 @@ EC_BOOL api_cmd_ui_cbgt_open_root_table(CMD_PARA_VEC * param)
 
     des_mod_mgr = NULL_PTR;
     cbytes_init(&root_table_name_bytes);
- 
+
     cbytes_mount(&root_table_name_bytes, cstring_get_len(root_table_name), cstring_get_str(root_table_name));
     MOD_NODE_TCID(&error_mod_node) = CMPI_ERROR_TCID;
     MOD_NODE_COMM(&error_mod_node) = CMPI_ERROR_COMM;
@@ -11492,11 +11492,11 @@ EC_BOOL api_cmd_ui_cbgt_search(CMD_PARA_VEC * param)
     cbytes_init(&row_bytes);
     cbytes_init(&colf_bytes);
     cbytes_init(&colq_bytes);
- 
+
     cbytes_mount(&row_bytes , strlen(fields[0]), (UINT8 *)fields[0]);
     cbytes_mount(&colf_bytes, strlen(fields[1]), (UINT8 *)fields[1]);
     cbytes_mount(&colq_bytes, strlen(fields[2]), (UINT8 *)fields[2]);
- 
+
     cbytes_init(&val_bytes);
 
     ret = EC_FALSE;
@@ -11581,7 +11581,7 @@ EC_BOOL api_cmd_ui_cbgt_fetch(CMD_PARA_VEC * param)
     cbytes_mount(&row_bytes , strlen(fields[0]), (UINT8 *)fields[0]);
     cbytes_mount(&colf_bytes, strlen(fields[1]), (UINT8 *)fields[1]);
     cbytes_mount(&colq_bytes, strlen(fields[2]), (UINT8 *)fields[2]);
- 
+
     cbytes_init(&val_bytes);
 
     ret = EC_FALSE;
@@ -12074,7 +12074,7 @@ EC_BOOL api_cmd_ui_cbgt_select_in_all_colf(CMD_PARA_VEC * param)
 
     cbytes_init(&user_table_name_bytes);
     cbytes_init(&colf_table_name_bytes);
- 
+
     cbytes_mount(&user_table_name_bytes, strlen(fields[0]), (UINT8 *)fields[0]);
     cbytes_mount(&colf_table_name_bytes, strlen(fields[1]), (UINT8 *)fields[1]);
 
@@ -12932,7 +12932,7 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
 
     CVECTOR *report_vec;
     LOG   *des_log;
- 
+
     CBYTES val_cbytes;
 
     api_cmd_para_vec_get_cstring(param, 0, &session_name);
@@ -12973,7 +12973,7 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0334);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
-     
+
         cbytes_mount(&val_cbytes, cstring_get_len(val), cstring_get_str(val));
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_set_by_name, CMPI_ERROR_MODI, session_name, key, &val_cbytes);
     }
@@ -13027,7 +13027,7 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
 
     CVECTOR *report_vec;
     LOG   *des_log;
- 
+
     CBYTES     val_cbytes;
 
     api_cmd_para_vec_get_uint32(param , 0, &session_id);
@@ -13065,7 +13065,7 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
         UINT32    *ret;
-     
+
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0338);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
@@ -14855,7 +14855,7 @@ EC_BOOL api_cmd_ui_crfs_create_npp(CMD_PARA_VEC * param)
     UINT32   crfs_modi;
     UINT32   crfsnp_model;
     UINT32   crfsnp_max_num;
-    UINT32   crfsnp_2nd_chash_algo_id; 
+    UINT32   crfsnp_2nd_chash_algo_id;
     CSTRING *crfsnp_db_root_dir;
     UINT32   crfsnp_tcid;
     CSTRING *where;
@@ -15258,7 +15258,7 @@ EC_BOOL api_cmd_ui_crfs_read(CMD_PARA_VEC * param)
     CBYTES    *cbytes;
     LOG       *des_log;
     EC_BOOL    ret;
- 
+
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &file_name);
     api_cmd_para_vec_get_tcid(param    , 2, &crfsnp_tcid);
@@ -15336,7 +15336,7 @@ EC_BOOL api_cmd_ui_crfs_write(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfsnp_tcid;
@@ -15399,7 +15399,7 @@ EC_BOOL api_cmd_ui_crfs_create_b(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -15457,7 +15457,7 @@ EC_BOOL api_cmd_ui_crfs_read_b(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -15514,7 +15514,7 @@ EC_BOOL api_cmd_ui_crfs_write_b(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfsnp_tcid;
@@ -15603,7 +15603,7 @@ EC_BOOL api_cmd_ui_crfs_download_b(CMD_PARA_VEC * param)
     UINT32   crfsnp_tcid;
     CSTRING *where;
 
-    MOD_NODE   mod_node; 
+    MOD_NODE   mod_node;
     LOG       *des_log;
 
     CBYTES    *cbytes;
@@ -15634,26 +15634,26 @@ EC_BOOL api_cmd_ui_crfs_download_b(CMD_PARA_VEC * param)
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfs_download_b: open file %s failed\n",
                             (char *)cstring_get_str(file_name));
-        return (EC_TRUE);                     
-    } 
+        return (EC_TRUE);
+    }
 
     c_file_truncate(fd, 0);
 
     cbytes = cbytes_new(0);
-    ASSERT(NULL_PTR != cbytes); 
+    ASSERT(NULL_PTR != cbytes);
 
     offset = 0;
     for(;;)
     {
         EC_BOOL    ret;
         UINT32     max_len;
-        UINT32     offset_t;   
+        UINT32     offset_t;
 
         max_len  = CPGB_CACHE_MAX_BYTE_SIZE;
         offset_t = (UINT32)offset;
 
-        ret = EC_FALSE;     
-     
+        ret = EC_FALSE;
+
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
@@ -15670,7 +15670,7 @@ EC_BOOL api_cmd_ui_crfs_download_b(CMD_PARA_VEC * param)
         {
             sys_log(des_log, "[FAIL] api_cmd_ui_crfs_download_b: download bigfile %s to offset %llu\n",
                               (char *)cstring_get_str(bigfile_name), offset);
-        }  
+        }
 
         if(EC_FALSE == ret)
         {
@@ -15702,9 +15702,9 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     UINT32   crfsnp_tcid;
     CSTRING *where;
 
-    MOD_NODE   mod_node; 
+    MOD_NODE   mod_node;
     LOG       *des_log;
- 
+
     uint64_t   file_size;
     uint64_t   offset;
     int        fd;
@@ -15738,14 +15738,14 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfs_upload_b: open file %s failed\n",
                             (char *)cstring_get_str(file_name));
-        return (EC_TRUE);                     
+        return (EC_TRUE);
     }
 
     if(EC_FALSE == c_file_size_b(fd, &file_size))
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfs_upload_b: get file %s size failed\n",
                             (char *)cstring_get_str(file_name));
- 
+
         c_file_close(fd);
         return (EC_TRUE);
     }
@@ -15753,7 +15753,7 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     sys_log(LOGCONSOLE, "[DEBUG] api_cmd_ui_crfs_upload_b: file %s, size %ld\n", (char *)cstring_get_str(file_name), file_size);
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -15779,17 +15779,17 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
     //content_max_len = (CPGB_CACHE_MAX_BYTE_SIZE / 2) - 7;
     content_max_len = CPGB_CACHE_MAX_BYTE_SIZE;
 
-    content = safe_malloc(content_max_len, LOC_API_0424);     
+    content = safe_malloc(content_max_len, LOC_API_0424);
     ASSERT(NULL_PTR != content);
- 
-    cbytes = cbytes_new(0);
-    ASSERT(NULL_PTR != cbytes); 
 
-    offset = 0; 
+    cbytes = cbytes_new(0);
+    ASSERT(NULL_PTR != cbytes);
+
+    offset = 0;
     while(offset < file_size)
-    {     
+    {
         UINT32     content_len;
-     
+
         UINT32     offset_t;
 
         offset_t = (UINT32)offset;
@@ -15797,10 +15797,10 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
         content_len = (UINT32)(offset_t - offset);
 
         //sys_log(des_log, "[DEBUG] api_cmd_ui_crfs_upload_b: load data from %ld to %ld, len %ld\n", (UINT32)offset, offset_t, content_len);
-     
+
         cbytes_mount(cbytes, content_len, content);
 
-        ret = EC_FALSE;     
+        ret = EC_FALSE;
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
@@ -15815,9 +15815,9 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
         else
         {
             sys_log(des_log, "[FAIL] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
-        } 
+        }
 
-        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);     
+        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
 
         if(EC_FALSE == ret)
         {
@@ -16747,7 +16747,7 @@ EC_BOOL api_cmd_ui_crfs_delete_file(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -16818,7 +16818,7 @@ EC_BOOL api_cmd_ui_crfs_delete_dir(CMD_PARA_VEC * param)
 
 
     des_log = api_cmd_ui_get_log(where);
- 
+
     ret = EC_FALSE;
 
     /* ensure the dir to delete is NOT root dir / */
@@ -16896,7 +16896,7 @@ EC_BOOL api_cmd_ui_crfs_delete_root_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[ERRO] the dir %s to delete is not root dir / \n", (char *)cstring_get_str(dname));
     }
- 
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[SUCC] delete root dir %s\n", (char *)cstring_get_str(dname));
@@ -16921,7 +16921,7 @@ EC_BOOL api_cmd_ui_crfs_check_memc(CMD_PARA_VEC * param)
 
     LOG       *des_log;
     EC_BOOL    ret;
- 
+
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &file_name);
     api_cmd_para_vec_get_tcid(param    , 2, &crfsnp_tcid);
@@ -16992,7 +16992,7 @@ EC_BOOL api_cmd_ui_crfs_write_memc(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfsnp_tcid;
@@ -17034,7 +17034,7 @@ EC_BOOL api_cmd_ui_crfs_read_memc(CMD_PARA_VEC * param)
     CBYTES    *cbytes;
     LOG       *des_log;
     EC_BOOL    ret;
- 
+
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_cstring(param , 1, &file_name);
     api_cmd_para_vec_get_tcid(param    , 2, &crfsnp_tcid);
@@ -17108,7 +17108,7 @@ EC_BOOL api_cmd_ui_crfs_update_memc(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfsnp_tcid;
@@ -17170,7 +17170,7 @@ EC_BOOL api_cmd_ui_crfs_delete_dir_memc(CMD_PARA_VEC * param)
 
 
     des_log = api_cmd_ui_get_log(where);
- 
+
     ret = EC_FALSE;
 
     /* ensure the dir to delete is NOT root dir / */
@@ -17233,7 +17233,7 @@ EC_BOOL api_cmd_ui_crfs_delete_root_dir_memc(CMD_PARA_VEC * param)
 
 
     des_log = api_cmd_ui_get_log(where);
- 
+
     ret = EC_FALSE;
 
     /* ensure the dir to delete is root dir / */
@@ -17249,7 +17249,7 @@ EC_BOOL api_cmd_ui_crfs_delete_root_dir_memc(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[ERRO] the dir %s to delete is not root dir / \n", (char *)cstring_get_str(dname));
     }
- 
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[SUCC] delete root dir %s from memcache\n", (char *)cstring_get_str(dname));
@@ -17293,7 +17293,7 @@ EC_BOOL api_cmd_ui_crfs_delete_file_memc(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17362,7 +17362,7 @@ EC_BOOL api_cmd_ui_crfs_delete_path_memc(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17412,7 +17412,7 @@ EC_BOOL api_cmd_ui_crfs_delete_path(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17460,7 +17460,7 @@ EC_BOOL api_cmd_ui_crfs_recycle(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17515,7 +17515,7 @@ EC_BOOL api_cmd_ui_crfs_retire(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     complete_retire_num = 0;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17562,7 +17562,7 @@ EC_BOOL api_cmd_ui_crfs_flush(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17609,7 +17609,7 @@ EC_BOOL api_cmd_ui_crfs_flush_npp(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17656,7 +17656,7 @@ EC_BOOL api_cmd_ui_crfs_flush_dn(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17706,7 +17706,7 @@ EC_BOOL api_cmd_ui_crfs_show_npp(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17758,7 +17758,7 @@ EC_BOOL api_cmd_ui_crfs_show_dn(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17810,7 +17810,7 @@ EC_BOOL api_cmd_ui_crfs_show_cached_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17865,7 +17865,7 @@ EC_BOOL api_cmd_ui_crfs_show_specific_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17922,7 +17922,7 @@ EC_BOOL api_cmd_ui_crfs_show_locked_files(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              NULL_PTR,
@@ -17971,7 +17971,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -17992,7 +17992,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] file %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,      
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname)
                            );
     }
@@ -18035,7 +18035,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18047,7 +18047,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %u, md5sum %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,      
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname),
                            seg_no,
                            c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
@@ -18057,7 +18057,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %u\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,      
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname),
                            seg_no
                            );
@@ -18078,7 +18078,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
     LOG       *des_log;
 
     EC_BOOL   ret;
- 
+
     api_cmd_para_vec_get_uint32(param  , 0, &crfs_modi);
     api_cmd_para_vec_get_uint32(param  , 1, &crfsnp_id);
     api_cmd_para_vec_get_cstring(param , 2, &des_path);
@@ -18100,7 +18100,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18112,7 +18112,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] np %u, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            crfsnp_id,
                            (char *)cstring_get_str(des_path)
                            );
@@ -18121,7 +18121,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] np %u, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            crfsnp_id,
                            (char *)cstring_get_str(des_path)
                            );
@@ -18161,7 +18161,7 @@ EC_BOOL api_cmd_ui_crfs_npp_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18173,7 +18173,7 @@ EC_BOOL api_cmd_ui_crfs_npp_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18181,7 +18181,7 @@ EC_BOOL api_cmd_ui_crfs_npp_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18223,7 +18223,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18235,7 +18235,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] disk %u, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            disk_no,
                            (char *)cstring_get_str(des_path)
                            );
@@ -18244,7 +18244,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] disk %u, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            disk_no,
                            (char *)cstring_get_str(des_path)
                            );
@@ -18284,7 +18284,7 @@ EC_BOOL api_cmd_ui_crfs_dn_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18296,7 +18296,7 @@ EC_BOOL api_cmd_ui_crfs_dn_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18304,7 +18304,7 @@ EC_BOOL api_cmd_ui_crfs_dn_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18343,7 +18343,7 @@ EC_BOOL api_cmd_ui_crfs_vol_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18355,7 +18355,7 @@ EC_BOOL api_cmd_ui_crfs_vol_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18363,7 +18363,7 @@ EC_BOOL api_cmd_ui_crfs_vol_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18402,7 +18402,7 @@ EC_BOOL api_cmd_ui_crfs_all_snapshot(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18414,7 +18414,7 @@ EC_BOOL api_cmd_ui_crfs_all_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18422,7 +18422,7 @@ EC_BOOL api_cmd_ui_crfs_all_snapshot(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
-                           CMPI_CRFS_RANK,  
+                           CMPI_CRFS_RANK,
                            (char *)cstring_get_str(des_path)
                            );
     }
@@ -18467,7 +18467,7 @@ EC_BOOL api_cmd_ui_crfs_create_backup(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18530,7 +18530,7 @@ EC_BOOL api_cmd_ui_crfs_open_backup(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18584,7 +18584,7 @@ EC_BOOL api_cmd_ui_crfs_close_backup(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18638,7 +18638,7 @@ EC_BOOL api_cmd_ui_crfs_start_sync(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18692,7 +18692,7 @@ EC_BOOL api_cmd_ui_crfs_end_sync(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18746,7 +18746,7 @@ EC_BOOL api_cmd_ui_crfs_replay(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = crfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18802,7 +18802,7 @@ EC_BOOL api_cmd_ui_crfs_show_backup(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -18832,7 +18832,7 @@ EC_BOOL api_cmd_ui_crfsc_create_npp(CMD_PARA_VEC * param)
 {
     UINT32   crfscnp_model;
     UINT32   crfscnp_max_num;
-    UINT32   crfscnp_2nd_chash_algo_id; 
+    UINT32   crfscnp_2nd_chash_algo_id;
     CSTRING *crfscnp_db_root_dir;
     UINT32   crfscnp_tcid;
     CSTRING *where;
@@ -19202,7 +19202,7 @@ EC_BOOL api_cmd_ui_crfsc_read(CMD_PARA_VEC * param)
 
     LOG       *des_log;
     EC_BOOL    ret;
- 
+
 
     api_cmd_para_vec_get_cstring(param , 0, &file_name);
     api_cmd_para_vec_get_tcid(param    , 1, &crfscnp_tcid);
@@ -19273,7 +19273,7 @@ EC_BOOL api_cmd_ui_crfsc_write(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfscnp_tcid;
@@ -19333,7 +19333,7 @@ EC_BOOL api_cmd_ui_crfsc_create_b(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -19388,7 +19388,7 @@ EC_BOOL api_cmd_ui_crfsc_read_b(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -19442,7 +19442,7 @@ EC_BOOL api_cmd_ui_crfsc_write_b(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = crfscnp_tcid;
@@ -19527,7 +19527,7 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
     UINT32   crfscnp_tcid;
     CSTRING *where;
 
-    MOD_NODE   mod_node; 
+    MOD_NODE   mod_node;
     LOG       *des_log;
 
     CBYTES    *cbytes;
@@ -19556,13 +19556,13 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfsc_download_b: open file %s failed\n",
                             (char *)cstring_get_str(file_name));
-        return (EC_TRUE);                     
-    } 
+        return (EC_TRUE);
+    }
 
     c_file_truncate(fd, 0);
 
     cbytes = cbytes_new(0);
-    ASSERT(NULL_PTR != cbytes); 
+    ASSERT(NULL_PTR != cbytes);
 
     offset = 0;
     for(;;)
@@ -19574,8 +19574,8 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
         max_len  = CPGB_CACHE_MAX_BYTE_SIZE;
         offset_t = (UINT32)offset;
 
-        ret = EC_FALSE;     
-     
+        ret = EC_FALSE;
+
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
@@ -19592,7 +19592,7 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
         {
             sys_log(des_log, "[FAIL] api_cmd_ui_crfsc_download_b: download bigfile %s to offset %llu\n",
                               (char *)cstring_get_str(bigfile_name), offset);
-        }  
+        }
 
         if(EC_FALSE == ret)
         {
@@ -19623,9 +19623,9 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     UINT32   crfscnp_tcid;
     CSTRING *where;
 
-    MOD_NODE   mod_node; 
+    MOD_NODE   mod_node;
     LOG       *des_log;
- 
+
     uint64_t   file_size;
     uint64_t   offset;
     int        fd;
@@ -19633,7 +19633,7 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     uint8_t   *content;
     UINT32     content_max_len;
     EC_BOOL    ret;
- 
+
     api_cmd_para_vec_get_cstring(param , 0, &file_name);
     api_cmd_para_vec_get_cstring(param , 1, &bigfile_name);
     api_cmd_para_vec_get_tcid(param    , 2, &crfscnp_tcid);
@@ -19657,14 +19657,14 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfsc_upload_b: open file %s failed\n",
                             (char *)cstring_get_str(file_name));
-        return (EC_TRUE);                     
+        return (EC_TRUE);
     }
 
     if(EC_FALSE == c_file_size_b(fd, &file_size))
     {
         dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "error:api_cmd_ui_crfsc_upload_b: get file %s size failed\n",
                             (char *)cstring_get_str(file_name));
- 
+
         c_file_close(fd);
         return (EC_TRUE);
     }
@@ -19672,7 +19672,7 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     sys_log(LOGCONSOLE, "[DEBUG] api_cmd_ui_crfsc_upload_b: file %s, size %ld\n", (char *)cstring_get_str(file_name), file_size);
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -19698,17 +19698,17 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
     //content_max_len = (CPGB_CACHE_MAX_BYTE_SIZE / 2) - 7;
     content_max_len = CPGB_CACHE_MAX_BYTE_SIZE;
 
-    content = safe_malloc(content_max_len, LOC_API_0444);     
+    content = safe_malloc(content_max_len, LOC_API_0444);
     ASSERT(NULL_PTR != content);
- 
-    cbytes = cbytes_new(0);
-    ASSERT(NULL_PTR != cbytes); 
 
-    offset = 0; 
+    cbytes = cbytes_new(0);
+    ASSERT(NULL_PTR != cbytes);
+
+    offset = 0;
     while(offset < file_size)
-    {     
+    {
         UINT32     content_len;
-     
+
         UINT32     offset_t;
 
         offset_t = (UINT32)offset;
@@ -19716,10 +19716,10 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
         content_len = (UINT32)(offset_t - offset);
 
         //sys_log(des_log, "[DEBUG] api_cmd_ui_crfsc_upload_b: load data from %ld to %ld, len %ld\n", (UINT32)offset, offset_t, content_len);
-     
+
         cbytes_mount(cbytes, content_len, content);
 
-        ret = EC_FALSE;     
+        ret = EC_FALSE;
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &mod_node,
                  &ret,
@@ -19734,9 +19734,9 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
         else
         {
             sys_log(des_log, "[FAIL] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
-        } 
+        }
 
-        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);     
+        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
 
         if(EC_FALSE == ret)
         {
@@ -19980,7 +19980,7 @@ EC_BOOL api_cmd_ui_crfsc_delete_file(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20027,7 +20027,7 @@ EC_BOOL api_cmd_ui_crfsc_delete_dir(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20074,7 +20074,7 @@ EC_BOOL api_cmd_ui_crfsc_delete_path(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20118,7 +20118,7 @@ EC_BOOL api_cmd_ui_crfsc_recycle(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20167,7 +20167,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20188,7 +20188,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] file %s\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname)
                            );
     }
@@ -20228,7 +20228,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20240,7 +20240,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %u, md5sum %s\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname),
                            seg_no,
                            c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
@@ -20250,7 +20250,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %u\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname),
                            seg_no
                            );
@@ -20290,7 +20290,7 @@ EC_BOOL api_cmd_ui_crfsc_add_dir(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20302,7 +20302,7 @@ EC_BOOL api_cmd_ui_crfsc_add_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] add dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20310,7 +20310,7 @@ EC_BOOL api_cmd_ui_crfsc_add_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] add dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20349,7 +20349,7 @@ EC_BOOL api_cmd_ui_crfsc_del_dir(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20361,7 +20361,7 @@ EC_BOOL api_cmd_ui_crfsc_del_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] del dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20369,7 +20369,7 @@ EC_BOOL api_cmd_ui_crfsc_del_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] del dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20408,7 +20408,7 @@ EC_BOOL api_cmd_ui_crfsc_has_dir(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20420,7 +20420,7 @@ EC_BOOL api_cmd_ui_crfsc_has_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC] has dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20428,7 +20428,7 @@ EC_BOOL api_cmd_ui_crfsc_has_dir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL] has dir '%s'\n",
                            c_word_to_ipv4(crfscnp_tcid),
-                           CMPI_CRFSC_RANK,      
+                           CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(dir_name)
                            );
     }
@@ -20461,7 +20461,7 @@ EC_BOOL api_cmd_ui_crfsc_clone_dt(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20512,7 +20512,7 @@ EC_BOOL api_cmd_ui_crfsc_rollback_dt(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20563,7 +20563,7 @@ EC_BOOL api_cmd_ui_crfsc_flush_dt(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20614,7 +20614,7 @@ EC_BOOL api_cmd_ui_crfsc_load_dt(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20665,7 +20665,7 @@ EC_BOOL api_cmd_ui_crfsc_show_dt(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              NULL_PTR,
@@ -20707,7 +20707,7 @@ EC_BOOL api_cmd_ui_crfsc_trans_dir_whole(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20755,7 +20755,7 @@ EC_BOOL api_cmd_ui_crfsc_trans_dir_prepare(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20803,7 +20803,7 @@ EC_BOOL api_cmd_ui_crfsc_trans_dir_handle(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20851,7 +20851,7 @@ EC_BOOL api_cmd_ui_crfsc_trans_dir_post(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20899,7 +20899,7 @@ EC_BOOL api_cmd_ui_crfsc_trans_dir_recycle(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -20937,7 +20937,7 @@ EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param)
 
     api_cmd_para_vec_get_uint32(param  , 0, &chfsnp_model);
     api_cmd_para_vec_get_uint32(param  , 1, &chfsnp_max_num);
-    api_cmd_para_vec_get_cstring(param , 2, &chfsnp_db_root_dir); 
+    api_cmd_para_vec_get_cstring(param , 2, &chfsnp_db_root_dir);
     api_cmd_para_vec_get_tcid(param    , 3, &chfsnp_tcid);
     api_cmd_para_vec_get_cstring(param , 4, &where);
 
@@ -20946,7 +20946,7 @@ EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_create_npp: hshfs create np model %u max num %u with root %s on tcid %s at %s\n",
                         chfsnp_model,
                         chfsnp_max_num,
-                        (char *)cstring_get_str(chfsnp_db_root_dir),                     
+                        (char *)cstring_get_str(chfsnp_db_root_dir),
                         c_word_to_ipv4(chfsnp_tcid),
                         (char *)cstring_get_str(where));
 
@@ -21311,7 +21311,7 @@ EC_BOOL api_cmd_ui_chfs_read(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21362,7 +21362,7 @@ EC_BOOL api_cmd_ui_chfs_write(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = chfsnp_tcid;
@@ -21623,7 +21623,7 @@ EC_BOOL api_cmd_ui_chfs_delete(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21671,7 +21671,7 @@ EC_BOOL api_cmd_ui_chfs_recycle(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = chfs_modi;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21726,7 +21726,7 @@ EC_BOOL api_cmd_ui_chfs_retire(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     complete_retire_num = 0;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21773,7 +21773,7 @@ EC_BOOL api_cmd_ui_chfs_show_npp(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21822,7 +21822,7 @@ EC_BOOL api_cmd_ui_chfs_show_dn(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21871,7 +21871,7 @@ EC_BOOL api_cmd_ui_chfs_show_cached_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21923,7 +21923,7 @@ EC_BOOL api_cmd_ui_chfs_show_specific_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -21970,7 +21970,7 @@ EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param)
 
     api_cmd_para_vec_get_uint32(param  , 0, &csfsnp_model);
     api_cmd_para_vec_get_uint32(param  , 1, &csfsnp_max_num);
-    api_cmd_para_vec_get_cstring(param , 2, &csfsnp_db_root_dir); 
+    api_cmd_para_vec_get_cstring(param , 2, &csfsnp_db_root_dir);
     api_cmd_para_vec_get_tcid(param    , 3, &csfsnp_tcid);
     api_cmd_para_vec_get_cstring(param , 4, &where);
 
@@ -21979,7 +21979,7 @@ EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_create_npp: hssfs create np model %u max num %u with root %s on tcid %s at %s\n",
                         csfsnp_model,
                         csfsnp_max_num,
-                        (char *)cstring_get_str(csfsnp_db_root_dir),                     
+                        (char *)cstring_get_str(csfsnp_db_root_dir),
                         c_word_to_ipv4(csfsnp_tcid),
                         (char *)cstring_get_str(where));
 
@@ -22344,7 +22344,7 @@ EC_BOOL api_cmd_ui_csfs_read(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22395,7 +22395,7 @@ EC_BOOL api_cmd_ui_csfs_write(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
- 
+
     cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
 
     MOD_NODE_TCID(&mod_node) = csfsnp_tcid;
@@ -22656,7 +22656,7 @@ EC_BOOL api_cmd_ui_csfs_delete(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22703,7 +22703,7 @@ EC_BOOL api_cmd_ui_csfs_show_npp(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22752,7 +22752,7 @@ EC_BOOL api_cmd_ui_csfs_show_dn(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22801,7 +22801,7 @@ EC_BOOL api_cmd_ui_csfs_show_cached_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22853,7 +22853,7 @@ EC_BOOL api_cmd_ui_csfs_show_specific_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -22900,7 +22900,7 @@ EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param)
 
     api_cmd_para_vec_get_uint32(param  , 0, &ctdnsnp_model);
     api_cmd_para_vec_get_uint32(param  , 1, &ctdnsnp_max_num);
-    api_cmd_para_vec_get_cstring(param , 2, &ctdnsnp_db_root_dir); 
+    api_cmd_para_vec_get_cstring(param , 2, &ctdnsnp_db_root_dir);
     api_cmd_para_vec_get_tcid(param    , 3, &ctdnsnp_tcid);
     api_cmd_para_vec_get_cstring(param , 4, &where);
 
@@ -22909,7 +22909,7 @@ EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_create_npp: tdns create np model %u max num %u with root %s on tcid %s at %s\n",
                         ctdnsnp_model,
                         ctdnsnp_max_num,
-                        (char *)cstring_get_str(ctdnsnp_db_root_dir),                     
+                        (char *)cstring_get_str(ctdnsnp_db_root_dir),
                         c_word_to_ipv4(ctdnsnp_tcid),
                         (char *)cstring_get_str(where));
 
@@ -23001,7 +23001,7 @@ EC_BOOL api_cmd_ui_ctdns_config_tcid(CMD_PARA_VEC * param)
     CSTRING *where;
 
     MOD_NODE   mod_node;
-    
+
     LOG       *des_log;
     EC_BOOL    ret;
 
@@ -23027,7 +23027,7 @@ EC_BOOL api_cmd_ui_ctdns_config_tcid(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23037,14 +23037,14 @@ EC_BOOL api_cmd_ui_ctdns_config_tcid(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld done\n", 
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld done\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(tcid),
-                         port);                    
+                         port);
     }
     else
     {
-        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld failed\n", 
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_config_tcid: service '%s', tcid %s, port %ld failed\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(tcid),
                          port);
@@ -23064,7 +23064,7 @@ EC_BOOL api_cmd_ui_ctdns_reserve_tcid(CMD_PARA_VEC * param)
 
     UINT32     tcid;
     UINT32     port;
-    
+
     LOG       *des_log;
     EC_BOOL    ret;
 
@@ -23088,7 +23088,7 @@ EC_BOOL api_cmd_ui_ctdns_reserve_tcid(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23098,15 +23098,15 @@ EC_BOOL api_cmd_ui_ctdns_reserve_tcid(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => tcid %s port %ld done\n", 
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => tcid %s port %ld done\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(ipaddr),
                          c_word_to_ipv4(tcid),
-                         port);                    
+                         port);
     }
     else
     {
-        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => failed\n", 
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_reserve_tcid: service '%s', ip %s => failed\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(ipaddr));
     }
@@ -23118,12 +23118,12 @@ EC_BOOL api_cmd_ui_ctdns_release_tcid(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     UINT32   tcid;
-    UINT32   port;    
+    UINT32   port;
     UINT32   ctdnsnp_tcid;
     CSTRING *where;
 
     MOD_NODE   mod_node;
-    
+
     LOG       *des_log;
     EC_BOOL    ret;
 
@@ -23149,7 +23149,7 @@ EC_BOOL api_cmd_ui_ctdns_release_tcid(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23159,14 +23159,14 @@ EC_BOOL api_cmd_ui_ctdns_release_tcid(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => done\n", 
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => done\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(tcid),
-                         port);                    
+                         port);
     }
     else
     {
-        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => failed\n", 
+        sys_log(des_log, "[FAIL] api_cmd_ui_ctdns_release_tcid: service '%s', tcid %s port %ld => failed\n",
                          (char *)cstring_get_str(service),
                          c_word_to_ipv4(tcid),
                          port);
@@ -23204,7 +23204,7 @@ EC_BOOL api_cmd_ui_ctdns_get_tcid(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23214,10 +23214,10 @@ EC_BOOL api_cmd_ui_ctdns_get_tcid(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_get_tcid: tcid  %s => ipaddr %s, port %ld\n", 
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_get_tcid: tcid  %s => ipaddr %s, port %ld\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
-                         port);                    
+                         port);
     }
     else
     {
@@ -23253,14 +23253,14 @@ EC_BOOL api_cmd_ui_ctdns_get_service(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(where));
 
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
-    
+
     MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23270,7 +23270,7 @@ EC_BOOL api_cmd_ui_ctdns_get_service(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_get_service:\n");    
+        sys_log(des_log, "[SUCC] api_cmd_ui_ctdns_get_service:\n");
         ctdnssv_node_mgr_print(des_log, ctdnssv_node_mgr);
     }
     else
@@ -23311,7 +23311,7 @@ EC_BOOL api_cmd_ui_ctdns_set_no_service(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(where));
 
     ret = EC_FALSE;
- 
+
     MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
@@ -23326,14 +23326,14 @@ EC_BOOL api_cmd_ui_ctdns_set_no_service(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] tcid %s, ipaddr %s, port %ld\n", 
+        sys_log(des_log, "[SUCC] tcid %s, ipaddr %s, port %ld\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
                          port);
     }
     else
     {
-        sys_log(des_log, "[FAIL] tcid %s, ipaddr %s, port %ld\n", 
+        sys_log(des_log, "[FAIL] tcid %s, ipaddr %s, port %ld\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
                          port);
@@ -23373,7 +23373,7 @@ EC_BOOL api_cmd_ui_ctdns_set_has_service(CMD_PARA_VEC * param)
                                         (char *)cstring_get_str(where));
 
     ret = EC_FALSE;
- 
+
     MOD_NODE_TCID(&mod_node) = ctdnsnp_tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
@@ -23388,7 +23388,7 @@ EC_BOOL api_cmd_ui_ctdns_set_has_service(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] tcid %s, ipaddr %s, port %ld, service %s\n", 
+        sys_log(des_log, "[SUCC] tcid %s, ipaddr %s, port %ld, service %s\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
                          port,
@@ -23396,7 +23396,7 @@ EC_BOOL api_cmd_ui_ctdns_set_has_service(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[FAIL] tcid %s, ipaddr %s, port %ld, service %s\n", 
+        sys_log(des_log, "[FAIL] tcid %s, ipaddr %s, port %ld, service %s\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
                          port,
@@ -23623,7 +23623,7 @@ EC_BOOL api_cmd_ui_ctdns_delete(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23676,7 +23676,7 @@ EC_BOOL api_cmd_ui_ctdns_online(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23729,7 +23729,7 @@ EC_BOOL api_cmd_ui_ctdns_offline(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23776,7 +23776,7 @@ EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23825,7 +23825,7 @@ EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23883,7 +23883,7 @@ EC_BOOL api_cmd_ui_ctdns_refresh_cache(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23932,7 +23932,7 @@ EC_BOOL api_cmd_ui_cdetect_show_orig_nodes(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -23984,7 +23984,7 @@ EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
     log = log_cstr_open();
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -24035,7 +24035,7 @@ EC_BOOL api_cmd_ui_cdetect_dns_resolve(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -24084,7 +24084,7 @@ EC_BOOL api_cmd_ui_cdetect_process(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -24137,7 +24137,7 @@ EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param)
     des_log = api_cmd_ui_get_log(where);
 
     sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
-    
+
     return (EC_TRUE);
 }
 #endif
@@ -24148,7 +24148,7 @@ EC_BOOL api_cmd_ui_cp2p_load(CMD_PARA_VEC * param)
     CSTRING *src_file;
     CSTRING *service;
     CSTRING *des_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
@@ -24178,7 +24178,7 @@ EC_BOOL api_cmd_ui_cp2p_load(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -24203,7 +24203,7 @@ EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param)
     CSTRING *src_file;
     CSTRING *service;
     CSTRING *des_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
@@ -24233,11 +24233,11 @@ EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param)
     if(NULL_PTR == src_file_content)
     {
         des_log = api_cmd_ui_get_log(where);
-        
-        sys_log(des_log, "[rank_%s_%ld] error:load local file '%s' failed\n", 
+
+        sys_log(des_log, "[rank_%s_%ld] error:load local file '%s' failed\n",
                          c_word_to_ipv4(tcid),CMPI_FWD_RANK,
                          (char *)cstring_get_str(src_file));
-        
+
         return (EC_TRUE);
     }
 
@@ -24247,7 +24247,7 @@ EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -24269,55 +24269,55 @@ EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-static EC_BOOL __api_cmd_ui_cp2p_fetch_size(CP2P_FILE  *cp2p_file, const UINT32 tcid)
+STATIC_CAST static EC_BOOL __api_cmd_ui_cp2p_fetch_size(CP2P_FILE  *cp2p_file, const UINT32 tcid)
 {
     CSTRING    rfs_file_path;
     MOD_NODE   recv_mod_node;
     uint64_t   file_size;
-    
+
     EC_BOOL    ret;
 
     cstring_init(&rfs_file_path, NULL_PTR);
-    cstring_format(&rfs_file_path, "/%s%s", CP2P_FILE_SERVICE_NAME_STR(cp2p_file), CP2P_FILE_SRC_NAME_STR(cp2p_file));  
+    cstring_format(&rfs_file_path, "/%s%s", CP2P_FILE_SERVICE_NAME_STR(cp2p_file), CP2P_FILE_SRC_NAME_STR(cp2p_file));
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &file_size);    
+             FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &file_size);
     ASSERT(EC_TRUE == ret);
-    CP2P_FILE_SRC_SIZE(cp2p_file) = (UINT32)file_size;   
+    CP2P_FILE_SRC_SIZE(cp2p_file) = (UINT32)file_size;
 
     cstring_clean(&rfs_file_path);
     return (EC_TRUE);
 }
 
-static EC_BOOL __api_cmd_ui_cp2p_fetch_md5(CP2P_FILE  *cp2p_file, const UINT32 tcid)
+STATIC_CAST static EC_BOOL __api_cmd_ui_cp2p_fetch_md5(CP2P_FILE  *cp2p_file, const UINT32 tcid)
 {
     CSTRING    rfs_file_path;
     MOD_NODE   recv_mod_node;
-    
+
     EC_BOOL    ret;
 
     cstring_init(&rfs_file_path, NULL_PTR);
-    cstring_format(&rfs_file_path, "/%s%s", CP2P_FILE_SERVICE_NAME_STR(cp2p_file), CP2P_FILE_SRC_NAME_STR(cp2p_file));  
+    cstring_format(&rfs_file_path, "/%s%s", CP2P_FILE_SERVICE_NAME_STR(cp2p_file), CP2P_FILE_SRC_NAME_STR(cp2p_file));
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
-             FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_FILE_SRC_MD5(cp2p_file));    
-    ASSERT(EC_TRUE == ret);    
+             FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_FILE_SRC_MD5(cp2p_file));
+    ASSERT(EC_TRUE == ret);
 
     cstring_clean(&rfs_file_path);
     return (EC_TRUE);
@@ -24329,7 +24329,7 @@ EC_BOOL api_cmd_ui_cp2p_push(CMD_PARA_VEC * param)
     CSTRING *src_file;
     UINT32   des_network;
     UINT32   des_tcid;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
@@ -24366,7 +24366,7 @@ EC_BOOL api_cmd_ui_cp2p_push(CMD_PARA_VEC * param)
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
     __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
     cp2p_file_print(LOGCONSOLE, &cp2p_file);
-  
+
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -24378,9 +24378,9 @@ EC_BOOL api_cmd_ui_cp2p_push(CMD_PARA_VEC * param)
              &ret,
              FI_cp2p_file_push, CMPI_ERROR_MODI, des_network, des_tcid, &cp2p_file);
 
-    
+
     des_log = api_cmd_ui_get_log(where);
-    
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
@@ -24389,7 +24389,7 @@ EC_BOOL api_cmd_ui_cp2p_push(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24400,7 +24400,7 @@ EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param)
     CSTRING *service;
     CSTRING *src_file;
     UINT32   des_network;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
@@ -24426,14 +24426,14 @@ EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param)
                         des_network,
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-    
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
     CP2P_FILE_REPORT_TCID(&cp2p_file) = tcid;
 
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
-    __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);    
+    __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
 
     cp2p_file_print(LOGCONSOLE, &cp2p_file);
 
@@ -24441,7 +24441,7 @@ EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
@@ -24449,7 +24449,7 @@ EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param)
              FI_cp2p_file_push, CMPI_ERROR_MODI, des_network, CMPI_ANY_TCID, &cp2p_file);
 
     des_log = api_cmd_ui_get_log(where);
-    
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
@@ -24458,7 +24458,7 @@ EC_BOOL api_cmd_ui_cp2p_push_subnet(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24468,7 +24468,7 @@ EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     CSTRING *src_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
@@ -24492,7 +24492,7 @@ EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(src_file),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-    
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
@@ -24501,7 +24501,7 @@ EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param)
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
     __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
     cp2p_file_print(LOGCONSOLE, &cp2p_file);
-    
+
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -24514,7 +24514,7 @@ EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param)
              FI_cp2p_file_push, CMPI_ERROR_MODI, CMPI_ANY_NETWORK, CMPI_ANY_TCID, &cp2p_file);
 
     des_log = api_cmd_ui_get_log(where);
-    
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
@@ -24523,7 +24523,7 @@ EC_BOOL api_cmd_ui_cp2p_push_all(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24533,13 +24533,13 @@ EC_BOOL api_cmd_ui_cp2p_pull(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     CSTRING *src_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24557,18 +24557,18 @@ EC_BOOL api_cmd_ui_cp2p_pull(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(src_file),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
-    
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24584,7 +24584,7 @@ EC_BOOL api_cmd_ui_cp2p_pull(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24596,13 +24596,13 @@ EC_BOOL api_cmd_ui_cp2p_delete(CMD_PARA_VEC * param)
     CSTRING *src_file;
     UINT32   des_network;
     UINT32   des_tcid;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24624,19 +24624,19 @@ EC_BOOL api_cmd_ui_cp2p_delete(CMD_PARA_VEC * param)
                         c_word_to_ipv4(des_tcid),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
     CP2P_FILE_REPORT_TCID(&cp2p_file) = tcid;
-    
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24652,7 +24652,7 @@ EC_BOOL api_cmd_ui_cp2p_delete(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24663,13 +24663,13 @@ EC_BOOL api_cmd_ui_cp2p_delete_subnet(CMD_PARA_VEC * param)
     CSTRING *service;
     CSTRING *src_file;
     UINT32   des_network;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24689,19 +24689,19 @@ EC_BOOL api_cmd_ui_cp2p_delete_subnet(CMD_PARA_VEC * param)
                         des_network,
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
     CP2P_FILE_REPORT_TCID(&cp2p_file) = tcid;
-    
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24717,7 +24717,7 @@ EC_BOOL api_cmd_ui_cp2p_delete_subnet(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24727,13 +24727,13 @@ EC_BOOL api_cmd_ui_cp2p_delete_all(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     CSTRING *src_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24751,19 +24751,19 @@ EC_BOOL api_cmd_ui_cp2p_delete_all(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(src_file),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
     CP2P_FILE_REPORT_TCID(&cp2p_file) = tcid;
-    
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24779,7 +24779,7 @@ EC_BOOL api_cmd_ui_cp2p_delete_all(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24792,13 +24792,13 @@ EC_BOOL api_cmd_ui_cp2p_flush(CMD_PARA_VEC * param)
     CSTRING *des_file;
     UINT32   des_network;
     UINT32   des_tcid;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24832,21 +24832,21 @@ EC_BOOL api_cmd_ui_cp2p_flush(CMD_PARA_VEC * param)
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
     __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
     cp2p_file_print(LOGCONSOLE, &cp2p_file);
-    
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
              FI_cp2p_file_flush, CMPI_ERROR_MODI, des_network, des_tcid, &cp2p_file);
 
     des_log = api_cmd_ui_get_log(where);
-    
+
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[rank_%s_%ld][SUCC]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
@@ -24855,7 +24855,7 @@ EC_BOOL api_cmd_ui_cp2p_flush(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24867,13 +24867,13 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param)
     CSTRING *src_file;
     CSTRING *des_file;
     UINT32   des_network;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24895,7 +24895,7 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param)
                         des_network,
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
@@ -24904,15 +24904,15 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param)
 
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
     __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
-    cp2p_file_print(LOGCONSOLE, &cp2p_file);    
-    
+    cp2p_file_print(LOGCONSOLE, &cp2p_file);
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24928,7 +24928,7 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -24939,13 +24939,13 @@ EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param)
     CSTRING *service;
     CSTRING *src_file;
     CSTRING *des_file;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -24965,7 +24965,7 @@ EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(des_file),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
@@ -24974,15 +24974,15 @@ EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param)
 
     __api_cmd_ui_cp2p_fetch_size(&cp2p_file, tcid);
     __api_cmd_ui_cp2p_fetch_md5(&cp2p_file, tcid);
-    cp2p_file_print(LOGCONSOLE, &cp2p_file); 
-    
+    cp2p_file_print(LOGCONSOLE, &cp2p_file);
+
     ret = EC_FALSE;
 
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -24998,7 +24998,7 @@ EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -25009,13 +25009,13 @@ EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param)
     CSTRING *service;
     CSTRING *src_file;
     UINT32   src_tcid;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_FILE  cp2p_file;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -25035,7 +25035,7 @@ EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param)
                         c_word_to_ipv4(src_tcid),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_file_init(&cp2p_file);
     cstring_clone(service , CP2P_FILE_SERVICE_NAME(&cp2p_file));
     cstring_clone(src_file, CP2P_FILE_SRC_NAME(&cp2p_file));
@@ -25045,7 +25045,7 @@ EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -25061,7 +25061,7 @@ EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_file_clean(&cp2p_file);
 
     return (EC_TRUE);
@@ -25071,13 +25071,13 @@ EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     CSTRING *command;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_CMD   cp2p_cmd;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -25095,7 +25095,7 @@ EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(command),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_cmd_init(&cp2p_cmd);
     cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
     cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
@@ -25105,7 +25105,7 @@ EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -25121,7 +25121,7 @@ EC_BOOL api_cmd_ui_cp2p_execute_cmd(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_cmd_clean(&cp2p_cmd);
 
     return (EC_TRUE);
@@ -25133,13 +25133,13 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
     CSTRING *command;
     UINT32   des_network;
     UINT32   des_tcid;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_CMD   cp2p_cmd;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -25147,7 +25147,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_cstring(param , 0, &service);
     api_cmd_para_vec_get_cstring(param , 1, &command);
     api_cmd_para_vec_get_uint32(param  , 2, &des_network);
-    api_cmd_para_vec_get_tcid(param    , 3, &des_tcid);    
+    api_cmd_para_vec_get_tcid(param    , 3, &des_tcid);
     api_cmd_para_vec_get_tcid(param    , 4, &tcid);
     api_cmd_para_vec_get_cstring(param , 5, &where);
 
@@ -25158,10 +25158,10 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(service),
                         (char *)cstring_get_str(command),
                         des_network,
-                        c_word_to_ipv4(des_tcid),                        
+                        c_word_to_ipv4(des_tcid),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_cmd_init(&cp2p_cmd);
     cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
     cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
@@ -25171,7 +25171,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -25187,7 +25187,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_cmd_clean(&cp2p_cmd);
 
     return (EC_TRUE);
@@ -25198,13 +25198,13 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param)
     CSTRING *service;
     CSTRING *command;
     UINT32   des_network;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_CMD   cp2p_cmd;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -25224,7 +25224,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param)
                         des_network,
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_cmd_init(&cp2p_cmd);
     cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
     cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
@@ -25234,7 +25234,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -25250,7 +25250,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_cmd_clean(&cp2p_cmd);
 
     return (EC_TRUE);
@@ -25260,13 +25260,13 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param)
 {
     CSTRING *service;
     CSTRING *command;
-    
+
     UINT32   tcid;
     CSTRING *where;
 
     MOD_NODE   recv_mod_node;
     CP2P_CMD   cp2p_cmd;
-    
+
     LOG       *des_log;
 
     EC_BOOL    ret;
@@ -25284,7 +25284,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param)
                         (char *)cstring_get_str(command),
                         c_word_to_ipv4(tcid),
                         (char *)cstring_get_str(where));
-   
+
     cp2p_cmd_init(&cp2p_cmd);
     cstring_clone(service, CP2P_CMD_SERVICE_NAME(&cp2p_cmd));
     cstring_clone(command, CP2P_CMD_COMMAND_LINE(&cp2p_cmd));
@@ -25294,7 +25294,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param)
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;
-    
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
@@ -25310,7 +25310,7 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[rank_%s_%ld][FAIL]\n", c_word_to_ipv4(tcid),CMPI_FWD_RANK);
     }
-    
+
     cp2p_cmd_clean(&cp2p_cmd);
 
     return (EC_TRUE);
@@ -25349,7 +25349,7 @@ EC_BOOL api_cmd_ui_cp2p_online(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -25402,7 +25402,7 @@ EC_BOOL api_cmd_ui_cp2p_offline(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -25428,7 +25428,7 @@ EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)
 {
     UINT32   super_tcid;
     CSTRING *src_fname;
-    CSTRING *des_fname; 
+    CSTRING *des_fname;
     CSTRING *where;
 
     MOD_NODE   mod_node;
@@ -25437,7 +25437,7 @@ EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)
     EC_BOOL   ret;
 
     api_cmd_para_vec_get_cstring(param , 0, &src_fname);
-    api_cmd_para_vec_get_cstring(param , 1, &des_fname); 
+    api_cmd_para_vec_get_cstring(param , 1, &des_fname);
     api_cmd_para_vec_get_tcid(param    , 2, &super_tcid);
     api_cmd_para_vec_get_cstring(param , 3, &where);
 
@@ -25446,7 +25446,7 @@ EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_download_file: download file %s to %s from tcid %s at %s\n",
                         (char *)cstring_get_str(src_fname),
                         (char *)cstring_get_str(des_fname),
-                        c_word_to_ipv4(super_tcid),                     
+                        c_word_to_ipv4(super_tcid),
                         (char *)cstring_get_str(where));
 
     MOD_NODE_TCID(&mod_node) = super_tcid;
@@ -25455,7 +25455,7 @@ EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param)
     MOD_NODE_MODI(&mod_node) = 0;
 
     ret = EC_FALSE;
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -25487,7 +25487,7 @@ EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param)
 {
     UINT32   super_tcid;
     CSTRING *src_fname;
-    CSTRING *des_fname; 
+    CSTRING *des_fname;
     CSTRING *where;
 
     LOG       *des_log;
@@ -25495,7 +25495,7 @@ EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param)
     EC_BOOL   ret;
 
     api_cmd_para_vec_get_cstring(param , 0, &src_fname);
-    api_cmd_para_vec_get_cstring(param , 1, &des_fname); 
+    api_cmd_para_vec_get_cstring(param , 1, &des_fname);
     api_cmd_para_vec_get_tcid(param    , 2, &super_tcid);
     api_cmd_para_vec_get_cstring(param , 3, &where);
 
@@ -25504,10 +25504,10 @@ EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param)
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_download_file: upload file %s to %s on tcid %s at %s\n",
                         (char *)cstring_get_str(src_fname),
                         (char *)cstring_get_str(des_fname),
-                        c_word_to_ipv4(super_tcid),                     
+                        c_word_to_ipv4(super_tcid),
                         (char *)cstring_get_str(where));
 
-    ret = super_transfer(0, src_fname, super_tcid, des_fname);  
+    ret = super_transfer(0, src_fname, super_tcid, des_fname);
 
     des_log = api_cmd_ui_get_log(where);
 

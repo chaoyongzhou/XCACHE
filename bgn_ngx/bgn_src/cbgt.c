@@ -79,47 +79,47 @@ extern "C"{
 #define CBGT_ASSERT(x) do{}while(0)
 #endif
 
-static const char * __cbgt_type(const UINT32 type);
-static uint8_t __cbgt_type_to_cbtree_type(const UINT32 type);
-static void __cbgt_local_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node);
-static void __cbgt_error_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node);
-static EC_BOOL __cbgt_make_user_table_key(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, CBYTES *user_table_key);
-static EC_BOOL __cbgt_make_rmc_table_key(const UINT32 cbgt_md_id, const CBYTES *row, CBYTES *rmc_table_key);
-static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *colf_table_key);
-static EC_BOOL __cbgt_make_meta_table_key(const UINT32 cbgt_md_id, const CBYTES *user_colf, CBYTES *meta_table_key);
-static EC_BOOL __cbgt_make_root_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_name, CBYTES *root_table_key);
-static int __cbgt_make_open_flags(const UINT32 open_flags);
-static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key);
-static void __cbgt_print_user_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
-static void __cbgt_print_colf_table_row(LOG *log, const uint8_t *row);
-static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key);
-static void __cbgt_print_colf_kv(LOG *log, const  uint8_t *kv);
-static void __cbgt_print_colf_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
-static void __cbgt_print_meta_table_key(LOG *log, const uint8_t *key);
-static void __cbgt_print_meta_kv(LOG *log, const  uint8_t *kv);
-static void __cbgt_print_meta_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
-static void __cbgt_print_root_table_key(LOG *log, const uint8_t *key);
-static void __cbgt_print_root_kv(LOG *log, const  uint8_t *kv);
-static void __cbgt_print_root_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
-static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank);
-static EC_BOOL __cbgt_start_trigger(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 table_id, const CBYTES *table_name, const MOD_NODE *parent, const CSTRING *root_path, const UINT32 open_flags, MOD_NODE *mod_node);
-static EC_BOOL __cbgt_end_trigger(const UINT32 cbgt_md_id, const MOD_NODE *mod_node);
+STATIC_CAST static const char * __cbgt_type(const UINT32 type);
+STATIC_CAST static uint8_t __cbgt_type_to_cbtree_type(const UINT32 type);
+STATIC_CAST static void __cbgt_local_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node);
+STATIC_CAST static void __cbgt_error_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_make_user_table_key(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, CBYTES *user_table_key);
+STATIC_CAST static EC_BOOL __cbgt_make_rmc_table_key(const UINT32 cbgt_md_id, const CBYTES *row, CBYTES *rmc_table_key);
+STATIC_CAST static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *colf_table_key);
+STATIC_CAST static EC_BOOL __cbgt_make_meta_table_key(const UINT32 cbgt_md_id, const CBYTES *user_colf, CBYTES *meta_table_key);
+STATIC_CAST static EC_BOOL __cbgt_make_root_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_name, CBYTES *root_table_key);
+STATIC_CAST static int __cbgt_make_open_flags(const UINT32 open_flags);
+STATIC_CAST static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key);
+STATIC_CAST static void __cbgt_print_user_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
+STATIC_CAST static void __cbgt_print_colf_table_row(LOG *log, const uint8_t *row);
+STATIC_CAST static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key);
+STATIC_CAST static void __cbgt_print_colf_kv(LOG *log, const  uint8_t *kv);
+STATIC_CAST static void __cbgt_print_colf_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
+STATIC_CAST static void __cbgt_print_meta_table_key(LOG *log, const uint8_t *key);
+STATIC_CAST static void __cbgt_print_meta_kv(LOG *log, const  uint8_t *kv);
+STATIC_CAST static void __cbgt_print_meta_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
+STATIC_CAST static void __cbgt_print_root_table_key(LOG *log, const uint8_t *key);
+STATIC_CAST static void __cbgt_print_root_kv(LOG *log, const  uint8_t *kv);
+STATIC_CAST static void __cbgt_print_root_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key);
+STATIC_CAST static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank);
+STATIC_CAST static EC_BOOL __cbgt_start_trigger(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 table_id, const CBYTES *table_name, const MOD_NODE *parent, const CSTRING *root_path, const UINT32 open_flags, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_end_trigger(const UINT32 cbgt_md_id, const MOD_NODE *mod_node);
 //static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTES *table_name, int (*key_compare)(const uint8_t *, const uint8_t *), UINT32 *table_id, MOD_NODE *mod_node, UINT32 *offset);
-static EC_BOOL __cbgt_get_rmc_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
-static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
-static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 server_type, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
-static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *user_table_name, UINT32 *table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_get_rmc_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 server_type, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *user_table_name, UINT32 *table_id, MOD_NODE *mod_node);
 
-static EC_BOOL __cbgt_pcre_compile(const CSTRING *pattern_cstr, pcre **pattern_re);
-static EC_BOOL __cbgt_pcre_free(pcre *pattern_re);
+STATIC_CAST static EC_BOOL __cbgt_pcre_compile(const CSTRING *pattern_cstr, pcre **pattern_re);
+STATIC_CAST static EC_BOOL __cbgt_pcre_free(pcre *pattern_re);
 
-static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const UINT32 colf_table_id, const MOD_NODE *mod_node);
-static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *colf, CSTRING *colf_session_path, UINT32 *colf_table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const UINT32 colf_table_id, const MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *colf, CSTRING *colf_session_path, UINT32 *colf_table_id, MOD_NODE *mod_node);
 
-static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const CSTRING *meta_session_path, const UINT32 meta_table_id, const MOD_NODE *mod_node);
-static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, CSTRING *meta_session_path, UINT32 *meta_table_id, MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const CSTRING *meta_session_path, const UINT32 meta_table_id, const MOD_NODE *mod_node);
+STATIC_CAST static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, CSTRING *meta_session_path, UINT32 *meta_table_id, MOD_NODE *mod_node);
 
-static const char * __cbgt_type(const UINT32 type)
+STATIC_CAST static const char * __cbgt_type(const UINT32 type)
 {
     if(CBGT_TYPE_ROOT_SERVER == type)
     {
@@ -149,7 +149,7 @@ static const char * __cbgt_type(const UINT32 type)
     return (const char *)"unknown server";
 }
 
-static uint8_t __cbgt_type_to_cbtree_type(const UINT32 type)
+STATIC_CAST static uint8_t __cbgt_type_to_cbtree_type(const UINT32 type)
 {
     if(CBGT_TYPE_ROOT_SERVER == type)
     {
@@ -209,7 +209,7 @@ EC_BOOL __cbgt_mod_node_is_local(const UINT32 cbgt_md_id, const MOD_NODE *mod_no
     return (EC_FALSE);
 }
 
-static void __cbgt_local_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
+STATIC_CAST static void __cbgt_local_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
 {
     MOD_NODE_TCID(mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(mod_node) = CMPI_LOCAL_COMM;
@@ -218,7 +218,7 @@ static void __cbgt_local_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
     return;
 }
 
-static void __cbgt_error_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
+STATIC_CAST static void __cbgt_error_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
 {
     MOD_NODE_TCID(mod_node) = CMPI_ERROR_TCID;
     MOD_NODE_COMM(mod_node) = CMPI_ERROR_COMM;
@@ -228,7 +228,7 @@ static void __cbgt_error_mod_node(const UINT32 cbgt_md_id, MOD_NODE *mod_node)
 }
 
 /*note: here no val parameter is inputed, hence the vlen in user table key must be zero*/
-static EC_BOOL __cbgt_make_user_table_key(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, CBYTES *user_table_key)
+STATIC_CAST static EC_BOOL __cbgt_make_user_table_key(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, CBYTES *user_table_key)
 {
     if(EC_FALSE == cbgt_key_init(cbgt_md_id, row, colf, colq, c_time(NULL_PTR), user_table_key))
     {
@@ -239,7 +239,7 @@ static EC_BOOL __cbgt_make_user_table_key(const UINT32 cbgt_md_id, const CBYTES 
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_make_row_of_colf_table_by_start_end_user_table_key(const uint8_t *start_user_table_key, const uint8_t *end_user_table_key, CBYTES *colf_row_bytes)
+STATIC_CAST static EC_BOOL __cbgt_make_row_of_colf_table_by_start_end_user_table_key(const uint8_t *start_user_table_key, const uint8_t *end_user_table_key, CBYTES *colf_row_bytes)
 {
     CBYTES start_user_table_key_bytes;
     CBYTES end_user_table_key_bytes;
@@ -259,14 +259,14 @@ static EC_BOOL __cbgt_make_row_of_colf_table_by_start_end_user_table_key(const u
 }
 
 
-static EC_BOOL __cbgt_make_rmc_table_key(const UINT32 cbgt_md_id, const CBYTES *row, CBYTES *rmc_table_key)
+STATIC_CAST static EC_BOOL __cbgt_make_rmc_table_key(const UINT32 cbgt_md_id, const CBYTES *row, CBYTES *rmc_table_key)
 {
     CBYTES colf;
     CBYTES colq;
 
     cbytes_init(&colf);
     cbytes_init(&colq);
- 
+
     cbytes_mount(&colf , strlen("info")         , (uint8_t *)"info"         );
     cbytes_mount(&colq , strlen("vpath")        , (uint8_t *)"vpath"        );
 
@@ -279,7 +279,7 @@ static EC_BOOL __cbgt_make_rmc_table_key(const UINT32 cbgt_md_id, const CBYTES *
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *colf_table_key)
+STATIC_CAST static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *colf_table_key)
 {
     CBYTES colf_row;
 
@@ -287,7 +287,7 @@ static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_make_colf_table_key_by_user_table_key: user rowkey is ");
     __cbgt_print_user_table_key(LOGSTDOUT, cbytes_buf(user_table_key));
     sys_print(LOGSTDOUT, "\n");
-#endif 
+#endif
 
     cbytes_init(&colf_row);
     if(EC_FALSE == cbytes_cat(user_table_key, user_table_key, &colf_row))
@@ -295,7 +295,7 @@ static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_user_table_and_key_no_lock: cat user_table_key and user_table_key failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == __cbgt_make_rmc_table_key(cbgt_md_id, &colf_row, colf_table_key))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_make_colf_table_key_by_user_table_key: init key failed\n");
@@ -311,7 +311,7 @@ static EC_BOOL __cbgt_make_colf_table_key_by_user_table_key(const UINT32 cbgt_md
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_make_default_row_of_colf_table(const UINT32 cbgt_md_id, CBYTES *colf_row)
+STATIC_CAST static EC_BOOL __cbgt_make_default_row_of_colf_table(const UINT32 cbgt_md_id, CBYTES *colf_row)
 {
     CBYTES row;
     CBYTES colf;
@@ -332,7 +332,7 @@ static EC_BOOL __cbgt_make_default_row_of_colf_table(const UINT32 cbgt_md_id, CB
     cbytes_init(&colf);
     cbytes_init(&colq);
     //cbytes_init(&ts);
- 
+
     cbytes_mount(&row , 1, &min_byte);
     cbytes_mount(&colf, 1, &min_byte);
     cbytes_mount(&colq, 1, &min_byte);
@@ -348,7 +348,7 @@ static EC_BOOL __cbgt_make_default_row_of_colf_table(const UINT32 cbgt_md_id, CB
     cbytes_init(&colf);
     cbytes_init(&colq);
     //cbytes_init(&ts);
- 
+
     cbytes_mount(&row , 1, &max_byte);
     cbytes_mount(&colf, 1, &max_byte);
     cbytes_mount(&colq, 1, &max_byte);
@@ -375,14 +375,14 @@ static EC_BOOL __cbgt_make_default_row_of_colf_table(const UINT32 cbgt_md_id, CB
     return (EC_TRUE);
 }
 
-static void __cbgt_split_colf_row_into_start_end_user_table_key(const uint8_t *colf_row, uint8_t **start_user_table_key, uint8_t **end_user_table_key)
+STATIC_CAST static void __cbgt_split_colf_row_into_start_end_user_table_key(const uint8_t *colf_row, uint8_t **start_user_table_key, uint8_t **end_user_table_key)
 {
     (*start_user_table_key) = (uint8_t *)colf_row;
     (*end_user_table_key)   = (uint8_t *)(colf_row + keyGettLenHs(colf_row));
     return;
 }
 
-static int __cbgt_cmp_colf_row_and_user_table_key(const uint8_t *colf_row, const uint8_t *user_table_key)
+STATIC_CAST static int __cbgt_cmp_colf_row_and_user_table_key(const uint8_t *colf_row, const uint8_t *user_table_key)
 {
     uint8_t *start_user_rowkey;
     uint8_t *end_user_rowkey;
@@ -408,7 +408,7 @@ static int __cbgt_cmp_colf_row_and_user_table_key(const uint8_t *colf_row, const
     return (0);
 }
 
-static EC_BOOL __cbgt_make_meta_table_key(const UINT32 cbgt_md_id, const CBYTES *user_colf, CBYTES *meta_table_key)
+STATIC_CAST static EC_BOOL __cbgt_make_meta_table_key(const UINT32 cbgt_md_id, const CBYTES *user_colf, CBYTES *meta_table_key)
 {
     if(EC_FALSE == __cbgt_make_rmc_table_key(cbgt_md_id, user_colf, meta_table_key))
     {
@@ -419,7 +419,7 @@ static EC_BOOL __cbgt_make_meta_table_key(const UINT32 cbgt_md_id, const CBYTES 
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_make_root_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_name, CBYTES *root_table_key)
+STATIC_CAST static EC_BOOL __cbgt_make_root_table_key(const UINT32 cbgt_md_id, const CBYTES *user_table_name, CBYTES *root_table_key)
 {
     if(EC_FALSE == __cbgt_make_rmc_table_key(cbgt_md_id, user_table_name, root_table_key))
     {
@@ -430,7 +430,7 @@ static EC_BOOL __cbgt_make_root_table_key(const UINT32 cbgt_md_id, const CBYTES 
     return (EC_TRUE);
 }
 
-static int __cbgt_make_open_flags(const UINT32 open_flags)
+STATIC_CAST static int __cbgt_make_open_flags(const UINT32 open_flags)
 {
     int flags;
 
@@ -448,7 +448,7 @@ static int __cbgt_make_open_flags(const UINT32 open_flags)
     return flags;
 }
 
-static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key)
+STATIC_CAST static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key)
 {
     uint16_t klen;
     uint16_t rlen;
@@ -504,24 +504,24 @@ static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key)
     return;
 }
 
-static void __cbgt_print_user_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_user_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     __cbgt_print_user_table_key(log, CBTREE_KEY_LATEST(cbtree_key));
     return;
 }
 
 
-static void __cbgt_print_user_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_user_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     const uint8_t *kv;
     kv = CBTREE_KEY_LATEST(cbtree_key);
- 
+
     sys_log(log,"kv %lx: ", kv);
     kvPrintHs(log, kv);
     return;
 }
 
-static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key)
+STATIC_CAST static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key)
 {
     uint16_t klen;
     uint16_t rlen;
@@ -568,14 +568,14 @@ static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key)
     return;
 }
 
-static void __cbgt_print_colf_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_colf_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     __cbgt_print_colf_table_key(log, CBTREE_KEY_LATEST(cbtree_key));
     return;
 }
 
 
-static void __cbgt_print_colf_table_row(LOG *log, const uint8_t *row)
+STATIC_CAST static void __cbgt_print_colf_table_row(LOG *log, const uint8_t *row)
 {
     uint8_t *start_user_rowkey;
     uint8_t *end_user_rowkey;
@@ -595,7 +595,7 @@ static void __cbgt_print_colf_table_row(LOG *log, const uint8_t *row)
     return;
 }
 
-static void __cbgt_print_colf_kv(LOG *log, const  uint8_t *kv)
+STATIC_CAST static void __cbgt_print_colf_kv(LOG *log, const  uint8_t *kv)
 {
     const uint8_t *key;
     const uint8_t *val;
@@ -632,7 +632,7 @@ static void __cbgt_print_colf_kv(LOG *log, const  uint8_t *kv)
     return;
 }
 
-static void __cbgt_print_colf_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_colf_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     const uint8_t *kv;
     kv = CBTREE_KEY_LATEST(cbtree_key);
@@ -643,19 +643,19 @@ static void __cbgt_print_colf_table_kv(LOG *log, const CBTREE *cbtree, const CBT
     return;
 }
 
-static void __cbgt_print_meta_table_key(LOG *log, const uint8_t *key)
+STATIC_CAST static void __cbgt_print_meta_table_key(LOG *log, const uint8_t *key)
 {
     keyPrintHs(log, key);
     return;
 }
 
-static void __cbgt_print_meta_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_meta_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     __cbgt_print_meta_table_key(log, CBTREE_KEY_LATEST(cbtree_key));
     return;
 }
 
-static void __cbgt_print_meta_kv(LOG *log, const  uint8_t *kv)
+STATIC_CAST static void __cbgt_print_meta_kv(LOG *log, const  uint8_t *kv)
 {
     const uint8_t *key;
     const uint8_t *val;
@@ -688,29 +688,29 @@ static void __cbgt_print_meta_kv(LOG *log, const  uint8_t *kv)
     return;
 }
 
-static void __cbgt_print_meta_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_meta_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     const uint8_t *kv;
     kv = CBTREE_KEY_LATEST(cbtree_key);
- 
+
     sys_log(log,"kv %lx: ", kv);
     __cbgt_print_meta_kv(log, kv);
     return;
 }
 
-static void __cbgt_print_root_table_key(LOG *log, const uint8_t *key)
+STATIC_CAST static void __cbgt_print_root_table_key(LOG *log, const uint8_t *key)
 {
     keyPrintHs(log, key);
     return;
 }
 
-static void __cbgt_print_root_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_root_table_cbtree_key(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     __cbgt_print_root_table_key(log, CBTREE_KEY_LATEST(cbtree_key));
     return;
 }
 
-static void __cbgt_print_root_kv(LOG *log, const  uint8_t *kv)
+STATIC_CAST static void __cbgt_print_root_kv(LOG *log, const  uint8_t *kv)
 {
     const uint8_t *key;
     const uint8_t *val;
@@ -743,18 +743,18 @@ static void __cbgt_print_root_kv(LOG *log, const  uint8_t *kv)
     return;
 }
 
-static void __cbgt_print_root_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
+STATIC_CAST static void __cbgt_print_root_table_kv(LOG *log, const CBTREE *cbtree, const CBTREE_KEY *cbtree_key)
 {
     const uint8_t *kv;
     kv = CBTREE_KEY_LATEST(cbtree_key);
- 
+
     sys_log(log,"kv %lx: ", kv);
     __cbgt_print_root_kv(log, kv);
 
     return;
 }
 
-static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank)
+STATIC_CAST static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 incl_tcid, const UINT32 incl_rank, const UINT32 excl_tcid, const UINT32 excl_rank)
 {
     TASK_BRD  *task_brd;
     CLOAD_MGR *cload_mgr;
@@ -762,7 +762,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
     MOD_MGR *mod_mgr;
     //CVECTOR *cluster_vec;
     //UINT32   cluster_cfg_pos;
-    CVECTOR *tcid_vec; 
+    CVECTOR *tcid_vec;
 
     task_brd = task_brd_default_get();
 
@@ -804,7 +804,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
     }
 
 #if 0
- 
+
     cluster_vec = TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
     CVECTOR_LOCK(cluster_vec, LOC_CBGT_0002);
     for(cluster_cfg_pos = 0; cluster_cfg_pos < cvector_size(cluster_vec); cluster_cfg_pos ++)
@@ -849,7 +849,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
             else
             {
                 cluster_cfg_collect_tcid_vec_by_role_str(cluster_cfg, MODEL_TYPE_HSBGT_CONNEC, (const char *)"table", tcid_vec);
-            }         
+            }
         }
 
         /*I am client, nothing to do*/
@@ -861,7 +861,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
     CVECTOR_UNLOCK(cluster_vec, LOC_CBGT_0003);
 #endif
     /*note: sync cload_stat info (que,obj,cpu,dsk,mem,...) from each rank to ensure table is distributed*/
-    task_brd_sync_cload_mgr(task_brd, tcid_vec, cload_mgr);     
+    task_brd_sync_cload_mgr(task_brd, tcid_vec, cload_mgr);
     mod_mgr_gen_from_cload_mgr(cload_mgr, incl_tcid, incl_rank, cbgt_md_id, mod_mgr);
     cvector_free(tcid_vec, LOC_CBGT_0004);
     cload_mgr_free(cload_mgr);
@@ -876,7 +876,7 @@ static MOD_MGR *__cbgt_gen_mod_mgr(const UINT32 cbgt_md_id, const UINT32 server_
     return (mod_mgr);
 }
 
-static EC_BOOL __cbgt_start_trigger(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 table_id, const CBYTES *table_name, const MOD_NODE *parent, const CSTRING *root_path, const UINT32 open_flags, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_start_trigger(const UINT32 cbgt_md_id, const UINT32 server_type, const UINT32 table_id, const CBYTES *table_name, const MOD_NODE *parent, const CSTRING *root_path, const UINT32 open_flags, MOD_NODE *mod_node)
 {
     MOD_MGR *src_mod_mgr;
     MOD_MGR *des_mod_mgr;
@@ -937,7 +937,7 @@ static EC_BOOL __cbgt_start_trigger(const UINT32 cbgt_md_id, const UINT32 server
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_end_trigger(const UINT32 cbgt_md_id, const MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_end_trigger(const UINT32 cbgt_md_id, const MOD_NODE *mod_node)
 {
     MOD_MGR *src_mod_mgr;
 
@@ -961,7 +961,7 @@ static EC_BOOL __cbgt_end_trigger(const UINT32 cbgt_md_id, const MOD_NODE *mod_n
     return (EC_TRUE);
 }
 
-static void __cbgt_print_table_name(const UINT32 cbgt_md_id, LOG *log)
+STATIC_CAST static void __cbgt_print_table_name(const UINT32 cbgt_md_id, LOG *log)
 {
     CBGT_MD  *cbgt_md;
     CBYTES   *table_name;
@@ -1026,7 +1026,7 @@ static void __cbgt_print_table_name(const UINT32 cbgt_md_id, LOG *log)
     return;
 }
 
-static void __cbgt_print_row(const UINT32 cbgt_md_id, const CBYTES *row, LOG *log)
+STATIC_CAST static void __cbgt_print_row(const UINT32 cbgt_md_id, const CBYTES *row, LOG *log)
 {
     CBGT_MD  *cbgt_md;
     UINT32    table_id;
@@ -1088,7 +1088,7 @@ static void __cbgt_print_row(const UINT32 cbgt_md_id, const CBYTES *row, LOG *lo
     return;
 }
 
-static void __cbgt_print_key(const UINT32 cbgt_md_id, const uint8_t *key, LOG *log)
+STATIC_CAST static void __cbgt_print_key(const UINT32 cbgt_md_id, const uint8_t *key, LOG *log)
 {
     CBGT_MD  *cbgt_md;
     UINT32    table_id;
@@ -1149,7 +1149,7 @@ static void __cbgt_print_key(const UINT32 cbgt_md_id, const uint8_t *key, LOG *l
     return;
 }
 
-static CSTRING *__cbgt_gen_root_record_file_name_cstr(const CSTRING *root_path)
+STATIC_CAST static CSTRING *__cbgt_gen_root_record_file_name_cstr(const CSTRING *root_path)
 {
     CSTRING *root_record_file_name;
     root_record_file_name = cstring_new(NULL_PTR, LOC_CBGT_0005);
@@ -1371,7 +1371,7 @@ EC_BOOL __cbgt_load_root_record_file(const UINT32 cbgt_md_id, const CSTRING *roo
 }
 #endif/*(SWITCH_ON == CBGT_BASED_ON_HSDFS_SWITCH)*/
 
-static CSTRING *__cbgt_gen_cbitmap_file_name_cstr(const CSTRING *root_path)
+STATIC_CAST static CSTRING *__cbgt_gen_cbitmap_file_name_cstr(const CSTRING *root_path)
 {
     CSTRING *table_id_pool_fname;
     table_id_pool_fname = cstring_new(NULL_PTR, LOC_CBGT_0006);
@@ -1385,50 +1385,50 @@ static CSTRING *__cbgt_gen_cbitmap_file_name_cstr(const CSTRING *root_path)
 }
 
 #if (SWITCH_OFF == CBGT_BASED_ON_HSDFS_SWITCH)
-static EC_BOOL __cbgt_exist_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
+STATIC_CAST static EC_BOOL __cbgt_exist_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
 {
     return cbitmap_fexist(cstring_get_str(table_id_pool_fname));
 }
 
-static CBITMAP *__cbgt_create_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const UINT32 max_bits)
+STATIC_CAST static CBITMAP *__cbgt_create_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const UINT32 max_bits)
 {
     return cbitmap_fcreate(max_bits, cstring_get_str(table_id_pool_fname));
 }
 
-static EC_BOOL __cbgt_flush_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const CBITMAP *cbitmap)
+STATIC_CAST static EC_BOOL __cbgt_flush_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const CBITMAP *cbitmap)
 {
     return cbitmap_flush(cbitmap, cstring_get_str(table_id_pool_fname));
 }
 
-static CBITMAP  *__cbgt_load_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
+STATIC_CAST static CBITMAP  *__cbgt_load_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
 {
     return cbitmap_fload(cstring_get_str(table_id_pool_fname));
 }
 #endif/*(SWITCH_OFF == CBGT_BASED_ON_HSDFS_SWITCH)*/
 
 #if (SWITCH_ON == CBGT_BASED_ON_HSDFS_SWITCH)
-static EC_BOOL __cbgt_exist_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
+STATIC_CAST static EC_BOOL __cbgt_exist_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
     return cbitmap_dfs_exist(table_id_pool_fname, CBGT_MD_CDFS_MD_ID(cbgt_md));
 }
 
-static CBITMAP *__cbgt_create_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const UINT32 max_bits)
+STATIC_CAST static CBITMAP *__cbgt_create_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const UINT32 max_bits)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
     return cbitmap_dfs_create(max_bits, table_id_pool_fname, CBGT_MD_CDFS_MD_ID(cbgt_md), CBGT_REPLICA_NUM);
 }
 
-static EC_BOOL __cbgt_flush_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const CBITMAP *cbitmap)
+STATIC_CAST static EC_BOOL __cbgt_flush_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname, const CBITMAP *cbitmap)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
     return cbitmap_dfs_flush(cbitmap, table_id_pool_fname, CBGT_MD_CDFS_MD_ID(cbgt_md));
 }
 
-static CBITMAP  *__cbgt_load_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
+STATIC_CAST static CBITMAP  *__cbgt_load_table_id_pool(const UINT32 cbgt_md_id, const CSTRING *table_id_pool_fname)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
@@ -1437,7 +1437,7 @@ static CBITMAP  *__cbgt_load_table_id_pool(const UINT32 cbgt_md_id, const CSTRIN
 #endif/*(SWITCH_ON == CBGT_BASED_ON_HSDFS_SWITCH)*/
 
 /*root table server load table id pool*/
-static CBITMAP *__cbgt_open_table_id_pool(const UINT32 cbgt_md_id, const UINT32 table_id, const CSTRING *root_path, const UINT32 open_flags)
+STATIC_CAST static CBITMAP *__cbgt_open_table_id_pool(const UINT32 cbgt_md_id, const UINT32 table_id, const CSTRING *root_path, const UINT32 open_flags)
 {
     CBITMAP *cbitmap;
     CSTRING *table_id_pool_fname;
@@ -1473,7 +1473,7 @@ static CBITMAP *__cbgt_open_table_id_pool(const UINT32 cbgt_md_id, const UINT32 
 #if 0
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDNULL, "[DEBUG] __cbgt_open_table_id_pool: create table id pool %s and set table id %ld and flush it\n",
                             (char *)cstring_get_str(table_id_pool_fname), table_id);
-#endif                         
+#endif
     }
     else
     {
@@ -1501,7 +1501,7 @@ static CBITMAP *__cbgt_open_table_id_pool(const UINT32 cbgt_md_id, const UINT32 
     return (cbitmap);
 }
 
-static uint8_t *__cbgt_gen_table_fame(const uint8_t *root_path, const word_t table_id)
+STATIC_CAST static uint8_t *__cbgt_gen_table_fame(const uint8_t *root_path, const word_t table_id)
 {
     uint8_t *fname;
     uint32_t len;
@@ -1526,7 +1526,7 @@ static uint8_t *__cbgt_gen_table_fame(const uint8_t *root_path, const word_t tab
 }
 
 
-static EC_BOOL __cbgt_whereis_root_server(const UINT32   cbgt_md_id,
+STATIC_CAST static EC_BOOL __cbgt_whereis_root_server(const UINT32   cbgt_md_id,
                                                     const UINT32   server_type,
                                                     const UINT32   table_id,
                                                     const CSTRING *root_path,
@@ -1598,11 +1598,11 @@ static EC_BOOL __cbgt_whereis_root_server(const UINT32   cbgt_md_id,
                        MOD_NODE_RANK(root_mod_node),
                        MOD_NODE_MODI(root_mod_node)
                        );
-#endif                    
+#endif
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_start_hsdfs(const UINT32 cbgt_md_id)
+STATIC_CAST static EC_BOOL __cbgt_start_hsdfs(const UINT32 cbgt_md_id)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
@@ -1614,10 +1614,10 @@ static EC_BOOL __cbgt_start_hsdfs(const UINT32 cbgt_md_id)
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_start_hsdfs: start hsdfs client failed\n");
         return (EC_FALSE);
     }
- 
+
     cdfs_add_npp_vec(CBGT_MD_CDFS_MD_ID(cbgt_md));
     cdfs_add_dn_vec(CBGT_MD_CDFS_MD_ID(cbgt_md));
-#endif/*(SWITCH_ON == CBGT_BASED_ON_HSDFS_SWITCH)*/ 
+#endif/*(SWITCH_ON == CBGT_BASED_ON_HSDFS_SWITCH)*/
 
 #if (SWITCH_OFF == CBGT_BASED_ON_HSDFS_SWITCH)
     CBGT_MD_CDFS_MD_ID(cbgt_md) = CMPI_ERROR_MODI;
@@ -1625,7 +1625,7 @@ static EC_BOOL __cbgt_start_hsdfs(const UINT32 cbgt_md_id)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_end_hsdfs(const UINT32 cbgt_md_id)
+STATIC_CAST static EC_BOOL __cbgt_end_hsdfs(const UINT32 cbgt_md_id)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
@@ -1638,7 +1638,7 @@ static EC_BOOL __cbgt_end_hsdfs(const UINT32 cbgt_md_id)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_start_csession(const UINT32 cbgt_md_id)
+STATIC_CAST static EC_BOOL __cbgt_start_csession(const UINT32 cbgt_md_id)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
@@ -1652,7 +1652,7 @@ static EC_BOOL __cbgt_start_csession(const UINT32 cbgt_md_id)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_end_csession(const UINT32 cbgt_md_id)
+STATIC_CAST static EC_BOOL __cbgt_end_csession(const UINT32 cbgt_md_id)
 {
     CBGT_MD *cbgt_md;
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
@@ -1793,7 +1793,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
         cbc_md_free(MD_CBGT, cbgt_md_id);
         return (CMPI_ERROR_MODI);
     }
- 
+
     /* start cession client */
     if(EC_FALSE == __cbgt_start_csession(cbgt_md_id))
     {
@@ -1814,14 +1814,14 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
         cbc_md_free(MD_CBGT, cbgt_md_id);
         return (CMPI_ERROR_MODI);
     }
- 
+
     if(EC_FALSE == __cbgt_whereis_root_server(cbgt_md_id, server_type, table_id, root_path, open_flags, &root_table_id, &root_mod_node))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_start: query root server failed\n");
         __cbgt_end_hsdfs(cbgt_md_id);
         __cbgt_end_csession(cbgt_md_id);
         cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;     
+        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
         cbc_md_free(MD_CBGT, cbgt_md_id);
         return (CMPI_ERROR_MODI);
     }
@@ -1843,7 +1843,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
             __cbgt_end_hsdfs(cbgt_md_id);
             __cbgt_end_csession(cbgt_md_id);
             cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;         
+            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
             cbc_md_free(MD_CBGT, cbgt_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -1873,7 +1873,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
         __cbgt_end_hsdfs(cbgt_md_id);
         __cbgt_end_csession(cbgt_md_id);
         cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;     
+        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
         cbc_md_free(MD_CBGT, cbgt_md_id);
         return (CMPI_ERROR_MODI);
     }
@@ -1909,7 +1909,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
             __cbgt_end_hsdfs(cbgt_md_id);
             __cbgt_end_csession(cbgt_md_id);
             cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;         
+            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
             cbc_md_free(MD_CBGT, cbgt_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -1926,7 +1926,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
             __cbgt_end_hsdfs(cbgt_md_id);
             __cbgt_end_csession(cbgt_md_id);
             cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;         
+            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
             cbc_md_free(MD_CBGT, cbgt_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -1945,7 +1945,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
         __cbgt_end_hsdfs(cbgt_md_id);
         __cbgt_end_csession(cbgt_md_id);
         cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;     
+        CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
         cbc_md_free(MD_CBGT, cbgt_md_id);
         return (CMPI_ERROR_MODI);
     }
@@ -1987,7 +1987,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
             __cbgt_end_hsdfs(cbgt_md_id);
             __cbgt_end_csession(cbgt_md_id);
             cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;         
+            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
             cbc_md_free(MD_CBGT, cbgt_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -2002,7 +2002,7 @@ UINT32 cbgt_start(const UINT32 server_type, const UINT32 table_id, const CBYTES 
             __cbgt_end_hsdfs(cbgt_md_id);
             __cbgt_end_csession(cbgt_md_id);
             cstring_free(CBGT_MD_CSESSION_NAME(cbgt_md));
-            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;         
+            CBGT_MD_CSESSION_NAME(cbgt_md) = NULL_PTR;
             cbc_md_free(MD_CBGT, cbgt_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -2203,7 +2203,7 @@ EC_BOOL cbgt_aging_handle(const UINT32 cbgt_md_id)
         CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0019);
         return (EC_TRUE);
     }
- 
+
     CTIMET_GET(cur_time);
     diff_nsec = CTIMET_DIFF(CBGT_MD_LAST_ACCESS_TIME(cbgt_md), cur_time);
     if(diff_nsec >= 0.0 + CBGT_AGING_INTERVAL_NSEC)
@@ -2448,7 +2448,7 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
     CBGT_GDB *gdb;
     CBTREE   *cbtree;
     uint8_t  *fname;
- 
+
     if(NULL_PTR == root_path)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_open: root_path is null\n");
@@ -2472,9 +2472,9 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
     if (NULL_PTR == cbtree)
     {
         safe_free(fname, LOC_CBGT_0026);
-     
+
         if (flags & O_CREAT)
-        {         
+        {
             return cbgt_gdb_create(root_path, table_id, cdfs_md_id, cbtree_type);
         }
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_open: unable to open table %ld\n", table_id);
@@ -2502,7 +2502,7 @@ EC_BOOL cbgt_gdb_load(CBGT_GDB *gdb)
 {
     CBTREE *cbtree;
     int     fd;
- 
+
     if(NULL_PTR == gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_load: gdb is null\n");
@@ -2602,7 +2602,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     }
 
     CBGT_GDB_CRWLOCK_WRLOCK(gdb, LOC_CBGT_0031);
- 
+
     if(EC_FALSE == cbtree_is_dirty(CBGT_GDB_CBTREE(gdb)))
     {
         dbg_log(SEC_0054_CBGT, 1)(LOGSTDOUT, "warn:cbgt_gdb_flush: gdb is not dirty, NOT flush\n");
@@ -2614,7 +2614,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: fd is invalid\n");
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0033);
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == cbtree_flush_posix(CBGT_GDB_CBTREE(gdb), CBGT_GDB_FD(gdb)))
@@ -2623,7 +2623,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
                             CBGT_GDB_FD(gdb), (char *)CBGT_GDB_FNAME_STR(gdb));
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0034);
         return (EC_FALSE);
-    } 
+    }
     CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0035);
     return (EC_TRUE);
 }
@@ -2656,7 +2656,7 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
     CBGT_GDB *gdb;
     CBTREE   *cbtree;
     uint8_t  *fname;
- 
+
     if(NULL_PTR == root_path)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_open: root_path is null\n");
@@ -2683,7 +2683,7 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
             safe_free(fname, LOC_CBGT_0041);
             return (NULL_PTR);
         }
-     
+
         cbtree = cbtree_load_hsdfs(cdfs_md_id, fname_cstr);
         cstring_free(fname_cstr);
     }
@@ -2691,9 +2691,9 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
     if (NULL_PTR == cbtree)
     {
         safe_free(fname, LOC_CBGT_0042);
-     
+
         if (flags & O_CREAT)
-        {         
+        {
             return cbgt_gdb_create(root_path, table_id, cdfs_md_id, cbtree_type);
         }
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_open: unable to open table %ld\n", table_id);
@@ -2719,7 +2719,7 @@ CBGT_GDB *cbgt_gdb_open(const uint8_t *root_path, const word_t table_id, const w
 EC_BOOL cbgt_gdb_load(CBGT_GDB *gdb)
 {
     CBTREE *cbtree;
- 
+
     if(NULL_PTR == gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_load: gdb is null\n");
@@ -2807,11 +2807,11 @@ CBGT_GDB *cbgt_gdb_create(const uint8_t *root_path, const word_t table_id, const
 EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
 {
     CSTRING  *fname_cstr;
- 
+
     uint32_t  encoded_size;
     uint32_t  encoded_pos;
     uint8_t  *encoded_buff;
- 
+
     word_t    compressed_len;
     uint8_t  *compressed_buff;
     uint32_t  counter;
@@ -2827,9 +2827,9 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     if(EC_FALSE == cbtree_is_dirty(CBGT_GDB_CBTREE(gdb)))
     {
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0048);
-        dbg_log(SEC_0054_CBGT, 1)(LOGSTDOUT, "warn:cbgt_gdb_flush: gdb is not dirty, NOT flush\n");     
+        dbg_log(SEC_0054_CBGT, 1)(LOGSTDOUT, "warn:cbgt_gdb_flush: gdb is not dirty, NOT flush\n");
         return (EC_TRUE);
-    } 
+    }
 
     fname_cstr = CBGT_GDB_FNAME(gdb);
 
@@ -2837,7 +2837,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     if(EC_FALSE == cbtree_encode_size(CBGT_GDB_CBTREE(gdb), &encoded_size))
     {
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0049);
-        dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: encode_size of gdb %lx failed\n", gdb);     
+        dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: encode_size of gdb %lx failed\n", gdb);
         return (EC_FALSE);
     }
 
@@ -2846,7 +2846,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     if(NULL == encoded_buff)
     {
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0051);
-        dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: alloc %d bytes encoding buff failed\n", encoded_size);     
+        dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: alloc %d bytes encoding buff failed\n", encoded_size);
         return (EC_FALSE);
     }
 
@@ -2857,7 +2857,7 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0052);
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: encode gdb %lx to buff %lx with size %d failed\n",
                            gdb, encoded_buff, encoded_size);
-        safe_free(encoded_buff, LOC_CBGT_0053);     
+        safe_free(encoded_buff, LOC_CBGT_0053);
         return (EC_FALSE);
     }
 
@@ -2868,9 +2868,9 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     {
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0055);
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: alloc %d bytes compression buff failed\n", compressed_len + sizeof(uint32_t));
-        safe_free(encoded_buff, LOC_CBGT_0056);     
+        safe_free(encoded_buff, LOC_CBGT_0056);
         return (EC_FALSE);
-    } 
+    }
 
     counter = 0;
     gdbPut32(compressed_buff, &counter, encoded_pos);
@@ -2880,10 +2880,10 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: compress buff %lx size %d to buff %lx failed\n",
                             encoded_buff, encoded_pos, compressed_buff);
-                         
+
         CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0057);
         safe_free(encoded_buff, LOC_CBGT_0058);
-        safe_free(compressed_buff, LOC_CBGT_0059);     
+        safe_free(compressed_buff, LOC_CBGT_0059);
         return (EC_FALSE);
     }
 
@@ -2901,13 +2901,13 @@ EC_BOOL cbgt_gdb_flush(CBGT_GDB *gdb)
         cbytes_umount(&cbytes, NULL_PTR, NULL_PTR);
         safe_free(compressed_buff, LOC_CBGT_0062);
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_flush: update %s with %ld bytes failed\n",
-                            (char *)cstring_get_str(fname_cstr), compressed_len + counter);     
+                            (char *)cstring_get_str(fname_cstr), compressed_len + counter);
         return (EC_FALSE);
     }
 
     cbtree_clear_dirty(CBGT_GDB_CBTREE(gdb));
     CBGT_GDB_CRWLOCK_UNLOCK(gdb, LOC_CBGT_0063);
- 
+
     cbytes_umount(&cbytes, NULL_PTR, NULL_PTR);
     safe_free(compressed_buff, LOC_CBGT_0064);
     return (EC_TRUE);
@@ -3074,7 +3074,7 @@ EC_BOOL   cbgt_gdb_update_val(CBGT_GDB *gdb, const uint8_t *key, const uint8_t *
 EC_BOOL cbgt_gdb_is_full(const CBGT_GDB *gdb)
 {
     CBTREE *cbtree;
- 
+
     if(NULL_PTR == gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_is_full: gdb is null\n");
@@ -3085,7 +3085,7 @@ EC_BOOL cbgt_gdb_is_full(const CBGT_GDB *gdb)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_is_full: cbtree of gdb %lx is null\n", gdb);
         return (EC_FALSE);
-    } 
+    }
 
     cbtree = CBGT_GDB_CBTREE(gdb);
     //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_gdb_is_full: cbtree %lx size %ld, tlen %ld\n", cbtree, CBTREE_SIZE(cbtree), CBTREE_TLEN(cbtree));
@@ -3094,7 +3094,7 @@ EC_BOOL cbgt_gdb_is_full(const CBGT_GDB *gdb)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -3141,8 +3141,8 @@ EC_BOOL cbgt_gdb_get_last_key(const CBGT_GDB *gdb, uint8_t **last_key)
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_gdb_get_last_key: dup key from kv %lx failed\n", kv);
         return (EC_FALSE);
     }
- 
-    (*last_key) = dup_key; 
+
+    (*last_key) = dup_key;
     return (EC_TRUE);
 }
 
@@ -3153,7 +3153,7 @@ EC_BOOL cbgt_gdb_split(CBGT_GDB *old_gdb, CBGT_GDB *left_gdb)
     CBTREE *left_cbtree;
 
     CBGT_GDB_CRWLOCK_WRLOCK(old_gdb, LOC_CBGT_0080);
-    old_cbtree = CBGT_GDB_CBTREE(old_gdb); 
+    old_cbtree = CBGT_GDB_CBTREE(old_gdb);
     if(EC_FALSE == cbtree_split(old_cbtree, &left_cbtree))
     {
         CBGT_GDB_CRWLOCK_UNLOCK(old_gdb, LOC_CBGT_0081);
@@ -3179,7 +3179,7 @@ EC_BOOL cbgt_gdb_merge(CBGT_GDB *old_gdb, CBGT_GDB *left_gdb)
                             CBGT_GDB_CBTREE(left_gdb), CBGT_GDB_CBTREE(old_gdb));
         return (EC_FALSE);
     }
- 
+
     CBGT_GDB_CBTREE(left_gdb) = NULL_PTR;
     CBGT_GDB_CBTREE(old_gdb)  = des_cbtree;
     return (EC_TRUE);
@@ -3188,12 +3188,12 @@ EC_BOOL cbgt_gdb_merge(CBGT_GDB *old_gdb, CBGT_GDB *left_gdb)
 void cbgt_gdb_traversal(LOG *log, const CBGT_GDB *gdb, CBTREE_KEY_PRINTER key_printer)
 {
     const CBTREE *cbtree;
- 
+
     if(NULL_PTR == gdb)
     {
         sys_log(log, "cbgt_gdb_traversal: null gdb\n");
         return;
-    } 
+    }
 
     if(NULL_PTR == CBGT_GDB_CBTREE(gdb))
     {
@@ -3210,12 +3210,12 @@ void cbgt_gdb_traversal(LOG *log, const CBGT_GDB *gdb, CBTREE_KEY_PRINTER key_pr
 void cbgt_gdb_runthrough(LOG *log, const CBGT_GDB *gdb, void (*process)(LOG *, const CBTREE *, const CBTREE_KEY *))
 {
     const CBTREE *cbtree;
- 
+
     if(NULL_PTR == gdb)
     {
         sys_log(log, "cbgt_gdb_runthrough: null gdb\n");
         return;
-    } 
+    }
 
     if(NULL_PTR == CBGT_GDB_CBTREE(gdb))
     {
@@ -3464,7 +3464,7 @@ EC_BOOL cbgt_kv_init(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *c
                        c_time(NULL_PTR),
                        KEY_TYPE_IS_PUT,
                        NULL_PTR);
- 
+
     }
     kv_buff = kvNewHs(&keyValue, LOC_CBGT_0088);
     if(NULL_PTR == kv_buff)
@@ -3899,7 +3899,7 @@ EC_BOOL cbgt_split_register_no_lock(const UINT32 cbgt_md_id,
     cbytes_clean(&rowkey);
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_split_register_no_lock: [2]\n");
-    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT); 
+    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT);
 #endif
     /*insert left */
     if(EC_FALSE == cbgt_insert_register_no_lock(cbgt_md_id, left_row, left_table_id, left_mod_node))
@@ -3932,7 +3932,7 @@ EC_BOOL cbgt_split_register_no_lock(const UINT32 cbgt_md_id,
     }
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_split_register_no_lock: [3]\n");
-    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT); 
+    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT);
 #endif
     /*insert right */
     if(EC_FALSE == cbgt_insert_register_no_lock(cbgt_md_id, right_row, right_table_id, right_mod_node))
@@ -3989,7 +3989,7 @@ EC_BOOL cbgt_split_register_no_lock(const UINT32 cbgt_md_id,
     }
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_split_register_no_lock: [4]\n");
-    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT); 
+    cbgt_traversal_no_lock(cbgt_md_id, LOGSTDOUT);
 #endif
     return (EC_TRUE);
 }
@@ -4272,7 +4272,7 @@ EC_BOOL cbgt_delete_kv(const UINT32 cbgt_md_id, const CBYTES *key_bytes)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_clean_report_vec_words(const UINT32 cbgt_md_id, CVECTOR *report_vec)
+STATIC_CAST static EC_BOOL __cbgt_clean_report_vec_words(const UINT32 cbgt_md_id, CVECTOR *report_vec)
 {
     UINT32 num;
     UINT32 pos;
@@ -4407,7 +4407,7 @@ EC_BOOL __cbgt_merge_one_group(const UINT32 cbgt_md_id, const CVECTOR *kv_bytes_
         CBYTES  *kv_bytes;
 
         kv_bytes = (CBYTES *)cvector_get_no_lock(kv_bytes_vec, kv_bytes_pos);
-     
+
 
         if(EC_FALSE == cbgt_fetch_row(cbgt_md_id, kv_bytes, &table_name))
         {
@@ -4490,7 +4490,7 @@ EC_BOOL __cbgt_merge_groups(const UINT32 cbgt_md_id)
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_merge_groups: cbtree is null\n");
         return (EC_FALSE);
     }
- 
+
     cvector_init(&kv_bytes_vec, 0, MM_CBYTES, CVECTOR_LOCK_ENABLE, LOC_CBGT_0125);
 
     count = 0;
@@ -4506,7 +4506,7 @@ EC_BOOL __cbgt_merge_groups(const UINT32 cbgt_md_id)
             CBTREE_KEY *cbtree_key;
             uint8_t *kv;
             CBYTES  *kv_bytes;
-         
+
             cbtree_key = CBTREE_NODE_KEY(cbtree_node, idx);
             kv = CBTREE_KEY_LATEST(cbtree_key);
 
@@ -4517,7 +4517,7 @@ EC_BOOL __cbgt_merge_groups(const UINT32 cbgt_md_id)
                 cvector_clean_no_lock(&kv_bytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_CBGT_0126);
                 return (EC_FALSE);
             }
-         
+
             if(EC_FALSE == cbytes_set(kv_bytes, kv, kvGettLenHs(kv)))
             {
                 dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_merge_groups: set cbytes failed\n");
@@ -4528,7 +4528,7 @@ EC_BOOL __cbgt_merge_groups(const UINT32 cbgt_md_id)
 
             cvector_push_no_lock(&kv_bytes_vec, (void *)kv_bytes);
         }
-     
+
         count += CBTREE_NODE_COUNT(cbtree_node);
 
         if((CBGT_ONCE_MERGE_TABLE_NUM * 2) > count)
@@ -4543,7 +4543,7 @@ EC_BOOL __cbgt_merge_groups(const UINT32 cbgt_md_id)
             cvector_clean_no_lock(&kv_bytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_CBGT_0128);
             return (EC_FALSE);
         }
-        cvector_clean_no_lock(&kv_bytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_CBGT_0129);     
+        cvector_clean_no_lock(&kv_bytes_vec, (CVECTOR_DATA_CLEANER)cbytes_free, LOC_CBGT_0129);
     }
 
     /*handle the left*/
@@ -4642,7 +4642,7 @@ EC_BOOL cbgt_merge(const UINT32 cbgt_md_id)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_merge: new mod mgr for CBGT module %ld after dea old all failed\n", cbgt_md_id);
         return (EC_FALSE);
-    } 
+    }
 
     CBGT_MD_CRWLOCK_TABLE_WRLOCK(cbgt_md, LOC_CBGT_0137);
     if(EC_FALSE == __cbgt_merge_groups(cbgt_md_id))
@@ -4658,7 +4658,7 @@ EC_BOOL cbgt_merge(const UINT32 cbgt_md_id)
 
 /*split_flag will indicate whether or not the orignal table was broken/splitted, despite of success or failure*/
 /*split_flag = EC_TRUE means split happen, EC_FALSE means not happen*/
-static EC_BOOL __cbgt_split_no_lock(const UINT32 cbgt_md_id, EC_BOOL *split_flag)
+STATIC_CAST static EC_BOOL __cbgt_split_no_lock(const UINT32 cbgt_md_id, EC_BOOL *split_flag)
 {
     CBGT_MD   *cbgt_md;
     CBGT_GDB  *old_gdb;
@@ -4749,7 +4749,7 @@ static EC_BOOL __cbgt_split_no_lock(const UINT32 cbgt_md_id, EC_BOOL *split_flag
         cbgt_gdb_close_without_flush(left_gdb);
         cbgt_release_table_id(cbgt_md_id, left_table_id);
         return (EC_FALSE);
-    } 
+    }
 
     /*write endkey and table id to parent table*/
     if(EC_FALSE == cbgt_gdb_get_last_key(left_gdb, &last_user_rowkey))
@@ -4759,7 +4759,7 @@ static EC_BOOL __cbgt_split_no_lock(const UINT32 cbgt_md_id, EC_BOOL *split_flag
         cbgt_release_table_id(cbgt_md_id, left_table_id);
         return (EC_FALSE);
     }
- 
+
     __cbgt_split_colf_row_into_start_end_user_table_key(cbytes_buf(table_name), &start_user_rowkey, &end_user_rowkey);
 
     if(EC_FALSE == __cbgt_make_row_of_colf_table_by_start_end_user_table_key(start_user_rowkey, last_user_rowkey, &left_colf_row))
@@ -4852,10 +4852,10 @@ EC_BOOL cbgt_split_no_lock(const UINT32 cbgt_md_id)
         {
             cbgt_gdb_load(CBGT_MD_GDB(cbgt_md));/*restore!*/
         }
-     
+
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -4881,7 +4881,7 @@ EC_BOOL cbgt_split(const UINT32 cbgt_md_id)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_split: table %ld split failed\n", CBGT_MD_TABLE_ID(cbgt_md));
         CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0150);
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0151);
     return (EC_TRUE);
@@ -4919,7 +4919,7 @@ EC_BOOL cbgt_merge_table(const UINT32 cbgt_md_id, const CBYTES *left_table_name,
 
     CBGT_GDB  *right_gdb;
     CBGT_GDB  *left_gdb;
- 
+
     UINT32     right_table_id;
     UINT32     des_table_id;
 
@@ -4983,7 +4983,7 @@ EC_BOOL cbgt_merge_table(const UINT32 cbgt_md_id, const CBYTES *left_table_name,
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_merge_table: right table name: ");
         __cbgt_print_colf_table_row(LOGSTDOUT, cbytes_buf(right_table_name));
         sys_print(LOGSTDOUT, "\n");
-#endif     
+#endif
         return (EC_FALSE);
     }
 
@@ -5432,7 +5432,7 @@ EC_BOOL cbgt_create_table_on_colf(const UINT32 cbgt_md_id, const CBYTES *colf_ro
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *table_key, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
+STATIC_CAST static EC_BOOL __cbgt_get_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *table_key, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
 {
     CBGT_MD    *cbgt_md;
 
@@ -5492,7 +5492,7 @@ static EC_BOOL __cbgt_get_table_and_key_no_lock(const UINT32 cbgt_md_id, const C
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
 
@@ -5542,7 +5542,7 @@ static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTES *table_nam
     kv = CBTREE_KEY_LATEST(cbtree_key);
 
     value = kvGetValueHs(kv);
-    vlen  = kvGetvLenHs(kv); 
+    vlen  = kvGetvLenHs(kv);
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0176);
 
     counter = 0;
@@ -5563,7 +5563,7 @@ static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTES *table_nam
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_rmc_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
+STATIC_CAST static EC_BOOL __cbgt_get_rmc_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
 {
     CBGT_MD    *cbgt_md;
     CBYTES      rmc_rowkey;
@@ -5581,7 +5581,7 @@ static EC_BOOL __cbgt_get_rmc_table_and_key_no_lock(const UINT32 cbgt_md_id, con
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0177);
-  
+
     if(do_log(SEC_0054_CBGT, 9))
     {
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_rmc_table_and_key_no_lock: table name: ");
@@ -5604,14 +5604,14 @@ static EC_BOOL __cbgt_get_rmc_table_and_key_no_lock(const UINT32 cbgt_md_id, con
         return (EC_FALSE);
     }
     cbytes_clean(&rmc_rowkey);
-#if 0 
+#if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_rmc_table_and_key_no_lock: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
 #endif
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_rmc_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_get_rmc_table(const UINT32 cbgt_md_id, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
 
@@ -5639,14 +5639,14 @@ static EC_BOOL __cbgt_get_rmc_table(const UINT32 cbgt_md_id, const CBYTES *table
                             CBGT_MD_TABLE_ID(cbgt_md), __cbgt_type(CBGT_MD_TYPE(cbgt_md)));
         return (EC_FALSE);
     }
-#if 0 
+#if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_rmc_table: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
 #endif
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_user_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *user_table_key, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
+STATIC_CAST static EC_BOOL __cbgt_get_user_table_and_key_no_lock(const UINT32 cbgt_md_id, const CBYTES *user_table_key, UINT32 *table_id, MOD_NODE *mod_node, CBYTES *key_bytes)
 {
     CBGT_MD    *cbgt_md;
     CBYTES      col_rowkey;
@@ -5672,7 +5672,7 @@ static EC_BOOL __cbgt_get_user_table_and_key_no_lock(const UINT32 cbgt_md_id, co
     __cbgt_print_user_table_key(LOGSTDOUT, cbytes_buf(user_table_key));
     sys_print(LOGSTDOUT, "\n");
 #endif
- 
+
     cbytes_init(&col_rowkey);
     if(EC_FALSE == __cbgt_make_colf_table_key_by_user_table_key(cbgt_md_id, user_table_key, &col_rowkey))
     {
@@ -5693,14 +5693,14 @@ static EC_BOOL __cbgt_get_user_table_and_key_no_lock(const UINT32 cbgt_md_id, co
         return (EC_FALSE);
     }
     cbytes_clean(&col_rowkey);
-#if 0 
+#if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table_and_key_no_lock: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
 #endif
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *user_rowkey, UINT32 *table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *user_rowkey, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
 
@@ -5727,7 +5727,7 @@ static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *user
 #endif
     if(EC_FALSE == __cbgt_get_table(cbgt_md_id, user_rowkey, table_id, mod_node))
     {
-#if 0 
+#if 0
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table: as user rowkey: ");
         __cbgt_print_user_table_key(LOGSTDOUT, cbytes_buf(user_rowkey));
         sys_print(LOGSTDOUT, "\n");
@@ -5736,7 +5736,7 @@ static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const CBYTES *user
                             CBGT_MD_TABLE_ID(cbgt_md), __cbgt_type(CBGT_MD_TYPE(cbgt_md)));
         return (EC_FALSE);
     }
-#if 0 
+#if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
 #endif
@@ -5830,7 +5830,7 @@ EC_BOOL cbgt_get_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
                        "of user table %.*s from meta table %ld on root table %ld successfully\n",
                         (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node),
                         cbytes_len(table_name), (char *)cbytes_buf(table_name), meta_table_id, CBGT_MD_TABLE_ID(cbgt_md));
-#endif                     
+#endif
     return (EC_TRUE);
 
 }
@@ -5890,7 +5890,7 @@ EC_BOOL cbgt_get_colf_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *col
                        "of colf %.*s on meta table %ld successfully\n",
                         (*table_id), MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node),
                         cbytes_len(colf), (char *)cbytes_buf(colf), CBGT_MD_TABLE_ID(cbgt_md));
-#endif                     
+#endif
     return (EC_TRUE);
 
 }
@@ -5991,7 +5991,7 @@ EC_BOOL cbgt_get_user_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
                         cbytes_len(colf), (char *)cbytes_buf(colf),
                         cbytes_len(colq), (char *)cbytes_buf(colq),
                         meta_table_id, CBGT_MD_TABLE_ID(cbgt_md));
-#endif                     
+#endif
     return (EC_TRUE);
 
 }
@@ -6067,7 +6067,7 @@ EC_BOOL cbgt_get_user_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *row
                         cbytes_len(colq), (char *)cbytes_buf(colq),
                         colf_table_id,
                         CBGT_MD_TABLE_ID(cbgt_md));
-#endif                     
+#endif
     return (EC_TRUE);
 
 }
@@ -6152,12 +6152,12 @@ EC_BOOL cbgt_get_user_table_from_colf(const UINT32 cbgt_md_id, const CBYTES *row
                         cbytes_len(colf), (char *)cbytes_buf(colf),
                         cbytes_len(colq), (char *)cbytes_buf(colq),
                         CBGT_MD_TABLE_ID(cbgt_md));
-#endif                     
+#endif
     return (EC_TRUE);
 
 }
 
-static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 server_type, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 server_type, const CBYTES *table_name, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD  *cbgt_md;
 
@@ -6209,7 +6209,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
 
     /*lookup colf table in session*/
     if(CBGT_TYPE_COLF_SERVER == server_type)
-    {     
+    {
         if(EC_TRUE == __cbgt_get_colf_table_from_session(cbgt_md_id, table_name/*unknow user table name*/, table_name, &colf_session_path, table_id, mod_node)
         && EC_TRUE == CBGT_CHECK_TABLE_EXIST(cbgt_md_id, (*table_id), mod_node))
         {
@@ -6277,7 +6277,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
                                 CBGT_MD_TABLE_ID(cbgt_md));
             cbytes_clean(&key_bytes);
             cstring_clean(&meta_session_path);
-            cstring_clean(&colf_session_path);         
+            cstring_clean(&colf_session_path);
             return (EC_FALSE);
         }
 
@@ -6290,7 +6290,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
                      &son_mod_node,
                      &__ret, FI_cbgt_traversal, CMPI_ERROR_MODI, LOGSTDOUT);
          }
-#endif     
+#endif
 
         /*update register info of son table*/
         if(EC_FALSE == cbgt_update_register_no_lock(cbgt_md_id, &key_bytes, son_table_id, &son_mod_node))
@@ -6304,7 +6304,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
                                CBGT_MD_TABLE_ID(cbgt_md), __cbgt_type(CBGT_MD_TYPE(cbgt_md)));
             cbytes_clean(&key_bytes);
             cstring_clean(&meta_session_path);
-            cstring_clean(&colf_session_path);         
+            cstring_clean(&colf_session_path);
             return (EC_FALSE);
         }
 
@@ -6317,7 +6317,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
                      &son_mod_node,
                      &__ret, FI_cbgt_traversal, CMPI_ERROR_MODI, LOGSTDOUT);
          }
-#endif       
+#endif
     }
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0192);
     cbytes_clean(&key_bytes);
@@ -6333,7 +6333,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
     if(CBGT_TYPE_COLF_SERVER == server_type)
     {
         __cbgt_set_colf_table_to_session(cbgt_md_id, &colf_session_path, (*table_id), mod_node);
-    } 
+    }
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_open_rmc_table: table %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        son_table_id,
@@ -6344,7 +6344,7 @@ static EC_BOOL __cbgt_open_rmc_table(const UINT32 cbgt_md_id, const UINT32 serve
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *user_table_name, UINT32 *table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *user_table_key, CBYTES *user_table_name, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD  *cbgt_md;
 
@@ -6414,7 +6414,7 @@ static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *use
     if(EC_FALSE == CBGT_CHECK_TABLE_EXIST(cbgt_md_id, user_table_id, &user_mod_node))
     {
         MOD_NODE   colf_mod_node;
-            
+
 #if 0
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_open_user_table: user_mod_node is invalid, try to start user table on col table %ld\n",
                             CBGT_MD_TABLE_ID(cbgt_md), __cbgt_type(CBGT_MD_TYPE(cbgt_md)));
@@ -6471,7 +6471,7 @@ static EC_BOOL __cbgt_open_user_table(const UINT32 cbgt_md_id, const CBYTES *use
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_open_user_table: table %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                        user_table_id,
                        MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
-#endif                    
+#endif
     return (EC_TRUE);
 }
 
@@ -6514,7 +6514,7 @@ EC_BOOL cbgt_open_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *ta
         cstring_clean(&colf_session_path);
         return (EC_TRUE);
      }
-  
+
 
 #if 1
     if(EC_FALSE == cbgt_is_root_server(cbgt_md_id))
@@ -6533,7 +6533,7 @@ EC_BOOL cbgt_open_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *ta
                                 cbytes_len(table_name), (char *)cbytes_buf(table_name),
                                 cbytes_len(colf), (char *)cbytes_buf(colf),
                                 MOD_NODE_TCID_STR(root_mod_node), MOD_NODE_COMM(root_mod_node), MOD_NODE_RANK(root_mod_node), MOD_NODE_MODI(root_mod_node));
-            cstring_clean(&colf_session_path);                             
+            cstring_clean(&colf_session_path);
             return (EC_FALSE);
         }
         __cbgt_set_colf_table_to_session(cbgt_md_id, &colf_session_path, (*table_id), mod_node);
@@ -6565,7 +6565,7 @@ EC_BOOL cbgt_open_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *ta
         cstring_clean(&colf_session_path);
         return (EC_FALSE);
     }
- 
+
     __cbgt_set_colf_table_to_session(cbgt_md_id, &colf_session_path, (*table_id), mod_node);
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_open_colf_table_from_root: open colf table {table id %ld, (tcid %s, comm %ld, rank %ld, modi %ld)} "
@@ -6978,7 +6978,7 @@ EC_BOOL cbgt_close_user_table(const UINT32 cbgt_md_id, const CBYTES *table_name,
             __cbgt_print_colf_table_key(LOGSTDOUT, cbytes_buf(table_name));
             sys_print(LOGSTDOUT, "\n");
         }
-#endif  
+#endif
 
     if(EC_FALSE == __cbgt_make_rmc_table_key(cbgt_md_id, table_name, &colf_table_key))
     {
@@ -7050,7 +7050,7 @@ EC_BOOL cbgt_close_user_table(const UINT32 cbgt_md_id, const CBYTES *table_name,
             dbg_log(SEC_0054_CBGT, 5)(LOGSTDOUT, "cbgt_close_user_table: after close, colf is ##################################\n");
             cbgt_traversal(cbgt_md_id, LOGSTDOUT);
         }
-#endif  
+#endif
     return (EC_TRUE);
 }
 
@@ -7092,13 +7092,13 @@ EC_BOOL cbgt_report_closing(const UINT32 cbgt_md_id)
 
     if(EC_TRUE == cbgt_is_root_server(cbgt_md_id))
     {
-#if 0 
+#if 0
         MOD_NODE error_mod_node;
         __cbgt_error_mod_node(cbgt_md_id, &error_mod_node);
         CBGT_MD_CRWLOCK_TABLE_WRLOCK(cbgt_md, LOC_CBGT_0219);
         __cbgt_flush_root_record_file(cbgt_md_id, root_path, table_id, &error_mod_node);
         CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0220);
-#endif     
+#endif
         return (EC_TRUE);
     }
 
@@ -7147,7 +7147,7 @@ EC_BOOL cbgt_report_closing(const UINT32 cbgt_md_id)
 
     if(EC_TRUE == cbgt_is_user_server(cbgt_md_id))
     {
-#if 0 
+#if 0
         uint8_t * start_user_rowkey;
         uint8_t * end_user_rowkey;
         CBYTES    user_rowkey;
@@ -7450,7 +7450,7 @@ EC_BOOL cbgt_insert_rfqv(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTE
         if(EC_FALSE == __cbgt_cmp_colf_row_and_user_table_key(cbytes_buf(CBGT_MD_TABLE_NAME(cbgt_md)), cbytes_buf(&user_rowkey)))
         {
             CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0237);
-         
+
             dbg_log(SEC_0054_CBGT, 1)(LOGSTDOUT, "warn:cbgt_insert_rfqv: user key ");
             __cbgt_print_user_table_key(LOGSTDOUT, cbytes_buf(&user_rowkey));
             sys_print(LOGSTDOUT, " not belong to user table ");
@@ -7849,7 +7849,7 @@ EC_BOOL cbgt_insert_register(const UINT32 cbgt_md_id, const CBYTES *row, const U
     cbytes_init(&table_colf);
     cbytes_init(&table_colq);
     cbytes_init(&table_val);
- 
+
     cbytes_mount(&table_row , cbytes_len(row)        , cbytes_buf(row)   );
     cbytes_mount(&table_colf, strlen("info")         , (uint8_t *)"info" );
     cbytes_mount(&table_colq, strlen("vpath")        , (uint8_t *)"vpath");
@@ -7895,7 +7895,7 @@ EC_BOOL cbgt_fetch_user_table_no_lock(const UINT32 cbgt_md_id, const CBYTES *row
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0253);
 
     cbytes_init(&kv);
- 
+
     if(EC_FALSE == cbgt_fetch_kv_from_colf_no_lock(cbgt_md_id, row, colf, colq, &kv))
     {
          dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_fetch_user_table_no_lock: search (%.*s:%.*s:%.*s) in colf table %ld failed\n",
@@ -8073,7 +8073,7 @@ EC_BOOL cbgt_insert_colf(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTE
                                 user_table_id,
                                 MOD_NODE_TCID_STR(&user_mod_node), MOD_NODE_COMM(&user_mod_node), MOD_NODE_RANK(&user_mod_node), MOD_NODE_MODI(&user_mod_node),
                                 CBGT_MD_TABLE_ID(cbgt_md));
-#endif     
+#endif
 
         ret = EC_FALSE;
         task_p2p(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
@@ -8103,7 +8103,7 @@ EC_BOOL cbgt_insert_colf(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTE
 }
 
 /*user_table_name is (star_user_table_key,end_user_table_key)*/
-static EC_BOOL __cbgt_set_user_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const CBYTES *user_table_name, const UINT32 user_table_id, const MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_set_user_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const CBYTES *user_table_name, const UINT32 user_table_id, const MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
     CSTRING     path;
@@ -8112,7 +8112,7 @@ static EC_BOOL __cbgt_set_user_table_to_session(const UINT32 cbgt_md_id, const C
     char       *user_table_name_hex_str;
     uint8_t     buff[64];
     uint32_t    pos;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8153,7 +8153,7 @@ static EC_BOOL __cbgt_set_user_table_to_session(const UINT32 cbgt_md_id, const C
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDNULL, "[DEBUG] __cbgt_set_colf_table_to_session: %s => %.*s\n",
                         (char *)cstring_get_str(&path),
                         cbytes_len(&val), (char *)cbytes_buf(&val));
-#endif 
+#endif
     if(EC_FALSE == csession_set_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), &path, &val))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_set_user_table_to_session: csession set by %s failed\n",
@@ -8168,7 +8168,7 @@ static EC_BOOL __cbgt_set_user_table_to_session(const UINT32 cbgt_md_id, const C
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_check_user_csession_item_is_expected_user_table(const CSESSION_ITEM *user_csession_item, const CBYTES *user_table_key_bytes)
+STATIC_CAST static EC_BOOL __cbgt_check_user_csession_item_is_expected_user_table(const CSESSION_ITEM *user_csession_item, const CBYTES *user_table_key_bytes)
 {
     UINT8  *colf_row_bytes;
     UINT32  colf_row_len;
@@ -8192,12 +8192,12 @@ static EC_BOOL __cbgt_check_user_csession_item_is_expected_user_table(const CSES
         return (EC_FALSE);
     }
 
-    safe_free(colf_row_bytes, LOC_CBGT_0262); 
-#endif 
+    safe_free(colf_row_bytes, LOC_CBGT_0262);
+#endif
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path,
+STATIC_CAST static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path,
                                                                 const CBYTES *row, const CBYTES *colf, const CBYTES *colq,
                                                                 UINT32 *user_table_id, MOD_NODE *mod_node)
 {
@@ -8208,10 +8208,10 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
     CSESSION_ITEM *colf_csession_item;
     CSESSION_ITEM *user_csession_item;
     CBYTES         user_table_key_bytes;
- 
+
     CLIST_DATA    *clist_data;
     EC_BOOL        ret;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8233,7 +8233,7 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_user_table_from_session: new csession item list failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csession_get_children_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), colf_session_path, csession_item_list))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_user_table_from_session: csession get by %s failed\n",
@@ -8243,13 +8243,13 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
     }
 
     //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table_from_session: csession_item_list is \n");
-    //clist_print_level(LOGSTDOUT, csession_item_list, 0, (CLIST_DATA_LEVEL_PRINT)csession_item_print); 
+    //clist_print_level(LOGSTDOUT, csession_item_list, 0, (CLIST_DATA_LEVEL_PRINT)csession_item_print);
 
     root_csession_item = (CSESSION_ITEM *)clist_back_no_lock(csession_item_list);
     if(NULL_PTR == root_csession_item)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_user_table_from_session: not found sub csession item under %s\n",
-                            (char *)cstring_get_str(colf_session_path));     
+                            (char *)cstring_get_str(colf_session_path));
         clist_free(csession_item_list, LOC_CBGT_0265);
         return (EC_FALSE);
     }
@@ -8261,14 +8261,14 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
     if(NULL_PTR == colf_csession_item)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_user_table_from_session: not found colf csession item under %s\n",
-                            (char *)cstring_get_str(colf_session_path));     
+                            (char *)cstring_get_str(colf_session_path));
         clist_free(csession_item_list, LOC_CBGT_0266);
         return (EC_FALSE);
-    } 
+    }
 
     //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table_from_session: colf_csession_item is:\n");
     //csession_item_print(LOGSTDOUT, colf_csession_item, 0);
- 
+
     cbytes_init(&user_table_key_bytes);
     if(EC_FALSE == __cbgt_make_user_table_key(CMPI_ANY_MODI, row, colf, colq, &user_table_key_bytes))
     {
@@ -8278,7 +8278,7 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
     }
 
     //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table_from_session: current sessions:\n");
-    //csession_print(LOGSTDOUT, CBGT_MD_CSESSION_MD_ID(cbgt_md), 0); 
+    //csession_print(LOGSTDOUT, CBGT_MD_CSESSION_MD_ID(cbgt_md), 0);
 
     ret = EC_FALSE;
     user_csession_item = NULL_PTR;
@@ -8291,14 +8291,14 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
         }
 
         //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_user_table_from_session: user_csession_item is:\n");
-        //csession_item_print(LOGSTDOUT, user_csession_item, 0);     
+        //csession_item_print(LOGSTDOUT, user_csession_item, 0);
 
         /*check it is expected user table*/
         if(EC_TRUE == __cbgt_check_user_csession_item_is_expected_user_table(user_csession_item, &user_table_key_bytes))
         {
             ret = EC_TRUE;
             break;
-        }     
+        }
     }
     cbytes_clean(&user_table_key_bytes);
 
@@ -8309,7 +8309,7 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
         CBYTES        *val;
         uint8_t       *buff;
         uint32_t       pos;
-     
+
         val = CSESSION_ITEM_VAL(user_csession_item);
         buff = cbytes_buf(val);
 
@@ -8318,7 +8318,7 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
         MOD_NODE_TCID(mod_node) = gdbGetWord(buff, &pos);
         MOD_NODE_COMM(mod_node) = gdbGetWord(buff, &pos);
         MOD_NODE_RANK(mod_node) = gdbGetWord(buff, &pos);
-        MOD_NODE_MODI(mod_node) = gdbGetWord(buff, &pos);     
+        MOD_NODE_MODI(mod_node) = gdbGetWord(buff, &pos);
 
 #if 0
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG]__cbgt_get_user_table_from_session: %ld (%s,%ld,%ld,%ld)\n",
@@ -8337,14 +8337,14 @@ static EC_BOOL __cbgt_get_user_table_from_session(const UINT32 cbgt_md_id, const
     return (EC_FALSE);
 }
 
-static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const UINT32 colf_table_id, const MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path, const UINT32 colf_table_id, const MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
 
     CBYTES      val;
     uint8_t     buff[64];
     uint32_t    pos;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8371,7 +8371,7 @@ static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const C
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDNULL, "[DEBUG] __cbgt_set_colf_table_to_session: %s => %.*s\n",
                         (char *)cstring_get_str(colf_session_path),
                         cbytes_len(&val), (char *)cbytes_buf(&val));
-#endif 
+#endif
     if(EC_FALSE == csession_set_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), colf_session_path, &val))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_set_colf_table_to_session: csession set by %s failed\n",
@@ -8382,18 +8382,18 @@ static EC_BOOL __cbgt_set_colf_table_to_session(const UINT32 cbgt_md_id, const C
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *colf,
+STATIC_CAST static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *colf,
                                                               CSTRING *colf_session_path, UINT32 *colf_table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
     CLIST      *csession_item_list;
- 
+
     CSESSION_ITEM *csession_item;
     CBYTES        *val;
- 
+
     uint8_t       *buff;
     uint32_t       pos;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8418,7 +8418,7 @@ static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_colf_table_from_session: new csession item list failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csession_get_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), colf_session_path, csession_item_list))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_colf_table_from_session: csession get by %s failed\n",
@@ -8437,7 +8437,7 @@ static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const
                             cbytes_len(table_name), (char *)cbytes_buf(table_name));
         clist_free(csession_item_list, LOC_CBGT_0272);
         return (EC_FALSE);
-    } 
+    }
 
     csession_item = (CSESSION_ITEM *)clist_back(CSESSION_ITEM_CHILDREN(csession_item));
     if(NULL_PTR == csession_item)
@@ -8447,7 +8447,7 @@ static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const
                             cbytes_len(colf), (char *)cbytes_buf(colf));
         clist_free(csession_item_list, LOC_CBGT_0273);
         return (EC_FALSE);
-    } 
+    }
 
     //csession_item_print(LOGSTDOUT, csession_item, 0);
     val = CSESSION_ITEM_VAL(csession_item);
@@ -8466,16 +8466,16 @@ static EC_BOOL __cbgt_get_colf_table_from_session(const UINT32 cbgt_md_id, const
                         MOD_NODE_COMM(mod_node),
                         MOD_NODE_RANK(mod_node),
                         MOD_NODE_MODI(mod_node));
-#endif 
+#endif
     clist_free(csession_item_list, LOC_CBGT_0274);
 
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_rmv_colf_table_from_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path)
+STATIC_CAST static EC_BOOL __cbgt_rmv_colf_table_from_session(const UINT32 cbgt_md_id, const CSTRING *colf_session_path)
 {
     CBGT_MD    *cbgt_md;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8496,14 +8496,14 @@ static EC_BOOL __cbgt_rmv_colf_table_from_session(const UINT32 cbgt_md_id, const
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const CSTRING *meta_session_path, const UINT32 meta_table_id, const MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const CSTRING *meta_session_path, const UINT32 meta_table_id, const MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
 
     CBYTES      val;
     uint8_t     buff[64];
     uint32_t    pos;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8530,7 +8530,7 @@ static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const C
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDNULL, "[DEBUG] __cbgt_set_meta_table_to_session: %s => %.*s\n",
                         (char *)cstring_get_str(meta_session_path),
                         cbytes_len(&val), (char *)cbytes_buf(&val));
-#endif 
+#endif
     if(EC_FALSE == csession_set_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), meta_session_path, &val))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_set_meta_table_to_session: csession set by %s failed\n",
@@ -8544,7 +8544,7 @@ static EC_BOOL __cbgt_set_meta_table_to_session(const UINT32 cbgt_md_id, const C
 void cbgt_was_access(const UINT32 cbgt_md_id)
 {
     CBGT_MD    *cbgt_md;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8562,23 +8562,23 @@ void cbgt_was_access(const UINT32 cbgt_md_id)
     if(NULL_PTR != CBGT_MD_PARENT_MOD(cbgt_md))
     {
         task_p2p_no_wait(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
-                         CBGT_MD_PARENT_MOD(cbgt_md), NULL_PTR, FI_cbgt_was_access, CMPI_ERROR_MODI); 
+                         CBGT_MD_PARENT_MOD(cbgt_md), NULL_PTR, FI_cbgt_was_access, CMPI_ERROR_MODI);
     }
 #endif
     return;
 }
 
-static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, CSTRING *meta_session_path, UINT32 *meta_table_id, MOD_NODE *mod_node)
+STATIC_CAST static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const CBYTES *table_name, CSTRING *meta_session_path, UINT32 *meta_table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
     CLIST      *csession_item_list;
- 
+
     CSESSION_ITEM *csession_item;
     CBYTES        *val;
- 
+
     uint8_t       *buff;
     uint32_t       pos;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
@@ -8602,7 +8602,7 @@ static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_meta_table_from_session: new csession item list failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csession_get_by_name(CBGT_MD_CSESSION_MD_ID(cbgt_md), CBGT_MD_CSESSION_NAME(cbgt_md), meta_session_path, csession_item_list))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:__cbgt_get_meta_table_from_session: csession get by %s failed\n",
@@ -8621,7 +8621,7 @@ static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const
                             cbytes_len(table_name), (char *)cbytes_buf(table_name));
         clist_free(csession_item_list, LOC_CBGT_0278);
         return (EC_FALSE);
-    } 
+    }
 
     //csession_item_print(LOGSTDOUT, csession_item, 0);
     val = CSESSION_ITEM_VAL(csession_item);
@@ -8640,7 +8640,7 @@ static EC_BOOL __cbgt_get_meta_table_from_session(const UINT32 cbgt_md_id, const
                         MOD_NODE_COMM(mod_node),
                         MOD_NODE_RANK(mod_node),
                         MOD_NODE_MODI(mod_node));
-#endif 
+#endif
     clist_free(csession_item_list, LOC_CBGT_0279);
 
     return (EC_TRUE);
@@ -8687,7 +8687,7 @@ EC_BOOL cbgt_insert(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
                             MOD_NODE_TCID_STR(&colf_mod_node), MOD_NODE_COMM(&colf_mod_node), MOD_NODE_RANK(&colf_mod_node), MOD_NODE_MODI(&colf_mod_node),
                             cbytes_len(table_name), (char *)cbytes_buf(table_name));
 #endif
- 
+
     /*insert kv by colf server*/
     ret = EC_FALSE;
     task_p2p(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
@@ -8721,7 +8721,7 @@ EC_BOOL cbgt_fetch_kv_from_colf_no_lock(const UINT32 cbgt_md_id, const CBYTES *r
 
     CBYTES   user_rowkey;
     CBYTES   colf_rowkey;
- 
+
     CBTREE_KEY *cbtree_key;
     UINT8      *key;
 
@@ -8763,12 +8763,12 @@ EC_BOOL cbgt_fetch_kv_from_colf_no_lock(const UINT32 cbgt_md_id, const CBYTES *r
         cbgt_key_clean(cbgt_md_id, &colf_rowkey);
         return (EC_FALSE);
     }
- 
+
     key = CBTREE_KEY_LATEST(cbtree_key);
- 
-    cbytes_set(kv, key, kvGettLenHs(key)); 
+
+    cbytes_set(kv, key, kvGettLenHs(key));
     cbgt_key_clean(cbgt_md_id, &colf_rowkey);
-     
+
     return (EC_TRUE);
 }
 
@@ -8880,7 +8880,7 @@ EC_BOOL cbgt_search_from_user(const UINT32 cbgt_md_id, const CBYTES *row, const 
     key = CBTREE_KEY_LATEST(cbtree_key);
     kv  = key;
     cbytes_set(val, kvGetValueHs(kv), kvGetvLenHs(kv));/*dump value from kv*/
- 
+
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0289);
     cbgt_key_clean(cbgt_md_id, &user_rowkey);
 
@@ -8915,7 +8915,7 @@ EC_BOOL cbgt_search(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0290);
 
     /*get user table*/
-    cbytes_init(&user_table_name); 
+    cbytes_init(&user_table_name);
     if(EC_FALSE == cbgt_open_user_table_from_root(cbgt_md_id, table_name, row, colf, colq, &user_table_name, &user_table_id, &user_mod_node))
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_search: open user table of %.*s (%.*s:%.*s:%.*s) failed\n",
@@ -8960,18 +8960,18 @@ EC_BOOL cbgt_fetch_from_user(const UINT32 cbgt_md_id, const CBYTES *row, const C
     CBTREE_KEY *cbtree_key;
 
     UINT8      *kv;
- 
+
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
     {
         return (EC_OBSCURE);
-#if 0 
+#if 0
         sys_log(LOGSTDOUT,
                 "error:cbgt_fetch_from_user: cbgt module #0x%lx not started.\n",
                 cbgt_md_id);
         cbgt_print_module_status(cbgt_md_id, LOGSTDOUT);
         dbg_exit(MD_CBGT, cbgt_md_id);
-#endif     
+#endif
     }
 #endif/*CBGT_DEBUG_SWITCH*/
 
@@ -8993,7 +8993,7 @@ EC_BOOL cbgt_fetch_from_user(const UINT32 cbgt_md_id, const CBYTES *row, const C
     if(EC_FALSE == __cbgt_cmp_colf_row_and_user_table_key(cbytes_buf(CBGT_MD_TABLE_NAME(cbgt_md)), cbytes_buf(&user_rowkey)))
     {
         CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0293);
-     
+
         dbg_log(SEC_0054_CBGT, 1)(LOGSTDOUT, "warn:cbgt_fetch_from_user: user key ");
         __cbgt_print_user_table_key(LOGSTDOUT, cbytes_buf(&user_rowkey));
         sys_print(LOGSTDOUT, " not belong to user table ");
@@ -9012,7 +9012,7 @@ EC_BOOL cbgt_fetch_from_user(const UINT32 cbgt_md_id, const CBYTES *row, const C
     if(NULL_PTR == cbtree_key)
     {
         CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0294);
-     
+
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_fetch_from_user: search (%.*s:%.*s:%.*s) in user table %ld failed\n",
                             cbytes_len(row) , (char *)cbytes_buf(row),
                             cbytes_len(colf), (char *)cbytes_buf(colf),
@@ -9026,7 +9026,7 @@ EC_BOOL cbgt_fetch_from_user(const UINT32 cbgt_md_id, const CBYTES *row, const C
 
     kv = CBTREE_KEY_LATEST(cbtree_key);
     cbytes_set(val, kvGetValueHs(kv), kvGetvLenHs(kv));/*dump value part*/
- 
+
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0295);
     return (EC_TRUE);
 }
@@ -9102,7 +9102,7 @@ EC_BOOL cbgt_fetch0(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
                             MOD_NODE_TCID_STR(&user_mod_node),
                             MOD_NODE_COMM(&user_mod_node),
                             MOD_NODE_RANK(&user_mod_node),
-                            MOD_NODE_MODI(&user_mod_node)); 
+                            MOD_NODE_MODI(&user_mod_node));
 #endif
         /*fetch in user table*/
         ret = EC_FALSE;
@@ -9140,7 +9140,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
     UINT32      user_table_id;
 
     CSTRING     colf_session_path;
- 
+
     EC_BOOL     ret;
 
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
@@ -9167,7 +9167,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
 #endif
 #if 1
     /*get colf table info from session*/
-    cstring_init(&colf_session_path, NULL_PTR); 
+    cstring_init(&colf_session_path, NULL_PTR);
     if(EC_FALSE == __cbgt_get_colf_table_from_session(cbgt_md_id, table_name, colf, &colf_session_path, &colf_table_id, &colf_mod_node))
     {
         CBYTES      user_table_name;
@@ -9175,7 +9175,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
         //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_fetch: NOT hit colf tabe in session\n");
 
         cbytes_init(&user_table_name);
-     
+
         /*open colf table*/
         if(EC_FALSE == cbgt_open_colf_table_from_root(cbgt_md_id, table_name, colf, &colf_table_id, &colf_mod_node))
         {
@@ -9187,11 +9187,11 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
         }
 
         __cbgt_set_colf_table_to_session(cbgt_md_id, &colf_session_path, colf_table_id, &colf_mod_node);
-     
+
         ret = EC_FALSE;
         task_p2p(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &colf_mod_node,
-                 &ret,FI_cbgt_open_user_table_from_colf, CMPI_ERROR_MODI, row, colf, colq, &user_table_name, &user_table_id, &user_mod_node); 
+                 &ret,FI_cbgt_open_user_table_from_colf, CMPI_ERROR_MODI, row, colf, colq, &user_table_name, &user_table_id, &user_mod_node);
 
         if(EC_FALSE == ret)
         {
@@ -9215,10 +9215,10 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
     }
     else
     {
-#if 0 
+#if 0
         task_p2p_no_wait(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                          &colf_mod_node, NULL_PTR, FI_cbgt_was_access, CMPI_ERROR_MODI);
-#endif                      
+#endif
 #if 0
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_fetch: fetched colf table from session: %ld:(tcid %s, comm %ld, rank %ld, modi %ld) done\n",
                         colf_table_id,
@@ -9226,7 +9226,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
                         MOD_NODE_COMM(&colf_mod_node),
                         MOD_NODE_RANK(&colf_mod_node),
                         MOD_NODE_MODI(&colf_mod_node));
-#endif                     
+#endif
         /*reuse colf_session_path*/
         if(EC_FALSE == __cbgt_get_user_table_from_session(cbgt_md_id, &colf_session_path, row, colf, colq, &user_table_id, &user_mod_node))
         {
@@ -9235,11 +9235,11 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
             //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_fetch: NOT hit user tabe in session\n");
 
             cbytes_init(&user_table_name);
-     
+
             ret = EC_FALSE;
             task_p2p(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                      &colf_mod_node,
-                     &ret,FI_cbgt_open_user_table_from_colf, CMPI_ERROR_MODI, row, colf, colq, &user_table_name, &user_table_id, &user_mod_node); 
+                     &ret,FI_cbgt_open_user_table_from_colf, CMPI_ERROR_MODI, row, colf, colq, &user_table_name, &user_table_id, &user_mod_node);
 
             if(EC_FALSE == ret)
             {
@@ -9261,7 +9261,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
             __cbgt_set_user_table_to_session(cbgt_md_id, &colf_session_path, &user_table_name, user_table_id, &user_mod_node);
             cbytes_clean(&user_table_name);
         }
-#if 0  
+#if 0
         else
         {
             dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_fetch: fetched user table from session: %ld:(tcid %s, comm %ld, rank %ld, modi %ld) done\n",
@@ -9271,9 +9271,9 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
                                 MOD_NODE_RANK(&user_mod_node),
                                 MOD_NODE_MODI(&user_mod_node));
         }
-#endif     
+#endif
     }
- 
+
     /*now user table is lock down*/
     ret = EC_FALSE;
     task_p2p(cbgt_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
@@ -9283,9 +9283,9 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
     if(EC_OBSCURE == ret)
     {
         /*retire colf session*/
-        __cbgt_rmv_colf_table_from_session(cbgt_md_id, &colf_session_path);     
+        __cbgt_rmv_colf_table_from_session(cbgt_md_id, &colf_session_path);
     }
- 
+
     cstring_clean(&colf_session_path);
     return (ret);
 #endif
@@ -9322,7 +9322,7 @@ EC_BOOL cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYT
         ret = __cbgt_fetch(cbgt_md_id, table_name, row, colf, colq, val);
         //dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_fetch: ret = %ld\n", ret);
     }while(EC_OBSCURE == ret && ++ count < CBGT_FETCH_TRY_TIMES);
- 
+
     if(EC_FALSE == ret || EC_OBSCURE == ret)
     {
         dbg_log(SEC_0054_CBGT, 0)(LOGSTDOUT, "error:cbgt_fetch: fetch value of table %.*s (%.*s:%.*s:%.*s) failed\n",
@@ -9538,10 +9538,10 @@ EC_BOOL cbgt_delete(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_cleanup_colf_table_one_kv(const UINT32 cbgt_md_id, const UINT8 *kv)
+STATIC_CAST static EC_BOOL __cbgt_cleanup_colf_table_one_kv(const UINT32 cbgt_md_id, const UINT8 *kv)
 {
     CBGT_MD    *cbgt_md;
- 
+
     MOD_NODE    user_mod_node;
     UINT32      user_table_id;
 
@@ -9573,7 +9573,7 @@ static EC_BOOL __cbgt_cleanup_colf_table_one_kv(const UINT32 cbgt_md_id, const U
 
     cbgt_unlink(cbgt_md_id, user_table_id);
     cbgt_release_table_id(cbgt_md_id, user_table_id);
- 
+
     return (EC_TRUE);
 }
 
@@ -9632,10 +9632,10 @@ EC_BOOL cbgt_cleanup_colf_table(const UINT32 cbgt_md_id, const CBYTES *table_nam
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_cleanup_meta_table_one_kv(const UINT32 cbgt_md_id, const UINT8 *kv)
+STATIC_CAST static EC_BOOL __cbgt_cleanup_meta_table_one_kv(const UINT32 cbgt_md_id, const UINT8 *kv)
 {
     CBGT_MD    *cbgt_md;
- 
+
     CBYTES      colf_table_name;
     MOD_NODE    colf_mod_node;
     UINT32      colf_table_id;
@@ -9732,8 +9732,8 @@ EC_BOOL cbgt_cleanup_meta_table(const UINT32 cbgt_md_id, const CBYTES *table_nam
     }
 
     cbtree_clean(CBGT_GDB_CBTREE(gdb));
-    CBGT_GDB_CBTREE(gdb) = NULL_PTR; 
- 
+    CBGT_GDB_CBTREE(gdb) = NULL_PTR;
+
     return (EC_TRUE);
 }
 
@@ -10018,13 +10018,13 @@ EC_BOOL cbgt_add_colf_table(const UINT32 cbgt_md_id, const CBYTES *table_name, c
     return (EC_TRUE);
 }
 
-static void __cbgt_kvPrintHs(LOG *log, CBYTES *kv_cbytes)
+STATIC_CAST static void __cbgt_kvPrintHs(LOG *log, CBYTES *kv_cbytes)
 {
     kvPrintHs(log, cbytes_buf(kv_cbytes));
     return;
 }
 
-static EC_BOOL __cbgt_pcre_compile(const CSTRING *pattern_cstr, pcre **pattern_re)
+STATIC_CAST static EC_BOOL __cbgt_pcre_compile(const CSTRING *pattern_cstr, pcre **pattern_re)
 {
     pcre *re;
     const char *errstr;
@@ -10043,12 +10043,12 @@ static EC_BOOL __cbgt_pcre_compile(const CSTRING *pattern_cstr, pcre **pattern_r
                             (char *)cstring_get_str(pattern_cstr), erroffset, errstr);
         return (EC_FALSE);
     }
- 
+
     (*pattern_re) = re;
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_pcre_free(pcre *pattern_re)
+STATIC_CAST static EC_BOOL __cbgt_pcre_free(pcre *pattern_re)
 {
     if(NULL_PTR != pattern_re)
     {
@@ -10057,7 +10057,7 @@ static EC_BOOL __cbgt_pcre_free(pcre *pattern_re)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cbgt_select_from_table(const UINT32 cbgt_md_id, const UINT8 *kv, int (*kv_regex)(const uint8_t *, pcre *, pcre *, pcre *,pcre *),
+STATIC_CAST static EC_BOOL __cbgt_select_from_table(const UINT32 cbgt_md_id, const UINT8 *kv, int (*kv_regex)(const uint8_t *, pcre *, pcre *, pcre *,pcre *),
                                                 pcre *row_re, pcre *colf_re, pcre *colq_re, pcre *val_re, CVECTOR *kv_vec)
 {
     if(0 != kv_regex(kv, row_re, colf_re, colq_re, val_re))
@@ -10136,7 +10136,7 @@ EC_BOOL cbgt_select_from_user(const UINT32 cbgt_md_id, const CSTRING *row_patter
         __cbgt_pcre_free(colf_re);
         __cbgt_pcre_free(colq_re);
         return (EC_FALSE);
-    } 
+    }
 
     CBGT_MD_CRWLOCK_TABLE_RDLOCK(cbgt_md, LOC_CBGT_0311);
     gdb = CBGT_MD_GDB(cbgt_md);
@@ -10160,15 +10160,15 @@ EC_BOOL cbgt_select_from_user(const UINT32 cbgt_md_id, const CSTRING *row_patter
         __cbgt_pcre_free(colq_re);
         __cbgt_pcre_free(val_re);
         return (EC_FALSE);
-    } 
- 
+    }
+
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0313);
     if(do_log(SEC_0054_CBGT, 9))
     {
         dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_select_from_user: ret_kv_vec is\n");
         cvector_print_no_lock(LOGSTDOUT, ret_kv_vec, (CVECTOR_DATA_PRINT)__cbgt_kvPrintHs);
     }
-  
+
     __cbgt_pcre_free(row_re);
     __cbgt_pcre_free(colf_re);
     __cbgt_pcre_free(colq_re);
@@ -10300,7 +10300,7 @@ EC_BOOL cbgt_select_from_colf(const UINT32 cbgt_md_id, const UINT32 cached_mode,
             }
             /*WARNING: we start the user server without registering into colf or without end it later, it is dangerous*/
             /*         if register it here, we have to save "offset" info when scan colf table*/
-         
+
             /*update register info of user table*/
             if(EC_FALSE == cbgt_update_register(cbgt_md_id, colf_kv_bytes, user_table_id, &user_mod_node))
             {
@@ -10424,7 +10424,7 @@ EC_BOOL cbgt_select_from_meta(const UINT32 cbgt_md_id, const UINT32 cached_mode,
                         NULL_PTR,
                         kvRegex,
                         colf_re, NULL_PTR, NULL_PTR, NULL_PTR, meta_kv_vec
-                        ); 
+                        );
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0331);
 
     __cbgt_pcre_free(colf_re);
@@ -10581,7 +10581,7 @@ EC_BOOL cbgt_select_from_root(const UINT32 cbgt_md_id, const UINT32 cached_mode,
     TASK_MGR   *task_mgr;
 
     CVECTOR    *root_kv_vec;
-    CVECTOR    *report_vec; 
+    CVECTOR    *report_vec;
 
     UINT32   pos;
     EC_BOOL  ret;
@@ -10634,7 +10634,7 @@ EC_BOOL cbgt_select_from_root(const UINT32 cbgt_md_id, const UINT32 cached_mode,
                         NULL_PTR,
                         kvRegex,
                         table_re, NULL_PTR, NULL_PTR, NULL_PTR, root_kv_vec
-                        );  
+                        );
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0346);
 
     __cbgt_pcre_free(table_re);
@@ -10989,7 +10989,7 @@ EC_BOOL cbgt_select(const UINT32 cbgt_md_id, const UINT32 cached_mode, const CST
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_select: row_pattern  : %s\n"  , (char *)cstring_get_str(row_pattern));
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_select: colf_pattern : %s\n"  , (char *)cstring_get_str(colf_pattern));
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] cbgt_select: colq_pattern : %s\n"  , (char *)cstring_get_str(colq_pattern));
-#endif 
+#endif
     return cbgt_select_from_root(cbgt_md_id, cached_mode,
                                 table_pattern, row_pattern, colf_pattern, colq_pattern, val_pattern,
                                 ret_kv_vec);
@@ -11024,7 +11024,7 @@ void cbgt_traversal_no_lock(const UINT32 cbgt_md_id, LOG *log)
                         cbgt_md_id, table_id, __cbgt_type(server_type));
 
     if(CBGT_TYPE_ROOT_SERVER == server_type)
-    {     
+    {
         cbgt_gdb_traversal(log, gdb, (CBTREE_KEY_PRINTER)__cbgt_print_root_table_cbtree_key);
     }
     else if(CBGT_TYPE_META_SERVER == server_type)

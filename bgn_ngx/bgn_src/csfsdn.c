@@ -76,7 +76,7 @@ EC_BOOL csfsdn_node_clean(CSFSDN_NODE *csfsdn_node)
     CSFSDN_NODE_ATIME(csfsdn_node)          = 0;
 
     CSFSDN_NODE_CMUTEX_CLEAN(csfsdn_node, LOC_CSFSDN_0003);
- 
+
     return (EC_TRUE);
 }
 
@@ -154,7 +154,7 @@ STATIC_CAST static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const U
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:__csfsdn_node_fname_gen: csfsdn %p CSFSDN_ROOT_DNAME is null\n", csfsdn);
         return (EC_FALSE);
     }
- 
+
     snprintf(path, max_len, "%s/dsk%ld/%08ld",
                 (char *)CSFSDN_ROOT_DNAME(csfsdn),
                 disk_no,
@@ -176,7 +176,7 @@ STATIC_CAST static EC_BOOL __csfsdn_node_dname_gen(const CSFSDN *csfsdn, const U
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:__csfsdn_node_dname_gen: csfsdn %p CSFSDN_ROOT_DNAME is null\n", csfsdn);
         return (EC_FALSE);
     }
- 
+
     snprintf(path, max_len, "%s/dsk%ld",
                 (char *)CSFSDN_ROOT_DNAME(csfsdn),
                 disk_no
@@ -190,7 +190,7 @@ CSFSDN_NODE *csfsdn_node_fetch(const CSFSDN *csfsdn, const UINT32 node_id)
     CRB_NODE   *crb_node;
 
     CSFSDN_NODE_ID(&csfsdn_node) = (node_id >> CSFSDN_SEG_NO_NBITS);
- 
+
     crb_node = crb_tree_search_data(CSFSDN_OPEN_NODES(csfsdn), (void *)&csfsdn_node);
     if(NULL_PTR == crb_node)
     {
@@ -227,7 +227,7 @@ CSFSDN_NODE *csfsdn_node_create(CSFSDN *csfsdn, const UINT32 node_id)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_create: csfsdn%p, generate dname failed\n", csfsdn);
         return (NULL_PTR);
     }
- 
+
     if(EC_FALSE == c_dir_create(path))
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_create: create dir %s failed\n", path);
@@ -240,7 +240,7 @@ CSFSDN_NODE *csfsdn_node_create(CSFSDN *csfsdn, const UINT32 node_id)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_create: csfsdn%p, generate fname failed\n", csfsdn);
         return (NULL_PTR);
     }
- 
+
     if(EC_TRUE == c_file_access(path, F_OK))
     {
         dbg_log(SEC_0163_CSFSDN, 1)(LOGSTDOUT, "warn:csfsdn_node_create: node file %s already exist\n", path);
@@ -266,7 +266,7 @@ CSFSDN_NODE *csfsdn_node_create(CSFSDN *csfsdn, const UINT32 node_id)
         return (NULL_PTR);
     }
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_create: create file %s done\n", path);
- 
+
     /*optimize*/
     if(EC_FALSE == c_file_truncate(CSFSDN_NODE_FD(csfsdn_node), CSFSDN_CACHE_MAX_BYTE_SIZE))
     {
@@ -315,9 +315,9 @@ CSFSDN_NODE *csfsdn_node_open(CSFSDN *csfsdn, const UINT32 node_id, const UINT32
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_open: csfsdn%p, generate fname failed\n", csfsdn);
         return (NULL_PTR);
     }
- 
+
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_open: path is %s\n", path);
- 
+
     /*when node file not exit, then create it and return*/
     if(EC_FALSE == c_file_access(path, F_OK))
     {
@@ -333,7 +333,7 @@ CSFSDN_NODE *csfsdn_node_open(CSFSDN *csfsdn, const UINT32 node_id, const UINT32
         }
 
         CSFSDN_CMUTEX_UNLOCK(csfsdn, LOC_CSFSDN_0008);
-        dbg_log(SEC_0163_CSFSDN, 1)(LOGSTDOUT, "warn:csfsdn_node_open: node file %s not exist\n", path);     
+        dbg_log(SEC_0163_CSFSDN, 1)(LOGSTDOUT, "warn:csfsdn_node_open: node file %s not exist\n", path);
         return (NULL_PTR);
     }
 
@@ -348,7 +348,7 @@ CSFSDN_NODE *csfsdn_node_open(CSFSDN *csfsdn, const UINT32 node_id, const UINT32
 
     /*set/init last access time*/
     CSFSDN_NODE_ATIME(csfsdn_node) = task_brd_get_time(task_brd_default_get());
- 
+
     /*when node file exit, then open it*/
     CSFSDN_NODE_FD(csfsdn_node) = c_file_open(path, O_RDWR, 0666);
     if(ERR_FD == CSFSDN_NODE_FD(csfsdn_node))
@@ -392,7 +392,7 @@ EC_BOOL csfsdn_node_unlink(CSFSDN *csfsdn, const UINT32 node_id)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_unlink: csfsdn%p, generate fname failed\n", csfsdn);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == c_file_access(path, F_OK))
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_unlink: node file %s not exist\n", path);
@@ -431,7 +431,7 @@ EC_BOOL csfsdn_node_write(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 dat
 
     offset_b = (((UINT32)CSFSDN_NODE_ID_GET_SEG_NO(node_id)) << CSFSB_CACHE_BIT_SIZE);
     offset_r = offset_b + (*offset);
- 
+
     CSFSDN_NODE_CMUTEX_LOCK(csfsdn_node, LOC_CSFSDN_0014);
 
     if(EC_FALSE == c_file_flush(CSFSDN_NODE_FD(csfsdn_node), &offset_r, data_max_len, data_buff))
@@ -441,7 +441,7 @@ EC_BOOL csfsdn_node_write(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 dat
                             data_max_len, node_id, offset_r);
         return (EC_FALSE);
     }
- 
+
     CSFSDN_NODE_CMUTEX_UNLOCK(csfsdn_node, LOC_CSFSDN_0016);
 
     (*offset) = (offset_r - offset_b);
@@ -449,7 +449,7 @@ EC_BOOL csfsdn_node_write(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 dat
 }
 
 EC_BOOL csfsdn_node_read(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *offset)
-{ 
+{
     CSFSDN_NODE *csfsdn_node;
     UINT32       offset_b; /*real base offset of block in physical file*/
     UINT32       offset_r; /*real offset in physical file*/
@@ -463,14 +463,14 @@ EC_BOOL csfsdn_node_read(CSFSDN *csfsdn, const UINT32 node_id, const UINT32 data
 
     offset_b = (((UINT32)CSFSDN_NODE_ID_GET_SEG_NO(node_id)) << CSFSB_CACHE_BIT_SIZE);
     offset_r = offset_b + (*offset);
-                         
+
     CSFSDN_NODE_CMUTEX_LOCK(csfsdn_node, LOC_CSFSDN_0017);
 
     if(EC_FALSE == c_file_load(CSFSDN_NODE_FD(csfsdn_node), &offset_r, data_max_len, data_buff))
     {
         CSFSDN_NODE_CMUTEX_UNLOCK(csfsdn_node, LOC_CSFSDN_0018);
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_node_read: load %ld bytes from node %ld at offset %ld failed\n",
-                            data_max_len, node_id, offset_r);     
+                            data_max_len, node_id, offset_r);
         return (EC_FALSE);
     }
 
@@ -484,7 +484,7 @@ STATIC_CAST static EC_BOOL __csfsdn_collect_expired_node(const CSFSDN_NODE *csfs
 {
     ctime_t     cur_time;
 
-    cur_time = task_brd_get_time(task_brd_default_get()); 
+    cur_time = task_brd_get_time(task_brd_default_get());
 
     /*expired*/
     if(cur_time > CSFSDN_NODE_ATIME(csfsdn_node) + CSFSDN_EXPIRED_IN_NSEC)
@@ -500,7 +500,7 @@ EC_BOOL csfsdn_expire_open_nodes(CSFSDN *csfsdn)
 
     ctime_t     cur_time;
 
-    cur_time = task_brd_get_time(task_brd_default_get());    
+    cur_time = task_brd_get_time(task_brd_default_get());
 
     expired_node_list = clist_new(MM_CSFSDN_NODE, LOC_CSFSDN_0020);
     if(NULL_PTR == expired_node_list)
@@ -536,11 +536,11 @@ EC_BOOL csfsdn_expire_open_nodes(CSFSDN *csfsdn)
             crb_tree_delete_data(CSFSDN_OPEN_NODES(csfsdn), (void *)csfsdn_node);
         }
     }
- 
+
     CSFSDN_CMUTEX_UNLOCK(csfsdn, LOC_CSFSDN_0022);
- 
+
     clist_free_no_lock(expired_node_list, LOC_CSFSDN_0023);
- 
+
     return (EC_TRUE);
 }
 
@@ -579,7 +579,7 @@ STATIC_CAST static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u MB for debug purpose \n", CSFSD_DEBUG_MB_PER_DISK);
     max_mb_num_of_disk_space = (max_gb_num_of_disk_space) * (1024 / CSFSD_DEBUG_MB_PER_DISK);
     disk_num = max_mb_num_of_disk_space;
- 
+
 #endif/*(CSFSD_TEST_SCENARIO_256M_DISK == CSFSD_DEBUG_CHOICE)*/
 
 #if (CSFSD_TEST_SCENARIO_512M_DISK == CSFSD_DEBUG_CHOICE)
@@ -589,7 +589,7 @@ STATIC_CAST static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u MB for debug purpose \n", CSFSD_DEBUG_MB_PER_DISK);
     max_mb_num_of_disk_space = (max_gb_num_of_disk_space) * (1024 / CSFSD_DEBUG_MB_PER_DISK);
     disk_num = max_mb_num_of_disk_space;
- 
+
 #endif/*(CSFSD_TEST_SCENARIO_512M_DISK == CSFSD_DEBUG_CHOICE)*/
 
 #if (CSFSD_TEST_SCENARIO_032G_DISK == CSFSD_DEBUG_CHOICE)
@@ -597,7 +597,7 @@ STATIC_CAST static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16
 
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u GB for debug purpose \n", CSFSD_DEBUG_GB_PER_DISK);
     disk_num = (max_gb_num_of_disk_space + CSFSD_DEBUG_GB_PER_DISK - 1) / CSFSD_DEBUG_GB_PER_DISK;
- 
+
 #endif/*(CSFSD_TEST_SCENARIO_032G_DISK == CSFSD_DEBUG_CHOICE)*/
 
 #if (CSFSD_TEST_SCENARIO_512G_DISK == CSFSD_DEBUG_CHOICE)
@@ -605,7 +605,7 @@ STATIC_CAST static uint16_t __csfsdn_count_disk_num_from_disk_space(const uint16
 
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u GB for debug purpose \n", CSFSD_DEBUG_GB_PER_DISK);
     disk_num = (max_gb_num_of_disk_space + CSFSD_DEBUG_GB_PER_DISK - 1) / CSFSD_DEBUG_GB_PER_DISK;
- 
+
 #endif/*(CSFSD_TEST_SCENARIO_032G_DISK == CSFSD_DEBUG_CHOICE)*/
     return (disk_num);
 }
@@ -614,7 +614,7 @@ CSFSDN *csfsdn_create(const char *root_dname, const uint32_t np_node_err_pos, CS
 {
     CSFSDN *csfsdn;
     uint8_t *vol_fname;
- 
+
     csfsdn = csfsdn_new();
     if(NULL_PTR == csfsdn)
     {
@@ -646,7 +646,7 @@ CSFSDN *csfsdn_create(const char *root_dname, const uint32_t np_node_err_pos, CS
         safe_free(vol_fname, LOC_CSFSDN_0024);
         return (NULL_PTR);
     }
- 
+
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_create: vol %s was created\n", vol_fname);
     safe_free(vol_fname, LOC_CSFSDN_0025);
 
@@ -667,13 +667,13 @@ EC_BOOL csfsdn_add_disk(CSFSDN *csfsdn, const uint16_t disk_no)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_add_disk: csfsv add disk %u failed\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csfsdn_flush(csfsdn))/*xxx*/
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_add_disk: flush dn failed after add disk %u \n", disk_no);
         csfsv_del_disk(CSFSDN_CSFSV(csfsdn), disk_no);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -684,12 +684,12 @@ EC_BOOL csfsdn_del_disk(CSFSDN *csfsdn, const uint16_t disk_no)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_del_disk: csfsv del disk %u failed\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csfsdn_flush(csfsdn))/*xxx*/
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_del_disk: flush dn failed after del disk %u \n", disk_no);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -700,12 +700,12 @@ EC_BOOL csfsdn_mount_disk(CSFSDN *csfsdn, const uint16_t disk_no)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_mount_disk: csfsv mount disk %u failed\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csfsdn_flush(csfsdn))/*xxx*/
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_mount_disk: flush dn failed after mount disk %u \n", disk_no);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -716,12 +716,12 @@ EC_BOOL csfsdn_umount_disk(CSFSDN *csfsdn, const uint16_t disk_no)
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_umount_disk: csfsv umount disk %u failed\n", disk_no);
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == csfsdn_flush(csfsdn))/*xxx*/
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_umount_disk: flush dn failed after umount disk %u \n", disk_no);
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -743,7 +743,7 @@ EC_BOOL csfsdn_init(CSFSDN *csfsdn)
 {
     CSFSDN_CRWLOCK_INIT(csfsdn, LOC_CSFSDN_0027);
     CSFSDN_CMUTEX_INIT(csfsdn, LOC_CSFSDN_0028);
- 
+
     crb_tree_init(CSFSDN_OPEN_NODES(csfsdn),
                   (CRB_DATA_CMP  )csfsdn_node_cmp,
                   (CRB_DATA_FREE )csfsdn_node_free,
@@ -751,7 +751,7 @@ EC_BOOL csfsdn_init(CSFSDN *csfsdn)
 
     CSFSDN_ROOT_DNAME(csfsdn)  = NULL_PTR;
     CSFSDN_CSFSV(csfsdn)        = NULL_PTR;
- 
+
     return (EC_TRUE);
 }
 
@@ -759,7 +759,7 @@ EC_BOOL csfsdn_clean(CSFSDN *csfsdn)
 {
     CSFSDN_CRWLOCK_CLEAN(csfsdn, LOC_CSFSDN_0029);
     CSFSDN_CMUTEX_CLEAN(csfsdn, LOC_CSFSDN_0030);
- 
+
     crb_tree_clean(CSFSDN_OPEN_NODES(csfsdn));
 
     if(NULL_PTR != CSFSDN_ROOT_DNAME(csfsdn))
@@ -790,7 +790,7 @@ EC_BOOL csfsdn_free(CSFSDN *csfsdn)
 void csfsdn_print(LOG *log, const CSFSDN *csfsdn)
 {
     if(NULL_PTR != csfsdn)
-    {    
+    {
         sys_log(log, "csfsdn_print: csfsdn %p: root dname: %s\n", csfsdn, (char *)CSFSDN_ROOT_DNAME(csfsdn));
 
         csfsv_print(log, CSFSDN_CSFSV(csfsdn));
@@ -798,7 +798,7 @@ void csfsdn_print(LOG *log, const CSFSDN *csfsdn)
         {
             sys_log(log, "csfsdn_print: csfsdn %p: cached nodes: \n", csfsdn);
             crb_tree_print(log, CSFSDN_OPEN_NODES(csfsdn));
-        }  
+        }
     }
     return;
 }
@@ -840,14 +840,14 @@ EC_BOOL csfsdn_load(CSFSDN *csfsdn, const char *root_dname, const uint32_t np_no
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_load: dup root_dname %s failed\n", root_dname);
         return (EC_FALSE);
-    }  
+    }
 
     vol_fname = (uint8_t *)__csfsdn_vol_fname_gen((char *)CSFSDN_ROOT_DNAME(csfsdn));
     if(NULL_PTR == vol_fname)
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_load: make vol_fname from root_dname %s failed\n", (char *)CSFSDN_ROOT_DNAME(csfsdn));
         return (EC_FALSE);
-    } 
+    }
 
     CSFSDN_CSFSV(csfsdn) = csfsv_open(vol_fname, np_node_err_pos, np_node_recycle, npp);
     if(NULL_PTR == CSFSDN_CSFSV(csfsdn))
@@ -856,7 +856,7 @@ EC_BOOL csfsdn_load(CSFSDN *csfsdn, const char *root_dname, const uint32_t np_no
         safe_free(vol_fname, LOC_CSFSDN_0033);
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_load: load/open vol from %s done\n", (char *)vol_fname);
     safe_free(vol_fname, LOC_CSFSDN_0034);
 
@@ -866,7 +866,7 @@ EC_BOOL csfsdn_load(CSFSDN *csfsdn, const char *root_dname, const uint32_t np_no
 EC_BOOL csfsdn_exist(const char *root_dname)
 {
     char *vol_fname;
- 
+
     vol_fname = __csfsdn_vol_fname_gen(root_dname);
     if(NULL_PTR == vol_fname)
     {
@@ -879,7 +879,7 @@ EC_BOOL csfsdn_exist(const char *root_dname)
         dbg_log(SEC_0163_CSFSDN, 7)(LOGSTDOUT, "error:csfsdn_exist: vol file %s not exist\n", vol_fname);
         safe_free(vol_fname, LOC_CSFSDN_0035);
         return (EC_FALSE);
-    } 
+    }
 
     safe_free(vol_fname, LOC_CSFSDN_0036);
     return (EC_TRUE);
@@ -908,7 +908,7 @@ CSFSDN *csfsdn_open(const char *root_dname, const uint32_t np_node_err_pos, CSFS
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_open: new csfsdn with root dir %s failed\n", root_dname);
         return (NULL_PTR);
     }
- 
+
     if(EC_FALSE == csfsdn_load(csfsdn, root_dname, np_node_err_pos, np_node_recycle, npp))
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_open: load csfsdn from root dir %s failed\n", root_dname);
@@ -916,7 +916,7 @@ CSFSDN *csfsdn_open(const char *root_dname, const uint32_t np_node_err_pos, CSFS
         return (NULL_PTR);
     }
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_open: load csfsdn from root dir %s done\n", root_dname);
- 
+
     return (csfsdn);
 }
 
@@ -935,7 +935,7 @@ EC_BOOL csfsdn_close(CSFSDN *csfsdn)
 EC_BOOL csfsdn_fetch_block_fd(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t block_no, int *block_fd)
 {
     UINT32 node_id;
- 
+
     CSFSDN_NODE *csfsdn_node;
 
     if(NULL_PTR == csfsdn)
@@ -951,7 +951,7 @@ EC_BOOL csfsdn_fetch_block_fd(CSFSDN *csfsdn, const uint16_t disk_no, const uint
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_fetch_block_fd: open node %ld failed\n", node_id);
         return (EC_FALSE);
-    } 
+    }
 
     (*block_fd) = CSFSDN_NODE_FD(csfsdn_node);
 
@@ -993,7 +993,7 @@ EC_BOOL csfsdn_read_o(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t blo
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_o: offset %ld + data_max_len %ld = %ld overflow\n",
                             offset, data_max_len, offset + data_max_len);
         return (EC_FALSE);
-    }  
+    }
 
     node_id = CSFSDN_NODE_ID_MAKE(disk_no, block_no);
     offset_t = offset;
@@ -1031,7 +1031,7 @@ EC_BOOL csfsdn_write_o(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: data_buff is null\n");
         return (EC_FALSE);
-    } 
+    }
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len)
     {
@@ -1046,7 +1046,7 @@ EC_BOOL csfsdn_write_o(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: write %u bytes to disk %u block %u offset %u failed\n",
                             data_max_len, disk_no, block_no, offset_t);
-                         
+
         return (EC_FALSE);
     }
 
@@ -1098,7 +1098,7 @@ EC_BOOL csfsdn_write_b(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     uint16_t disk_no_t;
     uint16_t block_no_t;
     uint16_t page_no_t;
- 
+
     if(NULL_PTR == csfsdn)
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: csfsdn is null\n");
@@ -1109,7 +1109,7 @@ EC_BOOL csfsdn_write_b(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: data_buff is null\n");
         return (EC_FALSE);
-    } 
+    }
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len + (*offset))
     {
@@ -1133,7 +1133,7 @@ EC_BOOL csfsdn_write_b(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: write %u bytes to disk %u block %u page %u failed\n",
                             data_max_len, disk_no_t, block_no_t, page_no_t);
-                         
+
         return (EC_FALSE);
     }
     dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_b: write %u bytes to disk %u block %u page %u done\n",
@@ -1190,7 +1190,7 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     //uint16_t page_num;
     uint16_t disk_no_t;
     uint16_t block_no_t;
-    uint16_t page_no_t; 
+    uint16_t page_no_t;
 
     if(NULL_PTR == csfsdn)
     {
@@ -1202,7 +1202,7 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     {
         dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: data_buff is null\n");
         return (EC_FALSE);
-    } 
+    }
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len)
     {
@@ -1238,7 +1238,7 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     (*disk_no)  = disk_no_t;
     (*block_no) = block_no_t;
     (*page_no)  = page_no_t;
- 
+
     return (EC_TRUE);
 }
 

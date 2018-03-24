@@ -46,7 +46,7 @@ EC_BOOL cbuffer_init(CBUFFER *cbuffer, const uint32_t size)
     {
         CBUFFER_DATA(cbuffer) = NULL_PTR;
         CBUFFER_SIZE(cbuffer) = 0;
-        CBUFFER_USED(cbuffer) = 0; 
+        CBUFFER_USED(cbuffer) = 0;
 
         return (EC_TRUE);
     }
@@ -72,10 +72,10 @@ EC_BOOL cbuffer_clean(CBUFFER *cbuffer)
         safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
         CBUFFER_DATA(cbuffer) = NULL_PTR;
     }
- 
+
     CBUFFER_SIZE(cbuffer) = 0;
     CBUFFER_USED(cbuffer) = 0;
- 
+
     return (EC_TRUE);
 }
 
@@ -104,7 +104,7 @@ EC_BOOL cbuffer_set(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
     {
         safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0006);
         CBUFFER_DATA(cbuffer) = NULL_PTR;
-     
+
         CBUFFER_USED(cbuffer) = 0;
         CBUFFER_SIZE(cbuffer) = 0;
     }
@@ -116,11 +116,11 @@ EC_BOOL cbuffer_set(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
         return (EC_FALSE);
     }
     BCOPY(data, des, len);
- 
+
     CBUFFER_DATA(cbuffer) = des;
     CBUFFER_USED(cbuffer) = len;
     CBUFFER_SIZE(cbuffer) = len;
- 
+
     return (EC_TRUE);
 }
 
@@ -128,7 +128,7 @@ EC_BOOL cbuffer_reset(CBUFFER *cbuffer)
 {
     if(NULL_PTR != cbuffer)
     {
-        CBUFFER_USED(cbuffer) = 0;     
+        CBUFFER_USED(cbuffer) = 0;
     }
     return (EC_TRUE);
 }
@@ -227,12 +227,12 @@ EC_BOOL cbuffer_pop_bytes(CBUFFER *cbuffer, uint8_t *data, const uint32_t size)
     {
         dbg_log(SEC_0126_CBUFFER, 0)(LOGSTDOUT, "error:cbuffer_pop_bytes: cbuffer %p used %d < expected pop size %d\n",
                            cbuffer, CBUFFER_USED(cbuffer), size);
-        return (EC_FALSE);                        
+        return (EC_FALSE);
     }
 
     if(NULL_PTR != data)
     {
-        BCOPY(CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer) - size, data, size);     
+        BCOPY(CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer) - size, data, size);
     }
     CBUFFER_USED(cbuffer) -= size;
 
@@ -245,12 +245,12 @@ EC_BOOL cbuffer_left_shift_out(CBUFFER *cbuffer, uint8_t *data, const uint32_t s
     {
         dbg_log(SEC_0126_CBUFFER, 0)(LOGSTDOUT, "error:cbuffer_left_shift_out: cbuffer %p used %d < expected shift out size %d\n",
                            cbuffer, CBUFFER_USED(cbuffer), size);
-        return (EC_FALSE);                        
+        return (EC_FALSE);
     }
 
     if(NULL_PTR != data)
     {
-        BCOPY(CBUFFER_DATA(cbuffer), data, size);     
+        BCOPY(CBUFFER_DATA(cbuffer), data, size);
     }
 
     if(0 < size)
@@ -323,7 +323,7 @@ uint32_t cbuffer_append_format(CBUFFER *cbuffer, const char *format, ...)
 
     len = vsnprintf((char *)(CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer)), CBUFFER_ROOM(cbuffer), format, ap);
     CBUFFER_USED(cbuffer) += len;
- 
+
     va_end(ap);
 
     return (len);
@@ -390,7 +390,7 @@ EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
     {
         safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0010);
         CBUFFER_DATA(cbuffer) = NULL_PTR;
-     
+
         CBUFFER_USED(cbuffer) = 0;
         CBUFFER_SIZE(cbuffer) = 0;
     }
@@ -398,7 +398,7 @@ EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
     CBUFFER_DATA(cbuffer) = (uint8_t *)data;
     CBUFFER_USED(cbuffer) = len;
     CBUFFER_SIZE(cbuffer) = len;
- 
+
     return (EC_TRUE);
 }
 
@@ -417,8 +417,8 @@ EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len)
     CBUFFER_DATA(cbuffer) = NULL_PTR;
     CBUFFER_USED(cbuffer) = 0;
     CBUFFER_SIZE(cbuffer) = 0;
- 
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 void cbuffer_print_chars(LOG *log, const CBUFFER *cbuffer)
@@ -440,7 +440,7 @@ void cbuffer_print_chars(LOG *log, const CBUFFER *cbuffer)
     {
         sys_print(log, "[%8d] %c %02x\n", idx, CBUFFER_DATA(cbuffer)[ idx ], CBUFFER_DATA(cbuffer)[ idx ]);
     }
- 
+
     return;
 }
 
@@ -457,7 +457,7 @@ void cbuffer_print_str(LOG *log, const CBUFFER *cbuffer)
         sys_print(log, "(null)\n");
         return;
     }
- 
+
     sys_print(log, "%.*s\n", CBUFFER_USED(cbuffer), CBUFFER_DATA(cbuffer));
     return;
 }
@@ -475,7 +475,7 @@ void cbuffer_print_info(LOG *log, const CBUFFER *cbuffer)
         sys_log(log, "(null)\n");
         return;
     }
- 
+
     sys_log(log, "data %p, used %d, size %d\n", CBUFFER_DATA(cbuffer), CBUFFER_USED(cbuffer), CBUFFER_SIZE(cbuffer));
     return;
 }

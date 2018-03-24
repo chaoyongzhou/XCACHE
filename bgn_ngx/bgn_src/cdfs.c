@@ -116,7 +116,7 @@ UINT32 cdfs_start(const UINT32 cdfsnp_min_num)
     task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CDFS    , 32);
- 
+
     /*check rank validity*/
     if(CMPI_CDFS_RANK != TASK_BRD_RANK(task_brd))
     {
@@ -136,7 +136,7 @@ UINT32 cdfs_start(const UINT32 cdfsnp_min_num)
     cdfs_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem(); 
+    init_static_mem();
 
     CDFS_MD_DN_MOD_MGR(cdfs_md)  = mod_mgr_new(cdfs_md_id, /*LOAD_BALANCING_LOOP*//*LOAD_BALANCING_MOD*/LOAD_BALANCING_QUE);
     CDFS_MD_NPP_MOD_MGR(cdfs_md) = mod_mgr_new(cdfs_md_id, /*LOAD_BALANCING_LOOP*//*LOAD_BALANCING_MOD*/LOAD_BALANCING_QUE);
@@ -208,7 +208,7 @@ void cdfs_end(const UINT32 cdfs_md_id)
         mod_mgr_free(CDFS_MD_NPP_MOD_MGR(cdfs_md));
         CDFS_MD_NPP_MOD_MGR(cdfs_md)  = NULL_PTR;
     }
- 
+
     /* free module : */
     //cdfs_free_module_static_mem(cdfs_md_id);
 
@@ -226,7 +226,7 @@ void cdfs_end(const UINT32 cdfs_md_id)
     return ;
 }
 
-static EC_BOOL cdfs_tcid_is_connected(const UINT32 tcid)
+STATIC_CAST static EC_BOOL cdfs_tcid_is_connected(const UINT32 tcid)
 {
     TASK_BRD *task_brd;
 
@@ -234,7 +234,7 @@ static EC_BOOL cdfs_tcid_is_connected(const UINT32 tcid)
     return task_brd_check_tcid_connected(task_brd, tcid);
 }
 
-static EC_BOOL cdfs_dn_is_connected(const UINT32 cdfs_md_id, const UINT32 cdfsnp_tcid)
+STATIC_CAST static EC_BOOL cdfs_dn_is_connected(const UINT32 cdfs_md_id, const UINT32 cdfsnp_tcid)
 {
     CDFS_MD   *cdfs_md;
     UINT32     remote_mod_node_pos;
@@ -266,7 +266,7 @@ static EC_BOOL cdfs_dn_is_connected(const UINT32 cdfs_md_id, const UINT32 cdfsnp
     return (EC_FALSE);
 }
 
-static EC_BOOL cdfs_collect_fnode_all_tcid(const CDFSNP_FNODE *cdfsnp_fnode, const UINT32 cdfsnp_inode_num, CVECTOR *tcid_vec)
+STATIC_CAST static EC_BOOL cdfs_collect_fnode_all_tcid(const CDFSNP_FNODE *cdfsnp_fnode, const UINT32 cdfsnp_inode_num, CVECTOR *tcid_vec)
 {
     UINT32 cdfsnp_inode_pos;
 
@@ -288,7 +288,7 @@ static EC_BOOL cdfs_collect_fnode_all_tcid(const CDFSNP_FNODE *cdfsnp_fnode, con
     return (EC_TRUE);
 }
 
-static EC_BOOL cdfs_collect_dn_mod_mgr_disable_tcid(MOD_MGR *dn_mod_mgr, CVECTOR *tcid_vec)
+STATIC_CAST static EC_BOOL cdfs_collect_dn_mod_mgr_disable_tcid(MOD_MGR *dn_mod_mgr, CVECTOR *tcid_vec)
 {
     UINT32 mod_node_pos;
     CVECTOR_LOCK(MOD_MGR_REMOTE_LIST(dn_mod_mgr), LOC_CDFS_0001);
@@ -311,7 +311,7 @@ static EC_BOOL cdfs_collect_dn_mod_mgr_disable_tcid(MOD_MGR *dn_mod_mgr, CVECTOR
     return (EC_TRUE);
 }
 
-static EC_BOOL cdfs_get_next_succ_inode_pos(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, const UINT32 cdfsnp_inode_beg_pos, UINT32 *cdfsnp_inode_next_pos)
+STATIC_CAST static EC_BOOL cdfs_get_next_succ_inode_pos(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, const UINT32 cdfsnp_inode_beg_pos, UINT32 *cdfsnp_inode_next_pos)
 {
     UINT32 cdfsnp_inode_pos;
 
@@ -351,7 +351,7 @@ static EC_BOOL cdfs_get_next_succ_inode_pos(const UINT32 cdfs_md_id, const CDFSN
 *   skip mod_node which are marked as CDFS_MOD_NODE_WRITE_DISABLE
 *
 **/
-static MOD_MGR *cdfs_new_dn_mod_mgr_to_write(const UINT32 cdfs_md_id)
+STATIC_CAST static MOD_MGR *cdfs_new_dn_mod_mgr_to_write(const UINT32 cdfs_md_id)
 {
     CDFS_MD *cdfs_md;
     MOD_MGR *mod_mgr_src;
@@ -4451,7 +4451,7 @@ EC_BOOL cdfs_transfer_update(const UINT32 cdfs_md_id, const UINT32 src_datanode_
     return cdfsnp_mgr_update(CDFS_MD_NPP(cdfs_md), src_datanode_tcid, src_block_path_layout, des_datanode_tcid, des_block_path_layout);
 }
 
-static EC_BOOL cdfs_snapshot_make(const CSTRING *cmd_cstr)
+STATIC_CAST static EC_BOOL cdfs_snapshot_make(const CSTRING *cmd_cstr)
 {
     return exec_shell((char *)cstring_get_str(cmd_cstr), NULL_PTR, 0);
 }

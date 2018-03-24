@@ -485,7 +485,7 @@ int  keyCmpHs2(const uint8_t *key_1st, const uint8_t *key_2nd)
     dbg_log(SEC_0133_KEYVALUE, 5)(LOGSTDOUT,"keyCmpHs2: ");
     keyPrintHs(LOGSTDOUT, key_1st);
     sys_print(LOGSTDOUT," <----> ");
-    keyPrintHs(LOGSTDOUT, key_2nd); 
+    keyPrintHs(LOGSTDOUT, key_2nd);
     sys_print(LOGSTDOUT, "\n");
 #endif
     counter   = 0;
@@ -570,7 +570,7 @@ int  keyCmpHs3(const uint8_t *key_1st, const uint8_t *key_2nd)
     dbg_log(SEC_0133_KEYVALUE, 5)(LOGSTDOUT,"keyCmpHs3: ");
     keyPrintHs(LOGSTDOUT, key_1st);
     sys_print(LOGSTDOUT," <----> ");
-    keyPrintHs(LOGSTDOUT, key_2nd); 
+    keyPrintHs(LOGSTDOUT, key_2nd);
     sys_print(LOGSTDOUT, "\n");
 #endif
     counter   = 0;
@@ -1343,10 +1343,10 @@ STATIC_CAST static int __kvCmpRowInRowkeyScope(const uint8_t *rowkey_scope_1st, 
     uint8_t *start_rowkey_1st;
     uint8_t *end_rowkey_1st;
     uint8_t *start_rowkey_2nd;
-    uint8_t *end_rowkey_2nd; 
+    uint8_t *end_rowkey_2nd;
 
     int cmp_ret;
- 
+
     __kvSplitRowkeyScope(rowkey_scope_1st, &start_rowkey_1st, &end_rowkey_1st);
     __kvSplitRowkeyScope(rowkey_scope_2nd, &start_rowkey_2nd, &end_rowkey_2nd);
 
@@ -1394,7 +1394,7 @@ EC_BOOL kvEncode(const uint8_t *kv, uint8_t *buff, const uint32_t size, uint32_t
                             size - (*pos), len);
         return (EC_FALSE);
     }
- 
+
     gdbPut8s(buff, pos, kv, len);
     return (EC_TRUE);
 }
@@ -1416,7 +1416,7 @@ EC_BOOL kvDecode(uint8_t **kv, uint8_t *buff, const uint32_t size, uint32_t *pos
     vlen = gdbGet32(buff, pos);/*4B i.e. KV_FORMAT_VLEN*/
     tlen = klen + vlen + KV_FORMAT_KLEN + KV_FORMAT_VLEN;
 
-    (*pos) -= KV_FORMAT_KLEN + KV_FORMAT_VLEN;/*roll back*/ 
+    (*pos) -= KV_FORMAT_KLEN + KV_FORMAT_VLEN;/*roll back*/
 
     if(tlen > size - (*pos))
     {
@@ -1490,12 +1490,12 @@ int  kvRegex(const uint8_t *key, pcre *row_re, pcre *colf_re, pcre *colq_re, pcr
         dbg_log(SEC_0133_KEYVALUE, 9)(LOGSTDOUT, "[DEBUG] keyRegex: colq not matched where colq is %.*s\n", cqlen, colq);
         return 0;/*fail*/
     }
- 
+
     if(NULL_PTR != val_re && 0 > pcre_exec(val_re, NULL_PTR, (char *)val, vlen, 0, 0, ovec, ovec_count))
     {
         dbg_log(SEC_0133_KEYVALUE, 9)(LOGSTDOUT, "[DEBUG] keyRegex: val not matched where val is %.*s\n", vlen, val);
         return 0;/*fail*/
-    } 
+    }
 
     return 1;/*succ*/
 }

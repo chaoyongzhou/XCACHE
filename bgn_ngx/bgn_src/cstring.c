@@ -116,7 +116,7 @@ void cstring_init(CSTRING *cstring, const UINT8 *str)
     if(cstring->str)
     {
         /*note: here not call memset to set data area to zero due to finding its unstable*/
-#if 0     
+#if 0
         for(pos = 0; pos <= str_len; pos ++)/*copy the last terminal char of str*/
         {
             cstring->str[ pos ] = str[ pos ];
@@ -152,7 +152,7 @@ void cstring_clean(CSTRING *cstring)
             SAFE_FREE(cstring->str, LOC_CSTRING_0005);
             cstring->str = NULL_PTR;
         }
-     
+
         cstring->capacity = 0;
         cstring->len      = 0;
     }
@@ -224,7 +224,7 @@ EC_BOOL cstring_is_str(const CSTRING *cstring_src, const UINT8 *str)
     {
         return (EC_FALSE);
     }
-    
+
     if(STRCMP((char *)cstring_src->str, (char *)str))
     {
         return (EC_FALSE);
@@ -348,7 +348,7 @@ int cstring_ncmp(const CSTRING *cstring_src, const CSTRING *cstring_des, const U
     {
         return (1);
     }
- 
+
     return (-1);
 }
 
@@ -524,7 +524,7 @@ EC_BOOL cstring_set_str(CSTRING *cstring, const UINT8 *str)
     {
         cstring->str      = NULL_PTR;
         cstring->len      = 0;
-        cstring->capacity = 0;    
+        cstring->capacity = 0;
     }
     return (EC_TRUE);
 }
@@ -688,7 +688,7 @@ EC_BOOL cstring_set_chars(CSTRING *cstring, const UINT8 *pchs, const UINT32 len)
 CSTRING *cstring_make(const char *format, ...)
 {
     CSTRING *cstring;
- 
+
     va_list ap;
     UINT32 len;
 
@@ -749,7 +749,7 @@ CSTRING *cstring_make_by_bytes(const UINT32 len, const UINT8 *bytes)
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_make_by_bytes: new cstring failed\n");
         return (NULL_PTR);
     }
- 
+
     if(EC_FALSE == cstring_set_chars(cstring, bytes, len))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_make_by_bytes: sett chars to cstring failed\n");
@@ -764,7 +764,7 @@ CSTRING *cstring_make_by_bytes(const UINT32 len, const UINT8 *bytes)
 CSTRING *cstring_dup(const CSTRING *cstring_src)
 {
     CSTRING *cstring_des;
- 
+
     cstring_des = cstring_new(NULL_PTR, LOC_CSTRING_0016);
     if(NULL_PTR == cstring_des)
     {
@@ -966,16 +966,16 @@ EC_BOOL cstring_erase_tail_until(CSTRING *cstring, const UINT8 ch)
     {
         /*do nothing*/
     }
- 
+
     pos ++;
- 
+
     if(str_len == pos)
     {
         return (EC_TRUE);
     }
     cstring->len = pos;
     cstring->str[ pos ] = '\0';
- 
+
     return (EC_TRUE);
 }
 
@@ -1008,9 +1008,9 @@ EC_BOOL cstring_rtrim(CSTRING *cstring, const UINT8 ch)
     {
         /*do nothing*/
     }
- 
+
     pos ++;
- 
+
     if(str_len == pos)
     {
         return (EC_TRUE);
@@ -1019,7 +1019,7 @@ EC_BOOL cstring_rtrim(CSTRING *cstring, const UINT8 ch)
     cstring->str[ pos ] = '\0';
 
     CSTRING_DEBUG(cstring);
- 
+
     return (EC_TRUE);
 }
 
@@ -1029,14 +1029,14 @@ EC_BOOL cstring_trim(CSTRING *cstring, const UINT8 ch)
     {
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == cstring_rtrim(cstring, ch))
     {
         return (EC_FALSE);
     }
 
     CSTRING_DEBUG(cstring);
- 
+
     return (EC_TRUE);
 }
 
@@ -1116,7 +1116,7 @@ EC_BOOL cstring_format(CSTRING *cstring, const char *format, ...)
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_format: expand from %ld to %ld failed\n",
                     cstring->len, len + cstring->len + 1);
-        va_end(ap);        
+        va_end(ap);
         return (EC_FALSE);
     }
 
@@ -1209,7 +1209,7 @@ EC_BOOL cstring_load(CSTRING *cstring, int fd, UINT32 *offset)
 
     if(EC_FALSE == c_file_load(fd, offset, sizeof(UINT32), (UINT8 *)&len))
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load cstring len failed\n");     
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load cstring len failed\n");
         return (EC_FALSE);
     }
 
@@ -1234,7 +1234,7 @@ EC_BOOL cstring_load(CSTRING *cstring, int fd, UINT32 *offset)
     }
 
     cstring_clean(cstring);
- 
+
     str[ len ] = '\0';
 
     cstring->str = (UINT8 *)str;
@@ -1259,8 +1259,8 @@ EC_BOOL cstring_flush(const CSTRING *cstring, int fd, UINT32 *offset)
         }
         return (EC_TRUE);
     }
- 
-    len = cstring->len; 
+
+    len = cstring->len;
     if(EC_FALSE == c_file_flush(fd, offset, sizeof(UINT32), (UINT8 *)&len))
     {
         dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_flush: flush cstring len %u failed\n", len);

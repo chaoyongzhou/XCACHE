@@ -90,7 +90,7 @@ MOD_NODE *mod_node_new()
     return (mod_node);
 }
 
-static MOD_NODE *mod_node_alloc_0()
+STATIC_CAST static MOD_NODE *mod_node_alloc_0()
 {
     MOD_NODE *mod_node;
 
@@ -1136,7 +1136,7 @@ EC_BOOL mod_mgr_set_local_mod(MOD_MGR * mod_mgr, const UINT32 local_md_id)
         MOD_NODE_LOAD(MOD_MGR_LOCAL_MOD(mod_mgr)) = 0;
         MOD_NODE_STAT(MOD_MGR_LOCAL_MOD(mod_mgr)) = 0;
         cload_stat_init(MOD_NODE_CLOAD_STAT(MOD_MGR_LOCAL_MOD(mod_mgr)));
-    
+
         MOD_MGR_LOCAL_MOD_POS(mod_mgr) = CVECTOR_ERR_POS;
     }
 
@@ -3010,7 +3010,7 @@ MOD_NODE *mod_mgr_search(const UINT32 tcid, const UINT32 comm, const UINT32 rank
     for(pos = 0; pos < MOD_MGR_REMOTE_NUM(mod_mgr); pos ++)
     {
         MOD_NODE *remote_mod_node;
-   
+
         remote_mod_node = (MOD_NODE *)cvector_get(MOD_MGR_REMOTE_LIST(mod_mgr), pos);
         if(
            tcid == MOD_NODE_TCID(remote_mod_node)
@@ -3033,7 +3033,7 @@ EC_BOOL mod_mgr_has(const UINT32 tcid, const UINT32 comm, const UINT32 rank, con
     for(pos = 0; pos < MOD_MGR_REMOTE_NUM(mod_mgr); pos ++)
     {
         MOD_NODE *remote_mod_node;
-   
+
         remote_mod_node = (MOD_NODE *)cvector_get(MOD_MGR_REMOTE_LIST(mod_mgr), pos);
         if(
            tcid == MOD_NODE_TCID(remote_mod_node)

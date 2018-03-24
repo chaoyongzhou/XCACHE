@@ -25,7 +25,7 @@ extern "C"{
 
 #include "task.h"
 
-static EC_BOOL rank_cmp(const void * src_rank, const void * des_rank)
+STATIC_CAST static EC_BOOL rank_cmp(const void * src_rank, const void * des_rank)
 {
     if(((UINT32)src_rank) == ((UINT32)des_rank))
     {
@@ -34,7 +34,7 @@ static EC_BOOL rank_cmp(const void * src_rank, const void * des_rank)
     return (EC_FALSE);
 }
 
-static void rank_print(LOG *log, void * rank)
+STATIC_CAST static void rank_print(LOG *log, void * rank)
 {
     dbg_log(SEC_0095_RANK, 5)(LOGSTDOUT, "rank: %ld\n", (UINT32)rank);
 }

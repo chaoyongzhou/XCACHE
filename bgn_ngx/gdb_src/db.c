@@ -37,7 +37,7 @@ __setupDatabase(GDatabase *db)
     memset(db->openBlocks, 0, db->openBlockSize * sizeof(GdbBlock *));
 }
 
-static uint8_t *__genIdxFileName(const uint8_t *root_path, const word_t table_id)
+STATIC_CAST static uint8_t *__genIdxFileName(const uint8_t *root_path, const word_t table_id)
 {
     uint8_t *fidx_name;
     uint32_t len;
@@ -57,7 +57,7 @@ static uint8_t *__genIdxFileName(const uint8_t *root_path, const word_t table_id
     return (fidx_name);
 }
 
-static uint8_t *__genDatFileName(const uint8_t *root_path, const word_t table_id)
+STATIC_CAST static uint8_t *__genDatFileName(const uint8_t *root_path, const word_t table_id)
 {
     uint8_t *fdat_name;
     uint32_t len;
@@ -77,7 +77,7 @@ static uint8_t *__genDatFileName(const uint8_t *root_path, const word_t table_id
     return (fdat_name);
 }
 
-static uint8_t *__dupFileName(const uint8_t *root_path)
+STATIC_CAST static uint8_t *__dupFileName(const uint8_t *root_path)
 {
     uint8_t *file_name;
     MEM_CHECK(file_name = (uint8_t *)SAFE_MALLOC(strlen((char *)root_path) + 1, LOC_DB_0012));

@@ -372,7 +372,7 @@ UINT32 ctimer_node_handle(CTIMER_NODE *ctimer_node)
     //dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node_handle: end===================================================================\n");
     return (0);
 }
-static char *ctimer_get_flag_str(const UINT32 flag)
+STATIC_CAST static char *ctimer_get_flag_str(const UINT32 flag)
 {
     switch(flag)
     {

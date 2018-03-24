@@ -244,7 +244,7 @@ EC_BOOL strtoint(char* string, int* value) {
  *
  * Description:
  *---------------------------------------------------------------------------*/
- 
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

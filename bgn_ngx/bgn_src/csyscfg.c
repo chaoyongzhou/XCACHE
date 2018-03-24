@@ -109,7 +109,7 @@ EC_BOOL cluster_node_cfg_check_role_str(const CLUSTER_NODE_CFG *cluster_node_cfg
                            (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg), role_str);
         return (EC_TRUE);
     }
- 
+
     dbg_log(SEC_0090_CSYSCFG, 9)(LOGSTDOUT, "[DEBUG] cluster_node_cfg_check_role_str: cluster node role %s is NOT in %s\n",
                        (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg), role_str);
     return (EC_FALSE);
@@ -128,7 +128,7 @@ EC_BOOL cluster_node_cfg_check_group_str(const CLUSTER_NODE_CFG *cluster_node_cf
                            (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg), group_str);
         return (EC_TRUE);
     }
- 
+
     dbg_log(SEC_0090_CSYSCFG, 9)(LOGSTDOUT, "[DEBUG] cluster_node_cfg_check_group_str: cluster node group %s is NOT in %s\n",
                        (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg), group_str);
     return (EC_FALSE);
@@ -245,7 +245,7 @@ void cluster_node_cfg_print_xml(LOG *log, const CLUSTER_NODE_CFG *cluster_node_c
     group_str = (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg);
 
     if(NULL_PTR != rank_str)
-    { 
+    {
         c_ident_print(log, level);
         sys_print(log, "<node");
         sys_print(log, " role=\"%s\"" , (const char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg));
@@ -264,7 +264,7 @@ void cluster_node_cfg_print_xml(LOG *log, const CLUSTER_NODE_CFG *cluster_node_c
         sys_print(log, " tcid=\"%s\"" , (const char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg));
         sys_print(log, " rank=\"\""   );
         __cluster_node_cfg_extras_print_xml(log, CLUSTER_NODE_CFG_EXTRAS(cluster_node_cfg));
-        sys_print(log, "/>\n"); 
+        sys_print(log, "/>\n");
     }
 
     return;
@@ -364,7 +364,7 @@ CLUSTER_NODE_CFG *cluster_cfg_search_by_tcid_rank(const CLUSTER_CFG *cluster_cfg
         {
             CVECTOR_UNLOCK(cluster_nodes, LOC_CSYSCFG_0015);
             return (cluster_node_cfg);
-        }     
+        }
     }
     CVECTOR_UNLOCK(cluster_nodes, LOC_CSYSCFG_0016);
     return (NULL_PTR);
@@ -431,7 +431,7 @@ EC_BOOL cluster_cfg_collect_tcid_vec_by_role_cstr(const CLUSTER_CFG *cluster_cfg
     {
         return (EC_TRUE);
     }
- 
+
     ret = EC_FALSE;
     return cvector_loop((CVECTOR *)CLUSTER_CFG_NODES(cluster_cfg), (void *)&ret, NULL_PTR,
                         (UINT32)3,
@@ -449,7 +449,7 @@ EC_BOOL cluster_cfg_collect_tcid_vec_by_role_str(const CLUSTER_CFG *cluster_cfg,
     if(MODEL_TYPE_ANY != model && model != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         return (EC_TRUE);
-    } 
+    }
 
     ret = EC_FALSE;
     return cvector_loop((CVECTOR *)CLUSTER_CFG_NODES(cluster_cfg), (void *)&ret, NULL_PTR,
@@ -468,7 +468,7 @@ EC_BOOL cluster_cfg_collect_tcid_vec_by_role_and_group_cstr(const CLUSTER_CFG *c
     if(MODEL_TYPE_ANY != model && model != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         return (EC_TRUE);
-    } 
+    }
 
     ret = EC_FALSE;
     return cvector_loop((CVECTOR *)CLUSTER_CFG_NODES(cluster_cfg), (void *)&ret, NULL_PTR,
@@ -488,7 +488,7 @@ EC_BOOL cluster_cfg_collect_tcid_vec_by_role_and_group_str(const CLUSTER_CFG *cl
     if(MODEL_TYPE_ANY != model && model != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         return (EC_TRUE);
-    } 
+    }
 
     ret = EC_FALSE;
     return cvector_loop((CVECTOR *)CLUSTER_CFG_NODES(cluster_cfg), (void *)&ret, NULL_PTR,
@@ -524,7 +524,7 @@ CSTRING *cluster_cfg_get_node_extra_val_by_key_str(const CLUSTER_CFG *cluster_cf
         return (NULL_PTR);
     }
 
-    return cluster_node_cfg_get_extra_val_by_key_str(cluster_node_cfg, key_str); 
+    return cluster_node_cfg_get_extra_val_by_key_str(cluster_node_cfg, key_str);
 }
 
 CSTRING *cluster_cfg_get_node_extra_val_by_key_cstr(const CLUSTER_CFG *cluster_cfg, const UINT32 tcid, const UINT32 rank, const CSTRING *key_cstr)
@@ -537,7 +537,7 @@ CSTRING *cluster_cfg_get_node_extra_val_by_key_cstr(const CLUSTER_CFG *cluster_c
         return (NULL_PTR);
     }
 
-    return cluster_node_cfg_get_extra_val_by_key_cstr(cluster_node_cfg, key_cstr); 
+    return cluster_node_cfg_get_extra_val_by_key_cstr(cluster_node_cfg, key_cstr);
 }
 
 STATIC_CAST static void __cluster_cfg_extra_print_xml(LOG *log, const CMAP_NODE *extra)
@@ -575,13 +575,13 @@ void cluster_cfg_print_xml(LOG *log, const CLUSTER_CFG *cluster_cfg, const UINT3
             break;
         case MODEL_TYPE_HSDFS_CONNEC:
             mode_str = (const char *)"hsdfs";
-            break; 
+            break;
         case MODEL_TYPE_HSBGT_CONNEC:
             mode_str = (const char *)"hsbgt";
-            break;     
+            break;
         case MODEL_TYPE_HSRFS_CONNEC:
             mode_str = (const char *)"hsrfs";
-            break;            
+            break;
         default:
             mode_str = (const char *)"UNKNOWN";
     }
@@ -845,7 +845,7 @@ void cparacfg_csocket_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UI
     sys_print(log, " recvTimeoutNsec=\"%d\""     , CPARACFG_CSOCKET_SO_RCVTIMEO_NSEC(cparacfg));
 
     sys_print(log, " tcpKeepAliveSwitch=\"%s\""  , CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg));
- 
+
     sys_print(log, " tcpKeepIdleNsec=\"%d\""     , CPARACFG_CSOCKET_TCP_KEEPIDLE_NSEC(cparacfg));
     sys_print(log, " tcpKeepIntvlNsec=\"%d\""    , CPARACFG_CSOCKET_TCP_KEEPINTVL_NSEC(cparacfg));
     sys_print(log, " tcpKeepCntTimes=\"%d\""     , CPARACFG_CSOCKET_TCP_KEEPCNT_TIMES(cparacfg));
@@ -882,8 +882,8 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
         CVECTOR *log_sector_vec;
 
         log_level = log_level_tab[ log_sector ];
-        log_sector_vec = (CVECTOR *)&(log_sector_vec_tab[ log_level ]);     
-     
+        log_sector_vec = (CVECTOR *)&(log_sector_vec_tab[ log_level ]);
+
         cvector_push_no_lock(log_sector_vec, (void *)log_sector);
     }
 
@@ -891,7 +891,7 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
     for(log_level = 0, count = 0; log_level <= LOG_MAX_DBG_LEVEL; log_level ++)
     {
         CVECTOR *log_sector_vec;
-             
+
         log_sector_vec = &(log_sector_vec_tab[ log_level ]);
         if(0 == cvector_size(log_sector_vec))
         {
@@ -901,14 +901,14 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
         if(0 == count)
         {
             char *sector_str;
-            sector_str = uint32_vec_to_str(log_sector_vec);     
+            sector_str = uint32_vec_to_str(log_sector_vec);
             sys_print(log, "%s:%ld", sector_str, log_level);
             safe_free(sector_str, LOC_CSYSCFG_0022);
         }
         else
         {
             char *sector_str;
-            sector_str = uint32_vec_to_str(log_sector_vec);     
+            sector_str = uint32_vec_to_str(log_sector_vec);
             sys_print(log, ",%s:%ld", sector_str, log_level);
             safe_free(sector_str, LOC_CSYSCFG_0023);
         }
@@ -1276,7 +1276,7 @@ EC_BOOL sys_cfg_load(SYS_CFG *sys_cfg, const char *xml_fname)
     }
 
     sys_cfg_root = cxml_get_root(sys_cfg_doc);
- 
+
     if(EC_FALSE == cxml_parse_sys_cfg(sys_cfg_root, sys_cfg))
     {
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_load: parse %s failed\n", xml_fname);
@@ -1322,14 +1322,14 @@ TASKS_CFG *sys_cfg_search_tasks_cfg_by_role_from_cluster(const SYS_CFG *sys_cfg,
     CLUSTER_CFG             *cluster_cfg;
     UINT32                   cluster_node_pos;
     CLUSTER_NODE_CFG        *cluster_node_cfg;
-    
+
     cluster_cfg = sys_cfg_get_cluster_cfg_by_name_str(sys_cfg, cluster_name);
     if(NULL_PTR == cluster_cfg)
     {
         return (NULL_PTR);
     }
 
-    cluster_node_pos = cvector_search_front(CLUSTER_CFG_NODES(cluster_cfg), (void *)role, 
+    cluster_node_pos = cvector_search_front(CLUSTER_CFG_NODES(cluster_cfg), (void *)role,
                 (CVECTOR_DATA_CMP)cluster_node_cfg_check_role_str);
 
     if(CVECTOR_ERR_POS == cluster_node_pos)
@@ -1339,7 +1339,7 @@ TASKS_CFG *sys_cfg_search_tasks_cfg_by_role_from_cluster(const SYS_CFG *sys_cfg,
 
     cluster_node_cfg = cvector_get(CLUSTER_CFG_NODES(cluster_cfg), cluster_node_pos);
 
-    return sys_cfg_search_tasks_cfg(sys_cfg, CLUSTER_NODE_CFG_TCID(cluster_node_cfg), 
+    return sys_cfg_search_tasks_cfg(sys_cfg, CLUSTER_NODE_CFG_TCID(cluster_node_cfg),
                                     CMPI_ANY_MASK, CMPI_ANY_MASK);
 }
 
@@ -1515,7 +1515,7 @@ EC_BOOL sys_cfg_collect_hsdfs_dn_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR 
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0042);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1541,7 +1541,7 @@ EC_BOOL sys_cfg_collect_hsdfs_np_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR 
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0044);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1552,7 +1552,7 @@ EC_BOOL sys_cfg_collect_hsdfs_np_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR 
         if(CVECTOR_ERR_POS == cvector_search_front(cluster_id_vec, (void *)CLUSTER_CFG_ID(cluster_cfg), NULL_PTR))
         {
             continue;
-        }     
+        }
 
         cluster_cfg_collect_tcid_vec_by_role_str(cluster_cfg, MODEL_TYPE_HSDFS_CONNEC, (const char *)"namenode:np", np_tcid_vec);
     }
@@ -1567,7 +1567,7 @@ EC_BOOL sys_cfg_collect_hsdfs_client_tcid_vec(const SYS_CFG *sys_cfg, const CVEC
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0046);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1601,7 +1601,7 @@ CSTRING *sys_cfg_get_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const UINT32 clus
     if(MODEL_TYPE_HSDFS_CONNEC != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_get_hsdfs_np_root_dir: cluster id %ld is not hsdfs model\n", CLUSTER_CFG_ID(cluster_cfg));
-        return (NULL_PTR); 
+        return (NULL_PTR);
     }
 
     np_root_dir = cluster_cfg_get_node_extra_val_by_key_str(cluster_cfg, CMPI_LOCAL_TCID, CMPI_LOCAL_RANK, (const char *)"npdir");
@@ -1630,11 +1630,11 @@ CSTRING *sys_cfg_get_hsdfs_dn_root_dir(const SYS_CFG *sys_cfg, const UINT32 clus
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_get_hsdfs_dn_root_dir: undefined cluster %ld\n", cluster_id);
         return (NULL_PTR);
     }
- 
+
     if(MODEL_TYPE_HSDFS_CONNEC != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_get_hsdfs_dn_root_dir: cluster id %ld is not hsdfs model\n", CLUSTER_CFG_ID(cluster_cfg));
-        return (NULL_PTR); 
+        return (NULL_PTR);
     }
 
     dn_root_dir = cluster_cfg_get_node_extra_val_by_key_str(cluster_cfg, CMPI_LOCAL_TCID, CMPI_LOCAL_RANK, (const char *)"dndir");
@@ -1654,7 +1654,7 @@ CSTRING *sys_cfg_get_hsdfs_dn_root_dir(const SYS_CFG *sys_cfg, const UINT32 clus
 
 CSTRING *sys_cfg_collect_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec)
 {
-    UINT32 pos; 
+    UINT32 pos;
 
     CVECTOR_LOCK(cluster_id_vec, LOC_CSYSCFG_0048);
     for(pos = 0; pos < cvector_size(cluster_id_vec); pos ++)
@@ -1662,7 +1662,7 @@ CSTRING *sys_cfg_collect_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const CVECTOR
         UINT32 cluster_id;
         CSTRING *np_root_dir;
 
-        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);     
+        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);
         np_root_dir = sys_cfg_get_hsdfs_np_root_dir(sys_cfg, cluster_id);
         if(NULL_PTR != np_root_dir)
         {
@@ -1676,15 +1676,15 @@ CSTRING *sys_cfg_collect_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const CVECTOR
 
 CSTRING *sys_cfg_collect_hsdfs_dn_root_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec)
 {
-    UINT32 pos; 
+    UINT32 pos;
 
     CVECTOR_LOCK(cluster_id_vec, LOC_CSYSCFG_0051);
     for(pos = 0; pos < cvector_size(cluster_id_vec); pos ++)
     {
         UINT32 cluster_id;
         CSTRING *dn_root_dir;
-     
-        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);    
+
+        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);
         dn_root_dir = sys_cfg_get_hsdfs_dn_root_dir(sys_cfg, cluster_id);
         if(NULL_PTR != dn_root_dir)
         {
@@ -1703,7 +1703,7 @@ EC_BOOL sys_cfg_collect_hsbgt_root_tcid_vec(const SYS_CFG *sys_cfg, const CVECTO
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0054);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1729,7 +1729,7 @@ EC_BOOL sys_cfg_collect_hsbgt_table_tcid_vec(const SYS_CFG *sys_cfg, const CVECT
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0056);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1755,7 +1755,7 @@ EC_BOOL sys_cfg_collect_hsbgt_client_tcid_vec(const SYS_CFG *sys_cfg, const CVEC
     CVECTOR_LOCK(SYS_CFG_CLUSTER_VEC(sys_cfg), LOC_CSYSCFG_0058);
     for(pos = 0; pos < cvector_size(SYS_CFG_CLUSTER_VEC(sys_cfg)); pos ++)
     {
-        CLUSTER_CFG *cluster_cfg;     
+        CLUSTER_CFG *cluster_cfg;
 
         cluster_cfg = (CLUSTER_CFG *)cvector_get_no_lock(SYS_CFG_CLUSTER_VEC(sys_cfg), pos);
         if(NULL_PTR == cluster_cfg)
@@ -1785,11 +1785,11 @@ CSTRING *sys_cfg_get_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const UINT32 c
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_get_hsbgt_root_table_dir: undefined cluster %ld\n", cluster_id);
         return (NULL_PTR);
     }
- 
+
     if(MODEL_TYPE_HSBGT_CONNEC != CLUSTER_CFG_MODEL(cluster_cfg))
     {
         dbg_log(SEC_0090_CSYSCFG, 0)(LOGSTDOUT, "error:sys_cfg_get_hsbgt_root_table_dir: cluster id %ld is not hsbgt model\n", CLUSTER_CFG_ID(cluster_cfg));
-        return (NULL_PTR); 
+        return (NULL_PTR);
     }
 
     root_table_dir = cluster_cfg_get_node_extra_val_by_key_str(cluster_cfg, CMPI_LOCAL_TCID, CMPI_LOCAL_RANK, (const char *)"roottabledir");
@@ -1809,7 +1809,7 @@ CSTRING *sys_cfg_get_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const UINT32 c
 
 CSTRING *sys_cfg_collect_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec)
 {
-    UINT32 pos; 
+    UINT32 pos;
 
     CVECTOR_LOCK(cluster_id_vec, LOC_CSYSCFG_0060);
     for(pos = 0; pos < cvector_size(cluster_id_vec); pos ++)
@@ -1817,7 +1817,7 @@ CSTRING *sys_cfg_collect_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const CVEC
         UINT32 cluster_id;
         CSTRING *root_table_dir;
 
-        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);     
+        cluster_id = (UINT32)cvector_get_no_lock(cluster_id_vec, pos);
         root_table_dir = sys_cfg_get_hsbgt_root_table_dir(sys_cfg, cluster_id);
         if(NULL_PTR != root_table_dir)
         {

@@ -103,32 +103,32 @@ UINT32 cfile_start()
     UINT32       cfile_md_id;
 
     TASK_BRD    *task_brd;
-    
+
     task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CFILE , 1);
- 
+
     cfile_md_id = cbc_md_new(MD_CFILE, sizeof(CFILE_MD));
     if(CMPI_ERROR_MODI == cfile_md_id)
     {
         return (CMPI_ERROR_MODI);
     }
- 
+
     /* initialize new one CFILE module */
     cfile_md = (CFILE_MD *)cbc_md_get(MD_CFILE, cfile_md_id);
     cfile_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem(); 
+    init_static_mem();
 
     /*TODO:*/
-    
+
     cfile_md->usedcounter = 1;
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cfile_end, cfile_md_id);
 
     dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "[DEBUG] cfile_start: "
-                                          "start CFILE module #%ld\n", 
+                                          "start CFILE module #%ld\n",
                                           cfile_md_id);
 
     return ( cfile_md_id );
@@ -149,11 +149,11 @@ void cfile_end(const UINT32 cfile_md_id)
     if(NULL_PTR == cfile_md)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_end: "
-                                              "cfile_md_id = %ld not exist.\n", 
+                                              "cfile_md_id = %ld not exist.\n",
                                               cfile_md_id);
         dbg_exit(MD_CFILE, cfile_md_id);
     }
- 
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < cfile_md->usedcounter )
     {
@@ -164,14 +164,14 @@ void cfile_end(const UINT32 cfile_md_id)
     if ( 0 == cfile_md->usedcounter )
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_end: "
-                                              "cfile_md_id = %ld is not started.\n", 
+                                              "cfile_md_id = %ld is not started.\n",
                                               cfile_md_id);
         dbg_exit(MD_CFILE, cfile_md_id);
     }
-   
+
     /* free module : */
     //cfile_free_module_static_mem(cfile_md_id);
-    
+
     cfile_md->usedcounter = 0;
 
     dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "cfile_end: stop CFILE module #%ld\n", cfile_md_id);
@@ -187,7 +187,7 @@ void cfile_end(const UINT32 cfile_md_id)
 *
 **/
 EC_BOOL cfile_exists(const UINT32 cfile_md_id, const CSTRING *file_path)
-{   
+{
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
     if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
     {
@@ -202,7 +202,7 @@ EC_BOOL cfile_exists(const UINT32 cfile_md_id, const CSTRING *file_path)
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_exists: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
 
@@ -210,13 +210,13 @@ EC_BOOL cfile_exists(const UINT32 cfile_md_id, const CSTRING *file_path)
     {
         dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_exists: "
                                               "file '%s' not exist\n",
-                                              (char *)cstring_get_str(file_path));     
+                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_exists: "
                                           "file '%s' exist\n",
-                                          (char *)cstring_get_str(file_path));      
+                                          (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
 }
@@ -228,7 +228,7 @@ EC_BOOL cfile_exists(const UINT32 cfile_md_id, const CSTRING *file_path)
 *
 **/
 EC_BOOL cfile_size(const UINT32 cfile_md_id, const CSTRING *file_path, UINT32 *file_size)
-{   
+{
     int               fd;
 
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
@@ -245,7 +245,7 @@ EC_BOOL cfile_size(const UINT32 cfile_md_id, const CSTRING *file_path, UINT32 *f
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_size: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
 
@@ -253,33 +253,33 @@ EC_BOOL cfile_size(const UINT32 cfile_md_id, const CSTRING *file_path, UINT32 *f
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_size: "
                                               "file '%s' not exist\n",
-                                              (char *)cstring_get_str(file_path));     
+                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    }    
+    }
 
     fd = c_file_open((char *)cstring_get_str(file_path), O_RDONLY, 0666);
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_size: "
                                               "open file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
-        return (EC_FALSE);        
-    }    
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
 
     if(EC_FALSE == c_file_size(fd, file_size))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_size: "
                                               "file '%s' size failed\n",
-                                              (char *)cstring_get_str(file_path));    
+                                              (char *)cstring_get_str(file_path));
         c_file_close(fd);
-        return (EC_FALSE);        
+        return (EC_FALSE);
     }
-    
+
     c_file_close(fd);
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_exists: "
                                           "file '%s' size = %ld\n",
-                                          (char *)cstring_get_str(file_path), (*file_size));      
+                                          (char *)cstring_get_str(file_path), (*file_size));
 
     return (EC_TRUE);
 }
@@ -291,7 +291,7 @@ EC_BOOL cfile_size(const UINT32 cfile_md_id, const CSTRING *file_path, UINT32 *f
 *
 **/
 EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGEST *file_md5sum)
-{   
+{
     int               fd;
 
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
@@ -308,7 +308,7 @@ EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGES
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_md5: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
 
@@ -316,26 +316,26 @@ EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGES
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_md5: "
                                               "file '%s' not exist\n",
-                                              (char *)cstring_get_str(file_path));     
+                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
-    } 
+    }
 
     fd = c_file_open((char *)cstring_get_str(file_path), O_RDONLY, 0666);
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_md5: "
                                               "open file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
-        return (EC_FALSE);        
-    } 
-    
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
     if(EC_FALSE == c_file_md5(fd, CMD5_DIGEST_SUM(file_md5sum)))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_md5: "
                                               "md5sum file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
+                                              (char *)cstring_get_str(file_path));
         c_file_close(fd);
-        return (EC_FALSE);        
+        return (EC_FALSE);
     }
 
     c_file_close(fd);
@@ -343,7 +343,7 @@ EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGES
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "error:cfile_md5: "
                                           "file '%s' => md5 %s\n",
                                           (char *)cstring_get_str(file_path),
-                                          cmd5_digest_hex_str(file_md5sum));      
+                                          cmd5_digest_hex_str(file_md5sum));
 
     return (EC_TRUE);
 }
@@ -356,10 +356,10 @@ EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGES
 EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *file_content)
 {
     CBYTES           *file_content_t;
-    
+
     UINT32            data_len;
     UINT8            *data_buf;
-    
+
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
     if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
     {
@@ -374,17 +374,17 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_load: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
-    
+
     file_content_t = c_file_load_whole((char *)cstring_get_str(file_path));
     if(NULL_PTR == file_content_t)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_load: "
                                               "load file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
-        return (EC_FALSE);        
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
     }
 
     cbytes_umount(file_content_t, &data_len, &data_buf);
@@ -394,7 +394,7 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_load: "
                                           "load file '%s' done where len = %ld\n",
-                                          (char *)cstring_get_str(file_path), data_len);     
+                                          (char *)cstring_get_str(file_path), data_len);
     return (EC_TRUE);
 }
 
@@ -425,17 +425,17 @@ EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const C
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_update: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
-    
+
     fd = c_file_open((char *)cstring_get_str(file_path), O_RDWR | O_CREAT, 0666);
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_update: "
                                               "open file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
-        return (EC_FALSE);        
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
     }
 
     data_len = CBYTES_LEN(file_content);
@@ -445,9 +445,9 @@ EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const C
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_update: "
                                               "truncate file '%s' to size %ld failed\n",
-                                              (char *)cstring_get_str(file_path), data_len);    
+                                              (char *)cstring_get_str(file_path), data_len);
         c_file_close(fd);
-        return (EC_FALSE);        
+        return (EC_FALSE);
     }
 
     if(0 < data_len)
@@ -455,14 +455,14 @@ EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const C
         UINT32 offset;
 
         offset = 0;
-        
+
         if(EC_FALSE == c_file_flush(fd, &offset, data_len, data_buf))
         {
             dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_update: "
                                                   "flush file '%s' with data size %ld failed\n",
-                                                  (char *)cstring_get_str(file_path), data_len);    
+                                                  (char *)cstring_get_str(file_path), data_len);
             c_file_close(fd);
-            return (EC_FALSE);        
+            return (EC_FALSE);
         }
     }
 
@@ -470,7 +470,7 @@ EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const C
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_update: "
                                           "update file '%s' with size %ld done\n",
-                                          (char *)cstring_get_str(file_path), data_len);     
+                                          (char *)cstring_get_str(file_path), data_len);
 
     return (EC_TRUE);
 }
@@ -497,7 +497,7 @@ EC_BOOL cfile_remove(const UINT32 cfile_md_id, const CSTRING *file_path)
     if(EC_TRUE == cstring_is_empty(file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_remove: "
-                                              "file path is empty\n");     
+                                              "file path is empty\n");
         return (EC_FALSE);
     }
 
@@ -505,13 +505,13 @@ EC_BOOL cfile_remove(const UINT32 cfile_md_id, const CSTRING *file_path)
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_remove: "
                                               "remove file '%s' failed\n",
-                                              (char *)cstring_get_str(file_path));    
-        return (EC_FALSE);        
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
     }
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_remove: "
                                           "remove file '%s' done\n",
-                                          (char *)cstring_get_str(file_path));       
+                                          (char *)cstring_get_str(file_path));
     return (EC_TRUE);
 }
 
@@ -537,16 +537,16 @@ EC_BOOL cfile_rename(const UINT32 cfile_md_id, const CSTRING *src_file_path, con
     if(EC_TRUE == cstring_is_empty(src_file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_rename: "
-                                              "src file path is empty\n");     
+                                              "src file path is empty\n");
         return (EC_FALSE);
     }
 
     if(EC_TRUE == cstring_is_empty(des_file_path))
     {
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_rename: "
-                                              "des file path is empty\n");     
+                                              "des file path is empty\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == c_file_rename((char *)cstring_get_str(src_file_path),
                                  (char *)cstring_get_str(des_file_path)))
@@ -554,14 +554,14 @@ EC_BOOL cfile_rename(const UINT32 cfile_md_id, const CSTRING *src_file_path, con
         dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_rename: "
                                               "rename file '%s' to '%s' failed\n",
                                               (char *)cstring_get_str(src_file_path),
-                                              (char *)cstring_get_str(des_file_path));    
-        return (EC_FALSE);        
+                                              (char *)cstring_get_str(des_file_path));
+        return (EC_FALSE);
     }
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_rename: "
                                           "rename file '%s' to '%s' done\n",
                                           (char *)cstring_get_str(src_file_path),
-                                          (char *)cstring_get_str(des_file_path));         
+                                          (char *)cstring_get_str(des_file_path));
     return (EC_TRUE);
 }
 

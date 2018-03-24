@@ -20,7 +20,7 @@ extern "C"{
 
 #include "bgnctrl.h"
 
-static EC_BOOL cset_data_cmp_default(const void * data_1, const void * data_2)
+STATIC_CAST static EC_BOOL cset_data_cmp_default(const void * data_1, const void * data_2)
 {
     if(data_1 != data_2)
     {

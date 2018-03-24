@@ -90,7 +90,7 @@ static UINT8   g_xmod_node_tmp_encode_buff[ 64 ];
 #endif
 
 
-static const char *csocket_tcpi_stat(const int tcpi_stat)
+STATIC_CAST static const char *csocket_tcpi_stat(const int tcpi_stat)
 {
     switch(tcpi_stat)
     {
@@ -127,55 +127,55 @@ void csocket_tcpi_stat_print(LOG *log, const int sockfd)
     return;
 }
 
-static EC_BOOL __csocket_cnode_recv_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_recv_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_RECV_CALLBACK    recv_callback;
-    
+
     recv_callback = (CSOCKET_CNODE_RECV_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return recv_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
 }
 
-static EC_BOOL __csocket_cnode_send_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_send_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_SEND_CALLBACK    send_callback;
-    
+
     send_callback = (CSOCKET_CNODE_SEND_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return send_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
 }
 
-static EC_BOOL __csocket_cnode_complete_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_complete_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_COMPLETE_CALLBACK    complete_callback;
-    
+
     complete_callback = (CSOCKET_CNODE_COMPLETE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return complete_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
 }
 
-static EC_BOOL __csocket_cnode_close_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_close_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_CLOSE_CALLBACK    close_callback;
-    
+
     close_callback = (CSOCKET_CNODE_CLOSE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return close_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
 }
 
-static EC_BOOL __csocket_cnode_shutdown_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_shutdown_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_SHUTDOWN_CALLBACK    shutdown_callback;
-    
+
     shutdown_callback = (CSOCKET_CNODE_SHUTDOWN_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return shutdown_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
 }
 
-static EC_BOOL __csocket_cnode_timeout_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{   
+STATIC_CAST static EC_BOOL __csocket_cnode_timeout_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
+{
     CSOCKET_CNODE_TIMEOUT_CALLBACK    timeout_callback;
-    
+
     timeout_callback = (CSOCKET_CNODE_TIMEOUT_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
 
     return timeout_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
@@ -220,7 +220,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     ccallback_list_set_name(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_RECV_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
     ccallback_list_set_runner(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_recv_runner);
- 
+
     ccallback_list_init(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode));
     ccallback_list_set_name(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_SEND_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
@@ -230,7 +230,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     ccallback_list_set_name(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_COMPLETE_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
     ccallback_list_set_runner(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_complete_runner);
-    
+
     ccallback_list_init(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
     ccallback_list_set_name(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_CLOSE_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
@@ -245,7 +245,7 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     ccallback_list_set_name(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST");
     ccallback_list_set_filter(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
     ccallback_list_set_runner(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_timeout_runner);
- 
+
     return (EC_TRUE);
 }
 
@@ -260,7 +260,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
 
     ASSERT(NULL_PTR == CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
     ASSERT(NULL_PTR == CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode));
-    
+
     CSOCKET_CNODE_TCID(csocket_cnode   )            = CMPI_ERROR_TCID;
     CSOCKET_CNODE_COMM(csocket_cnode   )            = CMPI_ERROR_COMM;
     CSOCKET_CNODE_SIZE(csocket_cnode   )            = 0              ;
@@ -274,7 +274,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     {
         CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
     }
-    
+
     CSOCKET_CNODE_TYPE(csocket_cnode )              = CSOCKET_TYPE_ERR;
     CSOCKET_CNODE_UNIX(csocket_cnode )              = BIT_FALSE;
     CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE;
@@ -288,7 +288,7 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
 
     CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
     CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
-    
+
     CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = 0;
     CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = 0;
 
@@ -299,14 +299,14 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
 
     CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
     CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
-    
+
     return (EC_TRUE);
 }
 
 void csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode)
 {
     csocket_cnode_callback_when_close(csocket_cnode);
-    
+
     CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
 
     return;
@@ -326,7 +326,7 @@ CSOCKET_CNODE * csocket_cnode_new(const UINT32 location)
     csocket_cnode_init(csocket_cnode);
 
     CSOCKET_CNODE_IS_USED(csocket_cnode) = BIT_TRUE; /*set used*/
-    
+
     CSOCKET_CNODE_SET_CONNECTED(csocket_cnode);
 
     return (csocket_cnode);
@@ -337,9 +337,9 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
     if(NULL_PTR != csocket_cnode)
     {
         ASSERT(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode));
-        
+
         csocket_cnode_clean(csocket_cnode);
-        
+
         free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0001);
     }
     return (EC_TRUE);
@@ -556,16 +556,16 @@ EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_close: close sockfd %d of csocket_cnode %p\n", 
+    dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_close: close sockfd %d of csocket_cnode %p\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode), csocket_cnode);
-    
+
     if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
     {
         cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
     }
     csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
     CSOCKET_CNODE_SOCKFD(csocket_cnode) = CMPI_ERROR_SOCKFD;
-    
+
     csocket_cnode_free(csocket_cnode);
     return (EC_TRUE);
 }
@@ -608,9 +608,9 @@ void csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode)
     {
         int      sockfd;
         uint32_t nonblock;
-        
+
         /*csocket_cnode will be clean up, save sockfd at first*/
-        sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode); 
+        sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
 
         nonblock = CSOCKET_CNODE_NONBLOCK(csocket_cnode);
 
@@ -618,9 +618,9 @@ void csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode)
         {
             cepoll_del_all(task_brd_default_get_cepoll(), sockfd);
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;        
+            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         }
-        
+
         csocket_cnode_callback_when_close(csocket_cnode);
         csocket_cnode_close(csocket_cnode);
 
@@ -748,68 +748,68 @@ EC_BOOL csocket_cnode_isend(CSOCKET_CNODE *csocket_cnode)
 EC_BOOL csocket_cnode_icomplete(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
-    
+
     csocket_cnode_callback_when_complete(csocket_cnode);
 
     if(BIT_FALSE == CSOCKET_CNODE_REUSING(csocket_cnode))
     {
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_icomplete: sockfd %d, resuing: false\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));    
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
         csocket_cnode_close(csocket_cnode);
         return (EC_TRUE);
     }
-    
+
     if(BIT_TRUE  == CSOCKET_CNODE_CLOSING(csocket_cnode))
     {
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_icomplete: sockfd %d, closing: true\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));    
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
         csocket_cnode_close(csocket_cnode);
         return (EC_TRUE);
     }
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL csocket_cnode_ishutdown(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
-    
+
     csocket_cnode_callback_when_shutdown(csocket_cnode);
 
     csocket_cnode_close(csocket_cnode);
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL csocket_cnode_iclose(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
-    
+
     csocket_cnode_callback_when_close(csocket_cnode);
 
     if(BIT_FALSE == CSOCKET_CNODE_REUSING(csocket_cnode))
     {
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_iclose: sockfd %d, resuing: false\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));    
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
         csocket_cnode_close(csocket_cnode);
         return (EC_TRUE);
     }
-    
+
     if(BIT_TRUE  == CSOCKET_CNODE_CLOSING(csocket_cnode))
     {
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_iclose: sockfd %d, closing: true\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));    
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
         csocket_cnode_close(csocket_cnode);
         return (EC_TRUE);
     }
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL csocket_cnode_itimeout(CSOCKET_CNODE *csocket_cnode)
-{   
+{
     ASSERT(NULL_PTR != csocket_cnode);
-    
+
     csocket_cnode_callback_when_timeout(csocket_cnode);
 
     /*do not walk through iclose procedure*/
@@ -825,7 +825,7 @@ EC_BOOL csocket_cnode_send(CSOCKET_CNODE *csocket_cnode, const UINT8 * out_buff,
     if(CSOCKET_TYPE_TCP == CSOCKET_CNODE_TYPE(csocket_cnode))
     {
         return csocket_write(CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                         CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode), out_buff, out_buff_max_len, pos); 
+                         CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode), out_buff, out_buff_max_len, pos);
     }
 
     if(CSOCKET_TYPE_UDP == CSOCKET_CNODE_TYPE(csocket_cnode))
@@ -854,7 +854,7 @@ EC_BOOL csocket_cnode_recv(CSOCKET_CNODE *csocket_cnode, UINT8 *in_buff, const U
     }
     dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "error:csocket_cnode_recv: sockfd %d, invalid type %u \n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_TYPE(csocket_cnode));
-    return (EC_FALSE); 
+    return (EC_FALSE);
 }
 
 EC_BOOL csocket_cnode_udp_send(CSOCKET_CNODE *csocket_cnode, const UINT8 * out_buff, const UINT32 out_buff_max_len, UINT32 * pos)
@@ -918,7 +918,7 @@ EC_BOOL csocket_fd_clone(FD_CSET *src_sockfd_set, FD_CSET *des_sockfd_set)
     return (EC_TRUE);
 }
 
-static EC_BOOL csocket_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_in *srv_addr)
+STATIC_CAST static EC_BOOL csocket_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_in *srv_addr)
 {
     srv_addr->sin_family      = AF_INET;
     srv_addr->sin_port        = htons( atoi(c_word_to_port(srv_port)) );
@@ -930,16 +930,16 @@ static EC_BOOL csocket_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_
 
 EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_in *srv_addr)
 {
-    struct sockaddr_in     ipv4addr; 
+    struct sockaddr_in     ipv4addr;
     //struct hostent        *phost;
-        
+
     if ( 0 < inet_pton(AF_INET, c_word_to_ipv4(srv_ipaddr), &(ipv4addr.sin_addr)) )
     {
         /* fill ip addr and port */
         srv_addr->sin_family = AF_INET;
         srv_addr->sin_port   = htons( (uint32_t)srv_port );
         srv_addr->sin_addr   = ipv4addr.sin_addr;
-        bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0])); 
+        bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0]));
         return(EC_TRUE);
     }
 
@@ -952,7 +952,7 @@ EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port
         {
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_client_addr_init: unknown ip: %s\n",
                                c_word_to_ipv4(srv_ipaddr));
-            return (EC_FALSE);     
+            return (EC_FALSE);
         }
 
 
@@ -960,7 +960,7 @@ EC_BOOL csocket_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port
         srv_addr->sin_family = AF_INET;
         srv_addr->sin_port   = htons( (uint32_t)srv_port );
         srv_addr->sin_addr   = *((struct in_addr *)(phost->h_addr));
-        bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0]));    
+        bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0]));
         return (EC_TRUE);
     }
 #endif
@@ -1026,7 +1026,7 @@ EC_BOOL csocket_quick_ack_enable(int sockfd)
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_quick_ack_enable: sockfd %d failed to enable QUICKACK\n", sockfd);
         return (EC_FALSE);
     }
-#endif/*__linux__*/    
+#endif/*__linux__*/
     return (EC_TRUE);
 }
 
@@ -1061,7 +1061,7 @@ EC_BOOL csocket_reset_enable(int sockfd)
 EC_BOOL csocket_set_sendbuf_size(int sockfd, const int size)
 {
     int flag;
- 
+
     flag = size;
     if( 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDBUF, (char *)&flag, sizeof(flag)))
     {
@@ -1075,7 +1075,7 @@ EC_BOOL csocket_set_sendbuf_size(int sockfd, const int size)
 EC_BOOL csocket_set_recvbuf_size(int sockfd, const int size)
 {
     int flag;
- 
+
     flag = size;
     if( 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVBUF, (char *)&flag, sizeof(flag)))
     {
@@ -1089,7 +1089,7 @@ EC_BOOL csocket_set_recvbuf_size(int sockfd, const int size)
 EC_BOOL csocket_enable_keepalive(int sockfd)
 {
     EC_BOOL ret;
- 
+
     int flag;
     int keep_idle;
     int keep_interval;
@@ -1131,7 +1131,7 @@ EC_BOOL csocket_enable_keepalive(int sockfd)
 EC_BOOL csocket_disable_keepalive(int sockfd)
 {
     EC_BOOL ret;
- 
+
     int flag;
 
     ret = EC_TRUE;/*initialization*/
@@ -1164,7 +1164,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
     }
 
     /*optimization: quick ack*/
-#ifdef __linux__    
+#ifdef __linux__
     if(1)
     {
         int flag;
@@ -1174,8 +1174,8 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_optimize: sockfd %d failed to enable QUICKACK\n", sockfd);
             ret = EC_FALSE;
         }
-    }   
-#endif/*__linux__*/    
+    }
+#endif/*__linux__*/
 
     /* optimization 2.1: when flag > 0, set SEND_BUFF size per packet - Flow Control*/
     /* optimization 2.2: when flag = 0, the data buff to send will NOT copy to system buff but send out directly*/
@@ -1297,7 +1297,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
         int flag;
 
         flag = fcntl(sockfd, F_GETFL, 0);
-        fcntl(sockfd, F_SETFL, (~O_NONBLOCK) & flag);  
+        fcntl(sockfd, F_SETFL, (~O_NONBLOCK) & flag);
     }
 
     /*optimization 9: disable linger, i.e., send close socket, stop sending/recving at once*/
@@ -1325,7 +1325,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_optimize: sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n", sockfd, recv_lowat_size);
             ret = EC_FALSE;
         }
-    } 
+    }
 
     /*optimization 11: Sets the minimum number of bytes to process for socket output operations*/
     if(0)
@@ -1360,7 +1360,7 @@ EC_BOOL csocket_udp_optimize(int sockfd)
         }
     }
 
-#ifdef __linux__ 
+#ifdef __linux__
     /*optimization: quick ack*/
     if(0)
     {
@@ -1371,7 +1371,7 @@ EC_BOOL csocket_udp_optimize(int sockfd)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_udp_optimize: sockfd %d failed to enable QUICKACK\n", sockfd);
             ret = EC_FALSE;
         }
-    }     
+    }
 #endif/*__linux__*/
     /* optimization 2.1: when flag > 0, set SEND_BUFF size per packet - Flow Control*/
     /* optimization 2.2: when flag = 0, the data buff to send will NOT copy to system buff but send out directly*/
@@ -1514,7 +1514,7 @@ EC_BOOL csocket_udp_optimize(int sockfd)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_udp_optimize: sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n", sockfd, recv_lowat_size);
             ret = EC_FALSE;
         }
-    } 
+    }
 
     /*optimization 11: Sets the minimum number of bytes to process for socket output operations*/
     if(0)
@@ -1558,7 +1558,7 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
 
     if ( 0 !=  bind( sockfd, (struct sockaddr *)&srv_addr, sizeof( srv_addr ) ) )
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_listen: bind %s:%ld failed, errno = %d, errstr = %s\n", 
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_listen: bind %s:%ld failed, errno = %d, errstr = %s\n",
                     c_word_to_ipv4(srv_ipaddr), srv_port, errno, strerror(errno));
         close(sockfd);
         return ( EC_FALSE );
@@ -1594,13 +1594,13 @@ EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csoc
     if(EC_FALSE == csocket_optimize(new_sockfd, csocket_block_mode))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_accept: optimize sockfd %d failed\n", new_sockfd);
-    } 
+    }
 
     if(CSOCKET_IS_BLOCK_MODE == csocket_block_mode)
     {
         csocket_nonblock_disable(new_sockfd);
-    } 
- 
+    }
+
     (*client_ipaddr) = c_ipv4_to_word((char *)c_inet_ntos(&(sockaddr_in.sin_addr)));
     (*client_port)   = c_inet_ntohs(sockaddr_in.sin_port);
     (*conn_sockfd)   = new_sockfd;
@@ -1610,7 +1610,7 @@ EC_BOOL csocket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csoc
 
 EC_BOOL csocket_get_peer_port(const int sockfd, UINT32 *peer_port)
 {
-    struct sockaddr_storage sa;  
+    struct sockaddr_storage sa;
     socklen_t               namelen;
 
     namelen = sizeof(sa);
@@ -1619,10 +1619,10 @@ EC_BOOL csocket_get_peer_port(const int sockfd, UINT32 *peer_port)
     if(AF_INET == sa.ss_family)
     {
         struct sockaddr_in     *sin;
-     
+
         sin = (struct sockaddr_in *)&sa;
         (*peer_port) = ntohs(sin->sin_port);
-        return (EC_TRUE);     
+        return (EC_TRUE);
     }
 
     if(AF_INET6 == sa.ss_family)
@@ -2509,7 +2509,7 @@ EC_BOOL csocket_udp_write(const int sockfd, const UINT32 ipaddr, const UINT32 po
         {
             return csocket_no_ierror(sockfd);
         }
-     
+
         if(0 == sent_num )/*when ret = 0, no data was sent*/
         {
             return (EC_TRUE);
@@ -2530,7 +2530,7 @@ EC_BOOL csocket_udp_read(const int sockfd, const UINT32 ipaddr, const UINT32 por
     udp_srv_addr.sin_family      = AF_INET;
     udp_srv_addr.sin_addr.s_addr = htonl(UINT32_TO_INT32(ipaddr));
     udp_srv_addr.sin_port        = htons(atoi(c_word_to_port(port)));
- 
+
     once_recv_len = (size_t)(in_buff_expect_len - (*pos));
     if(0 >= once_recv_len)/*no free space to recv*/
     {
@@ -2544,7 +2544,7 @@ EC_BOOL csocket_udp_read(const int sockfd, const UINT32 ipaddr, const UINT32 por
         ssize_t  recved_num;
 
         udp_srv_addr_len = sizeof(udp_srv_addr);
-     
+
         once_recv_len = DMIN(once_max_size, once_recv_len);
 
         recved_num = recvfrom(sockfd, (void *)(in_buff + (*pos)), once_recv_len, 0, (struct sockaddr *)&udp_srv_addr, &udp_srv_addr_len);
@@ -2608,7 +2608,7 @@ EC_BOOL csocket_ipaddr_and_port(const int sockfd, UINT32 *ipaddr, UINT32 *port)
 
     sockaddr_len = sizeof(struct sockaddr_in);
     BSET(&sockaddr_in, 0, sockaddr_len);
-    
+
     if(0 != getsockname(sockfd, (struct sockaddr *)&(sockaddr_in), &(sockaddr_len)))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_ipaddr_and_port: getsockname of sockfd %d failed\n", sockfd);
@@ -2624,7 +2624,7 @@ EC_BOOL csocket_ipaddr_and_port(const int sockfd, UINT32 *ipaddr, UINT32 *port)
     {
         (*port)   = c_inet_ntohs(sockaddr_in.sin_port);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -2636,9 +2636,9 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
     int len;
     int err;
     struct timeval timeout;
-   
+
     timeout.tv_sec  = 5;
-    timeout.tv_usec = 0; 
+    timeout.tv_usec = 0;
 
     max_sockfd = 0;
 
@@ -2648,7 +2648,7 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: malloc FD_CSET with size %d failed\n", sizeof(FD_CSET));
         return (EC_FALSE);
     }
- 
+
     csocket_fd_clean(fd_cset);
     csocket_fd_set(sockfd, fd_cset, &max_sockfd);
     if(EC_FALSE == csocket_select(max_sockfd + 1, fd_cset, NULL_PTR, NULL_PTR, &timeout, &ret))
@@ -2664,7 +2664,7 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: sockfd %d, errno = %d, errstr = %s\n", sockfd, errno, strerror(errno));
         return (EC_FALSE);
     }
- 
+
     if(0 != err)
     {
         safe_free(fd_cset, LOC_CSOCKET_0006);
@@ -2678,7 +2678,7 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
 EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UINT32 csocket_block_mode, int *client_sockfd, UINT32 *client_ipaddr, UINT32 *client_port)
 {
     struct sockaddr_in srv_addr;
-    
+
     int sockfd;
 
     /* initialize the ip addr and port of server */
@@ -2695,7 +2695,7 @@ EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UI
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_connect: socket error\n");
         return ( EC_FALSE );
     }
-    
+
     /* note: optimization must before connect at server side*/
     if(EC_FALSE == csocket_optimize(sockfd, csocket_block_mode))
     {
@@ -2783,12 +2783,12 @@ EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UI
 
             case EHOSTDOWN:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect: sockfd %d, host down\n", sockfd);
-                break;         
+                break;
 
             case EHOSTUNREACH:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect: sockfd %d, No route to host\n", sockfd);
-                break;         
-             
+                break;
+
             default:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect: sockfd %d, unknown errno = %d\n", sockfd, errcode);
         }
@@ -2796,7 +2796,7 @@ EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UI
         /*os error checking by shell command: perror <errno>*/
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_connect: sockfd %d connect error, errno = %d, errstr = %s\n", sockfd, errcode, strerror(errcode));
         csocket_tcpi_stat_print(LOGSTDERR, sockfd);
-     
+
         close(sockfd);
         return ( EC_FALSE );
     }
@@ -3047,8 +3047,8 @@ EC_BOOL csocket_close( const int sockfd )
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_close: why try to close sockfd %d ?\n", sockfd);
         return (EC_FALSE);
     }
- 
-#if 0 /*csocket_is_connected and csocket_tcpi_stat_print are not adaptive to UDP socket*/ 
+
+#if 0 /*csocket_is_connected and csocket_tcpi_stat_print are not adaptive to UDP socket*/
     if(EC_TRUE == csocket_is_connected(sockfd))
     {
         close( sockfd );
@@ -3116,7 +3116,7 @@ EC_BOOL csocket_isend(const int sockfd, const UINT8 *out_buff, const UINT32 out_
         return (EC_TRUE);
     }
 
-    once_sent_len = DMIN(CSOCKET_SEND_ONCE_MAX_SIZE, once_sent_len); 
+    once_sent_len = DMIN(CSOCKET_SEND_ONCE_MAX_SIZE, once_sent_len);
 
     ret = write(sockfd, (void *)(out_buff + (*position)), once_sent_len);
     if(0 <= ret )/*when ret = 0, no data was sent*/
@@ -3158,7 +3158,7 @@ EC_BOOL csocket_irecv(const int sockfd, UINT8 *in_buff, const UINT32 in_buff_max
         (*position) += (ret);
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDNULL, "[DEBUG] csocket_irecv: end to recv data on sockfd %d: end: max len = %ld, position = %ld, ret = %d\n",
                             sockfd, in_buff_max_len, *position, ret);
-        
+
         return (EC_TRUE);
     }
     dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDNULL, "warn:csocket_irecv: sockfd %d, errno = %d, errstr = %s, max len %ld, pos %ld\n",
@@ -3234,14 +3234,14 @@ EC_BOOL csocket_write(const int sockfd, const UINT32 once_max_size, const UINT8 
 
         sent_num = write(sockfd, (void *)(out_buff + (*pos)), once_sent_len);
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_write: "
-                            "sockfd %d sent_num = %ld, tcpi %s, nonblock: %s\n", 
+                            "sockfd %d sent_num = %ld, tcpi %s, nonblock: %s\n",
                             sockfd, sent_num, csocket_tcpi_stat_desc(sockfd),
                             c_bool_str(csocket_is_nonblock(sockfd)));
         if(0 > sent_num)
         {
             return csocket_no_ierror(sockfd);
         }
-     
+
         if(0 == sent_num )/*when ret = 0, no data was sent*/
         {
             return (EC_TRUE);
@@ -3274,7 +3274,7 @@ EC_BOOL csocket_sendfile(const int sockfd, const int fd, const UINT32 max_len, U
         {
             return csocket_no_ierror(sockfd);
         }
-     
+
         if(0 == sent_num )/*when ret = 0, no data was sent*/
         {
             return (EC_TRUE);
@@ -3297,10 +3297,10 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
     {
         return (EC_TRUE);
     }
-     
+
     if(0 == ioctl(sockfd, FIONREAD, &need_recv_len))
     {
-        ssize_t  recved_num; 
+        ssize_t  recved_num;
 
         once_recv_len = DMIN(need_recv_len, once_recv_len);
 
@@ -3317,7 +3317,7 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
         }
 
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_read: sockfd %d read in %d bytes while need_recv_len is %d\n", sockfd, recved_num, need_recv_len);
-        (*pos) += (UINT32)recved_num;     
+        (*pos) += (UINT32)recved_num;
 
         return (EC_TRUE);
     }
@@ -3325,7 +3325,7 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
     /*when ioctl error happen*/
     for(; 0 < once_recv_len; once_recv_len = (size_t)(in_buff_expect_len - (*pos)))
     {
-             
+
         ssize_t  recved_num;
 
         once_recv_len = DMIN(once_max_size, once_recv_len);
@@ -3353,7 +3353,7 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
 EC_BOOL csocket_cnode_fix_task_node(CSOCKET_CNODE *csocket_cnode, TASK_NODE *task_node)
 {
     csocket_cnode_recv(csocket_cnode, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node)));
- 
+
     /*when complete csocket_request, return EC_TRUE*/
     if(TASK_NODE_BUFF_LEN(task_node) == TASK_NODE_BUFF_POS(task_node))
     {
@@ -3380,12 +3380,12 @@ UINT32 csocket_encode_actual_size()
         *   reaches local and meet the size length ...
         *
         **/
-#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*len*/
         cmpi_encode_uint32_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*tag*/
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 
-#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32_compressed_uint32_t_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*len*/
         cmpi_encode_uint32_compressed_uint8_t_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*tag*/
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
@@ -3399,7 +3399,7 @@ UINT32 xmod_node_encode_actual_size()
 {
     /*do once only*/
     if(0 == g_xmod_node_tmp_encode_size)
-    {  
+    {
         TASK_BRD    *task_brd;
 
         UINT8       *out_buff;
@@ -3425,13 +3425,13 @@ UINT32 xmod_node_encode_actual_size()
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*tcid*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*comm*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*size*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
-        cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);        
-#endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/  
+        cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
+#endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 #if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*tcid*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , /*comm*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , /*size*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
-        cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);        
+        cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
     }
 
@@ -3478,12 +3478,12 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
 
         pos = 0;
 
-#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_decode_uint32(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &len);
         cmpi_decode_uint32(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &tag);
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 
-#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)        
+#if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_decode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &len);
         cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , out_buff, out_size, &pos, &tag);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
@@ -3491,11 +3491,11 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         if(CSOCKET_BUFF_MAX_LEN <= len)/*should never overflow 1 GB*/
         {
             CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode);
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: disconnect sockfd %d due to invalid len 0x%lx\n", 
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: disconnect sockfd %d due to invalid len 0x%lx\n",
                                                     CSOCKET_CNODE_SOCKFD(csocket_cnode), len);
             return (NULL_PTR);
         }
-     
+
         task_node = task_node_new(len, LOC_CSOCKET_0008);
         if(NULL_PTR == task_node)
         {
@@ -3506,8 +3506,8 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
 
         TASK_NODE_TAG(task_node) = tag;
 
-        dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n", 
-                                                CSOCKET_CNODE_SOCKFD(csocket_cnode), len, tag, task_node);        
+        dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n",
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode), len, tag, task_node);
 
         /*move the probed buff to task_node*/
         BCOPY(out_buff, TASK_NODE_BUFF(task_node), out_size);
@@ -3639,7 +3639,7 @@ EC_BOOL csocket_unix_optimize(int sockfd)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to enable QUICKACK\n", sockfd);
             ret = EC_FALSE;
         }
-    }     
+    }
 #endif/*__linux__*/
     /* optimization 2.1: when flag > 0, set SEND_BUFF size per packet - Flow Control*/
     /* optimization 2.2: when flag = 0, the data buff to send will NOT copy to system buff but send out directly*/
@@ -3782,7 +3782,7 @@ EC_BOOL csocket_unix_optimize(int sockfd)
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n", sockfd, recv_lowat_size);
             ret = EC_FALSE;
         }
-    } 
+    }
 
     /*optimization 11: Sets the minimum number of bytes to process for socket output operations*/
     if(0)
@@ -3806,10 +3806,10 @@ struct sockaddr_un {
     char sun_path[108];
 }
 */
-static EC_BOOL csocket_unix_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_un *srv_addr, size_t *srv_addr_len )
+STATIC_CAST static EC_BOOL csocket_unix_srv_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_un *srv_addr, size_t *srv_addr_len )
 {
     size_t len;
- 
+
     srv_addr->sun_family      = AF_UNIX;
 
     len = sizeof(srv_addr->sun_path)/sizeof(srv_addr->sun_path[0]);
@@ -3824,7 +3824,7 @@ static EC_BOOL csocket_unix_srv_addr_init( const UINT32 srv_ipaddr, const UINT32
     return  ( EC_TRUE );
 }
 
-static EC_BOOL csocket_unix_srv_addr_unlink( struct sockaddr_un *srv_addr )
+STATIC_CAST static EC_BOOL csocket_unix_srv_addr_unlink( struct sockaddr_un *srv_addr )
 {
     unlink(srv_addr->sun_path);
     return (EC_TRUE);
@@ -3878,10 +3878,10 @@ EC_BOOL csocket_unix_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int
     return ( EC_TRUE );
 }
 
-static EC_BOOL csocket_unix_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_un *srv_addr, size_t *srv_addr_len)
+STATIC_CAST static EC_BOOL csocket_unix_client_addr_init( const UINT32 srv_ipaddr, const UINT32 srv_port, struct sockaddr_un *srv_addr, size_t *srv_addr_len)
 {
     size_t len;
- 
+
     srv_addr->sun_family      = AF_UNIX;
 
     len = sizeof(srv_addr->sun_path)/sizeof(srv_addr->sun_path[0]);
@@ -4005,19 +4005,19 @@ EC_BOOL csocket_unix_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, co
 
             case EHOSTDOWN:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unix_connect: sockfd %d, host down\n", sockfd);
-                break;         
+                break;
 
             case EHOSTUNREACH:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unix_connect: sockfd %d, No route to host\n", sockfd);
-                break;         
-             
+                break;
+
             default:
                 dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unix_connect: sockfd %d, unknown errno = %d\n", sockfd, errcode);
         }
 
         /*os error checking by shell command: perror <errno>*/
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unix_connect: sockfd %d connect error, errno = %d, errstr = %s\n", sockfd, errcode, strerror(errcode));
-      
+
         close(sockfd);
         return ( EC_FALSE );
     }
@@ -4039,13 +4039,13 @@ EC_BOOL csocket_unix_accept(const int srv_sockfd, int *conn_sockfd, const UINT32
     if(EC_FALSE == csocket_unix_optimize(new_sockfd))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_accept: optimize sockfd %d failed\n", new_sockfd);
-    } 
+    }
 
     if(CSOCKET_IS_BLOCK_MODE == csocket_block_mode)
     {
         csocket_nonblock_disable(new_sockfd);
-    } 
- 
+    }
+
     (*conn_sockfd) = new_sockfd;
 
     return (EC_TRUE);

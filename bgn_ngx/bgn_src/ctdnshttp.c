@@ -90,14 +90,14 @@ extern "C"{
 #if 0
 #define CTDNSHTTP_ASSERT(condition) do{}while(0)
 #endif
- 
-#if 1 
+
+#if 1
 //#define CTDNSHTTP_TIME_COST_FORMAT " BegTime:%u.%03u EndTime:%u.%03u Elapsed:%u "
 #define CTDNSHTTP_TIME_COST_FORMAT " %u.%03u %u.%03u %u "
 #define CTDNSHTTP_TIME_COST_VALUE(chttp_node)  \
     (uint32_t)CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node)), (uint32_t)CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)), \
     (uint32_t)CTMV_NSEC(task_brd_default_get_daytime()), (uint32_t)CTMV_MSEC(task_brd_default_get_daytime()), \
-    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)))                 
+    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)))
 #endif
 
 static EC_BOOL g_ctdnshttp_log_init = EC_FALSE;
@@ -112,14 +112,14 @@ EC_BOOL ctdnshttp_log_start()
     }
 
     g_ctdnshttp_log_init = EC_TRUE;
-    
+
     task_brd = task_brd_default_get();
 
 #if 0/*support rotate*/
     if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
     {
         CSTRING *log_file_name;
-     
+
         log_file_name = cstring_new(NULL_PTR, LOC_CTDNSHTTP_0001);
         cstring_format(log_file_name, "%s/tdns_%s_%ld.log",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
@@ -134,15 +134,15 @@ EC_BOOL ctdnshttp_log_start()
         }
         else
         {
-            cstring_free(log_file_name); 
+            cstring_free(log_file_name);
         }
-    } 
+    }
 #endif
     if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
     {
         CSTRING *log_file_name;
         LOG     *log;
-     
+
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CTDNSHTTP_0002);
         cstring_format(log_file_name, "%s/tdns_%s_%ld",
@@ -163,10 +163,10 @@ EC_BOOL ctdnshttp_log_start()
         else
         {
             sys_log_redirect_setup(LOGUSER08, log);
-         
+
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_log_start: log_file_open '%s' -> LOGUSER08 done\n",
                                (char *)cstring_get_str(log_file_name));
-         
+
             cstring_free(log_file_name);
         }
     }
@@ -175,7 +175,7 @@ EC_BOOL ctdnshttp_log_start()
     {
         CSTRING *log_file_name;
         LOG     *log;
-     
+
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CTDNSHTTP_0003);
         cstring_format(log_file_name, "%s/debug_%s_%ld",
@@ -198,7 +198,7 @@ EC_BOOL ctdnshttp_log_start()
             sys_log_redirect_setup(LOGUSER07, log);
             cstring_free(log_file_name);
         }
-    } 
+    }
 #endif
     return (EC_TRUE);
 }
@@ -215,7 +215,7 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
     if(HTTP_GET == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)ctdnshttp_commit_http_get, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -225,15 +225,15 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0004); 
-     
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0004);
+
         return (EC_TRUE);
     }
 
     if(HTTP_POST == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)ctdnshttp_commit_http_post, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -243,7 +243,7 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0005); 
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0005);
 
         return (EC_TRUE);
     }
@@ -251,7 +251,7 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
     if(HTTP_HEAD == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
-     
+
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)ctdnshttp_commit_http_head, 1, chttp_node);
         if(NULL_PTR == croutine_node)
@@ -261,8 +261,8 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0006); 
-     
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0006);
+
         return (EC_TRUE);
     }
 
@@ -275,12 +275,12 @@ EC_BOOL ctdnshttp_commit_http_head(CHTTP_NODE *chttp_node)
     EC_BOOL ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record tdns beg to handle time*/
- 
+
     if(1)
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_http_head: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -294,12 +294,12 @@ EC_BOOL ctdnshttp_commit_http_post(CHTTP_NODE *chttp_node)
     EC_BOOL ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record tdns beg to handle time*/
- 
+
     if(1)
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_http_post: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -318,7 +318,7 @@ EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node)
                         CBUFFER_USED(CHTTP_NODE_URI(chttp_node)));
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record tdns beg to handle time*/
- 
+
     if(EC_TRUE == ctdnshttp_is_http_get_gettcid(chttp_node))
     {
         ret = ctdnshttp_commit_gettcid_get_request(chttp_node);
@@ -334,15 +334,15 @@ EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if(EC_TRUE == ctdnshttp_is_http_get_configtcid(chttp_node))
     {
         ret = ctdnshttp_commit_configtcid_get_request(chttp_node);
-    }   
+    }
     else if(EC_TRUE == ctdnshttp_is_http_get_reservetcid(chttp_node))
     {
         ret = ctdnshttp_commit_reservetcid_get_request(chttp_node);
-    }  
+    }
     else if(EC_TRUE == ctdnshttp_is_http_get_releasetcid(chttp_node))
     {
         ret = ctdnshttp_commit_releasetcid_get_request(chttp_node);
-    }     
+    }
     else if(EC_TRUE == ctdnshttp_is_http_get_flush(chttp_node))
     {
         ret = ctdnshttp_commit_flush_get_request(chttp_node);
@@ -374,15 +374,15 @@ EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else
     {
         CBUFFER *uri_cbuffer;
-     
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_http_get: invalid uri %.*s\n",
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_commit_http_get: invalid uri %.*s", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
     }
@@ -399,7 +399,7 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
     CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR; /*clear croutine mounted point*/
 
     if(EC_DONE == ret)
-    {    
+    {
         if(NULL_PTR != CHTTP_NODE_CSOCKET_CNODE(chttp_node))
         {
             CSOCKET_CNODE *csocket_cnode;
@@ -409,7 +409,7 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
             cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-            
+
             csocket_cnode_icomplete(CHTTP_NODE_CSOCKET_CNODE(chttp_node));
             return (EC_DONE);
         }
@@ -420,9 +420,9 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
         chttp_node_free(chttp_node);
 
         return (EC_FALSE);
-        
+
     }
- 
+
     if(EC_FALSE == ret)
     {
         ret = chttp_commit_error_request(chttp_node);
@@ -433,7 +433,7 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
         CSOCKET_CNODE * csocket_cnode;
 
         /*umount from defer request queue if necessary*/
-        chttp_defer_request_queue_erase(chttp_node);     
+        chttp_defer_request_queue_erase(chttp_node);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(NULL_PTR != csocket_cnode)
@@ -443,12 +443,12 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
 
             cepoll = TASK_BRD_CEPOLL(task_brd_default_get());
             sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
-         
-            dbg_log(SEC_0048_CTDNSHTTP, 1)(LOGSTDOUT, "[DEBUG] ctdnshttp_commit_end: sockfd %d false, remove all epoll events\n", sockfd); 
+
+            dbg_log(SEC_0048_CTDNSHTTP, 1)(LOGSTDOUT, "[DEBUG] ctdnshttp_commit_end: sockfd %d false, remove all epoll events\n", sockfd);
             cepoll_del_all(cepoll, sockfd);
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
-            
+
             /* umount */
             CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -467,9 +467,9 @@ EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
 
         return (EC_FALSE);
     }
- 
+
     /*EC_TRUE, EC_DONE*/
-    return (ret); 
+    return (ret);
 }
 
 EC_BOOL ctdnshttp_commit_response(CHTTP_NODE *chttp_node)
@@ -490,27 +490,27 @@ EC_BOOL ctdnshttp_commit_response(CHTTP_NODE *chttp_node)
         return (ret);
     }
 
-    ret = cepoll_set_event(task_brd_default_get_cepoll(), 
-                           CSOCKET_CNODE_SOCKFD(csocket_cnode), 
+    ret = cepoll_set_event(task_brd_default_get_cepoll(),
+                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CEPOLL_WR_EVENT,
                            (const char *)"csocket_cnode_isend",
-                           (CEPOLL_EVENT_HANDLER)csocket_cnode_isend, 
+                           (CEPOLL_EVENT_HANDLER)csocket_cnode_isend,
                            csocket_cnode);
     if(EC_FALSE == ret)
     {
         return (EC_FALSE);
     }
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
-    
+
     return (EC_AGAIN);
 }
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: gettcid ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_gettcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_gettcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -526,7 +526,7 @@ static EC_BOOL __ctdnshttp_uri_is_gettcid_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_gettcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_gettcid: uri: '%.*s' [len %d]\n",
@@ -538,20 +538,20 @@ EC_BOOL ctdnshttp_is_http_get_gettcid(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_gettcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_gettcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_gettcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_gettcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_gettcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_gettcid_get_request: make 'GET' response failed\n");
@@ -564,17 +564,17 @@ EC_BOOL ctdnshttp_commit_gettcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_gettcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * tcid_str;
 
     CSOCKET_CNODE * csocket_cnode;
     UINT32          ipaddr;
-    UINT32          port;    
+    UINT32          port;
 
     /*tcid*/
     tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
@@ -587,9 +587,9 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_gettcid_get_request: "
                                                   "no tcid in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
@@ -603,42 +603,42 @@ EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_gettcid_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
-    
+        return (EC_TRUE);
+    }
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-   
+
     if(EC_FALSE == ctdns_get(CSOCKET_CNODE_MODI(csocket_cnode), c_ipv4_to_word(tcid_str), &ipaddr, &port))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_gettcid_get_request: "
-                                                  "not found tcid '%s'\n", 
+                                                  "not found tcid '%s'\n",
                                                   tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_gettcid_get_request: "
-                                                  "not found tcid '%s'", 
+                                                  "not found tcid '%s'",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_gettcid_get_request: "
-                                              "get tcid '%s' => ip '%s', port %ld done\n", 
-                                              tcid_str, 
+                                              "get tcid '%s' => ip '%s', port %ld done\n",
+                                              tcid_str,
                                               c_word_to_ipv4(ipaddr), port);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_gettcid_get_request: "
-                                              "get tcid '%s' => ip '%s', port %ld done", 
-                                              tcid_str, 
+                                              "get tcid '%s' => ip '%s', port %ld done",
+                                              tcid_str,
                                               c_word_to_ipv4(ipaddr), port);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -655,7 +655,7 @@ EC_BOOL ctdnshttp_make_gettcid_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -678,13 +678,13 @@ EC_BOOL ctdnshttp_make_gettcid_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_gettcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_gettcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -706,11 +706,11 @@ EC_BOOL ctdnshttp_commit_gettcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: set ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_settcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_settcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -728,7 +728,7 @@ EC_BOOL ctdnshttp_is_http_get_settcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_settcid: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -738,7 +738,7 @@ EC_BOOL ctdnshttp_is_http_get_settcid(const CHTTP_NODE *chttp_node)
     if(EC_TRUE == __ctdnshttp_uri_is_settcid_get_op(uri_cbuffer))
     {
         return (EC_TRUE);
-    } 
+    }
 
     return (EC_FALSE);
 }
@@ -746,13 +746,13 @@ EC_BOOL ctdnshttp_is_http_get_settcid(const CHTTP_NODE *chttp_node)
 EC_BOOL ctdnshttp_commit_settcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_settcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_settcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_settcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_settcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_settcid_get_request: make 'GET' response failed\n");
@@ -765,7 +765,7 @@ EC_BOOL ctdnshttp_commit_settcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_settcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
@@ -788,7 +788,7 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     client_ipaddr = CSOCKET_CNODE_IPADDR(csocket_cnode);
     client_port   = CSOCKET_CNODE_CLIENT_PORT(csocket_cnode);
-    
+
     /*tcid*/
     tcid_str    = chttp_node_get_header(chttp_node, (const char *)"tcid");
     if(NULL_PTR == tcid_str)
@@ -800,9 +800,9 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "tcid absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
@@ -816,30 +816,30 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
+        return (EC_TRUE);
+    }
 
     /*ip*/
     ipaddr_str  = chttp_node_get_header(chttp_node, (const char *)"ip");
     if(NULL_PTR == ipaddr_str)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "tcid '%s', ip absence\n", 
+                                                  "tcid '%s', ip absence\n",
                                                   tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "tcid '%s', ip absence", 
+                                                  "tcid '%s', ip absence",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     if(EC_FALSE == c_ipv4_is_ok(ipaddr_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
@@ -851,30 +851,30 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "invalid ip '%s' in header",
                                                   ipaddr_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
+        return (EC_TRUE);
+    }
 
     /*port*/
     port_str    = chttp_node_get_header(chttp_node, (const char *)"port");
     if(NULL_PTR == port_str)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "tcid '%s', port absence\n", 
+                                                  "tcid '%s', port absence\n",
                                                   tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "tcid '%s', port absence", 
+                                                  "tcid '%s', port absence",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }    
+    }
     if(EC_FALSE == c_str_is_digit(port_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
@@ -886,15 +886,15 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "invalid port '%s' in header",
                                                   port_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
+        return (EC_TRUE);
+    }
 
     dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
                                               "(tcid '%s', ip '%s'), client '%s:%ld'\n",
-                                              tcid_str, ipaddr_str, 
+                                              tcid_str, ipaddr_str,
                                               c_word_to_ipv4(client_ipaddr), client_port);
 
     reserved_port = c_str_to_word(port_str);
@@ -903,7 +903,7 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
                                                   "(tcid '%s', ip '%s'), reset client port %ld => %ld\n",
                                                   tcid_str, ipaddr_str, c_word_to_ipv4(client_ipaddr),
-                                                  client_port, reserved_port);        
+                                                  client_port, reserved_port);
 
         client_port = reserved_port; /*used reserved port as client port*/
     }
@@ -912,41 +912,41 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        if(EC_FALSE == ctdns_set_no_service(CSOCKET_CNODE_MODI(csocket_cnode), 
-                                             c_ipv4_to_word(tcid_str), 
-                                             client_ipaddr, 
+        if(EC_FALSE == ctdns_set_no_service(CSOCKET_CNODE_MODI(csocket_cnode),
+                                             c_ipv4_to_word(tcid_str),
+                                             client_ipaddr,
                                              client_port))
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
-                                                      "set (tcid '%s', ip '%s', port '%ld') failed\n", 
-                                                      tcid_str, 
+                                                      "set (tcid '%s', ip '%s', port '%ld') failed\n",
+                                                      tcid_str,
                                                       c_word_to_ipv4(client_ipaddr), client_port);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
-                                                      "set (tcid '%s', ip '%s', port '%ld') failed", 
-                                                      tcid_str, 
+                                                      "set (tcid '%s', ip '%s', port '%ld') failed",
+                                                      tcid_str,
                                                       c_word_to_ipv4(client_ipaddr), client_port);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-         
+
             return (EC_TRUE);
         }
-       
+
         dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
                                                   "set (tcid '%s', ip '%s', port '%ld') done\n",
-                                                  tcid_str, 
-                                                  c_word_to_ipv4(client_ipaddr), client_port); 
+                                                  tcid_str,
+                                                  c_word_to_ipv4(client_ipaddr), client_port);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
-                                                  "set (tcid '%s', ip '%s', port '%ld') done", 
-                                                  tcid_str, 
+                                                  "set (tcid '%s', ip '%s', port '%ld') done",
+                                                  tcid_str,
                                                   c_word_to_ipv4(client_ipaddr), client_port);
 
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;    
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
     }
 
@@ -960,9 +960,9 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "network level absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_str_is_digit(level_str))
@@ -976,53 +976,53 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
                                                   "invalid level '%s' in header",
                                                   level_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }     
+        return (EC_TRUE);
+    }
 
     cstring_init(&service_cstr, NULL_PTR);
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);/*mount only*/
 
-    if(EC_FALSE == ctdns_set(CSOCKET_CNODE_MODI(csocket_cnode), 
-                             c_str_to_word(level_str),   
-                             c_ipv4_to_word(tcid_str), 
-                             client_ipaddr, 
+    if(EC_FALSE == ctdns_set(CSOCKET_CNODE_MODI(csocket_cnode),
+                             c_str_to_word(level_str),
+                             c_ipv4_to_word(tcid_str),
+                             client_ipaddr,
                              client_port,
                              &service_cstr))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') failed\n", 
-                                                  level_str, tcid_str, 
-                                                  c_word_to_ipv4(client_ipaddr), client_port, 
+                                                  "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') failed\n",
+                                                  level_str, tcid_str,
+                                                  c_word_to_ipv4(client_ipaddr), client_port,
                                                   service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_settcid_get_request: "
-                                                  "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') failed", 
-                                                  level_str, tcid_str, 
-                                                  c_word_to_ipv4(client_ipaddr), client_port, 
+                                                  "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') failed",
+                                                  level_str, tcid_str,
+                                                  c_word_to_ipv4(client_ipaddr), client_port,
                                                   service_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-     
+
         return (EC_TRUE);
     }
-   
+
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
                                               "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') done\n",
-                                              level_str, tcid_str, 
-                                              c_word_to_ipv4(client_ipaddr), client_port, 
-                                              service_str); 
+                                              level_str, tcid_str,
+                                              c_word_to_ipv4(client_ipaddr), client_port,
+                                              service_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
-                                              "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') done", 
-                                              level_str, tcid_str, 
-                                              c_word_to_ipv4(client_ipaddr), client_port, 
+                                              "set (network '%s', tcid '%s', ip '%s', port '%ld', service '%s') done",
+                                              level_str, tcid_str,
+                                              c_word_to_ipv4(client_ipaddr), client_port,
                                               service_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1055,19 +1055,19 @@ EC_BOOL ctdnshttp_make_settcid_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }     
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    } 
+    }
 
     return (EC_TRUE);
 }
@@ -1089,11 +1089,11 @@ EC_BOOL ctdnshttp_commit_settcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: deltcid ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_deltcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_deltcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1110,7 +1110,7 @@ EC_BOOL ctdnshttp_is_http_get_deltcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_deltcid: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1120,7 +1120,7 @@ EC_BOOL ctdnshttp_is_http_get_deltcid(const CHTTP_NODE *chttp_node)
     if(EC_TRUE == __ctdnshttp_uri_is_deltcid_get_op(uri_cbuffer))
     {
         return (EC_TRUE);
-    } 
+    }
 
     return (EC_FALSE);
 }
@@ -1128,13 +1128,13 @@ EC_BOOL ctdnshttp_is_http_get_deltcid(const CHTTP_NODE *chttp_node)
 EC_BOOL ctdnshttp_commit_deltcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_deltcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_deltcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_deltcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_deltcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_deltcid_get_request: make 'GET' response failed\n");
@@ -1147,7 +1147,7 @@ EC_BOOL ctdnshttp_commit_deltcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_deltcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
@@ -1170,11 +1170,11 @@ EC_BOOL ctdnshttp_handle_deltcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_deltcid_get_request: "
                                                   "header 'tcid' absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }    
+    }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_deltcid_get_request: "
@@ -1186,12 +1186,12 @@ EC_BOOL ctdnshttp_handle_deltcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_deltcid_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
-    
+
     if(EC_FALSE == ctdns_delete(CSOCKET_CNODE_MODI(csocket_cnode), c_ipv4_to_word(tcid_str)))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_deltcid_get_request: "
@@ -1201,21 +1201,21 @@ EC_BOOL ctdnshttp_handle_deltcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_deltcid_get_request: "
-                                                  "ctdns delete tcid %s failed", 
+                                                  "ctdns delete tcid %s failed",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
-     
+
         return (EC_TRUE);
     }
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_deltcid_get_request: "
                                               "ctdns delete tcid %s done\n",
-                                              tcid_str); 
+                                              tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_deltcid_get_request: "
-                                              "ctdns delete tcid %s done", 
+                                              "ctdns delete tcid %s done",
                                               tcid_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1238,19 +1238,19 @@ EC_BOOL ctdnshttp_make_deltcid_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_deltcid_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    } 
-    
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_deltcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    } 
+    }
 
     return (EC_TRUE);
 }
@@ -1272,11 +1272,11 @@ EC_BOOL ctdnshttp_commit_deltcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: configtcid ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_configtcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_configtcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1293,7 +1293,7 @@ EC_BOOL ctdnshttp_is_http_get_configtcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node); 
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_configtcid: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1303,7 +1303,7 @@ EC_BOOL ctdnshttp_is_http_get_configtcid(const CHTTP_NODE *chttp_node)
     if(EC_TRUE == __ctdnshttp_uri_is_configtcid_get_op(uri_cbuffer))
     {
         return (EC_TRUE);
-    } 
+    }
 
     return (EC_FALSE);
 }
@@ -1311,13 +1311,13 @@ EC_BOOL ctdnshttp_is_http_get_configtcid(const CHTTP_NODE *chttp_node)
 EC_BOOL ctdnshttp_commit_configtcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_configtcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_configtcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_configtcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_configtcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_configtcid_get_request: make 'GET' response failed\n");
@@ -1330,7 +1330,7 @@ EC_BOOL ctdnshttp_commit_configtcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_configtcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
@@ -1356,9 +1356,9 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
                                                   "header 'service' absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);/*mount only*/
@@ -1374,11 +1374,11 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
                                                   "header 'tcid' absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }    
+    }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_configtcid_get_request: "
@@ -1390,11 +1390,11 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
+        return (EC_TRUE);
+    }
 
     /*port*/
     port_str      = chttp_node_get_header(chttp_node, (const char *)"port");
@@ -1407,11 +1407,11 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
                                                   "header 'port' absence");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }     
+    }
     if(EC_FALSE == c_str_is_digit(port_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_configtcid_get_request: "
@@ -1423,13 +1423,13 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
                                                   "invalid port '%s' in header",
                                                   port_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }     
+        return (EC_TRUE);
+    }
 
-    if(EC_FALSE == ctdns_config_tcid(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+    if(EC_FALSE == ctdns_config_tcid(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                         c_ipv4_to_word(tcid_str), c_str_to_word(port_str)))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_configtcid_get_request: "
@@ -1439,21 +1439,21 @@ EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_configtcid_get_request: "
-                                                  "ctdns config tcid %s port %s failed", 
+                                                  "ctdns config tcid %s port %s failed",
                                                   tcid_str, port_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-     
+
         return (EC_TRUE);
     }
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_configtcid_get_request: "
                                               "ctdns config tcid %s port %s done\n",
-                                              tcid_str, port_str); 
+                                              tcid_str, port_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_configtcid_get_request: "
-                                              "ctdns config tcid %s port %s done", 
+                                              "ctdns config tcid %s port %s done",
                                               tcid_str, port_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1476,19 +1476,19 @@ EC_BOOL ctdnshttp_make_configtcid_get_response(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_configtcid_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    } 
-    
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_configtcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    } 
+    }
 
     return (EC_TRUE);
 }
@@ -1510,11 +1510,11 @@ EC_BOOL ctdnshttp_commit_configtcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: reservetcid ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_reservetcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_reservetcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1530,7 +1530,7 @@ static EC_BOOL __ctdnshttp_uri_is_reservetcid_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_reservetcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_reservetcid: uri: '%.*s' [len %d]\n",
@@ -1542,20 +1542,20 @@ EC_BOOL ctdnshttp_is_http_get_reservetcid(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_reservetcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_reservetcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_reservetcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_reservetcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_reservetcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_reservetcid_get_request: make 'GET' response failed\n");
@@ -1568,14 +1568,14 @@ EC_BOOL ctdnshttp_commit_reservetcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_reservetcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
     CSOCKET_CNODE * csocket_cnode;
-      
+
     char          * service_str;
     char          * ipaddr_str;
 
@@ -1595,9 +1595,9 @@ EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_reservetcid_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
@@ -1613,11 +1613,11 @@ EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_reservetcid_get_request: "
                                                   "no ip in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }    
+    }
     if(EC_FALSE == c_ipv4_is_ok(ipaddr_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_reservetcid_get_request: "
@@ -1629,42 +1629,42 @@ EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_reservetcid_get_request: "
                                                   "invalid ip '%s' in header",
                                                   ipaddr_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-   
-    if(EC_FALSE == ctdns_reserve_tcid(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+
+    if(EC_FALSE == ctdns_reserve_tcid(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                              c_ipv4_to_word(ipaddr_str), &tcid, &port))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_reservetcid_get_request: "
-                                                  "reserve tcid for ip '%s' from service '%s' failed\n", 
+                                                  "reserve tcid for ip '%s' from service '%s' failed\n",
                                                   ipaddr_str, service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_reservetcid_get_request: "
-                                                  "reserve tcid for ip '%s' from service '%s' failed", 
+                                                  "reserve tcid for ip '%s' from service '%s' failed",
                                                   ipaddr_str, service_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_reservetcid_get_request: "
-                                              "reserve tcid '%s' port %ld for ip '%s'from service '%s' done\n", 
+                                              "reserve tcid '%s' port %ld for ip '%s'from service '%s' done\n",
                                               c_word_to_ipv4(tcid), port,
                                               ipaddr_str, service_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_reservetcid_get_request: "
-                                              "reserve tcid '%s' port %ld for ip '%s' from service '%s' done", 
+                                              "reserve tcid '%s' port %ld for ip '%s' from service '%s' done",
                                               c_word_to_ipv4(tcid), port,
                                               ipaddr_str, service_str);
 
@@ -1682,7 +1682,7 @@ EC_BOOL ctdnshttp_make_reservetcid_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -1705,13 +1705,13 @@ EC_BOOL ctdnshttp_make_reservetcid_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_reservetcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_reservetcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -1733,11 +1733,11 @@ EC_BOOL ctdnshttp_commit_reservetcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: releasetcid ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_releasetcid_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_releasetcid_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -1753,7 +1753,7 @@ static EC_BOOL __ctdnshttp_uri_is_releasetcid_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_releasetcid(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_releasetcid: uri: '%.*s' [len %d]\n",
@@ -1765,20 +1765,20 @@ EC_BOOL ctdnshttp_is_http_get_releasetcid(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_releasetcid_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_releasetcid_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_releasetcid_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_releasetcid_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_releasetcid_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_releasetcid_get_request: make 'GET' response failed\n");
@@ -1791,12 +1791,12 @@ EC_BOOL ctdnshttp_commit_releasetcid_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_releasetcid_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
-{   
+{
     char          * service_str;
     char          * tcid_str;
     char          * port_str;
@@ -1816,9 +1816,9 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releaseservice_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
@@ -1834,9 +1834,9 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releasetcid_get_request: "
                                                   "no tcid in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
@@ -1850,11 +1850,11 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releasetcid_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }    
+        return (EC_TRUE);
+    }
 
     /*port*/
     port_str = chttp_node_get_header(chttp_node, (const char *)"port");
@@ -1867,11 +1867,11 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releaseport_get_request: "
                                                   "no port in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }  
+    }
     if(EC_FALSE == c_str_is_digit(port_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_releasetcid_get_request: "
@@ -1883,41 +1883,41 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releasetcid_get_request: "
                                                   "invalid port '%s' in header",
                                                   port_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
-    }     
-    
+        return (EC_TRUE);
+    }
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-   
+
     if(EC_FALSE == ctdns_release_tcid(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                             c_ipv4_to_word(tcid_str), c_str_to_word(port_str)))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_releasetcid_get_request: "
-                                                  "release service '%s' tcid '%s' port %s failed\n", 
+                                                  "release service '%s' tcid '%s' port %s failed\n",
                                                   service_str, tcid_str, port_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_releasetcid_get_request: "
-                                                  "release service '%s' tcid '%s' port %s failed\n", 
+                                                  "release service '%s' tcid '%s' port %s failed\n",
                                                   service_str, tcid_str, port_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
 
 
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_releasetcid_get_request: "
-                                              "release service '%s' tcid '%s' port %s done\n", 
+                                              "release service '%s' tcid '%s' port %s done\n",
                                               service_str, tcid_str, port_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_releasetcid_get_request: "
-                                              "release service '%s' tcid '%s' port %s done\n", 
+                                              "release service '%s' tcid '%s' port %s done\n",
                                               service_str, tcid_str, port_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1926,7 +1926,7 @@ EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node)
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"service", service_str);
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"tcid", tcid_str);
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port", port_str);
-    
+
     return (EC_TRUE);
 }
 
@@ -1934,7 +1934,7 @@ EC_BOOL ctdnshttp_make_releasetcid_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -1957,13 +1957,13 @@ EC_BOOL ctdnshttp_make_releasetcid_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_releasetcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_releasetcid_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -1986,11 +1986,11 @@ EC_BOOL ctdnshttp_commit_releasetcid_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: flush ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_flush_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_flush_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -2006,7 +2006,7 @@ static EC_BOOL __ctdnshttp_uri_is_flush_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_flush(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_flush: uri: '%.*s' [len %d]\n",
@@ -2018,20 +2018,20 @@ EC_BOOL ctdnshttp_is_http_get_flush(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_flush_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_flush_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_flush_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_flush_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_flush_get_request: make 'GET' response failed\n");
@@ -2044,7 +2044,7 @@ EC_BOOL ctdnshttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_flush_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
@@ -2066,7 +2066,7 @@ EC_BOOL ctdnshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         return (EC_TRUE);
     }
- 
+
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_flush_get_request: "
                                               "ctdns flush done\n");
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
@@ -2100,13 +2100,13 @@ EC_BOOL ctdnshttp_make_flush_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }     
- 
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_flush_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -2128,11 +2128,11 @@ EC_BOOL ctdnshttp_commit_flush_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ping ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_ping_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_ping_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -2148,7 +2148,7 @@ static EC_BOOL __ctdnshttp_uri_is_ping_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_ping(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_ping: uri: '%.*s' [len %d]\n",
@@ -2160,20 +2160,20 @@ EC_BOOL ctdnshttp_is_http_get_ping(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_ping_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_ping_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_ping_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_ping_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_ping_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_ping_get_request: make 'GET' response failed\n");
@@ -2186,7 +2186,7 @@ EC_BOOL ctdnshttp_commit_ping_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_ping_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
@@ -2212,7 +2212,7 @@ EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node)
                                                   "ctdns ping done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
@@ -2226,11 +2226,11 @@ EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_ping_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   des_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     des_tcid = c_ipv4_to_word(des_tcid_str);
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
@@ -2238,7 +2238,7 @@ EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node)
     if(EC_FALSE == ctdns_ping(CSOCKET_CNODE_MODI(csocket_cnode), des_tcid, &des_ipaddr, &des_port, &elapsed_msec))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_ping_get_request: "
-                                                  "ping %s failed\n", 
+                                                  "ping %s failed\n",
                                                   des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
@@ -2246,29 +2246,29 @@ EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_ping_get_request: "
                                                   "ping %s failed",
                                                   des_tcid_str);
-                         
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND; 
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_ping_get_request: "
-                                              "ctdns ping %s (%s, %ld) in %ld ms done\n", 
+                                              "ctdns ping %s (%s, %ld) in %ld ms done\n",
                                               des_tcid_str, c_word_to_ipv4(des_ipaddr), des_port, elapsed_msec);
-                                              
+
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u --", "GET", CHTTP_OK);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_ping_get_request: "
-                                              "ctdns ping %s (%s, %ld) in %ld ms done", 
+                                              "ctdns ping %s (%s, %ld) in %ld ms done",
                                               des_tcid_str, c_word_to_ipv4(des_ipaddr), des_port, elapsed_msec);
 
-    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;   
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     /*prepare response header*/
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"tcid"   , des_tcid_str);
     cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"ip"     , c_word_to_ipv4(des_ipaddr));
-    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port"   , c_word_to_str(des_port));  
-    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"elapsed", c_word_to_str(elapsed_msec));  
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"port"   , c_word_to_str(des_port));
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (const char *)"elapsed", c_word_to_str(elapsed_msec));
 
     return (EC_TRUE);
 }
@@ -2294,13 +2294,13 @@ EC_BOOL ctdnshttp_make_ping_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_settcid_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }     
- 
+    }
+
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_ping_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -2322,11 +2322,11 @@ EC_BOOL ctdnshttp_commit_ping_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: online ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_online_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_online_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -2342,7 +2342,7 @@ static EC_BOOL __ctdnshttp_uri_is_online_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_online(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_online: uri: '%.*s' [len %d]\n",
@@ -2354,20 +2354,20 @@ EC_BOOL ctdnshttp_is_http_get_online(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_online_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_online_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_online_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_online_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_online_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_online_get_request: make 'GET' response failed\n");
@@ -2380,14 +2380,14 @@ EC_BOOL ctdnshttp_commit_online_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_online_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
 //    CSOCKET_CNODE * csocket_cnode;
-      
+
     char          * network_str;
     char          * tcid_str;
     char          * service_name_str;
@@ -2407,11 +2407,11 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     cstring_set_str(&service_name, (const UINT8 *)service_name_str); /*mount only*/
 
     /*network*/
@@ -2425,9 +2425,9 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: "
                                                   "no network in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_str_is_digit(network_str))
@@ -2441,9 +2441,9 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: "
                                                   "invalid network '%s' in header",
                                                   network_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
 
@@ -2458,11 +2458,11 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: "
                                                   "no tcid in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_online_get_request: "
@@ -2474,16 +2474,16 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_online_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
-  
+
     MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+    MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/
 
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
@@ -2493,7 +2493,7 @@ EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_online_get_request: "
-                                              "network %s, tcid '%s', service '%s', report online", 
+                                              "network %s, tcid '%s', service '%s', report online",
                                               network_str,
                                               tcid_str,
                                               service_name_str);
@@ -2506,7 +2506,7 @@ EC_BOOL ctdnshttp_make_online_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -2529,13 +2529,13 @@ EC_BOOL ctdnshttp_make_online_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_online_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_online_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -2557,11 +2557,11 @@ EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: offline ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_offline_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_offline_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -2577,7 +2577,7 @@ static EC_BOOL __ctdnshttp_uri_is_offline_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_offline(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_offline: uri: '%.*s' [len %d]\n",
@@ -2589,20 +2589,20 @@ EC_BOOL ctdnshttp_is_http_get_offline(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_offline_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_offline_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_offline_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: make 'GET' response failed\n");
@@ -2615,14 +2615,14 @@ EC_BOOL ctdnshttp_commit_offline_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_offline_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
 //    CSOCKET_CNODE * csocket_cnode;
-      
+
     char          * network_str;
     char          * tcid_str;
     char          * service_name_str;
@@ -2643,11 +2643,11 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     cstring_set_str(&service_name, (const UINT8 *)service_name_str); /*mount only*/
 
     /*network*/
@@ -2661,9 +2661,9 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "no network in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     if(EC_FALSE == c_str_is_digit(network_str))
@@ -2677,9 +2677,9 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "invalid network '%s' in header",
                                                   network_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
 
@@ -2694,11 +2694,11 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "no tcid in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
-    }   
+    }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_offline_get_request: "
@@ -2710,9 +2710,9 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
 
@@ -2729,18 +2729,18 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_offline_get_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
-    
+
     if(NULL_PTR != on_tcid_str)
     {
         MOD_NODE_TCID(&recv_mod_node) = c_ipv4_to_word(on_tcid_str);
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/
 
         task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                  &recv_mod_node,
@@ -2750,21 +2750,21 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_offline_get_request: "
-                                                  "network %s, tcid '%s', service '%s', report offline on tcid %s", 
+                                                  "network %s, tcid '%s', service '%s', report offline on tcid %s",
                                                   network_str,
                                                   tcid_str,
                                                   service_name_str,
                                                   on_tcid_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
-     
+
         return (EC_TRUE);
     }
-    
+
     MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+    MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/
 
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
@@ -2774,7 +2774,7 @@ EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_offline_get_request: "
-                                              "network %s, tcid '%s', service '%s', report offline", 
+                                              "network %s, tcid '%s', service '%s', report offline",
                                               network_str,
                                               tcid_str,
                                               service_name_str);
@@ -2787,7 +2787,7 @@ EC_BOOL ctdnshttp_make_offline_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -2810,13 +2810,13 @@ EC_BOOL ctdnshttp_make_offline_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_offline_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     return (EC_TRUE);
 }
@@ -2839,11 +2839,11 @@ EC_BOOL ctdnshttp_commit_offline_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: upper ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -2859,7 +2859,7 @@ static EC_BOOL __ctdnshttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_upper(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_upper: uri: '%.*s' [len %d]\n",
@@ -2871,20 +2871,20 @@ EC_BOOL ctdnshttp_is_http_get_upper(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_upper_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_upper_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_upper_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: make 'GET' response failed\n");
@@ -2897,14 +2897,14 @@ EC_BOOL ctdnshttp_commit_upper_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_upper_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
     CSOCKET_CNODE      * csocket_cnode;
-      
+
     char               * service_str;
     char               * on_tcid_str;
 
@@ -2926,9 +2926,9 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
@@ -2946,12 +2946,12 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
     }
-    
+
     if(NULL_PTR == on_tcid_str)
     {
         on_tcid = CMPI_LOCAL_TCID;
@@ -2960,7 +2960,7 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     {
         on_tcid = c_ipv4_to_word(on_tcid_str);
     }
-    
+
     max_num = ((UINT32)(~(UINT32)0));
 
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
@@ -2971,9 +2971,9 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: no memory");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
-     
+
         return (EC_TRUE);
     }
 
@@ -2981,34 +2981,34 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
 
     if(CMPI_LOCAL_TCID == on_tcid)
     {
-        if(EC_FALSE == ctdns_finger_upper_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+        if(EC_FALSE == ctdns_finger_upper_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                                  max_num, ctdnssv_node_mgr))
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: "
-                                                      "finger upper nodes of service '%s' failed\n", 
+                                                      "finger upper nodes of service '%s' failed\n",
                                                       service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
-                                                      "finger upper nodes of service '%s' failed", 
+                                                      "finger upper nodes of service '%s' failed",
                                                       service_str);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
-            return (EC_TRUE);        
+            return (EC_TRUE);
         }
 
 
         dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request: "
-                                                  "finger upper nodes of service '%s' done\n", 
+                                                  "finger upper nodes of service '%s' done\n",
                                                   service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_upper_get_request: "
-                                                  "finger upper nodes of service '%s' done", 
+                                                  "finger upper nodes of service '%s' done",
                                                   service_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -3017,47 +3017,47 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     {
         MOD_NODE        recv_mod_node;
         EC_BOOL         ret;
-        
+
         MOD_NODE_TCID(&recv_mod_node) = on_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/
 
         ret = EC_FALSE;
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_ctdns_finger_upper_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);        
+                 FI_ctdns_finger_upper_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);
 
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_upper_get_request: "
-                                                      "finger upper nodes of service '%s' on tcid '%s' failed\n", 
+                                                      "finger upper nodes of service '%s' on tcid '%s' failed\n",
                                                       service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_upper_get_request: "
-                                                      "finger upper nodes of service '%s' on tcid '%s' failed", 
+                                                      "finger upper nodes of service '%s' on tcid '%s' failed",
                                                       service_str, on_tcid_str);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
-            return (EC_TRUE);        
-        }   
+            return (EC_TRUE);
+        }
 
         dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request: "
-                                                  "finger upper nodes of service '%s' on tcid '%s' done\n", 
+                                                  "finger upper nodes of service '%s' on tcid '%s' done\n",
                                                   service_str, on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_upper_get_request: "
-                                                  "finger upper nodes of service '%s'on tcid '%s' done", 
+                                                  "finger upper nodes of service '%s'on tcid '%s' done",
                                                   service_str, on_tcid_str);
 
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;        
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     /*json encode*/
@@ -3066,13 +3066,13 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         CBYTES             * rsp_content_cbytes;
 
         json_object        * rsp_body_obj;
-        const char         * rsp_body_str;     
+        const char         * rsp_body_str;
 
         CLIST_DATA         * clist_data;
 
         rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
-     
+
         rsp_body_obj = json_object_new_array();
 
         CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
@@ -3083,15 +3083,15 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
             ctdnssv_node = CLIST_DATA_DATA(clist_data);
 
             ctdnssv_obj = json_object_new_object();
-            json_object_object_add(ctdnssv_obj, (const char *)"tcid", 
+            json_object_object_add(ctdnssv_obj, (const char *)"tcid",
                                    json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))));
 
-            json_object_object_add(ctdnssv_obj, (const char *)"ip", 
+            json_object_object_add(ctdnssv_obj, (const char *)"ip",
                                    json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_IPADDR(ctdnssv_node))));
-                                   
-            json_object_object_add(ctdnssv_obj, (const char *)"port", 
-                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node)))); 
-                                   
+
+            json_object_object_add(ctdnssv_obj, (const char *)"port",
+                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node))));
+
             json_object_array_add(rsp_body_obj, ctdnssv_obj);
         }
 
@@ -3101,7 +3101,7 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
 
         /* free json obj */
         json_object_put(rsp_body_obj);
-        
+
         dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_upper_get_request done\n");
     }
 
@@ -3113,7 +3113,7 @@ EC_BOOL ctdnshttp_make_upper_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -3136,13 +3136,13 @@ EC_BOOL ctdnshttp_make_upper_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_upper_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
@@ -3153,7 +3153,7 @@ EC_BOOL ctdnshttp_make_upper_get_response(CHTTP_NODE *chttp_node)
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);    
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -3175,11 +3175,11 @@ EC_BOOL ctdnshttp_commit_upper_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: edge ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_edge_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_edge_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -3195,7 +3195,7 @@ static EC_BOOL __ctdnshttp_uri_is_edge_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_edge(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_edge: uri: '%.*s' [len %d]\n",
@@ -3207,20 +3207,20 @@ EC_BOOL ctdnshttp_is_http_get_edge(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_edge_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_edge_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_edge_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: make 'GET' response failed\n");
@@ -3233,14 +3233,14 @@ EC_BOOL ctdnshttp_commit_edge_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_edge_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
     CSOCKET_CNODE      * csocket_cnode;
-      
+
     char               * service_str;
     char               * on_tcid_str;
 
@@ -3262,9 +3262,9 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-     
+
         return (EC_TRUE);
     }
     cstring_set_str(&service_cstr, (const UINT8 *)service_str);
@@ -3282,12 +3282,12 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
     }
-    
+
     if(NULL_PTR == on_tcid_str)
     {
         on_tcid = CMPI_LOCAL_TCID;
@@ -3296,7 +3296,7 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     {
         on_tcid = c_ipv4_to_word(on_tcid_str);
     }
-    
+
     max_num = ((UINT32)(~(UINT32)0));
 
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
@@ -3307,9 +3307,9 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: no memory");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
-     
+
         return (EC_TRUE);
     }
 
@@ -3317,34 +3317,34 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
 
     if(CMPI_LOCAL_TCID == on_tcid)
     {
-        if(EC_FALSE == ctdns_finger_edge_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr, 
+        if(EC_FALSE == ctdns_finger_edge_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                                  max_num, ctdnssv_node_mgr))
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: "
-                                                      "finger edge nodes of service '%s' failed\n", 
+                                                      "finger edge nodes of service '%s' failed\n",
                                                       service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
-                                                      "finger edge nodes of service '%s' failed", 
+                                                      "finger edge nodes of service '%s' failed",
                                                       service_str);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
-            return (EC_TRUE);        
+            return (EC_TRUE);
         }
 
 
         dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request: "
-                                                  "finger edge nodes of service '%s' done\n", 
+                                                  "finger edge nodes of service '%s' done\n",
                                                   service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_edge_get_request: "
-                                                  "finger edge nodes of service '%s' done", 
+                                                  "finger edge nodes of service '%s' done",
                                                   service_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -3353,47 +3353,47 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     {
         MOD_NODE        recv_mod_node;
         EC_BOOL         ret;
-        
+
         MOD_NODE_TCID(&recv_mod_node) = on_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/    
+        MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns*/
 
         ret = EC_FALSE;
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_ctdns_finger_edge_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);        
+                 FI_ctdns_finger_edge_service, CMPI_ERROR_MODI, &service_cstr, max_num, ctdnssv_node_mgr);
 
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_edge_get_request: "
-                                                      "finger edge nodes of service '%s' on tcid '%s' failed\n", 
+                                                      "finger edge nodes of service '%s' on tcid '%s' failed\n",
                                                       service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_edge_get_request: "
-                                                      "finger edge nodes of service '%s' on tcid '%s' failed", 
+                                                      "finger edge nodes of service '%s' on tcid '%s' failed",
                                                       service_str, on_tcid_str);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
-            return (EC_TRUE);        
-        }   
+            return (EC_TRUE);
+        }
 
         dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request: "
-                                                  "finger edge nodes of service '%s' on tcid '%s' done\n", 
+                                                  "finger edge nodes of service '%s' on tcid '%s' done\n",
                                                   service_str, on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_edge_get_request: "
-                                                  "finger edge nodes of service '%s'on tcid '%s' done", 
+                                                  "finger edge nodes of service '%s'on tcid '%s' done",
                                                   service_str, on_tcid_str);
 
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;        
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     /*json encode*/
@@ -3402,13 +3402,13 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         CBYTES             * rsp_content_cbytes;
 
         json_object        * rsp_body_obj;
-        const char         * rsp_body_str;     
+        const char         * rsp_body_str;
 
         CLIST_DATA         * clist_data;
 
         rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
-     
+
         rsp_body_obj = json_object_new_array();
 
         CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
@@ -3419,15 +3419,15 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
             ctdnssv_node = CLIST_DATA_DATA(clist_data);
 
             ctdnssv_obj = json_object_new_object();
-            json_object_object_add(ctdnssv_obj, (const char *)"tcid", 
+            json_object_object_add(ctdnssv_obj, (const char *)"tcid",
                                    json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))));
 
-            json_object_object_add(ctdnssv_obj, (const char *)"ip", 
+            json_object_object_add(ctdnssv_obj, (const char *)"ip",
                                    json_object_new_string(c_word_to_ipv4(CTDNSSV_NODE_IPADDR(ctdnssv_node))));
-                                   
-            json_object_object_add(ctdnssv_obj, (const char *)"port", 
-                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node)))); 
-                                   
+
+            json_object_object_add(ctdnssv_obj, (const char *)"port",
+                                   json_object_new_string(c_word_to_str(CTDNSSV_NODE_PORT(ctdnssv_node))));
+
             json_object_array_add(rsp_body_obj, ctdnssv_obj);
         }
 
@@ -3437,7 +3437,7 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
 
         /* free json obj */
         json_object_put(rsp_body_obj);
-        
+
         dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_edge_get_request done\n");
     }
 
@@ -3449,7 +3449,7 @@ EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -3472,13 +3472,13 @@ EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_edge_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
@@ -3489,7 +3489,7 @@ EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node)
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);    
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -3511,11 +3511,11 @@ EC_BOOL ctdnshttp_commit_edge_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: refresh ----------------------------------------*/
-static EC_BOOL __ctdnshttp_uri_is_refresh_get_op(const CBUFFER *uri_cbuffer)
+STATIC_CAST static EC_BOOL __ctdnshttp_uri_is_refresh_get_op(const CBUFFER *uri_cbuffer)
 {
     const uint8_t *uri_str;
     uint32_t       uri_len;
- 
+
     uri_str      = CBUFFER_DATA(uri_cbuffer);
     uri_len      = CBUFFER_USED(uri_cbuffer);
 
@@ -3531,7 +3531,7 @@ static EC_BOOL __ctdnshttp_uri_is_refresh_get_op(const CBUFFER *uri_cbuffer)
 EC_BOOL ctdnshttp_is_http_get_refresh(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
- 
+
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0048_CTDNSHTTP, 9)(LOGSTDOUT, "[DEBUG] ctdnshttp_is_http_get_refresh: uri: '%.*s' [len %d]\n",
@@ -3543,20 +3543,20 @@ EC_BOOL ctdnshttp_is_http_get_refresh(const CHTTP_NODE *chttp_node)
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
 EC_BOOL ctdnshttp_commit_refresh_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
- 
+
     if(EC_FALSE == ctdnshttp_handle_refresh_get_request(chttp_node))
     {
-        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_refresh_get_request: handle 'GET' request failed\n");     
+        dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_refresh_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
- 
+
     if(EC_FALSE == ctdnshttp_make_refresh_get_response(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_refresh_get_request: make 'GET' response failed\n");
@@ -3569,14 +3569,14 @@ EC_BOOL ctdnshttp_commit_refresh_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_commit_refresh_get_request: commit 'GET' response failed\n");
         return (EC_FALSE);
     }
- 
+
     return (ret);
 }
 
 EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
-{ 
+{
     CSOCKET_CNODE      * csocket_cnode;
-      
+
     char               * service_str;
     char               * path_str;
     char               * des_network_str;
@@ -3603,7 +3603,7 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "no service in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
@@ -3621,11 +3621,11 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "no path in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
-    }    
+    }
     if('/' != (*path_str))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: "
@@ -3637,7 +3637,7 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "invalid path '%s' in header",
                                                   path_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
@@ -3655,7 +3655,7 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "no des_network in header");
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
@@ -3671,7 +3671,7 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "invalid des_network '%s' in header",
                                                   des_network_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
@@ -3691,15 +3691,15 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "invalid des_tcid '%s' in header",
                                                   des_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
-    
+
     if(NULL_PTR != des_tcid_str)
     {
-        des_tcid    = c_ipv4_to_word(des_tcid_str); 
+        des_tcid    = c_ipv4_to_word(des_tcid_str);
     }
     else
     {
@@ -3719,28 +3719,28 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
-                         
+
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         return (EC_TRUE);
     }
-    
+
     if(NULL_PTR != on_tcid_str)
     {
-        on_tcid = c_ipv4_to_word(on_tcid_str); 
+        on_tcid = c_ipv4_to_word(on_tcid_str);
     }
     else
     {
         on_tcid = CMPI_LOCAL_TCID;
     }
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-    
+
     /*refresh cache*/
     if(1)
     {
         MOD_NODE   recv_mod_node;
-        
+
         MOD_NODE_TCID(&recv_mod_node) = on_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -3750,37 +3750,37 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_ctdns_refresh_cache, CMPI_ERROR_MODI, des_network, des_tcid, &service, &path);    
+                 FI_ctdns_refresh_cache, CMPI_ERROR_MODI, des_network, des_tcid, &service, &path);
 
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_handle_refresh_get_request: "
-                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed\n", 
+                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed\n",
                                                       service_str, path_str, des_tcid_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:ctdnshttp_handle_refresh_get_request: "
-                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed", 
+                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed",
                                                       service_str, path_str, des_tcid_str, on_tcid_str);
-                             
+
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            return (EC_TRUE);        
-        }                  
+            return (EC_TRUE);
+        }
     }
-   
+
     dbg_log(SEC_0048_CTDNSHTTP, 5)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_refresh_get_request: "
-                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done\n", 
+                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done\n",
                                               service_str, path_str, des_tcid_str, on_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "TDNS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] ctdnshttp_handle_refresh_get_request: "
-                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done", 
+                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done",
                                               service_str, path_str, des_tcid_str, on_tcid_str);
 
-    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;    
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
@@ -3789,7 +3789,7 @@ EC_BOOL ctdnshttp_make_refresh_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
- 
+
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
@@ -3812,13 +3812,13 @@ EC_BOOL ctdnshttp_make_refresh_get_response(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_refresh_get_response: make header kvs failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "error:ctdnshttp_make_refresh_get_response: make header end failed\n");
         return (EC_FALSE);
-    }  
+    }
     return (EC_TRUE);
 }
 

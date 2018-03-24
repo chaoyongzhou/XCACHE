@@ -191,7 +191,7 @@ static MM_LOC g_mm_loc_tbl[] = {
     MAN_INIT_LOCK(pMan, (__location__));/*init lock*/\
 }while(0)
 
-static UINT32 init_mem_manager()
+STATIC_CAST static UINT32 init_mem_manager()
 {
     MM_MAN *pMan;
 
@@ -362,64 +362,64 @@ static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CPGB                         ,"MM_CPGB                         ",256      , sizeof(CPGB)                        , LOC_MM_0128);
     MM_MGR_DEF(MM_CPGD                         ,"MM_CPGD                         ",256      , sizeof(CPGD)                        , LOC_MM_0129);
     MM_MGR_DEF(MM_CPGV                         ,"MM_CPGV                         ",64       , sizeof(CPGV)                        , LOC_MM_0130);
- 
-    MM_MGR_DEF(MM_CRB_NODE                     ,"MM_CRB_NODE                     ",64       , sizeof(CRB_NODE)                    , LOC_MM_0131); 
-    MM_MGR_DEF(MM_CRB_TREE                     ,"MM_CRB_TREE                     ",1        , sizeof(CRB_TREE)                    , LOC_MM_0132); 
 
-    MM_MGR_DEF(MM_CRFSNP_FNODE                 ,"MM_CRFSNP_FNODE                 ",1        , sizeof(CRFSNP_FNODE)                , LOC_MM_0133); 
-    MM_MGR_DEF(MM_CRFSNP_DNODE                 ,"MM_CRFSNP_DNODE                 ",1        , sizeof(CRFSNP_DNODE)                , LOC_MM_0134); 
-    MM_MGR_DEF(MM_CRFSNP_ITEM                  ,"MM_CRFSNP_ITEM                  ",1        , sizeof(CRFSNP_ITEM)                 , LOC_MM_0135); 
-    MM_MGR_DEF(MM_CRFSNP                       ,"MM_CRFSNP                       ",1        , sizeof(CRFSNP)                      , LOC_MM_0136); 
-    MM_MGR_DEF(MM_CRFSNP_MGR                   ,"MM_CRFSNP_MGR                   ",1        , sizeof(CRFSNP_MGR)                  , LOC_MM_0137); 
-    MM_MGR_DEF(MM_CRFSNP_BNODE                 ,"MM_CRFSNP_BNODE                 ",1        , sizeof(CRFSNP_BNODE)                , LOC_MM_0138); 
-    MM_MGR_DEF(MM_CRFSDN_CACHE_NODE            ,"MM_CRFSDN_CACHE_NODE            ",1        , sizeof(CRFSDN_CACHE_NODE)           , LOC_MM_0139); 
+    MM_MGR_DEF(MM_CRB_NODE                     ,"MM_CRB_NODE                     ",64       , sizeof(CRB_NODE)                    , LOC_MM_0131);
+    MM_MGR_DEF(MM_CRB_TREE                     ,"MM_CRB_TREE                     ",1        , sizeof(CRB_TREE)                    , LOC_MM_0132);
 
-    MM_MGR_DEF(MM_CHFSNP_FNODE                 ,"MM_CHFSNP_FNODE                 ",1        , sizeof(CHFSNP_FNODE)                , LOC_MM_0140); 
-    MM_MGR_DEF(MM_CHFSNP_ITEM                  ,"MM_CHFSNP_ITEM                  ",1        , sizeof(CHFSNP_ITEM)                 , LOC_MM_0141); 
-    MM_MGR_DEF(MM_CHFSNP                       ,"MM_CHFSNP                       ",1        , sizeof(CHFSNP)                      , LOC_MM_0142); 
-    MM_MGR_DEF(MM_CHFSNP_MGR                   ,"MM_CHFSNP_MGR                   ",1        , sizeof(CHFSNP_MGR)                  , LOC_MM_0143); 
+    MM_MGR_DEF(MM_CRFSNP_FNODE                 ,"MM_CRFSNP_FNODE                 ",1        , sizeof(CRFSNP_FNODE)                , LOC_MM_0133);
+    MM_MGR_DEF(MM_CRFSNP_DNODE                 ,"MM_CRFSNP_DNODE                 ",1        , sizeof(CRFSNP_DNODE)                , LOC_MM_0134);
+    MM_MGR_DEF(MM_CRFSNP_ITEM                  ,"MM_CRFSNP_ITEM                  ",1        , sizeof(CRFSNP_ITEM)                 , LOC_MM_0135);
+    MM_MGR_DEF(MM_CRFSNP                       ,"MM_CRFSNP                       ",1        , sizeof(CRFSNP)                      , LOC_MM_0136);
+    MM_MGR_DEF(MM_CRFSNP_MGR                   ,"MM_CRFSNP_MGR                   ",1        , sizeof(CRFSNP_MGR)                  , LOC_MM_0137);
+    MM_MGR_DEF(MM_CRFSNP_BNODE                 ,"MM_CRFSNP_BNODE                 ",1        , sizeof(CRFSNP_BNODE)                , LOC_MM_0138);
+    MM_MGR_DEF(MM_CRFSDN_CACHE_NODE            ,"MM_CRFSDN_CACHE_NODE            ",1        , sizeof(CRFSDN_CACHE_NODE)           , LOC_MM_0139);
 
-    MM_MGR_DEF(MM_UINT64                       ,"MM_UINT64                       ",32       , sizeof(uint64_t)                    , LOC_MM_0144); 
+    MM_MGR_DEF(MM_CHFSNP_FNODE                 ,"MM_CHFSNP_FNODE                 ",1        , sizeof(CHFSNP_FNODE)                , LOC_MM_0140);
+    MM_MGR_DEF(MM_CHFSNP_ITEM                  ,"MM_CHFSNP_ITEM                  ",1        , sizeof(CHFSNP_ITEM)                 , LOC_MM_0141);
+    MM_MGR_DEF(MM_CHFSNP                       ,"MM_CHFSNP                       ",1        , sizeof(CHFSNP)                      , LOC_MM_0142);
+    MM_MGR_DEF(MM_CHFSNP_MGR                   ,"MM_CHFSNP_MGR                   ",1        , sizeof(CHFSNP_MGR)                  , LOC_MM_0143);
 
-    MM_MGR_DEF(MM_CEPOLL                       ,"MM_CEPOLL                       ",1        , sizeof(CEPOLL)                      , LOC_MM_0145); 
+    MM_MGR_DEF(MM_UINT64                       ,"MM_UINT64                       ",32       , sizeof(uint64_t)                    , LOC_MM_0144);
 
-    MM_MGR_DEF(MM_CSEM                         ,"MM_CSEM                         ",32        , sizeof(CSEM)                       , LOC_MM_0146); 
+    MM_MGR_DEF(MM_CEPOLL                       ,"MM_CEPOLL                       ",1        , sizeof(CEPOLL)                      , LOC_MM_0145);
 
-    MM_MGR_DEF(MM_CSTRKV                       ,"MM_CSTRKV                       ",32        , sizeof(CSTRKV)                     , LOC_MM_0147); 
-    MM_MGR_DEF(MM_CSTRKV_MGR                   ,"MM_CSTRKV_MGR                   ",32        , sizeof(CSTRKV_MGR)                 , LOC_MM_0148); 
-    MM_MGR_DEF(MM_CBUFFER                      ,"MM_CBUFFER                      ",32        , sizeof(CBUFFER)                    , LOC_MM_0149); 
-    MM_MGR_DEF(MM_CHUNK                        ,"MM_CHUNK                        ",32        , sizeof(CHUNK)                      , LOC_MM_0150);     
-    MM_MGR_DEF(MM_CHUNK_MGR                    ,"MM_CHUNK_MGR                    ",32        , sizeof(CHUNK_MGR)                  , LOC_MM_0151);     
+    MM_MGR_DEF(MM_CSEM                         ,"MM_CSEM                         ",32        , sizeof(CSEM)                       , LOC_MM_0146);
 
-    MM_MGR_DEF(MM_CMD5_DIGEST                  ,"MM_CMD5_DIGEST                  ",4         , sizeof(CMD5_DIGEST)                , LOC_MM_0152);     
-    MM_MGR_DEF(MM_CRFSOP                       ,"MM_CRFSOP                       ",32        , sizeof(CRFSOP)                     , LOC_MM_0153);     
+    MM_MGR_DEF(MM_CSTRKV                       ,"MM_CSTRKV                       ",32        , sizeof(CSTRKV)                     , LOC_MM_0147);
+    MM_MGR_DEF(MM_CSTRKV_MGR                   ,"MM_CSTRKV_MGR                   ",32        , sizeof(CSTRKV_MGR)                 , LOC_MM_0148);
+    MM_MGR_DEF(MM_CBUFFER                      ,"MM_CBUFFER                      ",32        , sizeof(CBUFFER)                    , LOC_MM_0149);
+    MM_MGR_DEF(MM_CHUNK                        ,"MM_CHUNK                        ",32        , sizeof(CHUNK)                      , LOC_MM_0150);
+    MM_MGR_DEF(MM_CHUNK_MGR                    ,"MM_CHUNK_MGR                    ",32        , sizeof(CHUNK_MGR)                  , LOC_MM_0151);
 
-    MM_MGR_DEF(MM_CRFSDT_PNODE                 ,"MM_CRFSDT_PNODE                 ",32        , sizeof(CRFSDT_PNODE)               , LOC_MM_0154);     
-    MM_MGR_DEF(MM_CRFSDT_RNODE                 ,"MM_CRFSDT_RNODE                 ",32        , sizeof(CRFSDT_RNODE)               , LOC_MM_0155);     
-    MM_MGR_DEF(MM_CRFSDT                       ,"MM_CRFSDT                       ",32        , sizeof(CRFSDT)                     , LOC_MM_0156);     
+    MM_MGR_DEF(MM_CMD5_DIGEST                  ,"MM_CMD5_DIGEST                  ",4         , sizeof(CMD5_DIGEST)                , LOC_MM_0152);
+    MM_MGR_DEF(MM_CRFSOP                       ,"MM_CRFSOP                       ",32        , sizeof(CRFSOP)                     , LOC_MM_0153);
 
-    MM_MGR_DEF(MM_CRFSCONHASH                  ,"MM_CRFSCONHASH                  ",1         , sizeof(CRFSCONHASH)                , LOC_MM_0157);     
-    MM_MGR_DEF(MM_CRFSCONHASH_RNODE            ,"MM_CRFSCONHASH_RNODE            ",32        , sizeof(CRFSCONHASH_RNODE)          , LOC_MM_0158);     
-    MM_MGR_DEF(MM_CRFSCONHASH_VNODE            ,"MM_CRFSCONHASH_VNODE            ",32        , sizeof(CRFSCONHASH_VNODE)          , LOC_MM_0159);     
+    MM_MGR_DEF(MM_CRFSDT_PNODE                 ,"MM_CRFSDT_PNODE                 ",32        , sizeof(CRFSDT_PNODE)               , LOC_MM_0154);
+    MM_MGR_DEF(MM_CRFSDT_RNODE                 ,"MM_CRFSDT_RNODE                 ",32        , sizeof(CRFSDT_RNODE)               , LOC_MM_0155);
+    MM_MGR_DEF(MM_CRFSDT                       ,"MM_CRFSDT                       ",32        , sizeof(CRFSDT)                     , LOC_MM_0156);
 
-    MM_MGR_DEF(MM_CRFSNP_TRANS_NODE            ,"MM_CRFSNP_TRANS_NODE            ",32        , sizeof(CRFSNP_TRANS_NODE)          , LOC_MM_0160);     
-    MM_MGR_DEF(MM_CRFSCHTTP_NODE               ,"MM_CRFSCHTTP_NODE               ",32        , sizeof(CRFSCHTTP_NODE)             , LOC_MM_0161);     
+    MM_MGR_DEF(MM_CRFSCONHASH                  ,"MM_CRFSCONHASH                  ",1         , sizeof(CRFSCONHASH)                , LOC_MM_0157);
+    MM_MGR_DEF(MM_CRFSCONHASH_RNODE            ,"MM_CRFSCONHASH_RNODE            ",32        , sizeof(CRFSCONHASH_RNODE)          , LOC_MM_0158);
+    MM_MGR_DEF(MM_CRFSCONHASH_VNODE            ,"MM_CRFSCONHASH_VNODE            ",32        , sizeof(CRFSCONHASH_VNODE)          , LOC_MM_0159);
 
-    MM_MGR_DEF(MM_CEXPAT_ATTR                  ,"MM_CEXPAT_ATTR                  ",256       , sizeof(CEXPAT_ATTR)                , LOC_MM_0162);     
-    MM_MGR_DEF(MM_CEXPAT_NODE                  ,"MM_CEXPAT_NODE                  ",256       , sizeof(CEXPAT_NODE)                , LOC_MM_0163);     
+    MM_MGR_DEF(MM_CRFSNP_TRANS_NODE            ,"MM_CRFSNP_TRANS_NODE            ",32        , sizeof(CRFSNP_TRANS_NODE)          , LOC_MM_0160);
+    MM_MGR_DEF(MM_CRFSCHTTP_NODE               ,"MM_CRFSCHTTP_NODE               ",32        , sizeof(CRFSCHTTP_NODE)             , LOC_MM_0161);
+
+    MM_MGR_DEF(MM_CEXPAT_ATTR                  ,"MM_CEXPAT_ATTR                  ",256       , sizeof(CEXPAT_ATTR)                , LOC_MM_0162);
+    MM_MGR_DEF(MM_CEXPAT_NODE                  ,"MM_CEXPAT_NODE                  ",256       , sizeof(CEXPAT_NODE)                , LOC_MM_0163);
     MM_MGR_DEF(MM_CRFS_LOCKED_FILE             ,"MM_CRFS_LOCKED_FILE             ",32        , sizeof(CRFS_LOCKED_FILE)           , LOC_MM_0164);
     MM_MGR_DEF(MM_CHTTP_NODE                   ,"MM_CHTTP_NODE                   ",256       , sizeof(CHTTP_NODE)                 , LOC_MM_0165);
 
     MM_MGR_DEF(MM_TASK_RUNNER_NODE             ,"MM_TASK_RUNNER_NODE             ",4         , sizeof(TASK_RUNNER_NODE)           , LOC_MM_0166);
 
     MM_MGR_DEF(MM_CHTTP_REQ                    ,"MM_CHTTP_REQ                    ",32        , sizeof(CHTTP_REQ)                  , LOC_MM_0167);
-    MM_MGR_DEF(MM_CHTTP_RSP                    ,"MM_CHTTP_RSP                    ",32        , sizeof(CHTTP_RSP)                  , LOC_MM_0168); 
-    MM_MGR_DEF(MM_CHTTP_REST                   ,"MM_CHTTP_REST                   ",32        , sizeof(CHTTP_REST)                 , LOC_MM_0169); 
+    MM_MGR_DEF(MM_CHTTP_RSP                    ,"MM_CHTTP_RSP                    ",32        , sizeof(CHTTP_RSP)                  , LOC_MM_0168);
+    MM_MGR_DEF(MM_CHTTP_REST                   ,"MM_CHTTP_REST                   ",32        , sizeof(CHTTP_REST)                 , LOC_MM_0169);
 
-    MM_MGR_DEF(MM_CDNS_NODE                    ,"MM_CDNS_NODE                    ",32        , sizeof(CDNS_NODE)                  , LOC_MM_0170); 
-    MM_MGR_DEF(MM_CDNS_REQ                     ,"MM_CDNS_REQ                     ",32        , sizeof(CDNS_REQ)                   , LOC_MM_0171); 
-    MM_MGR_DEF(MM_CDNS_RSP                     ,"MM_CDNS_RSP                     ",32        , sizeof(CDNS_RSP)                   , LOC_MM_0172); 
-    MM_MGR_DEF(MM_CDNS_RSP_NODE                ,"MM_CDNS_RSP_NODE                ",32        , sizeof(CDNS_RSP_NODE)              , LOC_MM_0173); 
+    MM_MGR_DEF(MM_CDNS_NODE                    ,"MM_CDNS_NODE                    ",32        , sizeof(CDNS_NODE)                  , LOC_MM_0170);
+    MM_MGR_DEF(MM_CDNS_REQ                     ,"MM_CDNS_REQ                     ",32        , sizeof(CDNS_REQ)                   , LOC_MM_0171);
+    MM_MGR_DEF(MM_CDNS_RSP                     ,"MM_CDNS_RSP                     ",32        , sizeof(CDNS_RSP)                   , LOC_MM_0172);
+    MM_MGR_DEF(MM_CDNS_RSP_NODE                ,"MM_CDNS_RSP_NODE                ",32        , sizeof(CDNS_RSP_NODE)              , LOC_MM_0173);
 
     MM_MGR_DEF(MM_CHTTP_STAT                   ,"MM_CHTTP_STAT                   ",256       , sizeof(CHTTP_STAT)                 , LOC_MM_0174);
     MM_MGR_DEF(MM_SUPER_CCOND                  ,"MM_SUPER_CCOND                  ",256       , sizeof(SUPER_CCOND)                , LOC_MM_0175);
@@ -455,8 +455,8 @@ static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CSFSV                        ,"MM_CSFSV                        ",256       , sizeof(CSFSV)                      , LOC_MM_0198);
     MM_MGR_DEF(MM_CSFS_LOCKED_FILE             ,"MM_CSFS_LOCKED_FILE             ",32        , sizeof(CSFS_LOCKED_FILE)           , LOC_MM_0199);
     MM_MGR_DEF(MM_CSFS_WAIT_FILE               ,"MM_CSFS_WAIT_FILE               ",256       , sizeof(CSFS_WAIT_FILE)             , LOC_MM_0200);
-    MM_MGR_DEF(MM_CSFSNP                       ,"MM_CSFSNP                       ",1        , sizeof(CSFSNP)                      , LOC_MM_0201); 
-    MM_MGR_DEF(MM_CSFSNP_MGR                   ,"MM_CSFSNP_MGR                   ",1        , sizeof(CSFSNP_MGR)                  , LOC_MM_0202); 
+    MM_MGR_DEF(MM_CSFSNP                       ,"MM_CSFSNP                       ",1        , sizeof(CSFSNP)                      , LOC_MM_0201);
+    MM_MGR_DEF(MM_CSFSNP_MGR                   ,"MM_CSFSNP_MGR                   ",1        , sizeof(CSFSNP_MGR)                  , LOC_MM_0202);
 
     MM_MGR_DEF(MM_CSFSCONHASH                  ,"MM_CSFSCONHASH                  ",1         , sizeof(CSFSCONHASH)                , LOC_MM_0203);
     MM_MGR_DEF(MM_CSFSCONHASH_RNODE            ,"MM_CSFSCONHASH_RNODE            ",32        , sizeof(CSFSCONHASH_RNODE)          , LOC_MM_0204);
@@ -478,25 +478,25 @@ static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CNGX_KSSL_NODE               ,"MM_CNGX_KSSL_NODE               ",32        , sizeof(CNGX_KSSL_NODE)             , LOC_MM_0213);
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
-    MM_MGR_DEF(MM_CTDNSNP_ITEM                  ,"MM_CTDNSNP_ITEM                ",256       , sizeof(CTDNSNP_ITEM)                 , LOC_MM_0214); 
-    MM_MGR_DEF(MM_CTDNSNP                       ,"MM_CTDNSNP                     ",256       , sizeof(CTDNSNP)                      , LOC_MM_0215); 
-    MM_MGR_DEF(MM_CTDNSNP_MGR                   ,"MM_CTDNSNP_MGR                 ",256       , sizeof(CTDNSNP_MGR)                  , LOC_MM_0216); 
-    MM_MGR_DEF(MM_CTDNSSV_ITEM                  ,"MM_CTDNSSV_ITEM                ",256       , sizeof(CTDNSSV_ITEM)                 , LOC_MM_0217); 
-    MM_MGR_DEF(MM_CTDNSSV_NODE                  ,"MM_CTDNSSV_NODE                ",256       , sizeof(CTDNSSV_NODE)                 , LOC_MM_0218); 
-    MM_MGR_DEF(MM_CTDNSSV_NODE_MGR              ,"MM_CTDNSSV_NODE_MGR            ",1         , sizeof(CTDNSSV_NODE_MGR)             , LOC_MM_0219); 
-    MM_MGR_DEF(MM_CTDNSSV_MGR                   ,"MM_CTDNSSV_MGR                 ",256       , sizeof(CTDNSSV_MGR)                  , LOC_MM_0220); 
-    MM_MGR_DEF(MM_CTDNSSV                       ,"MM_CTDNSSV                     ",256       , sizeof(CTDNSSV)                      , LOC_MM_0221); 
- 
-    MM_MGR_DEF(MM_CDETECT_ORIG_NODE             ,"MM_CDETECT_ORIG_NODE           ",256       , sizeof(CDETECT_ORIG_NODE)            , LOC_MM_0222); 
-    MM_MGR_DEF(MM_CDETECT_IP_NODE               ,"MM_CDETECT_IP_NODE             ",256       , sizeof(CDETECT_IP_NODE)              , LOC_MM_0223); 
+    MM_MGR_DEF(MM_CTDNSNP_ITEM                  ,"MM_CTDNSNP_ITEM                ",256       , sizeof(CTDNSNP_ITEM)                 , LOC_MM_0214);
+    MM_MGR_DEF(MM_CTDNSNP                       ,"MM_CTDNSNP                     ",256       , sizeof(CTDNSNP)                      , LOC_MM_0215);
+    MM_MGR_DEF(MM_CTDNSNP_MGR                   ,"MM_CTDNSNP_MGR                 ",256       , sizeof(CTDNSNP_MGR)                  , LOC_MM_0216);
+    MM_MGR_DEF(MM_CTDNSSV_ITEM                  ,"MM_CTDNSSV_ITEM                ",256       , sizeof(CTDNSSV_ITEM)                 , LOC_MM_0217);
+    MM_MGR_DEF(MM_CTDNSSV_NODE                  ,"MM_CTDNSSV_NODE                ",256       , sizeof(CTDNSSV_NODE)                 , LOC_MM_0218);
+    MM_MGR_DEF(MM_CTDNSSV_NODE_MGR              ,"MM_CTDNSSV_NODE_MGR            ",1         , sizeof(CTDNSSV_NODE_MGR)             , LOC_MM_0219);
+    MM_MGR_DEF(MM_CTDNSSV_MGR                   ,"MM_CTDNSSV_MGR                 ",256       , sizeof(CTDNSSV_MGR)                  , LOC_MM_0220);
+    MM_MGR_DEF(MM_CTDNSSV                       ,"MM_CTDNSSV                     ",256       , sizeof(CTDNSSV)                      , LOC_MM_0221);
 
-    MM_MGR_DEF(MM_CP2P_FILE                     ,"MM_CP2P_FILE                   ",256       , sizeof(CP2P_FILE)                    , LOC_MM_0224); 
-    MM_MGR_DEF(MM_CP2P_CMD                      ,"MM_CP2P_CMD                    ",256       , sizeof(CP2P_CMD)                     , LOC_MM_0225); 
+    MM_MGR_DEF(MM_CDETECT_ORIG_NODE             ,"MM_CDETECT_ORIG_NODE           ",256       , sizeof(CDETECT_ORIG_NODE)            , LOC_MM_0222);
+    MM_MGR_DEF(MM_CDETECT_IP_NODE               ,"MM_CDETECT_IP_NODE             ",256       , sizeof(CDETECT_IP_NODE)              , LOC_MM_0223);
 
-    MM_MGR_DEF(MM_CAGENT                        ,"MM_CAGENT                      ",1         , sizeof(CAGENT)                       , LOC_MM_0226); 
-    MM_MGR_DEF(MM_CPING_NODE                    ,"MM_CPING_NODE                  ",1         , sizeof(CPING_NODE)                   , LOC_MM_0227); 
+    MM_MGR_DEF(MM_CP2P_FILE                     ,"MM_CP2P_FILE                   ",256       , sizeof(CP2P_FILE)                    , LOC_MM_0224);
+    MM_MGR_DEF(MM_CP2P_CMD                      ,"MM_CP2P_CMD                    ",256       , sizeof(CP2P_CMD)                     , LOC_MM_0225);
 
-    MM_MGR_DEF(MM_CTDNS_SUSV_NODE               ,"MM_CTDNS_SUSV_NODE             ",1         , sizeof(CTDNS_SUSV_NODE)              , LOC_MM_0228); 
+    MM_MGR_DEF(MM_CAGENT                        ,"MM_CAGENT                      ",1         , sizeof(CAGENT)                       , LOC_MM_0226);
+    MM_MGR_DEF(MM_CPING_NODE                    ,"MM_CPING_NODE                  ",1         , sizeof(CPING_NODE)                   , LOC_MM_0227);
+
+    MM_MGR_DEF(MM_CTDNS_SUSV_NODE               ,"MM_CTDNS_SUSV_NODE             ",1         , sizeof(CTDNS_SUSV_NODE)              , LOC_MM_0228);
 
     return ( 0 );
 }
@@ -839,7 +839,7 @@ EC_BOOL free_nodeblock_static_mem(MM_MAN *pMan, MM_NODE_BLOCK *pNodeBlock)
     /*update the node block's stat data*/
     pNodeBlock->maxusedsum = 0;
     pNodeBlock->curusedsum = 0;
- 
+
 
     /*the node block has no any node entity now*/
     pNodeBlock->nextfree = NODE_LIST_TAIL;
@@ -947,16 +947,16 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     if(1)
     {
         (*ppvoid) = safe_malloc(pMan->typesize, location);
-#if 0     
+#if 0
         void *__pvoid;
 
         __pvoid = malloc((size_t)pMan->typesize);
         (*ppvoid) = __pvoid;
-#endif     
+#endif
         return (0);
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
- 
+
     MAN_LOCK(pMan, LOC_MM_0231);
 
     /*if manager has no more free node, then alloc a new node block*/
@@ -1138,7 +1138,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
     safe_free(pvoid, location);
     return (0);
 #endif/*(SWITCH_ON == MM_DEBUG)*/
- 
+
     MAN_LOCK(pMan, LOC_MM_0236);
 
     if ( 0 == pMan->curusedsum )
@@ -1503,7 +1503,7 @@ EC_BOOL safe_assert(void *pvoid, const UINT32 location)
     MM_AUX  *pAux;
     void    *pmem;
     MM_COMM *mm_comm;
- 
+
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
     pmem = (void *)pAux;
 
@@ -1522,7 +1522,7 @@ void *safe_fetch_pmem_of_mm_comm(void *pvoid)
     MM_AUX  *pAux;
     void    *pmem;
     MM_COMM *mm_comm;
- 
+
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
     pmem = (void *)pAux;
 
@@ -1563,9 +1563,9 @@ void *safe_malloc(const UINT32 size, const UINT32 location)
         return __pvoid;
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
- 
+
 #if 1
-    UINT32 mm_type; 
+    UINT32 mm_type;
 
     mm_type = get_static_mem_type(size);
     if(MM_END != mm_type)
@@ -1630,7 +1630,7 @@ void safe_free(void *pvoid, const UINT32 location)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT, "error:safe_free: found invalid type of %p, u %p at %s:%ld\n", pvoid, pAux->u.mm_comm, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         ASSERT(0 != pAux->type);
     }
- 
+
     if(MM_END != pAux->type)
     {
         free_static_mem(pAux->type, pvoid, location);
@@ -1695,9 +1695,9 @@ void *safe_realloc(void *old_pvoid, const UINT32 old_size, const UINT32 new_size
 {
     MM_AUX  *old_pAux;
     MM_COMM *mm_comm;
- 
+
     void *old_pmem;
-    void *new_pmem; 
+    void *new_pmem;
 
     old_pAux = (MM_AUX *)((UINT32)old_pvoid - sizeof(MM_AUX));
     mm_comm  = old_pAux->u.mm_comm;/*will keep unchanged after realloc*/
@@ -1710,13 +1710,13 @@ void *safe_realloc(void *old_pvoid, const UINT32 old_size, const UINT32 new_size
         MM_AUX  *new_pAux;
         void *new_pvoid;
 
-        new_pAux  = (MM_AUX *)(new_pmem);     
+        new_pAux  = (MM_AUX *)(new_pmem);
         new_pvoid = (void *)((UINT32)new_pmem + sizeof(MM_AUX));
         //BCOPY(old_pvoid, new_pvoid, DMIN(old_size, new_size));/*for both expand and shrink*/
 
         /*reuse mm_comm*/
         mm_comm->pmem = new_pmem;
-     
+
         /*set new_pAux*/
         new_pAux->type      = MM_END;
         new_pAux->u.mm_comm = mm_comm;
@@ -1742,7 +1742,7 @@ void *safe_realloc(void *old_pvoid, const UINT32 old_size, const UINT32 new_size
                         new_pvoid, new_size,__safe_fetch_pmem_of_mm_comm(new_pvoid),
                         MM_LOC_FILE_NAME(location),
                         MM_LOC_LINE_NO(location));
-#endif                     
+#endif
     safe_free(old_pvoid, location);
 
     //ASSERT(EC_TRUE == safe_assert(new_pvoid, location));
@@ -1918,7 +1918,7 @@ UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*
                     MM_LOC_FILE_NAME(pNode->location),
                     MM_LOC_LINE_NO(pNode->location),
                     pNode->pmem + sizeof(MM_AUX));
-                show(log, (void *)(pNode->pmem + sizeof(MM_AUX)));     
+                show(log, (void *)(pNode->pmem + sizeof(MM_AUX)));
             }
         }
     }
@@ -1951,7 +1951,7 @@ typedef struct
     UINT32 count;
 }LOCATION_STAT;
 
-static void location_stat_tbl_init(LOCATION_STAT *location_stat_tbl, const UINT32 size)
+STATIC_CAST static void location_stat_tbl_init(LOCATION_STAT *location_stat_tbl, const UINT32 size)
 {
     UINT32 pos;
 
@@ -1967,7 +1967,7 @@ static void location_stat_tbl_init(LOCATION_STAT *location_stat_tbl, const UINT3
     return;
 }
 
-static void location_stat_tbl_update(LOCATION_STAT *location_stat_tbl, const UINT32 size, const UINT32 type, const UINT32 location)
+STATIC_CAST static void location_stat_tbl_update(LOCATION_STAT *location_stat_tbl, const UINT32 size, const UINT32 type, const UINT32 location)
 {
     UINT32 pos;
 
@@ -2001,7 +2001,7 @@ static void location_stat_tbl_update(LOCATION_STAT *location_stat_tbl, const UIN
     return;
 }
 
-static void location_stat_tbl_print(LOG *log, const LOCATION_STAT *location_stat_tbl, const UINT32 size)
+STATIC_CAST static void location_stat_tbl_print(LOG *log, const LOCATION_STAT *location_stat_tbl, const UINT32 size)
 {
     UINT32 pos;
 

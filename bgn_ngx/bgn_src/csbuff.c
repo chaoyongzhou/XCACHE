@@ -286,11 +286,11 @@ EC_BOOL csbuff_read(CSBUFF *csbuff, UINT8 *out_buff, const UINT32 out_buff_max_l
     CSBUFF_LOCK(csbuff, LOC_CSBUFF_0017);
     read_pos  = CSBUFF_READ_POS(csbuff);
     write_pos = CSBUFF_WRITE_POS(csbuff);
-#if 0 
+#if 0
     dbg_log(SEC_0037_CSBUFF, 9)(LOGSTDOUT, "[DEBUG]csbuff_read %lx: beg: max_len = %ld, read_pos %ld, write_pos %ld, start pos %ld, out_buff_max_len %ld\n",
                         csbuff, CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff), (*out_buff_pos), out_buff_max_len);
     CSBUFF_ASSERT_POS("csbuff_read beg", CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff));
-#endif 
+#endif
     CSBUFF_UNLOCK(csbuff, LOC_CSBUFF_0018);
 
     if(read_pos + out_buff_max_len - (*out_buff_pos) >= write_pos)
@@ -346,11 +346,11 @@ EC_BOOL csbuff_read(CSBUFF *csbuff, UINT8 *out_buff, const UINT32 out_buff_max_l
         CSBUFF_READ_POS(csbuff)  -= CSBUFF_MAX_LEN(csbuff);
         CSBUFF_WRITE_POS(csbuff) -= CSBUFF_MAX_LEN(csbuff);
     }
-#if 0 
+#if 0
     dbg_log(SEC_0037_CSBUFF, 9)(LOGSTDOUT, "[DEBUG]csbuff_read %lx: end: max_len = %ld, read_pos %ld, write_pos %ld, read len %ld, reach pos %ld, out_buff_max_len %ld\n",
                         csbuff, CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff), (pos - (*out_buff_pos)), pos, out_buff_max_len);
     CSBUFF_ASSERT_POS("csbuff_read end", CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff));
-#endif 
+#endif
     CSBUFF_UNLOCK(csbuff, LOC_CSBUFF_0020);
 
     (*out_buff_pos) = pos;
@@ -375,11 +375,11 @@ EC_BOOL csbuff_write(CSBUFF *csbuff, const UINT8 *in_buff, const UINT32 in_buff_
     CSBUFF_LOCK(csbuff, LOC_CSBUFF_0021);
     read_pos  = CSBUFF_READ_POS(csbuff);
     write_pos = CSBUFF_WRITE_POS(csbuff);
-#if 0 
+#if 0
     dbg_log(SEC_0037_CSBUFF, 9)(LOGSTDOUT, "[DEBUG]csbuff_write %lx: beg: max_len = %ld, read_pos %ld, write_pos %ld, start pos %ld, out_buff_max_len %ld\n",
                         csbuff, CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff), (*in_buff_pos), in_buff_max_len);
     CSBUFF_ASSERT_POS("csbuff_write beg", CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff));
-#endif 
+#endif
     CSBUFF_UNLOCK(csbuff, LOC_CSBUFF_0022);
 
     if(read_pos + CSBUFF_MAX_LEN(csbuff) >= write_pos + in_buff_max_len - (*in_buff_pos))
@@ -435,11 +435,11 @@ EC_BOOL csbuff_write(CSBUFF *csbuff, const UINT8 *in_buff, const UINT32 in_buff_
         CSBUFF_READ_POS(csbuff)  -= CSBUFF_MAX_LEN(csbuff);
         CSBUFF_WRITE_POS(csbuff) -= CSBUFF_MAX_LEN(csbuff);
     }
-#if 0 
+#if 0
     dbg_log(SEC_0037_CSBUFF, 9)(LOGSTDOUT, "[DEBUG]csbuff_write %lx: end: max_len = %ld, read_pos %ld, write_pos %ld, read len %ld, reach pos %ld, out_buff_max_len %ld\n",
                         csbuff, CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff), (pos - (*in_buff_pos)), pos, in_buff_max_len);
     CSBUFF_ASSERT_POS("csbuff_write end", CSBUFF_MAX_LEN(csbuff), CSBUFF_READ_POS(csbuff), CSBUFF_WRITE_POS(csbuff));
-#endif 
+#endif
     CSBUFF_UNLOCK(csbuff, LOC_CSBUFF_0024);
 
     (*in_buff_pos) = pos;

@@ -121,9 +121,9 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
 
     CSTRING *ctdns_dir;
     CSTRING *ctdnsnp_root_dir;
-    
+
     //task_brd = task_brd_default_get();
- 
+
     ctdns_md_id = cbc_md_new(MD_CTDNS, sizeof(CTDNS_MD));
     if(CMPI_ERROR_MODI == ctdns_md_id)
     {
@@ -158,13 +158,13 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
         cbc_md_free(MD_CTDNS, ctdns_md_id);
         return (CMPI_ERROR_MODI);
     }
-  
+
     /* initialize new one CTDNS module */
     ctdns_md = (CTDNS_MD *)cbc_md_get(MD_CTDNS, ctdns_md_id);
     ctdns_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem(); 
+    init_static_mem();
 
     CTDNS_MD_NPP(ctdns_md) = NULL_PTR;
 
@@ -191,12 +191,12 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
                                (char *)cstring_get_str(ctdnsnp_root_dir));
 
             ctdnsnp_mgr_close_np_all(CTDNS_MD_NPP(ctdns_md));/*roll back*/
-         
+
             ret = EC_FALSE;
-        }  
+        }
     }
 
-    cstring_free(ctdnsnp_root_dir); 
+    cstring_free(ctdnsnp_root_dir);
 
     if(EC_TRUE == ret && NULL_PTR != ctdns_root_dir)
     {
@@ -206,9 +206,9 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_start: open svp from root dir %s failed\n",
                                (char *)cstring_get_str(ctdns_root_dir));
             ret = EC_FALSE;
-        }    
+        }
     }
- 
+
     if(EC_FALSE == ret)
     {
         if(NULL_PTR != CTDNS_MD_NPP(ctdns_md))
@@ -222,7 +222,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
             ctdnssv_mgr_close(CTDNS_MD_SVP(ctdns_md));
             CTDNS_MD_SVP(ctdns_md) = NULL_PTR;
         }
-        
+
         cbc_md_free(MD_CTDNS, ctdns_md_id);
 
         return (CMPI_ERROR_MODI);
@@ -268,9 +268,9 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
             task_brd_default_bind_https_srv_modi(ctdns_md_id);
             chttps_rest_list_push((const char *)CTDNSHTTPS_REST_API_NAME, ctdnshttps_commit_request);
         }
-#endif     
+#endif
 
-    } 
+    }
 
 #if 1
     if(SWITCH_ON == CP2PHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
@@ -296,9 +296,9 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
         else
         {
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: "
-                                                  "NOT start p2p http server\n");        
+                                                  "NOT start p2p http server\n");
         }
-    } 
+    }
 #endif
 
     /*launch detection*/
@@ -306,14 +306,14 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
     if(1)
     {
         CBTIMER_NODE *cbtimer_node;
-     
+
         cbtimer_node = cbtimer_add(TASK_BRD_CBTIMER_LIST(task_brd_default_get()),
                                    (UINT8 *)"CTDNS_DETECT_TASK",
                                    CBTIMER_NEVER_EXPIRE,
                                    CTDNS_NODE_DETECT_NSEC,
-                                   FI_ctdns_detect_task, ctdns_md_id);    
+                                   FI_ctdns_detect_task, ctdns_md_id);
     }
-    
+
     return ( ctdns_md_id );
 }
 
@@ -334,7 +334,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %ld not exist.\n", ctdns_md_id);
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
- 
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < ctdns_md->usedcounter )
     {
@@ -347,7 +347,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_end: ctdns_md_id = %ld is not started.\n", ctdns_md_id);
         dbg_exit(MD_CTDNS, ctdns_md_id);
     }
-    
+
 #if 0
     /*stop server*/
     if(SWITCH_ON == CTDNSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
@@ -372,7 +372,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
     {
         ctdnssv_mgr_close(CTDNS_MD_SVP(ctdns_md));
         CTDNS_MD_SVP(ctdns_md) = NULL_PTR;
-    }    
+    }
 
     ctdns_susv_clean(CTDNS_MD_SUSV(ctdns_md));
 
@@ -440,7 +440,7 @@ CTDNS_SUSV_NODE *ctdns_susv_node_new()
 EC_BOOL ctdns_susv_node_init(CTDNS_SUSV_NODE *ctdns_susv_node)
 {
     cstring_init(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node), NULL_PTR);
-    
+
     CTDNS_SUSV_NODE_TCID(ctdns_susv_node)             = CMPI_ERROR_TCID;
     CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)            = 0;
 
@@ -450,10 +450,10 @@ EC_BOOL ctdns_susv_node_init(CTDNS_SUSV_NODE *ctdns_susv_node)
 EC_BOOL ctdns_susv_node_clean(CTDNS_SUSV_NODE *ctdns_susv_node)
 {
     cstring_clean(CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node));
-    
+
     CTDNS_SUSV_NODE_TCID(ctdns_susv_node)             = CMPI_ERROR_TCID;
     CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)            = 0;
-    
+
     return (EC_TRUE);
 }
 
@@ -475,7 +475,7 @@ void ctdns_susv_node_print(LOG *log, const CTDNS_SUSV_NODE *ctdns_susv_node)
                     c_word_to_ipv4(CTDNS_SUSV_NODE_TCID(ctdns_susv_node)),
                     CTDNS_SUSV_NODE_FAILS(ctdns_susv_node)
                     );
-   
+
     return;
 }
 
@@ -498,14 +498,14 @@ EC_BOOL ctdns_susv_init(CTDNS_SUSV *ctdns_susv)
 EC_BOOL ctdns_susv_clean(CTDNS_SUSV *ctdns_susv)
 {
     clist_clean(CTDNS_SUSV_MGR(ctdns_susv), (CLIST_DATA_DATA_CLEANER)ctdns_susv_node_free);
-    
+
     return (EC_TRUE);
 }
 
 void ctdns_susv_print(LOG *log, const CTDNS_SUSV *ctdns_susv)
 {
     clist_print(log, CTDNS_SUSV_MGR(ctdns_susv), (CLIST_DATA_DATA_PRINT)ctdns_susv_node_print);
-   
+
     return;
 }
 
@@ -516,8 +516,8 @@ CTDNS_SUSV_NODE *ctdns_susv_search(CTDNS_SUSV *ctdns_susv, const CSTRING *servic
     /*mount only*/
     cstring_set_str(CTDNS_SUSV_NODE_SERVICE(&ctdns_susv_node_t), cstring_get_str(service));
     CTDNS_SUSV_NODE_TCID(&ctdns_susv_node_t) = tcid;
-    
-    return clist_search_data_front(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t, 
+
+    return clist_search_data_front(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t,
                                    (CLIST_DATA_DATA_CMP)ctdns_susv_node_cmp);
 }
 
@@ -529,7 +529,7 @@ CTDNS_SUSV_NODE *ctdns_susv_delete(CTDNS_SUSV *ctdns_susv, const CSTRING *servic
     cstring_set_str(CTDNS_SUSV_NODE_SERVICE(&ctdns_susv_node_t), cstring_get_str(service));
     CTDNS_SUSV_NODE_TCID(&ctdns_susv_node_t) = tcid;
 
-    return  clist_del(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t, 
+    return  clist_del(CTDNS_SUSV_MGR(ctdns_susv), (void *)&ctdns_susv_node_t,
                        (CLIST_DATA_DATA_CMP)ctdns_susv_node_cmp);
 }
 
@@ -541,7 +541,7 @@ EC_BOOL ctdns_susv_add(CTDNS_SUSV *ctdns_susv, const CSTRING *service, const UIN
     if(NULL_PTR == ctdns_susv_node)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_susv_add: new ctdns_susv_node failed\n");
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
 
     cstring_clone(service, CTDNS_SUSV_NODE_SERVICE(ctdns_susv_node));
@@ -552,7 +552,7 @@ EC_BOOL ctdns_susv_add(CTDNS_SUSV *ctdns_susv, const CSTRING *service, const UIN
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_susv_add: add ('%s', '%s', %ld) failed\n",
                                               (char *)cstring_get_str(service),
-                                              c_word_to_ipv4(tcid), 
+                                              c_word_to_ipv4(tcid),
                                               fails);
         ctdns_susv_node_free(ctdns_susv_node);
         return (EC_FALSE);
@@ -663,15 +663,15 @@ EC_BOOL ctdns_flush(const UINT32 ctdns_md_id)
     if(EC_FALSE == ctdns_flush_npp(ctdns_md_id))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush: flush npp failed!\n");
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == ctdns_flush_svp(ctdns_md_id))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush: flush svp failed!\n");
-        return (EC_FALSE); 
-    }    
-    
+        return (EC_FALSE);
+    }
+
     dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "[DEBUG] ctdns_flush: flush done\n");
     return (EC_TRUE);
 }
@@ -827,9 +827,9 @@ EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
 *
 **/
 EC_BOOL ctdns_exists_tcid(const UINT32 ctdns_md_id, const UINT32 tcid)
-{ 
+{
     CTDNS_MD      *ctdns_md;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -847,7 +847,7 @@ EC_BOOL ctdns_exists_tcid(const UINT32 ctdns_md_id, const UINT32 tcid)
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_exists_tcid: npp was not open\n");
         return (EC_FALSE);
     }
-    
+
     return ctdnsnp_mgr_find(CTDNS_MD_NPP(ctdns_md), tcid);
 }
 
@@ -873,7 +873,7 @@ EC_BOOL ctdns_exists_service(const UINT32 ctdns_md_id, const CSTRING *service_na
 EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port, const CSTRING *service_name)
 {
     CTDNS_MD                  *ctdns_md;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -890,7 +890,7 @@ EC_BOOL ctdns_set_service(const UINT32 ctdns_md_id, const UINT32 tcid, const UIN
 }
 
 EC_BOOL ctdns_unset_service(const UINT32 ctdns_md_id, const UINT32 tcid, const CSTRING *service_name)
-{    
+{
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -945,16 +945,16 @@ EC_BOOL ctdns_finger_edge_service(const UINT32 ctdns_md_id, const CSTRING *servi
     if(NULL_PTR == edge_service_name)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_finger_edge_service: "
-                                              "gen edge service name failed\n");    
+                                              "gen edge service name failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == ctdns_finger_service(ctdns_md_id, edge_service_name, max_num, ctdnssv_node_mgr))
     {
         cstring_free(edge_service_name);
         return (EC_FALSE);
     }
-    
+
     cstring_free(edge_service_name);
     return (EC_TRUE);
 }
@@ -980,16 +980,16 @@ EC_BOOL ctdns_finger_upper_service(const UINT32 ctdns_md_id, const CSTRING *serv
     if(NULL_PTR == upper_service_name)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_finger_upper_service: "
-                                              "gen upper service name failed\n");    
+                                              "gen upper service name failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == ctdns_finger_service(ctdns_md_id, upper_service_name, max_num, ctdnssv_node_mgr))
     {
         cstring_free(upper_service_name);
         return (EC_FALSE);
     }
-    
+
     cstring_free(upper_service_name);
     return (EC_TRUE);
 }
@@ -1114,7 +1114,7 @@ EC_BOOL ctdns_set_no_service(const UINT32 ctdns_md_id, const UINT32 tcid, const 
                      c_word_to_ipv4(tcid),
                      c_word_to_ipv4(ipaddr),
                      port);
-                     
+
     return (EC_TRUE);
 }
 
@@ -1123,7 +1123,7 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
     CTDNS_MD      *ctdns_md;
 
     TASK_BRD      *task_brd;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1160,7 +1160,7 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
         dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_set: set npp (tcid %s, ip %s, port %ld) done\n",
                          c_word_to_ipv4(tcid),
                          c_word_to_ipv4(ipaddr),
-                         port);      
+                         port);
     }
 
     if(network_level < TASK_BRD_NETWORK_LEVEL(task_brd))
@@ -1184,16 +1184,16 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
         if(NULL_PTR == ctdnssv_node_mgr)
         {
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: "
-                                                  "new ctdnssv_node_mgr failed\n");    
+                                                  "new ctdnssv_node_mgr failed\n");
             return (EC_FALSE);
-        }     
-        
+        }
+
         /*finger all*/
         if(EC_FALSE == ctdns_finger_service(ctdns_md_id, service_name, max_num, ctdnssv_node_mgr))
         {
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: "
                                                   "finger service '%s' failed\n",
-                                                  (char *)cstring_get_str(service_name));    
+                                                  (char *)cstring_get_str(service_name));
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_FALSE);
         }
@@ -1202,7 +1202,7 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
         {
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: "
                                                   "service '%s' has no node\n",
-                                                  (char *)cstring_get_str(service_name));    
+                                                  (char *)cstring_get_str(service_name));
             ctdnssv_node_mgr_free(ctdnssv_node_mgr);
             return (EC_TRUE);
         }
@@ -1219,10 +1219,10 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
             MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
             MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
             MOD_NODE_MODI(&recv_mod_node) = 0; /*only one tdns module*/
-            
-            task_p2p_inc(task_mgr, ctdns_md_id, 
-                         &recv_mod_node, 
-                         NULL_PTR, 
+
+            task_p2p_inc(task_mgr, ctdns_md_id,
+                         &recv_mod_node,
+                         NULL_PTR,
                          FI_ctdns_set, CMPI_ERROR_MODI, network_level, tcid, ipaddr, port, service_name);
         }
         task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -1230,12 +1230,12 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_TRUE);
     }
-    
+
     if(NULL_PTR == CTDNS_MD_SVP(ctdns_md))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_set: svp was not open\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == ctdnssv_mgr_set(CTDNS_MD_SVP(ctdns_md), tcid, ipaddr, port, service_name))
     {
@@ -1251,8 +1251,8 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
                      (char *)cstring_get_str(service_name),
                      c_word_to_ipv4(tcid),
                      c_word_to_ipv4(ipaddr),
-                     port);   
-                     
+                     port);
+
     return (EC_TRUE);
 }
 
@@ -1264,7 +1264,7 @@ EC_BOOL ctdns_set(const UINT32 ctdns_md_id, const UINT32 network_level, const UI
 EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port)
 {
     CTDNS_MD      *ctdns_md;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1295,7 +1295,7 @@ EC_BOOL ctdns_get(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, U
 EC_BOOL ctdns_delete(const UINT32 ctdns_md_id, const UINT32 tcid)
 {
     CTDNS_MD      *ctdns_md;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1317,10 +1317,10 @@ EC_BOOL ctdns_delete(const UINT32 ctdns_md_id, const UINT32 tcid)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_delete: no svp\n");
         return (EC_FALSE);
-    }    
+    }
 
     ctdnssv_mgr_delete(CTDNS_MD_SVP(ctdns_md), tcid);
-    
+
     return ctdnsnp_mgr_delete(CTDNS_MD_NPP(ctdns_md), tcid);
 }
 
@@ -1350,7 +1350,7 @@ EC_BOOL ctdns_flush_npp(const UINT32 ctdns_md_id)
         dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "warn:ctdns_flush_npp: npp was not open\n");
         return (EC_TRUE);
     }
- 
+
     if(EC_FALSE == ctdnsnp_mgr_flush(CTDNS_MD_NPP(ctdns_md)))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush_npp: flush failed\n");
@@ -1386,7 +1386,7 @@ EC_BOOL ctdns_flush_svp(const UINT32 ctdns_md_id)
         dbg_log(SEC_0026_CTDNS, 1)(LOGSTDOUT, "warn:ctdns_flush_svp: svp was not open\n");
         return (EC_TRUE);
     }
- 
+
     if(EC_FALSE == ctdnssv_mgr_flush(CTDNS_MD_SVP(ctdns_md)))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_flush_svp: flush failed\n");
@@ -1484,13 +1484,13 @@ EC_BOOL ctdns_config_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name,
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_config_tcid: config tcid '%s' port %ld to service '%s' failed\n",
                                               c_word_to_ipv4(tcid), port,
-                                              (char *)cstring_get_str(service_name));    
+                                              (char *)cstring_get_str(service_name));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_config_tcid: config tcid '%s' port %ld to service '%s' done\n",
                                           c_word_to_ipv4(tcid), port,
-                                          (char *)cstring_get_str(service_name));    
+                                          (char *)cstring_get_str(service_name));
 
     return (EC_TRUE);
 }
@@ -1504,7 +1504,7 @@ EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name
 {
     UINT32      reserved_tcid;
     UINT32      reserved_port;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1539,7 +1539,7 @@ EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name
 
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_reserve_tcid: reserve tcid '%s' port %ld from service '%s' done\n",
                                           c_word_to_ipv4(*tcid), (*port),
-                                          (char *)cstring_get_str(service_name));    
+                                          (char *)cstring_get_str(service_name));
 
     return (EC_TRUE);
 }
@@ -1550,7 +1550,7 @@ EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name
 *
 **/
 EC_BOOL ctdns_release_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 tcid, const UINT32 port)
-{   
+{
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1564,14 +1564,14 @@ EC_BOOL ctdns_release_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name
     if(EC_FALSE == ctdns_release_tcid_to_service(ctdns_md_id, service_name, tcid, port))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_release_tcid: release tcid '%s' port %ld to service '%s' failed\n",
-                                              c_word_to_ipv4(tcid), port, 
+                                              c_word_to_ipv4(tcid), port,
                                               (char *)cstring_get_str(service_name));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_release_tcid: release tcid '%s' port %ld to service '%s' done\n",
                                           c_word_to_ipv4(tcid), port,
-                                          (char *)cstring_get_str(service_name));    
+                                          (char *)cstring_get_str(service_name));
 
     return (EC_TRUE);
 }
@@ -1605,7 +1605,7 @@ EC_BOOL ctdns_show_npp(const UINT32 ctdns_md_id, LOG *log)
     }
 
     ctdnsnp_mgr_print(log, CTDNS_MD_NPP(ctdns_md));
- 
+
     return (EC_TRUE);
 }
 
@@ -1638,7 +1638,7 @@ EC_BOOL ctdns_show_svp(const UINT32 ctdns_md_id, LOG *log)
     }
 
     ctdnssv_mgr_print(log, CTDNS_MD_SVP(ctdns_md));
- 
+
     return (EC_TRUE);
 }
 
@@ -1709,10 +1709,10 @@ EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, cons
     TASK_MGR         *task_mgr;
 
     CSTRING          *edge_service_name;
-    
+
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
     CLIST_DATA       *clist_data;
-        
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1730,7 +1730,7 @@ EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, cons
     if(NULL_PTR == ctdnssv_node_mgr)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online_notify: "
-                                              "new ctdnssv_node_mgr failed\n");    
+                                              "new ctdnssv_node_mgr failed\n");
         return (EC_FALSE);
     }
 
@@ -1738,20 +1738,20 @@ EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, cons
     if(NULL_PTR == edge_service_name)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online_notify: "
-                                              "gen edge service name failed\n");    
+                                              "gen edge service name failed\n");
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
-  
-    
-    if(EC_FALSE == ctdns_finger_service(ctdns_md_id, 
-                                        edge_service_name, 
-                                        (UINT32)(~(UINT32)0), 
+
+
+    if(EC_FALSE == ctdns_finger_service(ctdns_md_id,
+                                        edge_service_name,
+                                        (UINT32)(~(UINT32)0),
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online_notify: "
                                               "finger service '%s' failed\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1761,7 +1761,7 @@ EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, cons
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online_notify: "
                                               "no edge node for service '%s'\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1789,18 +1789,18 @@ EC_BOOL ctdns_online_notify(const UINT32 ctdns_md_id, const UINT32 network, cons
                                                   "network %ld, tcid '%s' online\n",
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                   network,
-                                                  c_word_to_ipv4(tcid)); 
+                                                  c_word_to_ipv4(tcid));
         }
-        
-        task_p2p_inc(task_mgr, 
-                    ctdns_md_id, 
+
+        task_p2p_inc(task_mgr,
+                    ctdns_md_id,
                     &recv_mod_node,
                     NULL_PTR, FI_ctdns_online, CMPI_ERROR_MODI, network, tcid, service_name);
     }
-    ctdnssv_node_mgr_free(ctdnssv_node_mgr);  
-    
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-                     
+
     return (EC_TRUE);
 }
 
@@ -1811,10 +1811,10 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
     TASK_MGR         *task_mgr;
 
     CSTRING          *edge_service_name;
-    
+
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
     CLIST_DATA       *clist_data;
-        
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1832,7 +1832,7 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
     if(NULL_PTR == ctdnssv_node_mgr)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_offline_notify: "
-                                              "new ctdnssv_node_mgr failed\n");    
+                                              "new ctdnssv_node_mgr failed\n");
         return (EC_FALSE);
     }
 
@@ -1840,20 +1840,20 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
     if(NULL_PTR == edge_service_name)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_offline_notify: "
-                                              "gen edge service name failed\n");    
+                                              "gen edge service name failed\n");
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
-  
-    
-    if(EC_FALSE == ctdns_finger_service(ctdns_md_id, 
-                                        edge_service_name, 
-                                        (UINT32)(~(UINT32)0), 
+
+
+    if(EC_FALSE == ctdns_finger_service(ctdns_md_id,
+                                        edge_service_name,
+                                        (UINT32)(~(UINT32)0),
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_offline_notify: "
                                               "finger service '%s' failed\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1863,7 +1863,7 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_offline_notify: "
                                               "no edge node for service '%s'\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1891,18 +1891,18 @@ EC_BOOL ctdns_offline_notify(const UINT32 ctdns_md_id, const UINT32 network, con
                                                   "network %ld, tcid '%s' offline\n",
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                   network,
-                                                  c_word_to_ipv4(tcid)); 
+                                                  c_word_to_ipv4(tcid));
         }
-        
-        task_p2p_inc(task_mgr, 
-                    ctdns_md_id, 
+
+        task_p2p_inc(task_mgr,
+                    ctdns_md_id,
                     &recv_mod_node,
                     NULL_PTR, FI_ctdns_offline, CMPI_ERROR_MODI, network, tcid, service_name);
     }
-    ctdnssv_node_mgr_free(ctdnssv_node_mgr);  
-    
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-                     
+
     return (EC_TRUE);
 }
 
@@ -1913,10 +1913,10 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
     TASK_MGR         *task_mgr;
 
     CSTRING          *edge_service_name;
-    
+
     CTDNSSV_NODE_MGR *ctdnssv_node_mgr;
     CLIST_DATA       *clist_data;
-        
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -1934,7 +1934,7 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
     if(NULL_PTR == ctdnssv_node_mgr)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
-                                              "new ctdnssv_node_mgr failed\n");    
+                                              "new ctdnssv_node_mgr failed\n");
         return (EC_FALSE);
     }
 
@@ -1942,20 +1942,20 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
     if(NULL_PTR == edge_service_name)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
-                                              "gen edge service name failed\n");    
+                                              "gen edge service name failed\n");
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
-  
-    
-    if(EC_FALSE == ctdns_finger_service(ctdns_md_id, 
-                                        edge_service_name, 
-                                        (UINT32)(~(UINT32)0), 
+
+
+    if(EC_FALSE == ctdns_finger_service(ctdns_md_id,
+                                        edge_service_name,
+                                        (UINT32)(~(UINT32)0),
                                         ctdnssv_node_mgr))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
                                               "finger service '%s' failed\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1965,7 +1965,7 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache_notify: "
                                               "no edge node for service '%s'\n",
-                                              (char *)cstring_get_str(edge_service_name));    
+                                              (char *)cstring_get_str(edge_service_name));
         cstring_free(edge_service_name);
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
@@ -1994,18 +1994,18 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
                                                   network,
                                                   c_word_to_ipv4(tcid),
-                                                  (char *)cstring_get_str(path)); 
+                                                  (char *)cstring_get_str(path));
         }
-        
-        task_p2p_inc(task_mgr, 
-                    ctdns_md_id, 
+
+        task_p2p_inc(task_mgr,
+                    ctdns_md_id,
                     &recv_mod_node,
                     NULL_PTR, FI_ctdns_refresh_cache, CMPI_ERROR_MODI, network, tcid, service_name, path);
     }
-    ctdnssv_node_mgr_free(ctdnssv_node_mgr);  
-    
+    ctdnssv_node_mgr_free(ctdnssv_node_mgr);
+
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-                     
+
     return (EC_TRUE);
 }
 
@@ -2018,18 +2018,18 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
 EC_BOOL ctdns_ping_over_http(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port, UINT32 *elapsed_msec)
 {
     //CTDNS_MD         *ctdns_md;
-    
+
     CHTTP_REQ         chttp_req;
     CHTTP_RSP         chttp_rsp;
 
     UINT32            tdns_ipaddr;
-    UINT32            tdns_port; 
+    UINT32            tdns_port;
 
     uint32_t          s_nsec;
     uint32_t          s_msec;
 
     uint32_t          e_nsec;
-    uint32_t          e_msec;       
+    uint32_t          e_msec;
 
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
@@ -2044,7 +2044,7 @@ EC_BOOL ctdns_ping_over_http(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32
     //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
 
     chttp_req_init(&chttp_req);
-    chttp_rsp_init(&chttp_rsp);   
+    chttp_rsp_init(&chttp_rsp);
 
     if(EC_FALSE == c_tdns_resolve(tcid, &tdns_ipaddr, &tdns_port))
     {
@@ -2052,9 +2052,9 @@ EC_BOOL ctdns_ping_over_http(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32
                         c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
-    
+
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
-    chttp_req_set_port_word(&chttp_req, tdns_port);    
+    chttp_req_set_port_word(&chttp_req, tdns_port);
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/ping");
@@ -2090,7 +2090,7 @@ EC_BOOL ctdns_ping_over_http(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32
     chttp_rsp_clean(&chttp_rsp);
 
     e_nsec = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());
-    e_msec = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());    
+    e_msec = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());
 
     (*elapsed_msec) = ((e_nsec - s_nsec) * 1000 + e_msec - s_msec);
     (*ipaddr)       = tdns_ipaddr;
@@ -2100,16 +2100,16 @@ EC_BOOL ctdns_ping_over_http(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32
                                           c_word_to_ipv4(tcid),
                                           c_word_to_ipv4(tdns_ipaddr),
                                           tdns_port,
-                                          (*elapsed_msec));        
+                                          (*elapsed_msec));
     return (EC_TRUE);
 }
 
 EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, UINT32 *port, UINT32 *elapsed_msec)
 {
     //CTDNS_MD         *ctdns_md;
-    
+
     UINT32            tdns_ipaddr;
-    UINT32            tdns_port;     
+    UINT32            tdns_port;
     UINT32            ping_elapsed_msec;
 
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
@@ -2122,7 +2122,7 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
     }
 #endif/*CTDNS_DEBUG_SWITCH*/
 
-    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);   
+    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
 
     if(EC_FALSE == c_tdns_resolve(tcid, &tdns_ipaddr, &tdns_port))
     {
@@ -2130,13 +2130,13 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
                         c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
-    
+
     if(EC_FALSE == cping_check(tdns_ipaddr, tdns_port, &ping_elapsed_msec))
     {
         dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_ping: ping tcid '%s' (ip '%s', port %ld) failed\n",
                                               c_word_to_ipv4(tcid),
                                               c_word_to_ipv4(tdns_ipaddr),
-                                              tdns_port); 
+                                              tdns_port);
         return (EC_FALSE);
     }
 
@@ -2148,7 +2148,7 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
                                           c_word_to_ipv4(tcid),
                                           c_word_to_ipv4(tdns_ipaddr),
                                           tdns_port,
-                                          (*elapsed_msec));        
+                                          (*elapsed_msec));
     return (EC_TRUE);
 }
 
@@ -2161,16 +2161,16 @@ EC_BOOL ctdns_ping(const UINT32 ctdns_md_id, const UINT32 tcid, UINT32 *ipaddr, 
 EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name)
 {
     //CTDNS_MD        *ctdns_md;
-    
+
     TASK_BRD        *task_brd;
 
     CSTRING         *upper_service_name;
     CSTRING         *edge_service_name;
-    
+
     UINT32           remote_ipaddr;
     UINT32           remote_port;
     UINT32           elapsed_msec;
-        
+
     UINT32           local_ipaddr;
     UINT32           local_port;
 
@@ -2196,21 +2196,21 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online: "
                                               "cur network level %ld >= reporter network %ld\n",
                                               TASK_BRD_NETWORK_LEVEL(task_brd),
-                                              network);    
+                                              network);
         return (EC_FALSE);
     }
 
     if(TASK_BRD_NETWORK_LEVEL(task_brd) + 1 < network)
     {
         return ctdns_online_notify(ctdns_md_id, network, tcid, service_name);
-    }    
+    }
 
     /*now TASK_BRD_NETWORK_LEVEL(task_brd) + 1 == network*/
     if(EC_FALSE == ctdns_ping(ctdns_md_id, tcid, &remote_ipaddr, &remote_port, &elapsed_msec))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online: "
                                               "ping tcid '%s' failed\n",
-                                              c_word_to_ipv4(tcid));      
+                                              c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
 
@@ -2219,7 +2219,7 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_online: "
                                               "ping tcid '%s' elapsed %ld msec overflow\n",
                                               c_word_to_ipv4(tcid),
-                                              elapsed_msec);      
+                                              elapsed_msec);
         return (EC_FALSE);
     }
 
@@ -2229,7 +2229,7 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
                                               "tdns resolve '%s' failed\n",
                                               c_word_to_ipv4(CMPI_LOCAL_TCID));
         return (EC_FALSE);
-    }    
+    }
 
     /*set remote as upper*/
 
@@ -2245,10 +2245,10 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
                                               "gen upper service name failed\n");
         return (EC_FALSE);
     }
-    
+
     ret = EC_FALSE;
-    task_p2p(ctdns_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-             &recv_mod_node, 
+    task_p2p(ctdns_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
              &ret, FI_ctdns_set_service, CMPI_ERROR_MODI, CMPI_LOCAL_TCID, local_ipaddr, local_port, upper_service_name);
 
     if(EC_FALSE == ret)
@@ -2270,10 +2270,10 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
                                           c_word_to_ipv4(CMPI_LOCAL_TCID),
                                           c_word_to_ipv4(local_ipaddr),
                                           local_port,
-                                          c_word_to_ipv4(tcid));    
+                                          c_word_to_ipv4(tcid));
 
     cstring_free(upper_service_name);
-    
+
     /*set local as edge*/
     edge_service_name = ctdns_gen_edge_service_name(service_name);
     if(NULL_PTR == edge_service_name)
@@ -2289,7 +2289,7 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
                                           (char *)cstring_get_str(edge_service_name),
                                           c_word_to_ipv4(tcid),
                                           c_word_to_ipv4(remote_ipaddr),
-                                          remote_port);    
+                                          remote_port);
     cstring_free(edge_service_name);
     return (EC_TRUE);
 }
@@ -2303,12 +2303,12 @@ EC_BOOL ctdns_online(const UINT32 ctdns_md_id, const UINT32 network, const UINT3
 EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name)
 {
     //CTDNS_MD        *ctdns_md;
-    
+
     TASK_BRD        *task_brd;
 
     CSTRING         *upper_service_name;
     CSTRING         *edge_service_name;
-   
+
     MOD_NODE         recv_mod_node;
     EC_BOOL          ret;
 
@@ -2331,16 +2331,16 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_offline: "
                                               "cur network level %ld >= reporter network %ld\n",
                                               TASK_BRD_NETWORK_LEVEL(task_brd),
-                                              network);    
+                                              network);
         return (EC_FALSE);
     }
 
     if(TASK_BRD_NETWORK_LEVEL(task_brd) + 1 < network)
     {
         return ctdns_offline_notify(ctdns_md_id, network, tcid, service_name);
-    }    
+    }
 
-    /*now TASK_BRD_NETWORK_LEVEL(task_brd) + 1 == network*/  
+    /*now TASK_BRD_NETWORK_LEVEL(task_brd) + 1 == network*/
 
     /*unset remote as upper*/
 
@@ -2356,10 +2356,10 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
                                               "gen upper service name failed\n");
         return (EC_FALSE);
     }
-    
+
     ret = EC_FALSE;
-    task_p2p(ctdns_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP, 
-             &recv_mod_node, 
+    task_p2p(ctdns_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &recv_mod_node,
              &ret, FI_ctdns_unset_service, CMPI_ERROR_MODI, CMPI_LOCAL_TCID, upper_service_name);
 
     if(EC_FALSE == ret)
@@ -2377,10 +2377,10 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
                                           "set (service '%s', tcid '%s') on tcid '%s' done\n",
                                           (char *)cstring_get_str(upper_service_name),
                                           c_word_to_ipv4(CMPI_LOCAL_TCID),
-                                          c_word_to_ipv4(tcid));    
+                                          c_word_to_ipv4(tcid));
 
     cstring_free(upper_service_name);
-    
+
     /*unset local as edge*/
     edge_service_name = ctdns_gen_edge_service_name(service_name);
     if(NULL_PTR == edge_service_name)
@@ -2394,7 +2394,7 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_offline: "
                                           "set (service '%s', tcid '%s') done\n",
                                           (char *)cstring_get_str(edge_service_name),
-                                          c_word_to_ipv4(tcid));    
+                                          c_word_to_ipv4(tcid));
     cstring_free(edge_service_name);
     return (EC_TRUE);
 }
@@ -2412,7 +2412,7 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     CHTTP_RSP         chttp_rsp;
     CSTRING           body_cstr;
     UINT32            body_len;
-   
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2425,12 +2425,12 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
 #endif/*CTDNS_DEBUG_SWITCH*/
 
     ctdns_md = CTDNS_MD_GET(ctdns_md_id);
-    
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
-    
+
     chttp_req_set_ipaddr(&chttp_req, (const char *)"127.0.0.1");
-    chttp_req_set_port(&chttp_req, (const char *)"80");    
+    chttp_req_set_port(&chttp_req, (const char *)"80");
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/");
@@ -2440,7 +2440,7 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     body_len = cstring_get_len(&body_cstr);
     chttp_req_set_body(&chttp_req, (const uint8_t *)cstring_get_str(&body_cstr), (uint32_t)body_len);
     cstring_clean(&body_cstr);
-    
+
     chttp_req_add_header(&chttp_req, (const char *)"Host", (const char *)"www.refresh.com");
     chttp_req_add_header(&chttp_req, (const char *)"Accept"    , (const char *)"*/*");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (const char *)"keep-alive");
@@ -2469,8 +2469,8 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     chttp_rsp_clean(&chttp_rsp);
 
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_refresh_local_cache: refresh '%s' done\n",
-                    (const char *)cstring_get_str(path));    
-    
+                    (const char *)cstring_get_str(path));
+
     return (EC_TRUE);
 }
 
@@ -2483,9 +2483,9 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
 EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path)
 {
     //CTDNS_MD        *ctdns_md;
-    
+
     TASK_BRD        *task_brd;
-   
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2503,34 +2503,34 @@ EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, cons
     if(CMPI_TOP_NETWORK == network)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
-                                              "network level should never be top\n");    
+                                              "network level should never be top\n");
         return (EC_FALSE);
     }
-    
+
     if(TASK_BRD_NETWORK_LEVEL(task_brd) > network)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
                                               "cur network level %ld >= reporter network %ld\n",
                                               TASK_BRD_NETWORK_LEVEL(task_brd),
-                                              network);    
+                                              network);
         return (EC_FALSE);
     }
 
     if(TASK_BRD_NETWORK_LEVEL(task_brd) < network)
     {
         return ctdns_refresh_cache_notify(ctdns_md_id, network, tcid, service_name, path);
-    }    
+    }
 
-    /*now TASK_BRD_NETWORK_LEVEL(task_brd) == network*/  
+    /*now TASK_BRD_NETWORK_LEVEL(task_brd) == network*/
     if(CMPI_ANY_TCID != tcid && CMPI_LOCAL_TCID != tcid)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_refresh_cache: "
                                               "local tcid '%s' != des tcid '%s'\n",
                                               c_word_to_ipv4(CMPI_LOCAL_TCID),
-                                              c_word_to_ipv4(tcid));    
+                                              c_word_to_ipv4(tcid));
         return (EC_FALSE);
     }
-    
+
     /*refresh local cache*/
 
     if(EC_FALSE == ctdns_refresh_local_cache(ctdns_md_id, path))
@@ -2539,11 +2539,11 @@ EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, cons
                                               "refresh '%s' failed\n",
                                               (char *)cstring_get_str(path));
         return (EC_FALSE);
-    }       
+    }
 
     dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_refresh_cache: "
                                           "refresh '%s' done\n",
-                                          (char *)cstring_get_str(path));        
+                                          (char *)cstring_get_str(path));
 
     return (EC_TRUE);
 }
@@ -2559,17 +2559,17 @@ STATIC_CAST static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, cons
     UINT32            ipaddr;
     UINT32            port;
     UINT32            elapsed_msec;
-    
+
     CVECTOR          *ret_vec;
     UINT32            ret_pos;
-    
+
     max_num  = (UINT32)(~(UINT32)0);
 
     ret_vec = cvector_new(0, MM_UINT32, LOC_CTDNS_0006);
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:__ctdns_detect_service: "
-                                              "new ret_vec failed\n");    
+                                              "new ret_vec failed\n");
         return (EC_FALSE);
     }
 
@@ -2593,52 +2593,52 @@ STATIC_CAST static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, cons
         dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] __ctdns_detect_service: "
                                               "detect service '%s' node '%s'\n",
                                               (char *)cstring_get_str(service_name),
-                                              c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))); 
+                                              c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)));
 
         alloc_static_mem(MM_UINT32, &ret, LOC_CTDNS_0007);
         cvector_push_no_lock(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;
-        
-        task_p2p_inc(task_mgr, 
-                    ctdns_md_id, 
+
+        task_p2p_inc(task_mgr,
+                    ctdns_md_id,
                     &recv_mod_node,
-                    ret, 
-                    FI_ctdns_ping, CMPI_ERROR_MODI, CTDNSSV_NODE_TCID(ctdnssv_node), 
+                    ret,
+                    FI_ctdns_ping, CMPI_ERROR_MODI, CTDNSSV_NODE_TCID(ctdnssv_node),
                     &ipaddr, &port, &elapsed_msec);
     }
-    
+
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     ret_pos = 0;
     CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
-    {   
-        UINT32              *ret;    
-   
+    {
+        UINT32              *ret;
+
         ret = (UINT32 *)cvector_get(ret_vec, ret_pos);
 
         if(EC_FALSE == (*ret))
         {
             CTDNSSV_NODE        *ctdnssv_node;
-            
+
             ctdnssv_node = CLIST_DATA_DATA(clist_data);
 
             dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] __ctdns_detect_service: "
                                                   "delete node '%s' from service '%s'\n",
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
-                                                  (char *)cstring_get_str(service_name)); 
+                                                  (char *)cstring_get_str(service_name));
 
             ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));
         }
 
         cvector_set(ret_vec, ret_pos, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0008);   
-        
+        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0008);
+
         ret_pos ++;
     }
 
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
     cvector_free(ret_vec, LOC_CTDNS_0009);
-    
+
     return (EC_TRUE);
 }
 /**
@@ -2660,10 +2660,10 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     UINT32            ipaddr;
     UINT32            port;
     UINT32            elapsed_msec;
-    
+
     CVECTOR          *ret_vec;
     UINT32            ret_pos;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2682,18 +2682,18 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     if(NULL_PTR == ctdnssv_node_mgr)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_detect_service: "
-                                              "new ctdnssv_node_mgr failed\n");    
+                                              "new ctdnssv_node_mgr failed\n");
         return (EC_FALSE);
     }
-    
-    if(EC_FALSE == ctdns_finger_service(ctdns_md_id, 
-                                         service_name, 
-                                         max_num, 
+
+    if(EC_FALSE == ctdns_finger_service(ctdns_md_id,
+                                         service_name,
+                                         max_num,
                                          ctdnssv_node_mgr))
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_detect_service: "
                                               "finger service '%s' failed\n",
-                                              (char *)cstring_get_str(service_name));    
+                                              (char *)cstring_get_str(service_name));
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -2702,7 +2702,7 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     {
         dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
                                               "no node for service '%s'\n",
-                                              (char *)cstring_get_str(service_name));    
+                                              (char *)cstring_get_str(service_name));
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_TRUE);
     }
@@ -2711,7 +2711,7 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_detect_service: "
-                                              "new ret_vec failed\n");    
+                                              "new ret_vec failed\n");
         ctdnssv_node_mgr_free(ctdnssv_node_mgr);
         return (EC_FALSE);
     }
@@ -2736,30 +2736,30 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
         dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
                                               "detect service '%s' node '%s'\n",
                                               (char *)cstring_get_str(service_name),
-                                              c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node))); 
+                                              c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)));
 
         alloc_static_mem(MM_UINT32, &ret, LOC_CTDNS_0011);
         cvector_push_no_lock(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;
-        
-        task_p2p_inc(task_mgr, 
-                    ctdns_md_id, 
+
+        task_p2p_inc(task_mgr,
+                    ctdns_md_id,
                     &recv_mod_node,
-                    ret, 
-                    FI_ctdns_ping, CMPI_ERROR_MODI, CTDNSSV_NODE_TCID(ctdnssv_node), 
+                    ret,
+                    FI_ctdns_ping, CMPI_ERROR_MODI, CTDNSSV_NODE_TCID(ctdnssv_node),
                     &ipaddr, &port, &elapsed_msec);
     }
-    
+
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     ret_pos = 0;
     CLIST_LOOP_NEXT(CTDNSSV_NODE_MGR_NODES(ctdnssv_node_mgr), clist_data)
-    {   
+    {
         CTDNSSV_NODE        *ctdnssv_node;
-        UINT32              *ret;    
+        UINT32              *ret;
 
         ctdnssv_node = CLIST_DATA_DATA(clist_data);
-   
+
         ret = (UINT32 *)cvector_get(ret_vec, ret_pos);
 
         if(EC_FALSE == (*ret))
@@ -2767,17 +2767,17 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
             dbg_log(SEC_0026_CTDNS, 9)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
                                                   "suspect node '%s' from service '%s'\n",
                                                   c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
-                                                  (char *)cstring_get_str(service_name));   
-                                                  
-            if(EC_FALSE == ctdns_set_susv(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node), 
+                                                  (char *)cstring_get_str(service_name));
+
+            if(EC_FALSE == ctdns_set_susv(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node),
                                            CTDNS_NODE_DETECT_MAX_FAILS))
             {
                 dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_detect_service: "
                                                       "delete node '%s' from service '%s'\n",
                                                       c_word_to_ipv4(CTDNSSV_NODE_TCID(ctdnssv_node)),
-                                                      (char *)cstring_get_str(service_name)); 
+                                                      (char *)cstring_get_str(service_name));
 
-                ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));            
+                ctdns_delete_tcid_from_service(ctdns_md_id, service_name, CTDNSSV_NODE_TCID(ctdnssv_node));
             }
         }
         else
@@ -2786,21 +2786,21 @@ EC_BOOL ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_na
         }
 
         cvector_set(ret_vec, ret_pos, NULL_PTR);
-        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0012);   
-        
+        free_static_mem(MM_UINT32, ret, LOC_CTDNS_0012);
+
         ret_pos ++;
     }
 
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
     cvector_free(ret_vec, LOC_CTDNS_0013);
-    
+
     return (EC_TRUE);
 }
 
 EC_BOOL ctdns_detect(const UINT32 ctdns_md_id)
 {
     CTDNS_MD         *ctdns_md;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2819,7 +2819,7 @@ EC_BOOL ctdns_detect(const UINT32 ctdns_md_id)
         CLIST_DATA    *clist_data;
 
         ctdnssv_mgr = CTDNS_MD_SVP(ctdns_md);
-        
+
         CLIST_LOOP_NEXT(CTDNSSV_MGR_SP_SERVICES(ctdnssv_mgr), clist_data)
         {
             CTDNSSV     *ctdnssv;
@@ -2842,9 +2842,9 @@ EC_BOOL ctdns_detect(const UINT32 ctdns_md_id)
             ctdns_detect_service(ctdns_md_id, &service_name);
 
             cstring_clean(&service_name);
-        }    
+        }
     }
-  
+
     return (EC_TRUE);
 }
 
@@ -2857,8 +2857,8 @@ EC_BOOL ctdns_detect(const UINT32 ctdns_md_id)
 EC_BOOL ctdns_detect_task(const UINT32 ctdns_md_id)
 {
     TASK_BRD       *task_brd;
-    MOD_NODE        recv_mod_node;    
-    
+    MOD_NODE        recv_mod_node;
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2875,11 +2875,11 @@ EC_BOOL ctdns_detect_task(const UINT32 ctdns_md_id)
     MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
     MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
     MOD_NODE_MODI(&recv_mod_node) = ctdns_md_id;
-    
+
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
              NULL_PTR,
-             FI_ctdns_detect, CMPI_ERROR_MODI);    
+             FI_ctdns_detect, CMPI_ERROR_MODI);
 
     return (EC_TRUE);
 }
@@ -2893,9 +2893,9 @@ EC_BOOL ctdns_detect_task(const UINT32 ctdns_md_id)
 EC_BOOL ctdns_detect_loop(const UINT32 ctdns_md_id)
 {
     TASK_BRD       *task_brd;
-    MOD_NODE        recv_mod_node;    
+    MOD_NODE        recv_mod_node;
     UINT32          msec;
-    
+
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
     {
@@ -2920,11 +2920,11 @@ EC_BOOL ctdns_detect_loop(const UINT32 ctdns_md_id)
                                           "sleep %ld msec\n",
                                           msec);
     coroutine_usleep(msec, LOC_CTDNS_0014);
-    
+
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
              &recv_mod_node,
              NULL_PTR,
-             FI_ctdns_detect_loop, CMPI_ERROR_MODI);    
+             FI_ctdns_detect_loop, CMPI_ERROR_MODI);
 
     return (EC_TRUE);
 }

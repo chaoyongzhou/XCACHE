@@ -36,7 +36,7 @@ extern "C"{
 #include "cdfsdn.h"
 
 
-static void cdfsdn_clean_buff(UINT8 *buff, const UINT32 len)
+STATIC_CAST static void cdfsdn_clean_buff(UINT8 *buff, const UINT32 len)
 {
     BSET(buff, '\0', len);
     return;
@@ -711,7 +711,7 @@ void cdfsdn_block_fname_print(LOG *log, const UINT32 disk_num, const UINT32 bloc
                 );
 }
 
-static EC_BOOL cdfsdn_block_fname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL cdfsdn_block_fname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
 {
     CDSK_SHARD cdsk_shard;
 
@@ -729,7 +729,7 @@ static EC_BOOL cdfsdn_block_fname_gen(const char *root_dir, const UINT32 disk_nu
     return (EC_TRUE);
 }
 
-static EC_BOOL cdfsdn_block_dname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
+STATIC_CAST static EC_BOOL cdfsdn_block_dname_gen(const char *root_dir, const UINT32 disk_num, const UINT32 block_path_layout, char *path, const UINT32 max_len)
 {
     CDSK_SHARD cdsk_shard;
 

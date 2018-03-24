@@ -56,9 +56,9 @@ STATIC_CAST static CTDNSNPRB_NODE *__ctdnsnprb_node(CTDNSNPRB_POOL *pool, const 
     if(CTDNSNPRB_POOL_NODE_MAX_NUM(pool) > node_pos)
     {
         CTDNSNPRB_NODE *node;
-     
+
         node = (CTDNSNPRB_NODE *)((void *)(pool->rb_nodes) + node_pos * CTDNSNPRB_POOL_NODE_SIZEOF(pool));
-     
+
         dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnprb_node: pool %p, rb_nodes %p, node_pos %u  -> node %p\n",
                            pool, (void *)(pool->rb_nodes), node_pos, node);
         return (node);
@@ -174,7 +174,7 @@ EC_BOOL ctdnsnp_item_clean(CTDNSNP_ITEM *ctdnsnp_item)
     CTDNSNP_ITEM_TCID(ctdnsnp_item)             = CMPI_ERROR_TCID;
     CTDNSNP_ITEM_IPADDR(ctdnsnp_item)           = CMPI_ERROR_IPADDR;
     CTDNSNP_ITEM_PORT(ctdnsnp_item)             = CMPI_ERROR_SRVPORT;
-    
+
     /*note:do nothing on rb_node*/
 
     return (EC_TRUE);
@@ -219,7 +219,7 @@ void ctdnsnp_item_print(LOG *log, const CTDNSNP_ITEM *ctdnsnp_item)
                     c_word_to_ipv4(CTDNSNP_ITEM_TCID(ctdnsnp_item)),
                     c_word_to_ipv4(CTDNSNP_ITEM_IPADDR(ctdnsnp_item)),
                     CTDNSNP_ITEM_PORT(ctdnsnp_item));
-   
+
     return;
 }
 
@@ -343,7 +343,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_dup(CTDNSNP_HEADER *src_ctdn
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_dup: new header with %u bytes for np %u fd %d failed\n",
                            fsize, des_np_id, fd);
         return (NULL_PTR);
-    }  
+    }
 
     BCOPY(src_ctdnsnp_header, des_ctdnsnp_header, fsize);
 
@@ -363,7 +363,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, co
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_new: new header with %u bytes for np %u fd %d failed\n",
                            fsize, np_id, fd);
         return (NULL_PTR);
-    }  
+    }
 
     CTDNSNP_HEADER_NP_ID(ctdnsnp_header)     = np_id;
     CTDNSNP_HEADER_NP_MODEL(ctdnsnp_header)  = model;
@@ -371,9 +371,9 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, co
     ctdnsnp_model_item_max_num(model, &node_max_num);
     node_sizeof = sizeof(CTDNSNP_ITEM);
 
-    /*init RB Nodes*/ 
+    /*init RB Nodes*/
     ctdnsnprb_pool_init(CTDNSNP_HEADER_ITEMS_POOL(ctdnsnp_header), node_max_num, node_sizeof);
- 
+
     return (ctdnsnp_header);
 }
 
@@ -383,13 +383,13 @@ STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_flush(CTDNSNP_HEADER *ctdns
     {
         UINT32 offset;
 
-        offset = 0;     
+        offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnsnp_header))
         {
             dbg_log(SEC_0022_CTDNSNP, 1)(LOGSTDOUT, "warn:__ctdnsnp_header_flush: flush ctdnsnp_hdr of np %u fd %d with size %u failed\n",
                                np_id, fd, fsize);
         }
-    } 
+    }
     return (ctdnsnp_header);
 }
 
@@ -411,7 +411,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_free(CTDNSNP_HEADER *ctdnsnp
 
         safe_free(ctdnsnp_header, LOC_CTDNSNP_0008);
     }
- 
+
     /*ctdnsnp_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -428,43 +428,43 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_open(const uint32_t np_id, c
                            np_id, fd, errno, strerror(errno));
         return (NULL_PTR);
     }
- 
+
     return (ctdnsnp_header);
 }
 
 STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_clone(const CTDNSNP_HEADER *src_ctdnsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
     CTDNSNP_HEADER *des_ctdnsnp_header;
- 
+
     des_ctdnsnp_header = (CTDNSNP_HEADER *)mmap(NULL_PTR, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(MAP_FAILED == des_ctdnsnp_header)
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_clone: mmap np %u with fd %d failed, errno = %d, errstr = %s\n",
                            des_np_id, fd, errno, strerror(errno));
         return (NULL_PTR);
-    }  
+    }
 
     BCOPY(src_ctdnsnp_header, des_ctdnsnp_header, fsize);
 
     CTDNSNP_HEADER_NP_ID(des_ctdnsnp_header)  = des_np_id;
- 
+
     return (des_ctdnsnp_header);
 }
 
 STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t model)
 {
     CTDNSNP_HEADER *ctdnsnp_header;
-    
+
     uint32_t        node_max_num;
     uint32_t        node_sizeof;
- 
+
     ctdnsnp_header = (CTDNSNP_HEADER *)mmap(NULL_PTR, fsize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(MAP_FAILED == ctdnsnp_header)
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_create: mmap np %u with fd %d failed, errno = %d, errstr = %s\n",
                            np_id, fd, errno, strerror(errno));
         return (NULL_PTR);
-    }  
+    }
 
     CTDNSNP_HEADER_NP_ID(ctdnsnp_header)     = np_id;
     CTDNSNP_HEADER_NP_MODEL(ctdnsnp_header)  = model;
@@ -475,7 +475,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id,
 
     /*init RB Nodes*/
     ctdnsnprb_pool_init(CTDNSNP_HEADER_ITEMS_POOL(ctdnsnp_header), node_max_num, node_sizeof);
- 
+
     return (ctdnsnp_header);
 }
 
@@ -492,8 +492,8 @@ STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsn
         {
             dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_sync: sync ctdnsnp_hdr of np %u %d with size %u done\n",
                                np_id, fd, fsize);
-        }    
-    } 
+        }
+    }
     return (ctdnsnp_header);
 }
 
@@ -522,7 +522,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_close(CTDNSNP_HEADER *ctdnsn
                                np_id, fd, fsize);
         }
     }
- 
+
     /*ctdnsnp_header cannot be accessed again*/
     return (NULL_PTR);
 }
@@ -535,7 +535,7 @@ EC_BOOL ctdnsnp_header_init(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id
     //TODO:
 
     /*do nothing on CTDNSNPRB_POOL pool*/
- 
+
     return (EC_TRUE);
 }
 
@@ -543,7 +543,7 @@ EC_BOOL ctdnsnp_header_clean(CTDNSNP_HEADER *ctdnsnp_header)
 {
     CTDNSNP_HEADER_NP_ID(ctdnsnp_header)                 = CTDNSNP_ERR_ID;
     CTDNSNP_HEADER_NP_MODEL(ctdnsnp_header)              = CTDNSNP_ERR_MODEL;
- 
+
     /*do nothing on CTDNSNPRB_POOL pool*/
 
     return (EC_TRUE);
@@ -587,7 +587,7 @@ CTDNSNP_HEADER *ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsnp_header, const uint32
         return __ctdnsnp_header_flush(ctdnsnp_header, np_id, fsize, fd);
     }
 
-    return __ctdnsnp_header_sync(ctdnsnp_header, np_id, fsize, fd); 
+    return __ctdnsnp_header_sync(ctdnsnp_header, np_id, fsize, fd);
 }
 
 CTDNSNP_HEADER *ctdnsnp_header_close(CTDNSNP_HEADER *ctdnsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
@@ -611,7 +611,7 @@ void ctdnsnp_header_print(LOG *log, const CTDNSNP *ctdnsnp)
                 CTDNSNP_HEADER_NP_MODEL(ctdnsnp_header),
                 CTDNSNP_HEADER_ITEMS_MAX_NUM(ctdnsnp_header),
                 CTDNSNP_HEADER_ITEMS_USED_NUM(ctdnsnp_header)
-        );   
+        );
 
     ctdnsnprb_pool_print(log, CTDNSNP_HEADER_ITEMS_POOL(ctdnsnp_header));
     return;
@@ -630,7 +630,7 @@ CTDNSNP *ctdnsnp_new()
 }
 
 EC_BOOL ctdnsnp_init(CTDNSNP *ctdnsnp)
-{ 
+{
     CTDNSNP_FD(ctdnsnp)              = ERR_FD;
     CTDNSNP_FSIZE(ctdnsnp)           = 0;
     CTDNSNP_FNAME(ctdnsnp)           = NULL_PTR;
@@ -646,7 +646,7 @@ EC_BOOL ctdnsnp_clean(CTDNSNP *ctdnsnp)
         ctdnsnp_header_close(CTDNSNP_HDR(ctdnsnp), CTDNSNP_ID(ctdnsnp), CTDNSNP_FSIZE(ctdnsnp), CTDNSNP_FD(ctdnsnp));
         CTDNSNP_HDR(ctdnsnp) = NULL_PTR;
     }
- 
+
     if(ERR_FD != CTDNSNP_FD(ctdnsnp))
     {
         c_file_close(CTDNSNP_FD(ctdnsnp));
@@ -692,7 +692,7 @@ void ctdnsnp_print(LOG *log, const CTDNSNP *ctdnsnp)
                  CTDNSNP_FNAME(ctdnsnp),
                  CTDNSNP_FSIZE(ctdnsnp)
                  );
-              
+
     sys_log(log, "ctdnsnp %p: header: \n", ctdnsnp);
     ctdnsnp_header_print(log, ctdnsnp);
     return;
@@ -702,13 +702,13 @@ void ctdnsnp_print(LOG *log, const CTDNSNP *ctdnsnp)
 uint32_t ctdnsnp_search_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid)
 {
     CTDNSNPRB_POOL    *ctdnsnp_pool;
-    
+
     uint32_t           node_pos;
 
     ctdnsnp_pool      = CTDNSNP_ITEMS_POOL(ctdnsnp);
 
     node_pos = ctdnsnprb_tree_search_data(ctdnsnp_pool, CTDNSNPRB_POOL_ROOT_POS(ctdnsnp_pool), tcid);
-    
+
     return (node_pos);
 }
 
@@ -721,7 +721,7 @@ uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT3
 {
     CTDNSNP_HEADER    *ctdnsnp_header;
     CTDNSNPRB_POOL    *ctdnsnp_pool;
-    
+
     uint32_t           node_pos;
 
     ctdnsnp_header = CTDNSNP_HDR(ctdnsnp);
@@ -739,7 +739,7 @@ uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT3
         CTDNSNP_ITEM_TCID(ctdnsnp_item)   = tcid;
         CTDNSNP_ITEM_IPADDR(ctdnsnp_item) = ipaddr;
         CTDNSNP_ITEM_PORT(ctdnsnp_item)   = (uint32_t)port;
-        
+
         return (node_pos);
     }
 
@@ -753,22 +753,22 @@ uint32_t ctdnsnp_insert_no_lock(CTDNSNP *ctdnsnp, const UINT32 tcid, const UINT3
         if(tcid == CTDNSNP_ITEM_TCID(ctdnsnp_item))
         {
             CTDNSNP_ITEM_IPADDR(ctdnsnp_item) = ipaddr;
-            CTDNSNP_ITEM_PORT(ctdnsnp_item)   = (uint32_t)port;        
+            CTDNSNP_ITEM_PORT(ctdnsnp_item)   = (uint32_t)port;
             return (node_pos);
         }
-        
+
         return (CTDNSNPRB_ERR_POS);
-        
-#if 0        
+
+#if 0
         if(tcid == CTDNSNP_ITEM_TCID(ctdnsnp_item)
         && ipaddr == CTDNSNP_ITEM_IPADDR(ctdnsnp_item)
         && (uint32_t)port == CTDNSNP_ITEM_PORT(ctdnsnp_item))
         {
             return (node_pos);
         }
-        
+
         return (CTDNSNPRB_ERR_POS);
-#endif        
+#endif
     }
 
     return (CTDNSNPRB_ERR_POS);
@@ -862,7 +862,7 @@ CTDNSNP *ctdnsnp_open(const char *np_root_dir, const uint32_t np_id)
         safe_free(np_fname, LOC_CTDNSNP_0015);
         c_file_close(fd);
         return (NULL_PTR);
-    } 
+    }
 
     ctdnsnp = ctdnsnp_new();
     if(NULL_PTR == ctdnsnp)
@@ -891,7 +891,7 @@ EC_BOOL ctdnsnp_close(CTDNSNP *ctdnsnp)
         uint32_t np_id;
 
         np_id = CTDNSNP_ID(ctdnsnp); /*save np np_id info due to CTDNSNP_HDR will be destoried immediately*/
-     
+
         dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] ctdnsnp_close: close np %u beg\n", np_id);
 
         if(NULL_PTR != CTDNSNP_HDR(ctdnsnp))
@@ -932,7 +932,7 @@ CTDNSNP *ctdnsnp_clone(CTDNSNP *src_ctdns, const char *np_root_dir, const uint32
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_clone: generate des_np_fname of np %u, root_dir %s failed\n", des_np_id, np_root_dir);
         return (NULL_PTR);
     }
- 
+
     if(EC_TRUE == c_file_access(des_np_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_clone: np %u exist already\n", des_np_id);
@@ -970,7 +970,7 @@ CTDNSNP *ctdnsnp_clone(CTDNSNP *src_ctdns, const char *np_root_dir, const uint32
     if(NULL_PTR == des_ctdns)
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_clone: new ctdnsnp %u failed\n", des_np_id);
-        safe_free(des_np_fname, LOC_CTDNSNP_0021);     
+        safe_free(des_np_fname, LOC_CTDNSNP_0021);
         ctdnsnp_header_close(des_ctdnsnp_header, des_np_id, fsize, fd);
         c_file_close(fd);
         return (NULL_PTR);
@@ -981,7 +981,7 @@ CTDNSNP *ctdnsnp_clone(CTDNSNP *src_ctdns, const char *np_root_dir, const uint32
     CTDNSNP_FSIZE(des_ctdns) = fsize;
     CTDNSNP_FNAME(des_ctdns) = (uint8_t *)des_np_fname;
 
-    ASSERT(des_np_id == CTDNSNP_HEADER_NP_ID(des_ctdnsnp_header)); 
+    ASSERT(des_np_id == CTDNSNP_HEADER_NP_ID(des_ctdnsnp_header));
 
     dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] ctdnsnp_clone: clone np %u done\n", des_np_id);
 
@@ -993,7 +993,7 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
     CTDNSNP         *ctdnsnp;
     CTDNSNP_HEADER  *ctdnsnp_header;
     char            *np_fname;
-    
+
     UINT32           fsize;
     int              fd;
     uint32_t         item_max_num;
@@ -1019,7 +1019,7 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_create: invalid model %u\n", model);
         return (NULL_PTR);
-    } 
+    }
 
     np_fname = ctdnsnp_fname_gen(np_root_dir, np_id);
     if(NULL_PTR == np_fname)
@@ -1027,7 +1027,7 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_create: generate np_fname of np %u, root_dir %s failed\n", np_id, np_root_dir);
         return (NULL_PTR);
     }
- 
+
     if(EC_TRUE == c_file_access(np_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_create: np %u '%s' exist already\n", np_id, np_fname);
@@ -1070,12 +1070,12 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
         return (NULL_PTR);
     }
     CTDNSNP_HDR(ctdnsnp)   = ctdnsnp_header;
-   
+
     CTDNSNP_FD(ctdnsnp)    = fd;
     CTDNSNP_FSIZE(ctdnsnp) = fsize;
     CTDNSNP_FNAME(ctdnsnp) = (uint8_t *)np_fname;
 
-    ASSERT(np_id == CTDNSNP_HEADER_NP_ID(ctdnsnp_header)); 
+    ASSERT(np_id == CTDNSNP_HEADER_NP_ID(ctdnsnp_header));
 
     dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] ctdnsnp_create: create np %u done\n", np_id);
 
@@ -1095,13 +1095,13 @@ EC_BOOL ctdnsnp_show_item(LOG *log, const CTDNSNP *ctdnsnp, const uint32_t node_
 
     pool = CTDNSNP_ITEMS_POOL(ctdnsnp);
 
-    node  = CTDNSNPRB_POOL_NODE(pool, node_pos); 
+    node  = CTDNSNPRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     ctdnsnp_item = ctdnsnp_fetch(ctdnsnp, node_pos);
 
     ctdnsnp_item_print(log, ctdnsnp_item);
- 
+
     return (EC_TRUE);
 }
 
@@ -1109,12 +1109,12 @@ EC_BOOL ctdnsnp_tcid_num(const CTDNSNP *ctdnsnp, UINT32 *tcid_num)
 {
     CTDNSNP_HEADER    *ctdnsnp_header;
     CTDNSNPRB_POOL    *ctdnsnp_pool;
-    
+
     ctdnsnp_header    = CTDNSNP_HDR(ctdnsnp);
     ctdnsnp_pool      = CTDNSNP_HEADER_ITEMS_POOL(ctdnsnp_header);
 
     (*tcid_num) = CTDNSNPRB_POOL_NODE_USED_NUM(ctdnsnp_pool);
-    return (EC_TRUE);    
+    return (EC_TRUE);
 }
 
 

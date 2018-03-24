@@ -28,8 +28,8 @@ EC_BOOL cssl_init()
 {
     if(EC_FALSE == g_cssl_init_flag)
     {
-        SSL_library_init(); 
-        OpenSSL_add_all_algorithms(); 
+        SSL_library_init();
+        OpenSSL_add_all_algorithms();
         SSL_load_error_strings();
 
         g_cssl_init_flag = EC_TRUE;
@@ -62,18 +62,18 @@ CSSL_NODE *cssl_node_new()
 EC_BOOL cssl_node_init(CSSL_NODE *cssl_node)
 {
     cssl_init();
- 
+
     if(NULL_PTR != cssl_node)
     {
         CSSL_NODE_TYPE(cssl_node)           = CSSL_NODE_UNKNOWN_TYPE;
-        CSSL_NODE_SSL(cssl_node)            = NULL_PTR;  
+        CSSL_NODE_SSL(cssl_node)            = NULL_PTR;
         CSSL_NODE_SSL_CTX(cssl_node)        = NULL_PTR;
 
         cstring_init(CSSL_NODE_CA_FILE(cssl_node), NULL_PTR);
         cstring_init(CSSL_NODE_CLIENT_CERT_FILE(cssl_node), NULL_PTR);
         cstring_init(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node), NULL_PTR);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -100,7 +100,7 @@ EC_BOOL cssl_node_clean(CSSL_NODE *cssl_node)
 
         CSSL_NODE_TYPE(cssl_node) = CSSL_NODE_UNKNOWN_TYPE;
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -220,13 +220,13 @@ EC_BOOL cssl_node_create_ctx(CSSL_NODE *cssl_node)
             SSL_CTX_set_default_verify_paths(ctx);
         }
         else
-        {  
+        {
             const char *ca_certificate;
 
             ca_certificate = (const char *)cstring_get_str(CSSL_NODE_CA_FILE(cssl_node));
             SSL_CTX_load_verify_locations(ctx, ca_certificate, NULL_PTR);
         }
-      
+
         dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: set to verify peer\n");
 
         SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
@@ -241,32 +241,32 @@ EC_BOOL cssl_node_create_ctx(CSSL_NODE *cssl_node)
 
             client_cert     = (const char *)cstring_get_str(CSSL_NODE_CLIENT_CERT_FILE(cssl_node));
             client_privkey  = (const char *)cstring_get_str(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node));
-            
+
             if(EC_FALSE == cssl_node_load_certificate(cssl_node, client_cert))
             {
-                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client certificate '%s' failed\n", 
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client certificate '%s' failed\n",
                                 client_cert);
-                return (EC_FALSE);            
+                return (EC_FALSE);
             }
 
             if(EC_FALSE == cssl_node_load_private_key(cssl_node, client_privkey))
             {
-                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client private key '%s' failed\n", 
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: load client private key '%s' failed\n",
                                 client_privkey);
-                return (EC_FALSE);            
-            }
-            
-            if(EC_FALSE == cssl_node_check_private_key(cssl_node))
-            {
-                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: check client certificate '%s' and private key '%s' failed\n", 
-                                client_cert, client_privkey);
-                return (EC_FALSE);            
+                return (EC_FALSE);
             }
 
-            dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: check client certificate '%s' and private key '%s' done\n", 
-                            client_cert, client_privkey);            
+            if(EC_FALSE == cssl_node_check_private_key(cssl_node))
+            {
+                dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_create_ctx: check client certificate '%s' and private key '%s' failed\n",
+                                client_cert, client_privkey);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: check client certificate '%s' and private key '%s' done\n",
+                            client_cert, client_privkey);
         }
-        
+
         dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_create_ctx: new client ctx done\n");
         return (EC_TRUE);
     }
@@ -339,7 +339,7 @@ EC_BOOL cssl_node_bind_socket(CSSL_NODE *cssl_node, const int sockfd)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cssl_node_make_on_client(CSSL_NODE *cssl_node, const int sockfd)
+STATIC_CAST static EC_BOOL __cssl_node_make_on_client(CSSL_NODE *cssl_node, const int sockfd)
 {
     if(EC_FALSE == cssl_node_create_ctx(cssl_node))
     {
@@ -361,7 +361,7 @@ static EC_BOOL __cssl_node_make_on_client(CSSL_NODE *cssl_node, const int sockfd
         return (EC_FALSE);
     }
     dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] __cssl_node_make_on_client: sockfd %d, bind ssl done\n", sockfd);
- 
+
     return (EC_TRUE);
 }
 
@@ -391,8 +391,8 @@ CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file, cons
     if(NULL_PTR != client_privkey_file)
     {
         cstring_append_str(CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node), (const UINT8 *)client_privkey_file);
-    }    
-    
+    }
+
     if(EC_FALSE == __cssl_node_make_on_client(cssl_node, sockfd))
     {
         dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_make_on_client: make cssl_node on client failed\n");
@@ -403,7 +403,7 @@ CSSL_NODE * cssl_node_make_on_client(const int sockfd, const char *ca_file, cons
     return (cssl_node);
 }
 
-static EC_BOOL __cssl_node_make_on_server(CSSL_NODE *cssl_node, const int sockfd)
+STATIC_CAST static EC_BOOL __cssl_node_make_on_server(CSSL_NODE *cssl_node, const int sockfd)
 {
     ASSERT(NULL_PTR != CSSL_NODE_SSL_CTX(cssl_node));
 
@@ -420,7 +420,7 @@ static EC_BOOL __cssl_node_make_on_server(CSSL_NODE *cssl_node, const int sockfd
         return (EC_FALSE);
     }
     dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] __cssl_node_make_on_server: sockfd %d, bind ssl done\n", sockfd);
- 
+
     return (EC_TRUE);
 }
 
@@ -447,14 +447,14 @@ CSSL_NODE * cssl_node_make_on_server(CSSL_NODE *cssl_node_srv, const int client_
 
         /*unbind server ctx*/
         CSSL_NODE_SSL_CTX(cssl_node) = NULL_PTR;
- 
+
         cssl_node_free(cssl_node);
         return (NULL_PTR);
     }
- 
+
     /*unbind server ctx*/
     CSSL_NODE_SSL_CTX(cssl_node) = NULL_PTR;
- 
+
     return (cssl_node);
 }
 
@@ -478,8 +478,8 @@ EC_BOOL cssl_node_handshake(CSSL_NODE *cssl_node)
     /*handshake succ*/
     ret = SSL_do_handshake(ssl);
     if(SSL_SUCC == ret)
-    {   
-#if 0    
+    {
+#if 0
         if(X509_V_OK != SSL_get_verify_result(ssl))
         {
             dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_handshake: handshake verify certifacate failed\n");
@@ -508,7 +508,7 @@ EC_BOOL cssl_node_handshake(CSSL_NODE *cssl_node)
     ssl_errno = ERR_get_error();
     dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_handshake: handshake failed, err = %d, '%s:%s:%s'\n",
                     err, ERR_lib_error_string(ssl_errno), ERR_func_error_string(ssl_errno), ERR_reason_error_string(ssl_errno));
-    
+
     return (EC_FALSE);
 }
 
@@ -564,7 +564,7 @@ EC_BOOL cssl_node_accept(CSSL_NODE *cssl_node) /* for server */
     }
 
     /*handshake succ*/
- 
+
     dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_accept: SSL_accept done\n");
     return (EC_TRUE);
 }
@@ -593,7 +593,7 @@ EC_BOOL cssl_node_recv(CSSL_NODE *cssl_node, const UINT32 once_max_size, UINT8 *
     /* read until completation, or buffer is full */
     for(; 0 < once_recv_len; once_recv_len = (size_t)(in_buff_expect_len - (*pos)))
     {
-             
+
         ssize_t  ret;
         int      err;
 
@@ -610,8 +610,8 @@ EC_BOOL cssl_node_recv(CSSL_NODE *cssl_node, const UINT32 once_max_size, UINT8 *
                 dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_recv: read buff is\n");
                 cssl_print_chars(LOGSTDOUT, in_buff, *pos, ret);
             }
-#endif         
-            (*pos) += (UINT32)ret;     
+#endif
+            (*pos) += (UINT32)ret;
             continue;
         }
 

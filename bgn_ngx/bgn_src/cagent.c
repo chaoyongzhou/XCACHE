@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -65,7 +65,7 @@ EC_BOOL cagent_init(CAGENT *cagent)
 
     CAGENT_LOCAL_IPADDR(cagent)  = CMPI_ERROR_IPADDR;
     CAGENT_LOCAL_PORT(cagent)    = CMPI_ERROR_CLNTPORT;
-    
+
     return (EC_TRUE);
 }
 
@@ -80,8 +80,8 @@ EC_BOOL cagent_clean(CAGENT *cagent)
 
     CAGENT_LOCAL_IPADDR(cagent)  = CMPI_ERROR_IPADDR;
     CAGENT_LOCAL_PORT(cagent)    = CMPI_ERROR_CLNTPORT;
-    
-    return (EC_TRUE); 
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cagent_free(CAGENT *cagent)
@@ -99,13 +99,13 @@ void cagent_print(LOG *log, const CAGENT *cagent)
 {
     sys_log(LOGSTDOUT, "cagent_print:tdns host     : %s\n", (const char *)CAGENT_TDNS_HOST_STR(cagent));
     sys_log(LOGSTDOUT, "cagent_print:tdns port     : %ld\n", CAGENT_TDNS_PORT(cagent));
-    
+
     sys_log(LOGSTDOUT, "cagent_print:reserved tcid : %s\n", c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)));
     sys_log(LOGSTDOUT, "cagent_print:reserved port : %ld\n", CAGENT_RESERVED_PORT(cagent));
 
     sys_log(LOGSTDOUT, "cagent_print:local ipaddr  : %s\n", c_word_to_ipv4(CAGENT_LOCAL_IPADDR(cagent)));
     sys_log(LOGSTDOUT, "cagent_print:local port    : %ld\n", CAGENT_LOCAL_PORT(cagent));
-    
+
     return;
 }
 
@@ -117,7 +117,7 @@ EC_BOOL cagent_reserve_tcid(CAGENT *cagent, const char *service, const char *ipa
     UINT32            tdns_ipaddr;
     const char      * k;
     char            * v;
-    
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -127,9 +127,9 @@ EC_BOOL cagent_reserve_tcid(CAGENT *cagent, const char *service, const char *ipa
                         (char *)CAGENT_TDNS_HOST_STR(cagent));
         return (EC_FALSE);
     }
-    
+
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
-    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));    
+    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/reserve");
@@ -185,19 +185,19 @@ EC_BOOL cagent_reserve_tcid(CAGENT *cagent, const char *service, const char *ipa
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
-    CAGENT_RESERVED_PORT(cagent) = c_str_to_word(v);    
+    CAGENT_RESERVED_PORT(cagent) = c_str_to_word(v);
 
     /*record socket ipaddr and port during http procedure*/
     CAGENT_LOCAL_IPADDR(cagent) = CHTTP_RSP_CLIENT_IPADDR(&chttp_rsp);
-    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);      
+    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
     dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_reserve_tcid: reserved tcid '%s', port %ld\n",
-                    c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)), 
-                    CAGENT_RESERVED_PORT(cagent));    
-    
+                    c_word_to_ipv4(CAGENT_RESERVED_TCID(cagent)),
+                    CAGENT_RESERVED_PORT(cagent));
+
     return (EC_TRUE);
 }
 
@@ -207,7 +207,7 @@ EC_BOOL cagent_release_tcid(CAGENT *cagent, const char *service, const char *tci
     CHTTP_RSP         chttp_rsp;
 
     UINT32            tdns_ipaddr;
-    
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -217,9 +217,9 @@ EC_BOOL cagent_release_tcid(CAGENT *cagent, const char *service, const char *tci
                         (char *)CAGENT_TDNS_HOST_STR(cagent));
         return (EC_FALSE);
     }
-    
+
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
-    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));    
+    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/release");
@@ -256,15 +256,15 @@ EC_BOOL cagent_release_tcid(CAGENT *cagent, const char *service, const char *tci
     chttp_rsp_clean(&chttp_rsp);
 
     dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_release_tcid: released tcid '%s', port %ld\n",
-                    tcid, port);    
-    
+                    tcid, port);
+
     return (EC_TRUE);
 }
 
 EC_BOOL cagent_check_config_xml(const CAGENT *cagent, const char *fname)
 {
     SYS_CFG     *sys_cfg;
-    
+
     if(EC_FALSE == c_file_access(fname, F_OK | R_OK))
     {
         return (EC_FALSE);
@@ -284,7 +284,7 @@ EC_BOOL cagent_check_config_xml(const CAGENT *cagent, const char *fname)
         return (EC_FALSE);
     }
     sys_cfg_free(sys_cfg);
-    
+
     return (EC_TRUE);
 }
 
@@ -292,15 +292,15 @@ SYS_CFG *cagent_gen_config(const CAGENT *cagent)
 {
     SYS_CFG     *sys_cfg;
     TASKS_CFG   *tasks_cfg;
-    
+
     CPARACFG    *cparacfg;
-    
+
     sys_cfg = sys_cfg_new();
     if(NULL_PTR == sys_cfg)
     {
         dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_gen_config: new sys_cfg failed\n");
         return (NULL_PTR);
-    }    
+    }
 
     tasks_cfg = tasks_cfg_new();
     if(NULL_PTR == tasks_cfg)
@@ -317,7 +317,7 @@ SYS_CFG *cagent_gen_config(const CAGENT *cagent)
 
     /*note: p2p never used a defined port*/
     TASKS_CFG_SRVIPADDR(tasks_cfg) = CAGENT_LOCAL_IPADDR(cagent); /*bind netcard indeed which is able to access T-DNS*/
-    TASKS_CFG_SRVPORT(tasks_cfg)   = CAGENT_LOCAL_PORT(cagent); 
+    TASKS_CFG_SRVPORT(tasks_cfg)   = CAGENT_LOCAL_PORT(cagent);
     cvector_push_no_lock(TASK_CFG_TASKS_CFG_VEC(SYS_CFG_TASK_CFG(sys_cfg)), (void *)tasks_cfg);
 
     /*cparacfg*/
@@ -342,7 +342,7 @@ EC_BOOL cagent_gen_config_xml(const CAGENT *cagent, const char *fname)
     {
         dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_gen_config_xml: gen conf failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(EC_FALSE == user_log_open(LOGUSER07, fname, "w"))
     {
@@ -350,7 +350,7 @@ EC_BOOL cagent_gen_config_xml(const CAGENT *cagent, const char *fname)
         sys_cfg_free(sys_cfg);
         return (EC_FALSE);
     }
-   
+
     sys_cfg_print_xml(LOGUSER07, sys_cfg, 0);
     user_log_close(LOGUSER07);
 
@@ -365,7 +365,7 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
     CHTTP_RSP         chttp_rsp;
 
     UINT32            tdns_ipaddr;
-    
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -375,9 +375,9 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
                         (char *)CAGENT_TDNS_HOST_STR(cagent));
         return (EC_FALSE);
     }
-    
+
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
-    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));    
+    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/set");
@@ -414,14 +414,14 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
 
     /*record socket ipaddr and port during http procedure*/
     CAGENT_LOCAL_IPADDR(cagent) = CHTTP_RSP_CLIENT_IPADDR(&chttp_rsp);
-    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);    
+    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
     dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_service: service '%s', tcid '%s', ip '%s'\n",
-                    service, tcid, ipaddr);    
-    
+                    service, tcid, ipaddr);
+
     return (EC_TRUE);
 }
 
@@ -431,7 +431,7 @@ EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, co
     CHTTP_RSP         chttp_rsp;
 
     UINT32            tdns_ipaddr;
-    
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -441,9 +441,9 @@ EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, co
                         (char *)CAGENT_TDNS_HOST_STR(cagent));
         return (EC_FALSE);
     }
-    
+
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
-    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));    
+    chttp_req_set_port_word(&chttp_req, CAGENT_TDNS_PORT(cagent));
 
     chttp_req_set_method(&chttp_req, (const char *)"GET");
     chttp_req_set_uri(&chttp_req, (const char *)"/tdns/set");
@@ -478,14 +478,14 @@ EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, co
 
     /*record socket ipaddr and port during http procedure*/
     CAGENT_LOCAL_IPADDR(cagent) = CHTTP_RSP_CLIENT_IPADDR(&chttp_rsp);
-    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);    
+    CAGENT_LOCAL_PORT(cagent)   = CHTTP_RSP_CLIENT_PORT(&chttp_rsp);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
     dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_tcid: bind tcid '%s', ip '%s' done\n",
-                    tcid, ipaddr);    
-    
+                    tcid, ipaddr);
+
     return (EC_TRUE);
 }
 

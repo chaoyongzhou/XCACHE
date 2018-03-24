@@ -32,7 +32,7 @@ extern "C"{
 #include "task.h"
 #include "findex.inc"
 
-static EC_BOOL __cbtimer_clean_task_func(FUNC_ADDR_NODE * func_addr_node, TASK_FUNC *task_func)
+STATIC_CAST static EC_BOOL __cbtimer_clean_task_func(FUNC_ADDR_NODE * func_addr_node, TASK_FUNC *task_func)
 {
     TYPE_CONV_ITEM *type_conv_item;
 

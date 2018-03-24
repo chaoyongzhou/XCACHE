@@ -120,7 +120,7 @@ UINT32 chfsmon_start()
     task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CHFSMON , 32);
-    
+
     chfsmon_md_id = cbc_md_new(MD_CHFSMON, sizeof(CHFSMON_MD));
     if(CMPI_ERROR_MODI == chfsmon_md_id)
     {
@@ -132,7 +132,7 @@ UINT32 chfsmon_start()
     chfsmon_md->usedcounter   = 0;
 
     /* create a new module node */
-    init_static_mem(); 
+    init_static_mem();
 
     /*initialize CHFS_NODE vector*/
     cvector_init(CHFSMON_MD_CHFS_NODE_VEC(chfsmon_md), 16, MM_CHFS_NODE, CVECTOR_LOCK_DISABLE, LOC_CHFSMON_0001);
@@ -172,7 +172,7 @@ void chfsmon_end(const UINT32 chfsmon_md_id)
         dbg_log(SEC_0161_CHFSMON, 0)(LOGSTDOUT, "error:chfsmon_end: chfsmon_md_id = %ld not exist.\n", chfsmon_md_id);
         dbg_exit(MD_CHFSMON, chfsmon_md_id);
     }
- 
+
     /* if the module is occupied by others,then decrease counter only */
     if ( 1 < chfsmon_md->usedcounter )
     {
@@ -192,7 +192,7 @@ void chfsmon_end(const UINT32 chfsmon_md_id)
         chfsconhash_free(CHFSMON_MD_CHFSCONHASH(chfsmon_md));
         CHFSMON_MD_CHFSCONHASH(chfsmon_md) = NULL_PTR;
     }
- 
+
     /* free module : */
     //chfsmon_free_module_static_mem(chfsmon_md_id);
 
@@ -224,7 +224,7 @@ EC_BOOL chfs_node_init(CHFS_NODE *chfs_node)
         CHFS_NODE_PORT(chfs_node)   = CMPI_ERROR_SRVPORT;
         CHFS_NODE_MODI(chfs_node)   = CMPI_ERROR_MODI;
         CHFS_NODE_STATE(chfs_node)  = CHFS_NODE_IS_ERR;
-     
+
     }
     return (EC_TRUE);
 }
@@ -238,7 +238,7 @@ EC_BOOL chfs_node_clean(CHFS_NODE *chfs_node)
         CHFS_NODE_PORT(chfs_node)   = CMPI_ERROR_SRVPORT;
         CHFS_NODE_MODI(chfs_node)   = CMPI_ERROR_MODI;
         CHFS_NODE_STATE(chfs_node)  = CHFS_NODE_IS_ERR;
-     
+
     }
     return (EC_TRUE);
 }
@@ -303,7 +303,7 @@ EC_BOOL chfs_node_is_valid(const CHFS_NODE *chfs_node)
     if(CHFS_NODE_IS_ERR == CHFS_NODE_STATE(chfs_node))
     {
         return (EC_FALSE);
-    } 
+    }
     return (EC_TRUE);
 }
 
@@ -379,7 +379,7 @@ void chfsmon_chfs_node_print(const UINT32 chfsmon_md_id, LOG *log)
     chfsmon_md = CHFSMON_MD_GET(chfsmon_md_id);
 
     cvector_print(log, CHFSMON_MD_CHFS_NODE_VEC(chfsmon_md), (CVECTOR_DATA_PRINT)chfs_node_print);
- 
+
     return;
 }
 
@@ -421,12 +421,12 @@ void chfsmon_chfs_node_list(const UINT32 chfsmon_md_id, CSTRING *cstr)
                     );
 
         dbg_log(SEC_0161_CHFSMON, 9)(LOGSTDOUT, "[DEBUG] chfsmon_chfs_node_list: [%ld] cstr:\n%.*s\n", pos,
-                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));  
-                     
+                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));
+
     }
 
     dbg_log(SEC_0161_CHFSMON, 9)(LOGSTDOUT, "[DEBUG] chfsmon_chfs_node_list: list result:\n%.*s\n",
-                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));  
+                    (uint32_t)CSTRING_LEN(cstr), (char *)CSTRING_STR(cstr));
     return;
 }
 
@@ -520,8 +520,8 @@ EC_BOOL chfsmon_chfs_node_add(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                 CHFS_NODE_MODI(chfs_node),
                 chfs_node_state(chfs_node)
                 );
-             
-        return (EC_FALSE);             
+
+        return (EC_FALSE);
     }
 
     chfs_node_clone(chfs_node_t, chfs_node);
@@ -546,7 +546,7 @@ EC_BOOL chfsmon_chfs_node_add(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                             CHFS_NODE_MODI(chfs_node_t),
                             chfs_node_state(chfs_node_t)
                             );
-                         
+
             cvector_pop(CHFSMON_MD_CHFS_NODE_VEC(chfsmon_md));
             chfs_node_free(chfs_node_t);
             return (EC_FALSE);
@@ -559,7 +559,7 @@ EC_BOOL chfsmon_chfs_node_add(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                         c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                         CHFS_NODE_MODI(chfs_node_t),
                         chfs_node_state(chfs_node_t)
-                        );     
+                        );
     }
 
     dbg_log(SEC_0161_CHFSMON, 9)(LOGSTDOUT,
@@ -569,7 +569,7 @@ EC_BOOL chfsmon_chfs_node_add(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                     c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                     CHFS_NODE_MODI(chfs_node_t),
                     chfs_node_state(chfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -636,7 +636,7 @@ EC_BOOL chfsmon_chfs_node_del(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                             c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                             CHFS_NODE_MODI(chfs_node_t),
                             chfs_node_state(chfs_node_t)
-                            );     
+                            );
         }
     }
 
@@ -648,7 +648,7 @@ EC_BOOL chfsmon_chfs_node_del(const UINT32 chfsmon_md_id, const CHFS_NODE *chfs_
                     CHFS_NODE_MODI(chfs_node_t),
                     chfs_node_state(chfs_node_t)
                     );
-                 
+
     chfs_node_free(chfs_node_t);
     return (EC_TRUE);
 }
@@ -723,10 +723,10 @@ EC_BOOL chfsmon_chfs_node_set_up(const UINT32 chfsmon_md_id, const CHFS_NODE *ch
                             c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                             CHFS_NODE_MODI(chfs_node_t),
                             chfs_node_state(chfs_node_t)
-                            );     
+                            );
         }
     }
- 
+
     CHFS_NODE_STATE(chfs_node_t) = CHFS_NODE_IS_UP; /*set up*/
 
     dbg_log(SEC_0161_CHFSMON, 9)(LOGSTDOUT,
@@ -736,7 +736,7 @@ EC_BOOL chfsmon_chfs_node_set_up(const UINT32 chfsmon_md_id, const CHFS_NODE *ch
                     c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                     CHFS_NODE_MODI(chfs_node_t),
                     chfs_node_state(chfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -810,10 +810,10 @@ EC_BOOL chfsmon_chfs_node_set_down(const UINT32 chfsmon_md_id, const CHFS_NODE *
                             c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                             CHFS_NODE_MODI(chfs_node_t),
                             chfs_node_state(chfs_node_t)
-                            );     
+                            );
         }
     }
- 
+
     CHFS_NODE_STATE(chfs_node_t) = CHFS_NODE_IS_DOWN; /*set down*/
 
     dbg_log(SEC_0161_CHFSMON, 9)(LOGSTDOUT,
@@ -823,7 +823,7 @@ EC_BOOL chfsmon_chfs_node_set_down(const UINT32 chfsmon_md_id, const CHFS_NODE *
                     c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                     CHFS_NODE_MODI(chfs_node_t),
                     chfs_node_state(chfs_node_t)
-                    ); 
+                    );
     return (EC_TRUE);
 }
 
@@ -879,13 +879,13 @@ EC_BOOL chfsmon_chfs_node_is_up(const UINT32 chfsmon_md_id, const CHFS_NODE *chf
                     c_word_to_ipv4(CHFS_NODE_IPADDR(chfs_node_t)), CHFS_NODE_PORT(chfs_node_t),
                     CHFS_NODE_MODI(chfs_node_t),
                     chfs_node_state(chfs_node_t)
-                    ); 
-                 
+                    );
+
     if(CHFS_NODE_IS_UP == CHFS_NODE_STATE(chfs_node_t))
     {
         return (EC_TRUE);
     }
- 
+
     return (EC_FALSE);
 }
 
@@ -930,7 +930,7 @@ EC_BOOL chfsmon_chfs_node_get_by_pos(const UINT32 chfsmon_md_id, const UINT32 po
                     chfs_node_state(chfs_node_t),
                     pos
                     );
-                 
+
     chfs_node_clone(chfs_node, chfs_node_t);
     return (EC_TRUE);
 }
@@ -990,7 +990,7 @@ EC_BOOL chfsmon_chfs_node_get_by_tcid(const UINT32 chfsmon_md_id, const UINT32 t
                     );
 
     chfs_node_clone(chfs_node, chfs_node_searched);
-                 
+
     return (EC_TRUE);
 }
 
@@ -1040,7 +1040,7 @@ EC_BOOL chfsmon_chfs_node_get_by_hash(const UINT32 chfsmon_md_id, const UINT32 h
     {
         UINT32      num;
         UINT32      pos;
- 
+
         num  = cvector_size(CHFSMON_MD_CHFS_NODE_VEC(chfsmon_md));
 
         pos  = (hash % num);
@@ -1062,8 +1062,8 @@ EC_BOOL chfsmon_chfs_node_get_by_hash(const UINT32 chfsmon_md_id, const UINT32 h
                         chfs_node_state(chfs_node_t),
                         pos, hash
                         );
-                     
-        chfs_node_clone(chfs_node, chfs_node_t); 
+
+        chfs_node_clone(chfs_node, chfs_node_t);
     }
     return (EC_TRUE);
 }

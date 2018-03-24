@@ -633,8 +633,8 @@ STATIC_CAST static void cthread_unbind(CTHREAD_BIND *cthread_bind)
 
     cmutex_lock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0006);
     if(CTHREAD_IS_IDLE & CTHREAD_NODE_STATUS(cthread_node))
-    {     
-        clist_rmv(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool), CTHREAD_NODE_MOUNTED(cthread_node));     
+    {
+        clist_rmv(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool), CTHREAD_NODE_MOUNTED(cthread_node));
 
         dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free idle cthread_node %lx with thread id %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         cthread_node_free(cthread_node);
@@ -650,7 +650,7 @@ STATIC_CAST static void cthread_unbind(CTHREAD_BIND *cthread_bind)
     {
         dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free cthread_node %lx with thread id %u but status %lx\n",
                             cthread_node, CTHREAD_NODE_ID(cthread_node), CTHREAD_NODE_STATUS(cthread_node));
-        cthread_node_free(cthread_node); 
+        cthread_node_free(cthread_node);
     }
     cmutex_unlock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0007);
 
@@ -1338,7 +1338,7 @@ CTHREAD_NODE * cthreadp_reserve_no_lock0(CTHREAD_POOL *cthread_pool)
     {
         dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_reserve_no_lock: try to shrink cthread num from %ld to %ld\n",
                             total_num, CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool));
- 
+
         cthreadp_shrink_no_lock(cthread_pool, total_num - CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool));
     }
 
@@ -1388,7 +1388,7 @@ CTHREAD_NODE * cthreadp_reserve_no_lock(CTHREAD_POOL *cthread_pool)
             UINT32 cthread_num;
 
             cthread_num = DMIN(CTHREAD_EXPAND_MIN_NUM, CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool) - total_num);
-         
+
             dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_reserve_no_lock: try to expand cthread num from %ld to %ld\n",
                                 total_num, cthread_num + total_num);
             cthreadp_expand_no_lock(cthread_pool, cthread_num, CTHREAD_POOL_WORKER_FLAG(cthread_pool));
@@ -1410,12 +1410,12 @@ CTHREAD_NODE * cthreadp_reserve_no_lock(CTHREAD_POOL *cthread_pool)
     idle_num = clist_size(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
     busy_num = clist_size(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
 
-    total_num = idle_num + busy_num;     
+    total_num = idle_num + busy_num;
     if(total_num > CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool))
     {
         dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_reserve_no_lock: try to shrink cthread num from %ld to %ld\n",
                             total_num, CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool));
- 
+
         cthreadp_shrink_no_lock(cthread_pool, total_num - CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool));
     }
 #if 0
@@ -1423,7 +1423,7 @@ CTHREAD_NODE * cthreadp_reserve_no_lock(CTHREAD_POOL *cthread_pool)
     {
         dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_reserve_no_lock: try to shrink idle cthread num from %ld to %ld\n",
                             idle_num, idle_num - CTHREAD_SHRINK_MIN_NUM);
- 
+
         cthreadp_shrink_no_lock(cthread_pool, CTHREAD_SHRINK_MIN_NUM);
     }
 #endif
@@ -1500,11 +1500,11 @@ CTHREAD_NODE * cthreadp_load(CTHREAD_POOL *cthread_pool, const UINT32 start_rout
     va_list para_list;
 
     va_start(para_list, para_num);
- 
-    cmutex_lock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0046); 
+
+    cmutex_lock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0046);
     cthread_node = cthreadp_load_no_lock(cthread_pool, start_routine_addr, para_num, para_list);
     cmutex_unlock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0047);
- 
+
     va_end(para_list);
 
     return (cthread_node);
@@ -1517,7 +1517,7 @@ EC_BOOL cthreadp_unload(CTHREAD_POOL *cthread_pool, CTHREAD_NODE *cthread_node)
         dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthreadp_unload: cthread_node is null\n");
         return (EC_FALSE);
     }
- 
+
     cthread_node_shutdown(cthread_node, cthread_pool);
     return (EC_TRUE);
 }
@@ -1618,13 +1618,13 @@ void cthreadp_print(LOG *log, const CTHREAD_POOL *cthread_pool)
     UINT32 idle_num;
     UINT32 busy_num;
     UINT32 total_num;
- 
+
     cmutex_lock((CMUTEX *)CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0058);
 
     cthreadp_num_info_no_lock((CTHREAD_POOL *)cthread_pool, &idle_num, &busy_num, &total_num);
 
     sys_log(log, "cthread_pool %lx: size %ld, idle %ld, busy %ld\n",
-                 cthread_pool, total_num, idle_num, busy_num             
+                 cthread_pool, total_num, idle_num, busy_num
                );
 
     sys_log(log, "idle worker list:\n");

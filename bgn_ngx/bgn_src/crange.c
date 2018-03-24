@@ -35,7 +35,7 @@ EC_BOOL crange_seg_init(CRANGE_SEG *crange_seg)
     CRANGE_SEG_NO(crange_seg)       = 0;
     CRANGE_SEG_S_OFFSET(crange_seg) = 0;
     CRANGE_SEG_E_OFFSET(crange_seg) = 0;
-    
+
     return (EC_TRUE);
 }
 
@@ -44,7 +44,7 @@ EC_BOOL crange_seg_clean(CRANGE_SEG *crange_seg)
     CRANGE_SEG_NO(crange_seg)       = 0;
     CRANGE_SEG_S_OFFSET(crange_seg) = 0;
     CRANGE_SEG_E_OFFSET(crange_seg) = 0;
-    
+
     return (EC_TRUE);
 }
 
@@ -61,7 +61,7 @@ EC_BOOL crange_seg_free(CRANGE_SEG *crange_seg)
 void crange_seg_print(LOG *log, const CRANGE_SEG *crange_seg)
 {
     sys_print(log, "crange_seg_print: crange_seg %p: [%ld] [%ld, %ld] / %ld\n",
-                   crange_seg, 
+                   crange_seg,
                    CRANGE_SEG_NO(crange_seg),
                    CRANGE_SEG_S_OFFSET(crange_seg),
                    CRANGE_SEG_E_OFFSET(crange_seg),
@@ -79,7 +79,7 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
     seg_end          = (range_end   / range_seg_size);
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_split: "
-                                           "range [%ld, %ld] => seg_start %ld, seg_end %ld\n", 
+                                           "range [%ld, %ld] => seg_start %ld, seg_end %ld\n",
                                            range_start, range_end,
                                            seg_start, seg_end);
 
@@ -98,7 +98,7 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
         crange_seg = crange_seg_new();
         if(NULL_PTR == crange_seg)
         {
-            dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_segs_split: new [%ld] crange_seg failed\n", 
+            dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_segs_split: new [%ld] crange_seg failed\n",
                             range_seg_no);
             return (EC_FALSE);
         }
@@ -110,13 +110,13 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
 
         if(NULL_PTR == clist_push_back(range_segs, (void *)crange_seg))
         {
-            dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_segs_split: push [%ld] crange_seg failed\n", 
+            dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_segs_split: push [%ld] crange_seg failed\n",
                             range_seg_no);
             crange_seg_free(crange_seg);
             return (EC_FALSE);
         }
-        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_split: push [%ld] crange_seg (%ld, %ld, %ld, %ld) done\n", 
-                            range_seg_no, 
+        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_split: push [%ld] crange_seg (%ld, %ld, %ld, %ld) done\n",
+                            range_seg_no,
                             CRANGE_SEG_SIZE(crange_seg),
                             CRANGE_SEG_NO(crange_seg),
                             CRANGE_SEG_S_OFFSET(crange_seg),
@@ -151,14 +151,14 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
         {
             CRANGE_SEG_E_OFFSET(crange_seg) = content_length - 1;
         }
-        
+
         if(CRANGE_SEG_S_OFFSET(crange_seg) <= CRANGE_SEG_E_OFFSET(crange_seg))
         {
             break;
         }
-    
+
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_length)\n", 
+                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_length)\n",
                                                crange_seg,
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
@@ -174,14 +174,14 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
         {
             CRANGE_SEG_E_OFFSET(crange_seg) = content_end;
         }
-        
+
         if(CRANGE_SEG_S_OFFSET(crange_seg) <= CRANGE_SEG_E_OFFSET(crange_seg))
         {
             break;
         }
-    
+
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_end)\n", 
+                                               "dicard crange_seg %p: [%ld, %ld] / %ld (content_end)\n",
                                                crange_seg,
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
@@ -197,15 +197,15 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
         UINT32          e_offset;
 
         s_offset = (CRANGE_SEG_NO(crange_seg) - 1) * CRANGE_SEG_SIZE(crange_seg) + CRANGE_SEG_S_OFFSET(crange_seg);
-        e_offset = (CRANGE_SEG_NO(crange_seg) - 1) * CRANGE_SEG_SIZE(crange_seg) + CRANGE_SEG_E_OFFSET(crange_seg); 
+        e_offset = (CRANGE_SEG_NO(crange_seg) - 1) * CRANGE_SEG_SIZE(crange_seg) + CRANGE_SEG_E_OFFSET(crange_seg);
 
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                               "crange_seg %p: [%ld, %ld, %ld] => [%ld, %ld] (content_start %ld)\n", 
+                                               "crange_seg %p: [%ld, %ld, %ld] => [%ld, %ld] (content_start %ld)\n",
                                                crange_seg,
                                                CRANGE_SEG_NO(crange_seg),
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
-                                               s_offset, 
+                                               s_offset,
                                                e_offset,
                                                content_start);
 
@@ -219,9 +219,9 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
             CRANGE_SEG_S_OFFSET(crange_seg) = (content_start % CRANGE_SEG_SIZE(crange_seg));
             break;
         }
-        
+
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                               "dicard crange_seg %p: [%ld, %ld, %ld] / %ld (content_start)\n", 
+                                               "dicard crange_seg %p: [%ld, %ld, %ld] / %ld (content_start)\n",
                                                crange_seg,
                                                CRANGE_SEG_NO(crange_seg),
                                                CRANGE_SEG_S_OFFSET(crange_seg),
@@ -229,10 +229,10 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
                                                content_start);
         clist_pop_front(range_segs);
         crange_seg_free(crange_seg);
-    }    
+    }
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_filter: "
-                                           "[%ld, %ld] / %ld, done\n", 
+                                           "[%ld, %ld] / %ld, done\n",
                                            content_start, content_end, content_length);
 
     return (EC_TRUE);
@@ -296,7 +296,7 @@ void crange_node_print(LOG *log, const CRANGE_NODE *crange_node)
 {
     CLIST_DATA      *clist_data;
     sys_print(log, "crange_node_print: crange_node %p: range (%ld:%s, %ld:%s), boudary [%s], segs:\n",
-                   crange_node, 
+                   crange_node,
                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                    CRANGE_NODE_RANGE_END(crange_node)  , c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)),
                    (EC_TRUE == crange_node_has_boundary(crange_node) ? "Y" : "N"));
@@ -319,7 +319,7 @@ void crange_node_print(LOG *log, const CRANGE_NODE *crange_node)
 void crange_node_print_no_seg(LOG *log, const CRANGE_NODE *crange_node)
 {
     sys_print(log, "crange_node_print_no_seg: crange_node %p: range (%ld:%s, %ld:%s), boudary [%s]\n",
-                   crange_node, 
+                   crange_node,
                    CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                    CRANGE_NODE_RANGE_END(crange_node)  , c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)),
                    (EC_TRUE == crange_node_has_boundary(crange_node) ? "Y" : "N"));
@@ -338,21 +338,21 @@ CRANGE_SEG *crange_node_first_seg_pop(CRANGE_NODE *crange_node)
 }
 
 EC_BOOL crange_node_split(CRANGE_NODE *crange_node, const UINT32 range_seg_size)
-{   
+{
     /*for safe reason*/
     if(EC_FALSE == clist_is_empty(CRANGE_NODE_RANGE_SEGS(crange_node)))
     {
         clist_clean(CRANGE_NODE_RANGE_SEGS(crange_node), (CLIST_DATA_DATA_CLEANER)crange_seg_free);
     }
-    
-    if(EC_FALSE == crange_segs_split(CRANGE_NODE_RANGE_START(crange_node), 
-                                     CRANGE_NODE_RANGE_END(crange_node), 
-                                     range_seg_size, 
+
+    if(EC_FALSE == crange_segs_split(CRANGE_NODE_RANGE_START(crange_node),
+                                     CRANGE_NODE_RANGE_END(crange_node),
+                                     range_seg_size,
                                      CRANGE_NODE_RANGE_SEGS(crange_node)))
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_node_split: "
                                                 "split crange_node %p (%ld:%s, %ld:%s) into segs failed\n",
-                                                crange_node, 
+                                                crange_node,
                                                 CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                 CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
@@ -363,13 +363,13 @@ EC_BOOL crange_node_split(CRANGE_NODE *crange_node, const UINT32 range_seg_size)
     {
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_node_split: "
                                                 "split crange_node %p (%ld:%s, %ld:%s) into segs done:\n",
-                                                crange_node, 
+                                                crange_node,
                                                 CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                 CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
         crange_node_print(LOGSTDOUT, crange_node);
     }
-    return (EC_TRUE);    
+    return (EC_TRUE);
 }
 
 EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length)
@@ -378,8 +378,8 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
                                            "[%ld, %ld] / %ld =>  \n",
                                            CRANGE_NODE_RANGE_START(crange_node),
                                            CRANGE_NODE_RANGE_END(crange_node),
-                                           content_length); 
-                                            
+                                           content_length);
+
     if(EC_TRUE == CRANGE_NODE_SUFFIX_END(crange_node))
     {
         CRANGE_NODE_RANGE_END(crange_node) = content_length - 1;
@@ -394,10 +394,10 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
             }
             else
             {
-                CRANGE_NODE_RANGE_START(crange_node) = 
+                CRANGE_NODE_RANGE_START(crange_node) =
                                 (content_length - CRANGE_NODE_RANGE_END(crange_node));
             }
-                            
+
             CRANGE_NODE_RANGE_END(crange_node)   = content_length - 1;
         }
     }
@@ -408,7 +408,7 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
                                                "[%ld, %ld] / %ld <=  range_start overflow\n",
                                                CRANGE_NODE_RANGE_START(crange_node),
                                                CRANGE_NODE_RANGE_END(crange_node),
-                                               content_length); 
+                                               content_length);
         return (EC_FALSE);
     }
 
@@ -423,7 +423,7 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
                                                "[%ld, %ld] / %ld <=  range_start > range_end\n",
                                                CRANGE_NODE_RANGE_START(crange_node),
                                                CRANGE_NODE_RANGE_END(crange_node),
-                                               content_length);     
+                                               content_length);
         return (EC_FALSE);
     }
 
@@ -434,7 +434,7 @@ EC_BOOL crange_node_adjust(CRANGE_NODE *crange_node, const UINT32 content_length
                                            "[%ld, %ld] / %ld <=  \n",
                                            CRANGE_NODE_RANGE_START(crange_node),
                                            CRANGE_NODE_RANGE_END(crange_node),
-                                           content_length);     
+                                           content_length);
     return (EC_TRUE);
 }
 
@@ -493,7 +493,7 @@ EC_BOOL crange_mgr_clean(CRANGE_MGR *crange_mgr)
     cstring_clean(CRANGE_MGR_BOUNDARY(crange_mgr));
 
     CRANGE_MGR_BODY_SIZE(crange_mgr) = 0;
-    
+
     return (EC_TRUE);
 }
 
@@ -554,8 +554,8 @@ UINT32 crange_mgr_total_length(const CRANGE_MGR *crange_mgr)
 
         total_length += CSTRING_LEN(CRANGE_NODE_BOUNDARY(crange_node));
         total_length += CRANGE_NODE_RANGE_END(crange_node) + 1 - CRANGE_NODE_RANGE_START(crange_node);
-    }    
-    
+    }
+
     return total_length;
 }
 
@@ -609,7 +609,7 @@ EC_BOOL crange_mgr_add_range(CRANGE_MGR *crange_mgr, const UINT32 range_start, c
     CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
     CRANGE_NODE_RANGE_START(crange_node)   = range_start;
     CRANGE_NODE_RANGE_END(crange_node)     = range_end;
-    
+
     if(EC_FALSE == crange_node_split(crange_node, seg_size))
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_add_range: "
@@ -632,7 +632,7 @@ EC_BOOL crange_mgr_add_range(CRANGE_MGR *crange_mgr, const UINT32 range_start, c
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_add_range: "
                                            "split [%ld, %ld] / %ld into segs done\n",
-                                           range_start, range_end, seg_size);     
+                                           range_start, range_end, seg_size);
     return (EC_TRUE);
 }
 
@@ -664,7 +664,7 @@ EC_BOOL crange_mgr_split(CRANGE_MGR *crange_mgr, const UINT32 range_seg_size)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_split: "
                                                     "split crange_node %p (%ld:%s, %ld:%s) into segs failed\n",
-                                                    crange_node, 
+                                                    crange_node,
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
@@ -673,21 +673,21 @@ EC_BOOL crange_mgr_split(CRANGE_MGR *crange_mgr, const UINT32 range_seg_size)
 
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_split: "
                                                 "split crange_node %p (%ld:%s, %ld:%s) into segs done\n",
-                                                crange_node, 
-                                                CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)), 
-                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));       
+                                                crange_node,
+                                                CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
+                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
     }
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_split: "
                                             "split crange_mgr %p into segs done\n",
-                                            crange_mgr);  
+                                            crange_mgr);
     return (EC_TRUE);
 }
 
 EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
 {
     CLIST_DATA      *clist_data;
-#if 0    
+#if 0
     CLIST            clist_tmp;
 #endif
 
@@ -702,7 +702,7 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "warn:crange_mgr_adjust: "
                                                     "adjust crange_node %p (%ld:%s, %ld:%s) failed => discard it\n",
-                                                    crange_node, 
+                                                    crange_node,
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
@@ -711,12 +711,12 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
 
             dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_adjust: "
                                                    "after discard, try recursively\n");
-            
+
             return crange_mgr_adjust(crange_mgr, content_length);
         }
 
         /*if some range cover whole content, discard others*/
-        if(0 == CRANGE_NODE_RANGE_START(crange_node) 
+        if(0 == CRANGE_NODE_RANGE_START(crange_node)
         && content_length - 1 == CRANGE_NODE_RANGE_END(crange_node))
         {
             clist_erase(CRANGE_MGR_RANGE_NODES(crange_mgr), clist_data);
@@ -725,17 +725,17 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
 
             dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_adjust: "
                                                    "found crange_node %p (%ld, %ld) covers whole content => discard others\n",
-                                                   crange_node, 
+                                                   crange_node,
                                                    CRANGE_NODE_RANGE_START(crange_node),
-                                                   CRANGE_NODE_RANGE_END(crange_node)); 
+                                                   CRANGE_NODE_RANGE_END(crange_node));
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_adjust: "
                                                 "adjust crange_node %p (%ld:%s, %ld:%s) done\n",
-                                                crange_node, 
+                                                crange_node,
                                                 CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
-                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));       
+                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
     }
 #if 0
     /*merge continuous range*/
@@ -759,12 +759,12 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
                                                    "merge continous range: [%ld, %ld], [%ld, %ld] => [%ld, %ld]\n",
                                                    CRANGE_NODE_RANGE_START(crange_node_top),
                                                    CRANGE_NODE_RANGE_END(crange_node_top),
-                                                   
+
                                                    CRANGE_NODE_RANGE_START(crange_node_cur),
                                                    CRANGE_NODE_RANGE_END(crange_node_cur),
-                                                   
+
                                                    CRANGE_NODE_RANGE_START(crange_node_top),
-                                                   CRANGE_NODE_RANGE_END(crange_node_cur));         
+                                                   CRANGE_NODE_RANGE_END(crange_node_cur));
 
             CRANGE_NODE_RANGE_END(crange_node_top) = CRANGE_NODE_RANGE_END(crange_node_cur);
             crange_node_free(crange_node_cur);
@@ -774,10 +774,10 @@ EC_BOOL crange_mgr_adjust(CRANGE_MGR *crange_mgr, const UINT32 content_length)
         clist_push_back(CRANGE_MGR_RANGE_NODES(crange_mgr), (void *)crange_node_cur);
     }
 #endif
-    
+
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_adjust: "
                                            "adjust crange_mgr %p done\n",
-                                           crange_mgr);  
+                                           crange_mgr);
     return (EC_TRUE);
 }
 
@@ -795,7 +795,7 @@ EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_mgr, const UINT32 content_start, co
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_filter: "
                                                     "filter crange_node %p (%ld:%s, %ld:%s) failed\n",
-                                                    crange_node, 
+                                                    crange_node,
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
@@ -804,14 +804,14 @@ EC_BOOL crange_mgr_filter(CRANGE_MGR *crange_mgr, const UINT32 content_start, co
 
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_filter: "
                                                 "filter crange_node %p (%ld:%s, %ld:%s) done\n",
-                                                crange_node, 
+                                                crange_node,
                                                 CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
-                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));       
+                                                CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
     }
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_filter: "
                                            "filter crange_mgr %p done\n",
-                                           crange_mgr);  
+                                           crange_mgr);
     return (EC_TRUE);
 }
 
@@ -828,7 +828,7 @@ EC_BOOL crange_mgr_is_range(const CRANGE_MGR *crange_mgr, const UINT32 range_sta
         CRANGE_NODE         *crange_node;
 
         UINT32               crange_node_start_t;
-        UINT32               crange_node_end_t;        
+        UINT32               crange_node_end_t;
 
         crange_node = (CRANGE_NODE *)CLIST_DATA_DATA(clist_data);
 
@@ -844,7 +844,7 @@ EC_BOOL crange_mgr_is_range(const CRANGE_MGR *crange_mgr, const UINT32 range_sta
             {
                 dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_mgr_is_range: "
                                                         "get range from crange_node %p (%ld:%s, %ld:%s) failed\n",
-                                                        crange_node, 
+                                                        crange_node,
                                                         CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                         CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
 
@@ -854,20 +854,20 @@ EC_BOOL crange_mgr_is_range(const CRANGE_MGR *crange_mgr, const UINT32 range_sta
 
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_is_range: "
                                                 "crange_node %p (%ld:%s, %ld:%s) => [%ld, %ld]\n",
-                                                crange_node, 
+                                                crange_node,
                                                 CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                 CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)),
-                                                crange_node_start_t, crange_node_end_t);       
+                                                crange_node_start_t, crange_node_end_t);
 
         if(range_cur != crange_node_start_t)
         {
             dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_is_range: "
                                                     "crange_node %p (%ld:%s, %ld:%s) => [%ld, %ld] => mismtached cur %ld\n",
-                                                    crange_node, 
+                                                    crange_node,
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)),
                                                     crange_node_start_t, crange_node_end_t,
-                                                    range_cur);         
+                                                    range_cur);
             return (EC_FALSE);
         }
 
@@ -876,15 +876,15 @@ EC_BOOL crange_mgr_is_range(const CRANGE_MGR *crange_mgr, const UINT32 range_sta
 
     if(range_cur != range_end)
     {
-        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_is_range: " 
+        dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_is_range: "
                                                 "mismtached cur %ld and range_end %ld\n",
-                                                range_cur, range_end);         
+                                                range_cur, range_end);
         return (EC_FALSE);
-    }    
+    }
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_mgr_is_range: "
                                            "crange_mgr %p matched range [%ld, %ld]\n",
-                                           crange_mgr, range_start, range_end);  
+                                           crange_mgr, range_start, range_end);
     return (EC_TRUE);
 }
 
@@ -914,29 +914,29 @@ EC_BOOL crange_parse_content_range_start(const char *content_range, UINT32 *pos,
     const uint8_t                 *p;
     UINT32                         start;
     UINT32                         cutoff;
-         
+
     p      = (const uint8_t *)(content_range + (*pos));
-    
+
     cutoff = (UINT32)(CRANGE_MAX_OFFSET / 10);
- 
+
     start  = 0;
 
     while (*p == ' ') { p++; }
 
     if(*p == 'b')
     {
-        if(*p++ != 'b' 
-        || *p++ != 'y' 
-        || *p++ != 't' 
-        || *p++ != 'e' 
+        if(*p++ != 'b'
+        || *p++ != 'y'
+        || *p++ != 't'
+        || *p++ != 'e'
         || *p++ != 's')
         {
             return (EC_FALSE);
         }
 
-        while (*p == ' ') { p++; }    
+        while (*p == ' ') { p++; }
     }
-    
+
     if(*p == '-')
     {
         (*suffix) = EC_TRUE;
@@ -951,7 +951,7 @@ EC_BOOL crange_parse_content_range_start(const char *content_range, UINT32 *pos,
     (*suffix) = EC_FALSE;
 
     /*parse prefix*/
-    if (*p < '0' || *p > '9') 
+    if (*p < '0' || *p > '9')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_start: "
                                                "invalid char Content-Range '%s'\n",
@@ -959,9 +959,9 @@ EC_BOOL crange_parse_content_range_start(const char *content_range, UINT32 *pos,
         return (EC_FALSE);
     }
 
-    while (*p >= '0' && *p <= '9') 
+    while (*p >= '0' && *p <= '9')
     {
-        if (start >= cutoff) 
+        if (start >= cutoff)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_start: "
                                                    "overflow Content-Range '%s'\n",
@@ -974,7 +974,7 @@ EC_BOOL crange_parse_content_range_start(const char *content_range, UINT32 *pos,
 
     while (*p == ' ') { p++; }
 
-    if (*p++ != '-') 
+    if (*p++ != '-')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_start: "
                                                "no postfix in Content-Range '%s'\n",
@@ -987,7 +987,7 @@ EC_BOOL crange_parse_content_range_start(const char *content_range, UINT32 *pos,
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_content_range_start: "
                                            "range_start '%ld' in Content-Range '%s'\n",
-                                           (*range_start), content_range); 
+                                           (*range_start), content_range);
     return (EC_TRUE);
 }
 
@@ -996,17 +996,17 @@ EC_BOOL crange_parse_content_range_end(const char *content_range, UINT32 *pos, U
     const uint8_t                 *p;
     UINT32                         end;
     UINT32                         cutoff;
-         
+
     p      = (const uint8_t *)(content_range + (*pos));
-    
+
     cutoff = (UINT32)(CRANGE_MAX_OFFSET / 10);
- 
+
     end    = 0;
 
     while (*p == ' ') { p++; }
-    
+
     /*parse postfix*/
-    if (*p < '0' || *p > '9') 
+    if (*p < '0' || *p > '9')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_end: "
                                                "invalid Content-Range '%s'\n",
@@ -1014,9 +1014,9 @@ EC_BOOL crange_parse_content_range_end(const char *content_range, UINT32 *pos, U
         return (EC_FALSE);
     }
 
-    while (*p >= '0' && *p <= '9') 
+    while (*p >= '0' && *p <= '9')
     {
-        if (end >= cutoff) 
+        if (end >= cutoff)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_end: "
                                                    "invalid char in Content-Range '%s'\n",
@@ -1029,7 +1029,7 @@ EC_BOOL crange_parse_content_range_end(const char *content_range, UINT32 *pos, U
 
     while (*p == ' ') { p++; }
 
-    if (*p++ != '/') 
+    if (*p++ != '/')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range_end: "
                                                "no length in Content-Range '%s'\n",
@@ -1042,7 +1042,7 @@ EC_BOOL crange_parse_content_range_end(const char *content_range, UINT32 *pos, U
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_content_range_end: "
                                            "range_end '%ld' in Content-Range '%s'\n",
-                                           (*range_end), content_range); 
+                                           (*range_end), content_range);
     return (EC_TRUE);
 }
 
@@ -1051,17 +1051,17 @@ EC_BOOL crange_parse_content_content_length(const char *content_range, UINT32 *p
     const uint8_t                 *p;
     UINT32                         length;
     UINT32                         cutoff;
-         
+
     p      = (const uint8_t *)(content_range + (*pos));
-    
+
     cutoff = (UINT32)(CRANGE_MAX_OFFSET / 10);
- 
+
     length = 0;
 
     while (*p == ' ') { p++; }
-    
+
     /*parse postfix*/
-    if (*p < '0' || *p > '9') 
+    if (*p < '0' || *p > '9')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_content_length: "
                                                "invalid Content-Range '%s'\n",
@@ -1069,9 +1069,9 @@ EC_BOOL crange_parse_content_content_length(const char *content_range, UINT32 *p
         return (EC_FALSE);
     }
 
-    while (*p >= '0' && *p <= '9') 
+    while (*p >= '0' && *p <= '9')
     {
-        if (length >= cutoff) 
+        if (length >= cutoff)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_content_length: "
                                                    "invalid char in Content-Range '%s'\n",
@@ -1084,7 +1084,7 @@ EC_BOOL crange_parse_content_content_length(const char *content_range, UINT32 *p
 
     while (*p == ' ') { p++; }
 
-    if (*p++ != '\0') 
+    if (*p++ != '\0')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_content_length: "
                                                "unexpected chars in Content-Range '%s'\n",
@@ -1097,7 +1097,7 @@ EC_BOOL crange_parse_content_content_length(const char *content_range, UINT32 *p
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_content_content_length: "
                                            "content_length '%ld' in Content-Range '%s'\n",
-                                           (*content_length), content_range); 
+                                           (*content_length), content_range);
     return (EC_TRUE);
 }
 
@@ -1108,7 +1108,7 @@ EC_BOOL crange_parse_content_range(const char *content_range, UINT32 *range_star
     UINT32      pos;
 
     pos = 0;
-    
+
     if(EC_FALSE == crange_parse_content_range_start(content_range, &pos, &suffix, range_start))
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_content_range: "
@@ -1123,7 +1123,7 @@ EC_BOOL crange_parse_content_range(const char *content_range, UINT32 *range_star
                                                "parse range_end from Content-Range '%s' failed\n",
                                                content_range);
         return (EC_FALSE);
-    }  
+    }
 
     if(EC_FALSE == crange_parse_content_content_length(content_range, &pos, content_length))
     {
@@ -1131,23 +1131,23 @@ EC_BOOL crange_parse_content_range(const char *content_range, UINT32 *range_star
                                                "parse content_length from Content-Range '%s' failed\n",
                                                content_range);
         return (EC_FALSE);
-    }    
+    }
 
-    if (EC_TRUE == suffix) 
+    if (EC_TRUE == suffix)
     {
         (*range_start) = (*content_length) - (*range_end);
         (*range_end)   = (*content_length) - 1;
     }
 
-    if ((*range_end) >= (*content_length)) 
+    if ((*range_end) >= (*content_length))
     {
         (*range_end) = (*content_length);
     }
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_content_range: "
                                            "['%ld', '%ld']/'%ld' in Content-Range '%s'\n",
-                                           (*range_start), (*range_end), (*content_length), 
-                                           content_range); 
+                                           (*range_start), (*range_end), (*content_length),
+                                           content_range);
     return (EC_TRUE);
 }
 
@@ -1156,24 +1156,24 @@ EC_BOOL crange_parse_range_prepare(const char *range, UINT32 *pos)
     const uint8_t                 *p;
 
     p      = (const uint8_t *)(range + (*pos));
-    
+
     while (*p == ' ') { p++; }
 
-    if(*p++ != 'b' 
-    || *p++ != 'y' 
-    || *p++ != 't' 
-    || *p++ != 'e' 
+    if(*p++ != 'b'
+    || *p++ != 'y'
+    || *p++ != 't'
+    || *p++ != 'e'
     || *p++ != 's')
     {
         return (EC_FALSE);
     }
 
     while (*p == ' ') { p++; }
-    
+
     if(*p++ != '=')
     {
         return (EC_FALSE);
-    }    
+    }
 
     while (*p == ' ') { p++; }
 
@@ -1186,11 +1186,11 @@ EC_BOOL crange_parse_range_start(const char *range, UINT32 *pos, EC_BOOL *suffix
     const uint8_t                 *p;
     UINT32                         start;
     UINT32                         cutoff;
-         
+
     p      = (const uint8_t *)(range + (*pos));
-    
+
     cutoff = (UINT32)(CRANGE_MAX_OFFSET / 10);
- 
+
     start  = 0;
 
     while (*p == ' ') { p++; }
@@ -1209,16 +1209,16 @@ EC_BOOL crange_parse_range_start(const char *range, UINT32 *pos, EC_BOOL *suffix
     (*suffix) = EC_FALSE;
 
     /*parse prefix*/
-    if (*p < '0' || *p > '9') 
+    if (*p < '0' || *p > '9')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_start: invalid char Range '%s'\n",
                         range);
         return (EC_FALSE);
     }
 
-    while (*p >= '0' && *p <= '9') 
+    while (*p >= '0' && *p <= '9')
     {
-        if (start >= cutoff ) 
+        if (start >= cutoff )
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_start: overflow Range '%s'\n",
                         range);
@@ -1230,7 +1230,7 @@ EC_BOOL crange_parse_range_start(const char *range, UINT32 *pos, EC_BOOL *suffix
 
     while (*p == ' ') { p++; }
 
-    if (*p++ != '-') 
+    if (*p++ != '-')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_start: no postfix in Range '%s'\n",
                         range);
@@ -1241,7 +1241,7 @@ EC_BOOL crange_parse_range_start(const char *range, UINT32 *pos, EC_BOOL *suffix
     (*pos)         = (p - (const uint8_t *)range);
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_range_start: range_start '%ld' in Range '%s'\n",
-                    (*range_start), range); 
+                    (*range_start), range);
     return (EC_TRUE);
 }
 
@@ -1250,11 +1250,11 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
     const uint8_t                 *p;
     UINT32                         end;
     UINT32                         cutoff;
-         
+
     p      = (const uint8_t *)(range + (*pos));
-    
+
     cutoff = (UINT32)(CRANGE_MAX_OFFSET / 10);
- 
+
     end    = 0;
 
     while (*p == ' ') { p++; }
@@ -1264,9 +1264,9 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
         p ++;
         (*suffix) = EC_TRUE;
         (*pos)       = (p - (const uint8_t *)range);
-        return (EC_TRUE);        
+        return (EC_TRUE);
     }
-    
+
     if(*p == '\0')
     {
         (*suffix) = EC_TRUE;
@@ -1275,7 +1275,7 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
     }
 
     /*parse postfix*/
-    if (*p < '0' || *p > '9') 
+    if (*p < '0' || *p > '9')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_end: invalid Range '%s'\n",
                             range);
@@ -1284,9 +1284,9 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
 
     (*suffix) = EC_FALSE;
 
-    while (*p >= '0' && *p <= '9') 
+    while (*p >= '0' && *p <= '9')
     {
-        if (end >= cutoff) 
+        if (end >= cutoff)
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_end: invalid char in Range '%s'\n",
                             range);
@@ -1298,7 +1298,7 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
 
     while (*p == ' ') { p++; }
 
-    if (*p != '\0' && *p != ',') 
+    if (*p != '\0' && *p != ',')
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_end: invalid terminate in Range '%s'\n",
                         range);
@@ -1311,12 +1311,12 @@ EC_BOOL crange_parse_range_end(const char *range, UINT32 *pos, EC_BOOL *suffix, 
     (*pos)       = (p - (const uint8_t *)range);
 
     dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_parse_range_end: range_end '%ld' in Range '%s'\n",
-                    (*range_end), range); 
+                    (*range_end), range);
     return (EC_TRUE);
 }
 
 EC_BOOL crange_parse_range_do(const char *range, UINT32 *pos, UINT32 *range_start, UINT32 *range_end, EC_BOOL *suffix_start, EC_BOOL *suffix_end)
-{   
+{
     if(EC_FALSE == crange_parse_range_start(range, pos, suffix_start, range_start))
     {
         dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_parse_range_do: parse range_start from Range '%s' failed\n",
@@ -1331,7 +1331,7 @@ EC_BOOL crange_parse_range_do(const char *range, UINT32 *pos, UINT32 *range_star
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == (*suffix_start) 
+    if(EC_FALSE == (*suffix_start)
     && EC_FALSE == (*suffix_end)
     && (*range_start) + CRANGE_MAX_LEN <= (*range_end))
     {
@@ -1339,9 +1339,9 @@ EC_BOOL crange_parse_range_do(const char *range, UINT32 *pos, UINT32 *range_star
                                                 "parse Range '%s' => range ['%ld', '%ld'] and suffix_start '%s', "
                                                 "range overflow!!!\n",
                                                 range,
-                                                (*range_start), (*range_end), c_bool_str(*suffix_start));        
+                                                (*range_start), (*range_end), c_bool_str(*suffix_start));
         return (EC_FALSE);
-    }    
+    }
 
     return (EC_TRUE);
 }
@@ -1396,7 +1396,7 @@ EC_BOOL crange_parse_range(const char *range, CRANGE_MGR *crange_mgr)
                                                "parse Range '%s' => range ['%ld':'%s', '%ld':'%s']\n",
                                                range,
                                                range_start, c_bool_str(suffix_start),
-                                               range_end, c_bool_str(suffix_end));           
+                                               range_end, c_bool_str(suffix_end));
 
         CRANGE_NODE_SUFFIX_START(range_node)   = suffix_start;
         CRANGE_NODE_SUFFIX_END(range_node)     = suffix_end;
@@ -1413,7 +1413,7 @@ EC_BOOL crange_parse_range(const char *range, CRANGE_MGR *crange_mgr)
             return (EC_FALSE);
         }
     }
-  
+
     return (EC_TRUE);
 }
 

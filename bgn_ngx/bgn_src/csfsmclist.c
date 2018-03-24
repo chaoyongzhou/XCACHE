@@ -28,7 +28,7 @@ extern "C"{
 void csfsmclist_node_del(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 {
     CSFSMCLIST_NODE *node;
- 
+
     node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
     ASSERT(CSFSMCLIST_NODE_USED == CSFSMCLIST_NODE_USED_FLAG(node));
 
@@ -41,7 +41,7 @@ void csfsmclist_node_del(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
         CSFSMCLIST_NODE *left_node;
 
         left_node = CSFSMCLIST_FETCH_NODE(csfsmclist, CSFSMCLIST_NODE_LEFT_POS(node));
-        CSFSMCLIST_NODE_RIGHT_POS(left_node) = CSFSMCLIST_NODE_RIGHT_POS(node); 
+        CSFSMCLIST_NODE_RIGHT_POS(left_node) = CSFSMCLIST_NODE_RIGHT_POS(node);
     }
 
     if(CSFSMCLIST_TAIL(csfsmclist) == node_pos)
@@ -53,16 +53,16 @@ void csfsmclist_node_del(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
         CSFSMCLIST_NODE *right_node;
 
         right_node = CSFSMCLIST_FETCH_NODE(csfsmclist, CSFSMCLIST_NODE_RIGHT_POS(node));
-        CSFSMCLIST_NODE_LEFT_POS(right_node) = CSFSMCLIST_NODE_LEFT_POS(node); 
-    } 
- 
+        CSFSMCLIST_NODE_LEFT_POS(right_node) = CSFSMCLIST_NODE_LEFT_POS(node);
+    }
+
     CSFSMCLIST_NODE_LEFT_POS(node)  = CSFSMCLIST_ERR_POS;
     CSFSMCLIST_NODE_RIGHT_POS(node) = CSFSMCLIST_ERR_POS;
 
     CSFSMCLIST_NODE_USED_FLAG(node) = CSFSMCLIST_NODE_NOT_USED;
 
     CSFSMCLIST_NODE_USED_NUM(csfsmclist) --;
-    return; 
+    return;
 }
 
 void csfsmclist_node_add_head(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
@@ -83,11 +83,11 @@ void csfsmclist_node_add_head(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
         CSFSMCLIST_NODE *left_node;
 
         left_node = CSFSMCLIST_FETCH_NODE(csfsmclist, CSFSMCLIST_HEAD(csfsmclist));
-     
+
         CSFSMCLIST_NODE_LEFT_POS(new_node)  = CSFSMCLIST_ERR_POS;
         CSFSMCLIST_NODE_RIGHT_POS(new_node) = CSFSMCLIST_HEAD(csfsmclist);
         CSFSMCLIST_NODE_LEFT_POS(left_node) = node_pos;
-        CSFSMCLIST_HEAD(csfsmclist)         = node_pos; 
+        CSFSMCLIST_HEAD(csfsmclist)         = node_pos;
     }
 
     if(CSFSMCLIST_ERR_POS == CSFSMCLIST_TAIL(csfsmclist))
@@ -96,7 +96,7 @@ void csfsmclist_node_add_head(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
     }
 
     CSFSMCLIST_NODE_USED_FLAG(new_node) = CSFSMCLIST_NODE_USED;
- 
+
     CSFSMCLIST_NODE_USED_NUM(csfsmclist) ++;
     return;
 }
@@ -119,11 +119,11 @@ void csfsmclist_node_add_tail(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
         CSFSMCLIST_NODE *right_node;
 
         right_node = CSFSMCLIST_FETCH_NODE(csfsmclist, CSFSMCLIST_TAIL(csfsmclist));
-     
+
         CSFSMCLIST_NODE_LEFT_POS(new_node)    = CSFSMCLIST_TAIL(csfsmclist);
         CSFSMCLIST_NODE_RIGHT_POS(new_node)   = CSFSMCLIST_ERR_POS;
         CSFSMCLIST_NODE_RIGHT_POS(right_node) = node_pos;
-        CSFSMCLIST_TAIL(csfsmclist)       = node_pos; 
+        CSFSMCLIST_TAIL(csfsmclist)       = node_pos;
     }
 
     if(CSFSMCLIST_ERR_POS == CSFSMCLIST_HEAD(csfsmclist))
@@ -132,7 +132,7 @@ void csfsmclist_node_add_tail(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
     }
 
     CSFSMCLIST_NODE_USED_FLAG(new_node) = CSFSMCLIST_NODE_USED;
- 
+
     CSFSMCLIST_NODE_USED_NUM(csfsmclist) ++;
     return;
 }
@@ -140,7 +140,7 @@ void csfsmclist_node_add_tail(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 EC_BOOL csfsmclist_node_new(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 {
     CSFSMCLIST_NODE *node;
- 
+
     node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -173,7 +173,7 @@ EC_BOOL csfsmclist_node_new(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 EC_BOOL csfsmclist_node_free(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 {
     CSFSMCLIST_NODE *node;
- 
+
     node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -207,13 +207,13 @@ void csfsmclist_node_init(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
 {
     CSFSMCLIST_NODE *node;
 
-    node  = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos); 
+    node  = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CSFSMCLIST_NODE_RIGHT_POS(node)  = CSFSMCLIST_ERR_POS;
     CSFSMCLIST_NODE_LEFT_POS(node)   = CSFSMCLIST_ERR_POS;
     CSFSMCLIST_NODE_USED_FLAG(node)  = CSFSMCLIST_NODE_NOT_USED;
- 
+
     return;
 }
 
@@ -222,10 +222,10 @@ void csfsmclist_node_clean(CSFSMCLIST *csfsmclist, const uint32_t node_pos)
     CSFSMCLIST_NODE *node;
 
     ASSERT(node_pos < CSFSMCLIST_NODE_MAX_NUM(csfsmclist));
- 
+
     node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CSFSMCLIST_NODE_RIGHT_POS(node)  = CSFSMCLIST_ERR_POS;
     CSFSMCLIST_NODE_LEFT_POS(node)   = CSFSMCLIST_ERR_POS;
     CSFSMCLIST_NODE_USED_FLAG(node)  = CSFSMCLIST_NODE_NOT_USED;
@@ -271,7 +271,7 @@ EC_BOOL csfsmclist_node_lru_update(CSFSMCLIST *csfsmclist, const uint32_t node_p
             csfsmclist_node_add_head(csfsmclist, node_pos);
         }
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -347,7 +347,7 @@ CSFSMCLIST *csfsmclist_new(const uint32_t max_num)
 {
     CSFSMCLIST *csfsmclist;
     uint32_t size;
- 
+
     size = sizeof(CSFSMCLIST) + max_num * sizeof(CSFSMCLIST_NODE);
 
     csfsmclist = (CSFSMCLIST *)safe_malloc(size, LOC_CSFSMCLIST_0001);
@@ -425,7 +425,7 @@ void csfsmclist_print(LOG *log, const CSFSMCLIST *csfsmclist)
     while(CSFSMCLIST_ERR_POS != node_pos)
     {
         CSFSMCLIST_NODE *node;
-     
+
         csfsmclist_node_print(log, csfsmclist, node_pos);
 
         node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);
@@ -449,7 +449,7 @@ void csfsmclist_print_tail(LOG *log, const CSFSMCLIST *csfsmclist)
     while(CSFSMCLIST_ERR_POS != node_pos)
     {
         CSFSMCLIST_NODE *node;
-     
+
         csfsmclist_node_print(log, csfsmclist, node_pos);
 
         node = CSFSMCLIST_FETCH_NODE(csfsmclist, node_pos);

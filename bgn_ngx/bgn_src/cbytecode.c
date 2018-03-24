@@ -71,7 +71,7 @@ EC_BOOL cbytecode_unpack_uint64(const UINT8 *in_buff, const UINT32 in_buff_max_l
     {
         *(des_data ++) = ntoh_uint64(*(src_data ++));
     }
- 
+
     (*position) = end_pos;
     return (EC_TRUE);
 }
@@ -137,7 +137,7 @@ EC_BOOL cbytecode_pack_uint32_t(const UINT32 *in_buff, const UINT32 data_num, UI
 {
     uint32_t *src_data;
     uint32_t *des_data;
- 
+
     UINT32    data_idx;
     UINT32    end_pos;
 
@@ -390,7 +390,7 @@ EC_BOOL cbytecode_pack(const UINT8 *in_buff, const UINT32 data_num, const UINT32
         case CMPI_ULONG:
             return cbytecode_pack_uint32((UINT32 *)in_buff, data_num, out_buff, out_buff_max_len, position);
         case CMPI_U32:
-            return cbytecode_pack_uint32_t((UINT32 *)in_buff, data_num, out_buff, out_buff_max_len, position);         
+            return cbytecode_pack_uint32_t((UINT32 *)in_buff, data_num, out_buff, out_buff_max_len, position);
         case CMPI_USHORT:
             return cbytecode_pack_uint16((UINT16 *)in_buff, data_num, out_buff, out_buff_max_len, position);
         case CMPI_UCHAR:
@@ -412,7 +412,7 @@ EC_BOOL cbytecode_unpack(const UINT8 *in_buff, const UINT32 in_buff_max_len, UIN
         case CMPI_ULONG:
             return cbytecode_unpack_uint32(in_buff, in_buff_max_len, position, (UINT32 *)out_buff, data_num);
         case CMPI_U32:
-            return cbytecode_unpack_uint32_t(in_buff, in_buff_max_len, position, (UINT32 *)out_buff, data_num);         
+            return cbytecode_unpack_uint32_t(in_buff, in_buff_max_len, position, (UINT32 *)out_buff, data_num);
         case CMPI_USHORT:
             return cbytecode_unpack_uint16(in_buff, in_buff_max_len, position, (UINT16 *)out_buff, data_num);
         case CMPI_UCHAR:
@@ -422,7 +422,7 @@ EC_BOOL cbytecode_unpack(const UINT8 *in_buff, const UINT32 in_buff_max_len, UIN
         case CMPI_ULONGLONG:
             return cbytecode_unpack_uint64(in_buff, in_buff_max_len, position, (uint64_t *)out_buff, data_num);
     }
- 
+
 
     dbg_log(SEC_0120_CBYTECODE, 0)(LOGSTDOUT, "error:cbytecode_unpack: unknown data_type %ld\n", data_type);
     exit( 3 ); /*return (EC_FALSE);*/
@@ -435,7 +435,7 @@ EC_BOOL cbytecode_pack_size(const UINT32 data_num, const UINT32 data_type, UINT3
         case CMPI_ULONG:
             return cbytecode_pack_uint32_size(data_num, size);
         case CMPI_U32:
-            return cbytecode_pack_uint32_t_size(data_num, size);         
+            return cbytecode_pack_uint32_t_size(data_num, size);
         case CMPI_USHORT:
             return cbytecode_pack_uint16_size(data_num, size);
         case CMPI_UCHAR:
@@ -443,7 +443,7 @@ EC_BOOL cbytecode_pack_size(const UINT32 data_num, const UINT32 data_type, UINT3
         case CMPI_REAL:
             return cbytecode_pack_real_size(data_num, size);
         case CMPI_ULONGLONG:
-            return cbytecode_pack_uint64_size(data_num, size);             
+            return cbytecode_pack_uint64_size(data_num, size);
     }
 
     dbg_log(SEC_0120_CBYTECODE, 0)(LOGSTDOUT, "error:cbytecode_pack_size: unknown data_type %ld\n", data_type);

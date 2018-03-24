@@ -31,7 +31,7 @@ uint32_t crfsnprb_node_new(CRFSNPRB_POOL *pool)
 {
     uint32_t node_pos_t;
     CRFSNPRB_NODE *node;
- 
+
     node_pos_t = CRFSNPRB_POOL_FREE_HEAD(pool);
     if(CRFSNPRB_ERR_POS == node_pos_t)
     {
@@ -47,19 +47,19 @@ uint32_t crfsnprb_node_new(CRFSNPRB_POOL *pool)
     }
 
     ASSERT(CRFSNPRB_POOL_FREE_HEAD(pool) < CRFSNPRB_POOL_NODE_MAX_NUM(pool));
- 
+
     node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
-#if 0 
+#if 0
     dbg_log(SEC_0100_CRFSNPRB, 9)(LOGSTDNULL, "[DEBUG] crfsnprb_node_new: pool %p, max %u, used %u, free head %u, next %u\n",
                        pool,
                        CRFSNPRB_POOL_NODE_MAX_NUM(pool),
                        CRFSNPRB_POOL_NODE_USED_NUM(pool),
                        CRFSNPRB_POOL_FREE_HEAD(pool),
                        CRFSNPRB_NODE_NEXT_POS(node));
-#endif                    
+#endif
     CRFSNPRB_POOL_FREE_HEAD(pool) = CRFSNPRB_NODE_NEXT_POS(node);
     CRFSNPRB_POOL_NODE_USED_NUM(pool) ++;
- 
+
     CRFSNPRB_NODE_NEXT_POS(node)  = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_USED_FLAG(node) = CRFSNPRB_NODE_USED;
 
@@ -74,17 +74,17 @@ void crfsnprb_node_free(CRFSNPRB_POOL *pool, const uint32_t node_pos)
         CRFSNPRB_NODE *node;
 
         ASSERT(node_pos < CRFSNPRB_POOL_NODE_MAX_NUM(pool));
-     
+
         node = CRFSNPRB_POOL_NODE(pool, node_pos);
         ASSERT(CRFSNPRB_NODE_IS_USED(node));
-     
+
         CRFSNPRB_NODE_USED_FLAG(node)  = CRFSNPRB_NODE_NOT_USED;
         CRFSNPRB_NODE_PARENT_POS(node) = CRFSNPRB_ERR_POS;
         CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_ERR_POS;
-        CRFSNPRB_NODE_LEFT_POS(node)   = CRFSNPRB_ERR_POS;     
+        CRFSNPRB_NODE_LEFT_POS(node)   = CRFSNPRB_ERR_POS;
         CRFSNPRB_NODE_NEXT_POS(node)   = CRFSNPRB_POOL_FREE_HEAD(pool);
         CRFSNPRB_NODE_COLOR(node)      = CRFSNPRB_BLACK;
-     
+
         CRFSNPRB_POOL_FREE_HEAD(pool)  = node_pos;
         CRFSNPRB_POOL_NODE_USED_NUM(pool) --;
     }
@@ -95,15 +95,15 @@ void crfsnprb_node_init(CRFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     CRFSNPRB_NODE *node;
 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
- 
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
+
     CRFSNPRB_NODE_PARENT_POS(node) = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_LEFT_POS(node)   = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_USED_FLAG(node)  = CRFSNPRB_NODE_NOT_USED;
     CRFSNPRB_NODE_NEXT_POS(node)   = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_COLOR(node)      = CRFSNPRB_BLACK;
- 
+
     return;
 }
 
@@ -112,9 +112,9 @@ void crfsnprb_node_clean(CRFSNPRB_POOL *pool, const uint32_t node_pos)
     CRFSNPRB_NODE *node;
 
     ASSERT(node_pos < CRFSNPRB_POOL_NODE_MAX_NUM(pool));
- 
-    node = CRFSNPRB_POOL_NODE(pool, node_pos); 
- 
+
+    node = CRFSNPRB_POOL_NODE(pool, node_pos);
+
     CRFSNPRB_NODE_PARENT_POS(node) = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_ERR_POS;
     CRFSNPRB_NODE_LEFT_POS(node)   = CRFSNPRB_ERR_POS;
@@ -181,11 +181,11 @@ void crfsnprb_node_print_level(LOG *log, const CRFSNPRB_POOL *pool, const uint32
                        CRFSNPRB_NODE_IS_USED(node) ? "data" : "next",
                        CRFSNPRB_NODE_IS_USED(node) ? CRFSNPRB_NODE_DATA(node) : CRFSNPRB_NODE_NEXT_POS(node)
                        );
-    return;                    
+    return;
 }
 
 
-static void __crfsnprb_tree_rotate_left(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __crfsnprb_tree_rotate_left(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CRFSNPRB_NODE *node;
     CRFSNPRB_NODE *right;
@@ -209,7 +209,7 @@ static void __crfsnprb_tree_rotate_left(CRFSNPRB_POOL *pool, const uint32_t node
     {
         CRFSNPRB_NODE *parent;
         parent = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_PARENT_POS(node));
-     
+
         if (node_pos == CRFSNPRB_NODE_LEFT_POS(parent))
         {
             CRFSNPRB_NODE_LEFT_POS(parent) = right_pos;
@@ -227,7 +227,7 @@ static void __crfsnprb_tree_rotate_left(CRFSNPRB_POOL *pool, const uint32_t node
     return;
 }
 
-static void __crfsnprb_tree_rotate_right(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __crfsnprb_tree_rotate_right(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CRFSNPRB_NODE *node;
     CRFSNPRB_NODE *left;
@@ -250,7 +250,7 @@ static void __crfsnprb_tree_rotate_right(CRFSNPRB_POOL *pool, const uint32_t nod
     {
         CRFSNPRB_NODE *parent;
         parent = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_PARENT_POS(node));
- 
+
         if (node_pos == CRFSNPRB_NODE_RIGHT_POS(parent))
         {
             CRFSNPRB_NODE_RIGHT_POS(parent) = left_pos;
@@ -268,12 +268,12 @@ static void __crfsnprb_tree_rotate_right(CRFSNPRB_POOL *pool, const uint32_t nod
     return;
 }
 
-static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
+STATIC_CAST static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos)
 {
     CRFSNPRB_NODE *node;
     CRFSNPRB_NODE *root;
-    CRFSNPRB_NODE *parent; 
- 
+    CRFSNPRB_NODE *parent;
+
     uint32_t  node_pos_t;
 
     node_pos_t = node_pos;
@@ -302,7 +302,7 @@ static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t nod
                     CRFSNPRB_NODE_COLOR(uncle)   = CRFSNPRB_BLACK;
                     CRFSNPRB_NODE_COLOR(parent)  = CRFSNPRB_BLACK;
                     CRFSNPRB_NODE_COLOR(gparent) = CRFSNPRB_RED;
-                 
+
                     node = gparent;
                     node_pos_t = gparent_pos;
                     continue;
@@ -321,7 +321,7 @@ static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t nod
             __crfsnprb_tree_rotate_right(pool, gparent_pos, root_pos);
          }
          else
-         {     
+         {
             {
                 CRFSNPRB_NODE *uncle;
                 if (NULL_PTR != (uncle = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_LEFT_POS(gparent))) /*uncle is valid*/
@@ -330,7 +330,7 @@ static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t nod
                     CRFSNPRB_NODE_COLOR(uncle)   = CRFSNPRB_BLACK;
                     CRFSNPRB_NODE_COLOR(parent)  = CRFSNPRB_BLACK;
                     CRFSNPRB_NODE_COLOR(gparent) = CRFSNPRB_RED;
-                 
+
                     node = gparent;
                     node_pos_t = gparent_pos;
                     continue;
@@ -355,9 +355,9 @@ static void __crfsnprb_tree_insert_color(CRFSNPRB_POOL *pool, const uint32_t nod
     return;
 }
 
-static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node_pos, const uint32_t parent_pos, uint32_t *root_pos)
-{ 
-    CRFSNPRB_NODE *node; 
+STATIC_CAST static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node_pos, const uint32_t parent_pos, uint32_t *root_pos)
+{
+    CRFSNPRB_NODE *node;
     uint32_t  node_pos_t;
     uint32_t  parent_pos_t;
 
@@ -369,22 +369,22 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
         CRFSNPRB_NODE *parent;
 
         parent = CRFSNPRB_POOL_NODE(pool, parent_pos_t);
-     
+
         if (CRFSNPRB_NODE_LEFT_POS(parent) == node_pos_t)
         {
             CRFSNPRB_NODE *other;
             CRFSNPRB_NODE *o_left;
             CRFSNPRB_NODE *o_right;
             uint32_t  other_pos;
-     
+
             other_pos = CRFSNPRB_NODE_RIGHT_POS(parent);
             other = CRFSNPRB_POOL_NODE(pool, other_pos);
-         
+
             if (CRFSNPRB_RED == CRFSNPRB_NODE_COLOR(other))
             {
                 CRFSNPRB_NODE_COLOR(other)  = CRFSNPRB_BLACK;
                 CRFSNPRB_NODE_COLOR(parent) = CRFSNPRB_RED;
-             
+
                 __crfsnprb_tree_rotate_left(pool, parent_pos_t, root_pos);
 
                 other_pos = CRFSNPRB_NODE_RIGHT_POS(parent);
@@ -398,10 +398,10 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
             && (NULL_PTR == o_right || CRFSNPRB_BLACK == CRFSNPRB_NODE_COLOR(o_right)))
             {
                 CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_RED;
-             
+
                 node_pos_t = parent_pos_t;
                 node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
-             
+
                 parent_pos_t = CRFSNPRB_NODE_PARENT_POS(node);
                 parent = CRFSNPRB_POOL_NODE(pool, parent_pos_t);
             }
@@ -414,14 +414,14 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
                         CRFSNPRB_NODE_COLOR(o_left) = CRFSNPRB_BLACK;
                     }
                     CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_RED;
-                 
+
                     __crfsnprb_tree_rotate_right(pool, other_pos, root_pos);
-                 
+
                     other_pos = CRFSNPRB_NODE_RIGHT_POS(parent);
                     other = CRFSNPRB_POOL_NODE(pool, other_pos);
                     /*note: other was changed here*/
                 }
-             
+
                 CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_NODE_COLOR(parent);
                 CRFSNPRB_NODE_COLOR(parent) = CRFSNPRB_BLACK;
 
@@ -431,7 +431,7 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
                 {
                     CRFSNPRB_NODE_COLOR(o_right) = CRFSNPRB_BLACK;
                 }
-             
+
                 __crfsnprb_tree_rotate_left(pool, parent_pos_t, root_pos);
                 node_pos_t = (*root_pos);
                 break;
@@ -443,32 +443,32 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
             CRFSNPRB_NODE *o_left;
             CRFSNPRB_NODE *o_right;
             uint32_t  other_pos;
-         
+
             other_pos = CRFSNPRB_NODE_LEFT_POS(parent);
             other = CRFSNPRB_POOL_NODE(pool, other_pos);
-         
+
             if (CRFSNPRB_RED == CRFSNPRB_NODE_COLOR(other))
             {
                 CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_BLACK;
                 CRFSNPRB_NODE_COLOR(parent) = CRFSNPRB_RED;
-             
+
                 __crfsnprb_tree_rotate_right(pool, parent_pos_t, root_pos);
-             
+
                 other_pos = CRFSNPRB_NODE_LEFT_POS(parent);
                 other = CRFSNPRB_POOL_NODE(pool, other_pos);
             }
 
             o_left = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_LEFT_POS(other));
             o_right = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_RIGHT_POS(other));
-         
+
             if ((NULL_PTR == o_left  || CRFSNPRB_BLACK == CRFSNPRB_NODE_COLOR(o_left))
              && (NULL_PTR == o_right || CRFSNPRB_BLACK == CRFSNPRB_NODE_COLOR(o_right)))
             {
                 CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_RED;
-             
+
                 node_pos_t = parent_pos_t;
                 node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
-             
+
                 parent_pos_t = CRFSNPRB_NODE_PARENT_POS(node);
                 parent = CRFSNPRB_POOL_NODE(pool, parent_pos_t);
             }
@@ -480,16 +480,16 @@ static void __crfsnprb_tree_erase_color(CRFSNPRB_POOL *pool, const uint32_t node
                     {
                         CRFSNPRB_NODE_COLOR(o_right) = CRFSNPRB_BLACK;
                     }
-                 
+
                     CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_RED;
-                 
+
                     __crfsnprb_tree_rotate_left(pool, other_pos, root_pos);
-                 
+
                     other_pos = CRFSNPRB_NODE_LEFT_POS(parent);
                     other = CRFSNPRB_POOL_NODE(pool, other_pos);
                     /*note: other was changed here*/
                 }
-             
+
                 CRFSNPRB_NODE_COLOR(other) = CRFSNPRB_NODE_COLOR(parent);
                 CRFSNPRB_NODE_COLOR(parent) = CRFSNPRB_BLACK;
 
@@ -541,22 +541,22 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
     else
     {
         CRFSNPRB_NODE *old;
-     
+
         uint32_t old_pos;
         uint32_t left_pos;
 
         old_pos = node_pos_t;
-     
+
         node_pos_t = CRFSNPRB_NODE_RIGHT_POS(node);
         node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
-     
+
         while (CRFSNPRB_ERR_POS != (left_pos = CRFSNPRB_NODE_LEFT_POS(node)))
         {
             node_pos_t = left_pos;
             node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
-         
+
         }
-     
+
         child_pos  = CRFSNPRB_NODE_RIGHT_POS(node);
         parent_pos = CRFSNPRB_NODE_PARENT_POS(node);
         color      = CRFSNPRB_NODE_COLOR(node);
@@ -567,11 +567,11 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
             child = CRFSNPRB_POOL_NODE(pool, child_pos);
             CRFSNPRB_NODE_PARENT_POS(child) = parent_pos;
         }
-     
+
         if (CRFSNPRB_ERR_POS != parent_pos)
         {
             CRFSNPRB_NODE *parent;
-         
+
             parent = CRFSNPRB_POOL_NODE(pool, parent_pos);
             if (CRFSNPRB_NODE_LEFT_POS(parent) == node_pos_t)
             {
@@ -593,7 +593,7 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
         }
 
         old  = CRFSNPRB_POOL_NODE(pool, old_pos);
-     
+
         CRFSNPRB_NODE_PARENT_POS(node) = CRFSNPRB_NODE_PARENT_POS(old);
         CRFSNPRB_NODE_COLOR(node)      = CRFSNPRB_NODE_COLOR(old);
         CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_NODE_RIGHT_POS(old);
@@ -603,7 +603,7 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
         {
             CRFSNPRB_NODE *old_parent;
             old_parent = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_PARENT_POS(old));
-         
+
             if (CRFSNPRB_NODE_LEFT_POS(old_parent) == old_pos)
             {
                 CRFSNPRB_NODE_LEFT_POS(old_parent) = node_pos_t;
@@ -623,7 +623,7 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
 
             old_left = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_LEFT_POS(old));
             CRFSNPRB_NODE_PARENT_POS(old_left) = node_pos_t;
-        }     
+        }
 
         if (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(old))
         {
@@ -640,15 +640,15 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
     if (CRFSNPRB_ERR_POS != child_pos)
     {
         CRFSNPRB_NODE *child;
-        child = CRFSNPRB_POOL_NODE(pool, child_pos); 
+        child = CRFSNPRB_POOL_NODE(pool, child_pos);
         CRFSNPRB_NODE_PARENT_POS(child) = parent_pos;
     }
- 
+
     if (CRFSNPRB_ERR_POS != parent_pos)
     {
         CRFSNPRB_NODE *parent;
-     
-        parent = CRFSNPRB_POOL_NODE(pool, parent_pos); 
+
+        parent = CRFSNPRB_POOL_NODE(pool, parent_pos);
         if (CRFSNPRB_NODE_LEFT_POS(parent) == node_pos_t)
         {
             CRFSNPRB_NODE_LEFT_POS(parent) = child_pos;
@@ -671,7 +671,7 @@ EC_BOOL crfsnprb_tree_erase(CRFSNPRB_POOL *pool, const uint32_t node_pos, uint32
     return (EC_TRUE);
 }
 
-static uint32_t __crfsnprb_tree_count_node_num(const CRFSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static uint32_t __crfsnprb_tree_count_node_num(const CRFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     const CRFSNPRB_NODE *node;
 
@@ -680,7 +680,7 @@ static uint32_t __crfsnprb_tree_count_node_num(const CRFSNPRB_POOL *pool, const 
         return ((uint32_t)0);
     }
 
-    node = CRFSNPRB_POOL_NODE(pool, node_pos); 
+    node = CRFSNPRB_POOL_NODE(pool, node_pos);
 
     return (uint32_t)(1 + __crfsnprb_tree_count_node_num(pool, CRFSNPRB_NODE_LEFT_POS(node)) + __crfsnprb_tree_count_node_num(pool, CRFSNPRB_NODE_RIGHT_POS(node)));
 }
@@ -720,7 +720,7 @@ uint32_t crfsnprb_tree_first_node(const CRFSNPRB_POOL *pool, const uint32_t root
     }
 
     node = CRFSNPRB_POOL_NODE(pool, node_pos);
- 
+
     while (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
     {
         node_pos = CRFSNPRB_NODE_LEFT_POS(node);
@@ -739,15 +739,15 @@ uint32_t crfsnprb_tree_last_node(const CRFSNPRB_POOL *pool, const uint32_t root_
     {
         return (CRFSNPRB_ERR_POS);
     }
- 
+
     node = CRFSNPRB_POOL_NODE(pool, node_pos);
- 
+
     while (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         node_pos = CRFSNPRB_NODE_RIGHT_POS(node);
         node = CRFSNPRB_POOL_NODE(pool, node_pos);
     }
- 
+
     return (node_pos);
 }
 
@@ -784,7 +784,7 @@ uint32_t crfsnprb_tree_next_node(const CRFSNPRB_POOL *pool, const uint32_t node_
         node_pos_t = CRFSNPRB_NODE_PARENT_POS(node);
         node = parent;
     }
- 
+
     return (CRFSNPRB_NODE_PARENT_POS(node));
 }
 
@@ -796,7 +796,7 @@ uint32_t crfsnprb_tree_prev_node(const CRFSNPRB_POOL *pool, const uint32_t node_
 
     node_pos_t = node_pos;
     node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
- 
+
     /* If we have a left-hand child, go down and then right as far
        as we can. */
     if (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
@@ -825,16 +825,16 @@ uint32_t crfsnprb_tree_prev_node(const CRFSNPRB_POOL *pool, const uint32_t node_
 /*victim_pos should be free*/
 void crfsnprb_tree_replace_node(CRFSNPRB_POOL *pool, const uint32_t victim_pos, const uint32_t new_pos, uint32_t *root_pos)
 {
-    CRFSNPRB_NODE *victim; 
+    CRFSNPRB_NODE *victim;
 
-    victim = CRFSNPRB_POOL_NODE(pool, victim_pos); 
+    victim = CRFSNPRB_POOL_NODE(pool, victim_pos);
 
     /* Set the surrounding nodes to point to the replacement */
     if (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_PARENT_POS(victim))
     {
         CRFSNPRB_NODE *parent;
         parent = CRFSNPRB_POOL_NODE(pool, CRFSNPRB_NODE_PARENT_POS(victim));
-     
+
         if (victim_pos == CRFSNPRB_NODE_LEFT_POS(parent))
         {
             CRFSNPRB_NODE_LEFT_POS(parent) = new_pos;
@@ -848,7 +848,7 @@ void crfsnprb_tree_replace_node(CRFSNPRB_POOL *pool, const uint32_t victim_pos, 
     {
         (*root_pos) = new_pos;
     }
- 
+
     if (CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(victim))
     {
         CRFSNPRB_NODE *left;
@@ -874,15 +874,15 @@ void crfsnprb_tree_replace_node(CRFSNPRB_POOL *pool, const uint32_t victim_pos, 
 *
 **/
 #if 1
-static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
 {
     const CRFSNP_ITEM *item;
- 
+
     if (CRFSNPRB_NODE_DATA(node) < data)
     {
         return (-1);
     }
- 
+
     if (CRFSNPRB_NODE_DATA(node) > data)
     {
         return (1);
@@ -904,17 +904,17 @@ static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t da
 #endif
 
 #if 0/*Oops! this version was delivered online :(*/
-static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
 {
     const CRFSNP_ITEM *item;
     uint32_t min_len;
     int cmp_ret;
- 
+
     if (CRFSNPRB_NODE_DATA(node) < data)
     {
         return (-1);
     }
- 
+
     if (CRFSNPRB_NODE_DATA(node) > data)
     {
         return (1);
@@ -949,15 +949,15 @@ uint32_t crfsnprb_tree_search_data(const CRFSNPRB_POOL *pool, const uint32_t roo
     uint32_t node_pos;
 
     node_pos = root_pos;
- 
+
     while (CRFSNPRB_ERR_POS != node_pos)
     {
         const CRFSNPRB_NODE *node;
         int cmp_ret;
-     
-        node = CRFSNPRB_POOL_NODE(pool, node_pos);     
+
+        node = CRFSNPRB_POOL_NODE(pool, node_pos);
         cmp_ret = __crfsnprb_node_data_cmp(node, data, klen, key);
-     
+
         if (0 < cmp_ret)/*node > (data, key)*/
         {
             node_pos = CRFSNPRB_NODE_LEFT_POS(node);
@@ -991,12 +991,12 @@ EC_BOOL crfsnprb_tree_insert_data(CRFSNPRB_POOL *pool, uint32_t *root_pos, const
     {
         CRFSNPRB_NODE *node;
         int cmp_ret;
-     
+
         node = CRFSNPRB_POOL_NODE(pool, node_pos_t);
         cmp_ret = __crfsnprb_node_data_cmp(node, data, klen, key);
 
         parent_pos_t = node_pos_t;
-     
+
         if (0 < cmp_ret)/*node > (data, key)*/
         {
             node_pos_t = CRFSNPRB_NODE_LEFT_POS(node);
@@ -1024,7 +1024,7 @@ EC_BOOL crfsnprb_tree_insert_data(CRFSNPRB_POOL *pool, uint32_t *root_pos, const
     }
     else
     {
-        CRFSNPRB_NODE *node;     
+        CRFSNPRB_NODE *node;
 
         node  = CRFSNPRB_POOL_NODE(pool, new_pos_t);
         CRFSNPRB_NODE_DATA(node) = data;
@@ -1032,8 +1032,8 @@ EC_BOOL crfsnprb_tree_insert_data(CRFSNPRB_POOL *pool, uint32_t *root_pos, const
         CRFSNPRB_NODE_PARENT_POS(node) = parent_pos_t;
         CRFSNPRB_NODE_COLOR(node)      = CRFSNPRB_RED;
         CRFSNPRB_NODE_LEFT_POS(node)   = CRFSNPRB_ERR_POS;
-        CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_ERR_POS;     
- 
+        CRFSNPRB_NODE_RIGHT_POS(node)  = CRFSNPRB_ERR_POS;
+
         if(CRFSNPRB_ERR_POS == (*root_pos))
         {
             (*root_pos) = new_pos_t;
@@ -1086,7 +1086,7 @@ EC_BOOL crfsnprb_tree_delete(CRFSNPRB_POOL *pool, uint32_t *root_pos, const uint
 
 
 /*postorder: left -> right -> root*/
-static void __crfsnprb_tree_free(CRFSNPRB_POOL *pool, const uint32_t node_pos)
+STATIC_CAST static void __crfsnprb_tree_free(CRFSNPRB_POOL *pool, const uint32_t node_pos)
 {
     CRFSNPRB_NODE *node;
 
@@ -1094,20 +1094,20 @@ static void __crfsnprb_tree_free(CRFSNPRB_POOL *pool, const uint32_t node_pos)
     {
         return;
     }
- 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
     {
         __crfsnprb_tree_free(pool, CRFSNPRB_NODE_LEFT_POS(node));
-    } 
+    }
 
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         __crfsnprb_tree_free(pool, CRFSNPRB_NODE_RIGHT_POS(node));
-    } 
+    }
 
     crfsnprb_node_free(pool, node_pos);
- 
+
     return;
 }
 void crfsnprb_tree_free(CRFSNPRB_POOL *pool, const uint32_t root_pos)
@@ -1139,11 +1139,11 @@ EC_BOOL crfsnprb_pool_init(CRFSNPRB_POOL *pool, const uint32_t node_max_num, con
         {
             dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "info:crfsnprb_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
-        }     
+        }
     }
     dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "info:crfsnprb_pool_init: init %u nodes done\n", node_max_num);
     crfsnprb_node_set_next(pool, node_max_num - 1, CRFSNPRB_ERR_POS);/*overwrite the last one*/
- 
+
     CRFSNPRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
     return (EC_TRUE);
 }
@@ -1210,8 +1210,8 @@ void crfsnprb_preorder_print(LOG *log, const CRFSNPRB_POOL *pool, const uint32_t
     {
         return;
     }
- 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
     crfsnprb_node_print(log, pool, node_pos);
 
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
@@ -1222,8 +1222,8 @@ void crfsnprb_preorder_print(LOG *log, const CRFSNPRB_POOL *pool, const uint32_t
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         crfsnprb_preorder_print(log, pool, CRFSNPRB_NODE_RIGHT_POS(node));
-    } 
- 
+    }
+
     return;
 }
 
@@ -1236,8 +1236,8 @@ void crfsnprb_inorder_print(LOG *log, const CRFSNPRB_POOL *pool, const uint32_t 
     {
         return;
     }
- 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
     {
         crfsnprb_inorder_print(log, pool, CRFSNPRB_NODE_LEFT_POS(node));
@@ -1248,8 +1248,8 @@ void crfsnprb_inorder_print(LOG *log, const CRFSNPRB_POOL *pool, const uint32_t 
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         crfsnprb_inorder_print(log, pool, CRFSNPRB_NODE_RIGHT_POS(node));
-    } 
- 
+    }
+
     return;
 }
 
@@ -1262,20 +1262,20 @@ void crfsnprb_postorder_print(LOG *log, const CRFSNPRB_POOL *pool, const uint32_
     {
         return;
     }
- 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
     {
         crfsnprb_postorder_print(log, pool, CRFSNPRB_NODE_LEFT_POS(node));
-    } 
+    }
 
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         crfsnprb_postorder_print(log, pool, CRFSNPRB_NODE_RIGHT_POS(node));
-    } 
+    }
 
     crfsnprb_node_print(log, pool, node_pos);
- 
+
     return;
 }
 
@@ -1289,8 +1289,8 @@ void crfsnprb_preorder_print_level(LOG *log, const CRFSNPRB_POOL *pool, const ui
     {
         return;
     }
- 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos); 
+
+    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
     crfsnprb_node_print_level(log, pool, node_pos, level);
 
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_LEFT_POS(node))
@@ -1301,8 +1301,8 @@ void crfsnprb_preorder_print_level(LOG *log, const CRFSNPRB_POOL *pool, const ui
     if(CRFSNPRB_ERR_POS != CRFSNPRB_NODE_RIGHT_POS(node))
     {
         crfsnprb_preorder_print_level(log, pool, CRFSNPRB_NODE_RIGHT_POS(node), level + 1);
-    } 
- 
+    }
+
     return;
 }
 
@@ -1330,7 +1330,7 @@ EC_BOOL crfsnprb_flush(const CRFSNPRB_POOL *pool, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "error:crfsnprb_flush: write CRFSNPRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    } 
+    }
 
     /*flush node_used_num*/
     osize  = sizeof(uint32_t);
@@ -1338,7 +1338,7 @@ EC_BOOL crfsnprb_flush(const CRFSNPRB_POOL *pool, int fd, UINT32 *offset)
     {
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "error:crfsnprb_flush: write CRFSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
-    }  
+    }
 
     /*flush node_sizeof*/
     osize  = sizeof(uint32_t);
@@ -1349,14 +1349,14 @@ EC_BOOL crfsnprb_flush(const CRFSNPRB_POOL *pool, int fd, UINT32 *offset)
     }
 
     /*flush rb_node table*/
-    osize  = CRFSNPRB_POOL_NODE_MAX_NUM(pool) * CRFSNPRB_POOL_NODE_SIZEOF(pool); 
+    osize  = CRFSNPRB_POOL_NODE_MAX_NUM(pool) * CRFSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CRFSNPRB_POOL_NODE_TBL(pool)))
     {
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "error:crfsnprb_flush: write CRFSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CRFSNPRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CRFSNPRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -1391,7 +1391,7 @@ EC_BOOL crfsnprb_load(CRFSNPRB_POOL *pool, int fd, UINT32 *offset)
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "error:crfsnprb_load: load CRFSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-    CRFSNPRB_POOL_NODE_MAX_NUM(pool) = node_used_num; 
+    CRFSNPRB_POOL_NODE_MAX_NUM(pool) = node_used_num;
 
     /*load node_sizeof*/
     osize  = sizeof(uint32_t);
@@ -1403,7 +1403,7 @@ EC_BOOL crfsnprb_load(CRFSNPRB_POOL *pool, int fd, UINT32 *offset)
     CRFSNPRB_POOL_NODE_SIZEOF(pool) = node_sizeof;
 
     /*load rb_node table*/
-    osize  = CRFSNPRB_POOL_NODE_MAX_NUM(pool) * CRFSNPRB_POOL_NODE_SIZEOF(pool); 
+    osize  = CRFSNPRB_POOL_NODE_MAX_NUM(pool) * CRFSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CRFSNPRB_POOL_NODE_TBL(pool)))
     {
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDOUT, "error:crfsnprb_load: load CRFSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CRFSNPRB_POOL_NODE_MAX_NUM is %u\n",
@@ -1440,7 +1440,7 @@ EC_BOOL crfsnprb_node_debug_cmp(const CRFSNPRB_NODE *node_1st, const CRFSNPRB_NO
     {
         return (EC_TRUE);
     }
-#endif 
+#endif
 
     if(CRFSNPRB_NODE_COLOR(node_1st) != CRFSNPRB_NODE_COLOR(node_2nd))
     {
@@ -1468,7 +1468,7 @@ EC_BOOL crfsnprb_node_debug_cmp(const CRFSNPRB_NODE *node_1st, const CRFSNPRB_NO
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDERR, "error:crfsnprb_node_debug_cmp: inconsistent CRFSNPRB_NODE_LEFT_POS: %u != %u\n",
                             CRFSNPRB_NODE_LEFT_POS(node_1st), CRFSNPRB_NODE_LEFT_POS(node_2nd));
         return (EC_FALSE);
-    } 
+    }
 
     if(CRFSNPRB_NODE_USED == CRFSNPRB_NODE_USED_FLAG(node_1st))
     {
@@ -1485,7 +1485,7 @@ EC_BOOL crfsnprb_node_debug_cmp(const CRFSNPRB_NODE *node_1st, const CRFSNPRB_NO
             dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDERR, "error:crfsnprb_node_debug_cmp: inconsistent CRFSNPRB_NODE_NEXT_POS: %u != %u\n",
                                 CRFSNPRB_NODE_NEXT_POS(node_1st), CRFSNPRB_NODE_NEXT_POS(node_2nd));
             return (EC_FALSE);
-        } 
+        }
     }
     return (EC_TRUE);
 }
@@ -1494,7 +1494,7 @@ EC_BOOL crfsnprb_debug_cmp(const CRFSNPRB_POOL *pool_1st, const CRFSNPRB_POOL *p
 {
     uint32_t  node_max_num;
     uint32_t  node_pos;
- 
+
     if(CRFSNPRB_POOL_FREE_HEAD(pool_1st) != CRFSNPRB_POOL_FREE_HEAD(pool_2nd))
     {
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDERR, "error:crfsnprb_debug_cmp: inconsistent CRFSNPRB_POOL_FREE_HEAD: %u != %u\n",
@@ -1514,7 +1514,7 @@ EC_BOOL crfsnprb_debug_cmp(const CRFSNPRB_POOL *pool_1st, const CRFSNPRB_POOL *p
         dbg_log(SEC_0100_CRFSNPRB, 0)(LOGSTDERR, "error:crfsnprb_debug_cmp: inconsistent CRFSNPRB_POOL_NODE_USED_NUM: %u != %u\n",
                             CRFSNPRB_POOL_NODE_USED_NUM(pool_1st), CRFSNPRB_POOL_NODE_USED_NUM(pool_2nd));
         return (EC_FALSE);
-    } 
+    }
 
     if(CRFSNPRB_POOL_NODE_SIZEOF(pool_1st) != CRFSNPRB_POOL_NODE_SIZEOF(pool_2nd))
     {

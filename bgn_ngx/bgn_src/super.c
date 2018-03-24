@@ -62,13 +62,13 @@ extern "C"{
 
 
 
-static EC_BOOL __super_fnode_clean(SUPER_FNODE *super_fnode);
+STATIC_CAST static EC_BOOL __super_fnode_clean(SUPER_FNODE *super_fnode);
 
-static EC_BOOL __super_fnode_free(SUPER_FNODE *super_fnode);
+STATIC_CAST static EC_BOOL __super_fnode_free(SUPER_FNODE *super_fnode);
 
-static EC_BOOL __super_fnode_match_fname(const SUPER_FNODE *super_fnode, const CSTRING *fname);
+STATIC_CAST static EC_BOOL __super_fnode_match_fname(const SUPER_FNODE *super_fnode, const CSTRING *fname);
 
-static int __super_make_open_flags(const UINT32 open_flags);
+STATIC_CAST static int __super_make_open_flags(const UINT32 open_flags);
 
 /**
 *   for test only
@@ -157,7 +157,7 @@ UINT32 super_start()
                     (CRB_DATA_FREE)super_ccond_free_0,
                     (CRB_DATA_PRINT)super_ccond_print);
 
-    super_md->usedcounter ++; 
+    super_md->usedcounter ++;
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "super_start: start SUPER module #%ld\n", super_md_id);
 
@@ -261,7 +261,7 @@ EC_BOOL super_ccond_init(const UINT32 super_md_id, SUPER_CCOND *super_ccond, con
     SUPER_CCOND_TAG(super_ccond) = tag;
     cstring_init(SUPER_CCOND_KEY(super_ccond), CSTRING_STR(key));
     croutine_cond_init(SUPER_CCOND_COND(super_ccond), timeout_msec, LOC_SUPER_0005);
- 
+
     return (EC_TRUE);
 }
 
@@ -423,7 +423,7 @@ EC_BOOL super_fnode_free(const UINT32 super_md_id, SUPER_FNODE *super_fnode)
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_fnode_clean(SUPER_FNODE *super_fnode)
+STATIC_CAST static EC_BOOL __super_fnode_clean(SUPER_FNODE *super_fnode)
 {
     cstring_clean(SUPER_FNODE_FNAME(super_fnode));
 
@@ -437,7 +437,7 @@ static EC_BOOL __super_fnode_clean(SUPER_FNODE *super_fnode)
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_fnode_free(SUPER_FNODE *super_fnode)
+STATIC_CAST static EC_BOOL __super_fnode_free(SUPER_FNODE *super_fnode)
 {
     if(NULL_PTR != super_fnode)
     {
@@ -447,12 +447,12 @@ static EC_BOOL __super_fnode_free(SUPER_FNODE *super_fnode)
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_fnode_match_fname(const SUPER_FNODE *super_fnode, const CSTRING *fname)
+STATIC_CAST static EC_BOOL __super_fnode_match_fname(const SUPER_FNODE *super_fnode, const CSTRING *fname)
 {
     return cstring_is_equal(SUPER_FNODE_FNAME(super_fnode), fname);
 }
 
-static int __super_make_open_flags(const UINT32 open_flags)
+STATIC_CAST static int __super_make_open_flags(const UINT32 open_flags)
 {
     int flags;
 
@@ -870,10 +870,10 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
         {
             continue;
         }
-     
+
         dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "super_sync_cload_mgr: tasks node: tcid %s, comm %ld, size %ld\n",
                             TASKS_NODE_TCID_STR(tasks_node), TASKS_NODE_COMM(tasks_node), TASKS_NODE_SIZE(tasks_node));
-     
+
         cload_node = cload_node_new(TASKS_NODE_TCID(tasks_node), TASKS_NODE_COMM(tasks_node), TASKS_NODE_SIZE(tasks_node));
         //dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_sync_cload_mgr: new cload_node is\n");
         //cload_node_print(LOGSTDOUT, cload_node);
@@ -1034,7 +1034,7 @@ void super_activate_sys_cfg(const UINT32 super_md_id)
     cthreadp_size_reset(TASK_REQ_CTHREAD_POOL(task_brd), TASK_REQ_THREAD_MAX_NUM);
     cthreadp_size_reset(TASK_RSP_CTHREAD_POOL(task_brd), TASK_RSP_THREAD_MAX_NUM);
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
-#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH) 
+#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
     coroutine_pool_size_reset(TASK_BRD_CROUTINE_POOL(task_brd), TASK_REQ_THREAD_MAX_NUM);
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
 
@@ -1335,7 +1335,7 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
         tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
- 
+
         csig_stop(SIGHUP);
     }
 
@@ -1352,7 +1352,7 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
 
     if (EC_TRUE == task_brd_check_is_work_tcid(this_tcid) && CMPI_FWD_RANK == this_rank)
     {
-#if (SWITCH_OFF == NGX_BGN_SWITCH)  /*must not allow to shudown bgn server on ngx*/ 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)  /*must not allow to shudown bgn server on ngx*/
         //TASK_BRD_ENABLE_FLAG(task_brd) = EC_FALSE;
         TASK_BRD_RESET_FLAG(task_brd) = EC_FALSE; /*disable do_slave reset*/
         TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
@@ -1361,11 +1361,11 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
         tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
-#if (SWITCH_ON == NGX_BGN_SWITCH) 
+#if (SWITCH_ON == NGX_BGN_SWITCH)
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "WARNING: MUST NOT ALLOW TO SHUTDOWN BGN SERVER ON NGX !\n");
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/     
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
         return;
-    } 
+    }
     //task_brd_default_abort();
 
     return;
@@ -1502,7 +1502,7 @@ void super_sync_cload_node(const UINT32 super_md_id, CLOAD_NODE *cload_node)
 }
 
 /*TODO: sync other ranks from fwd rank*/
-static void super_sync_taskcomm_self(CVECTOR *collected_vec, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
+STATIC_CAST static void super_sync_taskcomm_self(CVECTOR *collected_vec, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
 {
     TASK_BRD *task_brd;
     CVECTOR  *new_mod_node_vec;
@@ -1541,7 +1541,7 @@ static void super_sync_taskcomm_self(CVECTOR *collected_vec, TASK_MGR *task_mgr,
 }
 
 /*TODO: search intranet of local_tasks_cfg with (local tcid, local maski, local maske)*/
-static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
+STATIC_CAST static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
 {
     UINT32 pos;
 
@@ -1596,7 +1596,7 @@ static void super_sync_taskcomm_intranet(CVECTOR *collected_vec, CVECTOR *remote
 }
 
 /*TODO: search intranet of loca_tasks_cfg with (local tcid, local maski, local maske)*/
-static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
+STATIC_CAST static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
 {
     UINT32 pos;
 
@@ -1649,7 +1649,7 @@ static void super_sync_taskcomm_lannet(CVECTOR *collected_vec, CVECTOR *remote_t
 }
 
 /*TODO: search lannet and extranet of local_tasks_cfg with (local tcid, local maski, local maske)*/
-static void super_sync_taskcomm_externet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
+STATIC_CAST static void super_sync_taskcomm_externet(CVECTOR *collected_vec, CVECTOR *remote_tasks_cfg_vec, TASKS_CFG *local_tasks_cfg, const UINT32 max_hops, const UINT32 max_remotes, const UINT32 time_to_live, TASK_MGR *task_mgr, MOD_NODE *send_mod_node)
 {
     UINT32 pos;
 
@@ -2066,7 +2066,7 @@ void super_show_queues(const UINT32 super_md_id, LOG *log)
 void super_check_slowdown(const UINT32 super_md_id, LOG *log)
 {
     TASK_BRD *task_brd;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -2083,7 +2083,7 @@ void super_check_slowdown(const UINT32 super_md_id, LOG *log)
                 TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd));
 
     task_brd_need_slow_down(task_brd, log, LOG_LEVEL_ALWAYS_HAPPEN);
-    return;             
+    return;
 }
 
 void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid)
@@ -2429,7 +2429,7 @@ void super_register_cluster(const UINT32 super_md_id, const UINT32 src_tcid, con
     MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = super_md_id;
- 
+
     task_p2p_no_wait(super_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_PREEMPT, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                     &recv_mod_node,
                     NULL_PTR, FI_super_register_cluster, CMPI_ERROR_MODI, src_tcid, broken_tcid);
@@ -2739,7 +2739,7 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index)
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_rotate_log: log index %ld rotate done\n", log_index);
- 
+
     return (EC_TRUE);
 }
 
@@ -2751,7 +2751,7 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index)
 EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     uint32_t redirect_times;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -2813,13 +2813,13 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             if(NULL_PTR != uri)
             {
                 safe_free(uri, LOC_SUPER_0055);
-            }         
+            }
             break;
         }
 
         chttp_rsp_clean(chttp_rsp);
         chttp_stat_clean(chttp_stat);
-      
+
         chttp_req_init(&chttp_req_t);
         chttp_req_clone(&chttp_req_t, chttp_req);
 
@@ -2864,7 +2864,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: redirect request failed\n");
             chttp_req_print(LOGSTDOUT, &chttp_req_t);
-         
+
             chttp_req_clean(&chttp_req_t);
             return (EC_FALSE);
         }
@@ -2873,7 +2873,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         {
             sys_log(LOGSTDOUT, "[DEBUG] super_http_request: redirect response is\n");
             chttp_rsp_print(LOGSTDOUT, chttp_rsp);
-        }     
+        }
 
         chttp_req_clean(&chttp_req_t);
     }
@@ -2909,7 +2909,7 @@ EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chtt
     && EC_FALSE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
     && CHTTP_STORE_CACHE_NONE == CHTTP_STORE_CACHE_CTRL(chttp_store))
     */
-    if(NULL_PTR != chttp_store) 
+    if(NULL_PTR != chttp_store)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request_merge: request %p, cache_ctrl: 0x%lx\n",
                         chttp_req, CHTTP_STORE_CACHE_CTRL(chttp_store));
@@ -3041,7 +3041,7 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UIN
 
     UINT32     des_ipv4;
     UINT32     des_port;
-    
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -3067,19 +3067,19 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UIN
 
     if(EC_FALSE == c_tdns_resolve(des_tcid, &des_ipv4, &des_port))
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n", 
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n",
                             c_word_to_ipv4(des_tcid));
 
         super_handle_broken_tcid(super_md_id, des_tcid);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n", 
-                        c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);    
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n",
+                        c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
 
     if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, conn_num))
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: register to (tcid '%s', ip '%s', port %ld) failed\n", 
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: register to (tcid '%s', ip '%s', port %ld) failed\n",
                             c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
         return (EC_FALSE);
     }
@@ -5646,7 +5646,7 @@ EC_BOOL super_transfer_vec_stop(const UINT32 super_md_id, const CSTRING *src_fna
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_transfer_prepare(const CVECTOR *des_tcid_vec, CVECTOR *ret_vec)
+STATIC_CAST static EC_BOOL __super_transfer_prepare(const CVECTOR *des_tcid_vec, CVECTOR *ret_vec)
 {
     UINT32 pos;
 
@@ -6234,7 +6234,7 @@ EC_BOOL super_say_hello(const UINT32 super_md_id, const UINT32 des_tcid, const U
 {
     MOD_NODE recv_mod_node;
     EC_BOOL ret;
-     
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6254,7 +6254,7 @@ EC_BOOL super_say_hello(const UINT32 super_md_id, const UINT32 des_tcid, const U
     MOD_NODE_TCID(&recv_mod_node) = des_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = des_rank;
-    MOD_NODE_MODI(&recv_mod_node) = 0; 
+    MOD_NODE_MODI(&recv_mod_node) = 0;
 
     ret = EC_FALSE;
     task_p2p(super_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
@@ -6266,13 +6266,13 @@ EC_BOOL super_say_hello(const UINT32 super_md_id, const UINT32 des_tcid, const U
 EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const UINT32 des_tcid, const UINT32 des_rank)
 {
     TASK_MGR *task_mgr;
-    MOD_NODE  recv_mod_node; 
+    MOD_NODE  recv_mod_node;
     UINT32    idx;
 
     CVECTOR  *report_vec;
     CVECTOR  *cstring_vec;
     EC_BOOL   result;
-     
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6302,7 +6302,7 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
 
         cstring = cstring_new(NULL_PTR, LOC_SUPER_0092);
         cvector_push(cstring_vec, (void *)cstring);
-     
+
         (*ret) = EC_FALSE;
         task_p2p_inc(task_mgr, super_md_id, &recv_mod_node,
                      ret, FI_super_say_hello, CMPI_ERROR_MODI, des_tcid, des_rank, cstring);
@@ -6314,7 +6314,7 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
     {
         UINT32 *ret;
         CSTRING *cstring;
-     
+
         ret = (UINT32 *)cvector_get(report_vec, idx);
         cstring = (CSTRING *)cvector_get(cstring_vec, idx);
 
@@ -6328,7 +6328,7 @@ EC_BOOL super_say_hello_batch(const UINT32 super_md_id, const UINT32 num, const 
 
         cvector_set(cstring_vec, idx, NULL_PTR);
         cstring_free(cstring);
-    } 
+    }
 
     cvector_free(report_vec, LOC_SUPER_0094);
     cvector_free(cstring_vec, LOC_SUPER_0095);
@@ -6340,7 +6340,7 @@ EC_BOOL super_say_hello_loop(const UINT32 super_md_id, const UINT32 loops, const
 {
     UINT32   count;
     UINT32   step;
-     
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6371,7 +6371,7 @@ EC_BOOL super_say_hello_loop(const UINT32 super_md_id, const UINT32 loops, const
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_say_hello_loop: %ld - %ld done\n", count, count + step); 
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_say_hello_loop: %ld - %ld done\n", count, count + step);
     }
     return (EC_TRUE);
 }
@@ -6379,7 +6379,7 @@ EC_BOOL super_say_hello_loop(const UINT32 super_md_id, const UINT32 loops, const
 EC_BOOL super_say_hello_loop0(const UINT32 super_md_id, const UINT32 loops, const UINT32 des_tcid, const UINT32 des_rank)
 {
     UINT32   count;
-     
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6435,7 +6435,7 @@ EC_BOOL super_say_hello_loop0(const UINT32 super_md_id, const UINT32 loops, cons
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size)
 {
     SUPER_MD  *super_md;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6454,12 +6454,12 @@ EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size
 EC_BOOL super_load_data(const UINT32 super_md_id)
 {
     SUPER_MD  *super_md;
- 
+
     TASK_BRD  *task_brd;
     UINT32     obj_zone_size;
     UINT32     obj_zone_id;
     UINT32     obj_idx;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6486,19 +6486,19 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
     for(obj_idx = 0; obj_idx < obj_zone_size; obj_idx ++)
     {
         CVECTOR *obj_vec;
-        UINT32   obj_id;     
+        UINT32   obj_id;
         UINT32   obj_data_num;
-        UINT32   obj_data_idx;     
-     
+        UINT32   obj_data_idx;
+
         obj_data_num = /*50*/5;
-     
+
         obj_vec = cvector_new(obj_data_num, MM_UINT32, LOC_SUPER_0098);
         if(NULL_PTR == obj_vec)
         {
             EC_BOOL ret;
-         
+
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_load_data: new obj vec with size %ld failed\n", obj_data_num);
-         
+
             cvector_loop(SUPER_MD_OBJ_ZONE(super_md),
                         (void *)&ret,
                         CVECTOR_CHECKER_DEFAULT,
@@ -6507,7 +6507,7 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
                         (UINT32)cvector_free,
                         NULL_PTR,
                         LOC_SUPER_0099);
-            cvector_free(SUPER_MD_OBJ_ZONE(super_md), LOC_SUPER_0100);         
+            cvector_free(SUPER_MD_OBJ_ZONE(super_md), LOC_SUPER_0100);
             return (EC_FALSE);
         }
 
@@ -6521,7 +6521,7 @@ EC_BOOL super_load_data(const UINT32 super_md_id)
 
         cvector_push_no_lock(SUPER_MD_OBJ_ZONE(super_md), (void *)obj_vec);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -6531,7 +6531,7 @@ EC_BOOL super_load_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num)
     TASK_MGR *task_mgr;
     UINT32    obj_zone_id;
     UINT32    ret;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6544,11 +6544,11 @@ EC_BOOL super_load_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num)
 
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP); 
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(obj_zone_id = 0; obj_zone_id < obj_zone_num; obj_zone_id ++)
     {
         UINT32 tcid;
-     
+
         MOD_NODE recv_mod_node;
 
         tcid = __MAKE_DES_TCID(TASK_BRD_TCID(task_brd), obj_zone_id);
@@ -6567,11 +6567,11 @@ EC_BOOL super_load_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num)
 EC_BOOL super_get_data(const UINT32 super_md_id, const UINT32 obj_id, CVECTOR *obj_data)
 {
     SUPER_MD  *super_md;
- 
+
     TASK_BRD  *task_brd;
     UINT32     obj_idx;
-    CVECTOR   *obj_vec; 
- 
+    CVECTOR   *obj_vec;
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6582,7 +6582,7 @@ EC_BOOL super_get_data(const UINT32 super_md_id, const UINT32 obj_id, CVECTOR *o
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id); 
+    super_md = SUPER_MD_GET(super_md_id);
 
     task_brd = task_brd_default_get();
 
@@ -6600,12 +6600,12 @@ EC_BOOL super_get_data(const UINT32 super_md_id, const UINT32 obj_id, CVECTOR *o
         MOD_NODE_TCID(&recv_mod_node) = tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;     
+        MOD_NODE_MODI(&recv_mod_node) = 0;
 
         ret = EC_FALSE;
         task_p2p(super_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node, &ret, FI_super_get_data, CMPI_ERROR_MODI, obj_id, obj_data);
-        return (ret);             
+        return (ret);
     }
 
     if(NULL_PTR == SUPER_MD_OBJ_ZONE(super_md))
@@ -6638,12 +6638,12 @@ EC_BOOL super_get_data(const UINT32 super_md_id, const UINT32 obj_id, CVECTOR *o
 EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, CVECTOR *obj_data_vec)
 {
     SUPER_MD  *super_md;
- 
+
     TASK_BRD *task_brd;
     TASK_MGR *task_mgr;
     UINT32    obj_id_pos;
     EC_BOOL   ret;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6655,17 +6655,17 @@ EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, 
 #endif/*SUPER_DEBUG_SWITCH*/
 
     super_md = SUPER_MD_GET(super_md_id);
- 
+
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP); 
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(obj_id_pos = 0; obj_id_pos < cvector_size(obj_id_vec); obj_id_pos ++)
     {
         UINT32 obj_id;
         UINT32 tcid;
 
         CVECTOR *obj_data;
-     
+
         MOD_NODE recv_mod_node;
 
         obj_data = cvector_new(0, MM_UINT32, LOC_SUPER_0101);
@@ -6690,7 +6690,7 @@ EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, 
 
         obj_id = (UINT32)cvector_get_no_lock(obj_id_vec, obj_id_pos);
         tcid = __MAKE_DES_TCID(TASK_BRD_TCID(task_brd), __GET_ZONE_ID_FROM_OBJ_ID(obj_id, SUPER_MD_OBJ_ZONE_SIZE(super_md)));
-     
+
         MOD_NODE_TCID(&recv_mod_node) = tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -6706,7 +6706,7 @@ EC_BOOL super_get_data_vec(const UINT32 super_md_id, const CVECTOR *obj_id_vec, 
 EC_BOOL super_print_obj_vec(const UINT32 super_md_id, const CVECTOR *obj_vec, LOG *log)
 {
     UINT32     obj_data_idx;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6731,9 +6731,9 @@ EC_BOOL super_print_obj_vec(const UINT32 super_md_id, const CVECTOR *obj_vec, LO
 EC_BOOL super_print_data(const UINT32 super_md_id, LOG *log)
 {
     SUPER_MD  *super_md;
- 
-    UINT32     obj_idx; 
- 
+
+    UINT32     obj_idx;
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6750,7 +6750,7 @@ EC_BOOL super_print_data(const UINT32 super_md_id, LOG *log)
         CVECTOR   *obj_vec;
 
         obj_vec = (CVECTOR *)cvector_get_no_lock(SUPER_MD_OBJ_ZONE(super_md), obj_idx);
-     
+
         sys_print(log, "[%lx] ", obj_idx);
         super_print_obj_vec(super_md_id, obj_vec, log);
     }
@@ -6764,7 +6764,7 @@ EC_BOOL super_print_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num
     TASK_MGR *task_mgr;
     UINT32    obj_zone_id;
     UINT32    ret;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6777,11 +6777,11 @@ EC_BOOL super_print_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num
 
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP); 
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(obj_zone_id = 0; obj_zone_id < obj_zone_num; obj_zone_id ++)
     {
         UINT32 tcid;
-     
+
         MOD_NODE recv_mod_node;
 
         tcid = __MAKE_DES_TCID(TASK_BRD_TCID(task_brd), obj_zone_id);
@@ -6832,31 +6832,31 @@ EC_BOOL super_do_test(const UINT32 super_md_id)
 
     cstring_init(&path, (UINT8 *)"/cc/304/0");
     cbytes_init(&body);
- 
+
     for(idx = 0; idx < sizeof(headers)/sizeof(headers[0]); idx ++)
     {
         cbytes_append(&body, (UINT8 *)headers[ idx ], strlen(headers[ idx ]));
     }
 
     cbytes_append(&body, (UINT8 *)body_data, strlen(body_data));
- 
+
     crfs_write(0, &path, &body);
 
     cstring_clean(&path);
     cbytes_clean(&body);
- 
+
     return (EC_TRUE);
 }
 
 EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key, const UINT32 timeout_msec)
 {
     SUPER_MD  *super_md;
- 
+
     SUPER_CCOND *super_ccond;
     SUPER_CCOND *super_ccond_inserted;
 
     CRB_NODE    *crb_node;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6874,7 +6874,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: new super_ccond [tag %ld, key '%.*s', timeout %ld ms] failed\n",
                     tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     crb_node = crb_tree_insert_data(SUPER_MD_COND_LOCKS(super_md), (void *)super_ccond);
@@ -6883,7 +6883,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree failed\n",
                     tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         super_ccond_free(super_md_id, super_ccond);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     if(CRB_NODE_DATA(crb_node) != super_ccond)
@@ -6894,9 +6894,9 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     }
 
     super_ccond_inserted = CRB_NODE_DATA(crb_node);
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree done => cond %p\n",
-                tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted)); 
+                tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
 
     croutine_cond_reserve(SUPER_CCOND_COND(super_ccond_inserted), 1, LOC_SUPER_0104);
     if(do_log(SEC_0117_SUPER, 9))
@@ -6904,7 +6904,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] => cond %p\n",
                     tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
     }
- 
+
     if(EC_TIMEOUT == croutine_cond_wait(SUPER_CCOND_COND(super_ccond_inserted), LOC_SUPER_0105))
     {
         if(do_log(SEC_0117_SUPER, 9))
@@ -6913,7 +6913,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
                       tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
             /*here cannot print super_ccond due to it may be already free after wait*/
         }
-     
+
         /*note: here initiatives to unlock*/
         super_cond_wakeup(super_md_id, tag, key);
 
@@ -6932,12 +6932,12 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
 EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key)
 {
     SUPER_MD    *super_md;
- 
+
     SUPER_CCOND  super_ccond_t;
     SUPER_CCOND *super_ccond_searched;
 
     CRB_NODE    *crb_node_searched;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -6958,21 +6958,21 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_wakeup: not found super_ccond [tag %ld, key '%.*s']\n",
                     tag, CSTRING_LEN(key), CSTRING_STR(key));
         super_ccond_clean(super_md_id, &super_ccond_t);
-        return (EC_TRUE);                     
+        return (EC_TRUE);
     }
 
     super_ccond_clean(super_md_id, &super_ccond_t);/*no userful any longer*/
 
     super_ccond_searched = CRB_NODE_DATA(crb_node_searched);
- 
+
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_wakeup: release all super_ccond [tag %ld, key '%.*s'] <= cond %p\n",
                 tag, CSTRING_LEN(key), CSTRING_STR(key), SUPER_CCOND_COND(super_ccond_searched));
-             
+
     croutine_cond_release_all(SUPER_CCOND_COND(super_ccond_searched), LOC_SUPER_0106);
 
-    /*super_ccond_searched will be free when delete its crb node from tree*/ 
+    /*super_ccond_searched will be free when delete its crb node from tree*/
     crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node_searched);
- 
+
     return (EC_TRUE);
 }
 
@@ -6984,7 +6984,7 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
 EC_BOOL super_switch_ngx_memc_on(const UINT32 super_md_id)
 {
     CRFSMC    *crfsmc;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7024,7 +7024,7 @@ EC_BOOL super_switch_ngx_memc_on(const UINT32 super_md_id)
 EC_BOOL super_switch_ngx_memc_off(const UINT32 super_md_id)
 {
     CRFSMC    *crfsmc;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7040,7 +7040,7 @@ EC_BOOL super_switch_ngx_memc_off(const UINT32 super_md_id)
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_switch_ngx_memc_on: SWITCH_OFF == NGX_BGN_SWITCH\n");
         return (EC_FALSE);
     }
- 
+
     crfsmc = task_brd_default_get_crfsmc();
     if(NULL_PTR == crfsmc)
     {
@@ -7063,7 +7063,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7088,14 +7088,14 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)c_word_to_str(CBYTES_LEN(cbytes)));
 
     cbytes_mount(CHTTP_REQ_BODY(&chttp_req), CBYTES_LEN(cbytes), CBYTES_BUF(cbytes));/*zero copy*/
- 
+
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_store: store '%.*s' with size %ld to %s:%ld failed\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
                         CBYTES_LEN(cbytes),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-                     
+
         cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
 
         chttp_req_clean(&chttp_req);
@@ -7106,7 +7106,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
             /*anyway, unlock the possible locked-file*/
             super_unlock(super_md_id, tcid, store_srv_ipaddr, store_srv_port, path, auth_token);
         }
-     
+
         return (EC_FALSE);
     }
 
@@ -7115,7 +7115,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
                     CBYTES_LEN(cbytes),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
- 
+
     cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
 
     chttp_req_clean(&chttp_req);
@@ -7135,19 +7135,19 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 * store data to storage after delete dir
 *
 **/
-static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
+STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
     TASK_BRD    *task_brd;
     TASK_MGR    *task_mgr;
 
     UINT32       crfsmon_md_id;
- 
+
     UINT32       pos;
     UINT32       num;
     EC_BOOL      ret;
 
     task_brd = task_brd_default_get();
- 
+
     crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
     if(CMPI_ERROR_MODI == crfsmon_md_id)
     {
@@ -7163,7 +7163,7 @@ static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, con
     }
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFS_NODE      crfs_node;
@@ -7184,7 +7184,7 @@ static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, con
                     );
             crfs_node_clean(&crfs_node);
             continue;
-        }    
+        }
 
         MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
         MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
@@ -7227,28 +7227,28 @@ EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid,
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_store_after_ddir: store '%.*s' done\n",
                         CSTRING_LEN(path), CSTRING_STR(path));
-        return (EC_FALSE); 
+        return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_store_after_ddir: store '%.*s' done\n",
                     CSTRING_LEN(path), CSTRING_STR(path));
 
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
+STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
     TASK_BRD    *task_brd;
     TASK_MGR    *task_mgr;
 
     UINT32       crfsmon_md_id;
- 
+
     UINT32       pos;
     UINT32       num;
     EC_BOOL      ret;
 
     task_brd = task_brd_default_get();
- 
+
     crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
     if(CMPI_ERROR_MODI == crfsmon_md_id)
     {
@@ -7264,7 +7264,7 @@ static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_store, const CS
     }
 
     task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
- 
+
     for(pos = 0; pos < num; pos ++)
     {
         CRFS_NODE      crfs_node;
@@ -7310,7 +7310,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
 {
     MOD_NODE        recv_mod_node;
     EC_BOOL         ret;
-    
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7332,13 +7332,13 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
-    
+
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: p2p: [token %s] path '%.*s', data %p [len %ld] => tcid %s\n",
                 (char *)cstring_get_str(auth_token),
                 CSTRING_LEN(path), CSTRING_STR(path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
                 c_word_to_ipv4(tcid));
 
-    ret = EC_FALSE;         
+    ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
             &recv_mod_node,
             &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, auth_token);
@@ -7369,7 +7369,7 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
     if(EC_TRUE == notify_flag)
     {
         UINT32 tag;
-     
+
         if(EC_TRUE == cstring_is_empty(notify_key))
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_notify: not notify due to notify uri is empty\n");
@@ -7381,8 +7381,8 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
 
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_notify: wakeup waiters of '%.*s' done\n",
                     CSTRING_LEN(notify_key), CSTRING_STR(notify_key));
-                 
-        return (EC_TRUE);                 
+
+        return (EC_TRUE);
     }
 
     if(do_log(SEC_0117_SUPER, 1) && EC_FALSE == cstring_is_empty(notify_key))
@@ -7406,7 +7406,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
     CSTRING     *uri;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7436,7 +7436,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     //chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
- 
+
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_unlock_notify: notify '%.*s' to %s:%ld failed\n",
@@ -7455,7 +7455,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
- 
+
     return (EC_TRUE);
 }
 
@@ -7464,14 +7464,14 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
 * unlock the locked-file
 *
 **/
-static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
+STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
 {
     SUPER_MD    *super_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
     CSTRING     *uri;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7502,7 +7502,7 @@ static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 t
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
     chttp_req_add_header(&chttp_req, (const char *)"auth-token", (char *)CSTRING_STR(auth_token));
- 
+
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_unlock_over_http: unlock '%.*s' to %s:%ld failed\n",
@@ -7521,15 +7521,15 @@ static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 t
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
- 
+
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
+STATIC_CAST static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
 {
     MOD_NODE     mod_node;
     EC_BOOL      ret;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7546,7 +7546,7 @@ static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, const UINT32 tc
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&mod_node) = 0;/*crfs_md_id = 0*/
- 
+
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
@@ -7557,14 +7557,14 @@ static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, const UINT32 tc
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_bgn: unlock '%.*s' to %s done => failed\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(tcid));
-                 
+
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_bgn: unlock '%.*s' to %s done => OK\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(tcid));
- 
+
     return (EC_TRUE);
 }
 
@@ -7583,7 +7583,7 @@ EC_BOOL super_unlock(const UINT32 super_md_id, const UINT32 tcid, const UINT32 s
 * wait data on storage to be ready
 *
 **/
-static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes, UINT32 *data_ready)
+STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes, UINT32 *data_ready)
 {
     SUPER_MD    *super_md;
 
@@ -7595,7 +7595,7 @@ static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
- 
+
     (*data_ready) = EC_FALSE;
 
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
@@ -7633,8 +7633,8 @@ static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
-    } 
- 
+    }
+
     v = chttp_rsp_get_header(&chttp_rsp, (const char *)"data-ready");
     if(NULL_PTR == v)
     {
@@ -7660,13 +7660,13 @@ static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_
         /*mount data to reduce data copy*/
         UINT8    *data;
         UINT32    len;
-     
+
         cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
         cbytes_mount(cbytes, len, data);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
-     
+
         return (EC_TRUE);
     }
 
@@ -7677,14 +7677,14 @@ static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes)
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
 
     UINT8       *data;
-    UINT32       len; 
- 
+    UINT32       len;
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -7718,7 +7718,7 @@ static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const UINT32 store_
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_read_data_e: read '%.*s' on %s:%ld back\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
@@ -7734,11 +7734,11 @@ static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const UINT32 store_
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data_e: read '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
     cbytes_mount(cbytes, len, data);
-     
+
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
@@ -7750,10 +7750,10 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
     SUPER_MD    *super_md;
 
     UINT32       data_ready;
- 
+
     UINT32       tag;
     UINT32       timeout_msec;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -7773,14 +7773,14 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data_e: wait data of '%.*s' on %s:%ld failed\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     if(EC_TRUE == data_ready)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: wait data of '%.*s' on %s:%ld done and data is ready\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_TRUE);
     }
 
@@ -7792,14 +7792,14 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
                     CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-                 
+
     if(EC_FALSE == super_cond_wait(super_md_id, tag, path, timeout_msec))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_wait_data_e: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld failed\n",
                         tag,
                         CSTRING_LEN(path), CSTRING_STR(path),
                         timeout_msec,
-                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
 
@@ -7808,18 +7808,18 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
                     CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
- 
+
     if(EC_FALSE == __super_read_data_e(super_md_id, store_srv_ipaddr, store_srv_port, path, store_offset, store_size, cbytes))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data_e: read data of '%.*s' on %s:%ld failed\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: read data of '%.*s' on %s:%ld done\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);  
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     return (EC_TRUE);
 }
@@ -7829,7 +7829,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
 * wait data on storage to be ready
 *
 **/
-static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes, UINT32 *data_ready)
+STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes, UINT32 *data_ready)
 {
     SUPER_MD    *super_md;
 
@@ -7877,8 +7877,8 @@ static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_sr
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
-    } 
- 
+    }
+
     v = chttp_rsp_get_header(&chttp_rsp, (const char *)"data-ready");
     if(NULL_PTR == v)
     {
@@ -7904,13 +7904,13 @@ static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_sr
         /*mount data to reduce data copy*/
         UINT8    *data;
         UINT32    len;
-     
+
         cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
         cbytes_mount(cbytes, len, data);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
-     
+
         return (EC_TRUE);
     }
 
@@ -7921,14 +7921,14 @@ static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_sr
     return (EC_TRUE);
 }
 
-static EC_BOOL __super_read_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes)
+STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes)
 {
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
 
     UINT8       *data;
-    UINT32       len; 
- 
+    UINT32       len;
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -7960,7 +7960,7 @@ static EC_BOOL __super_read_data(const UINT32 super_md_id, const UINT32 store_sr
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_read_data: read '%.*s' on %s:%ld back\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
@@ -7976,11 +7976,11 @@ static EC_BOOL __super_read_data(const UINT32 super_md_id, const UINT32 store_sr
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data: read '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
     cbytes_mount(cbytes, len, data);
-     
+
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
@@ -7992,10 +7992,10 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
     SUPER_MD    *super_md;
 
     UINT32       data_ready;
- 
+
     UINT32       tag;
     UINT32       timeout_msec;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8015,14 +8015,14 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data: wait data of '%.*s' on %s:%ld failed\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     if(EC_TRUE == data_ready)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: wait data of '%.*s' on %s:%ld done and data is ready\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_TRUE);
     }
 
@@ -8034,14 +8034,14 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
                     CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-                 
+
     if(EC_FALSE == super_cond_wait(super_md_id, tag, path, timeout_msec))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_wait_data: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld failed\n",
                         tag,
                         CSTRING_LEN(path), CSTRING_STR(path),
                         timeout_msec,
-                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
 
@@ -8050,18 +8050,18 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
                     CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
- 
+
     if(EC_FALSE == __super_read_data(super_md_id, store_srv_ipaddr, store_srv_port, path, cbytes))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data: read data of '%.*s' on %s:%ld failed\n",
                         CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
-        return (EC_FALSE);                     
+        return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: read data of '%.*s' on %s:%ld done\n",
                     CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);  
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     return (EC_TRUE);
 }
@@ -8070,7 +8070,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 {
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8083,7 +8083,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8121,11 +8121,11 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_renew_header: renew_header '%s:%s' of '%.*s' on %s:%ld => OK\n",
                     (char *)CSTRING_STR(key), (char *)CSTRING_STR(val),
                     CSTRING_LEN(path), (char *)CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -8138,9 +8138,9 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
     CLIST_DATA  *clist_data;
- 
+
     uint32_t     idx;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8153,7 +8153,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8171,7 +8171,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
 
         char     renew_key_tag[ 16 ];
         char     renew_val_tag[ 16 ];
-     
+
         cstrkv = CLIST_DATA_DATA(clist_data);
         if(NULL_PTR == cstrkv)
         {
@@ -8211,10 +8211,10 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_renew_headers: renew headers of '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), (char *)CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -8224,7 +8224,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
         /*after store data, unlock the possible locked-file*/
         super_unlock(super_md_id, store_srv_tcid, store_srv_ipaddr, store_srv_port, path, auth_token);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -8232,7 +8232,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 {
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8245,7 +8245,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8279,10 +8279,10 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_file_notify: file_notify '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), (char *)CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -8294,7 +8294,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
 {
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8307,7 +8307,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8341,10 +8341,10 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_delete_dir: delete dir '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), (char *)CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -8356,7 +8356,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 {
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8369,7 +8369,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8403,10 +8403,10 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_delete_file: delete file '%.*s' on %s:%ld => OK\n",
                     CSTRING_LEN(path), (char *)CSTRING_STR(path),
-                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port); 
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
@@ -8418,7 +8418,7 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
 {
     CHTTP_REQ    chttp_req_t;
     CHTTP_RSP    chttp_rsp_t;
- 
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8431,7 +8431,7 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
 
     chttp_req_init(&chttp_req_t);
     chttp_rsp_init(&chttp_rsp_t);
- 
+
     chttp_req_set_ipaddr_word(&chttp_req_t, billing_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, billing_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
@@ -8472,11 +8472,11 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
 
         return (EC_FALSE);
     }
- 
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_set_billing: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => OK\n",
                     CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
                     CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
-                    send_len, recv_len); 
+                    send_len, recv_len);
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);

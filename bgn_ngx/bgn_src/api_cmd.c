@@ -35,7 +35,7 @@ extern "C"{
 
 static const char *api_help_format = "\t%-16s\t\t%s\n";
 
-static void api_ident_print(LOG *log, const UINT32 level)
+STATIC_CAST static void api_ident_print(LOG *log, const UINT32 level)
 {
     UINT32 idx;
 
@@ -587,7 +587,7 @@ EC_BOOL api_cmd_seg_fetch(CMD_SEG *cmd_seg, const UINT8 *cmd_fmt, UINT8 **next_c
         CMD_SEG_TYPE(cmd_seg) = CMD_SEG_TYPE_UINT64;
         CMD_SEG_ELEM(cmd_seg)  = va_arg(ap, CMD_ELEM *);
         return (EC_TRUE);
-    } 
+    }
 
     CMD_SEG_TYPE(cmd_seg)  = CMD_SEG_TYPE_NULL;
     CMD_SEG_ELEM(cmd_seg)  = NULL_PTR;
@@ -685,7 +685,7 @@ EC_BOOL api_cmd_seg_parse(const CMD_SEG *cmd_seg, const UINT8 *cmd_line, CMD_PAR
 
             dbg_log(SEC_0010_API, 9)(LOGSTDNULL, "[DEBUG] api_cmd_seg_parse => uint64_t, left %s\n", (char *)pcur);
             return api_cmd_seg_handle(cmd_seg, pcur, cmd_para_vec);
-        }      
+        }
         case CMD_SEG_TYPE_REAL    :
         {
             CMD_PARA *cmd_para;
@@ -760,7 +760,7 @@ EC_BOOL api_cmd_seg_parse(const CMD_SEG *cmd_seg, const UINT8 *cmd_line, CMD_PAR
 
             dbg_log(SEC_0010_API, 9)(LOGSTDNULL, "[DEBUG] api_cmd_seg_parse => ipaddr, left %s\n", (char *)pcur);
             return api_cmd_seg_handle(cmd_seg, pcur, cmd_para_vec);
-        }   
+        }
         case CMD_SEG_TYPE_LIST:
         {
             CMD_PARA *cmd_para;

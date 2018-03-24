@@ -28,7 +28,7 @@ extern "C"{
 void crfsmclist_node_del(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 {
     CRFSMCLIST_NODE *node;
- 
+
     node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
     ASSERT(CRFSMCLIST_NODE_USED == CRFSMCLIST_NODE_USED_FLAG(node));
 
@@ -41,7 +41,7 @@ void crfsmclist_node_del(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
         CRFSMCLIST_NODE *left_node;
 
         left_node = CRFSMCLIST_FETCH_NODE(crfsmclist, CRFSMCLIST_NODE_LEFT_POS(node));
-        CRFSMCLIST_NODE_RIGHT_POS(left_node) = CRFSMCLIST_NODE_RIGHT_POS(node); 
+        CRFSMCLIST_NODE_RIGHT_POS(left_node) = CRFSMCLIST_NODE_RIGHT_POS(node);
     }
 
     if(CRFSMCLIST_TAIL(crfsmclist) == node_pos)
@@ -53,16 +53,16 @@ void crfsmclist_node_del(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
         CRFSMCLIST_NODE *right_node;
 
         right_node = CRFSMCLIST_FETCH_NODE(crfsmclist, CRFSMCLIST_NODE_RIGHT_POS(node));
-        CRFSMCLIST_NODE_LEFT_POS(right_node) = CRFSMCLIST_NODE_LEFT_POS(node); 
-    } 
- 
+        CRFSMCLIST_NODE_LEFT_POS(right_node) = CRFSMCLIST_NODE_LEFT_POS(node);
+    }
+
     CRFSMCLIST_NODE_LEFT_POS(node)  = CRFSMCLIST_ERR_POS;
     CRFSMCLIST_NODE_RIGHT_POS(node) = CRFSMCLIST_ERR_POS;
 
     CRFSMCLIST_NODE_USED_FLAG(node) = CRFSMCLIST_NODE_NOT_USED;
 
     CRFSMCLIST_NODE_USED_NUM(crfsmclist) --;
-    return; 
+    return;
 }
 
 void crfsmclist_node_add_head(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
@@ -83,11 +83,11 @@ void crfsmclist_node_add_head(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
         CRFSMCLIST_NODE *left_node;
 
         left_node = CRFSMCLIST_FETCH_NODE(crfsmclist, CRFSMCLIST_HEAD(crfsmclist));
-     
+
         CRFSMCLIST_NODE_LEFT_POS(new_node)  = CRFSMCLIST_ERR_POS;
         CRFSMCLIST_NODE_RIGHT_POS(new_node) = CRFSMCLIST_HEAD(crfsmclist);
         CRFSMCLIST_NODE_LEFT_POS(left_node) = node_pos;
-        CRFSMCLIST_HEAD(crfsmclist)         = node_pos; 
+        CRFSMCLIST_HEAD(crfsmclist)         = node_pos;
     }
 
     if(CRFSMCLIST_ERR_POS == CRFSMCLIST_TAIL(crfsmclist))
@@ -96,7 +96,7 @@ void crfsmclist_node_add_head(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
     }
 
     CRFSMCLIST_NODE_USED_FLAG(new_node) = CRFSMCLIST_NODE_USED;
- 
+
     CRFSMCLIST_NODE_USED_NUM(crfsmclist) ++;
     return;
 }
@@ -119,11 +119,11 @@ void crfsmclist_node_add_tail(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
         CRFSMCLIST_NODE *right_node;
 
         right_node = CRFSMCLIST_FETCH_NODE(crfsmclist, CRFSMCLIST_TAIL(crfsmclist));
-     
+
         CRFSMCLIST_NODE_LEFT_POS(new_node)    = CRFSMCLIST_TAIL(crfsmclist);
         CRFSMCLIST_NODE_RIGHT_POS(new_node)   = CRFSMCLIST_ERR_POS;
         CRFSMCLIST_NODE_RIGHT_POS(right_node) = node_pos;
-        CRFSMCLIST_TAIL(crfsmclist)       = node_pos; 
+        CRFSMCLIST_TAIL(crfsmclist)       = node_pos;
     }
 
     if(CRFSMCLIST_ERR_POS == CRFSMCLIST_HEAD(crfsmclist))
@@ -132,7 +132,7 @@ void crfsmclist_node_add_tail(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
     }
 
     CRFSMCLIST_NODE_USED_FLAG(new_node) = CRFSMCLIST_NODE_USED;
- 
+
     CRFSMCLIST_NODE_USED_NUM(crfsmclist) ++;
     return;
 }
@@ -140,7 +140,7 @@ void crfsmclist_node_add_tail(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 EC_BOOL crfsmclist_node_new(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 {
     CRFSMCLIST_NODE *node;
- 
+
     node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -173,7 +173,7 @@ EC_BOOL crfsmclist_node_new(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 EC_BOOL crfsmclist_node_free(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 {
     CRFSMCLIST_NODE *node;
- 
+
     node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
     if(NULL_PTR == node)
     {
@@ -207,13 +207,13 @@ void crfsmclist_node_init(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
 {
     CRFSMCLIST_NODE *node;
 
-    node  = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos); 
+    node  = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CRFSMCLIST_NODE_RIGHT_POS(node)  = CRFSMCLIST_ERR_POS;
     CRFSMCLIST_NODE_LEFT_POS(node)   = CRFSMCLIST_ERR_POS;
     CRFSMCLIST_NODE_USED_FLAG(node)  = CRFSMCLIST_NODE_NOT_USED;
- 
+
     return;
 }
 
@@ -222,10 +222,10 @@ void crfsmclist_node_clean(CRFSMCLIST *crfsmclist, const uint32_t node_pos)
     CRFSMCLIST_NODE *node;
 
     ASSERT(node_pos < CRFSMCLIST_NODE_MAX_NUM(crfsmclist));
- 
+
     node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
     ASSERT(NULL_PTR != node);
- 
+
     CRFSMCLIST_NODE_RIGHT_POS(node)  = CRFSMCLIST_ERR_POS;
     CRFSMCLIST_NODE_LEFT_POS(node)   = CRFSMCLIST_ERR_POS;
     CRFSMCLIST_NODE_USED_FLAG(node)  = CRFSMCLIST_NODE_NOT_USED;
@@ -271,7 +271,7 @@ EC_BOOL crfsmclist_node_lru_update(CRFSMCLIST *crfsmclist, const uint32_t node_p
             crfsmclist_node_add_head(crfsmclist, node_pos);
         }
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -347,7 +347,7 @@ CRFSMCLIST *crfsmclist_new(const uint32_t max_num)
 {
     CRFSMCLIST *crfsmclist;
     uint32_t size;
- 
+
     size = sizeof(CRFSMCLIST) + max_num * sizeof(CRFSMCLIST_NODE);
 
     crfsmclist = (CRFSMCLIST *)safe_malloc(size, LOC_CRFSMCLIST_0001);
@@ -425,7 +425,7 @@ void crfsmclist_print(LOG *log, const CRFSMCLIST *crfsmclist)
     while(CRFSMCLIST_ERR_POS != node_pos)
     {
         CRFSMCLIST_NODE *node;
-     
+
         crfsmclist_node_print(log, crfsmclist, node_pos);
 
         node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
@@ -449,7 +449,7 @@ void crfsmclist_print_tail(LOG *log, const CRFSMCLIST *crfsmclist)
     while(CRFSMCLIST_ERR_POS != node_pos)
     {
         CRFSMCLIST_NODE *node;
-     
+
         crfsmclist_node_print(log, crfsmclist, node_pos);
 
         node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);

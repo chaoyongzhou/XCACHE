@@ -122,7 +122,7 @@ DESCRIPTION
        SIGEMT  is  not  specified  in POSIX 1003.1-2001, but neverthless appears on most other Unices, where its default action is typically to terminate the process
        with a core dump.
 *********************************************************************************************************************************************************************/
-static EC_BOOL __csig_atexit_cmp(CSIG_ATEXIT *csig_atexit_1st, CSIG_ATEXIT *csig_atexit_2nd)
+STATIC_CAST static EC_BOOL __csig_atexit_cmp(CSIG_ATEXIT *csig_atexit_1st, CSIG_ATEXIT *csig_atexit_2nd)
 {
     if(csig_atexit_1st->handler == csig_atexit_2nd->handler
     && csig_atexit_1st->arg     == csig_atexit_2nd->arg)
@@ -165,12 +165,12 @@ EC_BOOL csig_init(CSIG *csig)
         csig->signal_action[ signo ].flag    = CSIG_HANDLE_UNDEF;
         csig->signal_action[ signo ].handler = NULL_PTR;
     }
- 
+
     sigfillset(&(csig->blocked_sig));
 
     /*init atexit table and list data table*/
     for(idx = 0; idx < CSIG_ATEXIT_MAX_NUM; idx ++)
-    {   
+    {
         CSIG_ATEXIT     *csig_atexit;
         CLISTBASE_NODE  *clistbase_node;
 
@@ -187,7 +187,7 @@ EC_BOOL csig_init(CSIG *csig)
                                              "[%d] bind: clistbase_node: %p, csig_atexit: %p\n",
                                              idx, clistbase_node, csig_atexit);
     }
-    
+
     /*init free list and used list*/
     clistbase_init(&(csig->atexit_free_list));
     clistbase_init(&(csig->atexit_used_list));
@@ -196,15 +196,15 @@ EC_BOOL csig_init(CSIG *csig)
     for(idx = 0; idx < CSIG_ATEXIT_MAX_NUM; idx ++)
     {
         CSIG_ATEXIT     *csig_atexit;
-        
+
         csig_atexit = &(csig->atexit_table[ idx ]);
         clistbase_push_back(&(csig->atexit_free_list), (void *)csig_atexit);
 
         dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_init: "
                                              "[%d] push free: csig_atexit: %p\n",
-                                             idx, csig_atexit);        
+                                             idx, csig_atexit);
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -215,7 +215,7 @@ void csig_handler(int signo)
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
- 
+
     if (0 > signo || CSIG_MAX_NUM < signo || NULL_PTR == csig->signal_action[ signo ].handler)
     {
         /* unhandled signal */
@@ -249,7 +249,7 @@ void csig_handler(int signo)
     }
     csig->signal_action[ signo ].count ++;
     signal(signo, csig_handler); /* re-arm signal */
- 
+
     return;
 }
 
@@ -268,7 +268,7 @@ void csig_register(int signo, void (*handler)(int), const uint32_t flag)
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
- 
+
     if (0 > signo || CSIG_MAX_NUM < signo)
     {
         dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_register: failed to register signal %d : out of range [0..%d].\n", signo, CSIG_MAX_NUM);
@@ -281,7 +281,7 @@ void csig_register(int signo, void (*handler)(int), const uint32_t flag)
     {
         handler = SIG_IGN;
     }
- 
+
     if (SIG_IGN != handler && SIG_DFL != handler)
     {
         csig_action->flag    = flag;
@@ -292,7 +292,7 @@ void csig_register(int signo, void (*handler)(int), const uint32_t flag)
     else
     {
         csig_action->flag    = flag;
-        csig_action->count   = 0;     
+        csig_action->count   = 0;
         csig_action->handler = NULL_PTR;
         signal(signo, handler);
     }
@@ -302,12 +302,12 @@ void csig_register(int signo, void (*handler)(int), const uint32_t flag)
 void csigaction_register(int signo, void (*handler)(int))
 {
     struct sigaction sa;
- 
+
     sa.sa_handler = handler;
     sigemptyset(&sa.sa_mask);                /*additional signals to block*/
     sa.sa_flags = SA_RESTART;               /*restart the system call ,interrupted by signal*/
     sigaction(signo, &sa, NULL_PTR);
- 
+
     return;
 }
 
@@ -337,13 +337,13 @@ EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 
     dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] csig_atexit_register: pop free: "
                                          "csig_atexit: %p, clistbase_node: %p\n",
-                                         csig_atexit, &(csig_atexit->node));    
-                       
+                                         csig_atexit, &(csig_atexit->node));
+
     csig_atexit->handler = atexit_handler;
     csig_atexit->arg     = arg;
 
     clistbase_push_back(&(csig->atexit_used_list), (void *)csig_atexit);
- 
+
     return (EC_TRUE);
 }
 
@@ -355,14 +355,14 @@ EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
     CSIG_ATEXIT      csig_atexit_tmp;
     CSIG_ATEXIT     *csig_atexit_searched;
     CLISTBASE_NODE  *clistbase_node_searched;
- 
+
     task_brd = task_brd_default_get();
-    csig = TASK_BRD_CSIG(task_brd); 
+    csig = TASK_BRD_CSIG(task_brd);
 
     csig_atexit_tmp.handler = atexit_handler;
     csig_atexit_tmp.arg     = arg;
 
-    clistbase_node_searched = clistbase_search_back(&(csig->atexit_used_list), (void *)&csig_atexit_tmp, 
+    clistbase_node_searched = clistbase_search_back(&(csig->atexit_used_list), (void *)&csig_atexit_tmp,
                             (CLISTBASE_NODE_DATA_CMP)__csig_atexit_cmp);
 
     if(NULL_PTR == clistbase_node_searched)
@@ -377,7 +377,7 @@ EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
     csig_atexit_searched->arg     = 0;
 
     clistbase_push_back(&(csig->atexit_free_list), (void *)clistbase_node_searched);
-    
+
     return (EC_TRUE);
 }
 
@@ -385,12 +385,12 @@ EC_BOOL csig_takeover(CSIG *csig)
 {
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
     csigaction_register(SIGUSR2, csig_ignore);/*sigaction*/
- 
+
     csig_register(SIGUSR1, csig_ignore    , CSIG_HANDLE_DEFER);
     csig_register(SIGHUP , csig_ignore    , CSIG_HANDLE_DEFER);/*when user terminal hup*/
     csig_register(SIGINT , csig_interrupt , CSIG_HANDLE_DEFER);/*CTRL + C*/
     csig_register(SIGTERM, csig_terminate , CSIG_HANDLE_DEFER);/*terminate process, defer, kill -15*/
- 
+
     csig_register(SIGFPE , csig_core_dump , CSIG_HANDLE_NOW  );
     csig_register(SIGILL , csig_core_dump , CSIG_HANDLE_NOW  );
     csig_register(SIGQUIT, csig_os_default, CSIG_HANDLE_NOW  ); /*CTRL + \, default is to create core file*/
@@ -402,14 +402,14 @@ EC_BOOL csig_takeover(CSIG *csig)
 
     csig_register(SIGPIPE, csig_ignore    , CSIG_HANDLE_DEFER);
     csig_register(SIGTTOU, csig_stop      , CSIG_HANDLE_DEFER);
-    csig_register(SIGTTIN, csig_stop      , CSIG_HANDLE_DEFER); 
+    csig_register(SIGTTIN, csig_stop      , CSIG_HANDLE_DEFER);
 
     /********************************************************************************
     *
     *  note:
     *      SIGKILL, SIGSTOP cannot be captured, blocked or ignored by application
     *      kill -15 <pid> would be another choice to terminate a process.
-    *   
+    *
     *      15) SIGTERM
     *
     *  REF TO: http://www.cnii.com.cn/20050801/ca351116.htm
@@ -429,11 +429,11 @@ EC_BOOL csig_takeover(CSIG *csig)
  * Note that it is more efficient to call the inline version which checks the
  * queue length before getting here.
  */
-static void __csig_process_queue()
+STATIC_CAST static void __csig_process_queue()
 {
     TASK_BRD    *task_brd;
     CSIG        *csig;
- 
+
     int          signo;
     int          cur_pos;
     CSIG_ACTION *csig_action;
@@ -452,7 +452,7 @@ static void __csig_process_queue()
         {
             signo       = csig->signal_queue[cur_pos];
             csig_action = &(csig->signal_action[ signo ]);
-         
+
             if(0 < csig_action->count)
             {
                 dbg_log(SEC_0014_CSIG, 9)(LOGSTDOUT, "[DEBUG] __csig_process_queue: signo %d, count %u\n", signo, csig_action->count);
@@ -480,7 +480,7 @@ void csig_process_queue()
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
- 
+
     if (0 < csig->signal_queue_len)
     {
         __csig_process_queue();
@@ -488,11 +488,11 @@ void csig_process_queue()
     return;
 }
 
-static void __csig_print_queue(LOG *log)
+STATIC_CAST static void __csig_print_queue(LOG *log)
 {
     TASK_BRD *task_brd;
     CSIG *csig;
- 
+
     int signo;
     int cur_pos;
     CSIG_ACTION *csig_action;
@@ -521,7 +521,7 @@ void csig_print_queue(LOG *log)
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
- 
+
     if (0 < csig->signal_queue_len)
     {
         __csig_print_queue(log);
@@ -529,20 +529,20 @@ void csig_print_queue(LOG *log)
     return;
 }
 
-static void __csig_atexit_process_queue()
+STATIC_CAST static void __csig_atexit_process_queue()
 {
     TASK_BRD        *task_brd;
     CSIG            *csig;
     CSIG_ATEXIT     *csig_atexit;
-  
+
     task_brd = task_brd_default_get();
-    csig = TASK_BRD_CSIG(task_brd); 
+    csig = TASK_BRD_CSIG(task_brd);
 
     while(NULL_PTR != (csig_atexit = clistbase_pop_back(&(csig->atexit_used_list))))
     {
         CSIG_ATEXIT_HANDLER  handler;
         UINT32               arg;
-    
+
         if(NULL_PTR != csig_atexit->handler)
         {
             handler = csig_atexit->handler;
@@ -551,7 +551,7 @@ static void __csig_atexit_process_queue()
             csig_atexit->handler = NULL_PTR;
             csig_atexit->arg     = 0;
 
-            handler(arg);        
+            handler(arg);
         }
 
         clistbase_push_back(&(csig->atexit_free_list), (void *)csig_atexit);
@@ -567,7 +567,7 @@ void csig_atexit_process_queue()
 
     task_brd = task_brd_default_get();
     csig     = TASK_BRD_CSIG(task_brd);
- 
+
     if (EC_FALSE == clistbase_is_empty(&(csig->atexit_used_list)))
     {
         __csig_atexit_process_queue();
@@ -728,7 +728,7 @@ void csig_core_dump(int signo)
 void csig_core_dump(int signo)
 {
     c_backtrace_dump(LOGSTDOUT);
- 
+
     dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_core_dump: signal %d trigger core dump ......\n", signo);
 
     csig_atexit_process_queue();/*Oops!*/
@@ -749,7 +749,7 @@ void csig_core_dump(int signo)
         }
     }
     abort();
-#if 0 
+#if 0
     //dbg_exit(MD_END, CMPI_ERROR_MODI);
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
@@ -791,7 +791,7 @@ void csig_interrupt(int signo)
 
     //csig_register(signo, SIG_DFL);
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
-    raise(signo); 
+    raise(signo);
     return;
 }
 
@@ -802,7 +802,7 @@ void csig_stop(int signo)
     dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_stop: process %d, signal %d trigger stopping ......\n", getpid(), signo);
 
     csig_atexit_process_queue();/*Oops!*/
- 
+
     task_brd = task_brd_default_get();
     TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
 
@@ -822,7 +822,7 @@ void csig_terminate(int signo)
     csig_atexit_process_queue();/*Oops!*/
 
     task_brd = task_brd_default_get();
-    TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED; 
+    TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
     raise(signo);
@@ -832,7 +832,7 @@ void csig_terminate(int signo)
 void csig_quit_now(int signo)
 {
     c_backtrace_dump(LOGSTDOUT);
- 
+
     dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_quit_now: signal %d trigger core dump ......\n", signo);
 
     //csig_atexit_process_queue();/*Oops!*/

@@ -38,7 +38,7 @@ extern "C"{
 
 #include "crouter.h"
 
-static void taskx_cfg_ident_print_xml(LOG *log, const UINT32 level)
+STATIC_CAST static void taskx_cfg_ident_print_xml(LOG *log, const UINT32 level)
 {
     UINT32 idx;
 
@@ -214,7 +214,7 @@ EC_BOOL tasks_cfg_match_ip(const TASKS_CFG *tasks_cfg, const UINT32 srvipaddr, c
     {
         return (EC_FALSE);
     }
- 
+
     return (EC_TRUE);
 }
 
@@ -233,7 +233,7 @@ EC_BOOL tasks_cfg_match_csrv(const TASKS_CFG *tasks_cfg, const UINT32 tcid, cons
     {
         return (EC_FALSE);
     }
- 
+
     if(CMPI_ANY_SRVPORT != csrvport && TASKS_CFG_CSRVPORT(tasks_cfg) != csrvport)
     {
         return (EC_FALSE);
@@ -248,7 +248,7 @@ EC_BOOL tasks_cfg_match_ssrv(const TASKS_CFG *tasks_cfg, const UINT32 tcid, cons
     {
         return (EC_FALSE);
     }
- 
+
     if(CMPI_ANY_SRVPORT != ssrvport && TASKS_CFG_SSRVPORT(tasks_cfg) != ssrvport)
     {
         return (EC_FALSE);
@@ -384,7 +384,7 @@ EC_BOOL tasks_cfg_del_taskr(TASKS_CFG *tasks_cfg, const TASKR_CFG *taskr_cfg)
 }
 
 EC_BOOL tasks_cfg_push_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{   
+{
     return tasks_worker_push_add_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
 }
 
@@ -394,7 +394,7 @@ EC_BOOL tasks_cfg_push_del_worker_callback(TASKS_CFG *tasks_cfg, const char *nam
 }
 
 EC_BOOL tasks_cfg_erase_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{   
+{
     return tasks_worker_erase_add_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
 }
 
@@ -432,12 +432,12 @@ void tasks_cfg_print(LOG *log, const TASKS_CFG *tasks_cfg)
     return;
 }
 
-static void tasks_cfg_body_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 level)
+STATIC_CAST static void tasks_cfg_body_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 level)
 {
     char *cluster_str;
 
     cluster_str = uint32_vec_to_str(TASKS_CFG_CLUSTER_VEC(tasks_cfg));
- 
+
     sys_print(log, " tcid=\"%s\""     , TASKS_CFG_TCID_STR(tasks_cfg));
     //sys_print(log, " maski=\"%s\"", TASKS_CFG_MASKI_STR(tasks_cfg));
     //sys_print(log, " maske=\"%s\"", TASKS_CFG_MASKE_STR(tasks_cfg));
@@ -454,7 +454,7 @@ static void tasks_cfg_body_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const
     if(CMPI_ERROR_SRVPORT != TASKS_CFG_SSRVPORT(tasks_cfg))
     {
         sys_print(log, " ssrvport=\"%ld\"", TASKS_CFG_SSRVPORT(tasks_cfg));
-    } 
+    }
 
     if(NULL_PTR != cluster_str)
     {
@@ -902,7 +902,7 @@ void task_cfg_print(LOG *log, const TASK_CFG *task_cfg)
     return;
 }
 
-static void task_cfg_head_print_xml(LOG *log, const TASK_CFG *task_cfg, const UINT32 level)
+STATIC_CAST static void task_cfg_head_print_xml(LOG *log, const TASK_CFG *task_cfg, const UINT32 level)
 {
     sys_print(log, "<taskConfig");
 

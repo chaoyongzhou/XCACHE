@@ -78,12 +78,12 @@ EC_BOOL log_default_init(LOG *log,
 {
     LOG_DEVICE_TYPE(log)                 = (type);
     LOG_SWITCH_OFF_ENABLE(log)           = (switch_off_enable);
-  
+
     LOG_PID_INFO_ENABLE(log)             = (pid_info_enable);
     LOG_REDIRECT(log)                    = (redirect_log);
 
     LOG_FILE_NAME_WITH_DATE_SWITCH(log)  = (fname_with_date_switch);
-  
+
     LOG_FILE_NAME(log)                   = (fname);
     LOG_FILE_MODE(log)                   = (mode);
     LOG_FILE_FP(log)                     = (fp);
@@ -107,8 +107,8 @@ EC_BOOL log_default_init_all()
     LOG_DEFAULT_INIT(LOGSTDERR , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDERR*/
     LOG_DEFAULT_INIT(LOGSTDNULL, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDNULL*/
     LOG_DEFAULT_INIT(LOGCONSOLE, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGCONSOLE*/
- 
-    LOG_DEFAULT_INIT(LOGUSER05 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER05*/ 
+
+    LOG_DEFAULT_INIT(LOGUSER05 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER05*/
     LOG_DEFAULT_INIT(LOGUSER06 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER06*/
     LOG_DEFAULT_INIT(LOGUSER07 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER07*/
     LOG_DEFAULT_INIT(LOGUSER08 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER08*/
@@ -144,7 +144,7 @@ EC_BOOL log_start()
     LOG_REDIRECT(LOGUSER06) = NULL_PTR;
     LOG_REDIRECT(LOGUSER07) = NULL_PTR;
     LOG_REDIRECT(LOGUSER08) = NULL_PTR;
-    LOG_REDIRECT(LOGUSER09) = NULL_PTR; 
+    LOG_REDIRECT(LOGUSER09) = NULL_PTR;
 
     log_level_tab_init(g_log_level, SEC_NONE_END, LOG_DEFAULT_DBG_LEVEL);
 
@@ -176,7 +176,7 @@ void log_end()
     LOG_REDIRECT(LOGUSER06) = NULL_PTR;
     LOG_REDIRECT(LOGUSER07) = NULL_PTR;
     LOG_REDIRECT(LOGUSER08) = NULL_PTR;
-    LOG_REDIRECT(LOGUSER09) = NULL_PTR;  
+    LOG_REDIRECT(LOGUSER09) = NULL_PTR;
 
     return;
 }
@@ -186,12 +186,12 @@ void log_level_set(UINT32 *log_level_tab, const UINT32 log_level_tab_size, const
     UINT32 aligned_log_level;
 
     aligned_log_level = DMIN(LOG_MAX_DBG_LEVEL, log_level);
- 
+
     if(log_sector < log_level_tab_size)
     {
         log_level_tab[ log_sector ] = aligned_log_level;
     }
- 
+
     return;
 }
 
@@ -201,14 +201,14 @@ UINT32 log_level_get(const UINT32 *log_level_tab, const UINT32 log_level_tab_siz
     {
         return (log_level_tab[ log_sector ]);
     }
- 
+
     return (LOG_ERR_DBG_LEVEL);
 }
 
 void log_level_tab_init(UINT32 *log_level_tab, const UINT32 log_level_tab_size, const UINT32 log_level)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < log_level_tab_size; log_sector ++)
     {
         log_level_tab[ log_sector ] = log_level;
@@ -219,7 +219,7 @@ void log_level_tab_init(UINT32 *log_level_tab, const UINT32 log_level_tab_size, 
 void log_level_tab_clean(UINT32 *log_level_tab, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < log_level_tab_size; log_sector ++)
     {
         log_level_tab[ log_sector ] = LOG_ERR_DBG_LEVEL;
@@ -230,7 +230,7 @@ void log_level_tab_clean(UINT32 *log_level_tab, const UINT32 log_level_tab_size)
 void log_level_tab_set_all(UINT32 *log_level_tab, const UINT32 log_level_tab_size, const UINT32 log_level)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < log_level_tab_size; log_sector ++)
     {
         log_level_tab[ log_sector ] = log_level;
@@ -241,7 +241,7 @@ void log_level_tab_set_all(UINT32 *log_level_tab, const UINT32 log_level_tab_siz
 void log_level_tab_clone(const UINT32 *log_level_tab_src, UINT32 *log_level_tab_des, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < log_level_tab_size; log_sector ++)
     {
         log_level_tab_des[ log_sector ] = log_level_tab_src[ log_sector ];
@@ -252,7 +252,7 @@ void log_level_tab_clone(const UINT32 *log_level_tab_src, UINT32 *log_level_tab_
 void log_level_tab_print(LOG *log, const UINT32 *log_level_tab, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < log_level_tab_size; log_sector ++)
     {
         UINT32 log_level;
@@ -266,7 +266,7 @@ void log_level_tab_print(LOG *log, const UINT32 *log_level_tab, const UINT32 log
 void log_level_import_from(const UINT32 *log_level_tab_src, UINT32 *log_level_tab_des, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < DMIN(SEC_NONE_END, log_level_tab_size); log_sector ++)
     {
         if(LOG_MAX_DBG_LEVEL >= log_level_tab_src[ log_sector ])
@@ -280,7 +280,7 @@ void log_level_import_from(const UINT32 *log_level_tab_src, UINT32 *log_level_ta
 void log_level_import(const UINT32 *log_level_tab, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < DMIN(SEC_NONE_END, log_level_tab_size); log_sector ++)
     {
         if(LOG_MAX_DBG_LEVEL >= log_level_tab[ log_sector ])
@@ -294,7 +294,7 @@ void log_level_import(const UINT32 *log_level_tab, const UINT32 log_level_tab_si
 void log_level_export(UINT32 *log_level_tab, const UINT32 log_level_tab_size)
 {
     UINT32 log_sector;
- 
+
     for(log_sector = 0; log_sector < DMIN(SEC_NONE_END, log_level_tab_size); log_sector ++)
     {
         log_level_tab[ log_sector ] = g_log_level[ log_sector ];
@@ -312,7 +312,7 @@ EC_BOOL log_level_set_sector(const UINT32 log_sector, const UINT32 log_level)
 {
     if(SEC_NONE_END <= log_sector)
     {
-        dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_level_set_sector: sector %ld overflow\n", log_sector); 
+        dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_level_set_sector: sector %ld overflow\n", log_sector);
         return (EC_FALSE);
     }
     g_log_level[ log_sector ] = log_level;
@@ -325,19 +325,19 @@ void log_level_print(LOG *log)
     return;
 }
 
-static int __log_cur_time_str(char *time_str, const int max_size)
+STATIC_CAST static int __log_cur_time_str(char *time_str, const int max_size)
 {
     CTM   *cur_time;
     CTMV  *cur_timev;
     CTMV   ctmv;
- 
+
     int tv_msec;
     int tv_usec;
     int len;
 
     cur_timev = &ctmv;
     gettimeofday(cur_timev, NULL_PTR);
- 
+
     cur_time = c_localtime_r(&(cur_timev->tv_sec));
     tv_msec = (int)(cur_timev->tv_usec / 1000);
     tv_usec = (int)(cur_timev->tv_usec % 1000);
@@ -353,10 +353,10 @@ static int __log_cur_time_str(char *time_str, const int max_size)
                     tv_msec, tv_usec,
                     CTHREAD_GET_TID());
 #endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH)*/
-    return (len);                 
+    return (len);
 }
 
-static int __log_time_str(char *time_str, const int max_size)
+STATIC_CAST static int __log_time_str(char *time_str, const int max_size)
 {
 #if (SWITCH_OFF == LOG_ACCURATE_TIME_SWITCH)
     int  len;
@@ -369,14 +369,14 @@ static int __log_time_str(char *time_str, const int max_size)
     }
     else
     {
-#if (SWITCH_OFF == LOG_PTHREAD_ID_SWITCH) 
+#if (SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)
         len = snprintf(time_str, max_size, "[%s] ", log_time_str);
 #endif/*(SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)*/
-#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH) 
+#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)
         len = snprintf(time_str, max_size, "[%s][tid %ld] ", log_time_str, CTHREAD_GET_TID());
 #endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
 
-#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH) 
+#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
         len = snprintf(time_str, max_size, "[%s][tid %ld][co %p] ", log_time_str, CTHREAD_GET_TID(), coroutine_node_cur_get());
 #endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
     }
@@ -385,10 +385,10 @@ static int __log_time_str(char *time_str, const int max_size)
 #if (SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)
     return __log_cur_time_str(time_str, max_size);
 #endif/*(SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)*/
- 
+
 }
 
-static EC_BOOL __log_reg(LOG *log, FILE *fp)
+STATIC_CAST static EC_BOOL __log_reg(LOG *log, FILE *fp)
 {
     if(NULL_PTR != LOG_FILE_FP(log))
     {
@@ -424,7 +424,7 @@ EC_BOOL log_reg(LOG *log, FILE *fp)
     return (EC_FALSE);
 }
 
-static FILE * __log_unreg(LOG *log)
+STATIC_CAST static FILE * __log_unreg(LOG *log)
 {
     FILE *fp;
     if(NULL_PTR == LOG_FILE_FP(log))
@@ -464,7 +464,7 @@ EC_BOOL user_log_open(LOG *log, const char *fname,const char *mode)
     {
         return (EC_FALSE);
     }
- 
+
 
     fp = fopen(fname, mode);
     if(NULL_PTR == fp)
@@ -516,7 +516,7 @@ EC_BOOL user_log_close(LOG *log)
     {
         cstring_free(LOG_FILE_MODE(log));
         LOG_FILE_MODE(log) = NULL_PTR;
-    } 
+    }
 
     if(NULL_PTR != LOG_FILE_CMUTEX(log))
     {
@@ -553,7 +553,7 @@ LOG *log_get_by_fd(const UINT32 fd)
     return LOGSTDNULL;
 }
 
-static int sys_log_to_buf(char *buf, const int buf_max_size, const char * format,va_list ap)
+STATIC_CAST static int sys_log_to_buf(char *buf, const int buf_max_size, const char * format,va_list ap)
 {
     int   len;
 
@@ -563,7 +563,7 @@ static int sys_log_to_buf(char *buf, const int buf_max_size, const char * format
     return (len);
 }
 
-static char *__log_node_buf_new()
+STATIC_CAST static char *__log_node_buf_new()
 {
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     return (g_log_node_buf);
@@ -576,7 +576,7 @@ static char *__log_node_buf_new()
 #endif/*(SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 }
 
-static void __log_node_buf_free(char *buf)
+STATIC_CAST static void __log_node_buf_free(char *buf)
 {
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     return;
@@ -588,7 +588,7 @@ static void __log_node_buf_free(char *buf)
 #endif/*(SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 }
 
-static EC_BOOL log_node_clean(LOG_NODE *log_node)
+STATIC_CAST static EC_BOOL log_node_clean(LOG_NODE *log_node)
 {
     if(NULL_PTR != LOG_NODE_BUF(log_node))
     {
@@ -601,7 +601,7 @@ static EC_BOOL log_node_clean(LOG_NODE *log_node)
     return (EC_TRUE);
 }
 
-static int sys_log_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *log_node)
+STATIC_CAST static int sys_log_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *log_node)
 {
     int   len;
     char *buf;
@@ -610,7 +610,7 @@ static int sys_log_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *l
     if(NULL_PTR == buf)
     {
         LOG_NODE_LEN(log_node) = 0;
-        LOG_NODE_BUF(log_node) = NULL_PTR;   
+        LOG_NODE_BUF(log_node) = NULL_PTR;
         return (0);
     }
 
@@ -622,7 +622,7 @@ static int sys_log_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *l
     return (len);
 }
 
-static int sys_print_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *log_node)
+STATIC_CAST static int sys_print_to_node(LOG *log, const char * format,va_list ap, LOG_NODE *log_node)
 {
     int   len;
     char *buf;
@@ -631,7 +631,7 @@ static int sys_print_to_node(LOG *log, const char * format,va_list ap, LOG_NODE 
     if(NULL_PTR == buf)
     {
         LOG_NODE_LEN(log_node) = 0;
-        LOG_NODE_BUF(log_node) = NULL_PTR; 
+        LOG_NODE_BUF(log_node) = NULL_PTR;
         return (0);
     }
 
@@ -643,7 +643,7 @@ static int sys_print_to_node(LOG *log, const char * format,va_list ap, LOG_NODE 
     return (len);
 }
 
-static int sys_log_to_fd_no_lock(LOG *log, const char * format,va_list ap)
+STATIC_CAST static int sys_log_to_fd_no_lock(LOG *log, const char * format,va_list ap)
 {
     FILE *fp;
     int   len;
@@ -666,18 +666,18 @@ static int sys_log_to_fd_no_lock(LOG *log, const char * format,va_list ap)
     return (len);
 }
 
-static int sys_log_to_cstring(CSTRING *cstring, const char * format, va_list ap)
+STATIC_CAST static int sys_log_to_cstring(CSTRING *cstring, const char * format, va_list ap)
 {
     char time_str[TASK_BRD_TIME_STR_SIZE];
- 
+
     __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
- 
+
     cstring_format(cstring, "%s", time_str);
     cstring_vformat(cstring, format, ap);
     return (0);
 }
 
-static int sys_print_to_fd_no_lock(LOG *log, const char * format,va_list ap)
+STATIC_CAST static int sys_print_to_fd_no_lock(LOG *log, const char * format,va_list ap)
 {
     int   len;
     char *buf;
@@ -698,7 +698,7 @@ static int sys_print_to_fd_no_lock(LOG *log, const char * format,va_list ap)
     return (len);
 }
 
-static int sys_print_to_cstring(CSTRING *cstring, const char * format, va_list ap)
+STATIC_CAST static int sys_print_to_cstring(CSTRING *cstring, const char * format, va_list ap)
 {
     cstring_vformat(cstring, format, ap);
     return (0);
@@ -734,7 +734,7 @@ int sys_log_no_lock(LOG *log, const char * format, ...)
         va_end(ap);
 
         ++ LOG_FILE_CUR_RECORDS(des_log);
-     
+
         if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
         {
             //WARNING: here need a lock!
@@ -775,7 +775,7 @@ void echo_msg_ap(const char * format, va_list ap)
     if (EC_TRUE == task_brd_check_is_dbg_tcid(task_brd_default_get_tcid()) && CMPI_DBG_RANK == task_brd_default_get_rank())
     {
         __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
-     
+
         fp = fopen(fname, "a+");
         ASSERT(NULL_PTR != fp);
 
@@ -784,10 +784,10 @@ void echo_msg_ap(const char * format, va_list ap)
 
         vfprintf(fp, format, ap);
         fflush(fp);
-         
-        fclose(fp); 
+
+        fclose(fp);
     }
- 
+
 
     return;
 }
@@ -802,7 +802,7 @@ void echo_msg(const char * format, ...)
     if (EC_TRUE == task_brd_check_is_dbg_tcid(task_brd_default_get_tcid()) && CMPI_DBG_RANK == task_brd_default_get_rank())
     {
         __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
-     
+
         fp = fopen(fname, "a+");
         ASSERT(NULL_PTR != fp);
 
@@ -814,10 +814,10 @@ void echo_msg(const char * format, ...)
         vfprintf(fp, format, ap);
         fflush(fp);
         va_end(ap);
-         
-        fclose(fp); 
+
+        fclose(fp);
     }
- 
+
 
     return;
 }
@@ -842,7 +842,7 @@ int sys_log(LOG *log, const char * format, ...)
     {
         return (0);
     }
- 
+
     if(LOG_FILE_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_FILE_FP(des_log))
     {
         LOG_NODE log_node;
@@ -851,23 +851,23 @@ int sys_log(LOG *log, const char * format, ...)
         va_start(ap, format);
         ret = sys_log_to_node(des_log, format, ap, &log_node);
         va_end(ap);
- 
+
         LOG_FILE_LOCK(des_log, LOC_LOG_0006);
 
         fprintf(LOG_FILE_FP(des_log), "%.*s", LOG_NODE_LEN(&log_node), LOG_NODE_BUF(&log_node));
         fflush(LOG_FILE_FP(des_log));
 
         ++ LOG_FILE_CUR_RECORDS(des_log);
-     
+
         if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
-        {         
+        {
             if(LOG_FILE_CUR_RECORDS(des_log) > LOG_FILE_RECORDS_LIMIT(des_log))
             {
                 log_file_freopen(des_log);
                 LOG_FILE_CUR_RECORDS(des_log) = 0;
-            }         
+            }
         }
-   
+
         LOG_FILE_UNLOCK(des_log, LOC_LOG_0007);
 
         log_node_clean(&log_node);
@@ -907,11 +907,11 @@ int sys_log_rotate(LOG *log)
     {
         return (0);
     }
- 
+
     if(LOG_FILE_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_FILE_FP(des_log))
     {
         int ret;
- 
+
         LOG_FILE_LOCK(des_log, LOC_LOG_0008);
         ret = log_file_rotate(des_log);
         if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
@@ -982,12 +982,12 @@ int sys_print_no_lock(LOG *log, const char * format, ...)
                     log_file_freopen(des_log);
                     LOG_FILE_CUR_RECORDS(des_log) = 0;
                 }
-            }         
+            }
         }
 
         return (ret);
     }
- 
+
     if(LOG_CSTR_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_CSTR(des_log))
     {
         int ret;
@@ -1030,30 +1030,30 @@ int sys_print(LOG *log, const char * format, ...)
         va_start(ap, format);
         ret = sys_print_to_node(NULL_PTR, format, ap, &log_node);/*no timestamp insert ahead*/
         va_end(ap);
- 
+
         LOG_FILE_LOCK(des_log, LOC_LOG_0010);
 
         fprintf(LOG_FILE_FP(des_log), "%.*s", LOG_NODE_LEN(&log_node), LOG_NODE_BUF(&log_node));
-        fflush(LOG_FILE_FP(des_log));     
+        fflush(LOG_FILE_FP(des_log));
 
         ++ LOG_FILE_CUR_RECORDS(des_log);
-     
+
         if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
-        {         
+        {
             if(LOG_FILE_CUR_RECORDS(des_log) > LOG_FILE_RECORDS_LIMIT(des_log))
             {
                 log_file_freopen(des_log);
                 LOG_FILE_CUR_RECORDS(des_log) = 0;
-            }         
+            }
         }
-   
+
         LOG_FILE_UNLOCK(des_log, LOC_LOG_0011);
 
         log_node_clean(&log_node);
 
         return (ret);
     }
- 
+
     if(LOG_CSTR_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_CSTR(des_log))
     {
         int ret;
@@ -1268,10 +1268,10 @@ EC_BOOL log_file_fopen(LOG *log)
     if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log))
     {
         char time_str[TASK_BRD_TIME_STR_SIZE];
-     
-        __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE); 
-     
- 
+
+        __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
+
+
         fprintf(LOG_FILE_FP(log), "%s", time_str);
         fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
                                   getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
@@ -1297,7 +1297,7 @@ EC_BOOL log_file_fclose(LOG *log)
     {
         //fprintf(LOG_FILE_FP(log), "log_file_fclose: ------- close log %p (fp %p) ------------\n", log, LOG_FILE_FP(log));
         //fflush(LOG_FILE_FP(log));
- 
+
         fclose(LOG_FILE_FP(log));
         LOG_FILE_FP(log) = NULL_PTR;
     }
@@ -1324,7 +1324,7 @@ EC_BOOL log_file_rotate(LOG *log)
     char fname_old[256];
     char fname_new[256];
     CTM *cur_time;
- 
+
     if(SWITCH_ON == LOG_FILE_NAME_WITH_DATE_SWITCH(log))
     {
         return log_file_freopen(log);
@@ -1337,7 +1337,7 @@ EC_BOOL log_file_rotate(LOG *log)
 
     snprintf(fname_old, sizeof(fname_old) - 1, "%s.log",
             (char *)LOG_FILE_NAME_STR(log));
-             
+
     log_file_fclose(log);/*close old*/
 
     /*backup old log*/
@@ -1532,12 +1532,12 @@ EC_BOOL log_set_level(const char *level_cfg)
     for(level_cfg_idx = 0; level_cfg_idx < level_cfg_cnt; level_cfg_idx ++)
     {
         char *sector_cfg_fields[2];
-    
+
         if(2 != c_str_split(level_cfg_fields[ level_cfg_idx ], ":", sector_cfg_fields, 2))
         {
             dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_set_level: invalid '%s' in cfg '%s'\n",
                                 level_cfg_fields[ level_cfg_idx ], level_cfg);
-            safe_free(level_cfg_saved, LOC_LOG_0026);                
+            safe_free(level_cfg_saved, LOC_LOG_0026);
             return (EC_FALSE);
         }
 

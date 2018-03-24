@@ -117,7 +117,7 @@ CBYTES *cbytes_make_by_word(const UINT32 num)
 {
     CBYTES *cbytes;
     char   *str;
- 
+
     cbytes = cbytes_new(0);
     if(NULL_PTR == cbytes)
     {
@@ -132,14 +132,14 @@ CBYTES *cbytes_make_by_word(const UINT32 num)
         cbytes_free(cbytes);
         return (NULL_PTR);
     }
- 
+
     return (cbytes);
 }
 
 CBYTES *cbytes_make_by_str(const UINT8 *str)
 {
     CBYTES *cbytes;
- 
+
     cbytes = cbytes_new(0);
     if(NULL_PTR == cbytes)
     {
@@ -153,14 +153,14 @@ CBYTES *cbytes_make_by_str(const UINT8 *str)
         cbytes_free(cbytes);
         return (NULL_PTR);
     }
- 
+
     return (cbytes);
 }
 
 CBYTES *cbytes_make_by_cstr(const CSTRING *cstr)
 {
     CBYTES *cbytes;
- 
+
     cbytes = cbytes_new(0);
     if(NULL_PTR == cbytes)
     {
@@ -175,7 +175,7 @@ CBYTES *cbytes_make_by_cstr(const CSTRING *cstr)
         cbytes_free(cbytes);
         return (NULL_PTR);
     }
- 
+
     return (cbytes);
 }
 
@@ -193,7 +193,7 @@ CBYTES *cbytes_make_by_ctimet(const CTIMET *ctimet)
 CBYTES *cbytes_make_by_bytes(const UINT32 len, const UINT8 *bytes)
 {
     CBYTES *cbytes;
- 
+
     cbytes = cbytes_new(0);
     if(NULL_PTR == cbytes)
     {
@@ -207,7 +207,7 @@ CBYTES *cbytes_make_by_bytes(const UINT32 len, const UINT8 *bytes)
         cbytes_free(cbytes);
         return (NULL_PTR);
     }
- 
+
     return (cbytes);
 }
 
@@ -274,7 +274,7 @@ EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff)
     {
         (*len) = CBYTES_LEN(cbytes);
     }
- 
+
     CBYTES_BUF(cbytes) = NULL_PTR;
     CBYTES_LEN(cbytes) = 0;
     return (EC_TRUE);
@@ -291,7 +291,7 @@ EC_BOOL cbytes_handover(CBYTES *cbytes_src, CBYTES *cbytes_des)
 {
     CBYTES_BUF(cbytes_des) = CBYTES_BUF(cbytes_src);
     CBYTES_LEN(cbytes_des) = CBYTES_LEN(cbytes_src);
-    
+
     CBYTES_BUF(cbytes_src) = NULL_PTR;
     CBYTES_LEN(cbytes_src) = 0;
 
@@ -328,16 +328,16 @@ EC_BOOL cbytes_append(CBYTES *cbytes, const UINT8 *data, const UINT32 data_len)
 {
     UINT8 *buf;
     UINT32 len;
- 
+
     UINT32 size;
 
     if(0 == data_len || NULL_PTR == data)
     {
         return (EC_TRUE);
     }
- 
+
     len = CBYTES_LEN(cbytes);
- 
+
     size = len + data_len;
     if(EC_FALSE == cbytes_expand_to(cbytes, size))
     {
