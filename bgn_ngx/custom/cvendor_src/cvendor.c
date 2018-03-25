@@ -1198,7 +1198,7 @@ EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char 
     }
 
     /*renew Date*/
-    if(1)
+    if(0)
     {
         const char                  *k;
         const char                  *v;
@@ -1213,6 +1213,50 @@ EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char 
             return (EC_FALSE);
         }
     }
+
+    /*renew Age*/
+    do
+    {
+        const char                  *k;
+        const char                  *v;
+        
+        uint32_t                     age;
+        time_t                       date_time;
+        time_t                       cur_time;
+        
+        k = (const char *)"Age";
+        v = (const char *)chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            break; /*terminate*/
+        }
+        age = c_str_to_uint32_t(v);
+
+        k = (const char *)"Date";
+        v = (const char *)chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            break; /*terminate*/
+        }
+        date_time = c_parse_http_time((uint8_t *)v, strlen(v));
+
+        cur_time  = task_brd_default_get_time();
+
+        if(cur_time <= date_time)
+        {
+            break; /*terminate*/
+        }
+
+        k = (const char *)"Age";
+        v = (const char *)c_http_time(age + (cur_time - date_time));
+        if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
+                                                    "renew header %s:%s failed\n",
+                                                    k, v);
+            return (EC_FALSE);
+        }
+    }while(0);
 
     cngx_set_cache_status(r, CVENDOR_MD_CACHE_STATUS(cvendor_md));
 

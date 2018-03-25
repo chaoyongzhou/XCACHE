@@ -1872,7 +1872,7 @@ EC_BOOL cdetect_process(const UINT32 cdetect_md_id, const UINT32 detect_task_max
 
     detect_node_num = clist_size(CDETECT_MD_DETECT_NODE_LIST(cdetect_md));
 
-    dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_process: "
+    rlog(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_process: "
                                             "detect_task_max_num = %ld, detect_node_num = %ld\n",
                                             detect_task_max_num,
                                             detect_node_num);
@@ -1941,7 +1941,7 @@ EC_BOOL cdetect_process(const UINT32 cdetect_md_id, const UINT32 detect_task_max
                  FI_cdetect_start_domain, CMPI_ERROR_MODI, CDETECT_ORIG_NODE_DOMAIN(cdetect_orig_node));
     }
 
-    dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_process: "
+    rlog(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_process: "
                                             "done\n");
 
     return (EC_TRUE);
