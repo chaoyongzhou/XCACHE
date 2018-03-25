@@ -3972,8 +3972,8 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     v = (char       *)"keep-alive";
     chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                         "renew req header '%s':'%s' done\n",
-                                         k, v);
+                                            "renew req header '%s':'%s' done\n",
+                                            k, v);
 
     /*set range*/
     if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
