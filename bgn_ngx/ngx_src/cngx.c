@@ -1905,6 +1905,7 @@ EC_BOOL cngx_set_store_ncache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *ch
 
 EC_BOOL cngx_set_store_cache_switch(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
+#if 0
     const char      *k;
     UINT32           s;
     
@@ -1921,7 +1922,9 @@ EC_BOOL cngx_set_store_cache_switch(ngx_http_request_t *r, CHTTP_STORE *chttp_st
                                          k, c_switch_to_str(s));
 
     CHTTP_STORE_CACHE_SWITCH(chttp_store) = s;
-
+#else    
+    CHTTP_STORE_CACHE_SWITCH(chttp_store) = SWITCH_ON;
+#endif
     return (EC_TRUE);
 }
 
