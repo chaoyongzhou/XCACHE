@@ -218,6 +218,10 @@ EC_BOOL cngx_get_req_uri(const ngx_http_request_t *r, char **val);
 
 EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val);
 
+EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_args);
+
+EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r);
+
 EC_BOOL cngx_discard_req_body(ngx_http_request_t *r);
 
 EC_BOOL cngx_read_req_body(ngx_http_request_t *r);
@@ -225,6 +229,8 @@ EC_BOOL cngx_read_req_body(ngx_http_request_t *r);
 EC_BOOL cngx_get_req_body(ngx_http_request_t *r, CBYTES *body);
 
 EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r);
+
+EC_BOOL cngx_is_method(ngx_http_request_t *r, const char *method);
 
 EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r);
 

@@ -861,6 +861,111 @@ EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_args)
+{
+    const char                  *k;
+    char                        *v;
+    
+    char                        *uri_str;
+    char                        *host_str;
+
+    if(EC_FALSE == cngx_get_req_uri(r, &uri_str))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                             "fetch req uri failed\n");
+        return (EC_FALSE);
+    }
+
+    //k = (const char *)"server_name";
+    k = (const char *)"http_host";
+    if(EC_FALSE == cngx_get_var_str(r, k, &host_str, NULL_PTR))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                             "fetch '%s' failed\n",
+                                             k);
+        safe_free(uri_str, LOC_CNGX_0035);
+        return (EC_FALSE);
+    }    
+
+    if(EC_FALSE == cstring_format(req_url, "/%s%s", host_str, uri_str))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                             "format req_url '/%s%s' failed\n",
+                                             host_str, uri_str);
+        safe_free(host_str, LOC_CNGX_0036);
+        safe_free(uri_str, LOC_CNGX_0037);
+        return (EC_FALSE);
+    }
+    safe_free(host_str, LOC_CNGX_0038);
+    safe_free(uri_str, LOC_CNGX_0039);
+
+    if(EC_TRUE == need_args && EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                             "[cngx] get args '%s'\n",
+                                             v);
+
+        if(EC_FALSE == cstring_append_str(req_url, (const UINT8 *)"?"))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                                 "[cngx] append '?' failed\n");
+            safe_free(v, LOC_CFLV_0088);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cstring_append_str(req_url, (const UINT8 *)v))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                                 "[cngx] append args '%s' failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0089);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                             "[cngx] append args '%s' done\n",
+                                             v);
+        safe_free(v, LOC_CFLV_0090);
+    }    
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                         "set req_url '%s' done\n",
+                                         (char *)cstring_get_str(req_url));    
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r)
+{
+    CSTRING    req_url;
+
+    cstring_init(&req_url, NULL_PTR);
+    if(EC_FALSE == cngx_get_req_url(r, &req_url, EC_TRUE))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_rearm_req_uri: "
+                                             "[cngx] get req url failed\n");    
+        return (EC_FALSE);
+    }
+
+    r->uri.len = (size_t)cstring_get_len(&req_url);
+    
+    r->uri.data = ngx_pnalloc(r->pool, r->uri.len);
+    if (NULL_PTR == r->uri.data) 
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_rearm_req_uri: "
+                                             "[cngx] ngx_pnalloc (size = %d) failed\n",
+                                             r->uri.len); 
+                                             
+        cstring_clean(&req_url);
+        return (EC_FALSE);
+    }
+
+    ngx_memcpy(r->uri.data, cstring_get_str(&req_url), r->uri.len);
+    
+    cstring_clean(&req_url);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_discard_req_body(ngx_http_request_t *r)
 {
     if(NGX_OK != ngx_http_discard_request_body(r))
@@ -940,6 +1045,32 @@ EC_BOOL cngx_get_req_body(ngx_http_request_t *r, CBYTES *body)
 EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r)
 {
     return cngx_has_header_in(r, (const char *)CNGX_BGN_MOD_DBG_SWITCH_HDR, (const char *)"on");   
+}
+
+EC_BOOL cngx_is_method(ngx_http_request_t *r, const char *method)
+{
+    char *req_method;
+
+    if(EC_FALSE == cngx_get_req_method_str(r, &req_method))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_is_method: get req method str failed\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == STRCASECMP(req_method, method))
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_method: method is '%s'\n",
+                        req_method);
+
+        safe_free(req_method, LOC_CNGX_0017);  
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_method: method '%s' != '%s'\n",
+                    req_method, method);        
+
+    safe_free(req_method, LOC_CNGX_0017);
+    return (EC_FALSE);
 }
 
 EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r)
