@@ -2642,6 +2642,7 @@ EC_BOOL cflv_content_direct_header_out_status_filter(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;;
 
     const char                  *k;
+    char                        *v;
     uint32_t                     status;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
@@ -2657,7 +2658,27 @@ EC_BOOL cflv_content_direct_header_out_status_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+    v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0104);
+
+            CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
+            return (EC_TRUE);            
+        }    
+    }
 
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_status_filter: "
@@ -3779,6 +3800,7 @@ EC_BOOL cflv_content_orig_header_out_status_filter(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;;
 
     const char                  *k;
+    char                        *v;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -3793,12 +3815,40 @@ EC_BOOL cflv_content_orig_header_out_status_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+    v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0104);
+
+            CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
+            return (EC_TRUE);            
+        }    
+    }       
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_status_filter: "
                                          "response status = %u [before]\n",
                                          CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
 
+    if(CHTTP_NOT_FOUND == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_status_filter: "
+                                             "[cngx] 404 keep unchanged => response status = %u [after]\n",
+                                             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
+        return (EC_TRUE);
+    }
+    
     if(CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md))
     || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
     {
@@ -6976,6 +7026,18 @@ EC_BOOL cflv_content_cache_header_out_status_filter(const UINT32 cflv_md_id)
 
         response_status = c_str_to_uint32_t(v);
 
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0104);
+
+            CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
+            return (EC_TRUE);            
+        }
+        
         k = (const char *)"Location";
         if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
         && EC_TRUE == chttp_rsp_has_header_key(CFLV_MD_CHTTP_RSP(cflv_md), k))/*has 'Location'*/

@@ -2971,6 +2971,7 @@ EC_BOOL cmp4_content_direct_header_out_status_filter(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;;
 
     const char                  *k;
+    char                        *v;
     uint32_t                     status;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
@@ -2986,7 +2987,27 @@ EC_BOOL cmp4_content_direct_header_out_status_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0104);
+
+            CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+            return (EC_TRUE);            
+        }    
+    }
 
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_status_filter: "
@@ -4107,6 +4128,7 @@ EC_BOOL cmp4_content_orig_header_out_status_filter(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;;
 
     const char                  *k;
+    char                        *v;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -4121,12 +4143,40 @@ EC_BOOL cmp4_content_orig_header_out_status_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0104);
+
+            CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+            return (EC_TRUE);            
+        }    
+    }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_status_filter: "
                                          "response status = %u [before]\n",
                                          CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
 
+    if(CHTTP_NOT_FOUND == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_status_filter: "
+                                             "[cngx] 404 keep unchanged => response status = %u [after]\n",
+                                             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+        return (EC_TRUE);
+    }
+    
     if(CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md))
     || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
     {
@@ -8277,6 +8327,18 @@ EC_BOOL cmp4_content_cache_header_out_status_filter(const UINT32 cmp4_md_id)
 
         response_status = c_str_to_uint32_t(v);
 
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0104);
+
+            CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_status_filter: "
+                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 k,
+                                                 CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+            return (EC_TRUE);            
+        }
+        
         k = (const char *)"Location";
         if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
         && EC_TRUE == chttp_rsp_has_header_key(CMP4_MD_CHTTP_RSP(cmp4_md), k))/*has 'Location'*/

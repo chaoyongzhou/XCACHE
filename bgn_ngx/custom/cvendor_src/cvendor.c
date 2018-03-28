@@ -2531,6 +2531,7 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
     CVENDOR_MD                  *cvendor_md;
 
     const char                  *k;
+    char                        *v;
     uint32_t                     status;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
@@ -2546,7 +2547,27 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_NOT_FOUND, LOC_CVENDOR_0104);
+
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
+                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    k,
+                                                    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+            return (EC_TRUE);            
+        }    
+    }
 
     status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
@@ -2556,7 +2577,7 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
     if(CHTTP_OK != status && CHTTP_PARTIAL_CONTENT != status)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
-                                               "unchangeable => response status = %u [after]\n",
+                                                "unchangeable => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -2565,7 +2586,7 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
     {
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
-                                               "range exist => response status = %u [after]\n",
+                                                "range exist => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -3207,6 +3228,7 @@ EC_BOOL cvendor_content_chunk_header_out_filter(const UINT32 cvendor_md_id)
 
     //ngx_http_request_t          *r;
     const char                  *k;
+    char                        *v;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -3245,7 +3267,27 @@ EC_BOOL cvendor_content_chunk_header_out_filter(const UINT32 cvendor_md_id)
     chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_NOT_FOUND, LOC_CVENDOR_0104);
+
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: "
+                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    k,
+                                                    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+            return (EC_TRUE);            
+        }    
+    }    
 
     if(do_log(SEC_0175_CVENDOR, 9))
     {
@@ -4186,6 +4228,7 @@ EC_BOOL cvendor_content_orig_header_out_status_filter(const UINT32 cvendor_md_id
     CVENDOR_MD                  *cvendor_md;
 
     const char                  *k;
+    char                        *v;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -4200,7 +4243,35 @@ EC_BOOL cvendor_content_orig_header_out_status_filter(const UINT32 cvendor_md_id
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     k = (const char *)"Response-Status";
-    chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR != v)
+    {
+        uint32_t        response_status;
+
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+
+        response_status = c_str_to_uint32_t(v);
+        
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_NOT_FOUND, LOC_CVENDOR_0104);
+
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    k,
+                                                    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+            return (EC_TRUE);            
+        }    
+    }     
+
+    if(CHTTP_NOT_FOUND == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
+                                                "[cngx] 404 keep unchanged => response status = %u [after]\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+        return (EC_TRUE);
+    }    
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_status_filter: "
                                             "response status = %u [before]\n",
@@ -7390,6 +7461,18 @@ EC_BOOL cvendor_content_cache_header_out_status_filter(const UINT32 cvendor_md_i
         chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
 
         response_status = c_str_to_uint32_t(v);
+
+        if(CHTTP_NOT_FOUND == response_status)
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_NOT_FOUND, LOC_CVENDOR_0104);
+
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_status_filter: "
+                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    k,
+                                                    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+            return (EC_TRUE);            
+        }
 
         k = (const char *)"Location";
         if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
