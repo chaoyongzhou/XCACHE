@@ -77,6 +77,9 @@ uint32_t c_chars_to_uint32_t(const char *str, const uint32_t len);
 
 uint32_t c_str_to_uint32_t(const char *str);
 
+/*ignore case and replace src_ch with des_num*/
+uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const uint32_t des_num); 
+
 char *c_uint32_t_to_str(const uint32_t num);
 
 uint16_t c_str_to_uint16_t(const char *str);
@@ -151,6 +154,8 @@ EC_BOOL c_str_is_digit(const char *string);
 EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str);
 
 EC_BOOL c_char_is_in(const char ch, const char *chars, const uint32_t len);
+
+EC_BOOL c_char_is_in_ignore_case(const char ch, const char *chars, const uint32_t len);
 
 char *c_str_skip_space(const char *start, const char *end);
 

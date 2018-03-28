@@ -526,6 +526,60 @@ uint32_t c_str_to_uint32_t(const char *str)
     return (total * negs);
 }
 
+uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const uint32_t des_num)
+{
+    uint32_t  c;            /* current char */
+    uint32_t  total;        /* current total */
+    uint32_t  negs;
+    uint32_t  pos;
+    uint32_t  len;
+
+    char      lower_src_ch;
+    char      upper_src_ch;
+
+    if( NULL_PTR == str)
+    {
+        return ((uint32_t)0);
+    }
+
+    lower_src_ch = tolower(src_ch);
+    upper_src_ch = toupper(src_ch);
+
+    total = 0;
+    negs  = 1;
+
+    len = (uint32_t)strlen(str);
+    for(pos = 0; pos < len; pos ++)
+    {
+        char    ch;
+
+        ch = str[ pos ];
+        
+        if(0 == pos && '-' == ch)
+        {
+            negs *= ((uint32_t)-1);
+            continue;
+        }
+
+        if(ch == lower_src_ch || ch == upper_src_ch)
+        {
+            total = 10 * total + des_num;
+            continue;
+        }   
+
+        if(ch < '0' || ch > '9')
+        {   
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %ld\n", str, pos);
+            return ((uint32_t)0);
+        }        
+
+        c = (uint32_t)(ch);
+
+        total = 10 * total + (c - '0');
+    }
+    return (total * negs);
+}
+
 char *c_uint32_t_to_str(const uint32_t num)
 {
     char *str_cache;
@@ -1335,6 +1389,25 @@ EC_BOOL c_char_is_in(const char ch, const char *chars, const uint32_t len)
     for(idx = 0; idx < len; idx ++)
     {
         if(ch == chars[ idx ])
+        {
+            return (EC_TRUE);
+        }
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL c_char_is_in_ignore_case(const char ch, const char *chars, const uint32_t len)
+{
+    uint32_t  idx;
+    char      lower_ch;
+    char      upper_ch;
+
+    lower_ch = tolower(ch);
+    upper_ch = toupper(ch);
+    
+    for(idx = 0; idx < len; idx ++)
+    {
+        if(lower_ch == chars[ idx ] || upper_ch == chars[ idx ])
         {
             return (EC_TRUE);
         }

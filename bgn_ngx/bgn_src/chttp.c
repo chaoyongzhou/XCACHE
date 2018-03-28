@@ -930,7 +930,25 @@ EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t sta
         char *cache_http_code;
 
         cache_http_code = cache_http_codes[ pos ];
-        if(c_str_to_uint32_t(cache_http_code) == status_code)
+
+        if(EC_FALSE == c_char_is_in_ignore_case('X', cache_http_code, strlen(cache_http_code)))
+        {
+            if(c_str_to_uint32_t(cache_http_code) == status_code)
+            {
+                dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: %u in '%s' => true\n",
+                                    status_code, (char *)CSTRING_STR(cache_http_codes_cstr));
+                c_str_free(cache_http_codes_str);
+                return (EC_TRUE);
+            }
+            
+            continue;
+        }
+
+        /*else*/
+
+        if(c_str_to_uint32_t_ireplace(cache_http_code, 'X', 0) <= status_code /*replace 'X' or 'x' with 0*/
+        && c_str_to_uint32_t_ireplace(cache_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/ 
+        )
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: %u in '%s' => true\n",
                                 status_code, (char *)CSTRING_STR(cache_http_codes_cstr));
@@ -1062,14 +1080,31 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
 
         not_cache_if_http_code = not_cache_if_http_codes[ pos ];
 
-        if(c_str_to_uint32_t(not_cache_if_http_code) == status_code)
+        if(EC_FALSE == c_char_is_in_ignore_case('X', not_cache_if_http_code, strlen(not_cache_if_http_code)))
+        {
+            if(c_str_to_uint32_t(not_cache_if_http_code) == status_code)
+            {
+                dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: %u in '%s' => true\n",
+                                    status_code, (char *)CSTRING_STR(not_cache_if_http_codes_cstr));
+
+                c_str_free(not_cache_if_http_codes_str);
+                return (EC_TRUE);
+            }
+            continue;
+        }
+
+        /*else*/
+
+        if(c_str_to_uint32_t_ireplace(not_cache_if_http_code, 'X', 0) <= status_code /*replace 'X' or 'x' with 0*/
+        && c_str_to_uint32_t_ireplace(not_cache_if_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/ 
+        )
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: %u in '%s' => true\n",
                                 status_code, (char *)CSTRING_STR(not_cache_if_http_codes_cstr));
 
             c_str_free(not_cache_if_http_codes_str);
             return (EC_TRUE);
-        }
+        }        
     }
 
     c_str_free(not_cache_if_http_codes_str);
