@@ -248,6 +248,8 @@ EC_BOOL c_file_pos(int fd, UINT32 *fpos);
 
 EC_BOOL c_file_pos_b(int fd, uint64_t *fpos);
 
+EC_BOOL c_file_exist(const char *pathname);
+
 EC_BOOL c_file_access(const char *pathname, int mode);
 
 EC_BOOL c_file_truncate(int fd, const UINT32 fsize);

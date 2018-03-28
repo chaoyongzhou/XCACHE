@@ -2735,6 +2735,38 @@ EC_BOOL c_file_pos_b(int fd, uint64_t *fpos)
     return (EC_TRUE);
 }
 
+EC_BOOL c_file_exist(const char *pathname)
+{
+    struct stat filestat;
+
+    if(0 != stat(pathname, &filestat))
+    {
+        return (EC_FALSE);
+    }
+
+    /************************************************************
+       S_ISREG(m)  is it a regular file?
+
+       S_ISDIR(m)  directory?
+
+       S_ISCHR(m)  character device?
+
+       S_ISBLK(m)  block device?
+
+       S_ISFIFO(m) FIFO (named pipe)?
+
+       S_ISLNK(m)  symbolic link? (Not in POSIX.1-1996.)
+
+       S_ISSOCK(m) socket? (Not in POSIX.1-1996.)
+    ************************************************************/
+    if(S_ISREG(filestat.st_mode))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 EC_BOOL c_file_access(const char *pathname, int mode)
 {
     if(0 != access(pathname, mode))

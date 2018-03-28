@@ -1861,6 +1861,30 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
 
     fname = (char *)cstring_get_str(path);
 
+    if(EC_FALSE == c_file_exist(fname))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "file '%s' not exist\n",
+                                                fname);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
+                                            "file '%s' exist\n",
+                                            fname);    
+
+    if(EC_FALSE == c_file_access(fname, F_OK | R_OK))
+    {
+        dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
+                                                "access file '%s' failed\n",
+                                                fname);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
+                                            "access file '%s' done\n",
+                                            fname);    
+
     fd = c_file_open(fname, O_RDONLY, 0666);
     if(ERR_FD == fd)
     {
@@ -1892,8 +1916,8 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     if(NULL_PTR == fcontent)
     {
         dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:crfsmon_crfs_hot_path_load: "
-                                                "malloc %ld bytes failed\n",
-                                                fsize);
+                                                "malloc %ld bytes for file '%s' failed\n",
+                                                fsize, fname);
         c_file_close(fd);
         return (EC_FALSE);
     }
