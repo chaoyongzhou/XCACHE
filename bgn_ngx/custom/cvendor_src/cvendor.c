@@ -2575,7 +2575,7 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
                                             status);
 
     if(CHTTP_OK != status && CHTTP_PARTIAL_CONTENT != status)
-    {
+    {   
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
                                                 "unchangeable => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
@@ -2595,6 +2595,44 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
                                             "response status = %u [after]\n",
                                             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_direct_header_out_connection_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    const char                  *k;
+    uint32_t                     status;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_out_connection_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+
+    if(CHTTP_NOT_FOUND == status)
+    {
+        k = (const char *)"Connection";
+        chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_connection_filter: "
+                                                "404 => del %s\n",
+                                                k);
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_connection_filter: "
+                                            "not 404\n");
 
     return (EC_TRUE);
 }
@@ -2630,10 +2668,10 @@ EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
                                                 "range filter failed\n");
         return (EC_FALSE);
     }
-
+   
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
                                             "range filter done\n");
-
+                                            
     if(EC_FALSE == cvendor_content_direct_header_out_status_filter(cvendor_md_id))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
@@ -2643,6 +2681,17 @@ EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
                                             "status filter done\n");
 
+    /*Connection*/
+    if(EC_FALSE == cvendor_content_direct_header_out_connection_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
+                                                "connection filter failed\n");
+        return (EC_FALSE);
+    }
+    
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
+                                            "connection filter done\n");
+                                            
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: done\n");
 
     return (EC_TRUE);

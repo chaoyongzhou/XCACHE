@@ -3039,6 +3039,44 @@ EC_BOOL cmp4_content_direct_header_out_status_filter(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_direct_header_out_connection_filter(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    const char                  *k;
+    uint32_t                     status;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_direct_header_out_connection_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+
+    if(CHTTP_NOT_FOUND == status)
+    {
+        k = (const char *)"Connection";
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_connection_filter: "
+                                             "404 => del %s\n",
+                                             k);
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_connection_filter: "
+                                         "not 404\n");
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
 {
     //CMP4_MD                  *cmp4_md;
@@ -3083,6 +3121,17 @@ EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
                                          "status filter done\n");
 
+    /*Connection*/
+    if(EC_FALSE == cmp4_content_direct_header_out_connection_filter(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
+                                             "connection filter failed\n");
+        return (EC_FALSE);
+    }
+    
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
+                                         "connection filter done\n");
+                                         
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: done\n");
 
     return (EC_TRUE);

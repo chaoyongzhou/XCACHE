@@ -2710,6 +2710,44 @@ EC_BOOL cflv_content_direct_header_out_status_filter(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_direct_header_out_connection_filter(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    const char                  *k;
+    uint32_t                     status;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_direct_header_out_connection_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+
+    if(CHTTP_NOT_FOUND == status)
+    {
+        k = (const char *)"Connection";
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_connection_filter: "
+                                             "404 => del %s\n",
+                                             k);
+        return (EC_TRUE);
+    }
+    
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_connection_filter: "
+                                         "not 404\n");
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_direct_header_out_filter(const UINT32 cflv_md_id)
 {
     //CFLV_MD                  *cflv_md;
@@ -2754,6 +2792,17 @@ EC_BOOL cflv_content_direct_header_out_filter(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: "
                                          "status filter done\n");
 
+    /*Connection*/
+    if(EC_FALSE == cflv_content_direct_header_out_connection_filter(cflv_md_id))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_out_filter: "
+                                             "connection filter failed\n");
+        return (EC_FALSE);
+    }
+    
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: "
+                                         "connection filter done\n");
+                                            
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: done\n");
 
     return (EC_TRUE);
