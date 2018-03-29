@@ -7064,12 +7064,22 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP
 STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp_node)
 {
     CHTTP_STORE    *chttp_store;
+    UINT32          cache_control;
 
     chttp_store = CHTTP_NODE_STORE(chttp_node);
     if(NULL_PTR == chttp_store)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: store is null\n");
         return (EC_FALSE);
+    }
+
+    cache_control = CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node));
+    if(CHTTP_STORE_CACHE_ERR == cache_control || CHTTP_STORE_CACHE_NONE == cache_control)
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: "
+                                              "not add 'Expires' due to cache_ctrl 0x%lx\n", 
+                                              cache_control);
+        return(EC_TRUE);
     }
 
     if(EC_TRUE == CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store))
