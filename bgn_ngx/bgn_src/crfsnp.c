@@ -926,7 +926,28 @@ EC_BOOL crfsnp_item_flush(CRFSNP *crfsnp, uint32_t *offset, const CRFSNP_ITEM *c
 }
 
 EC_BOOL crfsnp_item_is(const CRFSNP_ITEM *crfsnp_item, const uint32_t klen, const uint8_t *key)
-{
+{   
+    if(CRFSNP_KEY_MAX_SIZE < klen)/*overflow key*/
+    {
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
+
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
+        
+        if(md5_len != CRFSNP_ITEM_KLEN(crfsnp_item))
+        {
+            return (EC_FALSE);
+        }
+
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
+        
+        if(0 != memcmp((void *)md5_str, (void *)CRFSNP_ITEM_KEY(crfsnp_item), md5_len))
+        {
+            return (EC_FALSE);
+        }
+        return (EC_TRUE);
+    }
+    
     if(klen !=  CRFSNP_ITEM_KLEN(crfsnp_item))
     {
         return (EC_FALSE);
@@ -936,7 +957,7 @@ EC_BOOL crfsnp_item_is(const CRFSNP_ITEM *crfsnp_item, const uint32_t klen, cons
     {
         return (EC_FALSE);
     }
-    return (EC_TRUE);
+    return (EC_TRUE); 
 }
 
 CRFSNP_ITEM *crfsnp_item_parent(const CRFSNP *crfsnp, const CRFSNP_ITEM *crfsnp_item)
@@ -2190,7 +2211,21 @@ CRFSNP_ITEM *crfsnp_dnode_find(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_
     pool     = CRFSNP_ITEMS_POOL(crfsnp);
     root_pos = CRFSNP_DNODE_ROOT_POS(crfsnp_dnode);
 
-    node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+    if(CRFSNP_KEY_MAX_SIZE < klen)/*overflow key*/
+    {
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
+
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);  
+
+        node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+    }
+    else
+    {
+        node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+    }
+    
     if(CRFSNPRB_ERR_POS != node_pos)
     {
         const CRFSNPRB_NODE *node;
@@ -2212,6 +2247,17 @@ uint32_t crfsnp_dnode_search(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_dn
 
     pool     = CRFSNP_ITEMS_POOL(crfsnp);
     root_pos = CRFSNP_DNODE_ROOT_POS(crfsnp_dnode);
+
+    if(CRFSNP_KEY_MAX_SIZE < klen)/*overflow key*/
+    {
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
+
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);  
+
+        return crfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+    }
 
     return crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
 }
@@ -2302,17 +2348,41 @@ uint32_t crfsnp_dnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos,
 
     //dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_dnode_insert: crfsnp %p, header %p, pool %p\n", crfsnp, CRFSNP_HDR(crfsnp), CRFSNP_ITEMS_POOL(crfsnp));
 
-    if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, path_seg_len, path_seg, &insert_offset))
+    if(CRFSNP_KEY_MAX_SIZE < path_seg_len)/*overflow path seg*/
     {
-        dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_dnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
-        return (insert_offset);
-    }
-    crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
 
-    /*fill in crfsnp_item_insert*/
-    crfsnp_item_set_key(crfsnp_item_insert, path_seg_len, path_seg);
-    CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
-    CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(path_seg_len, path_seg);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
+    
+        if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, md5_len, md5_str, &insert_offset))
+        {
+            dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_dnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
+            return (insert_offset);
+        }
+        crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+
+        /*fill in crfsnp_item_insert*/
+        crfsnp_item_set_key(crfsnp_item_insert, md5_len, md5_str);
+        CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
+        CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;        
+    }
+    else
+    {
+        if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, path_seg_len, path_seg, &insert_offset))
+        {
+            dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_dnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
+            return (insert_offset);
+        }
+        crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+
+        /*fill in crfsnp_item_insert*/
+        crfsnp_item_set_key(crfsnp_item_insert, path_seg_len, path_seg);
+        CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
+        CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;
+    }
+    
     if(CRFSNP_ITEM_FILE_IS_REG == dir_flag)
     {
         crfsnp_fnode_init(CRFSNP_ITEM_FNODE(crfsnp_item_insert));
@@ -2485,7 +2555,21 @@ CRFSNP_ITEM *crfsnp_bnode_find(const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_
     pool     = CRFSNP_ITEMS_POOL(crfsnp);
     root_pos = CRFSNP_BNODE_ROOT_POS(crfsnp_bnode);
 
-    node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+    if(CRFSNP_KEY_MAX_SIZE < klen)/*overflow key*/
+    {
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
+
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
+
+        node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+    }
+    else
+    {
+        node_pos = crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+    }
+    
     if(CRFSNPRB_ERR_POS != node_pos)
     {
         const CRFSNPRB_NODE *node;
@@ -2508,6 +2592,17 @@ uint32_t crfsnp_bnode_search(const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bn
     pool     = CRFSNP_ITEMS_POOL(crfsnp);
     root_pos = CRFSNP_BNODE_ROOT_POS(crfsnp_bnode);
 
+    if(CRFSNP_KEY_MAX_SIZE < klen)/*overflow key*/
+    {
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
+
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);  
+
+        return crfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+    }
+    
     return crfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
 }
 
@@ -2553,17 +2648,40 @@ uint32_t crfsnp_bnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const ui
     /*insert the item to parent and update parent*/
     root_pos = CRFSNP_BNODE_ROOT_POS(crfsnp_bnode_parent);
 
-    if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, path_seg_len, path_seg, &insert_offset))
+    if(CRFSNP_KEY_MAX_SIZE < path_seg_len)/*overflow path seg*/
     {
-        dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_bnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
-        return (insert_offset);
-    }
-    crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+        uint8_t     *md5_str;
+        uint32_t     md5_len;
 
-    /*fill in crfsnp_item_insert*/
-    crfsnp_item_set_key(crfsnp_item_insert, path_seg_len, path_seg);
-    CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
-    CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;
+        md5_str = (uint8_t *)c_md5_sum_to_hex_str(path_seg_len, path_seg);
+        md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);  
+
+        if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, md5_len, md5_str, &insert_offset))
+        {
+            dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_bnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
+            return (insert_offset);
+        }
+        crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+
+        /*fill in crfsnp_item_insert*/
+        crfsnp_item_set_key(crfsnp_item_insert, md5_len, md5_str);
+        CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
+        CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;        
+    }
+    else
+    {
+        if(EC_FALSE == crfsnprb_tree_insert_data(CRFSNP_ITEMS_POOL(crfsnp), &root_pos, path_seg_second_hash, path_seg_len, path_seg, &insert_offset))
+        {
+            dbg_log(SEC_0081_CRFSNP, 1)(LOGSTDOUT, "warn:crfsnp_bnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
+            return (insert_offset);
+        }
+        crfsnp_item_insert = crfsnp_fetch(crfsnp, insert_offset);
+
+        /*fill in crfsnp_item_insert*/
+        crfsnp_item_set_key(crfsnp_item_insert, path_seg_len, path_seg);
+        CRFSNP_ITEM_SECOND_HASH(crfsnp_item_insert) = path_seg_second_hash;
+        CRFSNP_ITEM_PARENT_POS(crfsnp_item_insert)  = parent_pos;
+    }
     if(CRFSNP_ITEM_FILE_IS_REG == dir_flag)
     {
         crfsnp_fnode_init(CRFSNP_ITEM_FNODE(crfsnp_item_insert));
@@ -3013,12 +3131,13 @@ uint32_t crfsnp_insert_no_lock(CRFSNP *crfsnp, const uint32_t path_len, const ui
             path_seg_end = path_seg_beg + path_seg_len + 1;
 
             dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_insert_no_lock: path_seg_len %u\n", path_seg_len);
+#if 0            
             if(CRFSNP_KEY_MAX_SIZE < path_seg_len)
             {
                 dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_insert_no_lock: path_seg_len %u overflow\n", path_seg_len);
                 return (CRFSNPRB_ERR_POS);
             }
-
+#endif
             path_seg_2nd_hash = CRFSNP_2ND_CHASH_ALGO_COMPUTE(crfsnp, path_seg_len, path_seg_beg);
             parent_node_pos   = crfsnp_dnode_search(crfsnp, CRFSNP_ITEM_DNODE(crfsnp_item),
                                                     path_seg_2nd_hash,
@@ -3072,12 +3191,13 @@ uint32_t crfsnp_insert_no_lock(CRFSNP *crfsnp, const uint32_t path_len, const ui
             path_seg_end = path_seg_beg + path_seg_len + 1;
 
             dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_insert_no_lock: path_seg_len %u\n", path_seg_len);
+#if 0            
             if(CRFSNP_KEY_MAX_SIZE < path_seg_len)
             {
                 dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_insert_no_lock: path_seg_len %u overflow\n", path_seg_len);
                 return (CRFSNPRB_ERR_POS);
             }
-
+#endif
             path_seg_2nd_hash = CRFSNP_2ND_CHASH_ALGO_COMPUTE(crfsnp, path_seg_len, path_seg_beg);
             parent_node_pos   = crfsnp_bnode_search(crfsnp, CRFSNP_ITEM_BNODE(crfsnp_item),
                                                        path_seg_2nd_hash,

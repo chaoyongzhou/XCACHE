@@ -2575,7 +2575,7 @@ EC_BOOL cvendor_content_direct_header_out_status_filter(const UINT32 cvendor_md_
                                             status);
 
     if(CHTTP_OK != status && CHTTP_PARTIAL_CONTENT != status)
-    {   
+    {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_status_filter: "
                                                 "unchangeable => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
@@ -2668,10 +2668,10 @@ EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
                                                 "range filter failed\n");
         return (EC_FALSE);
     }
-   
+
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
                                             "range filter done\n");
-                                            
+
     if(EC_FALSE == cvendor_content_direct_header_out_status_filter(cvendor_md_id))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "

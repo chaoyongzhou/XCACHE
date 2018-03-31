@@ -208,6 +208,8 @@ char *c_md5_to_hex_str(const uint8_t *md5);
 
 uint32_t c_md5_to_hex_chars(const uint8_t *md5, char *chars, const uint32_t max_len);
 
+char *c_md5_sum_to_hex_str(const uint32_t data_len, const uint8_t *data);
+
 EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len);
 
 char   *c_dirname(const char *path_name);

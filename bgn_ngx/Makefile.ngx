@@ -316,6 +316,8 @@ libngx: $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 
+libs: libngx libcvendor libcflv libcmp4	libcrefresh
+
 $(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
 

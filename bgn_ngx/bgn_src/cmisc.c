@@ -2065,6 +2065,15 @@ uint32_t c_md5_to_hex_chars(const uint8_t *md5, char *chars, const uint32_t max_
     return (char_pos);
 }
 
+char *c_md5_sum_to_hex_str(const uint32_t data_len, const uint8_t *data)
+{
+    uint8_t digest[ CMD5_DIGEST_LEN ];
+    
+    cmd5_sum(data_len, data, digest);
+
+    return c_md5_to_hex_str((uint8_t *)digest);
+}
+
 EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len)
 {
     uint32_t idx;
