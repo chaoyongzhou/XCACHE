@@ -4786,7 +4786,7 @@ EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
     MOD_NODE_MODI(&recv_mod_node) = 0;/*cdetect_md_id = 0*/
 
     ret = EC_FALSE;
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+    task_p2p(CMPI_ANY_MODI, TDNS_RESOLVE_TIMEOUT_NSEC, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
              &ret,
              FI_cdetect_dns_resolve, CMPI_ERROR_MODI, &domain, ipv4);

@@ -944,10 +944,11 @@ void cparacfg_conn_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT3
         c_ident_print(log, level);
         sys_print(log, "<connConfig");
         //sys_print(log, " keepaliveSwitch=\"%s\""       , CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg));
-        sys_print(log, " timeoutNsec=\"%ld\""            , CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
+        sys_print(log, " connTimeoutNsec=\"%ld\""        , CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
         sys_print(log, " timeoutMaxNumPerLoop=\"%ld\""   , CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));
         sys_print(log, " highPrecisionTimeSwitch=\"%s\"" , CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
         sys_print(log, " tdnsResolveSwitch=\"%s\""       , CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg));
+        sys_print(log, " tdnsResolveTimeoutNsec=\"%ld\"" , CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg));
         sys_print(log, "/>\n");
     }
     return;

@@ -109,6 +109,7 @@ typedef struct
     CSTRING   ssl_private_key_file_name_cstr;
 
     UINT32    tdns_resolve_switch           ; /*TDNS_RESOLVE_SWITCH*/
+    UINT32    tdns_resolve_timeout_nsec     ; /*TDNS resolve domain timeout in seconds*/
 
     UINT32    log_level_tab[ SEC_NONE_END ] ;
 }CPARACFG;
@@ -195,6 +196,7 @@ typedef struct
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_private_key_file_name_cstr))
 
 #define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                      ((cparacfg)->tdns_resolve_switch)
+#define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)                ((cparacfg)->tdns_resolve_timeout_nsec)
 
 #define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)))
@@ -358,6 +360,7 @@ typedef struct
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR_DEF              ((uint8_t *)"private_key.pem")
 
 #define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_ON
+#define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
 #define CPARACFG_SET_DEFAULT(cparacfg, macro_name)  \
             macro_name(cparacfg)  = macro_name##_DEF
@@ -442,6 +445,7 @@ typedef struct
 #define    SSL_PRIVATE_KEY_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR)
 
 #define    TDNS_RESOLVE_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_SWITCH)
+#define    TDNS_RESOLVE_TIMEOUT_NSEC                     CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC)
 
 #endif/*_CPARACFG_INC*/
 
