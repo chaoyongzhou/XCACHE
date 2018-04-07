@@ -45,7 +45,8 @@ extern "C"{
 #define     MD_CDETECT   ((UINT32) 22)
 #define     MD_CP2P      ((UINT32) 23)
 #define     MD_CFILE     ((UINT32) 24)
-#define     MD_END       ((UINT32) 25)
+#define     MD_CDETECTN  ((UINT32) 25)
+#define     MD_END       ((UINT32) 26)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)
@@ -295,8 +296,8 @@ extern "C"{
 #define                   MM_CTDNSSV_MGR    ((UINT32)221)
 #define                       MM_CTDNSSV    ((UINT32)222)
 
-#define             MM_CDETECT_ORIG_NODE    ((UINT32)223)
-#define               MM_CDETECT_IP_NODE    ((UINT32)224)
+#define            MM_CDETECTN_ORIG_NODE    ((UINT32)223)
+#define              MM_CDETECTN_IP_NODE    ((UINT32)224)
 #define                     MM_CP2P_FILE    ((UINT32)225)
 #define                      MM_CP2P_CMD    ((UINT32)226)
 

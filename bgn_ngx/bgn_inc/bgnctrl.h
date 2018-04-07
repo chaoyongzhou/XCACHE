@@ -66,6 +66,9 @@ extern "C"{
 /*CTDNS Package Debug Switch*/
 #define CTDNS_DEBUG_SWITCH SWITCH_ON
 
+/*CDETECTN Package Debug Switch*/
+#define CDETECTN_DEBUG_SWITCH SWITCH_ON
+
 /*CDETECT Package Debug Switch*/
 #define CDETECT_DEBUG_SWITCH SWITCH_ON
 

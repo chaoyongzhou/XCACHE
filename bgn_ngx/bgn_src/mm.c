@@ -112,7 +112,7 @@ extern "C"{
 #include "ctdnsnpmgr.h"
 #include "ctdnssv.h"
 #include "ctdnssvmgr.h"
-#include "cdetect.h"
+#include "cdetectn.h"
 #include "cp2p.h"
 #include "ccallback.h"
 #include "cagent.h"
@@ -487,8 +487,8 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CTDNSSV_MGR                   ,"MM_CTDNSSV_MGR                 ",256       , sizeof(CTDNSSV_MGR)                  , LOC_MM_0220);
     MM_MGR_DEF(MM_CTDNSSV                       ,"MM_CTDNSSV                     ",256       , sizeof(CTDNSSV)                      , LOC_MM_0221);
 
-    MM_MGR_DEF(MM_CDETECT_ORIG_NODE             ,"MM_CDETECT_ORIG_NODE           ",256       , sizeof(CDETECT_ORIG_NODE)            , LOC_MM_0222);
-    MM_MGR_DEF(MM_CDETECT_IP_NODE               ,"MM_CDETECT_IP_NODE             ",256       , sizeof(CDETECT_IP_NODE)              , LOC_MM_0223);
+    MM_MGR_DEF(MM_CDETECTN_ORIG_NODE            ,"MM_CDETECTN_ORIG_NODE           ",256      , sizeof(CDETECTN_ORIG_NODE)            , LOC_MM_0222);
+    MM_MGR_DEF(MM_CDETECTN_IP_NODE              ,"MM_CDETECTN_IP_NODE             ",256      , sizeof(CDETECTN_IP_NODE)              , LOC_MM_0223);
 
     MM_MGR_DEF(MM_CP2P_FILE                     ,"MM_CP2P_FILE                   ",256       , sizeof(CP2P_FILE)                    , LOC_MM_0224);
     MM_MGR_DEF(MM_CP2P_CMD                      ,"MM_CP2P_CMD                    ",256       , sizeof(CP2P_CMD)                     , LOC_MM_0225);

@@ -73,6 +73,12 @@ EC_BOOL cdetecthttp_handle_process_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cdetecthttp_make_process_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cdetecthttp_commit_process_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cdetecthttp_is_http_get_reload(const CHTTP_NODE *chttp_node);
+EC_BOOL cdetecthttp_commit_reload_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cdetecthttp_handle_reload_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cdetecthttp_make_reload_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cdetecthttp_commit_reload_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cdetecthttp_is_http_get_logrotate(const CHTTP_NODE *chttp_node);
 EC_BOOL cdetecthttp_commit_logrotate_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cdetecthttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node);

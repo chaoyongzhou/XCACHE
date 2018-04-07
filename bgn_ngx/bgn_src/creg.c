@@ -41,6 +41,7 @@ extern "C"{
 #include "csfsmon.h"
 #include "ctdns.h"
 #include "cdetect.h"
+#include "cdetectn.h"
 #include "ctdnssv.h"
 #include "cp2p.h"
 #include "cfile.h"
@@ -71,6 +72,7 @@ extern "C"{
 #include "chttp.inc"
 #include "ctdns.inc"
 #include "cdetect.inc"
+#include "cdetectn.inc"
 #include "ctdnssv.inc"
 #include "cp2p.inc"
 #include "cfile.inc"
@@ -1140,6 +1142,8 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CTDNS   ,  &g_ctdns_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_ctdns_func_addr_list  , FI_ctdns_start   , FI_ctdns_end    , ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CDETECT ,  &g_cdetect_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cdetect_func_addr_list, FI_cdetect_start , FI_cdetect_end  , ERR_FUNC_ID             , NULL_PTR                                   );
+
+    creg_func_addr_vec_add(func_addr_vec, MD_CDETECTN,  &g_cdetectn_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cdetectn_func_addr_list,FI_cdetectn_start, FI_cdetectn_end, ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CP2P    ,  &g_cp2p_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cp2p_func_addr_list   , FI_cp2p_start    , FI_cp2p_end     , ERR_FUNC_ID             , NULL_PTR                                   );
 
