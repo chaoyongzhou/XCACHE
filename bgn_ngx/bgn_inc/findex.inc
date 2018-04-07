@@ -844,6 +844,7 @@
 #define                     FI_cdetect_process_loop  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 10))
 #define                           FI_cdetect_switch  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 11))
 #define                           FI_cdetect_reload  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 12))
+#define                           FI_cdetect_choice  ((UINT32) ((MD_CDETECT << (WORDSIZE/2)) + 13))
 
 #define                 FI_cp2p_print_module_status  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 0))
 #define              FI_cp2p_free_module_static_mem  ((UINT32) ((MD_CP2P << (WORDSIZE/2)) + 1))

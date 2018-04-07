@@ -67,8 +67,8 @@ typedef struct
     uint32_t            detect_interval_nsec;  /*orig detect interval in seconds*/ 
     uint32_t            detect_stopping_nsec;  /*orig detect stopping if no access in seconds*/
 
-    uint32_t            status_reachable;      /*orig return such status means orig is reachable*/
-    uint32_t            status_forbidden;      /*orig return such status means orig is forbidden*/
+    uint32_t            reachable_status_beg;  /*orig return such status means orig is reachable*/
+    uint32_t            reachable_status_end;  /*orig return such status means orig is reachable*/
     uint32_t            choice_strategy;       /*strategy to select orig*/
     uint32_t            domain_hash;           /*hash value of domain*/     
 
@@ -89,8 +89,8 @@ typedef struct
 #define CDETECTN_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetectn_orig_node)     ((cdetectn_orig_node)->detect_interval_nsec)
 #define CDETECTN_ORIG_NODE_DETECT_STOPPING_NSEC(cdetectn_orig_node)     ((cdetectn_orig_node)->detect_stopping_nsec)
 
-#define CDETECTN_ORIG_NODE_STATUS_REACHABLE(cdetectn_orig_node)         ((cdetectn_orig_node)->status_reachable)
-#define CDETECTN_ORIG_NODE_STATUS_FORBIDDEN(cdetectn_orig_node)         ((cdetectn_orig_node)->status_forbidden)
+#define CDETECTN_ORIG_NODE_REACHABLE_STATUS_BEG(cdetectn_orig_node)     ((cdetectn_orig_node)->reachable_status_beg)
+#define CDETECTN_ORIG_NODE_REACHABLE_STATUS_END(cdetectn_orig_node)     ((cdetectn_orig_node)->reachable_status_end)
 #define CDETECTN_ORIG_NODE_CHOICE_STRATEGY(cdetectn_orig_node)          ((cdetectn_orig_node)->choice_strategy)
 #define CDETECTN_ORIG_NODE_DOMAIN_HASH(cdetectn_orig_node)              ((cdetectn_orig_node)->domain_hash)
 
@@ -102,12 +102,12 @@ typedef struct
 
 #define CDETECTN_IP_NODE_STATUS_ERR              ((uint32_t)  ~0)
 #define CDETECTN_IP_NODE_STATUS_REACHABLE        ((uint32_t)   1)
-#define CDETECTN_IP_NODE_STATUS_FORBIDDEN        ((uint32_t)   2)
 
 #define CDETECTN_IP_NODE_COST_MSEC_ERR           ((uint32_t)  ~0) 
 #define CDETECTN_IP_NODE_PORT_DEFAULT            (80)
 typedef struct
 {
+    CSTRING            domain;
     UINT32             ipaddr;
     UINT32             port;
     
@@ -115,6 +115,8 @@ typedef struct
     uint32_t           detect_cost_msec;
 }CDETECTN_IP_NODE;
 
+#define CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node)                  (&((cdetectn_ip_node)->domain))
+#define CDETECTN_IP_NODE_DOMAIN_STR(cdetectn_ip_node)              (cstring_get_str(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node)))
 #define CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node)                  ((cdetectn_ip_node)->ipaddr)
 #define CDETECTN_IP_NODE_IPADDR_STR(cdetectn_ip_node)              (c_word_to_ipv4(CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node)))
 #define CDETECTN_IP_NODE_PORT(cdetectn_ip_node)                    ((cdetectn_ip_node)->port)

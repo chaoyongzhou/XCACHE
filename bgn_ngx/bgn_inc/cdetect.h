@@ -127,6 +127,20 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id);
 
 /**
 *
+*  reload status string
+*
+**/
+const char *cdetect_reload_status_str(const UINT32 cdetect_md_id);
+
+/**
+*
+*  cdetectn choice
+*
+**/
+EC_BOOL cdetect_choice(const UINT32 cdetect_md_id, UINT32 *choice);
+
+/**
+*
 *  start to detect domain
 *
 **/

@@ -382,7 +382,12 @@ EC_BOOL cdetect_switch(const UINT32 cdetect_md_id)
     return (EC_TRUE);
 }
 
-STATIC_CAST static const char *__cdetect_reload_status_str(const UINT32 cdetect_md_id)
+/**
+*
+*  reload status string
+*
+**/
+const char *cdetect_reload_status_str(const UINT32 cdetect_md_id)
 {
     CDETECT_MD          *cdetect_md;
 
@@ -390,7 +395,7 @@ STATIC_CAST static const char *__cdetect_reload_status_str(const UINT32 cdetect_
     if ( CDETECT_MD_ID_CHECK_INVALID(cdetect_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__cdetect_reload_status_str: cdetect module #0x%lx not started.\n",
+                "error:cdetect_reload_status_str: cdetect module #0x%lx not started.\n",
                 cdetect_md_id);
         cdetect_print_module_status(cdetect_md_id, LOGSTDOUT);
         dbg_exit(MD_CDETECT, cdetect_md_id);
@@ -449,7 +454,7 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_reload: "
                                                 "invalid reload status %s\n",
-                                                __cdetect_reload_status_str(cdetect_md_id));    
+                                                cdetect_reload_status_str(cdetect_md_id));    
         return (EC_FALSE);
     }
 
@@ -509,6 +514,36 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
     dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_reload: "
                                             "reload conf '%s' done\n",
                                             (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));     
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  cdetectn choice
+*
+**/
+EC_BOOL cdetect_choice(const UINT32 cdetect_md_id, UINT32 *choice)
+{
+    CDETECT_MD          *cdetect_md;
+
+#if ( SWITCH_ON == CDETECT_DEBUG_SWITCH )
+    if ( CDETECT_MD_ID_CHECK_INVALID(cdetect_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cdetect_choice: cdetect module #0x%lx not started.\n",
+                cdetect_md_id);
+        cdetect_print_module_status(cdetect_md_id, LOGSTDOUT);
+        dbg_exit(MD_CDETECT, cdetect_md_id);
+    }
+#endif/*CDETECT_DEBUG_SWITCH*/
+
+    cdetect_md = CDETECT_MD_GET(cdetect_md_id);
+
+    if(NULL_PTR != choice)
+    {
+        (*choice) = (CDETECT_MD_CDETECTN_MODI_CHOICE(cdetect_md) & 1);
+    }
 
     return (EC_TRUE);
 }
