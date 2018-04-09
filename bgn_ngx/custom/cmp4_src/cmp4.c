@@ -1057,6 +1057,7 @@ EC_BOOL cmp4_get_req_range_segs(const UINT32 cmp4_md_id, const UINT32 seg_size)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_get_req_range_segs: "
                                                  "invalid Range '%s'\n",
                                                  range_str);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0006);
             return (EC_FALSE);
         }
 

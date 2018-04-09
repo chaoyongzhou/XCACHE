@@ -695,6 +695,7 @@ EC_BOOL cflv_get_req_range_segs(const UINT32 cflv_md_id, const UINT32 seg_size)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_get_req_range_segs: "
                                                  "invalid Range '%s'\n",
                                                  range_str);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0006);
             return (EC_FALSE);
         }
 

@@ -711,6 +711,7 @@ EC_BOOL cvendor_get_req_range_segs(const UINT32 cvendor_md_id, const UINT32 seg_
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_req_range_segs: "
                                                     "invalid Range '%s'\n",
                                                     range_str);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CVENDOR_0006);
             return (EC_FALSE);
         }
 
