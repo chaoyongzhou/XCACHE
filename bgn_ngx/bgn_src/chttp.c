@@ -7173,6 +7173,31 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_content_range(CHTTP_NO
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_age(CHTTP_NODE *chttp_node)
+{
+    char           *v;
+
+    uint32_t        status_code;
+
+    status_code = (uint32_t)CHTTP_NODE_STATUS_CODE(chttp_node);
+    if(CHTTP_OK != status_code
+    && CHTTP_PARTIAL_CONTENT != status_code
+    && CHTTP_NOT_MODIFIED != status_code)
+    {
+        return (EC_FALSE);
+    }
+    
+    v = chttp_node_get_header(chttp_node, (const char *)"Age");
+    if(NULL_PTR != v)
+    {
+        return (EC_TRUE);
+    }
+
+    chttp_node_add_header(chttp_node, (const char *)"Age", (const char *)"0");
+
+    return (EC_TRUE);
+}
+
 EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node)
 {
     __chttp_node_filter_header_set_cc_cache_control(chttp_node);
@@ -7246,6 +7271,8 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
     }
 
     __chttp_node_filter_header_set_content_range(chttp_node);
+    __chttp_node_filter_header_set_age(chttp_node);
+    
     chttp_node_del_header(chttp_node, (const char *)"Connection"); /*remove header Connection before store*/
     chttp_node_del_header(chttp_node, (const char *)"Keep-alive"); /*remove header Keep-alive before store which is happen rarely*/
     

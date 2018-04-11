@@ -1249,7 +1249,7 @@ EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char 
         }
 
         k = (const char *)"Age";
-        v = (const char *)c_http_time(age + (cur_time - date_time));
+        v = (const char *)c_uint32_t_to_str(age + (cur_time - date_time));
         if(EC_FALSE == chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_out_common: "
@@ -1257,6 +1257,10 @@ EC_BOOL cvendor_filter_header_out_common(const UINT32 cvendor_md_id, const char 
                                                     k, v);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_common: "
+                                                "renew header %s:%s done\n",
+                                                k, v);         
     }while(0);
 
     cngx_set_cache_status(r, CVENDOR_MD_CACHE_STATUS(cvendor_md));

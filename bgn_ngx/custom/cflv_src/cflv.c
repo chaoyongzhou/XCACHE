@@ -1218,7 +1218,7 @@ EC_BOOL cflv_filter_header_out_common(const UINT32 cflv_md_id, const char *proce
         }
 
         k = (const char *)"Age";
-        v = (const char *)c_http_time(age + (cur_time - date_time));
+        v = (const char *)c_uint32_t_to_str(age + (cur_time - date_time));
         if(EC_FALSE == chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_filter_header_out_common: "
