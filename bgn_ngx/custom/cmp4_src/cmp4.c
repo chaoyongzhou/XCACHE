@@ -4055,12 +4055,27 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
     }while(0);
 
     /*set keep-alive*/
-    k = (const char *)"Connection";
-    v = (char       *)"keep-alive";
-    chttp_req_renew_header(chttp_req, k, v);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                         "renew req header '%s':'%s' done\n",
-                                         k, v);
+    do
+    {
+        if(EC_TRUE == cngx_is_orig_keepalive_switch_on(r))
+        {
+            k = (const char *)"Connection";
+            v = (char       *)"keep-alive";
+            chttp_req_renew_header(chttp_req, k, v);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "renew req header '%s':'%s' done\n",
+                                                 k, v);        
+        }
+        else
+        {
+            k = (const char *)"Connection";
+            chttp_req_del_header(chttp_req, k, v);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "del req header '%s' done\n",
+                                                 k);        
+        }
+    }while(0);
+
 
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))
@@ -7116,12 +7131,26 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
     }while(0);
 
     /*set keep-alive*/
-    k = (const char *)"Connection";
-    v = (char       *)"keep-alive";
-    chttp_req_renew_header(chttp_req, k, v);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                         "renew req header '%s':'%s' done\n",
-                                         k, v);
+    do
+    {
+        if(EC_TRUE == cngx_is_orig_keepalive_switch_on(r))
+        {
+            k = (const char *)"Connection";
+            v = (char       *)"keep-alive";
+            chttp_req_renew_header(chttp_req, k, v);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "renew req header '%s':'%s' done\n",
+                                                 k, v);        
+        }
+        else
+        {
+            k = (const char *)"Connection";
+            chttp_req_del_header(chttp_req, k);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "del req header '%s' done\n",
+                                                 k);        
+        }
+    }while(0);
 
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))

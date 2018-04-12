@@ -3729,13 +3729,27 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
     }while(0);
 
     /*set keep-alive*/
-    k = (const char *)"Connection";
-    v = (char       *)"keep-alive";
-    chttp_req_renew_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                         "renew req header '%s':'%s' done\n",
-                                         k, v);
-
+    do
+    {
+        if(EC_TRUE == cngx_is_orig_keepalive_switch_on(r))
+        {
+            k = (const char *)"Connection";
+            v = (char       *)"keep-alive";
+            chttp_req_renew_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "renew req header '%s':'%s' done\n",
+                                                 k, v);
+        }
+        else
+        {
+            k = (const char *)"Connection";
+            chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), k);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "del req header '%s' done\n",
+                                                 k);
+        }
+    }while(0);
+    
     /*set range*/
     if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md))
     {

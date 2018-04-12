@@ -77,6 +77,7 @@ extern "C"{
 //#define  CNGX_VAR_ORIG_GZIP_SWITCH                ("c_orig_gzip_switch")        /*default: off*/
 #define  CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC      ("c_orig_expires_override_nsec")
 #define  CNGX_VAR_ORIG_EXPIRES_CACHE_CODE         ("c_orig_expires_cache_code")
+#define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/ 
 
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
 
@@ -239,6 +240,8 @@ EC_BOOL cngx_is_direct_orig_switch_on(ngx_http_request_t *r);
 EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r); 
 
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r);
+
+EC_BOOL cngx_is_orig_keepalive_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_set_chunked(ngx_http_request_t *r);
 

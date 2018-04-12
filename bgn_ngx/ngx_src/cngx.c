@@ -1175,6 +1175,22 @@ EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r)
     return (SWITCH_OFF == v) ? EC_FALSE : EC_TRUE;
 }
 
+/*carry on header Connection:keep-alive or not in http request to orig server*/
+EC_BOOL cngx_is_orig_keepalive_switch_on(ngx_http_request_t *r)
+{
+    const char                  *k;
+    UINT32                       v;
+    
+    k = (const char *)CNGX_VAR_ORIG_KEEPALIVE_SWITCH;
+    cngx_get_var_switch(r, k, &v, SWITCH_ON);
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_orig_keepalive_switch_on: "
+                                         "get var '%s':'%s' done\n",
+                                         k, c_switch_to_str(v));
+    
+    return (SWITCH_ON == v) ? EC_TRUE : EC_FALSE;
+}
+
 EC_BOOL cngx_set_chunked(ngx_http_request_t *r)
 {
     r->chunked = 1;

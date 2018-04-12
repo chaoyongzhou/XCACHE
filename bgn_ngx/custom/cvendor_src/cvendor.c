@@ -4086,13 +4086,27 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     }while(0);
 
     /*set keep-alive*/
-    k = (const char *)"Connection";
-    v = (char       *)"keep-alive";
-    chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
-    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                            "renew req header '%s':'%s' done\n",
-                                            k, v);
-
+    do
+    {
+        if(EC_TRUE == cngx_is_orig_keepalive_switch_on(r))
+        {
+            k = (const char *)"Connection";
+            v = (char       *)"keep-alive";
+            chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "renew req header '%s':'%s' done\n",
+                                                    k, v);        
+        }
+        else
+        {
+            k = (const char *)"Connection";
+            chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "del req header '%s' done\n",
+                                                    k);           
+        }
+    }while(0);
+    
     /*set range*/
     if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
     {
