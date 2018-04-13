@@ -4069,7 +4069,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
         else
         {
             k = (const char *)"Connection";
-            chttp_req_del_header(chttp_req, k, v);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
                                                  k);        
