@@ -51,6 +51,7 @@ EXT_INC = `xml2-config --cflags` \
     -I $(NGX_DIR)/src/event \
     -I $(NGX_DIR)/src/os/unix \
     -I $(NGX_DIR)/src/http \
+    -I $(NGX_DIR)/src/http/v2 \
     -I $(NGX_DIR)/src/http/modules \
     -I $(NGX_MODULE_DIR)/bgn-nginx-module-0.0.1 \
     -I $(NGX_DIR)/objs	\

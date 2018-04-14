@@ -2242,10 +2242,23 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
 
         if('/' == v[0])
         {
-             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
-                                                  "set store_path to '%s'\n",
-                                                  v);         
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
+                                                 "set store_path to '%s'\n",
+                                                 v);
+            /*reuse v: move v to cstring without memory allocation*/
             cstring_set_str(store_path, (const uint8_t *)v);
+            return (EC_TRUE);
+        }
+
+        if(7 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"http://", 7))
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
+                                                 "convert 'http://' to '/' and set store_path to '%s'\n",
+                                                 v + 6);
+  
+            cstring_append_str(store_path, (const uint8_t *)(v + 6));
+
+            safe_free(v, LOC_CNGX_0043);
             return (EC_TRUE);
         }
 

@@ -385,6 +385,11 @@ EC_BOOL crefresh_parse_cache_path_list(const UINT32 crefresh_md_id, CBYTES *cbyt
             continue;
         }
 
+        if(7 < strlen(path_str) && 0 == STRNCASECMP(path_str, (const char *)"http://", 7))
+        {
+            path_str += 6;
+        }
+
         cache_path = cstring_new((const UINT8 *)path_str, LOC_CREFRESH_0002);
         if(NULL_PTR == cache_path)
         {
@@ -434,6 +439,7 @@ EC_BOOL crefresh_get_cache_path_list(const UINT32 crefresh_md_id)
         return (EC_FALSE);
     }
 
+    /*uri is the cache path to refresh if it exists (i.e., not equal to '/')*/
     if(0 != STRCMP(uri_str, (const char *)"/"))
     {
         CSTRING     *cache_path;
