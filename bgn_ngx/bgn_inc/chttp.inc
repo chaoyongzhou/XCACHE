@@ -100,7 +100,7 @@ typedef struct
 
     EC_BOOL                   override_expires_flag;    /*override orig expires switch*/
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
-    uint32_t                  rsvd1;
+    uint32_t                  seg_max_id;
 
     /*redirect location control from configuration*/
     EC_BOOL                   redirect_control;
@@ -109,6 +109,7 @@ typedef struct
     UINT32                    seq_no; /*for debug only!*/
 }CHTTP_STORE;
 
+#define CHTTP_STORE_SEG_MAX_ID(chttp_store)                ((chttp_store)->seg_max_id)
 #define CHTTP_STORE_SEG_ID(chttp_store)                    ((chttp_store)->seg_id)
 #define CHTTP_STORE_SEG_SIZE(chttp_store)                  ((chttp_store)->seg_size)
 #define CHTTP_STORE_SEG_S_OFFSET(chttp_store)              ((chttp_store)->seg_s_offset)

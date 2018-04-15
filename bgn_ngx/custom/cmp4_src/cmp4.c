@@ -112,6 +112,7 @@ UINT32 cmp4_start(ngx_http_request_t *r)
 
     //TASK_BRD   *task_brd;
 
+    uint32_t    cache_seg_max_num;
     uint32_t    cache_seg_size;
 
     //task_brd = task_brd_default_get();
@@ -130,8 +131,12 @@ UINT32 cmp4_start(ngx_http_request_t *r)
     init_static_mem();
 
     /* init */
+    cngx_get_cache_seg_max_num(r, &cache_seg_max_num);
+    CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) = cache_seg_max_num;
+    
     cngx_get_cache_seg_size(r, &cache_seg_size);
     CMP4_MD_CACHE_SEG_SIZE(cmp4_md) = cache_seg_size;
+    
     cstring_init(CMP4_MD_CACHE_PATH(cmp4_md), NULL_PTR);
     CMP4_MD_CACHE_STATUS(cmp4_md) = CNGX_CACHE_STATUS_MISS;/*default*/
 
@@ -465,7 +470,7 @@ EC_BOOL cmp4_get_cache_seg_uri(const UINT32 cmp4_md_id, const UINT32 seg_no, CST
 /*get whole seg*/
 EC_BOOL cmp4_get_cache_seg(const UINT32 cmp4_md_id, const UINT32 seg_no, CBYTES *seg_cbytes)
 {
-    //CMP4_MD                     *cmp4_md;
+    CMP4_MD                     *cmp4_md;
 
     CSTRING                      cache_uri_cstr;
     UINT32                       cache_srv_tcid;
@@ -482,8 +487,16 @@ EC_BOOL cmp4_get_cache_seg(const UINT32 cmp4_md_id, const UINT32 seg_no, CBYTES 
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
+    if(CMP4_ERR_SEG_NO != seg_no
+    && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < seg_no)
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_get_cache_seg: seg no %ld overflow!\n",
+                                             seg_no);
+        return (EC_FALSE);
+    }
+    
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cmp4_get_cache_seg_uri(cmp4_md_id, seg_no, &cache_uri_cstr))
     {
@@ -550,6 +563,14 @@ EC_BOOL cmp4_get_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_s
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(CMP4_ERR_SEG_NO != CRANGE_SEG_NO(crange_seg)
+    && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CRANGE_SEG_NO(crange_seg))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_get_cache_seg_n: seg no %ld overflow!\n",
+                                             CRANGE_SEG_NO(crange_seg));
+        return (EC_FALSE);
+    }
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
@@ -634,7 +655,7 @@ EC_BOOL cmp4_get_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_s
 
 EC_BOOL cmp4_wait_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
 {
-    //CMP4_MD                  *cmp4_md;
+    CMP4_MD                     *cmp4_md;
 
     CSTRING                      cache_uri_cstr;
 
@@ -652,7 +673,15 @@ EC_BOOL cmp4_wait_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *range_s
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(CMP4_ERR_SEG_NO != CRANGE_SEG_NO(range_seg)
+    && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CRANGE_SEG_NO(range_seg))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_wait_cache_seg_n: seg no %ld overflow!\n",
+                                             CRANGE_SEG_NO(range_seg));
+        return (EC_FALSE);
+    }    
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cmp4_get_cache_seg_uri(cmp4_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
@@ -3322,6 +3351,15 @@ EC_BOOL cmp4_content_direct_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG
 
     CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
 
+    /*check seg num*/
+    if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+    && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+    {                
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_seg_n: seg no %ld overflow!\n",
+                                             CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+        return (EC_FALSE);
+    }
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_send_seg_n: "
                                          "set absent_seg_no = %ld\n",
                                          CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -4496,6 +4534,8 @@ EC_BOOL cmp4_content_orig_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chttp_
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     /*--- chttp_store settting --- BEG ---*/
+    CHTTP_STORE_SEG_MAX_ID(chttp_store) = (uint32_t)CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md);
+    
     if(CMP4_ERR_SEG_NO == CMP4_MD_ABSENT_SEG_NO(cmp4_md))
     {
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
@@ -7484,6 +7524,16 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
     /*set absent seg no*/
     CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
+
+    /*check seg num*/
+    if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+    && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+    {                
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_procedure: seg no %ld overflow!\n",
+                                             CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+        return (EC_FALSE);
+    }
+    
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_procedure: "
                                          "set absent_seg_no = %ld\n",
                                          CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -7735,6 +7785,15 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*force change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -7752,6 +7811,15 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*force change to direct procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "no-expired => direct, absent_seg_no %ld\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -7780,6 +7848,15 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -8783,6 +8860,15 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
         /*force change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -8799,7 +8885,16 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
         /*force change to direct procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
-
+        
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "no-cache => direct, absent_seg_no %ld\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -8827,6 +8922,15 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
         /*change to orig procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
+
+        /*check seg num*/
+        if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+        && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+        {                
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+            return (EC_FALSE);
+        }        
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
@@ -9393,6 +9497,16 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 
             /*change to orig procedure*/
             CMP4_MD_ABSENT_SEG_NO(cmp4_md) = seg_no;
+
+            /*check seg num*/
+            if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+            && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+            {                
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: seg no %ld overflow!\n",
+                                                     CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+                return (EC_FALSE);
+            }
+            
             if(EC_FALSE == cmp4_content_orig_procedure(cmp4_md_id))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
@@ -9434,6 +9548,15 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             /*change to orig procedure*/
             CMP4_MD_ABSENT_SEG_NO(cmp4_md) = seg_no;
 
+            /*check seg num*/
+            if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
+            && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
+            {                
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: seg no %ld overflow!\n",
+                                                     CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+                return (EC_FALSE);
+            }
+            
             if(EC_FALSE == cmp4_content_orig_procedure(cmp4_md_id))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "

@@ -34,7 +34,8 @@ extern "C"{
 #define  CNGX_SEND_BODY_IN_MEM_FLAG               ((unsigned)0x0004)
 #define  CNGX_SEND_BODY_RECYCLED_FLAG             ((unsigned)0x0008)
 
-#define  CNGX_CACHE_SEG_SIZE_DEFAULT              (256 * 1024) /*default seg size is 256KB*/
+#define  CNGX_CACHE_SEG_SIZE_DEFAULT              (256 * 1024)    /*default seg size is 256KB*/
+#define  CNGX_CACHE_SEG_MAX_NUM_DEFAULT           (1024 * 4 * 64) /*default seg max num*/
 
 #define  CNGX_ORIG_PORT_DEFAULT                   (80)         /*default orig server port*/
 
@@ -63,6 +64,7 @@ extern "C"{
 #define  CNGX_VAR_NCACHE_HTTP_CODES               ("c_ncache_http_codes")
 
 #define  CNGX_VAR_CACHE_SEG_SIZE                  ("c_cache_seg_size")          /*default: 256KB*/ 
+#define  CNGX_VAR_CACHE_SEG_MAX_NUM               ("c_cache_seg_max_num")       /*default: 1024 * 4 * 64*/ 
 #define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.request_uri*/
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
@@ -210,6 +212,8 @@ EC_BOOL cngx_set_var_str(ngx_http_request_t *r, const char *key, const char *val
 EC_BOOL cngx_del_var_str(ngx_http_request_t *r, const char *key);
 
 EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size);
+
+EC_BOOL cngx_get_cache_seg_max_num(ngx_http_request_t *r, uint32_t *cache_seg_max_num);
 
 EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val);
 

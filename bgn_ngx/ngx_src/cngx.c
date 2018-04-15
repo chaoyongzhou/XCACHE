@@ -650,6 +650,25 @@ EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_get_cache_seg_max_num(ngx_http_request_t *r, uint32_t *cache_seg_max_num)
+{
+    const char      *k;
+    uint32_t         val;
+
+    k = (const char *)CNGX_VAR_CACHE_SEG_MAX_NUM;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &val, (uint32_t)CNGX_CACHE_SEG_MAX_NUM_DEFAULT))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_cache_seg_max_num: "
+                                             "get var '%s' failed\n",
+                                             k);
+        (*cache_seg_max_num) = (uint32_t)CNGX_CACHE_SEG_MAX_NUM_DEFAULT;
+        return (EC_FALSE);
+    }
+
+    (*cache_seg_max_num) = val;
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val)
 {
     if(0 < r->method_name.len && NULL_PTR != r->method_name.data)

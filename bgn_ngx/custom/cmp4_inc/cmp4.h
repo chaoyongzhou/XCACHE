@@ -42,6 +42,7 @@ typedef struct
     UINT32               usedcounter;
     EC_BOOL              terminate_flag;
 
+    UINT32               cache_seg_max_num;
     UINT32               cache_seg_size;
     CSTRING              cache_path;
     const char          *cache_status;  /*TCP_HIT, TCP_MISS, TCP_REFRESH_HIT, TCP_REFRESH_MISS*/
@@ -90,6 +91,7 @@ typedef struct
 
 #define CMP4_MD_TERMINATE_FLAG(cmp4_md)                     ((cmp4_md)->terminate_flag)
 
+#define CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md)                  ((cmp4_md)->cache_seg_max_num)
 #define CMP4_MD_CACHE_SEG_SIZE(cmp4_md)                     ((cmp4_md)->cache_seg_size)
 #define CMP4_MD_CACHE_PATH(cmp4_md)                         (&((cmp4_md)->cache_path))
 #define CMP4_MD_CACHE_STATUS(cmp4_md)                       ((cmp4_md)->cache_status)

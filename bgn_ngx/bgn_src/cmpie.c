@@ -5449,6 +5449,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
 
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_encode_chttp_store: position: %ld, chttp_store: %p => beg\n", (*position), chttp_store);
 
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_MAX_ID(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_ID(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_SIZE(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_SEG_S_OFFSET(chttp_store), out_buff, out_buff_max_len, position);
@@ -5488,6 +5489,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
 
 UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_store, UINT32 *size)
 {
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_SEG_MAX_ID(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_SEG_ID(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_SEG_SIZE(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_SEG_S_OFFSET(chttp_store), size);
@@ -5545,6 +5547,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_decode_chttp_store: position: %ld, chttp_store: %p => beg\n", (*position), chttp_store);
 
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_SEG_MAX_ID(chttp_store));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_SEG_ID(chttp_store));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_SEG_SIZE(chttp_store));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_SEG_S_OFFSET(chttp_store));

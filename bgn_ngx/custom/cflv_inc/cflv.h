@@ -37,6 +37,7 @@ typedef struct
     UINT32               usedcounter;
     EC_BOOL              terminate_flag;
 
+    UINT32               cache_seg_max_num;
     UINT32               cache_seg_size;
     CSTRING              cache_path;
     const char          *cache_status;  /*TCP_HIT, TCP_MISS, TCP_REFRESH_HIT, TCP_REFRESH_MISS*/
@@ -83,6 +84,7 @@ typedef struct
 
 #define CFLV_MD_TERMINATE_FLAG(cflv_md)                     ((cflv_md)->terminate_flag)
 
+#define CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md)                  ((cflv_md)->cache_seg_max_num)
 #define CFLV_MD_CACHE_SEG_SIZE(cflv_md)                     ((cflv_md)->cache_seg_size)
 #define CFLV_MD_CACHE_PATH(cflv_md)                         (&((cflv_md)->cache_path))
 #define CFLV_MD_CACHE_STATUS(cflv_md)                       ((cflv_md)->cache_status)

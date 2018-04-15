@@ -117,6 +117,7 @@ UINT32 cflv_start(ngx_http_request_t *r)
 
     //TASK_BRD   *task_brd;
 
+    uint32_t    cache_seg_max_num;
     uint32_t    cache_seg_size;
 
     //task_brd = task_brd_default_get();
@@ -135,8 +136,12 @@ UINT32 cflv_start(ngx_http_request_t *r)
     init_static_mem();
 
     /* init */
+    cngx_get_cache_seg_max_num(r, &cache_seg_max_num);
+    CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) = cache_seg_max_num;
+    
     cngx_get_cache_seg_size(r, &cache_seg_size);
     CFLV_MD_CACHE_SEG_SIZE(cflv_md) = cache_seg_size;
+    
     cstring_init(CFLV_MD_CACHE_PATH(cflv_md), NULL_PTR);
     CFLV_MD_CACHE_STATUS(cflv_md) = CNGX_CACHE_STATUS_MISS;/*default*/
 
@@ -466,7 +471,7 @@ EC_BOOL cflv_get_cache_seg_uri(const UINT32 cflv_md_id, const UINT32 seg_no, CST
 /*get whole seg*/
 EC_BOOL cflv_get_cache_seg(const UINT32 cflv_md_id, const UINT32 seg_no, CBYTES *seg_cbytes)
 {
-    //CFLV_MD                  *cflv_md;
+    CFLV_MD                  *cflv_md;
 
     CSTRING                      cache_uri_cstr;
     UINT32                       cache_srv_tcid;
@@ -483,7 +488,15 @@ EC_BOOL cflv_get_cache_seg(const UINT32 cflv_md_id, const UINT32 seg_no, CBYTES 
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    //cflv_md = CFLV_MD_GET(cflv_md_id);
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(CFLV_ERR_SEG_NO != seg_no
+    && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < seg_no)
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_get_cache_seg: seg no %ld overflow!\n",
+                                             seg_no);
+        return (EC_FALSE);
+    }
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cflv_get_cache_seg_uri(cflv_md_id, seg_no, &cache_uri_cstr))
@@ -531,7 +544,7 @@ EC_BOOL cflv_get_cache_seg(const UINT32 cflv_md_id, const UINT32 seg_no, CBYTES 
 
 EC_BOOL cflv_get_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
 {
-    //CFLV_MD                  *cflv_md;
+    CFLV_MD                  *cflv_md;
 
     CSTRING                      cache_uri_cstr;
 
@@ -549,7 +562,15 @@ EC_BOOL cflv_get_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_se
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    //cflv_md = CFLV_MD_GET(cflv_md_id);
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(CFLV_ERR_SEG_NO != CRANGE_SEG_NO(range_seg)
+    && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CRANGE_SEG_NO(range_seg))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_get_cache_seg_n: seg no %ld overflow!\n",
+                                             CRANGE_SEG_NO(range_seg));
+        return (EC_FALSE);
+    }    
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cflv_get_cache_seg_uri(cflv_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
@@ -598,7 +619,7 @@ EC_BOOL cflv_get_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_se
 
 EC_BOOL cflv_wait_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
 {
-    //CFLV_MD                  *cflv_md;
+    CFLV_MD                  *cflv_md;
 
     CSTRING                      cache_uri_cstr;
 
@@ -616,8 +637,16 @@ EC_BOOL cflv_wait_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_s
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    //cflv_md = CFLV_MD_GET(cflv_md_id);
+    cflv_md = CFLV_MD_GET(cflv_md_id);
 
+    if(CFLV_ERR_SEG_NO != CRANGE_SEG_NO(range_seg)
+    && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CRANGE_SEG_NO(range_seg))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_wait_cache_seg_n: seg no %ld overflow!\n",
+                                             CRANGE_SEG_NO(range_seg));
+        return (EC_FALSE);
+    } 
+    
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cflv_get_cache_seg_uri(cflv_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
     {
@@ -2993,6 +3022,15 @@ EC_BOOL cflv_content_direct_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG
 
     CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+    /*check seg num*/
+    if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+    && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+    {                
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_seg_n: seg no %ld overflow!\n",
+                                             CFLV_MD_ABSENT_SEG_NO(cflv_md));
+        return (EC_FALSE);
+    }
+    
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_seg_n: "
                                          "set absent_seg_no = %ld\n",
                                          CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -4205,6 +4243,8 @@ EC_BOOL cflv_content_orig_set_store(const UINT32 cflv_md_id)
     chttp_store = CFLV_MD_CHTTP_STORE(cflv_md);
 
     /*--- chttp_store settting --- BEG ---*/
+    CHTTP_STORE_SEG_MAX_ID(chttp_store) = (uint32_t)CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md);
+    
     if(CFLV_ERR_SEG_NO == CFLV_MD_ABSENT_SEG_NO(cflv_md))
     {
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
@@ -6421,6 +6461,15 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*force change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -6438,6 +6487,15 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*force change to direct procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_seg_n: "
                                              "no-expired => direct, absent_seg_no %ld\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -6466,6 +6524,15 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -7517,6 +7584,15 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*force change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -7534,6 +7610,15 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*force change to direct procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "no-cache => direct, absent_seg_no %ld\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -7562,6 +7647,15 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*change to orig procedure*/
         CFLV_MD_ABSENT_SEG_NO(cflv_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+        && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+        {                
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                 CFLV_MD_ABSENT_SEG_NO(cflv_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -7887,6 +7981,16 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 
             /*change to orig procedure*/
             CFLV_MD_ABSENT_SEG_NO(cflv_md) = seg_no;
+
+            /*check seg num*/
+            if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+            && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+            {                
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: seg no %ld overflow!\n",
+                                                     CFLV_MD_ABSENT_SEG_NO(cflv_md));
+                return (EC_FALSE);
+            }
+            
             if(EC_FALSE == cflv_content_orig_procedure(cflv_md_id))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
@@ -7928,6 +8032,15 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             /*change to orig procedure*/
             CFLV_MD_ABSENT_SEG_NO(cflv_md) = seg_no;
 
+            /*check seg num*/
+            if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
+            && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
+            {                
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: seg no %ld overflow!\n",
+                                                     CFLV_MD_ABSENT_SEG_NO(cflv_md));
+                return (EC_FALSE);
+            }
+            
             if(EC_FALSE == cflv_content_orig_procedure(cflv_md_id))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "

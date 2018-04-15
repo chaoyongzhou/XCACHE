@@ -37,6 +37,7 @@ typedef struct
     UINT32               usedcounter;
     EC_BOOL              terminate_flag;
 
+    UINT32               cache_seg_max_num;
     UINT32               cache_seg_size;
     CSTRING              cache_path;
     const char          *cache_status;  /*TCP_HIT, TCP_MISS, TCP_REFRESH_HIT, TCP_REFRESH_MISS*/
@@ -84,6 +85,7 @@ typedef struct
 
 #define CVENDOR_MD_TERMINATE_FLAG(cvendor_md)                     ((cvendor_md)->terminate_flag)
 
+#define CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md)                  ((cvendor_md)->cache_seg_max_num)
 #define CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)                     ((cvendor_md)->cache_seg_size)
 #define CVENDOR_MD_CACHE_PATH(cvendor_md)                         (&((cvendor_md)->cache_path))
 #define CVENDOR_MD_CACHE_STATUS(cvendor_md)                       ((cvendor_md)->cache_status)

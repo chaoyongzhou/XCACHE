@@ -657,6 +657,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
 {
     if(NULL_PTR != chttp_store)
     {
+        CHTTP_STORE_SEG_MAX_ID(chttp_store)   = CHTTP_SEG_ERR_ID;
         CHTTP_STORE_SEG_ID(chttp_store)       = CHTTP_SEG_ERR_ID;
         CHTTP_STORE_SEG_SIZE(chttp_store)     = CHTTP_SEG_ERR_SIZE;
         CHTTP_STORE_SEG_S_OFFSET(chttp_store) = CHTTP_SEG_ERR_OFFSET;
@@ -703,6 +704,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
 {
     if(NULL_PTR != chttp_store)
     {
+        CHTTP_STORE_SEG_MAX_ID(chttp_store)   = CHTTP_SEG_ERR_ID;
         CHTTP_STORE_SEG_ID(chttp_store)       = CHTTP_SEG_ERR_ID;
         CHTTP_STORE_SEG_SIZE(chttp_store)     = CHTTP_SEG_ERR_SIZE;
         CHTTP_STORE_SEG_S_OFFSET(chttp_store) = CHTTP_SEG_ERR_OFFSET;
@@ -760,6 +762,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
 {
     if(NULL_PTR != chttp_store_des)
     {
+        CHTTP_STORE_SEG_MAX_ID(chttp_store_des)   = CHTTP_STORE_SEG_MAX_ID(chttp_store_src);
         CHTTP_STORE_SEG_ID(chttp_store_des)       = CHTTP_STORE_SEG_ID(chttp_store_src);
         CHTTP_STORE_SEG_SIZE(chttp_store_des)     = CHTTP_STORE_SEG_SIZE(chttp_store_src);
         CHTTP_STORE_SEG_S_OFFSET(chttp_store_des) = CHTTP_STORE_SEG_S_OFFSET(chttp_store_src);
@@ -810,6 +813,12 @@ EC_BOOL chttp_store_check(const CHTTP_STORE *chttp_store)
         return (EC_FALSE);
     }
 
+    if(CHTTP_SEG_ERR_ID == CHTTP_STORE_SEG_MAX_ID(chttp_store))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_check: invalid seg_max_id\n");
+        return (EC_FALSE);
+    }    
+
     if(CHTTP_SEG_ERR_ID == CHTTP_STORE_SEG_SIZE(chttp_store))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_check: invalid seg_size\n");
@@ -845,6 +854,7 @@ EC_BOOL chttp_store_path_get(const CHTTP_STORE *chttp_store, CSTRING *path)
 
 void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 {
+    sys_log(LOGSTDOUT, "chttp_store_print:seg_max_id             : %u\n", CHTTP_STORE_SEG_MAX_ID(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:seg_id                 : %u\n", CHTTP_STORE_SEG_ID(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:seg_size               : %u\n", CHTTP_STORE_SEG_SIZE(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:seg_s_offset           : %u\n", CHTTP_STORE_SEG_S_OFFSET(chttp_store));
@@ -7305,6 +7315,13 @@ EC_BOOL chttp_node_store_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, 
 
     uint32_t       store_size;
     uint32_t       content_len;
+
+    if(CHTTP_STORE_SEG_ID(chttp_store) > CHTTP_STORE_SEG_MAX_ID(chttp_store))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_body: seg id %u > seg max id %u => overflow\n",
+                            CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_SEG_MAX_ID(chttp_store));
+        return (EC_FALSE);
+    }
 
     /*make path*/
     cstring_init(&path, NULL_PTR);

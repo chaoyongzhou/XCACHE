@@ -111,6 +111,7 @@ UINT32 cvendor_start(ngx_http_request_t *r)
 
     //TASK_BRD   *task_brd;
 
+    uint32_t    cache_seg_max_num;
     uint32_t    cache_seg_size;
 
     //task_brd = task_brd_default_get();
@@ -129,8 +130,12 @@ UINT32 cvendor_start(ngx_http_request_t *r)
     init_static_mem();
 
     /* init */
+    cngx_get_cache_seg_max_num(r, &cache_seg_max_num);
+    CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) = cache_seg_max_num;
+    
     cngx_get_cache_seg_size(r, &cache_seg_size);
     CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md) = cache_seg_size;
+    
     cstring_init(CVENDOR_MD_CACHE_PATH(cvendor_md), NULL_PTR);
     CVENDOR_MD_CACHE_STATUS(cvendor_md) = CNGX_CACHE_STATUS_MISS;/*default*/
 
@@ -480,7 +485,7 @@ EC_BOOL cvendor_get_cache_seg_uri(const UINT32 cvendor_md_id, const UINT32 seg_n
 /*get whole seg*/
 EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, CBYTES *seg_cbytes)
 {
-    //CVENDOR_MD                  *cvendor_md;
+    CVENDOR_MD                  *cvendor_md;
 
     CSTRING                      cache_uri_cstr;
     UINT32                       cache_srv_tcid;
@@ -497,8 +502,17 @@ EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, C
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    /*check seg num*/
+    if(CVENDOR_ERR_SEG_NO != seg_no
+    && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < seg_no)
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg: seg no %ld overflow!\n",
+                                                seg_no);
+        return (EC_FALSE);
+    }
+    
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, seg_no, &cache_uri_cstr))
     {
@@ -545,7 +559,7 @@ EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, C
 
 EC_BOOL cvendor_get_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
 {
-    //CVENDOR_MD                  *cvendor_md;
+    CVENDOR_MD                  *cvendor_md;
 
     CSTRING                      cache_uri_cstr;
 
@@ -563,7 +577,16 @@ EC_BOOL cvendor_get_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *ra
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    /*check seg num*/
+    if(CVENDOR_ERR_SEG_NO != CRANGE_SEG_NO(range_seg)
+    && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CRANGE_SEG_NO(range_seg))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg_n: seg no %ld overflow!\n",
+                                                CRANGE_SEG_NO(range_seg));
+        return (EC_FALSE);
+    }
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
@@ -612,7 +635,7 @@ EC_BOOL cvendor_get_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *ra
 
 EC_BOOL cvendor_wait_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *range_seg, CBYTES *seg_cbytes)
 {
-    //CVENDOR_MD                  *cvendor_md;
+    CVENDOR_MD                  *cvendor_md;
 
     CSTRING                      cache_uri_cstr;
 
@@ -630,8 +653,17 @@ EC_BOOL cvendor_wait_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *r
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    /*check seg num*/
+    if(CVENDOR_ERR_SEG_NO != CRANGE_SEG_NO(range_seg)
+    && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CRANGE_SEG_NO(range_seg))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: seg no %ld overflow!\n",
+                                                CRANGE_SEG_NO(range_seg));
+        return (EC_FALSE);
+    }
+    
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cvendor_get_cache_seg_uri(cvendor_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
     {
@@ -2848,6 +2880,15 @@ EC_BOOL cvendor_content_direct_send_seg_n(const UINT32 cvendor_md_id, const CRAN
 
     ASSERT(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md));
 
+    /*check seg num*/
+    if(CVENDOR_ERR_SEG_NO != CRANGE_SEG_NO(crange_seg)
+    && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CRANGE_SEG_NO(crange_seg))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_seg_n: seg no %ld overflow!\n",
+                                                CRANGE_SEG_NO(crange_seg));
+        return (EC_FALSE);
+    }
+    
     /*no-direct*/
     if(CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) == CRANGE_SEG_NO(crange_seg))
     {
@@ -2886,6 +2927,15 @@ EC_BOOL cvendor_content_direct_send_seg_n(const UINT32 cvendor_md_id, const CRAN
 
     CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
 
+    /*check seg num*/
+    if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+    && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_seg_n: seg no %ld overflow!\n",
+                                                CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+        return (EC_FALSE);
+    }
+    
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_seg_n: "
                                             "set absent_seg_no = %ld\n",
                                             CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
@@ -4600,6 +4650,8 @@ EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id)
     chttp_store = CVENDOR_MD_CHTTP_STORE(cvendor_md);
 
     /*--- chttp_store settting --- BEG ---*/
+    CHTTP_STORE_SEG_MAX_ID(chttp_store) = (uint32_t)CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md);
+    
     if(CVENDOR_ERR_SEG_NO == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
     {
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
@@ -6764,6 +6816,15 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
         /*force change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        }
+
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
                                                 "force orig, absent_seg_no %ld => orig\n",
                                                 CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
@@ -6780,6 +6841,15 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
 
         /*force change to direct procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        }        
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
                                                 "no-expired => direct, absent_seg_no %ld\n",
@@ -6809,6 +6879,15 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
         /*change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {            
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_seg_n: "
                                                 "absent_seg_no %ld => orig\n",
                                                 CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
@@ -7874,6 +7953,15 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
         /*force change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {            
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
                                                 "force orig, absent_seg_no %ld => orig\n",
                                                 CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
@@ -7890,6 +7978,15 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
 
         /*force change to direct procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
+
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        }        
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
                                                 "no-cache => direct, absent_seg_no %ld\n",
@@ -7919,6 +8016,15 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
         /*change to orig procedure*/
         CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = CRANGE_SEG_NO(crange_seg);
 
+        /*check seg num*/
+        if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+        && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+        {            
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: seg no %ld overflow!\n",
+                                                    CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+            return (EC_FALSE);
+        } 
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_seg_n: "
                                                 "absent_seg_no %ld => orig\n",
                                                 CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
@@ -8262,6 +8368,16 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
 
             /*change to orig procedure*/
             CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = seg_no;
+
+            /*check seg num*/
+            if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+            && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+            {                
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: seg no %ld overflow!\n",
+                                                        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                return (EC_FALSE);
+            }
+    
             if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
@@ -8312,6 +8428,15 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
             /*change to orig procedure*/
             CVENDOR_MD_ABSENT_SEG_NO(cvendor_md) = seg_no;
 
+            /*check seg num*/
+            if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
+            && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
+            {                
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: seg no %ld overflow!\n",
+                                                        CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
+                return (EC_FALSE);
+            }
+            
             if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
