@@ -319,7 +319,8 @@ EC_BOOL cmp4_get_ngx_rc(const UINT32 cmp4_md_id, ngx_int_t *rc, UINT32 *location
 /*only for failure!*/
 EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CMP4_MD                     *cmp4_md;;
+    CMP4_MD                     *cmp4_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -336,11 +337,20 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
     /*do not override*/
     if(NGX_OK != CMP4_MD_NGX_RC(cmp4_md))
     {
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
                                              "ignore rc %d due to its %d now\n",
                                              rc, CMP4_MD_NGX_RC(cmp4_md));
         return (EC_TRUE);
     }
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
+                                             "ignore rc %d due to header had sent out\n",
+                                             rc);
+        return (EC_TRUE);
+    }    
 
     CMP4_MD_NGX_RC(cmp4_md)  = rc;
     CMP4_MD_NGX_LOC(cmp4_md) = location;
@@ -355,7 +365,8 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
 /*only for failure!*/
 EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CMP4_MD                     *cmp4_md;;
+    CMP4_MD                     *cmp4_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -376,6 +387,15 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
                                              rc);
         return (EC_TRUE);
     }
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
+                                             "ignore rc %d due to header had sent out\n",
+                                             rc);
+        return (EC_TRUE);
+    }     
 
     if(NGX_OK != CMP4_MD_NGX_RC(cmp4_md))
     {

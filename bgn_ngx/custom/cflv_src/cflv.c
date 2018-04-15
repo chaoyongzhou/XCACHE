@@ -320,7 +320,8 @@ EC_BOOL cflv_get_ngx_rc(const UINT32 cflv_md_id, ngx_int_t *rc, UINT32 *location
 /*only for failure!*/
 EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CFLV_MD                     *cflv_md;;
+    CFLV_MD                     *cflv_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -337,11 +338,20 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
     /*do not override*/
     if(NGX_OK != CFLV_MD_NGX_RC(cflv_md))
     {
-        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
                                              "ignore rc %d due to its %d now\n",
                                              rc, CFLV_MD_NGX_RC(cflv_md));
         return (EC_TRUE);
     }
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
+                                             "ignore rc %d due to header had sent out\n",
+                                             rc);
+        return (EC_TRUE);
+    }    
 
     CFLV_MD_NGX_RC(cflv_md)  = rc;
     CFLV_MD_NGX_LOC(cflv_md) = location;
@@ -356,7 +366,8 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
 /*only for failure!*/
 EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CFLV_MD                     *cflv_md;;
+    CFLV_MD                     *cflv_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -377,6 +388,15 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
                                              rc);
         return (EC_TRUE);
     }
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
+                                             "ignore rc %d due to header had sent out\n",
+                                             rc);
+        return (EC_TRUE);
+    }     
 
     if(NGX_OK != CFLV_MD_NGX_RC(cflv_md))
     {

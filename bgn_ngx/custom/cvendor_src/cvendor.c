@@ -317,6 +317,7 @@ EC_BOOL cvendor_get_ngx_rc(const UINT32 cvendor_md_id, ngx_int_t *rc, UINT32 *lo
 EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const UINT32 location)
 {
     CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -333,9 +334,18 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
     /*do not override*/
     if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
     {
-        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
                                                 "ignore rc %d due to its %d now\n",
                                                 rc, CVENDOR_MD_NGX_RC(cvendor_md));
+        return (EC_TRUE);
+    }
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
+                                                "ignore rc %d due to header had sent out\n",
+                                                rc);
         return (EC_TRUE);
     }
 
@@ -353,6 +363,7 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
 EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const UINT32 location)
 {
     CVENDOR_MD                  *cvendor_md;
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -373,6 +384,15 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
                                                 rc);
         return (EC_TRUE);
     }
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    if(EC_FALSE == cngx_need_send_header(r))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
+                                                "ignore rc %d due to header had sent out\n",
+                                                rc);
+        return (EC_TRUE);
+    }    
 
     if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
     {
@@ -2075,8 +2095,8 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                 "get var '%s' failed\n",
-                                                 k);
+                                                    "get var '%s' failed\n",
+                                                    k);
             return (EC_FALSE);
         }
 
