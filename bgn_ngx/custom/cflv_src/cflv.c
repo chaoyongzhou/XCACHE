@@ -3747,6 +3747,12 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
                                                  k);
+
+            k = (const char *)"Proxy-Connection";
+            chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), k);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "del req header '%s' done\n",
+                                                 k);                                                 
         }
     }while(0);
     

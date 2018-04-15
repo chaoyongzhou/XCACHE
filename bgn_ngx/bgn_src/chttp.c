@@ -7274,6 +7274,7 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
     __chttp_node_filter_header_set_age(chttp_node);
     
     chttp_node_del_header(chttp_node, (const char *)"Connection"); /*remove header Connection before store*/
+    chttp_node_del_header(chttp_node, (const char *)"Proxy-Connection"); /*remove header Connection before store*/
     chttp_node_del_header(chttp_node, (const char *)"Keep-alive"); /*remove header Keep-alive before store which is happen rarely*/
     
     if(EC_FALSE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
