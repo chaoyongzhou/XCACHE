@@ -233,7 +233,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_orig_header_out_range_filter(const UINT32 cvendor_md_id);
 
-EC_BOOL cvendor_content_orig_header_out_status_filter(const UINT32 cvendor_md_id);
+EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_orig_header_out_cache_control_filter(const UINT32 cvendor_md_id);
 
@@ -257,7 +257,13 @@ EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBY
 
 EC_BOOL cvendor_content_cache_header_out_range_filter(const UINT32 cvendor_md_id);
 
-EC_BOOL cvendor_content_cache_header_out_status_filter(const UINT32 cvendor_md_id);
+EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_cache_header_out_age_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_cache_header_out_cache_status_filter(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_cache_header_out_filter(const UINT32 cvendor_md_id);
 
