@@ -224,6 +224,18 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_qtree_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL crfshttp_is_http_get_statusnp(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_statusnp_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_statusnp_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL crfshttp_is_http_get_statusdn(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_statusdn_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_statusdn_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL crfshttp_is_http_get_file_wait(const CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_file_wait_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node);

@@ -804,6 +804,20 @@ uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
     return (total * negs);
 }
 
+char *c_uint64_t_to_str(const uint64_t num)
+{
+    char *str_cache;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0009);
+    str_cache = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0010);
+
+    snprintf(str_cache, CMISC_BUFF_LEN, "%"PRId64, num);
+
+    return (str_cache);
+}
+
 uint64_t c_str_to_uint64_t(const char *str)
 {
     uint64_t  c;            /* current char */

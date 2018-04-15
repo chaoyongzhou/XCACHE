@@ -94,6 +94,8 @@ char *c_uint32_t_to_bin_str(const uint32_t num);
 
 char *c_word_to_bin_str(const word_t num);
 
+char *c_uint64_t_to_str(const uint64_t num);
+
 uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len);
 
 uint64_t c_str_to_uint64_t(const char *str);

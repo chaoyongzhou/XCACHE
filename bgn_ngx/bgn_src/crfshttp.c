@@ -479,6 +479,14 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = crfshttp_commit_qtree_get_request(chttp_node);
     }
+    else if (EC_TRUE == crfshttp_is_http_get_statusnp(chttp_node))
+    {
+        ret = crfshttp_commit_statusnp_get_request(chttp_node);
+    }    
+    else if (EC_TRUE == crfshttp_is_http_get_statusdn(chttp_node))
+    {
+        ret = crfshttp_commit_statusdn_get_request(chttp_node);
+    }    
     else if (EC_TRUE == crfshttp_is_http_get_file_wait(chttp_node))
     {
         ret = crfshttp_commit_file_wait_get_request(chttp_node);
@@ -7640,6 +7648,445 @@ EC_BOOL crfshttp_commit_qtree_get_response(CHTTP_NODE *chttp_node)
     return crfshttp_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, OPERATOR: statusnp ----------------------------------------*/
+/*delete multiple files*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_statusnp_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/status_np") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/status_np")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/*delete multiple files*/
+EC_BOOL crfshttp_is_http_get_statusnp(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_statusnp: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_statusnp_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_statusnp_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER *uri_cbuffer;
+    EC_BOOL ret;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusnp_get_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+
+
+    if(EC_FALSE == crfshttp_handle_statusnp_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: handle 'SET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_statusnp_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: make 'SET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusnp_get_request: make 'SET' response done\n");
+
+    ret = crfshttp_commit_statusnp_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: commit 'SET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);  
+
+    /*clean body chunks*/
+    chttp_node_recv_clean(chttp_node);
+
+    if(EC_TRUE == __crfshttp_uri_is_statusnp_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+        
+        CRFSNP_MGR    * crfsnp_mgr;
+        uint32_t        crfsnp_num;
+        uint32_t        crfsnp_id;
+        
+        json_object   * crfsnp_mgr_obj;
+        json_object   * crfsnp_objs;
+
+        CBYTES        * rsp_content_cbytes;
+        const char    * rsp_body_str;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+        crfsnp_mgr = crfs_get_npp(CSOCKET_CNODE_MODI(csocket_cnode));
+
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+        cbytes_clean(rsp_content_cbytes);
+
+        crfsnp_mgr_obj = json_object_new_object();
+        json_object_add_kv(crfsnp_mgr_obj, "np_model", c_uint32_t_to_str(CRFSNP_MGR_NP_MODEL(crfsnp_mgr)));
+        json_object_add_kv(crfsnp_mgr_obj, "np_num"  , c_uint32_t_to_str(CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr)));
+
+        crfsnp_objs = json_object_new_array();
+        json_object_add_obj(crfsnp_mgr_obj, "np", crfsnp_objs);
+
+        crfsnp_num = (uint32_t)cvector_size(CRFSNP_MGR_NP_VEC(crfsnp_mgr));
+        for(crfsnp_id = 0; crfsnp_id < crfsnp_num; crfsnp_id ++)
+        {
+            CRFSNP        * crfsnp;
+            CRFSNP_HEADER * crfsnp_header;
+            json_object   * crfsnp_obj;
+
+            crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_id);
+            if(NULL_PTR == crfsnp)
+            {   
+                continue;
+            }
+
+            crfsnp_header = CRFSNP_HDR(crfsnp);
+            
+            crfsnp_obj = json_object_new_object();
+            json_object_array_add(crfsnp_objs, crfsnp_obj);
+
+            json_object_add_kv(crfsnp_obj, "np_id", c_uint32_t_to_str(crfsnp_id));
+
+            json_object_add_kv(crfsnp_obj, "file_size"    , c_word_to_str(CRFSNP_FSIZE(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "del_size"     , c_uint64_t_to_str(CRFSNP_DEL_SIZE(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "recycle_size" , c_uint64_t_to_str(CRFSNP_RECYCLE_SIZE(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "retire_pos"   , c_uint32_t_to_str(CRFSNP_RETIRE_NODE_POS(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "item_max_num" , c_uint32_t_to_str(CRFSNP_HEADER_ITEMS_MAX_NUM(crfsnp_header)));
+            json_object_add_kv(crfsnp_obj, "item_used_num", c_uint32_t_to_str(CRFSNP_HEADER_ITEMS_USED_NUM(crfsnp_header)));
+            json_object_add_kv(crfsnp_obj, "item_del_num" , c_uint32_t_to_str(CRFSNP_HEADER_DEL_ITEMS_CUR_NUM(crfsnp_header)));
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(crfsnp_mgr_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+
+        json_object_put(crfsnp_mgr_obj);
+    }
+    else
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_statusnp_get_request: should never reach here!\n");
+        task_brd_default_abort();
+    }
+
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusnp_get_response: make response header failed\n");
+
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusnp_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusnp_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusnp_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_statusnp_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, OPERATOR: statusdn ----------------------------------------*/
+/*delete multiple files*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_statusdn_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/status_dn") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/status_dn")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/*delete multiple files*/
+EC_BOOL crfshttp_is_http_get_statusdn(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_statusdn: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_statusdn_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_statusdn_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER *uri_cbuffer;
+    EC_BOOL ret;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusdn_get_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+
+
+    if(EC_FALSE == crfshttp_handle_statusdn_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: handle 'SET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_statusdn_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: make 'SET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusdn_get_request: make 'SET' response done\n");
+
+    ret = crfshttp_commit_statusdn_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: commit 'SET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);  
+
+    /*clean body chunks*/
+    chttp_node_recv_clean(chttp_node);
+
+    if(EC_TRUE == __crfshttp_uri_is_statusdn_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+        
+        CRFSDN        * crfsdn;
+        CPGV          * cpgv;
+        
+        json_object   * cpgv_obj;
+        json_object   * cpgd_objs;
+
+        CBYTES        * rsp_content_cbytes;
+        const char    * rsp_body_str;
+
+        uint16_t        disk_no;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+        crfsdn = crfs_get_dn(CSOCKET_CNODE_MODI(csocket_cnode));
+        cpgv   = CRFSDN_CPGV(crfsdn);
+
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+        cbytes_clean(rsp_content_cbytes);
+
+        cpgv_obj = json_object_new_object();
+        json_object_add_kv(cpgv_obj, "disk_num"         , c_uint32_t_to_str(CPGV_PAGE_DISK_NUM(cpgv)));
+        json_object_add_kv(cpgv_obj, "page_max_num"     , c_uint64_t_to_str(CPGV_PAGE_MAX_NUM(cpgv)));
+        json_object_add_kv(cpgv_obj, "page_used_num"    , c_uint64_t_to_str(CPGV_PAGE_USED_NUM(cpgv)));
+        json_object_add_kv(cpgv_obj, "actual_used_size" , c_uint64_t_to_str(CPGV_PAGE_ACTUAL_USED_SIZE(cpgv)));
+        json_object_add_kv(cpgv_obj, "assign_bitmap"    , c_uint16_t_to_bin_str(CPGV_PAGE_MODEL_ASSIGN_BITMAP(cpgv)));
+
+        if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_4K_BIT_SIZE)
+        {
+            json_object_add_kv(cpgv_obj, "page_model"   , "4k-page");
+        }
+
+        if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_8K_BIT_SIZE)
+        {
+            json_object_add_kv(cpgv_obj, "page_model"   , "8k-page");
+        }  
+    
+        cpgd_objs = json_object_new_array();
+        json_object_add_obj(cpgv_obj, "disk", cpgd_objs);
+
+        for(disk_no = 0; disk_no < CPGV_MAX_DISK_NUM; disk_no ++)
+        {
+            CPGD          * cpgd;
+            json_object   * cpgd_obj;
+
+            cpgd = CPGV_DISK_NODE(cpgv, disk_no);
+            if(NULL_PTR == cpgd)
+            {   
+                continue;
+            }
+            
+            cpgd_obj = json_object_new_object();
+            json_object_array_add(cpgd_objs, cpgd_obj);
+
+            json_object_add_kv(cpgd_obj, "disk_no", c_uint16_t_to_str(disk_no));
+
+            json_object_add_kv(cpgd_obj, "block_num"       , c_uint16_t_to_str(CPGD_PAGE_BLOCK_MAX_NUM(cpgd)));
+            json_object_add_kv(cpgd_obj, "page_max_num"    , c_uint16_t_to_str(CPGD_PAGE_MAX_NUM(cpgd)));
+            json_object_add_kv(cpgd_obj, "page_used_num"   , c_uint16_t_to_str(CPGD_PAGE_USED_NUM(cpgd)));
+            json_object_add_kv(cpgd_obj, "actual_used_size", c_uint64_t_to_str(CPGD_PAGE_ACTUAL_USED_SIZE(cpgd)));
+
+            json_object_add_kv(cpgd_obj, "assign_bitmap"   , c_uint16_t_to_bin_str(CPGD_PAGE_MODEL_ASSIGN_BITMAP(cpgd)));
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(cpgv_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+
+        json_object_put(cpgv_obj);
+    }
+    else
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_statusdn_get_request: should never reach here!\n");
+        task_brd_default_abort();
+    }
+
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusdn_get_response: make response header failed\n");
+
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusdn_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusdn_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusdn_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_statusdn_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: file_wait ----------------------------------------*/
