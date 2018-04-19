@@ -4165,7 +4165,13 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
             chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                                     "renew req header '%s':'%s' done\n",
-                                                    k, v);        
+                                                    k, v);
+
+            k = (const char *)"Proxy-Connection";
+            chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "del req header '%s' done\n",
+                                                    k);                                                     
         }
         else
         {
