@@ -1974,6 +1974,116 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     return cvendor_content_cache_procedure(cvendor_md_id);
 }
 
+EC_BOOL cvendor_content_direct_header_in_filter_host(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                     *cvendor_md;;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_in_filter_host: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config direct host and port*/
+    k = (const char *)CNGX_VAR_ORIG_HOST;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0051);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
+                                                "[conf] set host '%s' to http req done\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0053);
+        
+        return (EC_TRUE);
+    }
+
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {   
+        k = tags[ tag_idx ];
+        
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            c_str_split(v, ":", segs, 2);
+
+            if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        segs[ 0 ]);
+                safe_free(v, LOC_CVENDOR_0054);
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0055);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    segs[ 0 ]);
+            safe_free(v, LOC_CVENDOR_0056);
+
+            return (EC_TRUE);
+        }    
+    }
+
+    /*should never reach here*/
+    return (EC_FALSE);
+}
+
 EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -1982,6 +2092,16 @@ EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
     const char                  *k;
     char                        *v;
 
+    CHTTP_REQ                   *chttp_req;
+
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx;  
+    
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
     {
@@ -1996,22 +2116,24 @@ EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
 
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
     /*when cngx config direct port*/
     k = (const char *)CNGX_VAR_ORIG_PORT;
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
-                                             "get var '%s' failed\n",
-                                             k);
+                                                "get var '%s' failed\n",
+                                                k);
         return (EC_FALSE);
     }
 
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
-                                             "[conf] get var '%s':'%s' done\n",
-                                             k, v);
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
                                                     "[conf] set port '%s' to http req failed\n",
@@ -2020,13 +2142,59 @@ EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
-                                             "[conf] set port '%s' to http req done\n",
-                                             v);
+                                                "[conf] set port '%s' to http req done\n",
+                                                v);
         safe_free(v, LOC_CVENDOR_0009);
         return (EC_TRUE);
     }
 
     /*when cngx NOT config direct port*/
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {
+        k = tags[ tag_idx ];
+
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(2 == c_str_split(v, ":", segs, 2))
+            {
+                /*set port*/
+                if(EC_FALSE == chttp_req_set_port(chttp_req, segs[ 1 ]))
+                {
+                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
+                                                            "[cngx] set port '%s' to http req failed\n",
+                                                            segs[ 1 ]);
+                    safe_free(v, LOC_CVENDOR_0046);
+                    return (EC_FALSE);
+                }  
+
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
+                                                        "[cngx] set port '%s' to http req done\n",
+                                                        segs[ 1 ]); 
+                safe_free(v, LOC_CVENDOR_0059);
+                
+                return (EC_TRUE);
+            }
+            
+            safe_free(v, LOC_CVENDOR_0059);
+            
+            /*continue*/
+        }        
+    }
+    
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -2038,30 +2206,32 @@ EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
-                                             "[cngx] get var '%s':'%s' done\n",
-                                             k, v);
+                                                "[cngx] get var '%s':'%s' done\n",
+                                                k, v);
 
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_port: "
-                                                    "[cngx] set port to http req failed\n",
+                                                    "[cngx] set port '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0010);
             return (EC_FALSE);
         }
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_port: "
-                                             "[cngx] set port '%s' to http req done\n",
-                                             v);
+                                                "[cngx] set port '%s' to http req done\n",
+                                                v);
         safe_free(v, LOC_CVENDOR_0011);
 
         return (EC_TRUE);
     }
 
+    /*should never reach here*/
+    
     /*set default direct port*/
-    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+                                            "[default] set default port '%d' to http req done\n",
+                                            CNGX_ORIG_PORT_DEFAULT);
     return (EC_TRUE);
 }
 
@@ -2122,174 +2292,20 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
             break; /*ok*/
         }
 
-        /*when cngx config direct host and port*/
-        k = (const char *)CNGX_VAR_ORIG_HOST;
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set host*/
+        if(EC_FALSE == cvendor_content_direct_header_in_filter_host(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                 "get var '%s' failed\n",
-                                                 k);
+                                                    "filter host failed\n");
             return (EC_FALSE);
         }
 
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                        "[conf] set host '%s' to http req failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0015);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0016); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                    "[conf] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0017);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*now cngx NOT config direct server and NOT config direct (host, port)*/
-
-        /*try http_host*/
-        k = (const char *)"http_host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set port*/
+        if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
+                                                    "filter port failed\n");
             return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0018);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0019); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0020);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try server_name*/
-        k = (const char *)"server_name";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0021);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0022); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0023);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try host*/
-        k = (const char *)"host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                        "[cngx] set ipaddr of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0024);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0025); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0026);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
         }
     }while(0);
 
@@ -3734,6 +3750,116 @@ EC_BOOL cvendor_content_chunk_procedure(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_orig_header_in_filter_host(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                     *cvendor_md;;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_in_filter_host: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig host and port*/
+    k = (const char *)CNGX_VAR_ORIG_HOST;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0051);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
+                                                "[conf] set host '%s' to http req done\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0053);
+        
+        return (EC_TRUE);
+    }
+
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {   
+        k = tags[ tag_idx ];
+        
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            c_str_split(v, ":", segs, 2);
+
+            if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        segs[ 0 ]);
+                safe_free(v, LOC_CVENDOR_0054);
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0055);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    segs[ 0 ]);
+            safe_free(v, LOC_CVENDOR_0056);
+
+            return (EC_TRUE);
+        }    
+    }
+
+    /*should never reach here*/
+    return (EC_FALSE);
+}
+
 EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -3742,6 +3868,16 @@ EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
     const char                  *k;
     char                        *v;
 
+    CHTTP_REQ                   *chttp_req;
+
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx;  
+    
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
     {
@@ -3756,22 +3892,24 @@ EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
 
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
     /*when cngx config orig port*/
     k = (const char *)CNGX_VAR_ORIG_PORT;
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
-                                             "get var '%s' failed\n",
-                                             k);
+                                                "get var '%s' failed\n",
+                                                k);
         return (EC_FALSE);
     }
 
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
-                                             "[conf] get var '%s':'%s' done\n",
-                                             k, v);
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
                                                     "[conf] set port '%s' to http req failed\n",
@@ -3780,13 +3918,59 @@ EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
-                                             "[conf] set port '%s' to http req done\n",
-                                             v);
+                                                "[conf] set port '%s' to http req done\n",
+                                                v);
         safe_free(v, LOC_CVENDOR_0047);
         return (EC_TRUE);
     }
 
     /*when cngx NOT config orig port*/
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {
+        k = tags[ tag_idx ];
+
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(2 == c_str_split(v, ":", segs, 2))
+            {
+                /*set port*/
+                if(EC_FALSE == chttp_req_set_port(chttp_req, segs[ 1 ]))
+                {
+                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
+                                                            "[cngx] set port '%s' to http req failed\n",
+                                                            segs[ 1 ]);
+                    safe_free(v, LOC_CVENDOR_0046);
+                    return (EC_FALSE);
+                }  
+
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
+                                                        "[cngx] set port '%s' to http req done\n",
+                                                        segs[ 1 ]); 
+                safe_free(v, LOC_CVENDOR_0059);
+                
+                return (EC_TRUE);
+            }
+            
+            safe_free(v, LOC_CVENDOR_0059);
+            
+            /*continue*/
+        }        
+    }
+   
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -3798,30 +3982,32 @@ EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
-                                             "[cngx] get var '%s':'%s' done\n",
-                                             k, v);
+                                                "[cngx] get var '%s':'%s' done\n",
+                                                k, v);
 
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_port: "
-                                                    "[cngx] set port to http req failed\n",
+                                                    "[cngx] set port '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0048);
             return (EC_FALSE);
         }
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_port: "
-                                             "[cngx] set port '%s' to http req done\n",
-                                             v);
+                                                "[cngx] set port '%s' to http req done\n",
+                                                v);
         safe_free(v, LOC_CVENDOR_0049);
 
         return (EC_TRUE);
     }
 
+    /*should never reach here*/
+
     /*set default orig port*/
-    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+                                            "[default] set default port '%d' to http req done\n",
+                                            CNGX_ORIG_PORT_DEFAULT);
     return (EC_TRUE);
 }
 
@@ -3882,174 +4068,20 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
             break; /*ok*/
         }
 
-        /*when cngx config orig host and port*/
-        k = (const char *)CNGX_VAR_ORIG_HOST;
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set host*/
+        if(EC_FALSE == cvendor_content_orig_header_in_filter_host(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                    "get var '%s' failed\n",
-                                                    k);
+                                                    "filter host failed\n");
             return (EC_FALSE);
         }
 
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[conf] get var '%s':'%s' done\n",
-                                                    k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "[conf] set host '%s' to http req failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0053);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0054);                
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[conf] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0055);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*now cngx NOT config orig server and NOT config orig (host, port)*/
-
-        /*try http_host*/
-        k = (const char *)"http_host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set port*/
+        if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
+                                                    "filter port failed\n");
             return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] get var '%s':'%s' done\n",
-                                                    k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0056);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0057);
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0058);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try server_name*/
-        k = (const char *)"server_name";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] get var '%s':'%s' done\n",
-                                                    k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0059);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0060);
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0061);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try host*/
-        k = (const char *)"host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] get var '%s':'%s' done\n",
-                                                    k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "[cngx] set ipaddr of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0062);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0063);
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0064);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
-                                                        "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
         }
     }while(0);
 
@@ -5341,6 +5373,116 @@ EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_ims_header_in_filter_host(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                     *cvendor_md;;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_header_in_filter_host: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config ims host and port*/
+    k = (const char *)CNGX_VAR_ORIG_HOST;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0051);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
+                                                "[conf] set host '%s' to http req done\n",
+                                                v);
+        safe_free(v, LOC_CVENDOR_0053);
+        
+        return (EC_TRUE);
+    }
+
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {   
+        k = tags[ tag_idx ];
+        
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            c_str_split(v, ":", segs, 2);
+
+            if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
+                                                        "[cngx] set host of '%s' failed\n",
+                                                        segs[ 0 ]);
+                safe_free(v, LOC_CVENDOR_0054);
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0055);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
+                                                    "[cngx] set host '%s' to http req done\n",
+                                                    segs[ 0 ]);
+            safe_free(v, LOC_CVENDOR_0056);
+
+            return (EC_TRUE);
+        }    
+    }
+
+    /*should never reach here*/
+    return (EC_FALSE);
+}
+
 EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -5348,6 +5490,16 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
+
+    CHTTP_REQ                   *chttp_req;
+    
+    static const char           *tags[ ] = {
+        (const char *)"http_host",
+        (const char *)"server_name",
+        (const char *)"host",
+    };
+
+    UINT32                       tag_idx; 
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -5362,6 +5514,8 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
 
     /*when cngx config ims port*/
     k = (const char *)CNGX_VAR_ORIG_PORT;
@@ -5378,7 +5532,7 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
                                                 "[conf] get var '%s':'%s' done\n",
                                                 k, v);
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
                                                     "[conf] set port '%s' to http req failed\n",
@@ -5394,6 +5548,52 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
     }
 
     /*when cngx NOT config ims port*/
+    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    {
+        k = tags[ tag_idx ];
+
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                    "get '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            char   *segs[ 2 ];
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                    "[cngx] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(2 == c_str_split(v, ":", segs, 2))
+            {
+                /*set port*/
+                if(EC_FALSE == chttp_req_set_port(chttp_req, segs[ 1 ]))
+                {
+                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
+                                                            "[cngx] set port '%s' to http req failed\n",
+                                                            segs[ 1 ]);
+                    safe_free(v, LOC_CVENDOR_0046);
+                    return (EC_FALSE);
+                }  
+
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_port: "
+                                                        "[cngx] set port '%s' to http req done\n",
+                                                        segs[ 1 ]); 
+                safe_free(v, LOC_CVENDOR_0059);
+                
+                return (EC_TRUE);
+            }
+            
+            safe_free(v, LOC_CVENDOR_0059);
+            
+            /*continue*/
+        }        
+    }
+    
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -5408,10 +5608,10 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
                                                 "[cngx] get var '%s':'%s' done\n",
                                                 k, v);
 
-        if(EC_FALSE == chttp_req_set_port(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_port: "
-                                                    "[cngx] set port to http req failed\n",
+                                                    "[cngx] set port '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0093);
             return (EC_FALSE);
@@ -5424,11 +5624,13 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
         return (EC_TRUE);
     }
 
+    /*should never reach here*/
+    
     /*set default ims port*/
-    chttp_req_set_port_word(CVENDOR_MD_CHTTP_REQ(cvendor_md), CNGX_ORIG_PORT_DEFAULT);
+    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                           "[default] set default port '%d' to http req done\n",
-                                           CNGX_ORIG_PORT_DEFAULT);
+                                            "[default] set default port '%d' to http req done\n",
+                                            CNGX_ORIG_PORT_DEFAULT);
     return (EC_TRUE);
 }
 
@@ -5489,174 +5691,20 @@ EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
             break; /*ok*/
         }
 
-        /*when cngx config ims host and port*/
-        k = (const char *)CNGX_VAR_ORIG_HOST;
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set host*/
+        if(EC_FALSE == cvendor_content_ims_header_in_filter_host(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                 "get var '%s' failed\n",
-                                                 k);
+                                                    "filter host failed\n");
             return (EC_FALSE);
         }
 
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                        "[conf] set host '%s' to http req failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0098);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0099);
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                    "[conf] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0100);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*now cngx NOT config ims server and NOT config ims (host, port)*/
-
-        /*try http_host*/
-        k = (const char *)"http_host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        /*set port*/
+        if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
+                                                    "filter port failed\n");
             return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0101);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0102); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0103);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try server_name*/
-        k = (const char *)"server_name";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                        "[cngx] set host of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0104);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0105); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0106);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                     "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
-        }
-
-        /*try host*/
-        k = (const char *)"host";
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
-        {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                    "get '%s' failed\n",
-                                                    k);
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != v)
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                    "[cngx] get var '%s':'%s' done\n",
-                                                    k, v);
-
-            if(EC_FALSE == chttp_req_set_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                        "[cngx] set ipaddr of '%s' failed\n",
-                                                        v);
-                safe_free(v, LOC_CVENDOR_0107);
-                
-                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0108); 
-                return (EC_FALSE);
-            }
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                    "[cngx] set host '%s' to http req done\n",
-                                                    v);
-            safe_free(v, LOC_CVENDOR_0109);
-
-            /*set port*/
-            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
-            {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                        "filter port failed\n");
-                return (EC_FALSE);
-            }
-
-            break; /*ok*/
         }
     }while(0);
 

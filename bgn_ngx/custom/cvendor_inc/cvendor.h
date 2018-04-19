@@ -199,6 +199,8 @@ EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, co
 
 EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id);
 
+EC_BOOL cvendor_content_direct_header_in_filter_host(const UINT32 cvendor_md_id);
+
 EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id);
@@ -226,6 +228,8 @@ EC_BOOL cvendor_content_chunk_send_end(const UINT32 cvendor_md_id);
 EC_BOOL cvendor_content_chunk_send_response(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_chunk_procedure(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_orig_header_in_filter_host(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id);
 

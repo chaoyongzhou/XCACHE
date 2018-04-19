@@ -191,6 +191,8 @@ EC_BOOL cflv_renew_header_cache(const UINT32 cflv_md_id, const char *k, const ch
 
 EC_BOOL cflv_content_handler(const UINT32 cflv_md_id);
 
+EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id);
+
 EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id);
@@ -204,6 +206,8 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id);
 EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_direct_procedure(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id);
 
