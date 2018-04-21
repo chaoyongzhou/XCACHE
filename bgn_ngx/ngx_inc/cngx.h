@@ -27,7 +27,7 @@ extern "C"{
 
 #include "chttp.h"
 
-#define  CNGX_BGN_MOD_SO_PATH_DEFAULT             ("/lib64")
+#define  CNGX_BGN_MOD_SO_PATH_DEFAULT             ("/usr/local/xcache/lib")
 
 #define  CNGX_SEND_BODY_NO_MORE_FLAG              ((unsigned)0x0001)
 #define  CNGX_SEND_BODY_FLUSH_FLAG                ((unsigned)0x0002)

@@ -19,6 +19,8 @@ TOOL_DIR = $(ROOT_DIR)/tool
 NGX_DIR = ../nginx
 NGX_MODULE_DIR = ../modules
 
+DESTDIR ?= /usr/local/xcache
+
 OPENSSL_DIR ?= /usr/local/xcache/depend/openssl
 OPENSSL_INC_DIR = $(OPENSSL_DIR)/include
 OPENSSL_LIB_DIR = $(OPENSSL_DIR)/lib
@@ -353,12 +355,12 @@ $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@
 
 install-lib:
-	$(if $(wildcard $(LIB_DIR)/*.a) ,cp -rp $(LIB_DIR)/*.a  $(DESTDIR)/lib64,)
-	$(if $(wildcard $(LIB_DIR)/*.so),cp -rp $(LIB_DIR)/*.so $(DESTDIR)/lib64,)
+	$(if $(wildcard $(LIB_DIR)/*.a) ,cp -rp $(LIB_DIR)/*.a  $(DESTDIR)/lib,)
+	$(if $(wildcard $(LIB_DIR)/*.so),cp -rp $(LIB_DIR)/*.so $(DESTDIR)/lib,)
 
 uninstall-lib:
-	$(if $(wildcard /lib64/libngx.so)    , rm -f /lib64/libngx.so,)
-	$(if $(wildcard /lib64/libcvendor.so), rm -f /lib64/libngx.so,)
+	$(if $(wildcard $(DESTDIR)/lib/libngx.so)    , rm -f $(DESTDIR)/lib/libngx.so,)
+	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libngx.so,)
 
 clean-obj:
 	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	
