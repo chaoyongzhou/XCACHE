@@ -3506,7 +3506,7 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
 
         TASK_NODE_TAG(task_node) = tag;
 
-        dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n",
+        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n",
                                                 CSOCKET_CNODE_SOCKFD(csocket_cnode), len, tag, task_node);
 
         /*move the probed buff to task_node*/

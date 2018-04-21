@@ -334,6 +334,8 @@ typedef struct _CHTTP_NODE
     http_parser_t             http_parser;
     http_parser_settings_t    http_parser_settings;
 
+    CSTRKV                   *http_parsing_header_kv;/*temporary header kv during parsing header field*/
+
     CCALLBACK_LIST            parse_on_message_begin_callback_list;
     CCALLBACK_LIST            parse_on_headers_complete_callback_list;
     CCALLBACK_LIST            parse_on_body_callback_list;
@@ -376,7 +378,7 @@ typedef struct _CHTTP_NODE
     uint32_t                  http_rsp_status  :10;
     uint32_t                  header_complete  :1;/*flag, header is completed or not*/
     uint32_t                  keepalive        :1;/*set true if http client ask for*/
-    uint32_t                  rsvd_01          :1;/*flag, used by expired_body_need*/
+    uint32_t                  rsvd_01          :1;/*reserved flag*/
     uint32_t                  recv_complete    :1;/*flag*/
     uint32_t                  send_complete    :1;/*flag*/
     uint32_t                  coroutine_restore:1;/*flag*/
@@ -408,6 +410,8 @@ typedef struct _CHTTP_NODE
 
 #define CHTTP_NODE_PARSER(chttp_node)                      (&((chttp_node)->http_parser))
 #define CHTTP_NODE_SETTING(chttp_node)                     (&((chttp_node)->http_parser_settings))
+
+#define CHTTP_NODE_PARSING_HEADER_KV(chttp_node)           ((chttp_node)->http_parsing_header_kv)
 
 #define CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node)       (&((chttp_node)->parse_on_message_begin_callback_list))
 #define CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node)    (&((chttp_node)->parse_on_headers_complete_callback_list))

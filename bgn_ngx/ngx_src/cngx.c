@@ -1779,24 +1779,72 @@ EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status)
     return (EC_TRUE);
 }
 
-void cngx_send_again(ngx_http_request_t *r)
+ngx_int_t cngx_send_again(ngx_http_request_t *r)
 {
     ngx_int_t       rc;
     
     rc = ngx_http_output_filter(r, NULL_PTR);
     
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
-                                         "r %p, rc = %d, sent bytes = %ld\n", 
-                                         r, rc, r->connection->sent);
-    return;
+                                         "r %p, rc = %d, sent bytes = %ld, write_event_handler = %p\n", 
+                                         r, rc, r->connection->sent, r->write_event_handler);
+    return (rc);
+}
+
+EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
+{
+    ngx_connection_t          *c;
+    ngx_event_t               *wev;
+    
+    COROUTINE_COND            *coroutine_cond;
+
+    c = r->connection; 
+    wev = c->write;
+
+    if(0 == send_timeout)
+    {
+        return (EC_TRUE);
+    }
+    
+    coroutine_cond = coroutine_cond_new((UINT32)send_timeout, LOC_NONE_BASE);
+    if(NULL_PTR == coroutine_cond)
+    {
+        rlog(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
+                                          "new coroutine_cond failed\n");
+        return (EC_FALSE);
+    }
+
+    NGX_W_COROUTINE_COND(wev) = coroutine_cond;
+
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_send_wait: "
+                                         "coroutine_cond %p on r:%p, c:%p, wev:%p <= start\n", 
+                                         coroutine_cond, r, c, wev);
+
+    coroutine_cond_reserve(coroutine_cond, 1, LOC_NONE_BASE);
+    coroutine_cond_wait(coroutine_cond, LOC_NONE_BASE);
+
+    __COROUTINE_CATCH_EXCEPTION() { /*exception*/
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
+                                             "coroutine_cond %p on r:%p, c:%p, wev:%p => cancelled\n", 
+                                             coroutine_cond, r, c, wev);            
+        coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
+        NGX_W_COROUTINE_COND(wev) = NULL_PTR;
+    }__COROUTINE_TERMINATE();
+
+    coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
+    NGX_W_COROUTINE_COND(wev) = NULL_PTR;
+    
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_wait: "
+                                         "coroutine_cond %p on r:%p, c:%p, wev:%p => back\n", 
+                                         coroutine_cond, r, c, wev); 
+    return (EC_TRUE);
 }
 
 EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
 {
-    ngx_connection_t *c;
-    ngx_event_t      *wev;
-    COROUTINE_COND   *coroutine_cond;
-
+    ngx_connection_t          *c;
+    ngx_event_t               *wev;
+    
     c = r->connection; 
     wev = c->write;
 
@@ -1804,80 +1852,69 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
                                          "r:%p, c:%p, wev:%p, buffered 0x%x, delayed %d\n", 
                                          r, r->connection, r->connection->write, 
                                          r->connection->buffered, wev->delayed); 
-            
-    if((r->connection->buffered & NGX_HTTP_LOWLEVEL_BUFFERED) || wev->delayed)
+    
+    while((r->connection->buffered & NGX_HTTP_LOWLEVEL_BUFFERED) || wev->delayed)
     {
-        ngx_http_core_loc_conf_t  *clcf;
-        
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "r %p, write_event_handler: %p => %p\n", 
-                                             r,
-                                             r->write_event_handler,
-                                             cngx_send_again); 
-                                             
-        r->write_event_handler = cngx_send_again; /*xxx*/
-       
-        clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+        ngx_int_t       rc;
 
-        if(!wev->delayed) 
+        /*cancel the possible timer event to prevent from data retransition*/
+        if(wev->timer_set) 
+        {
+            ngx_del_timer(wev);
+        }
+            
+        if(wev->delayed)
+        {   
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                                 "wait %ld msec >>>\n", 
+                                                 NGX_WAIT_MSEC(wev)); 
+
+            wev->delayed = 0;
+    
+            if(EC_FALSE == cngx_send_wait(r, NGX_WAIT_MSEC(wev)))
+            {
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
+                                                     "wait %ld msec failed\n", 
+                                                     NGX_WAIT_MSEC(wev));              
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                                 "wait %ld msec done\n", 
+                                                 NGX_WAIT_MSEC(wev));
+            NGX_WAIT_MSEC(wev) = 0;/*clear*/
+        }
+        
+        rc = cngx_send_again(r);        
+        if(NGX_OK == rc)
         {
             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                                 "add wev timer: %ld msec\n", 
-                                                 clcf->send_timeout);         
-            ngx_add_timer(wev, clcf->send_timeout);
+                                                 "send again return OK\n");        
+            return (EC_TRUE);
         }
-
-        if(ngx_handle_write_event(wev, clcf->send_lowat) != NGX_OK) 
-        {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                                 "add write event failed\n");
-                                                 
-            if(wev->timer_set) 
-            {
-                wev->delayed = 0;
-                ngx_del_timer(wev);
-            }
-            
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "add write event done\n");        
-
-        /*--- blocking ---*/
-
-        coroutine_cond = coroutine_cond_new(0/*never timeout*/, LOC_NONE_BASE);
-        if(NULL_PTR == coroutine_cond)
-        {
-            rlog(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                              "new coroutine_cond failed\n");
-            return (EC_FALSE);
-        }
-
-        NGX_W_COROUTINE_COND(wev) = coroutine_cond;
-
-        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "coroutine_cond %p on r:%p, c:%p, wev:%p <= start\n", 
-                                             coroutine_cond, r, c, wev);
-
-        coroutine_cond_reserve(coroutine_cond, 1, LOC_NONE_BASE);
-        coroutine_cond_wait(coroutine_cond, LOC_NONE_BASE);
-
-        __COROUTINE_CATCH_EXCEPTION() { /*exception*/
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                                 "coroutine_cond %p on r:%p, c:%p, wev:%p => cancelled\n", 
-                                                 coroutine_cond, r, c, wev);            
-            coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
-            NGX_W_COROUTINE_COND(wev) = NULL_PTR;
-        }__COROUTINE_TERMINATE();
-
-        coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
-        NGX_W_COROUTINE_COND(wev) = NULL_PTR;
         
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "coroutine_cond %p on r:%p, c:%p, wev:%p => back\n", 
-                                             coroutine_cond, r, c, wev);            
-    }        
+        if(NGX_AGAIN == rc)
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                                 "send again return AGAIN\n");         
+            continue;
+        }
+
+        if(NGX_ERROR == rc)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
+                                                 "send again return ERROR\n");         
+            return (EC_FALSE);
+        }
+        else
+        {
+            /*check other unexpected return value*/
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
+                                                 "send again failed due to return %d\n",
+                                                 rc);         
+            return (EC_FALSE);
+        }
+    }
+          
     return (EC_TRUE);
 }
 
@@ -1999,7 +2036,8 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
     
     if(rc == NGX_AGAIN/* || b->last > b->pos + NGX_LUA_OUTPUT_BLOCKING_LOWAT*/)
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: need send body again\n");
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: sent bytes = %ld, need send body again\n",
+                    r->connection->sent);
 
         return cngx_send_blocking(r);
     }

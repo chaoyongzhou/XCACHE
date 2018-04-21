@@ -459,7 +459,7 @@ STATIC_CAST static int __chttp_on_status(http_parser_t* http_parser, const char*
 STATIC_CAST static int __chttp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
-    CSTRKV *cstrkv;
+    CSTRKV        *cstrkv;
 
     chttp_node = (CHTTP_NODE *)http_parser->data;
     if(NULL_PTR == chttp_node)
@@ -468,16 +468,32 @@ STATIC_CAST static int __chttp_on_header_field(http_parser_t* http_parser, const
         return (-1);/*error*/
     }
 
-    cstrkv = cstrkv_new(NULL_PTR, NULL_PTR);
-    if(NULL_PTR == cstrkv)
+    rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: http state %s: '%.*s'\n",
+                http_state_str(http_parser->state), length, at);
+
+    if(NULL_PTR == CHTTP_NODE_PARSING_HEADER_KV(chttp_node))
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_header_field: new cstrkv failed where header field: %.*s\n",
-                           (int)length, at);
-        return (-1);
+        cstrkv = cstrkv_new(NULL_PTR, NULL_PTR);
+        if(NULL_PTR == cstrkv)
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_header_field: new cstrkv failed where header field: %.*s\n",
+                               (int)length, at);
+            return (-1);
+        }
+        CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = cstrkv;
+    }
+    else
+    {
+        cstrkv = CHTTP_NODE_PARSING_HEADER_KV(chttp_node);
     }
 
-    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0004);
-    cstrkv_mgr_add_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node), cstrkv);
+    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0004); 
+
+    if(s_header_value_discard_ws == http_parser->state)
+    {
+        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: chttp_node %p, Header field: '%s' => OK\n", 
+                        chttp_node, CSTRKV_KEY_STR(cstrkv));
+    }
 
     //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: chttp_node %p, Header field: '%.*s'\n", chttp_node, (int)length, at);
     return (0);
@@ -495,7 +511,10 @@ STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const
         return (-1);/*error*/
     }
 
-    cstrkv = cstrkv_mgr_last_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node));
+    rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: http state %s: '%.*s'\n",
+                    http_state_str(http_parser->state), length, at);    
+
+    cstrkv = CHTTP_NODE_PARSING_HEADER_KV(chttp_node);
     if(NULL_PTR == cstrkv)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_header_value: no cstrkv existing where value field: %.*s\n",
@@ -505,6 +524,18 @@ STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0005);
     //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%.*s'\n", chttp_node, (int)length, at);
+
+    if(s_header_almost_done == http_parser->state)
+    {
+        cstrkv_mgr_add_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node), cstrkv);
+        CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;   
+
+        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%s' => OK\n", 
+                        chttp_node, CSTRKV_VAL_STR(cstrkv));     
+
+        dbg_log(SEC_0149_CHTTP, 6)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header '%s': '%s' => OK\n", 
+                        chttp_node, CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));                     
+    }
 #if 0
     if(do_log(SEC_0149_CHTTP, 9))
     {
@@ -1464,6 +1495,8 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         __chttp_parser_init(CHTTP_NODE_PARSER(chttp_node), type);
         __chttp_parser_setting_init(CHTTP_NODE_SETTING(chttp_node));
 
+        CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;
+
         ccallback_list_init(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node));
         ccallback_list_set_name(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node), (const char *)"CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST");
         ccallback_list_set_filter(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node), (CCALLBACK_FILTER)NULL_PTR);
@@ -1569,6 +1602,12 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
 
         __chttp_parser_clean(CHTTP_NODE_PARSER(chttp_node));
         __chttp_parser_setting_clean(CHTTP_NODE_SETTING(chttp_node));
+
+        if(NULL_PTR != CHTTP_NODE_PARSING_HEADER_KV(chttp_node))
+        {
+            cstrkv_free(CHTTP_NODE_PARSING_HEADER_KV(chttp_node));
+            CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;
+        }
 
         ccallback_list_clean((CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node)));
         ccallback_list_clean((CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node)));
@@ -2345,6 +2384,8 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [server] sockfd %d timeout\n", sockfd);
+
         /*umount from defer request queue if necessary*/
         chttp_defer_request_queue_erase(chttp_node);
 
@@ -2375,6 +2416,8 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [client] sockfd %d timeout\n", sockfd);
+        
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -2399,6 +2442,7 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))/*client side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [check] sockfd %d timeout\n", sockfd);
         /*not unbind*/
 
         /**
@@ -2420,7 +2464,7 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     /* unbind */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
-    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_force_close:should never reach here, release chttp_node and try to close sockfd %d\n", sockfd);
+    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_timeout:should never reach here, release chttp_node and try to close sockfd %d\n", sockfd);
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -2440,6 +2484,8 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [server] sockfd %d shutdown\n", sockfd);
+        
         /*umount from defer request queue if necessary*/
         chttp_defer_request_queue_erase(chttp_node);
 
@@ -2460,6 +2506,8 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [client] sockfd %d shutdown\n", sockfd);
+        
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -2483,6 +2531,7 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))/*client side*/
     {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [check] sockfd %d shutdown\n", sockfd);
         /*not unbind*/
 
         /**
@@ -2504,7 +2553,7 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     /* unbind */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
-    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_force_close:should never reach here, release chttp_node and try to close sockfd %d\n", sockfd);
+    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_shutdown:should never reach here, release chttp_node and try to close sockfd %d\n", sockfd);
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -5410,9 +5459,9 @@ STATIC_CAST static int __chttp_rsp_on_status(http_parser_t* http_parser, const c
 STATIC_CAST static int __chttp_rsp_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
-    CSTRKV *cstrkv;
+    CSTRKV       *cstrkv;
 
-    chttp_rsp= (CHTTP_RSP *)http_parser->data;
+    chttp_rsp = (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_rsp_on_header_field: http_parser %p -> chttp_rsp is null\n", http_parser);
@@ -5439,7 +5488,7 @@ STATIC_CAST static int __chttp_rsp_on_header_value(http_parser_t* http_parser, c
     CHTTP_RSP    *chttp_rsp;
     CSTRKV       *cstrkv;
 
-    chttp_rsp= (CHTTP_RSP *)http_parser->data;
+    chttp_rsp = (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_rsp_on_header_value: http_parser %p -> chttp_rsp is null\n", http_parser);
