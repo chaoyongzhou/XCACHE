@@ -2319,6 +2319,18 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             return (EC_TRUE);
         }
 
+        if(8 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"https://", 8))
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
+                                                 "convert 'https://' to '/' and set store_path to '%s'\n",
+                                                 v + 7);
+  
+            cstring_append_str(store_path, (const uint8_t *)(v + 7));
+
+            safe_free(v, LOC_CNGX_0043);
+            return (EC_TRUE);
+        }        
+
         if(EC_FALSE == cstring_format(store_path, "/%s", v))
         {
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "

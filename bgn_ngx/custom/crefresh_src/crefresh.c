@@ -389,7 +389,11 @@ EC_BOOL crefresh_parse_cache_path_list(const UINT32 crefresh_md_id, CBYTES *cbyt
         {
             path_str += 6;
         }
-
+        else if(8 < strlen(path_str) && 0 == STRNCASECMP(path_str, (const char *)"https://", 8))
+        {
+            path_str += 7;
+        }
+        
         cache_path = cstring_new((const UINT8 *)path_str, LOC_CREFRESH_0002);
         if(NULL_PTR == cache_path)
         {
