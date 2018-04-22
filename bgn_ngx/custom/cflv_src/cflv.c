@@ -1994,6 +1994,22 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         return cflv_content_direct_procedure(cflv_md_id);
     }
 
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
+                                             "Pragma:no-cache => direct procedure\n");
+        return cflv_content_direct_procedure(cflv_md_id);
+    }
+
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
+                                             "Cache-Control:no-cache => direct procedure\n");
+        return cflv_content_direct_procedure(cflv_md_id);
+    }    
+
     cngx_option_set_only_if_cached(r, CFLV_MD_CNGX_OPTION(cflv_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
     {

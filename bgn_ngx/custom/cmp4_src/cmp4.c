@@ -2328,6 +2328,22 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         return cmp4_content_direct_procedure(cmp4_md_id);
     }
 
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
+                                             "Pragma:no-cache => direct procedure\n");
+        return cmp4_content_direct_procedure(cmp4_md_id);
+    }
+
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
+                                             "Cache-Control:no-cache => direct procedure\n");
+        return cmp4_content_direct_procedure(cmp4_md_id);
+    }     
+
     cngx_option_set_only_if_cached(r, CMP4_MD_CNGX_OPTION(cmp4_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
     {

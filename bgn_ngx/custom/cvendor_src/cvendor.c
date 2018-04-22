@@ -1917,6 +1917,22 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
         return cvendor_content_direct_procedure(cvendor_md_id);
     }
 
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                "Pragma:no-cache => direct procedure\n");
+        return cvendor_content_direct_procedure(cvendor_md_id);
+    }  
+
+    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    {
+        /*direct procedure to orig server*/
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
+                                                "Cache-Control:no-cache => direct procedure\n");
+        return cvendor_content_direct_procedure(cvendor_md_id);
+    }    
+
     cngx_option_set_only_if_cached(r, CVENDOR_MD_CNGX_OPTION(cvendor_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
     {
@@ -1931,6 +1947,7 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
             return cvendor_content_direct_procedure(cvendor_md_id);
         }
     }
+   
     /*else fall through*/
 
     /*parse 'Range' in cngx http req header*/
