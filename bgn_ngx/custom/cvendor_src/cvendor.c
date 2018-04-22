@@ -860,9 +860,10 @@ EC_BOOL cvendor_get_rsp_length_segs(const UINT32 cvendor_md_id, const UINT32 seg
 
     content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
 
-    if(0 == content_length)
+    while(0 == content_length)
     {
-        char     *content_range_str;
+        char       *content_range_str;
+        char       *content_length_str;
 
         content_range_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Range");
         if(NULL_PTR != content_range_str)
@@ -885,7 +886,28 @@ EC_BOOL cvendor_get_rsp_length_segs(const UINT32 cvendor_md_id, const UINT32 seg
                                                     "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
                                                     content_range_str,
                                                     range_start, range_end, content_length);
+            /*fall through*/
+            break;
         }
+
+        content_length_str = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), (const char *)"Content-Length");
+        if(NULL_PTR != content_length_str)
+        {
+            content_length = c_str_to_word(content_length_str);
+
+            CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+            CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+                                                    
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_rsp_length_segs: "
+                                                    "parse Content-Length '%s' to %ld\n",
+                                                    content_length_str,
+                                                    content_length);
+            /*fall through*/
+            break;
+        }     
+
+        /*fall through*/
+        break;
     }
 
     if(0 < content_length)
@@ -1129,9 +1151,12 @@ EC_BOOL cvendor_filter_rsp_range(const UINT32 cvendor_md_id)
     }
 
     if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md))
-    {
+    {   
         /*filter req range_segs*/
-        crange_mgr_filter(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1, content_length);
+        if(0 < content_length)
+        {
+            crange_mgr_filter(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md), 0, content_length - 1, content_length);
+        }
         CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md) = BIT_TRUE;
     }
 
@@ -2550,7 +2575,7 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
                                                     "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
                                                     content_range_str,
                                                     range_start, range_end, content_length);
-            /*fall throught*/
+            /*fall through*/
             break;
         }
 
@@ -2568,7 +2593,7 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
                                                     "parse Content-Length '%s' to %ld\n",
                                                     content_length_str,
                                                     content_length);
-            /*fall throught*/
+            /*fall through*/
             break;
         }
 
@@ -2662,7 +2687,6 @@ EC_BOOL cvendor_content_direct_header_out_rsp_status_filter(const UINT32 cvendor
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_rsp_status_filter: "
                                                     "[cngx] found 404 => response status = %ld [after]\n",
-                                                    k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);            
         }    
@@ -3449,7 +3473,6 @@ EC_BOOL cvendor_content_chunk_header_out_filter(const UINT32 cvendor_md_id)
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: "
                                                     "[cngx] found 404 => response status = %ld [after]\n",
-                                                    k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);            
         }    
@@ -4467,7 +4490,6 @@ EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_m
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_rsp_status_filter: "
                                                     "[cngx] found 404 => response status = %ld [after]\n",
-                                                    k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);            
         }    
@@ -7722,7 +7744,6 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
                                                     "[cngx] found 404 => response status = %ld [after]\n",
-                                                    k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);            
         }
@@ -8801,6 +8822,8 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                 cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0135);
                 return (EC_FALSE);
             }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                    "get range segs from chttp rsp done\n");            
         }
 
         if(EC_FALSE == cvendor_filter_rsp_range(cvendor_md_id))

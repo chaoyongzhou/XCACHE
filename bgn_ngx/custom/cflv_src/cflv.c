@@ -807,9 +807,10 @@ EC_BOOL cflv_get_rsp_length_segs(const UINT32 cflv_md_id, const UINT32 seg_size)
 
     content_length = CFLV_MD_CONTENT_LENGTH(cflv_md);
 
-    if(0 == content_length)
+    while(0 == content_length)
     {
-        char     *content_range_str;
+        char       *content_range_str;
+        char       *content_length_str;
 
         content_range_str = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), (const char *)"Content-Range");
         if(NULL_PTR != content_range_str)
@@ -832,7 +833,28 @@ EC_BOOL cflv_get_rsp_length_segs(const UINT32 cflv_md_id, const UINT32 seg_size)
                                                  "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
                                                  content_range_str,
                                                  range_start, range_end, content_length);
+            /*fall through*/
+            break;
         }
+
+        content_length_str = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), (const char *)"Content-Length");
+        if(NULL_PTR != content_length_str)
+        {
+            content_length = c_str_to_word(content_length_str);
+
+            CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md) = BIT_TRUE;
+            CFLV_MD_CONTENT_LENGTH(cflv_md)            = content_length;
+                                                    
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_get_rsp_length_segs: "
+                                                 "parse Content-Length '%s' to %ld\n",
+                                                 content_length_str,
+                                                 content_length);
+            /*fall through*/
+            break;
+        }     
+
+        /*fall through*/
+        break;
     }
 
     if(0 < content_length)
@@ -1080,7 +1102,10 @@ EC_BOOL cflv_filter_rsp_range(const UINT32 cflv_md_id)
         /*filter req range_segs*/
         if(0 == CFLV_MD_FLV_START(cflv_md))
         {
-            crange_mgr_filter(CFLV_MD_CNGX_RANGE_MGR(cflv_md), 0, content_length - 1, content_length);
+            if(0 < content_length)
+            {
+                crange_mgr_filter(CFLV_MD_CNGX_RANGE_MGR(cflv_md), 0, content_length - 1, content_length);
+            }
             CFLV_MD_CNGX_RANGE_FILTERED_FLAG(cflv_md) = BIT_TRUE;
         }
         else
@@ -1096,9 +1121,11 @@ EC_BOOL cflv_filter_rsp_range(const UINT32 cflv_md_id)
                                                  "filter flv start %ld\n",
                                                  CFLV_MD_FLV_START(cflv_md));
 
-            crange_mgr_filter(CFLV_MD_CNGX_RANGE_MGR(cflv_md),
-                              CFLV_MD_FLV_START(cflv_md), content_length - 1, content_length);
-
+            if(0 < content_length)
+            {
+                crange_mgr_filter(CFLV_MD_CNGX_RANGE_MGR(cflv_md),
+                                  CFLV_MD_FLV_START(cflv_md), content_length - 1, content_length);
+            }
             CFLV_MD_CNGX_RANGE_FILTERED_FLAG(cflv_md) = BIT_TRUE;
         }
     }
@@ -2626,7 +2653,7 @@ EC_BOOL cflv_content_direct_header_out_range_filter(const UINT32 cflv_md_id)
                                                  "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
                                                  content_range_str,
                                                  range_start, range_end, content_length);
-            /*fall throught*/
+            /*fall through*/
             break;
         }
 
@@ -2644,7 +2671,7 @@ EC_BOOL cflv_content_direct_header_out_range_filter(const UINT32 cflv_md_id)
                                                  "parse Content-Length '%s' to %ld\n",
                                                  content_length_str,
                                                  content_length);
-            /*fall throught*/
+            /*fall through*/
             break;
         }
 
@@ -2761,7 +2788,6 @@ EC_BOOL cflv_content_direct_header_out_rsp_status_filter(const UINT32 cflv_md_id
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
-                                                 k,
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);            
         }    
@@ -4014,7 +4040,6 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
-                                                 k,
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);            
         }    
@@ -7256,7 +7281,6 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld [after]\n",
-                                                 k,
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);            
         }
