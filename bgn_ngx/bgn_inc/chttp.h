@@ -316,6 +316,7 @@ EC_BOOL chttp_rsp_free(CHTTP_RSP *chttp_rsp);
 void    chttp_rsp_print(LOG *log, const CHTTP_RSP *chttp_rsp);
 void    chttp_rsp_print_plain(LOG *log, const CHTTP_RSP *chttp_rsp);
 EC_BOOL chttp_rsp_is_chunked(const CHTTP_RSP *chttp_rsp);
+EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age);
 EC_BOOL chttp_rsp_add_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v);
 EC_BOOL chttp_rsp_add_header_chars(CHTTP_RSP *chttp_rsp, const char *k, const uint32_t klen, const char *v, const uint32_t vlen); 
 char *  chttp_rsp_get_header(const CHTTP_RSP *chttp_rsp, const char *k);

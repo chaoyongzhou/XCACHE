@@ -5219,6 +5219,68 @@ EC_BOOL chttp_rsp_is_chunked(const CHTTP_RSP *chttp_rsp)
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
+{
+    const char                  *k;
+    const char                  *v;
+    uint32_t                     age;
+
+    time_t                       curtime;
+    time_t                       datetime;    
+    
+    k = (const char *)"Age";
+    v = chttp_rsp_get_header(chttp_rsp, k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                              "not found '%s'\n",
+                                              k);
+        return (EC_FALSE); /*not aged*/
+    }
+    
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                          "get '%s':'%s'\n",
+                                          k, v);    
+    age = c_str_to_uint32_t(v);
+
+    /*current time*/
+    curtime = task_brd_default_get_time();
+   
+    /*Date*/
+    k = (const char *)"Date";
+    v = chttp_rsp_get_header(chttp_rsp, k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                              "no '%s' => done\n",
+                                              k);  
+        return (EC_FALSE);
+    }
+    datetime = c_parse_http_time((uint8_t *)v, strlen(v));
+
+    if(curtime < datetime)
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_rsp_is_aged: "
+                                              "curtime '%d' < date '%d'\n",
+                                              curtime, datetime);  
+        return (EC_FALSE);
+    }
+
+    if(max_age > (uint32_t)(curtime - datetime + age))
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                              "max age '%d' > curtime '%d' - date '%d' + age '%d' => not aged\n",
+                                              max_age, curtime, datetime, age);
+
+        return (EC_FALSE);
+    }    
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                          "max age '%d' <= curtime '%d' - date '%d' + age '%d' => aged\n",
+                                          max_age, curtime, datetime, age);
+    return (EC_TRUE);
+}
+
 EC_BOOL chttp_rsp_add_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v)
 {
     if(NULL_PTR == k)
