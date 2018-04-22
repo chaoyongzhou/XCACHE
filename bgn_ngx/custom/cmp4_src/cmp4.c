@@ -9738,8 +9738,9 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                     *cmp4_md;;
-
+    CMP4_MD                     *cmp4_md;
+    ngx_http_request_t          *r;
+   
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
     {
@@ -9751,6 +9752,8 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     /*fetch header from cache*/
     do
@@ -9864,11 +9867,60 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 
             return (EC_FALSE);
         }
+
+        cbytes_clean(&seg_cbytes);
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                              "parse seg %ld done\n",
                                              seg_no);
 
-        cbytes_clean(&seg_cbytes);
+        if(EC_FALSE == cngx_headers_dir2_filter(r, CMP4_MD_CHTTP_RSP(cmp4_md)))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
+                                                 "dir2 filter failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                             "dir2 filter done\n");        
+
+        do
+        {
+            const char                  *k;
+            char                        *v;
+            
+            uint32_t                     max_age;
+    
+            k = (const char *)"max-age";
+            if(EC_FALSE == cngx_get_header_in(r, k, &v))
+            {
+                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
+                                                      "fetch header '%s' failed\n",
+                                                      k);
+                 return (EC_FALSE);
+            }
+
+            if(NULL_PTR == v)
+            {
+                dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                                     "not found '%s'\n",
+                                                     k);
+                break;
+            }
+
+            max_age = c_str_to_uint32_t(v);
+            safe_free(v, LOC_CMP4_0120);
+
+            if(EC_TRUE == chttp_rsp_is_aged(CMP4_MD_CHTTP_RSP(cmp4_md), max_age))
+            {
+                dbg_log(SEC_0147_CMP4, 1)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                                     "aged, cache => force orig procedure\n");
+                                                        
+                CMP4_MD_ORIG_FORCE_FLAG(cmp4_md) = BIT_TRUE;
+                
+                return cmp4_content_cache_procedure(cmp4_md_id);
+            }
+            /*fall through*/
+        }while(0);
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
         if(EC_TRUE == crange_mgr_is_empty(CMP4_MD_CNGX_RANGE_MGR(cmp4_md))

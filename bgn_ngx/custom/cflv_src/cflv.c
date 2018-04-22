@@ -8178,7 +8178,9 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
 
 EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 {
-    CFLV_MD                     *cflv_md;;
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -8191,6 +8193,8 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 #endif/*CFLV_DEBUG_SWITCH*/
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     /*fetch header from cache*/
     do
@@ -8304,12 +8308,61 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 
             return (EC_FALSE);
         }
+
+        cbytes_clean(&seg_cbytes);
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                              "parse seg %ld done\n",
                                              seg_no);
+        
+        if(EC_FALSE == cngx_headers_dir2_filter(r, CFLV_MD_CHTTP_RSP(cflv_md)))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
+                                                 "dir2 filter failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                             "dir2 filter done\n");
 
-        cbytes_clean(&seg_cbytes);
+        do
+        {
+            const char                  *k;
+            char                        *v;
+            
+            uint32_t                     max_age;
+    
+            k = (const char *)"max-age";
+            if(EC_FALSE == cngx_get_header_in(r, k, &v))
+            {
+                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
+                                                      "fetch header '%s' failed\n",
+                                                      k);
+                 return (EC_FALSE);
+            }
 
+            if(NULL_PTR == v)
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "not found '%s'\n",
+                                                     k);
+                break;
+            }
+
+            max_age = c_str_to_uint32_t(v);
+            safe_free(v, LOC_CFLV_0120);
+
+            if(EC_TRUE == chttp_rsp_is_aged(CFLV_MD_CHTTP_RSP(cflv_md), max_age))
+            {
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "aged, cache => force orig procedure\n");
+                                                        
+                CFLV_MD_ORIG_FORCE_FLAG(cflv_md) = BIT_TRUE;
+                
+                return cflv_content_cache_procedure(cflv_md_id);
+            }
+            /*fall through*/
+        }while(0);
+        
         //ASSERT(EC_FALSE == crange_mgr_is_empty(CFLV_MD_CNGX_RANGE_MGR(cflv_md)));
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/

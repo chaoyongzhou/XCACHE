@@ -8740,6 +8740,46 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                 "dir2 filter done\n");
 
+
+        do
+        {
+            const char                  *k;
+            char                        *v;
+            
+            uint32_t                     max_age;
+    
+            k = (const char *)"max-age";
+            if(EC_FALSE == cngx_get_header_in(r, k, &v))
+            {
+                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                         "fetch header '%s' failed\n",
+                                                         k);
+                 return (EC_FALSE);
+            }
+
+            if(NULL_PTR == v)
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "not found '%s'\n",
+                                                        k);
+                break;
+            }
+
+            max_age = c_str_to_uint32_t(v);
+            safe_free(v, LOC_CVENDOR_0120);
+
+            if(EC_TRUE == chttp_rsp_is_aged(CVENDOR_MD_CHTTP_RSP(cvendor_md), max_age))
+            {
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "aged, cache => force orig procedure\n");
+                                                        
+                CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md) = BIT_TRUE;
+                
+                return cvendor_content_cache_procedure(cvendor_md_id);
+            }
+            /*fall through*/
+        }while(0);
+
         /*chunk*/
         if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)
         || EC_TRUE  == chttp_rsp_is_chunked(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
