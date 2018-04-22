@@ -1925,6 +1925,8 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;;
 
     ngx_http_request_t          *r;
+    const char                  *k;
+    const char                  *v;    
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -1994,19 +1996,25 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         return cflv_content_direct_procedure(cflv_md_id);
     }
 
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    k = (const char *)"Pragma";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
-                                             "Pragma:no-cache => direct procedure\n");
+                                             "%s:%s => direct procedure\n",
+                                             k, v);
         return cflv_content_direct_procedure(cflv_md_id);
     }
 
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    k = (const char *)"Cache-Control";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: "
-                                             "Cache-Control:no-cache => direct procedure\n");
+                                             "%s:%s => direct procedure\n",
+                                             k, v);
         return cflv_content_direct_procedure(cflv_md_id);
     }    
 

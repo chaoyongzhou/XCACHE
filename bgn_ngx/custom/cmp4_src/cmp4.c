@@ -2259,6 +2259,8 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;;
 
     ngx_http_request_t          *r;
+    const char                  *k;
+    const char                  *v;     
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -2328,19 +2330,25 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         return cmp4_content_direct_procedure(cmp4_md_id);
     }
 
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    k = (const char *)"Pragma";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
-                                             "Pragma:no-cache => direct procedure\n");
+                                             "%s:%s => direct procedure\n",
+                                             k, v);
         return cmp4_content_direct_procedure(cmp4_md_id);
     }
-
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    
+    k = (const char *)"Cache-Control";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
-                                             "Cache-Control:no-cache => direct procedure\n");
+                                             "%s:%s => direct procedure\n",
+                                             k, v);
         return cmp4_content_direct_procedure(cmp4_md_id);
     }     
 

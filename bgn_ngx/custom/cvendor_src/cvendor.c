@@ -1849,6 +1849,9 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
 
     ngx_http_request_t          *r;
 
+    const char                  *k;
+    const char                  *v;    
+
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
     {
@@ -1917,19 +1920,25 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
         return cvendor_content_direct_procedure(cvendor_md_id);
     }
 
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Pragma", (const char *)"no-cache"))
+    k = (const char *)"Pragma";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
-                                                "Pragma:no-cache => direct procedure\n");
+                                                "%s:%s => direct procedure\n",
+                                                k, v);
         return cvendor_content_direct_procedure(cvendor_md_id);
     }  
 
-    if(EC_TRUE == cngx_has_header_in(r, (const char *)"Cache-Control", (const char *)"no-cache"))
+    k = (const char *)"Cache-Control";
+    v = (const char *)"no-cache";
+    if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
-                                                "Cache-Control:no-cache => direct procedure\n");
+                                                "%s:%s => direct procedure\n",
+                                                k, v);
         return cvendor_content_direct_procedure(cvendor_md_id);
     }    
 
