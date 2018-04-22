@@ -277,7 +277,7 @@ EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status);
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status);
 
-ngx_int_t cngx_send_again(ngx_http_request_t *r);
+void    cngx_send_again(ngx_http_request_t *r);
 
 EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout);
 
