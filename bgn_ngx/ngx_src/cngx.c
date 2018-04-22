@@ -1828,10 +1828,16 @@ void cngx_send_again(ngx_http_request_t *r)
     rc = ngx_http_output_filter(r, NULL_PTR);
 
     NGX_W_RC(wev) = rc;
+
+    if(NGX_W_COROUTINE_COND(wev)) 
+    {
+        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_NONE_BASE);
+        NGX_W_COROUTINE_COND(wev) = NULL_PTR;    
+    }
     
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
-                                         "r %p, rc = %d, sent bytes = %ld\n", 
-                                         r, rc, r->connection->sent);
+                                         "r %p, rc = %d, timer_set = %d, delayed = %d, sent bytes = %ld\n", 
+                                         r, rc, wev->timer_set, wev->delayed, r->connection->sent);
     return;
 }
 
@@ -1846,9 +1852,8 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
     wev = c->write;
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                         "r:%p, c:%p, wev:%p, buffered 0x%x, delayed %d\n", 
-                                         r, r->connection, r->connection->write, 
-                                         r->connection->buffered, wev->delayed); 
+                                         "r:%p, c:%p, wev:%p\n", 
+                                         r, r->connection, r->connection->write); 
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
                                              
@@ -1857,33 +1862,36 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
     NGX_W_RC(wev) = NGX_AGAIN;        
     while(NGX_AGAIN == NGX_W_RC(wev))
     {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                             "[delayed: %d, timer_set: %d, active %d, ready: %d]\n",
+                                             wev->delayed, wev->timer_set, wev->active, wev->ready); 
+
         wev->delayed = 0; /*clear*/        
 
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "active: %d, ready: %d\n",
-                                             wev->active, wev->ready); 
-
-        /*clear active flag and ready flag. otherwise, WR event may not be added to epoll*/
-        wev->active = 0;
-        wev->ready  = 0;
-        
-        if(ngx_handle_write_event(wev, clcf->send_lowat) != NGX_OK) 
+        if(0 == wev->timer_set)/*if no timer, set WR event*/
         {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                                 "add write event failed\n");
-                                                 
-            if(wev->timer_set) 
-            {
-                wev->delayed = 0;
-                ngx_del_timer(wev);
-            }
+            /*clear active flag and ready flag. otherwise, WR event would not be set to epoll*/
             
-            return (EC_FALSE);
+            wev->active = 0;
+            wev->ready  = 0;
+
+            if(ngx_handle_write_event(wev, clcf->send_lowat) != NGX_OK) 
+            {
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
+                                                     "add write event failed\n");
+                                                     
+                if(wev->timer_set) 
+                {
+                    wev->delayed = 0;
+                    ngx_del_timer(wev);
+                }
+                
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                                 "add write event done\n");        
         }
-
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "add write event done\n");        
-
         /*--- blocking ---*/
         cngx_send_wait(r, 0);    
 
