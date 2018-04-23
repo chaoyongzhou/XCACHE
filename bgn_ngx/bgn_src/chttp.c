@@ -714,13 +714,12 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
 
         CHTTP_STORE_CACHE_ALLOW(chttp_store)      = EC_FALSE;
-        CHTTP_STORE_CACHE_SWITCH(chttp_store)     = SWITCH_ON;
         cstring_init(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), NULL_PTR);
+        cstring_init(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store), NULL_PTR);
-        cstring_init(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store), NULL_PTR);
-
+        
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
@@ -761,13 +760,12 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
 
         CHTTP_STORE_CACHE_ALLOW(chttp_store)      = EC_FALSE;
-        CHTTP_STORE_CACHE_SWITCH(chttp_store)     = SWITCH_ON;
         cstring_clean(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store));
+        cstring_clean(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store));
         cstring_clean(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store));
-        cstring_clean(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store));
-
+       
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
@@ -819,13 +817,12 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store_des)  = CHTTP_STORE_USE_GZIP_FLAG(chttp_store_src);
 
         CHTTP_STORE_CACHE_ALLOW(chttp_store_des)  = CHTTP_STORE_CACHE_ALLOW(chttp_store_src);
-        CHTTP_STORE_CACHE_SWITCH(chttp_store_des) = CHTTP_STORE_CACHE_SWITCH(chttp_store_src);
         cstring_clone(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store_src), CHTTP_STORE_CACHE_HTTP_CODES(chttp_store_des));
+        cstring_clone(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store_src), CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store_des));
         cstring_clone(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store_src), CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store_des));
         cstring_clone(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store_src), CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store_des));
         cstring_clone(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store_src), CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store_des));
-        cstring_clone(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store_src), CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store_des));
-
+        
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_src);
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_src);
 
@@ -911,14 +908,13 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:use_gzip_flag          : %ld\n"      , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
 
     sys_log(LOGSTDOUT, "chttp_store_print:cache_allow            : %s\n", c_bool_str(CHTTP_STORE_CACHE_ALLOW(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_flag             : %s\n", c_switch_to_str(CHTTP_STORE_CACHE_SWITCH(chttp_store)));
 
     sys_log(LOGSTDOUT, "chttp_store_print:cache_http_codes       : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:ncache_http_codes      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:cache_rsp_headers      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:ncache_rsp_headers     : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:cache_if_http_codes    : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:ncache_if_http_codes   : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store)));
-
+    
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
 
@@ -930,7 +926,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 }
 
 /*ref: cache_http_code*/
-EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code)
+EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code)
 {
     CSTRING  *cache_http_codes_cstr;
     char     *cache_http_codes_str;
@@ -939,33 +935,33 @@ EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t sta
     UINT32    num;
     UINT32    pos;
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: enter\n");
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: enter\n");
 
     if(CHTTP_PARTIAL_CONTENT == status_code)
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: status_code is %u => true\n", CHTTP_PARTIAL_CONTENT);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: status_code is %u => true\n", CHTTP_PARTIAL_CONTENT);
         return (EC_TRUE);
     }
 
     cache_http_codes_cstr = CHTTP_STORE_CACHE_HTTP_CODES(chttp_store);
     if(EC_TRUE == cstring_is_empty(cache_http_codes_cstr))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: no http_cache_code => false\n");
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: no http_cache_code => false\n");
         return (EC_FALSE);
     }
 
     cache_http_codes_str = c_str_dup((char *)CSTRING_STR(cache_http_codes_cstr));
     if(NULL_PTR == cache_http_codes_str)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_has_status_code: dup str '%.*s' failed\n",
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_has_cache_status_code: dup str '%.*s' failed\n",
                     (uint32_t)CSTRING_LEN(cache_http_codes_cstr), (char *)CSTRING_STR(cache_http_codes_cstr));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: check %u in '%s'\n", status_code, cache_http_codes_str);
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: check %u in '%s'\n", status_code, cache_http_codes_str);
 
     num = sizeof(cache_http_codes)/sizeof(cache_http_codes[0]);
-    num = c_str_split(cache_http_codes_str, (const char *)" ", (char **)cache_http_codes, num);
+    num = c_str_split(cache_http_codes_str, (const char *)"; ", (char **)cache_http_codes, num);
     for(pos = 0; pos < num; pos ++)
     {
         char *cache_http_code;
@@ -976,7 +972,7 @@ EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t sta
         {
             if(c_str_to_uint32_t(cache_http_code) == status_code)
             {
-                dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: %u in '%s' => true\n",
+                dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: %u in '%s' => true\n",
                                     status_code, (char *)CSTRING_STR(cache_http_codes_cstr));
                 c_str_free(cache_http_codes_str);
                 return (EC_TRUE);
@@ -991,7 +987,7 @@ EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t sta
         && c_str_to_uint32_t_ireplace(cache_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/ 
         )
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: %u in '%s' => true\n",
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: %u in '%s' => true\n",
                                 status_code, (char *)CSTRING_STR(cache_http_codes_cstr));
             c_str_free(cache_http_codes_str);
             return (EC_TRUE);
@@ -1000,12 +996,12 @@ EC_BOOL chttp_store_has_status_code(CHTTP_STORE *chttp_store, const uint32_t sta
 
     c_str_free(cache_http_codes_str);
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: leave => false\n");
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: leave => false\n");
     return (EC_FALSE);
 }
 
 /*ref: cache_if_http_code*/
-EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code, uint32_t *expires)
+EC_BOOL chttp_store_if_cache_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code, uint32_t *expires)
 {
     CSTRING  *cache_if_http_codes_cstr;
     char     *cache_if_http_codes_str;
@@ -1014,30 +1010,30 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
     UINT32    num;
     UINT32    pos;
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: enter\n");
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: enter\n");
 #if 0
     if(CHTTP_PARTIAL_CONTENT == status_code)
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: status_code is %u => true\n", CHTTP_PARTIAL_CONTENT);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: status_code is %u => true\n", CHTTP_PARTIAL_CONTENT);
         return (EC_TRUE);
     }
 #endif
     cache_if_http_codes_cstr = CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store);
     if(EC_TRUE == cstring_is_empty(cache_if_http_codes_cstr))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: no http_cache_code => false\n");
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: no http_cache_code => false\n");
         return (EC_FALSE);
     }
 
     cache_if_http_codes_str = c_str_dup((char *)CSTRING_STR(cache_if_http_codes_cstr));
     if(NULL_PTR == cache_if_http_codes_str)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_has_cache_status_code: dup str '%.*s' failed\n",
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_if_cache_status_code: dup str '%.*s' failed\n",
                     (uint32_t)CSTRING_LEN(cache_if_http_codes_cstr), (char *)CSTRING_STR(cache_if_http_codes_cstr));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: check %u in '%s'\n", status_code, cache_if_http_codes_str);
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: check %u in '%s'\n", status_code, cache_if_http_codes_str);
 
     num = sizeof(cache_if_http_codes)/sizeof(cache_if_http_codes[0]);
     num = c_str_split(cache_if_http_codes_str, (const char *)";", (char **)cache_if_http_codes, num);
@@ -1051,7 +1047,7 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
         n = c_str_split(cache_if_http_code, (const char *)"=", (char **)kv, 2);
         if(0 == n || 2 < n)
         {
-            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_has_cache_status_code: invalid '%.*s'\n",
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_if_cache_status_code: invalid '%.*s'\n",
                     (uint32_t)CSTRING_LEN(cache_if_http_codes_cstr), (char *)CSTRING_STR(cache_if_http_codes_cstr));
             c_str_free(cache_if_http_codes_str);
             return (EC_FALSE);
@@ -1059,7 +1055,7 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
 
         if(c_str_to_uint32_t(kv[ 0 ]) == status_code)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: %u in '%s' => true\n",
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: %u in '%s' => true\n",
                                 status_code, (char *)CSTRING_STR(cache_if_http_codes_cstr));
 
             if(2 == n && NULL_PTR != expires)
@@ -1074,17 +1070,17 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
 
     c_str_free(cache_if_http_codes_str);
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: leave => false\n");
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_if_cache_status_code: leave => false\n");
     return (EC_FALSE);
 }
 
 /*ref: cache_if_http_code*/
 EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code)
 {
-    CSTRING  *not_cache_if_http_codes_cstr;
-    char     *not_cache_if_http_codes_str;
+    CSTRING  *not_cache_http_codes_cstr;
+    char     *not_cache_http_codes_str;
 
-    char     *not_cache_if_http_codes[ 32 ];
+    char     *not_cache_http_codes[ 32 ];
     UINT32    num;
     UINT32    pos;
 
@@ -1096,39 +1092,39 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
         return (EC_TRUE);
     }
 #endif
-    not_cache_if_http_codes_cstr = CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store);
-    if(EC_TRUE == cstring_is_empty(not_cache_if_http_codes_cstr))
+    not_cache_http_codes_cstr = CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store);
+    if(EC_TRUE == cstring_is_empty(not_cache_http_codes_cstr))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: no http_cache_code => false\n");
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: no ncache http codes => false\n");
         return (EC_FALSE);
     }
 
-    not_cache_if_http_codes_str = c_str_dup((char *)CSTRING_STR(not_cache_if_http_codes_cstr));
-    if(NULL_PTR == not_cache_if_http_codes_str)
+    not_cache_http_codes_str = c_str_dup((char *)CSTRING_STR(not_cache_http_codes_cstr));
+    if(NULL_PTR == not_cache_http_codes_str)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_has_not_cache_status_code: dup str '%.*s' failed\n",
-                    (uint32_t)CSTRING_LEN(not_cache_if_http_codes_cstr), (char *)CSTRING_STR(not_cache_if_http_codes_cstr));
+                    (uint32_t)CSTRING_LEN(not_cache_http_codes_cstr), (char *)CSTRING_STR(not_cache_http_codes_cstr));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: check %u in '%s'\n", status_code, not_cache_if_http_codes_str);
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: check %u in '%s'\n", status_code, not_cache_http_codes_str);
 
-    num = sizeof(not_cache_if_http_codes)/sizeof(not_cache_if_http_codes[0]);
-    num = c_str_split(not_cache_if_http_codes_str, (const char *)"; ", (char **)not_cache_if_http_codes, num);/*add space seperator. Jun 14,2017*/
+    num = sizeof(not_cache_http_codes)/sizeof(not_cache_http_codes[0]);
+    num = c_str_split(not_cache_http_codes_str, (const char *)"; ", (char **)not_cache_http_codes, num);/*add space seperator. Jun 14,2017*/
     for(pos = 0; pos < num; pos ++)
     {
         char   *not_cache_if_http_code;
 
-        not_cache_if_http_code = not_cache_if_http_codes[ pos ];
+        not_cache_if_http_code = not_cache_http_codes[ pos ];
 
         if(EC_FALSE == c_char_is_in_ignore_case('X', not_cache_if_http_code, strlen(not_cache_if_http_code)))
         {
             if(c_str_to_uint32_t(not_cache_if_http_code) == status_code)
             {
                 dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: %u in '%s' => true\n",
-                                    status_code, (char *)CSTRING_STR(not_cache_if_http_codes_cstr));
+                                    status_code, (char *)CSTRING_STR(not_cache_http_codes_cstr));
 
-                c_str_free(not_cache_if_http_codes_str);
+                c_str_free(not_cache_http_codes_str);
                 return (EC_TRUE);
             }
             continue;
@@ -1141,14 +1137,14 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
         )
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: %u in '%s' => true\n",
-                                status_code, (char *)CSTRING_STR(not_cache_if_http_codes_cstr));
+                                status_code, (char *)CSTRING_STR(not_cache_http_codes_cstr));
 
-            c_str_free(not_cache_if_http_codes_str);
+            c_str_free(not_cache_http_codes_str);
             return (EC_TRUE);
         }        
     }
 
-    c_str_free(not_cache_if_http_codes_str);
+    c_str_free(not_cache_http_codes_str);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: leave => false\n");
     return (EC_FALSE);
@@ -1179,7 +1175,7 @@ EC_BOOL chttp_store_has_cache_rsp_headers(CHTTP_STORE *chttp_store, const CSTRKV
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_status_code: check cache_if_reply_header '%s'\n", cache_rsp_headers_str);
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: check cache_if_reply_header '%s'\n", cache_rsp_headers_str);
 
     cache_rsp_headers_num = sizeof(cache_rsp_headers)/sizeof(cache_rsp_headers[0]);
     cache_rsp_headers_num = c_str_split(cache_rsp_headers_str, (const char *)";", (char **)cache_rsp_headers, cache_rsp_headers_num);
@@ -3096,7 +3092,6 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
 
     uint32_t     status_code;
     uint32_t     expires;
-    EC_BOOL      ret_of_status_code;
 
     chttp_store = CHTTP_NODE_STORE(chttp_node);
     if(NULL_PTR == chttp_store)
@@ -3123,7 +3118,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
     status_code = (uint32_t)CHTTP_NODE_STATUS_CODE(chttp_node);
 
     expires     = 0; /*init*/
-    if(EC_TRUE == chttp_store_has_cache_status_code(chttp_store, status_code, &expires))
+    if(EC_TRUE == chttp_store_if_cache_status_code(chttp_store, status_code, &expires))
     {
         /*cache*/
         if(0 < expires)
@@ -3161,8 +3156,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
         return;
     }
 
-    ret_of_status_code = chttp_store_has_status_code(chttp_store, status_code);
-    if(EC_FALSE == ret_of_status_code)
+    if(EC_FALSE == chttp_store_has_cache_status_code(chttp_store, status_code))
     {
         /*not cache*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_NONE;
@@ -3170,8 +3164,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
         return;
     }
 
-    if(SWITCH_ON == CHTTP_STORE_CACHE_SWITCH(chttp_store)
-    && EC_FALSE == chttp_store_has_cache_rsp_headers(chttp_store, CHTTP_NODE_HEADER_IN_KVS(chttp_node)))
+    if(EC_FALSE == chttp_store_has_cache_rsp_headers(chttp_store, CHTTP_NODE_HEADER_IN_KVS(chttp_node)))
     {
         /*not cache*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_NONE;
@@ -3179,8 +3172,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
         return;
     }
 
-    if(SWITCH_ON == CHTTP_STORE_CACHE_SWITCH(chttp_store)
-    && EC_TRUE  == chttp_store_has_not_cache_rsp_headers(chttp_store, CHTTP_NODE_HEADER_IN_KVS(chttp_node)))
+    if(EC_TRUE  == chttp_store_has_not_cache_rsp_headers(chttp_store, CHTTP_NODE_HEADER_IN_KVS(chttp_node)))
     {
         /*not cache*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_NONE;

@@ -2107,31 +2107,6 @@ EC_BOOL cngx_set_store_ncache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *ch
     return (EC_TRUE);
 }
 
-EC_BOOL cngx_set_store_cache_switch(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
-{
-#if 0
-    const char      *k;
-    UINT32           s;
-    
-    k = (const char *)CNGX_VAR_CACHE_SWITCH;
-    if(EC_FALSE == cngx_get_var_switch(r, k, &s, SWITCH_ON))/*default is 'on'*/
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_switch: "
-                                             "cngx get var '%s' failed\n",
-                                             k);
-        return (EC_FALSE);
-    }
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_switch: "
-                                         "cngx var '%s':'%s' done\n",
-                                         k, c_switch_to_str(s));
-
-    CHTTP_STORE_CACHE_SWITCH(chttp_store) = s;
-#else    
-    CHTTP_STORE_CACHE_SWITCH(chttp_store) = SWITCH_ON;
-#endif
-    return (EC_TRUE);
-}
-
 EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
@@ -2184,7 +2159,7 @@ EC_BOOL cngx_set_store_ncache_http_codes(ngx_http_request_t *r, CHTTP_STORE *cht
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_ncache_http_codes: "
                                          "cngx var '%s':'%s' done\n",
                                          k, v);
-    cstring_set_str(CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store), (const uint8_t *)v);
+    cstring_set_str(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store), (const uint8_t *)v);
 
     return (EC_TRUE);
 }
@@ -2388,8 +2363,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
 /*config store*/
 EC_BOOL cngx_set_store(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
-    if(EC_FALSE == cngx_set_store_cache_switch(r, chttp_store)
-    || EC_FALSE == cngx_set_store_cache_http_codes(r, chttp_store)
+    if(EC_FALSE == cngx_set_store_cache_http_codes(r, chttp_store)
     || EC_FALSE == cngx_set_store_ncache_http_codes(r, chttp_store)
     || EC_FALSE == cngx_set_store_cache_rsp_headers(r, chttp_store)
     || EC_FALSE == cngx_set_store_ncache_rsp_headers(r, chttp_store)

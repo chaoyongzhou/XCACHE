@@ -91,13 +91,13 @@ typedef struct
 
     /*cache control from configuration*/
     EC_BOOL                   cache_allow;              /*orig or storage at first*/
-    UINT32                    cache_switch;             /*check rsp headers module switch.default on. if on, check rsp headers. if off, not check*/
-    CSTRING                   cache_http_codes;         /*seperated by space*/
+    
+    CSTRING                   cache_http_codes;         /*seperated by semicolon or space. cache if in http codes. format likes as 200;206*/
+    CSTRING                   ncache_http_codes;        /*seperated by semicolon or space. not cache if in http codes. format likes as 404;504*/
     CSTRING                   cache_rsp_headers;        /*if http response has specific header(s), then cache it*/
     CSTRING                   ncache_rsp_headers;       /*if http response has specific header(s), then NOT cache it*/
     CSTRING                   cache_if_http_codes;      /*seperated by semicolon. cache if in http codes and renew Expires. format likes as 404=60;504=50*/
-    CSTRING                   ncache_if_http_codes;     /*seperated by semicolon. not cache if in http codes. format likes as 404;504*/
-
+    
     EC_BOOL                   override_expires_flag;    /*override orig expires switch*/
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
@@ -132,12 +132,12 @@ typedef struct
 #define CHTTP_STORE_USE_GZIP_FLAG(chttp_store)             ((chttp_store)->use_gzip_flag)
 
 #define CHTTP_STORE_CACHE_ALLOW(chttp_store)               ((chttp_store)->cache_allow)
-#define CHTTP_STORE_CACHE_SWITCH(chttp_store)              ((chttp_store)->cache_switch)
+
 #define CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)          (&((chttp_store)->cache_http_codes))
+#define CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)         (&((chttp_store)->ncache_http_codes))
 #define CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)         (&((chttp_store)->cache_rsp_headers))
 #define CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)        (&((chttp_store)->ncache_rsp_headers))
 #define CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)       (&((chttp_store)->cache_if_http_codes))
-#define CHTTP_STORE_NCACHE_IF_HTTP_CODES(chttp_store)      (&((chttp_store)->ncache_if_http_codes))
 
 #define CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)     ((chttp_store)->override_expires_flag)
 #define CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)     ((chttp_store)->override_expires_nsec)

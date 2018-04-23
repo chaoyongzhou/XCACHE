@@ -56,12 +56,11 @@ extern "C"{
 /*cngx var configuration*/
 #define  CNGX_VAR_BGN_MODE_SO_PATH                ("c_bgn_mod_so_path")
 
-#define  CNGX_VAR_CACHE_SWITCH                    ("c_cache_switch")
 #define  CNGX_VAR_CACHE_HTTP_METHOD               ("c_cache_http_method")
 #define  CNGX_VAR_CACHE_HTTP_CODES                ("c_cache_http_codes")
+#define  CNGX_VAR_NCACHE_HTTP_CODES               ("c_ncache_http_codes")
 #define  CNGX_VAR_CACHE_RSP_HEADERS               ("c_cache_rsp_headers")
 #define  CNGX_VAR_NCACHE_RSP_HEADERS              ("c_ncache_rsp_headers")
-#define  CNGX_VAR_NCACHE_HTTP_CODES               ("c_ncache_http_codes")
 
 #define  CNGX_VAR_CACHE_SEG_SIZE                  ("c_cache_seg_size")          /*default: 256KB*/ 
 #define  CNGX_VAR_CACHE_SEG_MAX_NUM               ("c_cache_seg_max_num")       /*default: 1024 * 4 * 64*/ 
@@ -290,8 +289,6 @@ EC_BOOL cngx_need_send_header(ngx_http_request_t *r);
 EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const unsigned flag, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_set_store_cache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
-
-EC_BOOL cngx_set_store_cache_switch(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
 EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
