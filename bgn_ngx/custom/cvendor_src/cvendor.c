@@ -45,6 +45,16 @@ extern "C"{
 #define CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id)  \
     ((CMPI_ANY_MODI != (cvendor_md_id)) && ((NULL_PTR == CVENDOR_MD_GET(cvendor_md_id)) || (0 == (CVENDOR_MD_GET(cvendor_md_id)->usedcounter))))
 
+static const char *g_cvendor_304_headers[ ] = {
+    (const char *)"Connection",
+    (const char *)"ETag",
+    (const char *)"Date",
+    (const char *)"Last-Modified",
+    (const char *)"Expires",
+    (const char *)"Age",
+};
+static const UINT32 g_cvendor_304_headers_num = sizeof(g_cvendor_304_headers)/sizeof(g_cvendor_304_headers[0]);
+
 /**
 *   for test only
 *
@@ -4068,6 +4078,8 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     const char                  *k;
     char                        *v;
 
+    CHTTP_REQ                   *chttp_req;
+
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
     {
@@ -4081,6 +4093,8 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
 
     /*set http request server or ipaddr*/
     do
@@ -4101,7 +4115,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                     "[conf] get var '%s':'%s' done\n",
                                                     k, v);
 
-            if(EC_FALSE == chttp_req_set_server(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            if(EC_FALSE == chttp_req_set_server(chttp_req, v))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                         "[conf] set server '%s' to http req failed\n",
@@ -4141,7 +4155,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                 "get method failed\n");
         return (EC_FALSE);
     }
-    if(EC_FALSE == chttp_req_set_method(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+    if(EC_FALSE == chttp_req_set_method(chttp_req, v))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                 "set method '%s' failed\n",
@@ -4170,7 +4184,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                     "get var '%s':'%s' done\n",
                                                     k, v);
 
-            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                         "[conf] set uri '%s' to http req failed\n",
@@ -4194,7 +4208,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+        if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                     "[cngx] set uri '%s' failed\n",
@@ -4213,7 +4227,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                     "[cngx] get args '%s'\n",
                                                     v);
 
-            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"?"))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                         "[cngx] set '?' failed\n");
@@ -4221,7 +4235,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                 return (EC_FALSE);
             }
 
-            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                         "[cngx] set args '%s' failed\n",
@@ -4243,13 +4257,13 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
         {
             k = (const char *)"Connection";
             v = (char       *)"keep-alive";
-            chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v);
+            chttp_req_renew_header(chttp_req, k, v);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                                     "renew req header '%s':'%s' done\n",
                                                     k, v);
 
             k = (const char *)"Proxy-Connection";
-            chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                                     "del req header '%s' done\n",
                                                     k);                                                     
@@ -4257,17 +4271,27 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
         else
         {
             k = (const char *)"Connection";
-            chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                                     "del req header '%s' done\n",
                                                     k);           
 
             k = (const char *)"Proxy-Connection";
-            chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
                                                     "del req header '%s' done\n",
                                                     k); 
         }
+    }while(0);
+
+    /*delete If-Modified-Since*/
+    do
+    {
+        k = (const char *)"If-Modified-Since";
+        chttp_req_del_header(chttp_req, k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                "del req header '%s' done\n",
+                                                k); 
     }while(0);
     
     /*set range*/
@@ -4297,7 +4321,7 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
 
         k = (const char *)"Range";
         v = (char       *)range;
-        if(EC_FALSE == chttp_req_renew_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), k, v))
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, k, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
                                                     "set header '%s':'%s' failed\n",
@@ -7581,6 +7605,11 @@ EC_BOOL cvendor_content_cache_header_out_if_modified_since_filter(const UINT32 c
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
                                             "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CVENDOR_MD_CHTTP_RSP(cvendor_md), g_cvendor_304_headers, g_cvendor_304_headers_num);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                            "reset rsp headers\n");
+                                            
     return (EC_TRUE);
 }
 

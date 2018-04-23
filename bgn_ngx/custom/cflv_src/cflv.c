@@ -51,6 +51,15 @@ extern "C"{
 static uint8_t               g_flv_header[] = "FLV\x1\x5\0\0\0\x9\0\0\0\0";
 static uint32_t              g_flv_header_len = sizeof(g_flv_header) - 1;
 
+static const char *g_cflv_304_headers[ ] = {
+    (const char *)"Connection",
+    (const char *)"ETag",
+    (const char *)"Date",
+    (const char *)"Last-Modified",
+    (const char *)"Expires",
+    (const char *)"Age",
+};
+static const UINT32 g_cflv_304_headers_num = sizeof(g_cflv_304_headers)/sizeof(g_cflv_304_headers[0]);
 /**
 *   for test only
 *
@@ -3719,6 +3728,8 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
     const char                  *k;
     char                        *v;
 
+    CHTTP_REQ                   *chttp_req;
+
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
     {
@@ -3732,6 +3743,8 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
     /*set http request server or ipaddr*/
     do
@@ -3752,7 +3765,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] get var '%s':'%s' done\n",
                                                  k, v);
 
-            if(EC_FALSE == chttp_req_set_server(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            if(EC_FALSE == chttp_req_set_server(chttp_req, v))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
@@ -3792,7 +3805,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                              "get method failed\n");
         return (EC_FALSE);
     }
-    if(EC_FALSE == chttp_req_set_method(CFLV_MD_CHTTP_REQ(cflv_md), v))
+    if(EC_FALSE == chttp_req_set_method(chttp_req, v))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                              "set method '%s' failed\n",
@@ -3821,7 +3834,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "get var '%s':'%s' done\n",
                                                  k, v);
 
-            if(EC_FALSE == chttp_req_set_uri(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
@@ -3845,7 +3858,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == chttp_req_set_uri(CFLV_MD_CHTTP_REQ(cflv_md), v))
+        if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
@@ -3868,13 +3881,13 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
         {
             k = (const char *)"Connection";
             v = (char       *)"keep-alive";
-            chttp_req_renew_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v);
+            chttp_req_renew_header(chttp_req, k, v);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "renew req header '%s':'%s' done\n",
                                                  k, v);
 
             k = (const char *)"Proxy-Connection";
-            chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
                                                  k);                                                 
@@ -3882,17 +3895,27 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
         else
         {
             k = (const char *)"Connection";
-            chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
                                                  k);
 
             k = (const char *)"Proxy-Connection";
-            chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), k);
+            chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
                                                  k);                                                 
         }
+    }while(0);
+
+    /*delete If-Modified-Since*/
+    do
+    {
+        k = (const char *)"If-Modified-Since";
+        chttp_req_del_header(chttp_req, k);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                             "del req header '%s' done\n",
+                                             k); 
     }while(0);
     
     /*set range*/
@@ -3922,7 +3945,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
 
         k = (const char *)"Range";
         v = (char       *)range;
-        if(EC_FALSE == chttp_req_renew_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v))
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, k, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                  "set header '%s':'%s' failed\n",
@@ -7173,6 +7196,10 @@ EC_BOOL cflv_content_cache_header_out_if_modified_since_filter(const UINT32 cflv
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_modified_since_filter: "
                                          "clean cngx range mgr\n");
+                                         
+    chttp_rsp_only_headers(CFLV_MD_CHTTP_RSP(cflv_md), g_cflv_304_headers, g_cflv_304_headers_num);
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_modified_since_filter: "
+                                         "reset rsp headers\n");
     return (EC_TRUE);
 }
 

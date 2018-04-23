@@ -327,6 +327,7 @@ EC_BOOL chttp_rsp_has_header_key(CHTTP_RSP *chttp_rsp, const char *k);
 EC_BOOL chttp_rsp_has_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v);
 EC_BOOL chttp_rsp_fetch_header(CHTTP_RSP *chttp_rsp, const char *k, CSTRKV_MGR *cstrkv_mgr);
 EC_BOOL chttp_rsp_fetch_headers(CHTTP_RSP *chttp_rsp, const char *keys, CSTRKV_MGR *cstrkv_mgr);
+EC_BOOL chttp_rsp_only_headers(CHTTP_RSP *chttp_rsp, const char **keys, const UINT32 num);
 EC_BOOL chttp_rsp_has_body(const CHTTP_RSP *chttp_rsp);
 EC_BOOL chttp_rsp_discard_body(CHTTP_RSP *chttp_rsp);
 EC_BOOL chttp_rsp_decode(CHTTP_RSP *chttp_rsp, const uint8_t *data, const uint32_t data_len);

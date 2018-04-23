@@ -46,6 +46,16 @@ extern "C"{
 #define CMP4_MD_ID_CHECK_INVALID(cmp4_md_id)  \
     ((CMPI_ANY_MODI != (cmp4_md_id)) && ((NULL_PTR == CMP4_MD_GET(cmp4_md_id)) || (0 == (CMP4_MD_GET(cmp4_md_id)->usedcounter))))
 
+static const char *g_cmp4_304_headers[ ] = {
+    (const char *)"Connection",
+    (const char *)"ETag",
+    (const char *)"Date",
+    (const char *)"Last-Modified",
+    (const char *)"Expires",
+    (const char *)"Age",
+};
+static const UINT32 g_cmp4_304_headers_num = sizeof(g_cmp4_304_headers)/sizeof(g_cmp4_304_headers[0]);
+
 /**
 *   for test only
 *
@@ -4232,7 +4242,16 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
         }
     }while(0);
 
-
+    /*delete If-Modified-Since*/
+    do
+    {
+        k = (const char *)"If-Modified-Since";
+        chttp_req_del_header(chttp_req, k);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                             "del req header '%s' done\n",
+                                             k); 
+    }while(0);
+    
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))
     {
@@ -8536,6 +8555,10 @@ EC_BOOL cmp4_content_cache_header_out_if_modified_since_filter(const UINT32 cmp4
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_modified_since_filter: "
                                          "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_modified_since_filter: "
+                                         "reset rsp headers\n");
     return (EC_TRUE);
 }
 

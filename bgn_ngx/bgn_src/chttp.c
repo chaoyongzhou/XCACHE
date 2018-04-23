@@ -5410,6 +5410,42 @@ EC_BOOL chttp_rsp_fetch_headers(CHTTP_RSP *chttp_rsp, const char *keys, CSTRKV_M
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_rsp_only_headers(CHTTP_RSP *chttp_rsp, const char **keys, const UINT32 num)
+{
+    CSTRKV_MGR *cstrkv_mgr;
+    CLIST_DATA *clist_data;
+
+    cstrkv_mgr = CHTTP_RSP_HEADER(chttp_rsp);
+
+    CLIST_LOOP_NEXT(CSTRKV_MGR_LIST(cstrkv_mgr), clist_data)
+    {
+        CSTRKV *cstrkv;
+        UINT32  idx;
+
+        cstrkv = (CSTRKV *)CLIST_DATA_DATA(clist_data);
+        for(idx = 0; idx < num; idx ++)
+        {
+            if(EC_TRUE == cstring_is_str_ignore_case(CSTRKV_KEY(cstrkv), (UINT8 *)keys[ idx ]))
+            {
+                break;
+            }
+        }
+
+        if(idx >= num)
+        {
+            CLIST_DATA *clist_data_prev;
+
+            clist_data_prev = CLIST_DATA_PREV(clist_data);
+            clist_rmv_no_lock(CSTRKV_MGR_LIST(cstrkv_mgr), clist_data);
+            clist_data = clist_data_prev;
+            
+            cstrkv_free(cstrkv);
+        }
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL chttp_rsp_has_body(const CHTTP_RSP *chttp_rsp)
 {
     if(EC_TRUE == cbytes_is_empty(CHTTP_RSP_BODY(chttp_rsp)))
