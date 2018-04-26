@@ -1957,6 +1957,7 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
                 
                 return (EC_FALSE);
             }
+            wev->ready  = 1;
 
             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
                                                  "add write event done\n");        
