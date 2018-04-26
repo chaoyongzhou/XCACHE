@@ -1070,6 +1070,8 @@ static void __cngx_read_req_body_post(ngx_http_request_t *r)
     {
         ngx_del_timer(r->connection->read);
     } 
+
+    r->main->count --;
     return;
 }
 
@@ -1086,11 +1088,6 @@ EC_BOOL cngx_read_req_body(ngx_http_request_t *r)
     if(rc >= NGX_HTTP_SPECIAL_RESPONSE)
     {
         return (EC_FALSE);
-    }
-
-    if(r == r->main && 1 < r->main->count)
-    {
-        r->main->count --;
     }
 
     if(rc == NGX_AGAIN)
