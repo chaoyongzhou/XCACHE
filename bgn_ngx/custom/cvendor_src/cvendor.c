@@ -5805,16 +5805,16 @@ EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
-                                                 "get var '%s' failed\n",
-                                                 k);
+                                                    "get var '%s' failed\n",
+                                                    k);
             return (EC_FALSE);
         }
 
         if(NULL_PTR != v)
         {
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
-                                                 "get var '%s':'%s' done\n",
-                                                 k, v);
+                                                    "get var '%s':'%s' done\n",
+                                                    k, v);
 
             if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
             {

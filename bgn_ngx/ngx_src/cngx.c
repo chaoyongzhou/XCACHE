@@ -888,6 +888,73 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
     char                        *uri_str;
     char                        *host_str;
 
+    k = (const char *)CNGX_VAR_CACHE_PATH;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                             "get var '%s':'%s' done\n",
+                                             k, v);
+
+        if('/' == v[0])
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                                 "set store_path to '%s'\n",
+                                                 v);
+            /*reuse v: move v to cstring without memory allocation*/
+            cstring_set_str(req_url, (const uint8_t *)v);
+            return (EC_TRUE);
+        }
+
+        if(7 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"http://", 7))
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                                 "convert 'http://' to '/' and set store_path to '%s'\n",
+                                                 v + 6);
+  
+            cstring_append_str(req_url, (const uint8_t *)(v + 6));
+
+            safe_free(v, LOC_CNGX_0043);
+            return (EC_TRUE);
+        }
+
+        if(8 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"https://", 8))
+        {
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                                 "convert 'https://' to '/' and set store_path to '%s'\n",
+                                                 v + 7);
+  
+            cstring_append_str(req_url, (const uint8_t *)(v + 7));
+
+            safe_free(v, LOC_CNGX_0043);
+            return (EC_TRUE);
+        }        
+
+        if(EC_FALSE == cstring_format(req_url, "/%s", v))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
+                                                 "format store_path '/%s' failed\n",
+                                                 v);
+            safe_free(v, LOC_CNGX_0043);
+            return (EC_FALSE);
+        }      
+        
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
+                                             "format store_path '/%s' done\n",
+                                             v);
+        safe_free(v, LOC_CNGX_0044);
+        
+        return (EC_TRUE);
+    }
+
+
     if(EC_FALSE == cngx_get_req_uri(r, &uri_str))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
@@ -958,7 +1025,7 @@ EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r)
     CSTRING    req_url;
 
     cstring_init(&req_url, NULL_PTR);
-    if(EC_FALSE == cngx_get_req_url(r, &req_url, EC_TRUE))
+    if(EC_FALSE == cngx_get_req_url(r, &req_url, EC_FALSE))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_rearm_req_uri: "
                                              "[cngx] get req url failed\n");    
@@ -1019,6 +1086,11 @@ EC_BOOL cngx_read_req_body(ngx_http_request_t *r)
     if(rc >= NGX_HTTP_SPECIAL_RESPONSE)
     {
         return (EC_FALSE);
+    }
+
+    if(r == r->main && 1 < r->main->count)
+    {
+        r->main->count --;
     }
 
     if(rc == NGX_AGAIN)
