@@ -2519,6 +2519,35 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CFLV_0030);
+
+        /*FLV: carray on args to orig*/
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {   
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[cngx] get args '%s'\n",
+                                                 v);
+
+            if(EC_FALSE == chttp_req_set_uri(CFLV_MD_CHTTP_REQ(cflv_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "[cngx] append '?' failed\n");
+                safe_free(v, LOC_CFLV_0063);
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == chttp_req_set_uri(CFLV_MD_CHTTP_REQ(cflv_md), (const char *)v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "[cngx] append args '%s' failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0063);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[cngx] append args '%s' done\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0063);
+        }        
     }while(0);
 
     /*set range*/
@@ -3871,7 +3900,70 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                              v);
         safe_free(v, LOC_CFLV_0063);
 
-        /*FLV: not carray on args to orig*/
+        /*FLV: not carray on start/end arg to orig*/
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            char    *arg_fields[ 32 ]; /*support up to 32 args*/
+            UINT32   arg_split_num;
+            UINT32   arg_left_num;
+            UINT32   arg_idx;
+            char    *args; /*the final args*/
+            
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[cngx] get args '%s'\n",
+                                                 v);
+
+            arg_split_num = c_str_split((char *)v, "&", (char **)arg_fields, sizeof(arg_fields)/sizeof(arg_fields[ 0 ]));
+            for(arg_idx = 0, arg_left_num = 0; arg_idx < arg_split_num; arg_idx ++)
+            {
+                if(0 == STRNCASECMP(arg_fields[ arg_idx ], "start=", 6)
+                || 0 == STRNCASECMP(arg_fields[ arg_idx ], "end="  , 4))
+                {
+                    continue;
+                }
+                
+                if(arg_idx != arg_left_num)
+                {
+                    arg_fields[ arg_left_num ] = arg_fields[ arg_idx ];
+                }
+                
+                arg_left_num ++;
+            }
+
+            if(0 == arg_left_num)
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                     "[cngx] append nothing to uri\n");
+                safe_free(v, LOC_CFLV_0063);            
+                break;
+            }
+
+            args = c_str_join((const char *)"&", (const char **)arg_fields, arg_left_num);
+            safe_free(v, LOC_CFLV_0063);
+
+            v = args; /*move args to v*/
+
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"?"))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "[cngx] append '?' failed\n");
+                safe_free(v, LOC_CFLV_0063);
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "[cngx] append args '%s' failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0063);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[cngx] append args '%s' done\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0063);
+        }        
     }while(0);
 
     /*set keep-alive*/
@@ -5488,11 +5580,48 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                              v);
         safe_free(v, LOC_CFLV_0105);
 
+        /*FLV: not carray on start/end arg to orig*/
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
         {
+            char    *arg_fields[ 32 ]; /*support up to 32 args*/
+            UINT32   arg_split_num;
+            UINT32   arg_left_num;
+            UINT32   arg_idx;
+            char    *args; /*the final args*/
+            
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                  "[cngx] get args '%s'\n",
                                                  v);
+
+            arg_split_num = c_str_split((char *)v, "&", (char **)arg_fields, sizeof(arg_fields)/sizeof(arg_fields[ 0 ]));
+            for(arg_idx = 0, arg_left_num = 0; arg_idx < arg_split_num; arg_idx ++)
+            {
+                if(0 == STRNCASECMP(arg_fields[ arg_idx ], "start=", 6)
+                || 0 == STRNCASECMP(arg_fields[ arg_idx ], "end="  , 4))
+                {
+                    continue;
+                }
+                
+                if(arg_idx != arg_left_num)
+                {
+                    arg_fields[ arg_left_num ] = arg_fields[ arg_idx ];
+                }
+                
+                arg_left_num ++;
+            }
+
+            if(0 == arg_left_num)
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                     "[cngx] append nothing to uri\n");
+                safe_free(v, LOC_CFLV_0063);            
+                break;
+            }
+
+            args = c_str_join((const char *)"&", (const char **)arg_fields, arg_left_num);
+            safe_free(v, LOC_CFLV_0063);
+
+            v = args; /*move args to v*/
 
             if(EC_FALSE == chttp_req_set_uri(CFLV_MD_CHTTP_REQ(cflv_md), (const char *)"?"))
             {
