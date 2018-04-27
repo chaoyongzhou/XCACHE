@@ -7456,6 +7456,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
     if(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
     {
+#if 0    
         if(g_flv_header_len <= CFLV_MD_FLV_START(cflv_md))
         {
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
@@ -7466,7 +7467,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
-
+#endif
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
                                              "[cngx] no range => response status = %ld [after]\n",
