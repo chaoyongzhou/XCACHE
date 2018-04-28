@@ -360,7 +360,7 @@ install-lib:
 
 uninstall-lib:
 	$(if $(wildcard $(DESTDIR)/lib/libngx.so)    , rm -f $(DESTDIR)/lib/libngx.so,)
-	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libngx.so,)
+	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libcvendor.so,)
 
 clean-obj:
 	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	

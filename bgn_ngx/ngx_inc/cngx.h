@@ -226,6 +226,8 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
 
 EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r);
 
+EC_BOOL cngx_get_req_port(const ngx_http_request_t *r, char **val);
+
 EC_BOOL cngx_discard_req_body(ngx_http_request_t *r);
 
 EC_BOOL cngx_read_req_body(ngx_http_request_t *r);

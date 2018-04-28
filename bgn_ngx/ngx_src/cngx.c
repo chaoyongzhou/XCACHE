@@ -24,6 +24,7 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 #include "cstring.h"
+#include "cmisc.h"
 
 #include "carray.h"
 #include "cvector.h"
@@ -1048,6 +1049,57 @@ EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r)
     ngx_memcpy(r->uri.data, cstring_get_str(&req_url), r->uri.len);
     
     cstring_clean(&req_url);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_req_port(const ngx_http_request_t *r, char **val)
+{
+    char    *port_start;
+    char    *port_end;
+    char    *v;
+
+    port_start = NULL_PTR;
+    
+    if (NULL_PTR != r->port_start) 
+    {
+        port_start = (char *)(r->port_start);
+    } 
+    else if (NULL_PTR != r->host_end) 
+    {
+        port_start = (char *)(r->host_end + 1);
+    }
+    else
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_port: "
+                                             "not found port_start or host_end\n");    
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == r->port_end)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_port: "
+                                             "not found port_end\n");    
+        return (EC_FALSE);
+    }
+
+    port_end = (char *)(r->port_end);
+
+    v = c_str_n_dup(port_start, (uint32_t)(port_end - port_start));
+    if (NULL_PTR == v) 
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_port: "
+                                             "dup port '%.*s' failed\n",
+                                             port_end - port_start, 
+                                             port_start);
+        
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_port: "
+                                         "dup port '%s' done\n",
+                                         v);
+    (*val) = v;
 
     return (EC_TRUE);
 }

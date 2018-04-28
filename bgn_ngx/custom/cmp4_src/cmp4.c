@@ -3908,21 +3908,14 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                     *cmp4_md;;
+    CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
+    
     CHTTP_REQ                   *chttp_req;
 
-    static const char           *tags[ ] = {
-        (const char *)"http_host",
-        (const char *)"server_name",
-        (const char *)"host",
-    };
-
-    UINT32                       tag_idx;
-    
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
     {
@@ -3959,63 +3952,77 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0044);
+            safe_free(v, LOC_CMP4_0046);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0045);
+        safe_free(v, LOC_CMP4_0047);
         return (EC_TRUE);
     }
 
-    /*when cngx NOT config orig port*/
-    for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
+    /*extract request port from request line*/
+    if(EC_TRUE == cngx_get_req_port(r, &v) && NULL_PTR != v)
     {
-        k = tags[ tag_idx ];
-
-        if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+        if(EC_FALSE == chttp_req_set_port(chttp_req, v))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
-                                                 "get '%s' failed\n",
-                                                 k);
+                                                 "[cngx] set port '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0048);
             return (EC_FALSE);
         }
-
-        if(NULL_PTR != v)
-        {
-            char   *segs[ 2 ];
-            
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
-                                                 "[cngx] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(2 == c_str_split(v, ":", segs, 2))
-            {
-                /*set port*/
-                if(EC_FALSE == chttp_req_set_port(chttp_req, segs[ 1 ]))
-                {
-                    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
-                                                         "[cngx] set port '%s' to http req failed\n",
-                                                         segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0046);
-                    return (EC_FALSE);
-                }  
-
-                dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
-                                                     "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
-                safe_free(v, LOC_CMP4_0059);
-                
-                return (EC_TRUE);
-            }
-            
-            safe_free(v, LOC_CMP4_0059);
-            
-            /*continue*/
-        }        
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                             "[cngx] set port '%s' to http req done\n",
+                                             v);                                                
+        safe_free(v, LOC_CMP4_0048);
+        return (EC_TRUE);
     }
     
+    /*extract request port from Host header*/
+    k = (const char *)"http_host";
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
+                                             "[cngx] get '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+    if(NULL_PTR != v)
+    {
+        char   *segs[ 2 ];
+        
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                             "[cngx] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(2 == c_str_split(v, ":", segs, 2))
+        {
+            /*set port*/
+            if(EC_FALSE == chttp_req_set_port(chttp_req, segs[ 1 ]))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
+                                                     "[cngx] set port '%s' to http req failed\n",
+                                                     segs[ 1 ]);
+                safe_free(v, LOC_CMP4_0046);
+                return (EC_FALSE);
+            }  
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                                 "[cngx] set port '%s' to http req done\n",
+                                                 segs[ 1 ]); 
+            safe_free(v, LOC_CMP4_0059);
+            
+            return (EC_TRUE);
+        }
+        
+        safe_free(v, LOC_CMP4_0059);
+        
+        /*continue*/
+    }        
+
+    /*use $server_port as the port connecting to origin*/
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -4035,19 +4042,19 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0046);
+            safe_free(v, LOC_CMP4_0048);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0047);
+        safe_free(v, LOC_CMP4_0049);
 
         return (EC_TRUE);
     }
 
     /*should never reach here*/
-    
+
     /*set default orig port*/
     chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "

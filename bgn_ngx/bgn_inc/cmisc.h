@@ -149,6 +149,8 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd);
 
 char *c_str_dup(const char *str);
 
+char *c_str_n_dup(const char *str, const uint32_t n);
+
 EC_BOOL c_str_free(char *str);
 
 EC_BOOL c_str_is_digit(const char *string);

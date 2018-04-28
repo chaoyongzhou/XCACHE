@@ -1349,6 +1349,21 @@ char *c_str_dup(const char *str)
     return (dup_str);
 }
 
+char *c_str_n_dup(const char *str, const uint32_t n)
+{
+    char *dup_str;
+
+    dup_str = (char *)safe_malloc(n + 1, LOC_CMISC_0034);
+    if(NULL_PTR == dup_str)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_n_dup: dup str failed\n");
+        return (NULL_PTR);
+    }
+    BCOPY(str, dup_str, n);
+    dup_str[n] = '\0';
+    return (dup_str);
+}
+
 EC_BOOL c_str_free(char *str)
 {
     if(NULL_PTR != str)
