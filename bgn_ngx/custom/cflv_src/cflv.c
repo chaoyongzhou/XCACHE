@@ -4703,6 +4703,30 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "get var '%s':'%s' done\n",
                                                  k, v);
 
+            while('/' != v[ 0 ])
+            {
+                if(7 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"http://", 7))
+                {
+                    break;
+                }
+
+                if(8 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"https://", 8))
+                {
+                    break;
+                }
+                
+                if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"/"))
+                {
+                    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                         "[cngx] append '/' failed\n");
+                    safe_free(v, LOC_CFLV_0063);
+                    return (EC_FALSE);
+                }
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                     "[cngx] append '/' done\n");                
+                break; /*fall through*/
+            }
+            
             if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "

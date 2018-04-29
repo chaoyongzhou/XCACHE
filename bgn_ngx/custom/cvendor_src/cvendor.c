@@ -5026,6 +5026,30 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                     "get var '%s':'%s' done\n",
                                                     k, v);
 
+            while('/' != v[ 0 ])
+            {
+                if(7 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"http://", 7))
+                {
+                    break;
+                }
+
+                if(8 < strlen(v) && 0 == STRNCASECMP(v, (const char *)"https://", 8))
+                {
+                    break;
+                }
+                
+                if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"/"))
+                {
+                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                            "[cngx] append '/' failed\n");
+                    safe_free(v, LOC_CVENDOR_0067);
+                    return (EC_FALSE);
+                }
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                        "[cngx] append '/' done\n");                
+                break; /*fall through*/
+            }
+            
             if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
