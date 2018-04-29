@@ -206,6 +206,26 @@ EC_BOOL cmp4_renew_header_cache(const UINT32 cmp4_md_id, const char *k, const ch
 
 EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id);
 
+EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_header_out_connection_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_header_out_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_body_out_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_send_response(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id);
+
 EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id);

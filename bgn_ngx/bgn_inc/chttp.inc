@@ -378,7 +378,7 @@ typedef struct _CHTTP_NODE
     uint32_t                  http_rsp_status  :10;
     uint32_t                  header_complete  :1;/*flag, header is completed or not*/
     uint32_t                  keepalive        :1;/*set true if http client ask for*/
-    uint32_t                  rsvd_01          :1;/*reserved flag*/
+    uint32_t                  http_req_is_head :1;/*HEAD request flag*/
     uint32_t                  recv_complete    :1;/*flag*/
     uint32_t                  send_complete    :1;/*flag*/
     uint32_t                  coroutine_restore:1;/*flag*/
@@ -444,7 +444,7 @@ typedef struct _CHTTP_NODE
 
 #define CHTTP_NODE_RSP_STATUS(chttp_node)                  ((chttp_node)->http_rsp_status)
 #define CHTTP_NODE_HEADER_COMPLETE(chttp_node)             ((chttp_node)->header_complete)
-#define CHTTP_NODE_EXPIRED_BODY_NEED(chttp_node)           ((chttp_node)->rsvd_01)
+#define CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node)            ((chttp_node)->http_req_is_head)
 #define CHTTP_NODE_KEEPALIVE(chttp_node)                   ((chttp_node)->keepalive)
 #define CHTTP_NODE_RECV_COMPLETE(chttp_node)               ((chttp_node)->recv_complete)
 #define CHTTP_NODE_SEND_COMPLETE(chttp_node)               ((chttp_node)->send_complete)

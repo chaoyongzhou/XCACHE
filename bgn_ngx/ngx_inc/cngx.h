@@ -238,6 +238,8 @@ EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_method(ngx_http_request_t *r, const char *method);
 
+EC_BOOL cngx_is_head_method(ngx_http_request_t *r);
+
 EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_direct_orig_switch_on(ngx_http_request_t *r);

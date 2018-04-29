@@ -1213,6 +1213,15 @@ EC_BOOL cngx_is_method(ngx_http_request_t *r, const char *method)
     return (EC_FALSE);
 }
 
+EC_BOOL cngx_is_head_method(ngx_http_request_t *r)
+{
+    if(NGX_HTTP_HEAD == r->method)
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
 EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r)
 {
     char *cache_http_method;

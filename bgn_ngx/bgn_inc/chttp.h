@@ -306,6 +306,7 @@ EC_BOOL chttp_req_set_client_certificate_file(CHTTP_REQ *chttp_req, const char *
 EC_BOOL chttp_req_set_client_private_key_file(CHTTP_REQ *chttp_req, const char *fname);
 EC_BOOL chttp_req_set_body(CHTTP_REQ *chttp_req, const uint8_t *data, const uint32_t len);
 EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src);
+EC_BOOL chttp_req_is_head_method(const CHTTP_REQ *chttp_req);
 EC_BOOL chttp_req_has_body(const CHTTP_REQ *chttp_req);
 EC_BOOL chttp_req_discard_body(CHTTP_REQ *chttp_req);
 

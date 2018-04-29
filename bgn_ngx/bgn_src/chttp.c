@@ -1538,9 +1538,9 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         CHTTP_NODE_HEADER_PARSED_LEN(chttp_node) = 0;
         CHTTP_NODE_RSP_STATUS(chttp_node)        = CHTTP_STATUS_NONE;
 
-        CHTTP_NODE_EXPIRED_BODY_NEED(chttp_node) = BIT_TRUE;
         CHTTP_NODE_KEEPALIVE(chttp_node)         = BIT_FALSE;
         CHTTP_NODE_HEADER_COMPLETE(chttp_node)   = BIT_FALSE;
+        CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node)  = BIT_FALSE;
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_SEND_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_FALSE;
@@ -1639,9 +1639,9 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
         CHTTP_NODE_HEADER_PARSED_LEN(chttp_node) = 0;
         CHTTP_NODE_RSP_STATUS(chttp_node)        = CHTTP_STATUS_NONE;
 
-        CHTTP_NODE_EXPIRED_BODY_NEED(chttp_node) = BIT_TRUE;
         CHTTP_NODE_KEEPALIVE(chttp_node)         = BIT_FALSE;
         CHTTP_NODE_HEADER_COMPLETE(chttp_node)   = BIT_FALSE;
+        CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node)  = BIT_FALSE;
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_SEND_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_FALSE;
@@ -1725,7 +1725,6 @@ EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node)
         CHTTP_NODE_HEADER_PARSED_LEN(chttp_node) = 0;
         //CHTTP_NODE_RSP_STATUS(chttp_node)        = CHTTP_STATUS_NONE;
 
-        //CHTTP_NODE_EXPIRED_BODY_NEED(chttp_node) = BIT_TRUE;
         //CHTTP_NODE_KEEPALIVE(chttp_node)         = BIT_FALSE;
         CHTTP_NODE_HEADER_COMPLETE(chttp_node)   = BIT_FALSE;
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
@@ -3550,6 +3549,15 @@ EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len)
             cbuffer_left_shift_out(http_in_buffer, NULL_PTR, parsed_len);
         }
 
+        if(BIT_TRUE == CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) && s_body_identity <= http_parser->state)
+        {
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, http state %s, parsed_len %u => [HEAD] recv completed\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);        
+
+            CHTTP_NODE_RECV_COMPLETE(chttp_node) = BIT_TRUE;
+            return (EC_TRUE);
+        }
+
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, http state %s, parsed_len %u\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
 
@@ -5060,7 +5068,7 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
     CHTTP_REQ_IPADDR(chttp_req_des) = CHTTP_REQ_IPADDR(chttp_req_src);
     CHTTP_REQ_PORT(chttp_req_des)   = CHTTP_REQ_PORT(chttp_req_src);
 
-    CHTTP_REQ_SSL_FLAG(chttp_req_des) = CHTTP_REQ_SSL_FLAG(chttp_req_src);
+    CHTTP_REQ_SSL_FLAG(chttp_req_des)  = CHTTP_REQ_SSL_FLAG(chttp_req_src);
 
     cstring_clone(CHTTP_REQ_METHOD(chttp_req_src), CHTTP_REQ_METHOD(chttp_req_des));
     cstring_clone(CHTTP_REQ_URI(chttp_req_src), CHTTP_REQ_URI(chttp_req_des));
@@ -5071,6 +5079,11 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
     cbytes_clone(CHTTP_REQ_BODY(chttp_req_src), CHTTP_REQ_BODY(chttp_req_des));
 
     return (EC_TRUE);
+}
+
+EC_BOOL chttp_req_is_head_method(const CHTTP_REQ *chttp_req)
+{
+    return cstring_is_str_ignore_case(CHTTP_REQ_METHOD(chttp_req), (const UINT8 *)"HEAD");
 }
 
 EC_BOOL chttp_req_has_body(const CHTTP_REQ *chttp_req)
@@ -8325,6 +8338,11 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         chttp_store_clone(chttp_store, CHTTP_NODE_STORE(chttp_node));
     }
 
+    if(EC_TRUE == chttp_req_is_head_method(chttp_req))
+    {
+        CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) = BIT_TRUE;
+    }
+
     croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTP_0045);
     if(NULL_PTR == croutine_cond)
     {
@@ -8420,7 +8438,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     } else {/*normal*/
 
         /*chunk trigger detached http flow*/
-        if(EC_TRUE == chttp_node_is_chunked(chttp_node))
+        if(BIT_FALSE == CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node)
+        && EC_TRUE == chttp_node_is_chunked(chttp_node))
         {
             CROUTINE_NODE  *croutine_node;
 
