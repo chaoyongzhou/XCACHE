@@ -2453,7 +2453,6 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     return cmp4_content_cache_procedure(cmp4_md_id);
 }
 
-#if 1
 EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;;
@@ -3281,9 +3280,6 @@ EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id)
 
     return (EC_TRUE);
 }
-
-#endif
-
 
 EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
 {
@@ -5120,6 +5116,16 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                              "del req header '%s' done\n",
                                              k); 
     }while(0);
+
+    /*delete If-None-Match*/
+    do
+    {
+        k = (const char *)"If-None-Match";
+        chttp_req_del_header(chttp_req, k);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                             "del req header '%s' done\n",
+                                             k); 
+    }while(0);
     
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))
@@ -5161,6 +5167,191 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
     }
 
     return cmp4_filter_header_in_common(cmp4_md_id, chttp_req);
+}
+
+EC_BOOL cmp4_content_orig_header_out_if_modified_since_filter(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                    *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+
+    time_t                       ims_1st; /*if-modifed-since in cngx http req*/
+    time_t                       ims_2nd; /*last-modified in response (seg-0 in storage)*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_orig_header_out_if_modified_since_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    k = (const char *)"If-Modified-Since";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_out_if_modified_since_filter: "
+                                             "[cngx] get '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                             "[cngx] no '%s'\n",
+                                             k);
+        return (EC_TRUE);
+    }
+
+    ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    safe_free(v, LOC_CMP4_0013);
+
+    k = (const char *)"Last-Modified";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                             "[rsp] no '%s'\n",
+                                             k);
+        return (EC_TRUE);
+    }
+
+    ims_2nd = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    if(ims_1st < ims_2nd)
+    {
+        if(CHTTP_PARTIAL_CONTENT != CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+        {
+            /*set rsp status to 200*/
+            CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                                 "set rsp status = %u\n",
+                                                 CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+        }
+
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                         "set rsp status = %u\n",
+                                         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+
+    crange_mgr_clean(CMP4_MD_CNGX_RANGE_MGR(cmp4_md));
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                         "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                         "reset rsp headers\n");
+                                            
+    cngx_set_header_only(r);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
+                                         "set header only\n");    
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_orig_header_out_if_none_match_filter(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    
+    char                        *etag_src; /*ETag on cache side*/
+    char                        *etag_des; /*ETag on client side*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_orig_header_out_if_none_match_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    k = (const char *)"If-None-Match";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_out_if_none_match_filter: "
+                                             "[cngx] get '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                             "[cngx] no '%s'\n",
+                                             k);
+        return (EC_TRUE);
+    }
+
+    etag_des = v;
+
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                             "[rsp] no '%s'\n",
+                                             k);
+        safe_free(etag_des, LOC_CMP4_0013);
+        return (EC_TRUE);
+    }
+    etag_src = v;
+
+    if(0 != STRCASECMP(etag_src, etag_des)) /*not match*/
+    {
+        /*set rsp status to 200*/
+        CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                             "set rsp status = %u\n",
+                                             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+                                                
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                         "set rsp status = %u\n",
+                                         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+
+    crange_mgr_clean(CMP4_MD_CNGX_RANGE_MGR(cmp4_md));
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                         "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                         "reset rsp headers\n");
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
+                                         "set header only\n");                                             
+    return (EC_TRUE);
 }
 
 EC_BOOL cmp4_content_orig_header_out_range_filter(const UINT32 cmp4_md_id)
@@ -5488,6 +5679,24 @@ EC_BOOL cmp4_content_orig_header_out_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: "
                                              "status filter done\n");
     }
+
+    if(EC_FALSE == cmp4_content_orig_header_out_if_modified_since_filter(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_out_filter: "
+                                             "if-modified-since filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: "
+                                         "if-modified-since filter done\n");
+
+    if(EC_FALSE == cmp4_content_orig_header_out_if_none_match_filter(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_out_filter: "
+                                             "if-none-match filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: "
+                                         "if-none-match filter done\n");      
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: done\n");
     return (EC_TRUE);
@@ -6071,7 +6280,8 @@ EC_BOOL cmp4_content_orig_send_response(const UINT32 cmp4_md_id)
                                          "cmp4_has_mp4_out: %s\n",
                                          c_bool_str(cmp4_has_mp4_out(cmp4_md_id)));
 
-    if(EC_TRUE == crange_mgr_is_empty(crange_mgr)
+    if(EC_FALSE == cngx_need_header_only(r)
+    && EC_TRUE == crange_mgr_is_empty(crange_mgr)
     && EC_FALSE == cmp4_has_mp4_out(cmp4_md_id))
     {
         if(EC_FALSE == cmp4_get_rsp_length_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
@@ -6089,7 +6299,8 @@ EC_BOOL cmp4_content_orig_send_response(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
                                              "crange_mgr size = %ld\n",
                                              crange_mgr_node_num(crange_mgr));
-        if(EC_TRUE == crange_mgr_is_empty(crange_mgr)
+        if(EC_FALSE == cngx_need_header_only(r)
+        && EC_TRUE  == crange_mgr_is_empty(crange_mgr)
         && EC_FALSE == cmp4_has_mp4_out(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
@@ -6111,6 +6322,13 @@ EC_BOOL cmp4_content_orig_send_response(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
                                              "inc absent_seg_no to %ld\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
+    }
+
+    if(EC_TRUE == cngx_need_header_only(r))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
+                                             "need header only => return\n");    
+        return (EC_TRUE);
     }
 
     /*send body*/
@@ -9428,6 +9646,100 @@ EC_BOOL cmp4_content_cache_header_out_if_modified_since_filter(const UINT32 cmp4
     chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_modified_since_filter: "
                                          "reset rsp headers\n");
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_modified_since_filter: "
+                                         "set header only\n"); 
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_cache_header_out_if_none_match_filter(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    
+    char                        *etag_src; /*ETag on cache side*/
+    char                        *etag_des; /*ETag on client side*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_cache_header_out_if_none_match_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    k = (const char *)"If-None-Match";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_header_out_if_none_match_filter: "
+                                             "[cngx] get '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                             "[cngx] no '%s'\n",
+                                             k);
+        return (EC_TRUE);
+    }
+
+    etag_des = v;
+
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                             "[rsp] no '%s'\n",
+                                             k);
+        safe_free(etag_des, LOC_CMP4_0013);
+        return (EC_TRUE);
+    }
+    etag_src = v;
+
+    if(0 != STRCASECMP(etag_src, etag_des)) /*not match*/
+    {
+        /*set rsp status to 200*/
+        CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                             "set rsp status = %u\n",
+                                             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+                                                
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                         "set rsp status = %u\n",
+                                         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
+
+    crange_mgr_clean(CMP4_MD_CNGX_RANGE_MGR(cmp4_md));
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                         "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                         "reset rsp headers\n");
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
+                                         "set header only\n");                                             
     return (EC_TRUE);
 }
 
@@ -9957,6 +10269,15 @@ EC_BOOL cmp4_content_cache_header_out_filter(const UINT32 cmp4_md_id)
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: "
                                          "if-modified-since filter done\n");
 
+    if(EC_FALSE == cmp4_content_cache_header_out_if_none_match_filter(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_header_out_filter: "
+                                             "if-none-match filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: "
+                                         "if-none-match filter done\n");
+                                         
     if(BIT_FALSE == CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md))
     {
         if(EC_FALSE == cmp4_content_cache_header_out_expires_filter(cmp4_md_id))
@@ -10562,7 +10883,8 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
             return (EC_TRUE);            
         }        
 
-        if(EC_TRUE == crange_mgr_is_empty(crange_mgr)
+        if(EC_FALSE == cngx_need_header_only(r)
+        && EC_TRUE == crange_mgr_is_empty(crange_mgr)
         && EC_FALSE == cmp4_has_mp4_out(cmp4_md_id))
         {
             cngx_set_header_only(r);
@@ -10577,6 +10899,13 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
                                              "send header done\n");
+    }
+
+    if(EC_TRUE == cngx_need_header_only(r))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
+                                             "need header only => return\n");    
+        return (EC_TRUE);
     }
 
     /*send body*/

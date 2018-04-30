@@ -384,6 +384,16 @@ EC_BOOL cngx_disable_postpone_output(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_need_header_only(ngx_http_request_t *r)
+{
+    if(0 == r->header_only)
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 /*set only header would be sent out without body*/
 EC_BOOL cngx_set_header_only(ngx_http_request_t *r)
 {

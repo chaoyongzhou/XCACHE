@@ -180,6 +180,8 @@ EC_BOOL cngx_enable_write_delayed(ngx_http_request_t *r);
 
 EC_BOOL cngx_disable_postpone_output(ngx_http_request_t *r);
 
+EC_BOOL cngx_need_header_only(ngx_http_request_t *r);
+
 EC_BOOL cngx_set_header_only(ngx_http_request_t *r);
 
 EC_BOOL cngx_set_header_out_kv(ngx_http_request_t *r, const char *key, const char *val);

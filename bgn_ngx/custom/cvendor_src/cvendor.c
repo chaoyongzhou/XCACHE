@@ -1977,7 +1977,7 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
                                                 "%s:%s => direct procedure\n",
                                                 k, v);
         return cvendor_content_direct_procedure(cvendor_md_id);
-    }    
+    }
 
     cngx_option_set_only_if_cached(r, CVENDOR_MD_CNGX_OPTION(cvendor_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CVENDOR_MD_CNGX_OPTION(cvendor_md)))
@@ -2041,7 +2041,6 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     return cvendor_content_cache_procedure(cvendor_md_id);
 }
 
-#if 1
 EC_BOOL cvendor_content_head_header_in_filter_host(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;;
@@ -2870,7 +2869,6 @@ EC_BOOL cvendor_content_head_procedure(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
-#endif
 EC_BOOL cvendor_content_direct_header_in_filter_host(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;;
@@ -5159,6 +5157,16 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
                                                 "del req header '%s' done\n",
                                                 k); 
     }while(0);
+
+    /*delete If-None-Match*/
+    do
+    {
+        k = (const char *)"If-None-Match";
+        chttp_req_del_header(chttp_req, k);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                "del req header '%s' done\n",
+                                                k); 
+    }while(0);
     
     /*set range*/
     if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
@@ -5200,6 +5208,191 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
     }
 
     return cvendor_filter_header_in_common(cvendor_md_id);
+}
+
+EC_BOOL cvendor_content_orig_header_out_if_modified_since_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+
+    time_t                       ims_1st; /*if-modifed-since in cngx http req*/
+    time_t                       ims_2nd; /*last-modified in response (seg-0 in storage)*/
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_if_modified_since_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"If-Modified-Since";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_if_modified_since_filter: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                                "[cngx] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    safe_free(v, LOC_CVENDOR_0130);
+
+    k = (const char *)"Last-Modified";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                                "[rsp] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    ims_2nd = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
+
+    if(ims_1st < ims_2nd)
+    {
+        if(CHTTP_PARTIAL_CONTENT != CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+        {
+            /*set rsp status to 200*/
+            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                                    "set rsp status = %u\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+        }
+
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                            "set rsp status = %u\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                            "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CVENDOR_MD_CHTTP_RSP(cvendor_md), g_cvendor_304_headers, g_cvendor_304_headers_num);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                            "reset rsp headers\n");
+                                            
+    cngx_set_header_only(r);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_modified_since_filter: "
+                                            "set header only\n");    
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_orig_header_out_if_none_match_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    
+    char                        *etag_src; /*ETag on cache side*/
+    char                        *etag_des; /*ETag on client side*/
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_out_if_none_match_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"If-None-Match";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_if_none_match_filter: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                                "[cngx] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    etag_des = v;
+
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                                "[rsp] no '%s'\n",
+                                                k);
+        safe_free(etag_des, LOC_CVENDOR_0130);
+        return (EC_TRUE);
+    }
+    etag_src = v;
+
+    if(0 != STRCASECMP(etag_src, etag_des)) /*not match*/
+    {
+        /*set rsp status to 200*/
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                                "set rsp status = %u\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+                                                
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                            "set rsp status = %u\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                            "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CVENDOR_MD_CHTTP_RSP(cvendor_md), g_cvendor_304_headers, g_cvendor_304_headers_num);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                            "reset rsp headers\n");
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_if_none_match_filter: "
+                                            "set header only\n");                                             
+    return (EC_TRUE);
 }
 
 EC_BOOL cvendor_content_orig_header_out_range_filter(const UINT32 cvendor_md_id)
@@ -5598,6 +5791,24 @@ EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id)
                                                 "status filter done\n");
     }
 
+    if(EC_FALSE == cvendor_content_orig_header_out_if_modified_since_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_filter: "
+                                                "if-modified-since filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: "
+                                            "if-modified-since filter done\n");
+
+    if(EC_FALSE == cvendor_content_orig_header_out_if_none_match_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_out_filter: "
+                                                "if-none-match filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: "
+                                            "if-none-match filter done\n");    
+
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_filter: done\n");
     return (EC_TRUE);
 }
@@ -5978,7 +6189,8 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
 
     /*note: only after header_out filter with unchanged range segs, we can parse content lengt to segs*/
     /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
-    if(EC_TRUE == crange_mgr_is_empty(crange_mgr))
+    if(EC_FALSE == cngx_need_header_only(r) 
+    && EC_TRUE == crange_mgr_is_empty(crange_mgr))
     {
         if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
         {
@@ -5991,13 +6203,15 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
     if(0 == CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
-                                             "crange_mgr size = %ld\n",
-                                             crange_mgr_node_num(crange_mgr));
-        if(BIT_FALSE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) /*not chunk*/
-        && EC_TRUE == crange_mgr_is_empty(crange_mgr))
+                                                "crange_mgr size = %ld\n",
+                                                crange_mgr_node_num(crange_mgr));
+                                                
+        if(EC_FALSE  == cngx_need_header_only(r)
+        && BIT_FALSE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md) /*not chunk*/
+        && EC_TRUE   == crange_mgr_is_empty(crange_mgr))
         {
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
-                                                 "set header only\n");
+                                                    "set header only\n");
             cngx_set_header_only(r);
         }
 
@@ -6017,6 +6231,13 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
                                                 CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
     }
 
+    if(EC_TRUE == cngx_need_header_only(r))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "need header only => return\n");    
+        return (EC_TRUE);
+    }
+    
     /*send body*/
 
     /*send one seg only*/
@@ -6313,7 +6534,7 @@ EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_content_ims_header_in_filter_host(const UINT32 cvendor_md_id)
 {
-    CVENDOR_MD                     *cvendor_md;;
+    CVENDOR_MD                  *cvendor_md;;
 
     ngx_http_request_t          *r;
     const char                  *k;
@@ -8475,7 +8696,100 @@ EC_BOOL cvendor_content_cache_header_out_if_modified_since_filter(const UINT32 c
     chttp_rsp_only_headers(CVENDOR_MD_CHTTP_RSP(cvendor_md), g_cvendor_304_headers, g_cvendor_304_headers_num);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
                                             "reset rsp headers\n");
-                                            
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_modified_since_filter: "
+                                            "set header only\n");                                             
+    return (EC_TRUE);
+}
+
+EC_BOOL cvendor_content_cache_header_out_if_none_match_filter(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    
+    char                        *etag_src; /*ETag on cache side*/
+    char                        *etag_des; /*ETag on client side*/
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_header_out_if_none_match_filter: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    k = (const char *)"If-None-Match";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_if_none_match_filter: "
+                                                "[cngx] get '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                                "[cngx] no '%s'\n",
+                                                k);
+        return (EC_TRUE);
+    }
+
+    etag_des = v;
+
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                                "[rsp] no '%s'\n",
+                                                k);
+        safe_free(etag_des, LOC_CVENDOR_0130);
+        return (EC_TRUE);
+    }
+    etag_src = v;
+
+    if(0 != STRCASECMP(etag_src, etag_des)) /*not match*/
+    {
+        /*set rsp status to 200*/
+        CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                                "set rsp status = %u\n",
+                                                CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+                                                
+        return (EC_TRUE);
+    }
+
+    /*set rsp status to 304*/
+    CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_NOT_MODIFIED;
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                            "set rsp status = %u\n",
+                                            CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
+
+    crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                            "clean cngx range mgr\n");
+
+    chttp_rsp_only_headers(CVENDOR_MD_CHTTP_RSP(cvendor_md), g_cvendor_304_headers, g_cvendor_304_headers_num);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                            "reset rsp headers\n");
+
+    cngx_set_header_only(r);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_if_none_match_filter: "
+                                            "set header only\n");                                             
     return (EC_TRUE);
 }
 
@@ -9025,6 +9339,15 @@ EC_BOOL cvendor_content_cache_header_out_filter(const UINT32 cvendor_md_id)
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
                                             "if-modified-since filter done\n");
 
+    if(EC_FALSE == cvendor_content_cache_header_out_if_none_match_filter(cvendor_md_id))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_header_out_filter: "
+                                                "if-none-match filter failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_filter: "
+                                            "if-none-match filter done\n");
+
     if(BIT_FALSE == CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md))
     {
         if(EC_FALSE == cvendor_content_cache_header_out_expires_filter(cvendor_md_id))
@@ -9392,7 +9715,8 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
             return (EC_TRUE);            
         }
         
-        if(EC_TRUE == crange_mgr_is_empty(crange_mgr))
+        if(EC_FALSE == cngx_need_header_only(r) 
+        && EC_TRUE == crange_mgr_is_empty(crange_mgr))
         {
             cngx_set_header_only(r);
         }
