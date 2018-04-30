@@ -709,7 +709,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
 
         CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = EC_TRUE;
         cstring_init(CHTTP_STORE_ETAG(chttp_store), NULL_PTR);
-        CHTTP_STORE_LAST_MODIFIED(chttp_store)  = CHTTP_STORE_ERR_LAST_MODIFIED;
+        cstring_init(CHTTP_STORE_LAST_MODIFIED(chttp_store), NULL_PTR);
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = 0;
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
 
@@ -755,7 +755,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
 
         CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = EC_TRUE;
         cstring_clean(CHTTP_STORE_ETAG(chttp_store));
-        CHTTP_STORE_LAST_MODIFIED(chttp_store)  = CHTTP_STORE_ERR_LAST_MODIFIED;
+        cstring_clean(CHTTP_STORE_LAST_MODIFIED(chttp_store));
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = 0;
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
 
@@ -812,7 +812,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
 
         CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store_des) = CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store_src);
         cstring_clone(CHTTP_STORE_ETAG(chttp_store_src), CHTTP_STORE_ETAG(chttp_store_des));
-        CHTTP_STORE_LAST_MODIFIED(chttp_store_des)  = CHTTP_STORE_LAST_MODIFIED(chttp_store_src);
+        cstring_clone(CHTTP_STORE_LAST_MODIFIED(chttp_store_src), CHTTP_STORE_LAST_MODIFIED(chttp_store_des));
         CHTTP_STORE_CONTENT_LENGTH(chttp_store_des) = CHTTP_STORE_CONTENT_LENGTH(chttp_store_src);
         CHTTP_STORE_USE_GZIP_FLAG(chttp_store_des)  = CHTTP_STORE_USE_GZIP_FLAG(chttp_store_src);
 
@@ -903,7 +903,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 
     sys_log(LOGSTDOUT, "chttp_store_print:last_modified_switch   : %s\n"       , c_bool_str(CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:etag                   : %.*s\n"     , CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:last_modified          : %"PRId64"\n", CHTTP_STORE_LAST_MODIFIED(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:last_modified          : %.*s\n"     , CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:content_length         : %"PRId64"\n", CHTTP_STORE_CONTENT_LENGTH(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:use_gzip_flag          : %ld\n"      , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
 
@@ -6976,9 +6976,12 @@ STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chtt
         return (EC_FALSE);
     }
 
+    ccache_dir_delete(CHTTP_STORE_BASEDIR(chttp_store));
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_header_after_ddir: delete '%s' done\n",
+                    (char *)cstring_get_str(CHTTP_STORE_BASEDIR(chttp_store)));
+                    
     if(0 < CBYTES_LEN(cbytes))
     {
-        ccache_dir_delete(CHTTP_STORE_BASEDIR(chttp_store));
         ccache_file_write(store_srv_tcid, store_srv_ipaddr,store_srv_port, path, cbytes, CHTTP_STORE_AUTH_TOKEN(chttp_store));
     }
 
@@ -7063,13 +7066,14 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_etag(CHTTP_NODE *cht
 STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
     char  *last_modified;
-    time_t lsmd;
 
-    if(CHTTP_STORE_ERR_LAST_MODIFIED == CHTTP_STORE_LAST_MODIFIED(chttp_store))
+    if(EC_TRUE == cstring_is_empty(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: store last-modified is not set\n");
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: store last-modified is empty\n");
         return (EC_TRUE);
     }
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_etag: store last-modified: %.*s\n",
+                CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));    
 
     last_modified = chttp_node_get_header(chttp_node, (const char *)"Last-Modified");
     if(NULL_PTR == last_modified)
@@ -7078,18 +7082,17 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *cht
         return (EC_TRUE);
     }
 
-    lsmd = c_parse_http_time((uint8_t *)last_modified, strlen(last_modified));
-
-    if(CHTTP_STORE_LAST_MODIFIED(chttp_store) == lsmd)
+    if(EC_TRUE == cstring_is_str_ignore_case(CHTTP_STORE_LAST_MODIFIED(chttp_store), (const UINT8 *)last_modified))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: store last-modified and header last-modified same as %"PRId64"\n", lsmd);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: store last-modified and header last-modified same as %s\n", last_modified);
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: Last-Modified: %"PRId64" != %"PRId64"('%s') => del '%.*s'\n",
-                        CHTTP_STORE_LAST_MODIFIED(chttp_store), (uint64_t)lsmd, last_modified,
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: Last-Modified: '%.*s' != '%s' => del '%.*s'\n",
+                        CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store), 
+                        last_modified,
                         CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
-
+    
     return (EC_FALSE);
 }
 
@@ -7448,6 +7451,7 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
     {
         /*expired, then => del basedir => store header*/
         __chttp_node_store_header_after_ddir(chttp_node, chttp_store, max_store_size, has_stored_size, &path, store_srv_tcid, store_srv_ipaddr, store_srv_port);
+        CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node) = EC_FALSE; /*clear*/
     }
     CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
 
@@ -7599,6 +7603,7 @@ EC_BOOL chttp_node_store_whole(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store,
     {
         /*expired, then => del basedir => store header*/
         __chttp_node_store_header_after_ddir(chttp_node, chttp_store, max_store_size, has_stored_size, &path, store_srv_tcid, store_srv_ipaddr, store_srv_port);
+        CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node) = EC_FALSE; /*clear*/
     }
 
     CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
@@ -7819,6 +7824,41 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
                     (char *)cstring_get_str(CHTTP_STORE_BASEDIR(chttp_store)));
 
+    }
+
+    /*if found expired after check each segment etag, last-modifed and content-length*/
+    if(0 < CHTTP_STORE_SEG_ID(chttp_store) 
+    && (EC_TRUE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
+    && ((CHTTP_STORE_CACHE_BOTH | CHTTP_STORE_CACHE_WHOLE) & CHTTP_STORE_CACHE_CTRL(chttp_store))
+    )
+    {
+        uint32_t seg_id_saved;
+        uint32_t stored_size;
+
+        /*trick: save seg id and reset it to 0*/
+        seg_id_saved = CHTTP_STORE_SEG_ID(chttp_store);
+        CHTTP_STORE_SEG_ID(chttp_store) = 0;
+        
+        /*WARNING: when store header to storage failed, the whole received header data would be shift out from buffer*/
+        if(EC_FALSE == chttp_node_store_header(chttp_node, chttp_store, CHTTP_NODE_HEADER_PARSED_LEN(chttp_node), &stored_size))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_on_headers_complete: [expired] sockfd %d, store header failed and would be lost\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+            /*restore seg id*/
+            CHTTP_STORE_SEG_ID(chttp_store) = seg_id_saved;
+        }
+        else
+        {
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: [expired] sockfd %d, store header size %u done => header parsed %u\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode), stored_size, CHTTP_NODE_HEADER_PARSED_LEN(chttp_node));
+
+            /*restore seg id*/
+            CHTTP_STORE_SEG_ID(chttp_store) = seg_id_saved;
+        }
+
+        /*clear corresponding cache ctrl flag*/
+        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (UINT32)(~CHTTP_STORE_CACHE_HEADER);
     }
 
     /*if need to store recved data to storage and the starting seg is 0, i.e., header*/

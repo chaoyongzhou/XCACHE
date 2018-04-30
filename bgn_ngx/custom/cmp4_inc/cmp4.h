@@ -67,7 +67,9 @@ typedef struct
     CRANGE_MGR           cngx_range_mgr; 
 
     UINT32               content_length;
-
+    CSTRING              cached_etag;   
+    CSTRING              cached_last_modified;
+    
     CSTRING              header_expires;   
 
     cngx_mp4_file_t     *mp4;
@@ -113,6 +115,8 @@ typedef struct
 #define CMP4_MD_CNGX_RANGE_MGR(cmp4_md)                     (&((cmp4_md)->cngx_range_mgr)) 
 
 #define CMP4_MD_CONTENT_LENGTH(cmp4_md)                     ((cmp4_md)->content_length)
+#define CMP4_MD_CACHED_ETAG(cmp4_md)                        (&((cmp4_md)->cached_etag))
+#define CMP4_MD_CACHED_LAST_MODIFED(cmp4_md)                (&((cmp4_md)->cached_last_modified))
 
 #define CMP4_MD_HEADER_EXPIRES(cmp4_md)                     (&((cmp4_md)->header_expires))
 
@@ -273,6 +277,8 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id);
 EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_seg, CBYTES *seg_cbytes);
 
 EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *header_cbytes);
+
+EC_BOOL cmp4_content_cache_save_header(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_cache_header_out_range_filter(const UINT32 cmp4_md_id);
 

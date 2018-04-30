@@ -62,7 +62,9 @@ typedef struct
     CRANGE_MGR           cngx_range_mgr; 
 
     UINT32               content_length;
-
+    CSTRING              cached_etag;   
+    CSTRING              cached_last_modified;
+    
     CSTRING              header_expires;   
 
     UINT32               flv_start;               /*for FLV*/
@@ -106,6 +108,8 @@ typedef struct
 #define CFLV_MD_CNGX_RANGE_MGR(cflv_md)                     (&((cflv_md)->cngx_range_mgr)) 
 
 #define CFLV_MD_CONTENT_LENGTH(cflv_md)                     ((cflv_md)->content_length)
+#define CFLV_MD_CACHED_ETAG(cflv_md)                        (&((cflv_md)->cached_etag))
+#define CFLV_MD_CACHED_LAST_MODIFED(cflv_md)                (&((cflv_md)->cached_last_modified))
 
 #define CFLV_MD_HEADER_EXPIRES(cflv_md)                     (&((cflv_md)->header_expires))
 #define CFLV_MD_FLV_START(cflv_md)                          ((cflv_md)->flv_start)
@@ -256,6 +260,8 @@ EC_BOOL cflv_content_orig_procedure(const UINT32 cflv_md_id);
 EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_cache_parse_header(const UINT32 cflv_md_id, const CBYTES *header_cbytes);
+
+EC_BOOL cflv_content_cache_save_header(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_cache_header_out_range_filter(const UINT32 cflv_md_id);
 

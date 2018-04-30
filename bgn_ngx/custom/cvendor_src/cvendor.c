@@ -171,6 +171,8 @@ UINT32 cvendor_start(ngx_http_request_t *r)
     crange_mgr_init(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
 
     CVENDOR_MD_CONTENT_LENGTH(cvendor_md)   = 0;
+    cstring_init(CVENDOR_MD_CACHED_ETAG(cvendor_md), NULL_PTR);
+    cstring_init(CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md), NULL_PTR);
 
     cstring_init(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), NULL_PTR);
 
@@ -251,6 +253,8 @@ void cvendor_end(const UINT32 cvendor_md_id)
     crange_mgr_clean(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md));
 
     CVENDOR_MD_CONTENT_LENGTH(cvendor_md)   = 0;
+    cstring_clean(CVENDOR_MD_CACHED_ETAG(cvendor_md));
+    cstring_clean(CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md));
 
     cstring_clean(CVENDOR_MD_HEADER_EXPIRES(cvendor_md));
 
@@ -5892,6 +5896,14 @@ EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id)
 
     CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_BOTH;
 
+    cstring_clone(CVENDOR_MD_CACHED_ETAG(cvendor_md)        , CHTTP_STORE_ETAG(chttp_store));
+    cstring_clone(CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md), CHTTP_STORE_LAST_MODIFIED(chttp_store));
+   
+    if(0 < CVENDOR_MD_CONTENT_LENGTH(cvendor_md))
+    {
+        CHTTP_STORE_CONTENT_LENGTH(chttp_store) = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
+    }
+    
     /*--- chttp_store settting --- END ---*/
 
     return (EC_TRUE);
@@ -8608,6 +8620,75 @@ EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBY
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_cache_save_header(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_cache_save_header: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_save_header: "
+                                                    "[rsp] no '%s'\n",
+                                                    k);
+        }
+        else
+        {
+            cstring_clean(CVENDOR_MD_CACHED_ETAG(cvendor_md));
+            cstring_init(CVENDOR_MD_CACHED_ETAG(cvendor_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_save_header: "
+                                                    "save '%s':'%s'\n",
+                                                    k, v);            
+        }
+    }
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_save_header: "
+                                                    "[rsp] no '%s'\n",
+                                                    k);
+        }
+        else
+        {
+            cstring_clean(CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md));
+            cstring_init(CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_save_header: "
+                                                    "save '%s':'%s'\n",
+                                                    k, v);            
+        }
+    }
+
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_save_header: "
+                                            "done\n");    
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_cache_header_out_if_modified_since_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -10052,6 +10133,16 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
             }
             /*fall through*/
         }while(0);
+
+        if(EC_FALSE == cvendor_content_cache_save_header(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                    "save header failed\n");        
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                "save header done\n");          
 
         /*chunk*/
         if(BIT_TRUE == CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)

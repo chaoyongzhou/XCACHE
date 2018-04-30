@@ -5467,7 +5467,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
 
     cmpi_encode_uint32(comm, CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_STORE_ETAG(chttp_store), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_cstring(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint64(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_USE_GZIP_FLAG(chttp_store), out_buff, out_buff_max_len, position);
 
@@ -5508,7 +5508,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
 
     cmpi_encode_uint32_size(comm, CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store), size);
     cmpi_encode_cstring_size(comm, CHTTP_STORE_ETAG(chttp_store), size);
-    cmpi_encode_uint64_size(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), size);
+    cmpi_encode_cstring_size(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), size);
     cmpi_encode_uint64_size(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_USE_GZIP_FLAG(chttp_store), size);
 
@@ -5567,7 +5567,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_STORE_ETAG(chttp_store));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_LAST_MODIFIED(chttp_store));
+    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_STORE_LAST_MODIFIED(chttp_store));
     cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CONTENT_LENGTH(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
 

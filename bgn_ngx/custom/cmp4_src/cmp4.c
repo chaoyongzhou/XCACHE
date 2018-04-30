@@ -169,6 +169,8 @@ UINT32 cmp4_start(ngx_http_request_t *r)
     crange_mgr_init(CMP4_MD_CNGX_RANGE_MGR(cmp4_md));
 
     CMP4_MD_CONTENT_LENGTH(cmp4_md)   = 0;
+    cstring_init(CMP4_MD_CACHED_ETAG(cmp4_md), NULL_PTR);
+    cstring_init(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), NULL_PTR);
 
     cstring_init(CMP4_MD_HEADER_EXPIRES(cmp4_md), NULL_PTR);
 
@@ -250,6 +252,8 @@ void cmp4_end(const UINT32 cmp4_md_id)
     crange_mgr_clean(CMP4_MD_CNGX_RANGE_MGR(cmp4_md));
 
     CMP4_MD_CONTENT_LENGTH(cmp4_md)   = 0;
+    cstring_clean(CMP4_MD_CACHED_ETAG(cmp4_md));
+    cstring_clean(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md));
 
     cstring_clean(CMP4_MD_HEADER_EXPIRES(cmp4_md));
 
@@ -5777,6 +5781,13 @@ EC_BOOL cmp4_content_orig_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chttp_
 
     CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_BOTH;
 
+    cstring_clone(CMP4_MD_CACHED_ETAG(cmp4_md)        , CHTTP_STORE_ETAG(chttp_store));
+    cstring_clone(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), CHTTP_STORE_LAST_MODIFIED(chttp_store));
+   
+    if(0 < CMP4_MD_CONTENT_LENGTH(cmp4_md))
+    {
+        CHTTP_STORE_CONTENT_LENGTH(chttp_store) = CMP4_MD_CONTENT_LENGTH(cmp4_md);
+    }
     /*--- chttp_store settting --- END ---*/
 
     return (EC_TRUE);
@@ -9558,6 +9569,75 @@ EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *h
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_cache_save_header(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                  *cmp4_md;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_cache_save_header: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(NULL_PTR != CMP4_MD_CHTTP_RSP(cmp4_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
+                                                 "[rsp] no '%s'\n",
+                                                 k);
+        }
+        else
+        {
+            cstring_clean(CMP4_MD_CACHED_ETAG(cmp4_md));
+            cstring_init(CMP4_MD_CACHED_ETAG(cmp4_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
+                                                 "save '%s':'%s'\n",
+                                                 k, v);            
+        }
+    }
+
+    if(NULL_PTR != CMP4_MD_CHTTP_RSP(cmp4_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
+                                                 "[rsp] no '%s'\n",
+                                                 k);
+        }
+        else
+        {
+            cstring_clean(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md));
+            cstring_init(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
+                                                 "save '%s':'%s'\n",
+                                                 k, v);            
+        }
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
+                                         "done\n");    
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_cache_header_out_if_modified_since_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;;
@@ -11190,6 +11270,16 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             }
             /*fall through*/
         }while(0);
+
+        if(EC_FALSE == cmp4_content_cache_save_header(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
+                                                 "save header failed\n");        
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                             "save header done\n"); 
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
         if(EC_TRUE == crange_mgr_is_empty(CMP4_MD_CNGX_RANGE_MGR(cmp4_md))

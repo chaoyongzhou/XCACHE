@@ -173,7 +173,9 @@ UINT32 cflv_start(ngx_http_request_t *r)
     crange_mgr_init(CFLV_MD_CNGX_RANGE_MGR(cflv_md));
 
     CFLV_MD_CONTENT_LENGTH(cflv_md)   = 0;
-
+    cstring_init(CFLV_MD_CACHED_ETAG(cflv_md), NULL_PTR);
+    cstring_init(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), NULL_PTR);
+    
     cstring_init(CFLV_MD_HEADER_EXPIRES(cflv_md), NULL_PTR);
 
     CFLV_MD_FLV_START(cflv_md)        = 0;
@@ -252,6 +254,8 @@ void cflv_end(const UINT32 cflv_md_id)
     crange_mgr_clean(CFLV_MD_CNGX_RANGE_MGR(cflv_md));
 
     CFLV_MD_CONTENT_LENGTH(cflv_md)   = 0;
+    cstring_clean(CFLV_MD_CACHED_ETAG(cflv_md));
+    cstring_clean(CFLV_MD_CACHED_LAST_MODIFED(cflv_md));
 
     cstring_clean(CFLV_MD_HEADER_EXPIRES(cflv_md));
 
@@ -5570,6 +5574,13 @@ EC_BOOL cflv_content_orig_set_store(const UINT32 cflv_md_id)
 
     CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_BOTH;
 
+    cstring_clone(CFLV_MD_CACHED_ETAG(cflv_md)        , CHTTP_STORE_ETAG(chttp_store));
+    cstring_clone(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), CHTTP_STORE_LAST_MODIFIED(chttp_store));
+   
+    if(0 < CFLV_MD_CONTENT_LENGTH(cflv_md))
+    {
+        CHTTP_STORE_CONTENT_LENGTH(chttp_store) = CFLV_MD_CONTENT_LENGTH(cflv_md);
+    }
     /*--- chttp_store settting --- END ---*/
 
     return (EC_TRUE);
@@ -8327,6 +8338,75 @@ EC_BOOL cflv_content_cache_parse_header(const UINT32 cflv_md_id, const CBYTES *h
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_cache_save_header(const UINT32 cflv_md_id)
+{
+    CFLV_MD                  *cflv_md;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_cache_save_header: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(NULL_PTR != CFLV_MD_CHTTP_RSP(cflv_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
+                                                 "[rsp] no '%s'\n",
+                                                 k);
+        }
+        else
+        {
+            cstring_clean(CFLV_MD_CACHED_ETAG(cflv_md));
+            cstring_init(CFLV_MD_CACHED_ETAG(cflv_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
+                                                 "save '%s':'%s'\n",
+                                                 k, v);            
+        }
+    }
+
+    if(NULL_PTR != CFLV_MD_CHTTP_RSP(cflv_md))
+    {
+        const char                  *k;
+        char                        *v;
+
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
+                                                 "[rsp] no '%s'\n",
+                                                 k);
+        }
+        else
+        {
+            cstring_clean(CFLV_MD_CACHED_LAST_MODIFED(cflv_md));
+            cstring_init(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
+                                                 "save '%s':'%s'\n",
+                                                 k, v);            
+        }
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
+                                         "done\n");    
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_cache_header_out_if_modified_since_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;;
@@ -9766,7 +9846,17 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             }
             /*fall through*/
         }while(0);
-        
+
+        if(EC_FALSE == cflv_content_cache_save_header(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
+                                                 "save header failed\n");        
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                             "save header done\n");  
+                                                
         //ASSERT(EC_FALSE == crange_mgr_is_empty(CFLV_MD_CNGX_RANGE_MGR(cflv_md)));
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/

@@ -65,6 +65,8 @@ typedef struct
     CRANGE_MGR           cngx_range_mgr; 
 
     UINT32               content_length;
+    CSTRING              cached_etag;   
+    CSTRING              cached_last_modified;
 
     CSTRING              header_expires;   
 
@@ -110,6 +112,8 @@ typedef struct
 #define CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)                     (&((cvendor_md)->cngx_range_mgr)) 
 
 #define CVENDOR_MD_CONTENT_LENGTH(cvendor_md)                     ((cvendor_md)->content_length)
+#define CVENDOR_MD_CACHED_ETAG(cvendor_md)                        (&((cvendor_md)->cached_etag))
+#define CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md)                (&((cvendor_md)->cached_last_modified))
 
 #define CVENDOR_MD_HEADER_EXPIRES(cvendor_md)                     (&((cvendor_md)->header_expires))
 #define CVENDOR_MD_DEPTH(cvendor_md)                              ((cvendor_md)->depth)
@@ -278,6 +282,8 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id);
 EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBYTES *header_cbytes);
+
+EC_BOOL cvendor_content_cache_save_header(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_cache_header_out_range_filter(const UINT32 cvendor_md_id);
 

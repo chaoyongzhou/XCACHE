@@ -85,7 +85,7 @@ typedef struct
  
     EC_BOOL                   last_modified_switch;     /*switch is on, check etag and last modified*/
     CSTRING                   etag;
-    uint64_t                  last_modified;
+    CSTRING                   last_modified;
     uint64_t                  content_length;           /*lua get content length from previous response header*/
     EC_BOOL                   use_gzip_flag;            /*lua get use gzip flag from previouse response header. note when nil, set to EC_OBSCURE*/
 
@@ -127,7 +127,7 @@ typedef struct
 
 #define CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)      ((chttp_store)->last_modified_switch)
 #define CHTTP_STORE_ETAG(chttp_store)                      (&((chttp_store)->etag))
-#define CHTTP_STORE_LAST_MODIFIED(chttp_store)             ((chttp_store)->last_modified)
+#define CHTTP_STORE_LAST_MODIFIED(chttp_store)             (&((chttp_store)->last_modified))
 #define CHTTP_STORE_CONTENT_LENGTH(chttp_store)            ((chttp_store)->content_length)
 #define CHTTP_STORE_USE_GZIP_FLAG(chttp_store)             ((chttp_store)->use_gzip_flag)
 
@@ -158,6 +158,9 @@ typedef struct
 
 #define CHTTP_STORE_ETAG_STR(chttp_store)                  (CSTRING_STR(CHTTP_STORE_ETAG(chttp_store)))
 #define CHTTP_STORE_ETAG_LEN(chttp_store)                  (CSTRING_LEN(CHTTP_STORE_ETAG(chttp_store)))
+
+#define CHTTP_STORE_LAST_MODIFIED_STR(chttp_store)         (CSTRING_STR(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
+#define CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store)         (CSTRING_LEN(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
 
 
 /*statistics*/
