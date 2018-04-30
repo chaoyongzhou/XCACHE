@@ -9474,6 +9474,13 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
                                              "send header done\n");
     }
 
+    if(EC_TRUE == cngx_need_header_only(r))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_response: "
+                                             "need header only => return\n");    
+        return (EC_TRUE);
+    }
+    
     /*send body*/
 
     if(do_log(SEC_0146_CFLV, 9))

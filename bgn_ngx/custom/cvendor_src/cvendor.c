@@ -9733,6 +9733,13 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
                                                 "send header done\n");        
     }
 
+    if(EC_TRUE == cngx_need_header_only(r))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
+                                                "need header only => return\n");    
+        return (EC_TRUE);
+    }
+    
     /*send body*/
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
