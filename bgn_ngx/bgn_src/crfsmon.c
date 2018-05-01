@@ -1739,7 +1739,7 @@ STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md
     {
         dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                                 "skip empty line '%.*s'\n",
-                                                (crfsmon_host_path_end - crfsmon_host_path_start),
+                                                (uint32_t)(crfsmon_host_path_end - crfsmon_host_path_start),
                                                 crfsmon_host_path_start);
         /*skip empty line*/
         return (EC_TRUE);
@@ -1750,14 +1750,14 @@ STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md
         /*skip commented line*/
         dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                                 "skip commented line '%.*s'\n",
-                                                (crfsmon_host_path_end - crfsmon_host_path_start),
+                                                (uint32_t)(crfsmon_host_path_end - crfsmon_host_path_start),
                                                 crfsmon_host_path_start);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0155_CRFSMON, 6)(LOGSTDOUT, "[DEBUG] __crfsmon_parse_hot_path_line: "
                                             "handle line '%.*s'\n",
-                                            (crfsmon_host_path_end - crfsmon_host_path_start),
+                                            (uint32_t)(crfsmon_host_path_end - crfsmon_host_path_start),
                                             crfsmon_host_path_start);
 
     c_str_trim_space(p);
@@ -1809,7 +1809,7 @@ STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md
         dbg_log(SEC_0155_CRFSMON, 9)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
                                                 "to parse line %u# '%.*s' failed\n",
                                                 crfsmon_hot_path_line_no,
-                                                (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
+                                                (uint32_t)(crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
                                                 crfsmon_hot_path_line_start);
 
         if(EC_FALSE == __crfsmon_parse_hot_path_line(crfsmon_md_id, crfsmon_hot_path_line_start, crfsmon_hot_path_line_end))
@@ -1817,7 +1817,7 @@ STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md
             dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "error:__crfsmon_parse_hot_path_file: "
                                                     "parse line %u# '%.*s' failed\n",
                                                     crfsmon_hot_path_line_no,
-                                                    (crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
+                                                    (uint32_t)(crfsmon_hot_path_line_end - crfsmon_hot_path_line_start),
                                                     crfsmon_hot_path_line_start);
             return (EC_FALSE);
         }

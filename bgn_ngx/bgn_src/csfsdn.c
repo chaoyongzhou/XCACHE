@@ -159,7 +159,7 @@ STATIC_CAST static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const U
                 (char *)CSFSDN_ROOT_DNAME(csfsdn),
                 disk_no,
                 path_no);
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_node_fname_gen: node %u ==> path %s\n", node_id, path);
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] __csfsdn_node_fname_gen: node %ld ==> path %s\n", node_id, path);
     return (EC_TRUE);
 }
 
@@ -359,7 +359,7 @@ CSFSDN_NODE *csfsdn_node_open(CSFSDN *csfsdn, const UINT32 node_id, const UINT32
         return (NULL_PTR);
     }
 
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_open: insert node %u with path %s to open nodes(rbtree)\n", node_id, path);
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_open: insert node %ld with path %s to open nodes(rbtree)\n", node_id, path);
     crb_node = crb_tree_insert_data(CSFSDN_OPEN_NODES(csfsdn), (void *)csfsdn_node);
     if(NULL_PTR == crb_node)
     {
@@ -378,7 +378,7 @@ CSFSDN_NODE *csfsdn_node_open(CSFSDN *csfsdn, const UINT32 node_id, const UINT32
     }
     CSFSDN_CMUTEX_UNLOCK(csfsdn, LOC_CSFSDN_0013);
 
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_open: insert node %u with path %s to open nodes(rbtree) done\n", node_id, path);
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_node_open: insert node %ld with path %s to open nodes(rbtree) done\n", node_id, path);
 
     return (csfsdn_node);
 }
@@ -997,14 +997,14 @@ EC_BOOL csfsdn_read_o(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t blo
 
     node_id = CSFSDN_NODE_ID_MAKE(disk_no, block_no);
     offset_t = offset;
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_read_o: disk %u, block %u  ==> node %u, start\n", disk_no, block_no, node_id);
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_read_o: disk %u, block %u  ==> node %ld, start\n", disk_no, block_no, node_id);
     if(EC_FALSE == csfsdn_node_read(csfsdn, node_id, data_max_len, data_buff, &offset_t))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_o: read %u bytes at offset %u from node %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_o: read %ld bytes at offset %ld from node %ld failed\n",
                            data_max_len, offset, node_id);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_read_o: disk %u, block %u  ==> node %u, end\n", disk_no, block_no, node_id);
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_read_o: disk %u, block %u  ==> node %ld, end\n", disk_no, block_no, node_id);
 
     if(NULL_PTR != data_len)
     {
@@ -1035,7 +1035,7 @@ EC_BOOL csfsdn_write_o(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len)
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: data max len %u overflow\n", data_max_len);
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: data max len %ld overflow\n", data_max_len);
         return (EC_FALSE);
     }
 
@@ -1044,13 +1044,13 @@ EC_BOOL csfsdn_write_o(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(EC_FALSE == csfsdn_node_write(csfsdn, node_id, data_max_len, data_buff, offset))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: write %u bytes to disk %u block %u offset %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_o: write %ld bytes to disk %u block %u offset %ld failed\n",
                             data_max_len, disk_no, block_no, offset_t);
 
         return (EC_FALSE);
     }
 
-    //dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_o: write %u bytes to disk %u block %u offset %u done\n",
+    //dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_o: write %ld bytes to disk %u block %u offset %ld done\n",
     //                    data_max_len, disk_no, block_no, offset_t);
 
     return (EC_TRUE);
@@ -1083,7 +1083,7 @@ EC_BOOL csfsdn_read_b(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t blo
     offset  = (((UINT32)page_no) << (CSFSB_PAGE_BIT_SIZE));
     if(EC_FALSE == csfsdn_read_o(csfsdn, disk_no, block_no, offset, data_max_len, data_buff, data_len))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_b: read %u bytes from disk %u block %u page %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_b: read %ld bytes from disk %u block %u page %u failed\n",
                            data_max_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
@@ -1113,7 +1113,7 @@ EC_BOOL csfsdn_write_b(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len + (*offset))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: data max len %u + offset %u = %u overflow\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: data max len %ld + offset %ld = %ld overflow\n",
                            data_max_len, (*offset), data_max_len + (*offset));
         return (EC_FALSE);
     }
@@ -1124,19 +1124,19 @@ EC_BOOL csfsdn_write_b(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(EC_FALSE == csfsv_new_space(CSFSDN_CSFSV(csfsdn), size, &disk_no_t, &block_no_t, &page_no_t))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: new %u bytes space from vol failed\n", data_max_len);
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: new %ld bytes space from vol failed\n", data_max_len);
         return (EC_FALSE);
     }
     ASSERT(0 == page_no_t);
 
     if(EC_FALSE == csfsdn_write_o(csfsdn, data_max_len, data_buff, disk_no_t, block_no_t, offset))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: write %u bytes to disk %u block %u page %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_b: write %ld bytes to disk %u block %u page %u failed\n",
                             data_max_len, disk_no_t, block_no_t, page_no_t);
 
         return (EC_FALSE);
     }
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_b: write %u bytes to disk %u block %u page %u done\n",
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_b: write %ld bytes to disk %u block %u page %u done\n",
                         data_max_len, disk_no_t, block_no_t, page_no_t);
 
     //CSFSV_CUR_DISK_NO(CSFSDN_CSFSV(csfsdn))  = disk_no_t;
@@ -1175,7 +1175,7 @@ EC_BOOL csfsdn_read_p(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t blo
     //dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_read_p: disk %u, block %u, page %u ==> offset %u\n", disk_no, block_no, page_no, offset);
     if(EC_FALSE == csfsdn_read_o(csfsdn, disk_no, block_no, offset, data_max_len, data_buff, data_len))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_p: read %u bytes from disk %u block %u page %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_p: read %ld bytes from disk %u block %u page %u failed\n",
                            data_max_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
@@ -1206,7 +1206,7 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(CSFSB_CACHE_MAX_BYTE_SIZE < data_max_len)
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: data max len %u overflow\n", data_max_len);
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: data max len %ld overflow\n", data_max_len);
         return (EC_FALSE);
     }
 
@@ -1216,7 +1216,7 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(EC_FALSE == csfsv_new_space(CSFSDN_CSFSV(csfsdn), size, &disk_no_t, &block_no_t,  &page_no_t))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: new %u bytes space from vol failed\n", data_max_len);
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: new %ld bytes space from vol failed\n", data_max_len);
         return (EC_FALSE);
     }
 
@@ -1224,11 +1224,11 @@ EC_BOOL csfsdn_write_p(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
 
     if(EC_FALSE == csfsdn_write_o(csfsdn, data_max_len, data_buff, disk_no_t, block_no_t, &offset))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: write %u bytes to disk %u block %u page %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_p: write %ld bytes to disk %u block %u page %u failed\n",
                             data_max_len, disk_no_t, block_no_t, page_no_t);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_p: write %u bytes to disk %u block %u page %u done\n",
+    dbg_log(SEC_0163_CSFSDN, 9)(LOGSTDOUT, "[DEBUG] csfsdn_write_p: write %ld bytes to disk %u block %u page %u done\n",
                         data_max_len, disk_no_t, block_no_t, page_no_t);
 
     //CSFSV_CUR_DISK_NO(CSFSDN_CSFSV(csfsdn))  = disk_no_t;
@@ -1251,7 +1251,7 @@ EC_BOOL csfsdn_read_e(CSFSDN *csfsdn, const uint16_t disk_no, const uint16_t blo
     offset_t  = (((UINT32)page_no) << (CSFSB_PAGE_BIT_SIZE)) + offset;
     if(EC_FALSE == csfsdn_read_o(csfsdn, disk_no, block_no, offset_t, data_max_len, data_buff, data_len))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_e: read %u bytes from disk %u block %u page %u offset %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_read_e: read %ld bytes from disk %u block %u page %u offset %u failed\n",
                            data_max_len, disk_no, block_no, page_no, offset);
         return (EC_FALSE);
     }
@@ -1266,7 +1266,7 @@ EC_BOOL csfsdn_write_e(CSFSDN *csfsdn, const UINT32 data_max_len, const UINT8 *d
     offset_t  = (((UINT32)page_no) << (CSFSB_PAGE_BIT_SIZE)) + offset;
     if(EC_FALSE == csfsdn_write_o(csfsdn, data_max_len, data_buff, disk_no, block_no, &offset_t))
     {
-        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_e: write %u bytes to disk %u block %u page %u offset %u failed\n",
+        dbg_log(SEC_0163_CSFSDN, 0)(LOGSTDOUT, "error:csfsdn_write_e: write %ld bytes to disk %u block %u page %u offset %ld failed\n",
                            data_max_len, disk_no, block_no, page_no, offset_t);
         return (EC_FALSE);
     }

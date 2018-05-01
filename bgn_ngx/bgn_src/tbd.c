@@ -319,7 +319,7 @@ UINT32 tbd_run(const UINT32 tbd_md_id, const void * ui_retval_addr, const UINT32
             func_ret_value = FUNC_CALL(16, func_addr, func_para_value);
             break;
         default:
-            dbg_log(SEC_0079_TBD, 0)(LOGSTDOUT, "error:tbd_run: func para num = %d overflow\n", func_para_num);
+            dbg_log(SEC_0079_TBD, 0)(LOGSTDOUT, "error:tbd_run: func para num = %ld overflow\n", func_para_num);
             return ((UINT32)(-1));
     }
 

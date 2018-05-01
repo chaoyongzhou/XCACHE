@@ -217,7 +217,7 @@ UINT32 cbc_md_add(const UINT32 md_type, const void *md)
     pos = cindex_reserve(md_cindex, md);
     if(CINDEX_ERR_POS == pos)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_md_add: failed to reserve index for md %lx with type %ld\n", md, md_type);
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_md_add: failed to reserve index for md %p with type %ld\n", md, md_type);
         return (CMPI_ERROR_MODI);
     }
 
@@ -244,7 +244,7 @@ void * cbc_md_del(const UINT32 md_type, const UINT32 pos)
     md = cindex_release(md_cindex, pos);
     if(NULL_PTR == md)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_md_del: md with md_type %ld at pos %ld does not exist\n", md_type, md);
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_md_del: md with md_type %ld at pos %ld does not exist\n", md_type, pos);
         return (NULL_PTR);
     }
     return (md);

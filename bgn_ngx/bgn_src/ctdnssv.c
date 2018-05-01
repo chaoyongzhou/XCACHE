@@ -450,7 +450,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_new(const UINT32 fsize, int 
     ctdnssv_header = (CTDNSSV_HEADER *)safe_malloc(fsize, LOC_CTDNSSV_0009);
     if(NULL_PTR == ctdnssv_header)
     {
-        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_new: new service_header with %u bytes for fd %d failed\n",
+        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_new: new service_header with %ld bytes for fd %d failed\n",
                            fsize, fd);
         return (NULL_PTR);
     }
@@ -500,7 +500,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_load(const UINT32 fsize, int
     buff = (uint8_t *)safe_malloc(fsize, LOC_CTDNSSV_0010);
     if(NULL_PTR == buff)
     {
-        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_load: malloc %u bytes failed for fd %d\n",
+        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_load: malloc %ld bytes failed for fd %d\n",
                             fsize, fd);
         return (NULL_PTR);
     }
@@ -509,7 +509,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_load(const UINT32 fsize, int
     if(EC_FALSE == c_file_load(fd, &offset, fsize, buff))
     {
         safe_free(buff, LOC_CTDNSSV_0011);
-        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_load: load %u bytes failed for fd %d\n",
+        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:__ctdnssv_header_load: load %ld bytes failed for fd %d\n",
                             fsize, fd);
         return (NULL_PTR);
     }
@@ -541,7 +541,7 @@ STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_flush(CTDNSSV_HEADER *ctdns
         offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnssv_header))
         {
-            dbg_log(SEC_0051_CTDNSSV, 1)(LOGSTDOUT, "warn:__ctdnssv_header_flush: flush ctdnssv_hdr of fd %d with size %u failed\n",
+            dbg_log(SEC_0051_CTDNSSV, 1)(LOGSTDOUT, "warn:__ctdnssv_header_flush: flush ctdnssv_hdr of fd %d with size %ld failed\n",
                                fd, fsize);
         }
     }
@@ -560,7 +560,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_free(CTDNSSV_HEADER *ctdnssv
         && EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnssv_header)
         )
         {
-            dbg_log(SEC_0051_CTDNSSV, 1)(LOGSTDOUT, "warn:__ctdnssv_header_free: flush ctdnssv_hdr of fd %d with size %u failed\n",
+            dbg_log(SEC_0051_CTDNSSV, 1)(LOGSTDOUT, "warn:__ctdnssv_header_free: flush ctdnssv_hdr of fd %d with size %ld failed\n",
                                fd, fsize);
         }
 
@@ -604,12 +604,12 @@ STATIC_CAST static CTDNSSV_HEADER * __ctdnssv_header_sync(CTDNSSV_HEADER *ctdnss
     {
         if(0 != msync(ctdnssv_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_sync: sync ctdnssv_hdr of fd %d with size %u failed\n",
+            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_sync: sync ctdnssv_hdr of fd %d with size %ld failed\n",
                                fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_sync: sync ctdnssv_hdr of fd %d with size %u done\n",
+            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_sync: sync ctdnssv_hdr of fd %d with size %ld done\n",
                                fd, fsize);
         }
     }
@@ -622,22 +622,22 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_close(CTDNSSV_HEADER *ctdnss
     {
         if(0 != msync(ctdnssv_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_close: sync ctdnssv_hdr of fd %d with size %u failed\n",
+            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_close: sync ctdnssv_hdr of fd %d with size %ld failed\n",
                                fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_close: sync ctdnssv_hdr of fd %d with size %u done\n",
+            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_close: sync ctdnssv_hdr of fd %d with size %ld done\n",
                                fd, fsize);
         }
         if(0 != munmap(ctdnssv_header, fsize))
         {
-            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_close: munmap ctdnssv of fd %d with size %u failed\n",
+            dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "warn:__ctdnssv_header_close: munmap ctdnssv of fd %d with size %ld failed\n",
                                fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_close: munmap ctdnssv of fd %d with size %u done\n",
+            dbg_log(SEC_0051_CTDNSSV, 9)(LOGSTDOUT, "[DEBUG] __ctdnssv_header_close: munmap ctdnssv of fd %d with size %ld done\n",
                                fd, fsize);
         }
     }
@@ -893,7 +893,7 @@ CTDNSSV *ctdnssv_create(const char *sp_root_dir, const char *sname, const uint8_
 
     if(EC_FALSE == c_file_truncate(fd, fsize))
     {
-        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_create: truncate service file %s to size %u failed\n", ctdnssv_fname, fsize);
+        dbg_log(SEC_0051_CTDNSSV, 0)(LOGSTDOUT, "error:ctdnssv_create: truncate service file %s to size %ld failed\n", ctdnssv_fname, fsize);
         safe_free(ctdnssv_fname, LOC_CTDNSSV_0018);
         c_file_close(fd);
         return (NULL_PTR);

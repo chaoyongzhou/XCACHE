@@ -97,7 +97,7 @@ UINT32 chfs_free_module_static_mem(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_free_module_static_mem: chfs module #0x%lx not started.\n",
+                "error:chfs_free_module_static_mem: chfs module #%ld not started.\n",
                 chfs_md_id);
         /*note: here do not exit but return only*/
         return ((UINT32)-1);
@@ -439,7 +439,7 @@ EC_BOOL chfs_flush(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_flush: chfs module #0x%lx not started.\n",
+                "error:chfs_flush: chfs module #%ld not started.\n",
                 chfs_md_id);
         chfs_print_module_status(chfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CHFS, chfs_md_id);
@@ -479,7 +479,7 @@ UINT32 chfs_set_npp_mod_mgr(const UINT32 chfs_md_id, const MOD_MGR * src_mod_mgr
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_set_npp_mod_mgr: chfs module #0x%lx not started.\n",
+                "error:chfs_set_npp_mod_mgr: chfs module #%ld not started.\n",
                 chfs_md_id);
         chfs_print_module_status(chfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CHFS, chfs_md_id);
@@ -489,15 +489,15 @@ UINT32 chfs_set_npp_mod_mgr(const UINT32 chfs_md_id, const MOD_MGR * src_mod_mgr
     chfs_md = CHFS_MD_GET(chfs_md_id);
     des_mod_mgr = CHFS_MD_NPP_MOD_MGR(chfs_md);
 
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_set_npp_mod_mgr: md_id %d, input src_mod_mgr %lx\n", chfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_set_npp_mod_mgr: md_id %ld, input src_mod_mgr %p\n", chfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of chfsnp_tcid_vec and chfsnp_tcid_vec*/
     mod_mgr_limited_clone(chfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_npp_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_npp_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_npp_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_npp_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -511,7 +511,7 @@ UINT32 chfs_set_dn_mod_mgr(const UINT32 chfs_md_id, const MOD_MGR * src_mod_mgr)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_set_dn_mod_mgr: chfs module #0x%lx not started.\n",
+                "error:chfs_set_dn_mod_mgr: chfs module #%ld not started.\n",
                 chfs_md_id);
         chfs_print_module_status(chfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CHFS, chfs_md_id);
@@ -521,15 +521,15 @@ UINT32 chfs_set_dn_mod_mgr(const UINT32 chfs_md_id, const MOD_MGR * src_mod_mgr)
     chfs_md = CHFS_MD_GET(chfs_md_id);
     des_mod_mgr = CHFS_MD_DN_MOD_MGR(chfs_md);
 
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_set_dn_mod_mgr: md_id %d, input src_mod_mgr %lx\n", chfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "chfs_set_dn_mod_mgr: md_id %ld, input src_mod_mgr %p\n", chfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of chfsnp_tcid_vec and chfsnp_tcid_vec*/
     mod_mgr_limited_clone(chfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_dn_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_dn_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_dn_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0023_CHFS, 5)(LOGSTDOUT, "====================================chfs_set_dn_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -598,7 +598,7 @@ CHFSNP_MGR *chfs_get_npp(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_get_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_get_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -621,7 +621,7 @@ CRFSDN *chfs_get_dn(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_get_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_get_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -644,7 +644,7 @@ EC_BOOL chfs_open_npp(const UINT32 chfs_md_id, const CSTRING *chfsnp_db_root_dir
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_open_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_open_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -680,7 +680,7 @@ EC_BOOL chfs_close_npp(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_close_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_close_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -713,7 +713,7 @@ EC_BOOL chfs_is_npp(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_is_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_is_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -743,7 +743,7 @@ EC_BOOL chfs_is_dn(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_is_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_is_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -773,7 +773,7 @@ EC_BOOL chfs_is_npp_and_dn(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_is_npp_and_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_is_npp_and_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -841,7 +841,7 @@ EC_BOOL chfs_create_npp(const UINT32 chfs_md_id,
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_create_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_create_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -857,13 +857,13 @@ EC_BOOL chfs_create_npp(const UINT32 chfs_md_id,
 
     if(EC_FALSE == __chfs_check_is_uint8_t(chfsnp_model))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_create_npp: chfsnp_model %u is invalid\n", chfsnp_model);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_create_npp: chfsnp_model %ld is invalid\n", chfsnp_model);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == __chfs_check_is_uint32_t(chfsnp_max_num))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_create_npp: chfsnp_disk_max_num %u is invalid\n", chfsnp_max_num);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_create_npp: chfsnp_disk_max_num %ld is invalid\n", chfsnp_max_num);
         return (EC_FALSE);
     }
 
@@ -894,7 +894,7 @@ EC_BOOL chfs_add_npp(const UINT32 chfs_md_id, const UINT32 chfsnpp_tcid, const U
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_add_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_add_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -926,7 +926,7 @@ EC_BOOL chfs_add_dn(const UINT32 chfs_md_id, const UINT32 chfsdn_tcid, const UIN
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_add_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_add_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -963,7 +963,7 @@ EC_BOOL chfs_find_file(const UINT32 chfs_md_id, const CSTRING *file_path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_find_file: chfs module #0x%lx not started.\n",
+                "error:chfs_find_file: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -997,7 +997,7 @@ EC_BOOL chfs_find(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_find: chfs module #0x%lx not started.\n",
+                "error:chfs_find: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1029,7 +1029,7 @@ EC_BOOL chfs_exists(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_exists: chfs module #0x%lx not started.\n",
+                "error:chfs_exists: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1049,7 +1049,7 @@ EC_BOOL chfs_is_file(const UINT32 chfs_md_id, const CSTRING *file_path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_is_file: chfs module #0x%lx not started.\n",
+                "error:chfs_is_file: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1079,7 +1079,7 @@ STATIC_CAST static EC_BOOL __chfs_reserve_hash_dn(const UINT32 chfs_md_id, const
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__chfs_reserve_hash_dn: chfs module #0x%lx not started.\n",
+                "error:__chfs_reserve_hash_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1089,7 +1089,7 @@ STATIC_CAST static EC_BOOL __chfs_reserve_hash_dn(const UINT32 chfs_md_id, const
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_reserve_hash_dn: data_len %u overflow\n", data_len);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_reserve_hash_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
     }
 
@@ -1134,7 +1134,7 @@ STATIC_CAST static EC_BOOL __chfs_reserve_hash_dn(const UINT32 chfs_md_id, const
         if(EC_FALSE == cpgv_new_space(cpgv, size, &disk_no, &block_no, &page_no))
         {
             crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0008);
-            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_reserve_hash_dn: new %u bytes space from vol failed\n", data_len);
+            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_reserve_hash_dn: new %ld bytes space from vol failed\n", data_len);
             return (EC_FALSE);
         }
     }
@@ -1172,7 +1172,7 @@ EC_BOOL chfs_reserve_dn(const UINT32 chfs_md_id, const UINT32 data_len, CHFSNP_F
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_reserve_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_reserve_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1182,7 +1182,7 @@ EC_BOOL chfs_reserve_dn(const UINT32 chfs_md_id, const UINT32 data_len, CHFSNP_F
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_reserve_dn: data_len %u overflow\n", data_len);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_reserve_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
     }
 
@@ -1198,7 +1198,7 @@ EC_BOOL chfs_reserve_dn(const UINT32 chfs_md_id, const UINT32 data_len, CHFSNP_F
     if(EC_FALSE == cpgv_new_space(CRFSDN_CPGV(CHFS_MD_DN(chfs_md)), size, &disk_no, &block_no, &page_no))
     {
         crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0011);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_reserve_dn: new %u bytes space from vol failed\n", data_len);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
     crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0012);
@@ -1234,7 +1234,7 @@ EC_BOOL chfs_release_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnod
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_release_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_release_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1290,7 +1290,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__chfs_write: chfs module #0x%lx not started.\n",
+                "error:__chfs_write: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1332,7 +1332,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
     if(EC_FALSE == __chfs_reserve_hash_dn(chfs_md_id, CBYTES_LEN(cbytes), file_path, &chfsnp_fnode))
     {
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_write: reserve dn %u bytes for file %s failed\n",
-                            CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
+                            (uint32_t)CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
 
         /*notify all waiters*/
         chfs_file_notify(chfs_md_id, file_path); /*patch*/
@@ -1356,7 +1356,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
     }
 
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDNULL, "[DEBUG] __chfs_write: write file %s is %.*s\n",
-                        (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+                        (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     CHFS_WRLOCK(chfs_md, LOC_CHFS_0019);
     if(EC_FALSE == chfs_write_npp(chfs_md_id, file_path, &chfsnp_fnode))
@@ -1386,7 +1386,7 @@ STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CST
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__chfs_write_cache: chfs module #0x%lx not started.\n",
+                "error:__chfs_write_cache: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1408,7 +1408,7 @@ STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CST
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] __chfs_write_cache: write file %s to dn where fnode is \n", (char *)cstring_get_str(file_path));
     chfsnp_fnode_print(LOGSTDOUT, &chfsnp_fnode);
 
-    dbg_log(SEC_0023_CHFS, 9)(LOGSTDNULL, "[DEBUG] __chfs_write_cache: write file %s is %.*s\n", (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+    dbg_log(SEC_0023_CHFS, 9)(LOGSTDNULL, "[DEBUG] __chfs_write_cache: write file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     if(EC_FALSE == chfs_write_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
@@ -1445,7 +1445,7 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read: chfs module #0x%lx not started.\n",
+                "error:chfs_read: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1498,7 +1498,7 @@ EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *o
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read_e: chfs module #0x%lx not started.\n",
+                "error:chfs_read_e: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1572,7 +1572,7 @@ EC_BOOL chfs_update(const UINT32 chfs_md_id, const CSTRING *file_path, const CBY
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_update: chfs module #0x%lx not started.\n",
+                "error:chfs_update: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1610,7 +1610,7 @@ EC_BOOL chfs_update_no_lock(const UINT32 chfs_md_id, const CSTRING *file_path, c
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_update_no_lock: chfs module #0x%lx not started.\n",
+                "error:chfs_update_no_lock: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1666,7 +1666,7 @@ EC_BOOL chfs_renew_http_header(const UINT32 chfs_md_id, const CSTRING *file_path
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_renew_http_header: chfs module #0x%lx not started.\n",
+                "error:chfs_renew_http_header: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1742,7 +1742,7 @@ EC_BOOL chfs_renew_http_headers(const UINT32 chfs_md_id, const CSTRING *file_pat
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_renew_http_headers: chfs module #0x%lx not started.\n",
+                "error:chfs_renew_http_headers: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1835,7 +1835,7 @@ EC_BOOL chfs_wait_http_header(const UINT32 chfs_md_id, const UINT32 tcid, const 
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_wait_http_header: chfs module #0x%lx not started.\n",
+                "error:chfs_wait_http_header: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -1914,7 +1914,7 @@ EC_BOOL chfs_wait_http_headers(const UINT32 chfs_md_id, const UINT32 tcid, const
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_wait_http_headers: chfs module #0x%lx not started.\n",
+                "error:chfs_wait_http_headers: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2077,7 +2077,7 @@ void chfs_wait_files_print(const UINT32 chfs_md_id, LOG *log)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_wait_files_print: chfs module #0x%lx not started.\n",
+                "error:chfs_wait_files_print: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2134,7 +2134,7 @@ EC_BOOL chfs_wait_file_owner_push(CHFS_WAIT_FILE *chfs_wait_file, const UINT32 t
         clist_push_back(owner_list, (void *)mod_node);
 
         dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_wait_file_owner_push: push %s to file '%.*s'\n",
-                    c_word_to_ipv4(tcid), CHFS_WAIT_FILE_NAME_LEN(chfs_wait_file), CHFS_WAIT_FILE_NAME_STR(chfs_wait_file));
+                    c_word_to_ipv4(tcid), (uint32_t)CHFS_WAIT_FILE_NAME_LEN(chfs_wait_file), CHFS_WAIT_FILE_NAME_STR(chfs_wait_file));
     }
 
     return (EC_TRUE);
@@ -2157,7 +2157,7 @@ EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_wait_file_owner_wakeup: chfs module #0x%lx not started.\n",
+                "error:chfs_wait_file_owner_wakeup: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2177,7 +2177,7 @@ EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_wait_file_owner_wakeup: req uri '%.*s' done\n",
-                CSTRING_LEN(uri), CSTRING_STR(uri));
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
@@ -2185,7 +2185,7 @@ EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -2194,7 +2194,7 @@ EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store
     }
 
     dbg_log(SEC_0023_CHFS, 1)(LOGSTDOUT, "[DEBUG] chfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -2381,7 +2381,7 @@ EC_BOOL chfs_file_wait(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRING
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_wait: chfs module #0x%lx not started.\n",
+                "error:chfs_file_wait: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2417,7 +2417,7 @@ EC_BOOL chfs_file_wait_e(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRI
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_wait: chfs module #0x%lx not started.\n",
+                "error:chfs_file_wait: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2461,7 +2461,7 @@ EC_BOOL chfs_file_notify(const UINT32 chfs_md_id, const CSTRING *file_path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_notify: chfs module #0x%lx not started.\n",
+                "error:chfs_file_notify: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2605,7 +2605,7 @@ void chfs_locked_files_print(const UINT32 chfs_md_id, LOG *log)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_locked_files_print: chfs module #0x%lx not started.\n",
+                "error:chfs_locked_files_print: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2735,7 +2735,7 @@ EC_BOOL chfs_locked_file_retire(const UINT32 chfs_md_id, const UINT32 retire_max
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_locked_file_retire: chfs module #0x%lx not started.\n",
+                "error:chfs_locked_file_retire: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2838,7 +2838,7 @@ EC_BOOL chfs_file_lock(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRING
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_lock: chfs module #0x%lx not started.\n",
+                "error:chfs_file_lock: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2950,7 +2950,7 @@ EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, cons
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_unlock: chfs module #0x%lx not started.\n",
+                "error:chfs_file_unlock: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -2963,7 +2963,7 @@ EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, cons
 #if 0
     if(do_log(SEC_0023_CHFS, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] chfs_file_unlock: auth_token str: %.*s\n", CSTRING_LEN(token_str), CSTRING_STR(token_str));
+        sys_log(LOGSTDOUT, "[DEBUG] chfs_file_unlock: auth_token str: %.*s\n", (uint32_t)CSTRING_LEN(token_str), CSTRING_STR(token_str));
         sys_log(LOGSTDOUT, "[DEBUG] chfs_file_unlock: auth_token str => token: ");
         cbytes_print_chars(LOGSTDOUT, &token_cbyte);
 
@@ -3000,7 +3000,7 @@ EC_BOOL chfs_file_unlock_notify(const UINT32 chfs_md_id, const CSTRING *file_pat
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_unlock_notify: chfs module #0x%lx not started.\n",
+                "error:chfs_file_unlock_notify: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3026,7 +3026,7 @@ EC_BOOL chfs_cache_file(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_cache_file: chfs module #0x%lx not started.\n",
+                "error:chfs_cache_file: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3080,7 +3080,7 @@ EC_BOOL chfs_create_dn(const UINT32 chfs_md_id, const CSTRING *root_dir)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_create_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_create_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3116,7 +3116,7 @@ EC_BOOL chfs_add_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_add_disk: chfs module #0x%lx not started.\n",
+                "error:chfs_add_disk: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3131,7 +3131,7 @@ EC_BOOL chfs_add_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_add_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_add_disk: disk_no %ld is invalid\n", disk_no);
         return (EC_FALSE);
     }
 
@@ -3139,7 +3139,7 @@ EC_BOOL chfs_add_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_add_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
         CHFS_UNLOCK(chfs_md, LOC_CHFS_0052);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_add_disk: add disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_add_disk: add disk %ld to dn failed\n", disk_no);
         return (EC_FALSE);
     }
     CHFS_UNLOCK(chfs_md, LOC_CHFS_0053);
@@ -3159,7 +3159,7 @@ EC_BOOL chfs_del_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_del_disk: chfs module #0x%lx not started.\n",
+                "error:chfs_del_disk: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3174,7 +3174,7 @@ EC_BOOL chfs_del_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_del_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_del_disk: disk_no %ld is invalid\n", disk_no);
         return (EC_FALSE);
     }
 
@@ -3182,7 +3182,7 @@ EC_BOOL chfs_del_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_del_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
         CHFS_UNLOCK(chfs_md, LOC_CHFS_0055);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_del_disk: del disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_del_disk: del disk %ld from dn failed\n", disk_no);
         return (EC_FALSE);
     }
     CHFS_UNLOCK(chfs_md, LOC_CHFS_0056);
@@ -3202,7 +3202,7 @@ EC_BOOL chfs_mount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_mount_disk: chfs module #0x%lx not started.\n",
+                "error:chfs_mount_disk: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3217,7 +3217,7 @@ EC_BOOL chfs_mount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_mount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_mount_disk: disk_no %ld is invalid\n", disk_no);
         return (EC_FALSE);
     }
 
@@ -3225,7 +3225,7 @@ EC_BOOL chfs_mount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_mount_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
         CHFS_UNLOCK(chfs_md, LOC_CHFS_0058);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_mount_disk: mount disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_mount_disk: mount disk %ld to dn failed\n", disk_no);
         return (EC_FALSE);
     }
     CHFS_UNLOCK(chfs_md, LOC_CHFS_0059);
@@ -3245,7 +3245,7 @@ EC_BOOL chfs_umount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_umount_disk: chfs module #0x%lx not started.\n",
+                "error:chfs_umount_disk: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3260,7 +3260,7 @@ EC_BOOL chfs_umount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_umount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_umount_disk: disk_no %ld is invalid\n", disk_no);
         return (EC_FALSE);
     }
 
@@ -3268,7 +3268,7 @@ EC_BOOL chfs_umount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_umount_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
         CHFS_UNLOCK(chfs_md, LOC_CHFS_0061);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_umount_disk: umount disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_umount_disk: umount disk %ld from dn failed\n", disk_no);
         return (EC_FALSE);
     }
     CHFS_UNLOCK(chfs_md, LOC_CHFS_0062);
@@ -3289,7 +3289,7 @@ EC_BOOL chfs_open_dn(const UINT32 chfs_md_id, const CSTRING *root_dir)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_open_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_open_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3327,7 +3327,7 @@ EC_BOOL chfs_close_dn(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_close_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_close_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3370,7 +3370,7 @@ EC_BOOL chfs_export_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, const CHFS
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_export_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_export_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3383,7 +3383,7 @@ EC_BOOL chfs_export_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, const CHFS
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_export_dn: CBYTES_LEN %u or CHFSNP_FNODE_FILESZ %u overflow\n",
-                            CBYTES_LEN(cbytes), CHFSNP_FNODE_FILESZ(chfsnp_fnode));
+                            (uint32_t)CBYTES_LEN(cbytes), CHFSNP_FNODE_FILESZ(chfsnp_fnode));
         return (EC_FALSE);
     }
 
@@ -3403,11 +3403,11 @@ EC_BOOL chfs_export_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, const CHFS
     offset  = (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
     if(EC_FALSE == crfsdn_write_o(CHFS_MD_DN(chfs_md), data_len, CBYTES_BUF(cbytes), disk_no, block_no, &offset))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_export_dn: write %u bytes to disk %u block %u page %u failed\n",
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_export_dn: write %ld bytes to disk %u block %u page %u failed\n",
                             data_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_export_dn: write %u bytes to disk %u block %u page %u done\n",
+    dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_export_dn: write %ld bytes to disk %u block %u page %u done\n",
                         data_len, disk_no, block_no, page_no);
 
     return (EC_TRUE);
@@ -3431,7 +3431,7 @@ EC_BOOL chfs_write_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSNP_FNOD
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_write_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_write_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3441,7 +3441,7 @@ EC_BOOL chfs_write_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSNP_FNOD
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn: buff len (or file size) %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn: buff len (or file size) %u overflow\n", (uint32_t)CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -3450,7 +3450,7 @@ EC_BOOL chfs_write_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSNP_FNOD
     {
         crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0064);
 
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn: write %u bytes to dn failed\n", (uint32_t)CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
     crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0065);
@@ -3485,7 +3485,7 @@ EC_BOOL chfs_write_dn_cache(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSN
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_write_dn_cache: chfs module #0x%lx not started.\n",
+                "error:chfs_write_dn_cache: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3495,7 +3495,7 @@ EC_BOOL chfs_write_dn_cache(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSN
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn_cache: buff len (or file size) %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn_cache: buff len (or file size) %u overflow\n", (uint32_t)CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -3510,7 +3510,7 @@ EC_BOOL chfs_write_dn_cache(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSN
 
     if(EC_FALSE == crfsdn_write_p_cache(CHFS_MD_DN(chfs_md), cbytes_len(cbytes), cbytes_buf(cbytes), &disk_no, &block_no, &page_no))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn_cache: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn_cache: write %u bytes to dn failed\n", (uint32_t)CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -3543,7 +3543,7 @@ EC_BOOL chfs_read_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode, 
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_read_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3616,7 +3616,7 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read_e_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_read_e_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3644,7 +3644,7 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
 
     if((*offset) >= file_size)
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %u >= file size %u\n", (*offset), file_size);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %u >= file size %u\n", (uint32_t)(*offset), file_size);
         return (EC_FALSE);
     }
 
@@ -3658,7 +3658,7 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
         max_len_t = DMIN(max_len, file_size - offset_t);
     }
 
-    dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u, offset %u, max len %u\n",
+    dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u offset %u, max len %ld\n",
                         file_size, disk_no, block_no, page_no, offset_t, max_len_t);
 
     if(CBYTES_LEN(cbytes) < file_size)
@@ -3676,7 +3676,7 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
     {
         crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0074);
 
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_e_dn: read %u bytes from disk %u, block %u, page %u failed\n",
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_e_dn: read %ld bytes from disk %u, block %u, page %u failed\n",
                            max_len_t, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
@@ -3699,7 +3699,7 @@ EC_BOOL chfs_write_npp(const UINT32 chfs_md_id, const CSTRING *file_path, const 
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_write_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_write_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3745,7 +3745,7 @@ EC_BOOL chfs_read_npp(const UINT32 chfs_md_id, const CSTRING *file_path, CHFSNP_
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_read_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3785,7 +3785,7 @@ EC_BOOL chfs_delete_npp(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_delete_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3831,7 +3831,7 @@ STATIC_CAST static EC_BOOL __chfs_delete_dn(const UINT32 chfs_md_id, const CHFSN
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__chfs_delete_dn: chfs module #0x%lx not started.\n",
+                "error:__chfs_delete_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3890,7 +3890,7 @@ EC_BOOL chfs_delete_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_delete_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3941,7 +3941,7 @@ EC_BOOL chfs_delete(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete: chfs module #0x%lx not started.\n",
+                "error:chfs_delete: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -3981,7 +3981,7 @@ EC_BOOL chfs_delete_dir(const UINT32 chfs_md_id, const CSTRING *dir_path, const 
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete_dir: chfs module #0x%lx not started.\n",
+                "error:chfs_delete_dir: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4057,7 +4057,7 @@ EC_BOOL chfs_qfile(const UINT32 chfs_md_id, const CSTRING *file_path, CHFSNP_ITE
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_qfile: chfs module #0x%lx not started.\n",
+                "error:chfs_qfile: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4101,7 +4101,7 @@ EC_BOOL chfs_flush_npp(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_flush_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_flush_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4141,7 +4141,7 @@ EC_BOOL chfs_flush_dn(const UINT32 chfs_md_id)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_flush_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_flush_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4182,7 +4182,7 @@ EC_BOOL chfs_file_num(const UINT32 chfs_md_id, UINT32 *file_num)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_num: chfs module #0x%lx not started.\n",
+                "error:chfs_file_num: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4221,7 +4221,7 @@ EC_BOOL chfs_file_size(const UINT32 chfs_md_id, const CSTRING *path_cstr, UINT32
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_size: chfs module #0x%lx not started.\n",
+                "error:chfs_file_size: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4260,7 +4260,7 @@ EC_BOOL chfs_search(const UINT32 chfs_md_id, const CSTRING *path_cstr)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_search: chfs module #0x%lx not started.\n",
+                "error:chfs_search: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4307,7 +4307,7 @@ EC_BOOL chfs_check_file_content(const UINT32 chfs_md_id, const UINT32 disk_no, c
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_check_file_content: chfs module #0x%lx not started.\n",
+                "error:chfs_check_file_content: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4328,14 +4328,14 @@ EC_BOOL chfs_check_file_content(const UINT32 chfs_md_id, const UINT32 disk_no, c
     cbytes = cbytes_new(file_size);
     if(NULL_PTR == cbytes)
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: new chfs buff with len %u failed\n", file_size);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: new chfs buff with len %ld failed\n", file_size);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfsdn_read_p(CHFS_MD_DN(chfs_md), (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no, file_size,
                                   CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: read %u bytes from disk %u, block %u, page %u failed\n",
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: read %ld bytes from disk %ld, block %ld, page %ld failed\n",
                             file_size, disk_no, block_no, page_no);
         cbytes_free(cbytes);
         return (EC_FALSE);
@@ -4343,7 +4343,7 @@ EC_BOOL chfs_check_file_content(const UINT32 chfs_md_id, const UINT32 disk_no, c
 
     if(CBYTES_LEN(cbytes) < cstring_get_len(file_content_cstr))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: read %u bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: read %ld bytes from disk %ld, block %ld, page %ld to buff len %ld less than cstring len %ld to compare\n",
                             file_size, disk_no, block_no, page_no,
                             CBYTES_LEN(cbytes), cstring_get_len(file_content_cstr));
         cbytes_free(cbytes);
@@ -4359,9 +4359,9 @@ EC_BOOL chfs_check_file_content(const UINT32 chfs_md_id, const UINT32 disk_no, c
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_content: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -4393,7 +4393,7 @@ EC_BOOL chfs_check_file_is(const UINT32 chfs_md_id, const CSTRING *file_path, co
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_check_file_is: chfs module #0x%lx not started.\n",
+                "error:chfs_check_file_is: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4423,7 +4423,7 @@ EC_BOOL chfs_check_file_is(const UINT32 chfs_md_id, const CSTRING *file_path, co
 
     if(CBYTES_LEN(cbytes) != CBYTES_LEN(file_content))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_is: mismatched len: file %s read len %u which should be %u\n",
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_is: mismatched len: file %s read len %ld which should be %ld\n",
                             (char *)cstring_get_str(file_path),
                             CBYTES_LEN(cbytes), CBYTES_LEN(file_content));
         cbytes_free(cbytes);
@@ -4439,9 +4439,9 @@ EC_BOOL chfs_check_file_is(const UINT32 chfs_md_id, const CSTRING *file_path, co
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_is: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_check_file_is: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -4466,7 +4466,7 @@ EC_BOOL chfs_show_npp(const UINT32 chfs_md_id, LOG *log)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_show_npp: chfs module #0x%lx not started.\n",
+                "error:chfs_show_npp: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4503,7 +4503,7 @@ EC_BOOL chfs_show_dn(const UINT32 chfs_md_id, LOG *log)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_show_dn: chfs module #0x%lx not started.\n",
+                "error:chfs_show_dn: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4533,7 +4533,7 @@ EC_BOOL chfs_show_cached_np(const UINT32 chfs_md_id, LOG *log)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_show_cached_np: chfs module #0x%lx not started.\n",
+                "error:chfs_show_cached_np: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4567,7 +4567,7 @@ EC_BOOL chfs_show_specific_np(const UINT32 chfs_md_id, const UINT32 chfsnp_id, L
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_show_specific_np: chfs module #0x%lx not started.\n",
+                "error:chfs_show_specific_np: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4583,7 +4583,7 @@ EC_BOOL chfs_show_specific_np(const UINT32 chfs_md_id, const UINT32 chfsnp_id, L
 
     if(EC_FALSE == __chfs_check_is_uint32_t(chfsnp_id))
     {
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_specific_np: chfsnp_id %u is invalid\n", chfsnp_id);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_specific_np: chfsnp_id %ld is invalid\n", chfsnp_id);
         return (EC_FALSE);
     }
 
@@ -4591,7 +4591,7 @@ EC_BOOL chfs_show_specific_np(const UINT32 chfs_md_id, const UINT32 chfsnp_id, L
     if(EC_FALSE == chfsnp_mgr_show_np(log, CHFS_MD_NPP(chfs_md), (uint32_t)chfsnp_id))
     {
         chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0117);
-        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_cached_np: show np %u but failed\n", chfsnp_id);
+        dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_cached_np: show np %ld but failed\n", chfsnp_id);
         return (EC_FALSE);
     }
     chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0118);
@@ -4606,7 +4606,7 @@ EC_BOOL chfs_write_memc(const UINT32 chfs_md_id, const CSTRING *file_path, const
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_write_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_write_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4647,7 +4647,7 @@ EC_BOOL chfs_check_memc(const UINT32 chfs_md_id, const CSTRING *file_path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_check_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_check_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4690,7 +4690,7 @@ EC_BOOL chfs_read_memc(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_read_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_read_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4734,7 +4734,7 @@ EC_BOOL chfs_update_memc(const UINT32 chfs_md_id, const CSTRING *file_path, cons
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_update_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_update_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4776,7 +4776,7 @@ EC_BOOL chfs_delete_memc(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_delete_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4798,7 +4798,7 @@ EC_BOOL chfs_delete_file_memc(const UINT32 chfs_md_id, const CSTRING *path)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_delete_file_memc: chfs module #0x%lx not started.\n",
+                "error:chfs_delete_file_memc: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4872,7 +4872,7 @@ EC_BOOL chfs_retire(const UINT32 chfs_md_id, const UINT32 nsec, const UINT32 exp
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_retire: chfs module #0x%lx not started.\n",
+                "error:chfs_retire: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4951,7 +4951,7 @@ EC_BOOL chfs_recycle(const UINT32 chfs_md_id, const UINT32 max_num_per_np, UINT3
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_recycle: chfs module #0x%lx not started.\n",
+                "error:chfs_recycle: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }
@@ -4999,7 +4999,7 @@ EC_BOOL chfs_file_expire(const UINT32 chfs_md_id, const CSTRING *path_cstr)
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:chfs_file_expire: chfs module #0x%lx not started.\n",
+                "error:chfs_file_expire: chfs module #%ld not started.\n",
                 chfs_md_id);
         dbg_exit(MD_CHFS, chfs_md_id);
     }

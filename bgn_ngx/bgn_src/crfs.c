@@ -186,7 +186,7 @@ UINT32 crfs_free_module_static_mem(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_free_module_static_mem: crfs module #0x%lx not started.\n",
+                "error:crfs_free_module_static_mem: crfs module #%ld not started.\n",
                 crfs_md_id);
         /*note: here do not exit but return only*/
         return ((UINT32)-1);
@@ -606,7 +606,7 @@ EC_BOOL crfs_flush(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_flush: crfs module #0x%lx not started.\n",
+                "error:crfs_flush: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -640,7 +640,7 @@ EC_BOOL crfs_create_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_d
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_create_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_create_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -696,7 +696,7 @@ EC_BOOL crfs_open_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_dir
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_open_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_open_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -740,7 +740,7 @@ EC_BOOL crfs_close_backup(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_close_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_close_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -771,7 +771,7 @@ EC_BOOL crfs_start_sync(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_start_sync: crfs module #0x%lx not started.\n",
+                "error:crfs_start_sync: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -808,7 +808,7 @@ EC_BOOL crfs_end_sync(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_end_sync: crfs module #0x%lx not started.\n",
+                "error:crfs_end_sync: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -838,7 +838,7 @@ EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_show_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -1012,7 +1012,7 @@ UINT32 crfs_set_npp_mod_mgr(const UINT32 crfs_md_id, const MOD_MGR * src_mod_mgr
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_set_npp_mod_mgr: crfs module #0x%lx not started.\n",
+                "error:crfs_set_npp_mod_mgr: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -1022,15 +1022,15 @@ UINT32 crfs_set_npp_mod_mgr(const UINT32 crfs_md_id, const MOD_MGR * src_mod_mgr
     crfs_md = CRFS_MD_GET(crfs_md_id);
     des_mod_mgr = CRFS_MD_NPP_MOD_MGR(crfs_md);
 
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "crfs_set_npp_mod_mgr: md_id %d, input src_mod_mgr %lx\n", crfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "crfs_set_npp_mod_mgr: md_id %ld, input src_mod_mgr %p\n", crfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of crfsnp_tcid_vec and crfsnp_tcid_vec*/
     mod_mgr_limited_clone(crfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_npp_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_npp_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_npp_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_npp_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -1044,7 +1044,7 @@ UINT32 crfs_set_dn_mod_mgr(const UINT32 crfs_md_id, const MOD_MGR * src_mod_mgr)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_set_dn_mod_mgr: crfs module #0x%lx not started.\n",
+                "error:crfs_set_dn_mod_mgr: crfs module #%ld not started.\n",
                 crfs_md_id);
         crfs_print_module_status(crfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CRFS, crfs_md_id);
@@ -1054,15 +1054,15 @@ UINT32 crfs_set_dn_mod_mgr(const UINT32 crfs_md_id, const MOD_MGR * src_mod_mgr)
     crfs_md = CRFS_MD_GET(crfs_md_id);
     des_mod_mgr = CRFS_MD_DN_MOD_MGR(crfs_md);
 
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "crfs_set_dn_mod_mgr: md_id %d, input src_mod_mgr %lx\n", crfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "crfs_set_dn_mod_mgr: md_id %ld, input src_mod_mgr %p\n", crfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of crfsnp_tcid_vec and crfsnp_tcid_vec*/
     mod_mgr_limited_clone(crfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_dn_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_dn_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_dn_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "====================================crfs_set_dn_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -1126,7 +1126,7 @@ EC_BOOL crfs_set_state(const UINT32 crfs_md_id, const UINT32 crfs_state)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_set_state: crfs module #0x%lx not started.\n",
+                "error:crfs_set_state: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1134,8 +1134,8 @@ EC_BOOL crfs_set_state(const UINT32 crfs_md_id, const UINT32 crfs_state)
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_set_state: crfs module #0x%lx: state %lx -> %lx\n",
-                        CRFS_MD_STATE(crfs_md), crfs_state);
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_set_state: crfs module #%ld: state %lx -> %lx\n",
+                        crfs_md_id, CRFS_MD_STATE(crfs_md), crfs_state);
 
     CRFS_MD_STATE(crfs_md) = crfs_state;
 
@@ -1150,7 +1150,7 @@ UINT32 crfs_get_state(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_get_state: crfs module #0x%lx not started.\n",
+                "error:crfs_get_state: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1169,7 +1169,7 @@ EC_BOOL crfs_is_state(const UINT32 crfs_md_id, const UINT32 crfs_state)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_state: crfs module #0x%lx not started.\n",
+                "error:crfs_is_state: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1197,7 +1197,7 @@ CRFSNP_MGR *crfs_get_npp(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_get_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_get_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1220,7 +1220,7 @@ CRFSDN *crfs_get_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_get_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_get_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1243,7 +1243,7 @@ EC_BOOL crfs_open_npp(const UINT32 crfs_md_id, const CSTRING *crfsnp_db_root_dir
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_open_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_open_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1279,7 +1279,7 @@ EC_BOOL crfs_close_npp(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_close_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_close_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1312,7 +1312,7 @@ EC_BOOL crfs_is_npp(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_is_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1342,7 +1342,7 @@ EC_BOOL crfs_is_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_is_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1372,7 +1372,7 @@ EC_BOOL crfs_is_npp_and_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_npp_and_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_is_npp_and_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1405,7 +1405,7 @@ EC_BOOL crfs_create_npp(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_create_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_create_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1421,19 +1421,19 @@ EC_BOOL crfs_create_npp(const UINT32 crfs_md_id,
 
     if(EC_FALSE == c_check_is_uint8_t(crfsnp_model))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_model %u is invalid\n", crfsnp_model);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_model %u is invalid\n", (uint32_t)crfsnp_model);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == c_check_is_uint32_t(crfsnp_max_num))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_disk_max_num %u is invalid\n", crfsnp_max_num);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_disk_max_num %u is invalid\n", (uint32_t)crfsnp_max_num);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == c_check_is_uint8_t(crfsnp_2nd_chash_algo_id))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_2nd_chash_algo_id %u is invalid\n", crfsnp_2nd_chash_algo_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_npp: crfsnp_2nd_chash_algo_id %u is invalid\n", (uint32_t)crfsnp_2nd_chash_algo_id);
         return (EC_FALSE);
     }
 
@@ -1460,7 +1460,7 @@ EC_BOOL crfs_add_npp(const UINT32 crfs_md_id, const UINT32 crfsnpp_tcid, const U
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_add_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_add_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1492,7 +1492,7 @@ EC_BOOL crfs_add_dn(const UINT32 crfs_md_id, const UINT32 crfsdn_tcid, const UIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_add_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_add_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1528,7 +1528,7 @@ EC_BOOL crfs_find_dir(const UINT32 crfs_md_id, const CSTRING *dir_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_find_dir: crfs module #0x%lx not started.\n",
+                "error:crfs_find_dir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1563,7 +1563,7 @@ EC_BOOL crfs_find_file(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_find_file: crfs module #0x%lx not started.\n",
+                "error:crfs_find_file: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1597,7 +1597,7 @@ EC_BOOL crfs_find_file_b(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_find_file_b: crfs module #0x%lx not started.\n",
+                "error:crfs_find_file_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1631,7 +1631,7 @@ EC_BOOL crfs_find(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_find: crfs module #0x%lx not started.\n",
+                "error:crfs_find: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1663,7 +1663,7 @@ EC_BOOL crfs_exists(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_exists: crfs module #0x%lx not started.\n",
+                "error:crfs_exists: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1683,7 +1683,7 @@ EC_BOOL crfs_is_file(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_file: crfs module #0x%lx not started.\n",
+                "error:crfs_is_file: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1703,7 +1703,7 @@ EC_BOOL crfs_is_dir(const UINT32 crfs_md_id, const CSTRING *dir_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_is_dir: crfs module #0x%lx not started.\n",
+                "error:crfs_is_dir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1732,7 +1732,7 @@ STATIC_CAST static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_reserve_hash_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_reserve_hash_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1742,7 +1742,7 @@ STATIC_CAST static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_reserve_hash_dn: data_len %u overflow\n", data_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_reserve_hash_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
     }
 
@@ -1781,7 +1781,7 @@ STATIC_CAST static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const
         if(EC_FALSE == cpgv_new_space(cpgv, size, &disk_no, &block_no, &page_no))
         {
             crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0018);
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_reserve_hash_dn: new %u bytes space from vol failed\n", data_len);
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_reserve_hash_dn: new %ld bytes space from vol failed\n", data_len);
             return (EC_FALSE);
         }
     }
@@ -1819,7 +1819,7 @@ EC_BOOL crfs_reserve_dn(const UINT32 crfs_md_id, const UINT32 data_len, CRFSNP_F
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_reserve_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_reserve_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1829,7 +1829,7 @@ EC_BOOL crfs_reserve_dn(const UINT32 crfs_md_id, const UINT32 data_len, CRFSNP_F
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_reserve_dn: data_len %u overflow\n", data_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_reserve_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
     }
 
@@ -1845,7 +1845,7 @@ EC_BOOL crfs_reserve_dn(const UINT32 crfs_md_id, const UINT32 data_len, CRFSNP_F
     if(EC_FALSE == cpgv_new_space(CRFSDN_CPGV(CRFS_MD_DN(crfs_md)), size, &disk_no, &block_no, &page_no))
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0021);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_reserve_dn: new %u bytes space from vol failed\n", data_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
     crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0022);
@@ -1882,7 +1882,7 @@ EC_BOOL crfs_release_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnod
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_release_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_release_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1946,7 +1946,7 @@ STATIC_CAST static EC_BOOL __crfs_write_v01(const UINT32 crfs_md_id, const CSTRI
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write: crfs module #0x%lx not started.\n",
+                "error:__crfs_write: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -1971,7 +1971,7 @@ STATIC_CAST static EC_BOOL __crfs_write_v01(const UINT32 crfs_md_id, const CSTRI
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
     }
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write: write file %s is %.*s\n",
-                        (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+                        (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     if(EC_FALSE == crfs_write_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -1999,7 +1999,7 @@ STATIC_CAST static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRI
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write: crfs module #0x%lx not started.\n",
+                "error:__crfs_write: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2012,7 +2012,7 @@ STATIC_CAST static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRI
     if(EC_FALSE == crfs_reserve_dn(crfs_md_id, CBYTES_LEN(cbytes), &crfsnp_fnode))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write: reserve dn %u bytes for file %s failed\n",
-                            CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
+                            (uint32_t)CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
@@ -2029,7 +2029,7 @@ STATIC_CAST static EC_BOOL __crfs_write_v02(const UINT32 crfs_md_id, const CSTRI
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
     }
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write: write file %s is %.*s\n",
-                        (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+                        (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0030);
     if(EC_FALSE == crfs_write_npp(crfs_md_id, file_path, &crfsnp_fnode))
@@ -2095,7 +2095,7 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
     if(EC_FALSE == __crfs_reserve_hash_dn(crfs_md_id, CBYTES_LEN(cbytes), path_hash, crfsnp_fnode))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write: reserve dn %u bytes for file %s failed\n",
-                            CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
+                            (uint32_t)CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
 
         CRFS_WRLOCK(crfs_md, LOC_CRFS_0036);
         __crfs_release_npp(crfs_md_id, file_path);
@@ -2188,7 +2188,7 @@ STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const C
     if(EC_FALSE == __crfs_reserve_hash_dn(crfs_md_id, CBYTES_LEN(cbytes), path_hash, crfsnp_fnode))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_no_lock: reserve dn %u bytes for file %s failed\n",
-                            CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
+                            (uint32_t)CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
 
         __crfs_release_npp(crfs_md_id, file_path);
 
@@ -2253,7 +2253,7 @@ STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CST
         sys_log(LOGSTDOUT, "[DEBUG] __crfs_write_cache: write file %s to dn where fnode is \n", (char *)cstring_get_str(file_path));
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
     }
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write_cache: write file %s is %.*s\n", (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write_cache: write file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     if(EC_FALSE == crfs_write_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -2287,7 +2287,7 @@ STATIC_CAST static EC_BOOL __crfs_write_cache_no_lock(const UINT32 crfs_md_id, c
         sys_log(LOGSTDOUT, "[DEBUG] __crfs_write_cache_no_lock: write file %s to dn where fnode is \n", (char *)cstring_get_str(file_path));
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
     }
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write_cache_no_lock: write file %s is %.*s\n", (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_write_cache_no_lock: write file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     if(EC_FALSE == crfs_write_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -2309,7 +2309,7 @@ EC_BOOL crfs_write_backup(const UINT32 crfs_md_id, const CSTRING *file_path, con
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_write_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2347,7 +2347,7 @@ EC_BOOL crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYT
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write: crfs module #0x%lx not started.\n",
+                "error:crfs_write: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2382,7 +2382,7 @@ EC_BOOL crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, co
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_write_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2425,7 +2425,7 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_safe: crfs module #0x%lx not started.\n",
+                "error:crfs_read_safe: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2469,7 +2469,7 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
         return (EC_FALSE);
     }
 
-    //dbg_log(SEC_0031_CRFS, 9)(LOGSTDNULL, "[DEBUG] crfs_read_safe: read file %s is %.*s\n", (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+    //dbg_log(SEC_0031_CRFS, 9)(LOGSTDNULL, "[DEBUG] crfs_read_safe: read file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0048);
     return (EC_TRUE);
 }
@@ -2482,7 +2482,7 @@ EC_BOOL crfs_read_backup(const UINT32 crfs_md_id, const CSTRING *file_path, CBYT
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_read_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2516,7 +2516,7 @@ EC_BOOL crfs_write_memc(const UINT32 crfs_md_id, const CSTRING *file_path, const
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_write_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2557,7 +2557,7 @@ EC_BOOL crfs_check_memc(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_check_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_check_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2600,7 +2600,7 @@ EC_BOOL crfs_read_memc(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_read_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2644,7 +2644,7 @@ EC_BOOL crfs_update_memc(const UINT32 crfs_md_id, const CSTRING *file_path, cons
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_update_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2686,7 +2686,7 @@ EC_BOOL crfs_delete_memc(const UINT32 crfs_md_id, const CSTRING *path, const UIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2714,7 +2714,7 @@ EC_BOOL crfs_delete_memc(const UINT32 crfs_md_id, const CSTRING *path, const UIN
 
         return (EC_TRUE);
     }
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_memc: crfs_md_id %u, path [invalid 0x%x] %s\n",
+    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_memc: crfs_md_id %ld, path [invalid 0x%lx] %s\n",
                         crfs_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);
@@ -2732,7 +2732,7 @@ EC_BOOL crfs_delete_dir_memc(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2776,7 +2776,7 @@ EC_BOOL crfs_delete_file_memc(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_memc: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_memc: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2818,7 +2818,7 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read: crfs module #0x%lx not started.\n",
+                "error:crfs_read: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2928,7 +2928,7 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_e: crfs module #0x%lx not started.\n",
+                "error:crfs_write_e: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -2985,7 +2985,7 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_e: crfs module #0x%lx not started.\n",
+                "error:crfs_read_e: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3060,7 +3060,7 @@ STATIC_CAST static EC_BOOL __crfs_create_b_npp(const UINT32 crfs_md_id, const CS
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_create_b_npp: crfs module #0x%lx not started.\n",
+                "error:__crfs_create_b_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3102,7 +3102,7 @@ EC_BOOL crfs_create_b(const UINT32 crfs_md_id, const CSTRING *file_path, const u
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_create_b: crfs module #0x%lx not started.\n",
+                "error:crfs_create_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3146,7 +3146,7 @@ EC_BOOL crfs_write_b(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_b: crfs module #0x%lx not started.\n",
+                "error:crfs_write_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3197,7 +3197,7 @@ EC_BOOL crfs_read_b(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_b: crfs module #0x%lx not started.\n",
+                "error:crfs_read_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3264,7 +3264,7 @@ EC_BOOL crfs_fetch_block_fd_b(const UINT32 crfs_md_id, const CSTRING *file_path,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_fetch_block_fd_b: crfs module #0x%lx not started.\n",
+                "error:crfs_fetch_block_fd_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3322,7 +3322,7 @@ EC_BOOL crfs_np_transfer(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_np_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_np_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3341,7 +3341,7 @@ EC_BOOL crfs_npp_transfer(const UINT32 crfs_md_id, const CSTRING *remote_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_npp_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_npp_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3360,7 +3360,7 @@ EC_BOOL crfs_block_transfer(const UINT32 crfs_md_id, const UINT32 block_no, cons
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_block_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_block_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3379,7 +3379,7 @@ EC_BOOL crfs_disk_transfer(const UINT32 crfs_md_id, const UINT32 disk_no, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_disk_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_disk_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3398,7 +3398,7 @@ EC_BOOL crfs_dn_transfer(const UINT32 crfs_md_id, const CSTRING *remote_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_dn_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_dn_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3417,7 +3417,7 @@ EC_BOOL crfs_vol_transfer(const UINT32 crfs_md_id, const CSTRING *remote_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_vol_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_vol_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3500,7 +3500,7 @@ EC_BOOL crfs_transfer(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const C
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_transfer: crfs module #0x%lx not started.\n",
+                "error:crfs_transfer: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3595,7 +3595,7 @@ EC_BOOL crfs_transfer_pre(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, con
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_transfer_pre: crfs module #0x%lx not started.\n",
+                "error:crfs_transfer_pre: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3650,7 +3650,7 @@ EC_BOOL crfs_transfer_handle(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_transfer_handle: crfs module #0x%lx not started.\n",
+                "error:crfs_transfer_handle: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3712,7 +3712,7 @@ EC_BOOL crfs_transfer_post(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, co
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_transfer_post: crfs module #0x%lx not started.\n",
+                "error:crfs_transfer_post: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3771,7 +3771,7 @@ EC_BOOL crfs_transfer_recycle(const UINT32 crfs_md_id, const UINT32 crfsc_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_transfer_recycle: crfs module #0x%lx not started.\n",
+                "error:crfs_transfer_recycle: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3826,7 +3826,7 @@ EC_BOOL crfs_create_dn(const UINT32 crfs_md_id, const CSTRING *root_dir)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_create_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_create_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3869,7 +3869,7 @@ EC_BOOL crfs_add_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_add_disk: crfs module #0x%lx not started.\n",
+                "error:crfs_add_disk: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3884,7 +3884,7 @@ EC_BOOL crfs_add_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_add_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_add_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -3892,7 +3892,7 @@ EC_BOOL crfs_add_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_add_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0092);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_add_disk: add disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_add_disk: add disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0093);
@@ -3912,7 +3912,7 @@ EC_BOOL crfs_del_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_del_disk: crfs module #0x%lx not started.\n",
+                "error:crfs_del_disk: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3927,7 +3927,7 @@ EC_BOOL crfs_del_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_del_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_del_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -3935,7 +3935,7 @@ EC_BOOL crfs_del_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_del_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0095);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_del_disk: del disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_del_disk: del disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0096);
@@ -3955,7 +3955,7 @@ EC_BOOL crfs_mount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_mount_disk: crfs module #0x%lx not started.\n",
+                "error:crfs_mount_disk: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -3970,7 +3970,7 @@ EC_BOOL crfs_mount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mount_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -3978,7 +3978,7 @@ EC_BOOL crfs_mount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_mount_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0098);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mount_disk: mount disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mount_disk: mount disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0099);
@@ -3998,7 +3998,7 @@ EC_BOOL crfs_umount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_umount_disk: crfs module #0x%lx not started.\n",
+                "error:crfs_umount_disk: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4013,7 +4013,7 @@ EC_BOOL crfs_umount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_umount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_umount_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -4021,7 +4021,7 @@ EC_BOOL crfs_umount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == crfsdn_umount_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0101);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_umount_disk: umount disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_umount_disk: umount disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0102);
@@ -4041,7 +4041,7 @@ EC_BOOL crfs_open_dn(const UINT32 crfs_md_id, const CSTRING *root_dir)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_open_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_open_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4079,7 +4079,7 @@ EC_BOOL crfs_close_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_close_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_close_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4122,7 +4122,7 @@ EC_BOOL crfs_export_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, const CRFS
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_export_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_export_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4135,7 +4135,7 @@ EC_BOOL crfs_export_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, const CRFS
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_export_dn: CBYTES_LEN %u or CRFSNP_FNODE_FILESZ %u overflow\n",
-                            CBYTES_LEN(cbytes), CRFSNP_FNODE_FILESZ(crfsnp_fnode));
+                            (uint32_t)CBYTES_LEN(cbytes), CRFSNP_FNODE_FILESZ(crfsnp_fnode));
         return (EC_FALSE);
     }
 
@@ -4155,11 +4155,11 @@ EC_BOOL crfs_export_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, const CRFS
     offset  = (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
     if(EC_FALSE == crfsdn_write_o(CRFS_MD_DN(crfs_md), data_len, CBYTES_BUF(cbytes), disk_no, block_no, &offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_export_dn: write %u bytes to disk %u block %u page %u failed\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_export_dn: write %ld bytes to disk %u block %u page %u failed\n",
                             data_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    //dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_export_dn: write %u bytes to disk %u block %u page %u done\n",
+    //dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_export_dn: write %ld bytes to disk %u block %u page %u done\n",
     //                    data_len, disk_no, block_no, page_no);
 
     return (EC_TRUE);
@@ -4183,7 +4183,7 @@ EC_BOOL crfs_write_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSNP_FNOD
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_write_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4193,7 +4193,7 @@ EC_BOOL crfs_write_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSNP_FNOD
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn: buff len (or file size) %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn: buff len (or file size) %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -4211,7 +4211,7 @@ EC_BOOL crfs_write_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSNP_FNOD
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0104);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
     crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0105);
@@ -4245,7 +4245,7 @@ EC_BOOL crfs_write_dn_cache(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_dn_cache: crfs module #0x%lx not started.\n",
+                "error:crfs_write_dn_cache: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4255,7 +4255,7 @@ EC_BOOL crfs_write_dn_cache(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSN
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn_cache: buff len (or file size) %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn_cache: buff len (or file size) %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -4270,7 +4270,7 @@ EC_BOOL crfs_write_dn_cache(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSN
 
     if(EC_FALSE == crfsdn_write_p_cache(CRFS_MD_DN(crfs_md), cbytes_len(cbytes), cbytes_buf(cbytes), &disk_no, &block_no, &page_no))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn_cache: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn_cache: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -4304,7 +4304,7 @@ EC_BOOL crfs_read_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode, 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_read_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4379,7 +4379,7 @@ EC_BOOL crfs_write_e_dn(const UINT32 crfs_md_id, CRFSNP_FNODE *crfsnp_fnode, UIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_e_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_write_e_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4389,7 +4389,7 @@ EC_BOOL crfs_write_e_dn(const UINT32 crfs_md_id, CRFSNP_FNODE *crfsnp_fnode, UIN
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= (*offset) + CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: offset %u + buff len (or file size) %u = %u overflow\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: offset %ld + buff len (or file size) %ld = %ld overflow\n",
                             (*offset), CBYTES_LEN(cbytes), (*offset) + CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
@@ -4411,7 +4411,7 @@ EC_BOOL crfs_write_e_dn(const UINT32 crfs_md_id, CRFSNP_FNODE *crfsnp_fnode, UIN
 
     if(((UINT32)file_max_size) <= (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: offset %u overflow due to file max size is %u\n", (*offset), file_max_size);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: offset %ld overflow due to file max size is %u\n", (*offset), file_max_size);
         return (EC_FALSE);
     }
 
@@ -4423,7 +4423,7 @@ EC_BOOL crfs_write_e_dn(const UINT32 crfs_md_id, CRFSNP_FNODE *crfsnp_fnode, UIN
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0112);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
     crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0113);
@@ -4460,7 +4460,7 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_e_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_read_e_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4488,7 +4488,7 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
 
     if((*offset) >= file_size)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %u >= file size %u\n", (*offset), file_size);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %ld >= file size %u\n", (*offset), file_size);
         return (EC_FALSE);
     }
 
@@ -4502,7 +4502,7 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
         max_len_t = DMIN(max_len, file_size - offset_t);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u, offset %u, max len %u\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u, offset %u, max len %ld\n",
                         file_size, disk_no, block_no, page_no, offset_t, max_len_t);
 
     if(CBYTES_LEN(cbytes) < max_len_t)
@@ -4520,7 +4520,7 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0117);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: read %u bytes from disk %u, block %u, offset %u failed\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: read %ld bytes from disk %u, block %u, offset %u failed\n",
                            max_len_t, disk_no, block_no, offset_t);
         return (EC_FALSE);
     }
@@ -4557,7 +4557,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write_b_seg_dn_miss: crfs module #0x%lx not started.\n",
+                "error:__crfs_write_b_seg_dn_miss: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4567,13 +4567,13 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: buff len %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: buff len %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: offset %u overflow\n", (*offset));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: offset %ld overflow\n", (*offset));
         return (EC_FALSE);
     }
 
@@ -4585,7 +4585,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_miss(const UINT32 crfs_md_id,
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0120);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: write %u bytes to dn failed\n", data_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_miss: write %ld bytes to dn failed\n", data_len);
         return (EC_FALSE);
     }
     crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0121);
@@ -4640,7 +4640,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write_b_seg_dn_hit: crfs module #0x%lx not started.\n",
+                "error:__crfs_write_b_seg_dn_hit: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4650,13 +4650,13 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_hit: buff len %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_hit: buff len %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_hit: offset %u overflow\n", (*offset));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn_hit: offset %ld overflow\n", (*offset));
         return (EC_FALSE);
     }
 
@@ -4676,12 +4676,12 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn_hit(const UINT32 crfs_md_id,
     if(EC_FALSE == crfsdn_update_b(CRFS_MD_DN(crfs_md), data_len, cbytes_buf(cbytes), disk_no, block_no, offset))
     {
         crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0123);
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:__crfs_write_b_seg_dn_hit: write %u bytes of disk %u block %u offset %u failed\n", data_len, disk_no, block_no, skip_len);
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:__crfs_write_b_seg_dn_hit: write %ld bytes of disk %u block %u offset %ld failed\n", data_len, disk_no, block_no, skip_len);
         return (EC_FALSE);
     }
     else
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG]__crfs_write_b_seg_dn_hit: write %u bytes of disk %u block %u offset %u done\n", data_len, disk_no, block_no, skip_len);
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG]__crfs_write_b_seg_dn_hit: write %ld bytes of disk %u block %u offset %ld done\n", data_len, disk_no, block_no, skip_len);
     }
     crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0124);
 
@@ -4718,7 +4718,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write_b_seg_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_write_b_seg_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4740,14 +4740,14 @@ STATIC_CAST static EC_BOOL __crfs_write_b_seg_dn(const UINT32 crfs_md_id,
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn: offset %u overflow\n", (*offset));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn: offset %ld overflow\n", (*offset));
         return (EC_FALSE);
     }
 
     /*okay, limit buff len <= 64MB*/
     if(CPGB_CACHE_MAX_BYTE_SIZE < CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn: buff len %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_seg_dn: buff len %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -4888,7 +4888,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_write_b_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_write_b_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -4981,7 +4981,7 @@ STATIC_CAST static EC_BOOL __crfs_write_b_dn(const UINT32 crfs_md_id,
 
         if(EC_FALSE == __crfs_write_b_seg_dn(crfs_md_id, crfsnp, parent_pos, seg_no, &offset_t1, &cbytes_t))
         {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_dn: write to seg_no %u at offset %u failed\n", seg_no, offset_t2);
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_b_dn: write to seg_no %u at offset %ld failed\n", seg_no, offset_t2);
             return (EC_FALSE);
         }
 
@@ -5002,13 +5002,13 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_miss(const UINT32 crfs_md_id,
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < max_len)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_miss: max_len %u overflow\n", max_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_miss: max_len %ld overflow\n", max_len);
         return (EC_FALSE);
     }
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_miss: offset %u overflow\n", (*offset));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_miss: offset %ld overflow\n", (*offset));
         return (EC_FALSE);
     }
 
@@ -5037,7 +5037,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_read_b_seg_dn_hit: crfs module #0x%lx not started.\n",
+                "error:__crfs_read_b_seg_dn_hit: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5047,13 +5047,13 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: buff len %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: buff len %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
     if(CPGB_CACHE_MAX_BYTE_SIZE < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: offset %u overflow\n", (*offset));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: offset %ld overflow\n", (*offset));
         return (EC_FALSE);
     }
 
@@ -5066,7 +5066,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
     file_size = CRFSNP_FNODE_FILESZ(crfsnp_fnode);
     if(file_size < (*offset))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: offset %u > file_size %u\n", (*offset), file_size);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: offset %ld > file_size %ld\n", (*offset), file_size);
         return (EC_FALSE);
     }
 
@@ -5075,7 +5075,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn_hit(const UINT32 crfs_md_id,
     /*note: CRFS_MD_DN(crfs_md) will be locked in crfs_read_e_dn*/
     if(0 < read_len && EC_FALSE == crfs_read_e_dn(crfs_md_id, crfsnp_fnode, offset, read_len, cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: read %u bytes from dn failed\n", read_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn_hit: read %ld bytes from dn failed\n", read_len);
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -5107,7 +5107,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_read_b_seg_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_read_b_seg_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5118,7 +5118,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_seg_dn(const UINT32 crfs_md_id,
     /*okay, limit buff len <= 64MB*/
     if(CPGB_CACHE_MAX_BYTE_SIZE < max_len)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn: max_len %u overflow\n", max_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_seg_dn: max_len %ld overflow\n", max_len);
         return (EC_FALSE);
     }
 
@@ -5213,7 +5213,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crf
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_read_b_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_read_b_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5224,7 +5224,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crf
     /*okay, limit buff len <= 64MB*/
     if(CPGB_CACHE_MAX_BYTE_SIZE < max_len)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: max_len %u overflow\n", max_len);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: max_len %ld overflow\n", max_len);
         return (EC_FALSE);
     }
 
@@ -5281,7 +5281,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crf
         max_len_t = max_len;
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_read_b_dn: file_size %ld, store_size %ld, max_len %u, max_len_t %u, offset %ld\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_read_b_dn: file_size %ld, store_size %ld, max_len %ld, max_len_t %ld, offset %ld\n",
                         file_size, store_size, max_len, max_len_t, (*offset));
 
     if(CBYTES_LEN(cbytes) < max_len_t)
@@ -5295,7 +5295,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crf
 
         if(NULL_PTR == CBYTES_BUF(cbytes))
         {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: malloc %u bytes for cbytes failed\n", max_len_t);
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: malloc %ld bytes for cbytes failed\n", max_len_t);
             return (EC_FALSE);
         }
     }
@@ -5319,7 +5319,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_dn(const UINT32 crfs_md_id, CRFSNP *crf
 
         if(EC_FALSE == __crfs_read_b_seg_dn(crfs_md_id, crfsnp, parent_pos, seg_no, &offset_t1, max_len_t, &cbytes_t))
         {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: read from seg_no %u at offset %u failed\n",
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_read_b_dn: read from seg_no %u at offset %ld failed\n",
                                 seg_no, offset_t2);
             return (EC_FALSE);
         }
@@ -5353,7 +5353,7 @@ STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn_hit(const UINT32 crfs_
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_fetch_block_fd_b_seg_dn_hit: crfs module #0x%lx not started.\n",
+                "error:__crfs_fetch_block_fd_b_seg_dn_hit: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5407,7 +5407,7 @@ STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_seg_dn(const UINT32 crfs_md_i
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_fetch_block_fd_b_seg_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_fetch_block_fd_b_seg_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5486,7 +5486,7 @@ STATIC_CAST static EC_BOOL __crfs_fetch_block_fd_b_dn(const UINT32 crfs_md_id,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_fetch_block_fd_b_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_fetch_block_fd_b_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5564,7 +5564,7 @@ STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, co
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_reserve_npp: crfs module #0x%lx not started.\n",
+                "error:__crfs_reserve_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5606,7 +5606,7 @@ STATIC_CAST static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CST
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_release_npp: crfs module #0x%lx not started.\n",
+                "error:__crfs_release_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5646,7 +5646,7 @@ EC_BOOL crfs_write_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_write_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5692,7 +5692,7 @@ EC_BOOL crfs_read_npp(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_read_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_read_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5732,7 +5732,7 @@ STATIC_CAST static EC_BOOL __crfs_read_b_npp(const UINT32 crfs_md_id, const CSTR
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_read_b_npp: crfs module #0x%lx not started.\n",
+                "error:__crfs_read_b_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5772,7 +5772,7 @@ EC_BOOL crfs_update_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_update_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5812,7 +5812,7 @@ EC_BOOL crfs_renew(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_renew: crfs module #0x%lx not started.\n",
+                "error:crfs_renew: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5846,7 +5846,7 @@ EC_BOOL crfs_renew_http_header(const UINT32 crfs_md_id, const CSTRING *file_path
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_renew_http_header: crfs module #0x%lx not started.\n",
+                "error:crfs_renew_http_header: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5922,7 +5922,7 @@ EC_BOOL crfs_renew_http_headers(const UINT32 crfs_md_id, const CSTRING *file_pat
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_renew_http_headers: crfs module #0x%lx not started.\n",
+                "error:crfs_renew_http_headers: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6007,7 +6007,7 @@ EC_BOOL crfs_renew_http_headers_with_token(const UINT32 crfs_md_id, const CSTRIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_renew_http_headers_with_token: crfs module #0x%lx not started.\n",
+                "error:crfs_renew_http_headers_with_token: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6042,7 +6042,7 @@ EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const UINT32 tcid, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_wait_http_header: crfs module #0x%lx not started.\n",
+                "error:crfs_wait_http_header: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6121,7 +6121,7 @@ EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const UINT32 tcid, const
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_wait_http_headers: crfs module #0x%lx not started.\n",
+                "error:crfs_wait_http_headers: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6217,7 +6217,7 @@ STATIC_CAST static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_delete_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_delete_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6265,7 +6265,7 @@ STATIC_CAST static EC_BOOL __crfs_delete_b_dn(const UINT32 crfs_md_id, CRFSNP *c
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__crfs_delete_b_dn: crfs module #0x%lx not started.\n",
+                "error:__crfs_delete_b_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6293,7 +6293,7 @@ EC_BOOL crfs_delete_dn(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const CR
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6390,7 +6390,7 @@ EC_BOOL crfs_delete_file_backup(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6406,7 +6406,7 @@ EC_BOOL crfs_delete_file_backup(const UINT32 crfs_md_id, const CSTRING *path)
 
     if(EC_FALSE == crfsbk_delete_file(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6425,7 +6425,7 @@ EC_BOOL crfs_delete_file_backup_wildcard(const UINT32 crfs_md_id, const CSTRING 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_backup_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_backup_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6441,7 +6441,7 @@ EC_BOOL crfs_delete_file_backup_wildcard(const UINT32 crfs_md_id, const CSTRING 
 
     if(EC_FALSE == crfsbk_delete_file_wildcard(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6460,7 +6460,7 @@ EC_BOOL crfs_delete_file_b_backup(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6476,7 +6476,7 @@ EC_BOOL crfs_delete_file_b_backup(const UINT32 crfs_md_id, const CSTRING *path)
 
     if(EC_FALSE == crfsbk_delete_file_b(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6495,7 +6495,7 @@ EC_BOOL crfs_delete_file_b_backup_wildcard(const UINT32 crfs_md_id, const CSTRIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b_backup_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b_backup_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6511,7 +6511,7 @@ EC_BOOL crfs_delete_file_b_backup_wildcard(const UINT32 crfs_md_id, const CSTRIN
 
     if(EC_FALSE == crfsbk_delete_file_b_wildcard(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_backup_wildcard: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6530,7 +6530,7 @@ EC_BOOL crfs_delete_dir_backup(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_backup: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_backup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6546,7 +6546,7 @@ EC_BOOL crfs_delete_dir_backup(const UINT32 crfs_md_id, const CSTRING *path)
 
     if(EC_FALSE == crfsbk_delete_dir(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6565,7 +6565,7 @@ EC_BOOL crfs_delete_dir_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_backup_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_backup_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6581,7 +6581,7 @@ EC_BOOL crfs_delete_dir_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *
 
     if(EC_FALSE == crfsbk_delete_dir(CRFS_MD_BACKUP(crfs_md), path))
     {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s with size %ld from backup RFS failed\n",
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s from backup RFS failed\n",
                            (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
@@ -6605,7 +6605,7 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6649,7 +6649,7 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0151);
@@ -6657,12 +6657,12 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0152);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0153);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     /*force to unlock the possible locked-file*/
@@ -6678,7 +6678,7 @@ EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6708,17 +6708,17 @@ EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_no_lock: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
@@ -6733,7 +6733,7 @@ EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6772,20 +6772,20 @@ EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0154);
     if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wildcard: umount %.*s failed or terminated\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0155);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0156);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %ld, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     /*force to unlock the possible locked-file*/
@@ -6818,7 +6818,7 @@ EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6862,7 +6862,7 @@ EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0157);
@@ -6870,12 +6870,12 @@ EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path)
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0158);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_b: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0159);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
@@ -6889,7 +6889,7 @@ EC_BOOL crfs_delete_file_b_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6919,17 +6919,17 @@ EC_BOOL crfs_delete_file_b_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_no_lock: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_no_lock: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_b_no_lock: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_no_lock: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_no_lock: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
@@ -6944,7 +6944,7 @@ EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_b_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_file_b_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -6983,7 +6983,7 @@ EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
 
@@ -6991,13 +6991,13 @@ EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path
     if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_BIG))
     {
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_b_wildcard: umount %.*s failed or terminated\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0161);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0162);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_b_wildcard: crfs_md_id %ld, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
      /*try to delete next matched file*/
@@ -7027,7 +7027,7 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7071,7 +7071,7 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0163);
@@ -7079,12 +7079,12 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0164);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0165);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
@@ -7098,7 +7098,7 @@ EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7128,17 +7128,17 @@ EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_no_lock: umount %.*s failed\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: crfs_md_id %u, path %s done\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
@@ -7153,7 +7153,7 @@ EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_wildcard: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_dir_wildcard: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7193,20 +7193,20 @@ EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %u, path %s ...\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
     CRFS_WRLOCK(crfs_md, LOC_CRFS_0166);
     if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: umount %.*s failed or terminated\n",
-                            cstring_get_len(path), cstring_get_str(path));
+                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0167);
         return (EC_FALSE);
     }
     CRFS_UNLOCK(crfs_md, LOC_CRFS_0168);
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %u, path %s succ\n",
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %ld, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
      /*try to delete next matched file*/
@@ -7234,7 +7234,7 @@ EC_BOOL crfs_delete(const UINT32 crfs_md_id, const CSTRING *path, const UINT32 d
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete: crfs module #0x%lx not started.\n",
+                "error:crfs_delete: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7264,7 +7264,7 @@ EC_BOOL crfs_delete(const UINT32 crfs_md_id, const CSTRING *path, const UINT32 d
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete: crfs_md_id %u, path [invalid 0x%x] %s\n",
+    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete: crfs_md_id %ld, path [invalid 0x%lx] %s\n",
                         crfs_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);
@@ -7276,7 +7276,7 @@ EC_BOOL crfs_delete_no_lock(const UINT32 crfs_md_id, const CSTRING *path, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7306,7 +7306,7 @@ EC_BOOL crfs_delete_no_lock(const UINT32 crfs_md_id, const CSTRING *path, const 
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_no_lock: crfs_md_id %u, path [invalid 0x%x] %s\n",
+    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_no_lock: crfs_md_id %ld, path [invalid 0x%lx] %s\n",
                         crfs_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);
@@ -7326,7 +7326,7 @@ EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBY
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update: crfs module #0x%lx not started.\n",
+                "error:crfs_update: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7364,7 +7364,7 @@ EC_BOOL crfs_update_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, c
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_update_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7410,7 +7410,7 @@ EC_BOOL crfs_update_with_token(const UINT32 crfs_md_id, const CSTRING *file_path
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update_with_token: crfs module #0x%lx not started.\n",
+                "error:crfs_update_with_token: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7445,7 +7445,7 @@ EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITE
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qfile: crfs module #0x%lx not started.\n",
+                "error:crfs_qfile: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7499,7 +7499,7 @@ EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qdir: crfs module #0x%lx not started.\n",
+                "error:crfs_qdir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7551,7 +7551,7 @@ EC_BOOL crfs_qlist_path(const UINT32 crfs_md_id, const CSTRING *file_path, CVECT
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_path: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_path: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7595,7 +7595,7 @@ EC_BOOL crfs_qlist_path_of_np(const UINT32 crfs_md_id, const CSTRING *file_path,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_path_of_np: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_path_of_np: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7641,7 +7641,7 @@ EC_BOOL crfs_qlist_seg(const UINT32 crfs_md_id, const CSTRING *file_path, CVECTO
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_seg: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_seg: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7684,7 +7684,7 @@ EC_BOOL crfs_qlist_seg_of_np(const UINT32 crfs_md_id, const CSTRING *file_path, 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_seg_of_np: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_seg_of_np: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7791,7 +7791,7 @@ EC_BOOL crfs_qlist_tree(const UINT32 crfs_md_id, const CSTRING *file_path, CVECT
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_tree: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_tree: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7866,7 +7866,7 @@ EC_BOOL crfs_qlist_tree_of_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, c
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_qlist_tree_of_np: crfs module #0x%lx not started.\n",
+                "error:crfs_qlist_tree_of_np: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7939,7 +7939,7 @@ EC_BOOL crfs_flush_npp(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_flush_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_flush_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -7984,7 +7984,7 @@ EC_BOOL crfs_flush_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_flush_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_flush_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8030,7 +8030,7 @@ EC_BOOL crfs_file_num(const UINT32 crfs_md_id, const CSTRING *path_cstr, UINT32 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_num: crfs module #0x%lx not started.\n",
+                "error:crfs_file_num: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8073,7 +8073,7 @@ EC_BOOL crfs_file_size(const UINT32 crfs_md_id, const CSTRING *path_cstr, uint64
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_size: crfs module #0x%lx not started.\n",
+                "error:crfs_file_size: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8117,7 +8117,7 @@ EC_BOOL crfs_file_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_expire: crfs module #0x%lx not started.\n",
+                "error:crfs_file_expire: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8161,7 +8161,7 @@ EC_BOOL crfs_dir_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_dir_expire: crfs module #0x%lx not started.\n",
+                "error:crfs_dir_expire: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8204,7 +8204,7 @@ EC_BOOL crfs_store_size_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, uin
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_store_size_b: crfs module #0x%lx not started.\n",
+                "error:crfs_store_size_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8243,7 +8243,7 @@ EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_md5sum: crfs module #0x%lx not started.\n",
+                "error:crfs_file_md5sum: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8286,7 +8286,7 @@ EC_BOOL crfs_file_md5sum_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, co
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_md5sum_b: crfs module #0x%lx not started.\n",
+                "error:crfs_file_md5sum_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8303,7 +8303,7 @@ EC_BOOL crfs_file_md5sum_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, co
     seg_no_t = (uint32_t)seg_no;
     if(seg_no != seg_no_t)
     {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_file_md5sum_b: seg %u overflow\n", seg_no);
+        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_file_md5sum_b: seg %ld overflow\n", seg_no);
         return (EC_FALSE);
     }
 
@@ -8312,7 +8312,7 @@ EC_BOOL crfs_file_md5sum_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, co
     {
         crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0256);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_md5sum_b: crfsnp mgr get seg %u md5sum of bigfile %s failed\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_md5sum_b: crfsnp mgr get seg %ld md5sum of bigfile %s failed\n",
                             seg_no, (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
@@ -8333,7 +8333,7 @@ EC_BOOL crfs_mkdir(const UINT32 crfs_md_id, const CSTRING *path_cstr)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_mkdir: crfs module #0x%lx not started.\n",
+                "error:crfs_mkdir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8376,13 +8376,13 @@ EC_BOOL crfs_search(const UINT32 crfs_md_id, const CSTRING *path_cstr, const UIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_search: crfs module #0x%lx not started.\n",
+                "error:crfs_search: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_search: crfs_md_id %u, path %s, dflag %x\n", crfs_md_id, (char *)cstring_get_str(path_cstr), dflag);
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_search: crfs_md_id %ld, path %s, dflag %lx\n", crfs_md_id, (char *)cstring_get_str(path_cstr), dflag);
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
@@ -8399,7 +8399,7 @@ EC_BOOL crfs_search(const UINT32 crfs_md_id, const CSTRING *path_cstr, const UIN
         crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0266);
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0267);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_search: search '%s' with dflag %x failed\n", (char *)cstring_get_str(path_cstr), dflag);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_search: search '%s' with dflag %lx failed\n", (char *)cstring_get_str(path_cstr), dflag);
         return (EC_FALSE);
     }
     crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0268);
@@ -8453,7 +8453,7 @@ EC_BOOL crfs_recycle(const UINT32 crfs_md_id, const UINT32 max_num_per_np, UINT3
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_recycle: crfs module #0x%lx not started.\n",
+                "error:crfs_recycle: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8507,7 +8507,7 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_check_file_content: crfs module #0x%lx not started.\n",
+                "error:crfs_check_file_content: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8528,7 +8528,7 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
     cbytes = cbytes_new(file_size);
     if(NULL_PTR == cbytes)
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: new crfs buff with len %u failed\n", file_size);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: new crfs buff with len %ld failed\n", file_size);
         return (EC_FALSE);
     }
 
@@ -8537,8 +8537,8 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
                                   CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0274);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %u bytes from disk %u, block %u, page %u failed\n",
-                            file_size, disk_no, block_no, page_no);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %ld bytes from disk %u, block %u, page %u failed\n",
+                            file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no);
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
@@ -8546,9 +8546,9 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
     if(CBYTES_LEN(cbytes) < cstring_get_len(file_content_cstr))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0275);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %u bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
-                            file_size, disk_no, block_no, page_no,
-                            CBYTES_LEN(cbytes), cstring_get_len(file_content_cstr));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %ld bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
+                            file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no,
+                            (uint32_t)CBYTES_LEN(cbytes), (uint32_t)cstring_get_len(file_content_cstr));
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
@@ -8563,9 +8563,9 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
         if(buff[ pos ] != str[ pos ])
         {
             CRFS_UNLOCK(crfs_md, LOC_CRFS_0276);
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -8598,7 +8598,7 @@ EC_BOOL crfs_check_file_is(const UINT32 crfs_md_id, const CSTRING *file_path, co
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_check_file_is: crfs module #0x%lx not started.\n",
+                "error:crfs_check_file_is: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8628,7 +8628,7 @@ EC_BOOL crfs_check_file_is(const UINT32 crfs_md_id, const CSTRING *file_path, co
 
     if(CBYTES_LEN(cbytes) != CBYTES_LEN(file_content))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_is: mismatched len: file %s read len %u which should be %u\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_is: mismatched len: file %s read len %ld which should be %ld\n",
                             (char *)cstring_get_str(file_path),
                             CBYTES_LEN(cbytes), CBYTES_LEN(file_content));
         cbytes_free(cbytes);
@@ -8644,9 +8644,9 @@ EC_BOOL crfs_check_file_is(const UINT32 crfs_md_id, const CSTRING *file_path, co
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_is: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_is: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -8671,7 +8671,7 @@ EC_BOOL crfs_show_npp(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_npp: crfs module #0x%lx not started.\n",
+                "error:crfs_show_npp: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8705,7 +8705,7 @@ EC_BOOL crfs_show_dn_no_lock(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_dn_no_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_show_dn_no_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8742,7 +8742,7 @@ EC_BOOL crfs_show_dn(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_show_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8774,7 +8774,7 @@ EC_BOOL crfs_show_cached_np(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_cached_np: crfs module #0x%lx not started.\n",
+                "error:crfs_show_cached_np: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8812,7 +8812,7 @@ EC_BOOL crfs_show_specific_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, L
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_specific_np: crfs module #0x%lx not started.\n",
+                "error:crfs_show_specific_np: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8828,7 +8828,7 @@ EC_BOOL crfs_show_specific_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, L
 
     if(EC_FALSE == c_check_is_uint32_t(crfsnp_id))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_specific_np: crfsnp_id %u is invalid\n", crfsnp_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_specific_np: crfsnp_id %ld is invalid\n", crfsnp_id);
         return (EC_FALSE);
     }
 
@@ -8839,7 +8839,7 @@ EC_BOOL crfs_show_specific_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, L
         crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0298);
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0299);
 
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_cached_np: show np %u but failed\n", crfsnp_id);
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_cached_np: show np %ld but failed\n", crfsnp_id);
         return (EC_FALSE);
     }
     crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0300);
@@ -8856,7 +8856,7 @@ EC_BOOL crfs_show_path_depth(const UINT32 crfs_md_id, const CSTRING *path, LOG *
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_path_depth: crfs module #0x%lx not started.\n",
+                "error:crfs_show_path_depth: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8894,7 +8894,7 @@ EC_BOOL crfs_show_path(const UINT32 crfs_md_id, const CSTRING *path, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_show_path: crfs module #0x%lx not started.\n",
+                "error:crfs_show_path: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8931,7 +8931,7 @@ EC_BOOL crfs_rdlock(const UINT32 crfs_md_id, const UINT32 location)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_rdlock: crfs module #0x%lx not started.\n",
+                "error:crfs_rdlock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -8950,7 +8950,7 @@ EC_BOOL crfs_expire_dn(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_expire_dn: crfs module #0x%lx not started.\n",
+                "error:crfs_expire_dn: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9017,7 +9017,7 @@ EC_BOOL crfs_retire(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 exp
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_retire: crfs module #0x%lx not started.\n",
+                "error:crfs_retire: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9075,7 +9075,7 @@ EC_BOOL crfs_retire_file(const UINT32 crfs_md_id, const UINT32 nsec, const UINT3
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_retire_file: crfs module #0x%lx not started.\n",
+                "error:crfs_retire_file: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9133,7 +9133,7 @@ EC_BOOL crfs_retire_file_b(const UINT32 crfs_md_id, const UINT32 nsec, const UIN
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_retire_file_b: crfs module #0x%lx not started.\n",
+                "error:crfs_retire_file_b: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9192,7 +9192,7 @@ EC_BOOL crfs_retire_dir(const UINT32 crfs_md_id, const UINT32 expect_retire_num,
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_retire_dir: crfs module #0x%lx not started.\n",
+                "error:crfs_retire_dir: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9239,7 +9239,7 @@ EC_BOOL crfs_wrlock(const UINT32 crfs_md_id, const UINT32 location)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_wrlock: crfs module #0x%lx not started.\n",
+                "error:crfs_wrlock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9258,7 +9258,7 @@ EC_BOOL crfs_unlock(const UINT32 crfs_md_id, const UINT32 location)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_unlock: crfs module #0x%lx not started.\n",
+                "error:crfs_unlock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9333,7 +9333,7 @@ void crfs_wait_files_print(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_wait_files_print: crfs module #0x%lx not started.\n",
+                "error:crfs_wait_files_print: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9390,7 +9390,7 @@ EC_BOOL crfs_wait_file_owner_push(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 t
         clist_push_back(owner_list, (void *)mod_node);
 
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_push: push %s to file '%.*s'\n",
-                    c_word_to_ipv4(tcid), CRFS_WAIT_FILE_NAME_LEN(crfs_wait_file), CRFS_WAIT_FILE_NAME_STR(crfs_wait_file));
+                    c_word_to_ipv4(tcid), (uint32_t)CRFS_WAIT_FILE_NAME_LEN(crfs_wait_file), CRFS_WAIT_FILE_NAME_STR(crfs_wait_file));
     }
 
     return (EC_TRUE);
@@ -9413,7 +9413,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_wait_file_owner_wakeup: crfs module #0x%lx not started.\n",
+                "error:crfs_wait_file_owner_wakeup: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9433,7 +9433,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_wakeup: req uri '%.*s' done\n",
-                CSTRING_LEN(uri), CSTRING_STR(uri));
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
@@ -9441,7 +9441,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -9450,7 +9450,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     }
 
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -9637,7 +9637,7 @@ EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_wait: crfs module #0x%lx not started.\n",
+                "error:crfs_file_wait: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9673,7 +9673,7 @@ EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const UINT32 tcid, const C
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_wait_ready: crfs module #0x%lx not started.\n",
+                "error:crfs_file_wait_ready: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9688,7 +9688,7 @@ EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRI
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_wait: crfs module #0x%lx not started.\n",
+                "error:crfs_file_wait: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9732,7 +9732,7 @@ EC_BOOL crfs_file_notify(const UINT32 crfs_md_id, const CSTRING *file_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_notify: crfs module #0x%lx not started.\n",
+                "error:crfs_file_notify: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9856,7 +9856,7 @@ void crfs_locked_files_print(const UINT32 crfs_md_id, LOG *log)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_locked_files_print: crfs module #0x%lx not started.\n",
+                "error:crfs_locked_files_print: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -9986,7 +9986,7 @@ EC_BOOL crfs_locked_file_retire(const UINT32 crfs_md_id, const UINT32 retire_max
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_locked_file_retire: crfs module #0x%lx not started.\n",
+                "error:crfs_locked_file_retire: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10091,7 +10091,7 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_lock: crfs module #0x%lx not started.\n",
+                "error:crfs_file_lock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10203,7 +10203,7 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_unlock: crfs module #0x%lx not started.\n",
+                "error:crfs_file_unlock: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10216,7 +10216,7 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
 #if 0
     if(do_log(SEC_0031_CRFS, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] crfs_file_unlock: auth_token str: %.*s\n", CSTRING_LEN(token_str), CSTRING_STR(token_str));
+        sys_log(LOGSTDOUT, "[DEBUG] crfs_file_unlock: auth_token str: %.*s\n", (uint32_t)CSTRING_LEN(token_str), CSTRING_STR(token_str));
         sys_log(LOGSTDOUT, "[DEBUG] crfs_file_unlock: auth_token str => token: ");
         cbytes_print_chars(LOGSTDOUT, &token_cbyte);
 
@@ -10253,7 +10253,7 @@ EC_BOOL crfs_file_unlock_notify(const UINT32 crfs_md_id, const CSTRING *file_pat
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_unlock_notify: crfs module #0x%lx not started.\n",
+                "error:crfs_file_unlock_notify: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10279,7 +10279,7 @@ EC_BOOL crfs_cache_file(const UINT32 crfs_md_id, const CSTRING *path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_cache_file: crfs module #0x%lx not started.\n",
+                "error:crfs_cache_file: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10328,7 +10328,7 @@ EC_BOOL crfs_write_r(const UINT32 crfs_md_id, const CSTRING *file_path, const CB
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_r: crfs module #0x%lx not started.\n",
+                "error:crfs_write_r: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10415,7 +10415,7 @@ EC_BOOL crfs_update_r(const UINT32 crfs_md_id, const CSTRING *file_path, const C
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_update_r: crfs module #0x%lx not started.\n",
+                "error:crfs_update_r: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10499,7 +10499,7 @@ EC_BOOL crfs_delete_r(const UINT32 crfs_md_id, const CSTRING *path, const UINT32
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_delete_r: crfs module #0x%lx not started.\n",
+                "error:crfs_delete_r: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10581,7 +10581,7 @@ EC_BOOL crfs_renew_r(const UINT32 crfs_md_id, const CSTRING *file_path, const UI
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_renew_r: crfs module #0x%lx not started.\n",
+                "error:crfs_renew_r: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10663,7 +10663,7 @@ EC_BOOL crfs_write_b_r(const UINT32 crfs_md_id, const CSTRING *file_path, uint64
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_write_b_r: crfs module #0x%lx not started.\n",
+                "error:crfs_write_b_r: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10752,7 +10752,7 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_np_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_np_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10813,7 +10813,7 @@ EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const 
     if(offset != CRFSNP_FSIZE(crfsnp))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0332);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_np_snapshot: flush crfsnp %u to file %s failed due to completed size %u != fsize %u\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_np_snapshot: flush crfsnp %u to file %s failed due to completed size %ld != fsize %ld\n",
                             crfsnp_id_t, (char *)cstring_get_str(&des_file), offset, CRFSNP_FSIZE(crfsnp));
 
         cstring_clean(&des_file);
@@ -10843,7 +10843,7 @@ EC_BOOL crfs_npp_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_npp_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_npp_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10893,7 +10893,7 @@ EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const 
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_disk_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_disk_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -10959,7 +10959,7 @@ EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const 
     if(offset != CPGD_FSIZE(cpgd))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0336);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_disk_snapshot: flush disk to file %s failed due to completed size %u != fsize %u\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_disk_snapshot: flush disk to file %s failed due to completed size %ld != fsize %u\n",
                             (char *)cstring_get_str(&des_file), offset, CPGD_FSIZE(cpgd));
 
         cstring_clean(&des_file);
@@ -10990,7 +10990,7 @@ EC_BOOL crfs_dn_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_dn_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_dn_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -11046,7 +11046,7 @@ EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_vol_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_vol_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -11103,7 +11103,7 @@ EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
     if(offset != CPGV_FSIZE(cpgv))
     {
         CRFS_UNLOCK(crfs_md, LOC_CRFS_0340);
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_vol_snapshot: flush dn to file %s failed due to completed size %u != fsize %u\n",
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_vol_snapshot: flush dn to file %s failed due to completed size %ld != fsize %u\n",
                             (char *)cstring_get_str(&des_file), offset, CPGV_FSIZE(cpgv));
 
         cstring_clean(&des_file);
@@ -11129,7 +11129,7 @@ EC_BOOL crfs_all_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_vol_snapshot: crfs module #0x%lx not started.\n",
+                "error:crfs_vol_snapshot: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -11171,7 +11171,7 @@ EC_BOOL crfs_replay(const UINT32 crfs_md_id)
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_replay: crfs module #0x%lx not started.\n",
+                "error:crfs_replay: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -11284,7 +11284,7 @@ STATIC_CAST static EC_BOOL __crfs_fetch_url_cstr(const char *fmem, const UINT32 
     (*offset) += line_len + 1;
     (*idx) ++;
 
-    dbg_log(SEC_0031_CRFS, 0)(LOGCONSOLE, "[DEBUG] __crfs_fetch_url_cstr: [%8d] %s\n", (*idx), (char *)cstring_get_str(url_cstr));
+    dbg_log(SEC_0031_CRFS, 0)(LOGCONSOLE, "[DEBUG] __crfs_fetch_url_cstr: [%8ld] %s\n", (*idx), (char *)cstring_get_str(url_cstr));
 
     return (EC_TRUE);
 }

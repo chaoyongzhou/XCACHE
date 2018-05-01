@@ -3479,7 +3479,7 @@ EC_BOOL api_cmd_ui_enable_to_rank_node(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_uint32(param, 1, &rank);
     api_cmd_para_vec_get_uint32(param, 2, &des_rank);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "enable tcid %s rank %ld to rank %d\n",
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "enable tcid %s rank %ld to rank %ld\n",
                         c_word_to_ipv4((tcid)),
                         rank,
                         des_rank);
@@ -11304,7 +11304,7 @@ EC_BOOL api_cmd_ui_cbgt_insert(CMD_PARA_VEC * param)
     field_num = c_str_split((char *)cstring_get_str(data_rfqtv), ":;,", fields, sizeof(fields)/sizeof(fields[0]));
     if(4 != field_num)
     {
-        dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_insert: invalid data %s\n", data_rfqtv);
+        dbg_log(SEC_0010_API, 0)(LOGSTDOUT, "error:api_cmd_ui_cbgt_insert: invalid data %s\n", (char *)cstring_get_str(data_rfqtv));
         return (EC_TRUE);
     }
 
@@ -13438,8 +13438,8 @@ EC_BOOL api_cmd_ui_csession_get_by_id_regex(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_uint32(param , 4, &modi);
     api_cmd_para_vec_get_cstring(param, 5, &where);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "session get idregex %ld key %s on tcid %s rank %ld modi %ld at %s\n",
-                        session_id,
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "session get id regex %s key %s on tcid %s rank %ld modi %ld at %s\n",
+                        (char *)cstring_get_str(session_id),
                         (char *)cstring_get_str(key),
                         c_word_to_ipv4(tcid),
                         rank,
@@ -14874,7 +14874,7 @@ EC_BOOL api_cmd_ui_crfs_create_npp(CMD_PARA_VEC * param)
 
     /*hsrfs <id> create np model <model> max num <np mum> with hash algo <id> and root <root dir> on tcid <tcid> at <where>*/
     /*hsrfs %n create np model %n max num %n with hash algo %n and root %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_create_npp: hsrfs %ld create np model %u max num %u with hash algo %u and root %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_create_npp: hsrfs %ld create np model %ld max num %ld with hash algo %ld and root %s on tcid %s at %s\n",
                         crfs_modi,
                         crfsnp_model,
                         crfsnp_max_num,
@@ -14994,7 +14994,7 @@ EC_BOOL api_cmd_ui_crfs_add_disk(CMD_PARA_VEC * param)
 
     /*hsrfs <id> add disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfs %n add disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_add_disk: hsrfs %ld add disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_add_disk: hsrfs %ld add disk %ld on tcid %s at %s\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid),
@@ -15015,14 +15015,14 @@ EC_BOOL api_cmd_ui_crfs_add_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfs %ld add disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfs %ld add disk %ld on tcid %s successfully\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfs %ld add disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfs %ld add disk %ld on tcid %s failed\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
@@ -15049,7 +15049,7 @@ EC_BOOL api_cmd_ui_crfs_del_disk(CMD_PARA_VEC * param)
 
     /*hsrfs <id> del disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfs %n del disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_del_disk: hsrfs %ld del disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_del_disk: hsrfs %ld del disk %ld on tcid %s at %s\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid),
@@ -15070,14 +15070,14 @@ EC_BOOL api_cmd_ui_crfs_del_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfs %ld del disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfs %ld del disk %ld on tcid %s successfully\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfs %ld del disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfs %ld del disk %ld on tcid %s failed\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
@@ -15104,7 +15104,7 @@ EC_BOOL api_cmd_ui_crfs_mount_disk(CMD_PARA_VEC * param)
 
     /*hsrfs <id> mount disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfs %n mount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_mount_disk: hsrfs %ld mount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_mount_disk: hsrfs %ld mount disk %ld on tcid %s at %s\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid),
@@ -15125,14 +15125,14 @@ EC_BOOL api_cmd_ui_crfs_mount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfs %ld mount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfs %ld mount disk %ld on tcid %s successfully\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfs %ld mount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfs %ld mount disk %ld on tcid %s failed\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
@@ -15159,7 +15159,7 @@ EC_BOOL api_cmd_ui_crfs_umount_disk(CMD_PARA_VEC * param)
 
     /*hsrfs <id> umount disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfs %n umount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_umount_disk: hsrfs %ld umount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_umount_disk: hsrfs %ld umount disk %ld on tcid %s at %s\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid),
@@ -15180,14 +15180,14 @@ EC_BOOL api_cmd_ui_crfs_umount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfs %ld umount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfs %ld umount disk %ld on tcid %s successfully\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfs %ld umount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfs %ld umount disk %ld on tcid %s failed\n",
                         crfs_modi,
                         disk_no,
                         c_word_to_ipv4(crfsnp_tcid));
@@ -15386,7 +15386,7 @@ EC_BOOL api_cmd_ui_crfs_create_b(CMD_PARA_VEC * param)
 
     /*hsrfs <id> create bigfile <name> with size <file size> on tcid <tcid> at <console|log>*/
     /*hsrfs %n create bigfile %s with size %N on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_create_b: hsrfs %ld create bigfile %s with size %lld on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_create_b: hsrfs %ld create bigfile %s with size %"PRId64" on tcid %s at %s\n",
                         crfs_modi,
                         (char *)cstring_get_str(file_name),
                         file_size,
@@ -15442,7 +15442,7 @@ EC_BOOL api_cmd_ui_crfs_read_b(CMD_PARA_VEC * param)
 
     /*hsrfs <id> read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>*/
     /*hsrfs %n  read bigfile %s from offset %N max %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_read_b: hsrfs %ld read bigfile %s from offset %llu max %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_read_b: hsrfs %ld read bigfile %s from offset %"PRId64" max %ld on tcid %s at %s\n",
                         crfs_modi,
                         (char *)cstring_get_str(file_name),
                         offset,
@@ -15467,7 +15467,7 @@ EC_BOOL api_cmd_ui_crfs_read_b(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_crfs_read: read bigfile %s to offset %llu result: %.*s\n",
+        sys_log(des_log, "[SUCC] api_cmd_ui_crfs_read: read bigfile %s to offset %"PRId64" result: %.*s\n",
                           (char *)cstring_get_str(file_name), offset,
                           cbytes_len(cbytes), (char *)cbytes_buf(cbytes));
     }
@@ -15504,7 +15504,7 @@ EC_BOOL api_cmd_ui_crfs_write_b(CMD_PARA_VEC * param)
 
     /*hsrfs <id> write bigfile <name> with content <string> at offset <offset> on tcid <tcid> at <console|log>*/
     /*hsrfs %n write bigfile %s with content %s at offset %N on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_write_b: hsrfs %ld write bigfile %s with content %s at offset %llu on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_write_b: hsrfs %ld write bigfile %s with content %s at offset %"PRId64" on tcid %s at %s\n",
                         crfs_modi,
                         (char *)cstring_get_str(file_name),
                         (char *)cstring_get_str(file_content),
@@ -15663,12 +15663,12 @@ EC_BOOL api_cmd_ui_crfs_download_b(CMD_PARA_VEC * param)
 
         if(EC_TRUE == ret)
         {
-            sys_log(des_log, "[SUCC] api_cmd_ui_crfs_download_b: download bigfile %s to offset %llu\n",
+            sys_log(des_log, "[SUCC] api_cmd_ui_crfs_download_b: download bigfile %s to offset %"PRId64"\n",
                               (char *)cstring_get_str(bigfile_name), offset);
         }
         else
         {
-            sys_log(des_log, "[FAIL] api_cmd_ui_crfs_download_b: download bigfile %s to offset %llu\n",
+            sys_log(des_log, "[FAIL] api_cmd_ui_crfs_download_b: download bigfile %s to offset %"PRId64"\n",
                               (char *)cstring_get_str(bigfile_name), offset);
         }
 
@@ -15810,11 +15810,11 @@ EC_BOOL api_cmd_ui_crfs_upload_b(CMD_PARA_VEC * param)
 
         if(EC_TRUE == ret)
         {
-            sys_log(des_log, "[SUCC] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
+            sys_log(des_log, "[SUCC] import bigfile name %s to offset %"PRId64"\n", (char *)cstring_get_str(bigfile_name), offset);
         }
         else
         {
-            sys_log(des_log, "[FAIL] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
+            sys_log(des_log, "[FAIL] import bigfile name %s to offset %"PRId64"\n", (char *)cstring_get_str(bigfile_name), offset);
         }
 
         cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
@@ -16026,7 +16026,7 @@ EC_BOOL api_cmd_ui_crfs_count_file_size(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] count file size of path %s: %llu\n", (char *)cstring_get_str(path_name), file_size);
+        sys_log(des_log, "[SUCC] count file size of path %s: %"PRId64"\n", (char *)cstring_get_str(path_name), file_size);
     }
     else
     {
@@ -18022,7 +18022,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
 
     /*hsrfs <id> md5sum bigfile <name> seg <no> on tcid <tcid> at <where>*/
     /*hsrfs %n md5sum bigfile %s seg %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_md5sum_b: hsrfs %ld md5sum file %s seg %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_md5sum_b: hsrfs %ld md5sum file %s seg %ld on tcid %s at %s\n",
                         crfs_modi,
                         (char *)cstring_get_str(fname),
                         seg_no,
@@ -18045,7 +18045,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %u, md5sum %s\n",
+        sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %ld, md5sum %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname),
@@ -18055,7 +18055,7 @@ EC_BOOL api_cmd_ui_crfs_md5sum_b(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %u\n",
+        sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %ld\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            (char *)cstring_get_str(fname),
@@ -18087,7 +18087,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
 
     /*hsrfs <id> snapshot np <id> to path <dir> on tcid <tcid> at <where>*/
     /*hsrfs %n snapshot np %n to path %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_np_snapshot: hsrfs %ld snapshot np %u to path %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_np_snapshot: hsrfs %ld snapshot np %ld to path %s on tcid %s at %s\n",
                         crfs_modi,
                         crfsnp_id,
                         (char *)cstring_get_str(des_path),
@@ -18110,7 +18110,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[rank_%s_%ld][SUCC] np %u, path %s\n",
+        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            crfsnp_id,
@@ -18119,7 +18119,7 @@ EC_BOOL api_cmd_ui_crfs_np_snapshot(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[rank_%s_%ld][FAIL] np %u, path %s\n",
+        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            crfsnp_id,
@@ -18210,7 +18210,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
 
     /*hsrfs <id> snapshot disk <id> to path <dir> on tcid <tcid> at <where>*/
     /*hsrfs %n snapshot disk %n to path %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_disk_snapshot: hsrfs %ld snapshot disk %u to path %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfs_disk_snapshot: hsrfs %ld snapshot disk %ld to path %s on tcid %s at %s\n",
                         crfs_modi,
                         disk_no,
                         (char *)cstring_get_str(des_path),
@@ -18233,7 +18233,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[rank_%s_%ld][SUCC] disk %u, path %s\n",
+        sys_log(des_log, "[rank_%s_%ld][SUCC] disk %ld, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            disk_no,
@@ -18242,7 +18242,7 @@ EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[rank_%s_%ld][FAIL] disk %u, path %s\n",
+        sys_log(des_log, "[rank_%s_%ld][FAIL] disk %ld, path %s\n",
                            c_word_to_ipv4(crfsnp_tcid),
                            CMPI_CRFS_RANK,
                            disk_no,
@@ -18960,7 +18960,7 @@ EC_BOOL api_cmd_ui_crfsc_add_disk(CMD_PARA_VEC * param)
 
     /*hsrfsc add disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfsc add disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_add_disk: hsrfsc add disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_add_disk: hsrfsc add disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid),
                         (char *)cstring_get_str(where));
@@ -18980,13 +18980,13 @@ EC_BOOL api_cmd_ui_crfsc_add_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfsc add disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfsc add disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfsc add disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfsc add disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
@@ -19010,7 +19010,7 @@ EC_BOOL api_cmd_ui_crfsc_del_disk(CMD_PARA_VEC * param)
 
     /*hsrfsc del disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfsc del disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_del_disk: hsrfsc del disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_del_disk: hsrfsc del disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid),
                         (char *)cstring_get_str(where));
@@ -19030,13 +19030,13 @@ EC_BOOL api_cmd_ui_crfsc_del_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfsc del disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfsc del disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfsc del disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfsc del disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
@@ -19060,7 +19060,7 @@ EC_BOOL api_cmd_ui_crfsc_mount_disk(CMD_PARA_VEC * param)
 
     /*hsrfsc mount disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfsc mount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_mount_disk: hsrfsc mount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_mount_disk: hsrfsc mount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid),
                         (char *)cstring_get_str(where));
@@ -19080,13 +19080,13 @@ EC_BOOL api_cmd_ui_crfsc_mount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfsc mount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfsc mount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfsc mount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfsc mount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
@@ -19110,7 +19110,7 @@ EC_BOOL api_cmd_ui_crfsc_umount_disk(CMD_PARA_VEC * param)
 
     /*hsrfsc umount disk <disk no> on tcid <tcid> at <where>*/
     /*hsrfsc umount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_umount_disk: hsrfsc umount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_umount_disk: hsrfsc umount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid),
                         (char *)cstring_get_str(where));
@@ -19130,13 +19130,13 @@ EC_BOOL api_cmd_ui_crfsc_umount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hsrfsc umount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hsrfsc umount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hsrfsc umount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hsrfsc umount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(crfscnp_tcid));
     }
@@ -19321,7 +19321,7 @@ EC_BOOL api_cmd_ui_crfsc_create_b(CMD_PARA_VEC * param)
 
     /*hsrfsc create bigfile <name> with size <file size> on tcid <tcid> at <console|log>*/
     /*hsrfsc create bigfile %s with size %N on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_create_b: hsrfsc create bigfile %s with size %lld on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_create_b: hsrfsc create bigfile %s with size %"PRId64" on tcid %s at %s\n",
                         (char *)cstring_get_str(file_name),
                         file_size,
                         c_word_to_ipv4(crfscnp_tcid),
@@ -19374,7 +19374,7 @@ EC_BOOL api_cmd_ui_crfsc_read_b(CMD_PARA_VEC * param)
 
     /*hsrfsc read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>*/
     /*hsrfsc read bigfile %s from offset %N max %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_read_b: hsrfsc read bigfile %s from offset %llu max %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_read_b: hsrfsc read bigfile %s from offset %"PRId64" max %ld on tcid %s at %s\n",
                         (char *)cstring_get_str(file_name),
                         offset,
                         max_len,
@@ -19398,7 +19398,7 @@ EC_BOOL api_cmd_ui_crfsc_read_b(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] api_cmd_ui_crfsc_read: read bigfile %s to offset %llu result: %.*s\n",
+        sys_log(des_log, "[SUCC] api_cmd_ui_crfsc_read: read bigfile %s to offset %"PRId64" result: %.*s\n",
                           (char *)cstring_get_str(file_name), offset,
                           cbytes_len(cbytes), (char *)cbytes_buf(cbytes));
     }
@@ -19433,7 +19433,7 @@ EC_BOOL api_cmd_ui_crfsc_write_b(CMD_PARA_VEC * param)
 
     /*hsrfsc write bigfile <name> with content <string> at offset <offset> on tcid <tcid> at <console|log>*/
     /*hsrfsc write bigfile %s with content %s at offset %N on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_write_b: hsrfsc write bigfile %s with content %s at offset %llu on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_write_b: hsrfsc write bigfile %s with content %s at offset %"PRId64" on tcid %s at %s\n",
                         (char *)cstring_get_str(file_name),
                         (char *)cstring_get_str(file_content),
                         offset,
@@ -19585,12 +19585,12 @@ EC_BOOL api_cmd_ui_crfsc_download_b(CMD_PARA_VEC * param)
 
         if(EC_TRUE == ret)
         {
-            sys_log(des_log, "[SUCC] api_cmd_ui_crfsc_download_b: download bigfile %s to offset %llu\n",
+            sys_log(des_log, "[SUCC] api_cmd_ui_crfsc_download_b: download bigfile %s to offset %"PRId64"\n",
                               (char *)cstring_get_str(bigfile_name), offset);
         }
         else
         {
-            sys_log(des_log, "[FAIL] api_cmd_ui_crfsc_download_b: download bigfile %s to offset %llu\n",
+            sys_log(des_log, "[FAIL] api_cmd_ui_crfsc_download_b: download bigfile %s to offset %"PRId64"\n",
                               (char *)cstring_get_str(bigfile_name), offset);
         }
 
@@ -19729,11 +19729,11 @@ EC_BOOL api_cmd_ui_crfsc_upload_b(CMD_PARA_VEC * param)
 
         if(EC_TRUE == ret)
         {
-            sys_log(des_log, "[SUCC] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
+            sys_log(des_log, "[SUCC] import bigfile name %s to offset %"PRId64"\n", (char *)cstring_get_str(bigfile_name), offset);
         }
         else
         {
-            sys_log(des_log, "[FAIL] import bigfile name %s to offset %lld\n", (char *)cstring_get_str(bigfile_name), offset);
+            sys_log(des_log, "[FAIL] import bigfile name %s to offset %"PRId64"\n", (char *)cstring_get_str(bigfile_name), offset);
         }
 
         cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
@@ -19884,7 +19884,7 @@ EC_BOOL api_cmd_ui_crfsc_count_file_size(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] count file size of path %s: %llu\n", (char *)cstring_get_str(path_name), file_size);
+        sys_log(des_log, "[SUCC] count file size of path %s: %"PRId64"\n", (char *)cstring_get_str(path_name), file_size);
     }
     else
     {
@@ -20216,7 +20216,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
 
     /*hsrfsc md5sum bigfile <name> seg <no> on tcid <tcid> at <where>*/
     /*hsrfsc md5sum bigfile %s seg %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_md5sum_b: hsrfsc md5sum file %s seg %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_crfsc_md5sum_b: hsrfsc md5sum file %s seg %ld on tcid %s at %s\n",
                         (char *)cstring_get_str(fname),
                         seg_no,
                         c_word_to_ipv4(crfscnp_tcid),
@@ -20238,7 +20238,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %u, md5sum %s\n",
+        sys_log(des_log, "[rank_%s_%ld][SUCC] bigfile %s, seg %ld, md5sum %s\n",
                            c_word_to_ipv4(crfscnp_tcid),
                            CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname),
@@ -20248,7 +20248,7 @@ EC_BOOL api_cmd_ui_crfsc_md5sum_b(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %u\n",
+        sys_log(des_log, "[rank_%s_%ld][FAIL] bigfile %s, seg %ld\n",
                            c_word_to_ipv4(crfscnp_tcid),
                            CMPI_CRFSC_RANK,
                            (char *)cstring_get_str(fname),
@@ -20943,7 +20943,7 @@ EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param)
 
     /*hshfs create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <where>*/
     /*hshfs create np model %n max num %n with root %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_create_npp: hshfs create np model %u max num %u with root %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_create_npp: hshfs create np model %ld max num %ld with root %s on tcid %s at %s\n",
                         chfsnp_model,
                         chfsnp_max_num,
                         (char *)cstring_get_str(chfsnp_db_root_dir),
@@ -20966,7 +20966,7 @@ EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hshfs create np model %u max num %u with root %s on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hshfs create np model %ld max num %ld with root %s on tcid %s successfully\n",
                         chfsnp_model,
                         chfsnp_max_num,
                         (char *)cstring_get_str(chfsnp_db_root_dir),
@@ -20974,7 +20974,7 @@ EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[FAIL] hshfs create np model %u max num %u with root %s on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hshfs create np model %ld max num %ld with root %s on tcid %s failed\n",
                         chfsnp_model,
                         chfsnp_max_num,
                         (char *)cstring_get_str(chfsnp_db_root_dir),
@@ -21050,7 +21050,7 @@ EC_BOOL api_cmd_ui_chfs_add_disk(CMD_PARA_VEC * param)
 
     /*hshfs add disk <disk no> on tcid <tcid> at <where>*/
     /*hshfs add disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_add_disk: hshfs add disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_add_disk: hshfs add disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -21070,13 +21070,13 @@ EC_BOOL api_cmd_ui_chfs_add_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hshfs add disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hshfs add disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hshfs add disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hshfs add disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
@@ -21100,7 +21100,7 @@ EC_BOOL api_cmd_ui_chfs_del_disk(CMD_PARA_VEC * param)
 
     /*hshfs del disk <disk no> on tcid <tcid> at <where>*/
     /*hshfs del disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_del_disk: hshfs del disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_del_disk: hshfs del disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -21120,13 +21120,13 @@ EC_BOOL api_cmd_ui_chfs_del_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hshfs del disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hshfs del disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hshfs del disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hshfs del disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
@@ -21150,7 +21150,7 @@ EC_BOOL api_cmd_ui_chfs_mount_disk(CMD_PARA_VEC * param)
 
     /*hshfs mount disk <disk no> on tcid <tcid> at <where>*/
     /*hshfs mount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_mount_disk: hshfs mount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_mount_disk: hshfs mount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -21170,13 +21170,13 @@ EC_BOOL api_cmd_ui_chfs_mount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hshfs mount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hshfs mount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hshfs mount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hshfs mount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
@@ -21200,7 +21200,7 @@ EC_BOOL api_cmd_ui_chfs_umount_disk(CMD_PARA_VEC * param)
 
     /*hshfs umount disk <disk no> on tcid <tcid> at <where>*/
     /*hshfs umount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_umount_disk: hshfs umount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_chfs_umount_disk: hshfs umount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -21220,13 +21220,13 @@ EC_BOOL api_cmd_ui_chfs_umount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hshfs umount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hshfs umount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hshfs umount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hshfs umount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(chfsnp_tcid));
     }
@@ -21586,7 +21586,7 @@ EC_BOOL api_cmd_ui_chfs_count_file_size(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] count file size of path %s: %llu\n", (char *)cstring_get_str(path_name), file_size);
+        sys_log(des_log, "[SUCC] count file size of path %s: %"PRId64"\n", (char *)cstring_get_str(path_name), file_size);
     }
     else
     {
@@ -21976,7 +21976,7 @@ EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param)
 
     /*hssfs create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <where>*/
     /*hssfs create np model %n max num %n with root %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_create_npp: hssfs create np model %u max num %u with root %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_create_npp: hssfs create np model %ld max num %ld with root %s on tcid %s at %s\n",
                         csfsnp_model,
                         csfsnp_max_num,
                         (char *)cstring_get_str(csfsnp_db_root_dir),
@@ -21999,7 +21999,7 @@ EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hssfs create np model %u max num %u with root %s on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hssfs create np model %ld max num %ld with root %s on tcid %s successfully\n",
                         csfsnp_model,
                         csfsnp_max_num,
                         (char *)cstring_get_str(csfsnp_db_root_dir),
@@ -22007,7 +22007,7 @@ EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[FAIL] hssfs create np model %u max num %u with root %s on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hssfs create np model %ld max num %ld with root %s on tcid %s failed\n",
                         csfsnp_model,
                         csfsnp_max_num,
                         (char *)cstring_get_str(csfsnp_db_root_dir),
@@ -22083,7 +22083,7 @@ EC_BOOL api_cmd_ui_csfs_add_disk(CMD_PARA_VEC * param)
 
     /*hssfs add disk <disk no> on tcid <tcid> at <where>*/
     /*hssfs add disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_add_disk: hssfs add disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_add_disk: hssfs add disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -22103,13 +22103,13 @@ EC_BOOL api_cmd_ui_csfs_add_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hssfs add disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hssfs add disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hssfs add disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hssfs add disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
@@ -22133,7 +22133,7 @@ EC_BOOL api_cmd_ui_csfs_del_disk(CMD_PARA_VEC * param)
 
     /*hssfs del disk <disk no> on tcid <tcid> at <where>*/
     /*hssfs del disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_del_disk: hssfs del disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_del_disk: hssfs del disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -22153,13 +22153,13 @@ EC_BOOL api_cmd_ui_csfs_del_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hssfs del disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hssfs del disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hssfs del disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hssfs del disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
@@ -22183,7 +22183,7 @@ EC_BOOL api_cmd_ui_csfs_mount_disk(CMD_PARA_VEC * param)
 
     /*hssfs mount disk <disk no> on tcid <tcid> at <where>*/
     /*hssfs mount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_mount_disk: hssfs mount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_mount_disk: hssfs mount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -22203,13 +22203,13 @@ EC_BOOL api_cmd_ui_csfs_mount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hssfs mount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hssfs mount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hssfs mount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hssfs mount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
@@ -22233,7 +22233,7 @@ EC_BOOL api_cmd_ui_csfs_umount_disk(CMD_PARA_VEC * param)
 
     /*hssfs umount disk <disk no> on tcid <tcid> at <where>*/
     /*hssfs umount disk %n on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_umount_disk: hssfs umount disk %u on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_csfs_umount_disk: hssfs umount disk %ld on tcid %s at %s\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid),
                         (char *)cstring_get_str(where));
@@ -22253,13 +22253,13 @@ EC_BOOL api_cmd_ui_csfs_umount_disk(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] hssfs umount disk %u on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] hssfs umount disk %ld on tcid %s successfully\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
     else
     {
-        sys_log(des_log, "[FAIL] hssfs umount disk %u on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] hssfs umount disk %ld on tcid %s failed\n",
                         disk_no,
                         c_word_to_ipv4(csfsnp_tcid));
     }
@@ -22619,7 +22619,7 @@ EC_BOOL api_cmd_ui_csfs_count_file_size(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] count file size of path %s: %llu\n", (char *)cstring_get_str(path_name), file_size);
+        sys_log(des_log, "[SUCC] count file size of path %s: %"PRId64"\n", (char *)cstring_get_str(path_name), file_size);
     }
     else
     {
@@ -22906,7 +22906,7 @@ EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param)
 
     /*tdns create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <where>*/
     /*tdns create np model %n max num %n with root %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_create_npp: tdns create np model %u max num %u with root %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_create_npp: tdns create np model %ld max num %ld with root %s on tcid %s at %s\n",
                         ctdnsnp_model,
                         ctdnsnp_max_num,
                         (char *)cstring_get_str(ctdnsnp_db_root_dir),
@@ -22928,7 +22928,7 @@ EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[SUCC] tdns create np model %u max num %u with root %s on tcid %s successfully\n",
+        sys_log(des_log, "[SUCC] tdns create np model %ld max num %ld with root %s on tcid %s successfully\n",
                         ctdnsnp_model,
                         ctdnsnp_max_num,
                         (char *)cstring_get_str(ctdnsnp_db_root_dir),
@@ -22936,7 +22936,7 @@ EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[FAIL] tdns create np model %u max num %u with root %s on tcid %s failed\n",
+        sys_log(des_log, "[FAIL] tdns create np model %ld max num %ld with root %s on tcid %s failed\n",
                         ctdnsnp_model,
                         ctdnsnp_max_num,
                         (char *)cstring_get_str(ctdnsnp_db_root_dir),
@@ -23663,7 +23663,7 @@ EC_BOOL api_cmd_ui_ctdns_online(CMD_PARA_VEC * param)
 
     /*tdns online service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
     /*tdns online service %s network %n tcid %t on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_online: tdns online service %s network %s tcid %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_online: tdns online service %s network %ld tcid %s on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         network,
                         c_word_to_ipv4(tdns_tcid),
@@ -23716,7 +23716,7 @@ EC_BOOL api_cmd_ui_ctdns_offline(CMD_PARA_VEC * param)
 
     /*tdns offline service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
     /*tdns offline service %s network %n tcid %t on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_offline: tdns offline service %s network %s tcid %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_offline: tdns offline service %s network %ld tcid %s on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         network,
                         c_word_to_ipv4(tdns_tcid),
@@ -23869,7 +23869,7 @@ EC_BOOL api_cmd_ui_ctdns_refresh_cache(CMD_PARA_VEC * param)
 
     /*tdns refresh path <cache path> service <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
     /*tdns refresh path %s service %s network %n tcid %t on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_refresh_cache: tdns refresh path %s service %s network %s tcid %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ctdns_refresh_cache: tdns refresh path %s service %s network %ld tcid %s on tcid %s at %s\n",
                         (char *)cstring_get_str(cache_path),
                         (char *)cstring_get_str(service),
                         network,
@@ -24888,7 +24888,7 @@ EC_BOOL api_cmd_ui_cp2p_flush_subnet(CMD_PARA_VEC * param)
     /*p2p flush <service> <src file> to <des file> in network <network> all on tcid <tcid> at <where>*/
     /*p2p flush %s %s to %s in network %n all on tcid %t at %s*/
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_flush_subnet: "
-                        "p2p flush %s %s in network %ld all on tcid %s at %s\n",
+                        "p2p flush %s %s to %s in network %ld all on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         (char *)cstring_get_str(src_file),
                         (char *)cstring_get_str(des_file),
@@ -24956,10 +24956,10 @@ EC_BOOL api_cmd_ui_cp2p_flush_all(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_tcid(param    , 3, &tcid);
     api_cmd_para_vec_get_cstring(param , 4, &where);
 
-    /*p2p flush <service> <src file> to <des file> in network <network> all on tcid <tcid> at <where>*/
-    /*p2p flush %s %s to %s in network %n all on tcid %t at %s*/
+    /*p2p flush <service> <src file> to <des file> in all on tcid <tcid> at <where>*/
+    /*p2p flush %s %s to %s in all on tcid %t at %s*/
     dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_flush_all: "
-                        "p2p flush %s %s in all on tcid %s at %s\n",
+                        "p2p flush %s %s to %s in all on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         (char *)cstring_get_str(src_file),
                         (char *)cstring_get_str(des_file),
@@ -25336,7 +25336,7 @@ EC_BOOL api_cmd_ui_cp2p_online(CMD_PARA_VEC * param)
 
     /*p2p online <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
     /*p2p online %s network %n tcid %t on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_online: p2p online service %s network %s tcid %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_online: p2p online service %s network %ld tcid %s on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         network,
                         c_word_to_ipv4(p2p_tcid),
@@ -25389,7 +25389,7 @@ EC_BOOL api_cmd_ui_cp2p_offline(CMD_PARA_VEC * param)
 
     /*p2p offline <service> network <network> tcid <tcid> on tcid <tcid> at <console|log>*/
     /*p2p offline %s network %n tcid %t on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_offline: p2p offline %s network %s tcid %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cp2p_offline: p2p offline %s network %ld tcid %s on tcid %s at %s\n",
                         (char *)cstring_get_str(service),
                         network,
                         c_word_to_ipv4(p2p_tcid),

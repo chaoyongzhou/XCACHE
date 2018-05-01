@@ -87,7 +87,7 @@ UINT32 cdfs_free_module_static_mem(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_free_module_static_mem: cdfs module #0x%lx not started.\n",
+                "error:cdfs_free_module_static_mem: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         /*note: here do not exit but return only*/
         return ((UINT32)-1);
@@ -243,7 +243,7 @@ STATIC_CAST static EC_BOOL cdfs_dn_is_connected(const UINT32 cdfs_md_id, const U
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_dn_is_connected: cdfs module #0x%lx not started.\n",
+                "error:cdfs_dn_is_connected: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -279,7 +279,7 @@ STATIC_CAST static EC_BOOL cdfs_collect_fnode_all_tcid(const CDFSNP_FNODE *cdfsn
     {
         cvector_push(tcid_vec, (void *)CDFSNP_FNODE_INODE_TCID(cdfsnp_fnode, cdfsnp_inode_pos));
         dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_collect_fnode_all_tcid: replica num %ld, inode num %ld, inode pos %ld, push tcid = %s\n",
-                            CDFSNP_FNODE_REPNUM(cdfsnp_fnode), cdfsnp_inode_num,
+                            (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode), cdfsnp_inode_num,
                             cdfsnp_inode_pos,
                             c_word_to_ipv4(CDFSNP_FNODE_INODE_TCID(cdfsnp_fnode, cdfsnp_inode_pos))
                             );
@@ -319,7 +319,7 @@ STATIC_CAST static EC_BOOL cdfs_get_next_succ_inode_pos(const UINT32 cdfs_md_id,
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_get_next_succ_inode_pos: cdfs module #0x%lx not started.\n",
+                "error:cdfs_get_next_succ_inode_pos: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         cdfs_print_module_status(cdfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CDFS, cdfs_md_id);
@@ -363,7 +363,7 @@ STATIC_CAST static MOD_MGR *cdfs_new_dn_mod_mgr_to_write(const UINT32 cdfs_md_id
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_new_dn_mod_mgr: cdfs module #0x%lx not started.\n",
+                "error:cdfs_new_dn_mod_mgr: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         cdfs_print_module_status(cdfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CDFS, cdfs_md_id);
@@ -444,7 +444,7 @@ EC_BOOL cdfs_disable_write_access_dn(const UINT32 cdfs_md_id, const UINT32 cdfsd
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_disable_write_access_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_disable_write_access_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         cdfs_print_module_status(cdfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CDFS, cdfs_md_id);
@@ -495,7 +495,7 @@ UINT32 cdfs_set_npp_mod_mgr(const UINT32 cdfs_md_id, const MOD_MGR * src_mod_mgr
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_set_npp_mod_mgr: cdfs module #0x%lx not started.\n",
+                "error:cdfs_set_npp_mod_mgr: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         cdfs_print_module_status(cdfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CDFS, cdfs_md_id);
@@ -505,15 +505,15 @@ UINT32 cdfs_set_npp_mod_mgr(const UINT32 cdfs_md_id, const MOD_MGR * src_mod_mgr
     cdfs_md = CDFS_MD_GET(cdfs_md_id);
     des_mod_mgr = CDFS_MD_NPP_MOD_MGR(cdfs_md);
 
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "cdfs_set_npp_mod_mgr: md_id %d, input src_mod_mgr %lx\n", cdfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "cdfs_set_npp_mod_mgr: md_id %ld, input src_mod_mgr %p\n", cdfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of cdfsnp_tcid_vec and cdfsnp_tcid_vec*/
     mod_mgr_limited_clone(cdfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_npp_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_npp_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_npp_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_npp_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -527,7 +527,7 @@ UINT32 cdfs_set_dn_mod_mgr(const UINT32 cdfs_md_id, const MOD_MGR * src_mod_mgr)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_set_dn_mod_mgr: cdfs module #0x%lx not started.\n",
+                "error:cdfs_set_dn_mod_mgr: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         cdfs_print_module_status(cdfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CDFS, cdfs_md_id);
@@ -537,15 +537,15 @@ UINT32 cdfs_set_dn_mod_mgr(const UINT32 cdfs_md_id, const MOD_MGR * src_mod_mgr)
     cdfs_md = CDFS_MD_GET(cdfs_md_id);
     des_mod_mgr = CDFS_MD_DN_MOD_MGR(cdfs_md);
 
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "cdfs_set_dn_mod_mgr: md_id %d, input src_mod_mgr %lx\n", cdfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "cdfs_set_dn_mod_mgr: md_id %ld, input src_mod_mgr %p\n", cdfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of cdfsnp_tcid_vec and cdfsnp_tcid_vec*/
     mod_mgr_limited_clone(cdfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_dn_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_dn_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_dn_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0056_CDFS, 5)(LOGSTDOUT, "====================================cdfs_set_dn_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -594,7 +594,7 @@ EC_BOOL cdfs_open_npp(const UINT32 cdfs_md_id, const CSTRING *cdfsnp_db_root_dir
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_open_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_open_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -630,7 +630,7 @@ EC_BOOL cdfs_close_npp(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_close_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_close_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -662,7 +662,7 @@ EC_BOOL cdfs_close_with_flush_npp(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_close_with_flush_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_close_with_flush_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -692,7 +692,7 @@ EC_BOOL cdfs_collect_dn_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfsdn_tcid_v
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_collect_dn_tcid_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_collect_dn_tcid_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -714,7 +714,7 @@ EC_BOOL cdfs_collect_npp_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfsnpp_tcid
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_collect_npp_tcid_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_collect_npp_tcid_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -736,7 +736,7 @@ EC_BOOL cdfs_collect_cluster_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfs_clu
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_collect_cluster_tcid_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_collect_cluster_tcid_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -758,7 +758,7 @@ EC_BOOL cdfs_collect_all_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfs_all_tci
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_collect_all_tcid_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_collect_all_tcid_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -785,7 +785,7 @@ EC_BOOL cdfs_create_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnp_mode, const
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_create_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_create_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -807,7 +807,7 @@ EC_BOOL cdfs_add_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnpp_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_add_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_add_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -839,7 +839,7 @@ EC_BOOL cdfs_add_dn(const UINT32 cdfs_md_id, const UINT32 cdfsdn_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_add_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_add_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -870,7 +870,7 @@ EC_BOOL cdfs_add_dn_vec(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_add_dn_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_add_dn_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -914,7 +914,7 @@ EC_BOOL cdfs_add_npp_vec(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_add_npp_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_add_npp_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -961,7 +961,7 @@ EC_BOOL cdfs_reg_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnpp_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_reg_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_reg_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1002,7 +1002,7 @@ EC_BOOL cdfs_reg_dn(const UINT32 cdfs_md_id, const UINT32 cdfsdn_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_reg_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_reg_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1049,7 +1049,7 @@ EC_BOOL cdfs_reg_dn_vec(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_reg_dn_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_reg_dn_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1121,7 +1121,7 @@ EC_BOOL cdfs_reg_npp_vec(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_reg_npp_vec: cdfs module #0x%lx not started.\n",
+                "error:cdfs_reg_npp_vec: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1188,7 +1188,7 @@ EC_BOOL cdfs_find_dir(const UINT32 cdfs_md_id, const CSTRING *dir_path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_find_dir: cdfs module #0x%lx not started.\n",
+                "error:cdfs_find_dir: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1218,7 +1218,7 @@ EC_BOOL cdfs_find_file(const UINT32 cdfs_md_id, const CSTRING *file_path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_find_file: cdfs module #0x%lx not started.\n",
+                "error:cdfs_find_file: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1248,7 +1248,7 @@ EC_BOOL cdfs_find(const UINT32 cdfs_md_id, const CSTRING *path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_find: cdfs module #0x%lx not started.\n",
+                "error:cdfs_find: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1276,7 +1276,7 @@ EC_BOOL cdfs_exists(const UINT32 cdfs_md_id, const CSTRING *path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_exists: cdfs module #0x%lx not started.\n",
+                "error:cdfs_exists: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1295,7 +1295,7 @@ EC_BOOL cdfs_exists_npp(const UINT32 cdfs_md_id, const CSTRING *path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_exists_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_exists_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1329,7 +1329,7 @@ EC_BOOL cdfs_is_file(const UINT32 cdfs_md_id, const CSTRING *file_path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_is_file: cdfs module #0x%lx not started.\n",
+                "error:cdfs_is_file: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1349,7 +1349,7 @@ EC_BOOL cdfs_is_dir(const UINT32 cdfs_md_id, const CSTRING *dir_path)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_is_dir: cdfs module #0x%lx not started.\n",
+                "error:cdfs_is_dir: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1371,7 +1371,7 @@ EC_BOOL cdfs_truncate(const UINT32 cdfs_md_id, const CSTRING *file_path, const U
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_truncate: cdfs module #0x%lx not started.\n",
+                "error:cdfs_truncate: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1413,7 +1413,7 @@ EC_BOOL cdfs_write(const UINT32 cdfs_md_id, const CSTRING *file_path, const CBYT
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_write: cdfs module #0x%lx not started.\n",
+                "error:cdfs_write: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1447,7 +1447,7 @@ EC_BOOL cdfs_read(const UINT32 cdfs_md_id, const CSTRING *file_path, CBYTES *cby
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1492,7 +1492,7 @@ EC_BOOL cdfs_update(const UINT32 cdfs_md_id, const CSTRING *file_path, const CBY
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1545,7 +1545,7 @@ void cdfs_lost_fnode_log(const UINT32 cdfs_md_id, const CSTRING *file_path, cons
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_lost_fnode_log: cdfs module #0x%lx not started.\n",
+                "error:cdfs_lost_fnode_log: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1580,7 +1580,7 @@ void cdfs_lost_replica_log(const UINT32 cdfs_md_id, const CSTRING *file_path, co
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_lost_replica_log: cdfs module #0x%lx not started.\n",
+                "error:cdfs_lost_replica_log: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1615,7 +1615,7 @@ EC_BOOL cdfs_create_dn(const UINT32 cdfs_md_id, const CSTRING *root_dir, const U
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_create_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_create_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1639,7 +1639,7 @@ EC_BOOL cdfs_open_dn(const UINT32 cdfs_md_id, const CSTRING *root_dir)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_open_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_open_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1677,7 +1677,7 @@ EC_BOOL cdfs_close_dn(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_close_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_close_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1711,7 +1711,7 @@ EC_BOOL cdfs_close_with_flush_dn(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_close_with_flush_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_close_with_flush_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1749,7 +1749,7 @@ EC_BOOL cdfs_truncate_dn_ppl(const UINT32 cdfs_md_id, const UINT32 fsize, const 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_truncate_dn_ppl: cdfs module #0x%lx not started.\n",
+                "error:cdfs_truncate_dn_ppl: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -1918,7 +1918,7 @@ EC_BOOL cdfs_truncate_dn_p(const UINT32 cdfs_md_id, const UINT32 fsize, const UI
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_truncate_dn_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_truncate_dn_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2019,7 +2019,7 @@ EC_BOOL cdfs_update_dn_p(const UINT32 cdfs_md_id, const CBYTES *cbytes, const CD
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update_dn_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update_dn_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2081,7 +2081,7 @@ EC_BOOL cdfs_update_dn_ppl(const UINT32 cdfs_md_id, const CBYTES *cbytes, const 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update_dn_ppl: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update_dn_ppl: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2169,8 +2169,8 @@ EC_BOOL cdfs_update_dn_ppl(const UINT32 cdfs_md_id, const CBYTES *cbytes, const 
             dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_update_dn_ppl: [SUCC] remote update %ld bytes to %ld# (tcid %s, path %lx, offset %ld)\n",
                                 CBYTES_LEN(cbytes), cdfsnp_inode_pos + 1,
                                 c_word_to_ipv4(CDFSNP_FNODE_INODE_TCID(cdfsnp_fnode, cdfsnp_inode_pos + 1)),
-                                CDFSNP_FNODE_INODE_PATH(cdfsnp_fnode, cdfsnp_inode_pos + 1),
-                                CDFSNP_FNODE_INODE_FOFF(cdfsnp_fnode, cdfsnp_inode_pos + 1)
+                                (UINT32)CDFSNP_FNODE_INODE_PATH(cdfsnp_fnode, cdfsnp_inode_pos + 1),
+                                (UINT32)CDFSNP_FNODE_INODE_FOFF(cdfsnp_fnode, cdfsnp_inode_pos + 1)
                                 );
         }
         else
@@ -2205,7 +2205,7 @@ EC_BOOL cdfs_write_dn_ppl(const UINT32 cdfs_md_id, const CBYTES *cbytes, const U
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_write_dn_ppl: cdfs module #0x%lx not started.\n",
+                "error:cdfs_write_dn_ppl: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2346,8 +2346,8 @@ EC_BOOL cdfs_write_dn_ppl(const UINT32 cdfs_md_id, const CBYTES *cbytes, const U
             dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_write_dn_ppl: [SUCC] remote write %ld bytes to %ld# (tcid %s, path %lx, offset %ld)\n",
                                 CBYTES_LEN(cbytes), cdfsnp_inode_pos + 1,
                                 c_word_to_ipv4(CDFSNP_FNODE_INODE_TCID(cdfsnp_fnode, cdfsnp_inode_pos + 1)),
-                                CDFSNP_FNODE_INODE_PATH(cdfsnp_fnode, cdfsnp_inode_pos + 1),
-                                CDFSNP_FNODE_INODE_FOFF(cdfsnp_fnode, cdfsnp_inode_pos + 1)
+                                (UINT32)CDFSNP_FNODE_INODE_PATH(cdfsnp_fnode, cdfsnp_inode_pos + 1),
+                                (UINT32)CDFSNP_FNODE_INODE_FOFF(cdfsnp_fnode, cdfsnp_inode_pos + 1)
                                 );
         }
         else
@@ -2381,7 +2381,7 @@ EC_BOOL cdfs_read_dn_ppl(const UINT32 cdfs_md_id, const UINT32 cdfsnp_inode_pos,
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_dn_ppl: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_dn_ppl: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2462,7 +2462,7 @@ EC_BOOL cdfs_write_dn_p(const UINT32 cdfs_md_id, const CBYTES *cbytes, const UIN
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_write_dn_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_write_dn_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2560,7 +2560,7 @@ EC_BOOL cdfs_read_dn_p_with_tcid_filter(const UINT32 cdfs_md_id, const CVECTOR *
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_dn_p_with_tcid_filter: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_dn_p_with_tcid_filter: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2602,7 +2602,7 @@ EC_BOOL cdfs_read_dn_p(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_dn_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_dn_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2640,7 +2640,7 @@ EC_BOOL cdfs_read_dn(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2660,7 +2660,7 @@ EC_BOOL cdfs_read_dn(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, 
 
     if(cdfsnp_inode_pos >= CDFSNP_FNODE_REPNUM(cdfsnp_fnode))
     {
-        dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_read_dn: local tcid %s not exist in cdfsnp_fnode %lx\n", c_word_to_ipv4(local_tcid), cdfsnp_fnode);
+        dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_read_dn: local tcid %s not exist in cdfsnp_fnode %p\n", c_word_to_ipv4(local_tcid), cdfsnp_fnode);
         cdfsnp_fnode_print(LOGSTDOUT, cdfsnp_fnode);
         return (EC_FALSE);
     }
@@ -2671,7 +2671,7 @@ EC_BOOL cdfs_read_dn(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, 
 
     dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_read_dn: file file %ld, path layout %lx, offset %ld\n", file_size, path_layout, offset);
 
-    dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_read_dn: cbytes: len %ld, val %lx\n", CBYTES_LEN(cbytes), CBYTES_BUF(cbytes));
+    dbg_log(SEC_0056_CDFS, 9)(LOGSTDNULL, "[DEBUG] cdfs_read_dn: cbytes: len %ld, val %p\n", CBYTES_LEN(cbytes), CBYTES_BUF(cbytes));
 
     if(NULL_PTR == CDFS_MD_DN(cdfs_md))
     {
@@ -2711,7 +2711,7 @@ EC_BOOL cdfs_write_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, cons
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_write_npp_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_write_npp_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2778,7 +2778,7 @@ EC_BOOL cdfs_write_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, cons
                 /*mod mgr may be changed when connection broken happen, hence cannot ouput mod node info here*/
                 dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_write_npp_p: %ld# write file %s with replica %ld (expect %ld) to some npp failed\n",
                                     remote_mod_node_idx, (char *)cstring_get_str(file_path),
-                                    CDFSNP_FNODE_REPNUM(cdfsnp_fnode), replica_num);
+                                    (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode), replica_num);
             }
             cvector_set_no_lock(ret_vec, remote_mod_node_idx, NULL_PTR);
             free_static_mem(MM_UINT32, ret, LOC_CDFS_0038);
@@ -2857,7 +2857,7 @@ EC_BOOL cdfs_read_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, CDFSN
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_npp_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_npp_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2911,7 +2911,7 @@ EC_BOOL cdfs_update_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, con
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update_npp_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update_npp_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -2977,7 +2977,7 @@ EC_BOOL cdfs_update_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, con
             {
                 /*mod mgr may be changed when connection broken happen, hence cannot ouput mod node info here*/
                 dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_update_npp_p: %ld# update file %s with replica %ld to some npp failed\n",
-                                    remote_mod_node_idx, (char *)cstring_get_str(file_path), CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
+                                    remote_mod_node_idx, (char *)cstring_get_str(file_path), (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
             }
             cvector_set(ret_vec, remote_mod_node_idx, NULL_PTR);
             free_static_mem(MM_UINT32, ret, LOC_CDFS_0042);
@@ -3014,7 +3014,7 @@ EC_BOOL cdfs_write_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, const 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_write_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_write_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3043,7 +3043,7 @@ EC_BOOL cdfs_write_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, const 
     )
     {
         dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_write_npp: no name node accept file %s with %ld replicas\n",
-                            (char *)cstring_get_str(file_path), CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
+                            (char *)cstring_get_str(file_path), (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -3062,7 +3062,7 @@ EC_BOOL cdfs_read_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, CDFSNP_
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_read_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_read_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3101,7 +3101,7 @@ EC_BOOL cdfs_update_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, const
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3127,7 +3127,7 @@ EC_BOOL cdfs_update_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, const
     if(EC_FALSE == cdfsnp_mgr_update_np_fnode(CDFS_MD_NPP(cdfs_md), file_path, cdfsnp_fnode))
     {
         dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_update_npp: no name node update file %s with %ld replicas\n",
-                            (char *)cstring_get_str(file_path), CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
+                            (char *)cstring_get_str(file_path), (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode));
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -3148,7 +3148,7 @@ EC_BOOL cdfs_update_npp_p(const UINT32 cdfs_md_id, const CSTRING *file_path, con
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_update_npp_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_update_npp_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3220,7 +3220,7 @@ EC_BOOL cdfs_delete_npp(const UINT32 cdfs_md_id, const CSTRING *path, const UINT
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_delete_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_delete_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3274,7 +3274,7 @@ EC_BOOL cdfs_delete_npp_p(const UINT32 cdfs_md_id, const CSTRING *path, const UI
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_delete_npp_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_delete_npp_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3401,7 +3401,7 @@ EC_BOOL cdfs_delete_dn(const UINT32 cdfs_md_id, const UINT32 path_layout, const 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_delete_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_delete_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3435,7 +3435,7 @@ EC_BOOL cdfs_delete_dn_p(const UINT32 cdfs_md_id, const CVECTOR *cdfsnp_fnode_ve
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_delete_dn_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_delete_dn_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3494,8 +3494,8 @@ EC_BOOL cdfs_delete_dn_p(const UINT32 cdfs_md_id, const CVECTOR *cdfsnp_fnode_ve
             dbg_log(SEC_0056_CDFS, 9)(LOGSTDOUT, "[DEBUG] cdfs_delete_dn_p: replica_pos %ld, cdfsnp_inode is (tcid %s, path %lx, offset %ld)\n",
                                 replica_pos,
                                 c_word_to_ipv4(CDFSNP_INODE_TCID(cdfsnp_inode)),
-                                CDFSNP_INODE_PATH(cdfsnp_inode),
-                                CDFSNP_INODE_FOFF(cdfsnp_inode));
+                                (UINT32)CDFSNP_INODE_PATH(cdfsnp_inode),
+                                (UINT32)CDFSNP_INODE_FOFF(cdfsnp_inode));
 
             ret[replica_pos] = EC_FALSE;
             task_super_inc(task_mgr, &send_mod_node, &recv_mod_node,
@@ -3514,8 +3514,8 @@ EC_BOOL cdfs_delete_dn_p(const UINT32 cdfs_md_id, const CVECTOR *cdfsnp_fnode_ve
             {
                 dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_delete_dn_p: delete file content from dn %s, bid %ld, sid %ld failed\n",
                                 c_word_to_ipv4(CDFSNP_INODE_TCID(cdfsnp_inode)),
-                                CDFSNP_INODE_PATH(cdfsnp_inode),
-                                CDFSNP_INODE_FOFF(cdfsnp_inode)
+                                (UINT32)CDFSNP_INODE_PATH(cdfsnp_inode),
+                                (UINT32)CDFSNP_INODE_FOFF(cdfsnp_inode)
                                 );
             }
         }
@@ -3537,7 +3537,7 @@ EC_BOOL cdfs_delete(const UINT32 cdfs_md_id, const CSTRING *path, const UINT32 d
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_delete: cdfs module #0x%lx not started.\n",
+                "error:cdfs_delete: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3582,7 +3582,7 @@ EC_BOOL cdfs_qfile(const UINT32 cdfs_md_id, const CSTRING *file_path, CDFSNP_ITE
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qfile: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qfile: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3618,7 +3618,7 @@ EC_BOOL cdfs_qdir(const UINT32 cdfs_md_id, const CSTRING *dir_path, CVECTOR  *cd
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qdir: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qdir: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3654,7 +3654,7 @@ EC_BOOL cdfs_qlist_path(const UINT32 cdfs_md_id, const CSTRING *file_path, CVECT
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qlist_path: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qlist_path: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3682,7 +3682,7 @@ EC_BOOL cdfs_qlist_path_npp(const UINT32 cdfs_md_id, const CSTRING *file_path, C
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qlist_path_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qlist_path_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3718,7 +3718,7 @@ EC_BOOL cdfs_qlist_seg(const UINT32 cdfs_md_id, const CSTRING *file_path, CVECTO
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qlist_seg: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qlist_seg: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3745,7 +3745,7 @@ EC_BOOL cdfs_qlist_seg_npp(const UINT32 cdfs_md_id, const CSTRING *file_seg, CVE
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_qlist_seg_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_qlist_seg_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3783,7 +3783,7 @@ EC_BOOL cdfs_flush_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnpp_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_flush_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_flush_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3836,7 +3836,7 @@ EC_BOOL cdfs_flush_dn(const UINT32 cdfs_md_id, const UINT32 cdfsdn_tcid)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_flush_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_flush_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3887,7 +3887,7 @@ void cdfs_flush_np(const UINT32 cdfs_md_id, const UINT32 cdfsnp_path_layout)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_flush_np: cdfs module #0x%lx not started.\n",
+                "error:cdfs_flush_np: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3918,7 +3918,7 @@ EC_BOOL cdfs_is_npp(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_is_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_is_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3948,7 +3948,7 @@ EC_BOOL cdfs_is_dn(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_is_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_is_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -3980,7 +3980,7 @@ EC_BOOL cdfs_list_npp(const UINT32 cdfs_md_id, LOG *log)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_list_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_list_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4027,7 +4027,7 @@ EC_BOOL cdfs_list_dn(const UINT32 cdfs_md_id, LOG *log)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_list_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_list_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4073,7 +4073,7 @@ EC_BOOL cdfs_file_num(const UINT32 cdfs_md_id, const CSTRING *path_cstr, UINT32 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_file_num: cdfs module #0x%lx not started.\n",
+                "error:cdfs_file_num: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4103,7 +4103,7 @@ EC_BOOL cdfs_file_size(const UINT32 cdfs_md_id, const CSTRING *path_cstr, UINT32
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_file_size: cdfs module #0x%lx not started.\n",
+                "error:cdfs_file_size: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4133,7 +4133,7 @@ EC_BOOL cdfs_mkdir(const UINT32 cdfs_md_id, const CSTRING *path_cstr)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_mkdir: cdfs module #0x%lx not started.\n",
+                "error:cdfs_mkdir: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4164,7 +4164,7 @@ EC_BOOL cdfs_mkdir_npp(const UINT32 cdfs_md_id, const CSTRING *path_cstr)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_mkdir_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_mkdir_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4268,7 +4268,7 @@ EC_BOOL cdfs_transfer_out(const UINT32 cdfs_md_id, const UINT32 des_datanode_tci
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_transfer_out: cdfs module #0x%lx not started.\n",
+                "error:cdfs_transfer_out: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4331,7 +4331,7 @@ EC_BOOL cdfs_transfer_in(const UINT32 cdfs_md_id, const CDFSDN_RECORD *cdfsdn_re
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_transfer_in: cdfs module #0x%lx not started.\n",
+                "error:cdfs_transfer_in: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4374,7 +4374,7 @@ EC_BOOL cdfs_transfer(const UINT32 cdfs_md_id, const UINT32 src_datanode_tcid, c
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_transfer: cdfs module #0x%lx not started.\n",
+                "error:cdfs_transfer: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4435,7 +4435,7 @@ EC_BOOL cdfs_transfer_update(const UINT32 cdfs_md_id, const UINT32 src_datanode_
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_transfer_update: cdfs module #0x%lx not started.\n",
+                "error:cdfs_transfer_update: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4472,7 +4472,7 @@ EC_BOOL cdfs_snapshot_dn(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_snapshot_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_snapshot_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4542,7 +4542,7 @@ EC_BOOL cdfs_snapshot_npp(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_snapshot_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_snapshot_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4601,7 +4601,7 @@ EC_BOOL cdfs_snapshot(const UINT32 cdfs_md_id)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_snapshot: cdfs module #0x%lx not started.\n",
+                "error:cdfs_snapshot: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4632,7 +4632,7 @@ EC_BOOL cdfs_mkdir_p(const UINT32 cdfs_md_id, const CSTRING *path_cstr)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_mkdir_p: cdfs module #0x%lx not started.\n",
+                "error:cdfs_mkdir_p: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4654,7 +4654,7 @@ EC_BOOL cdfs_check_replicas(const UINT32 cdfs_md_id, const CSTRING *file_path, c
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_check_replicas: cdfs module #0x%lx not started.\n",
+                "error:cdfs_check_replicas: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4692,7 +4692,7 @@ EC_BOOL cdfs_check_file_content(const UINT32 cdfs_md_id, const UINT32 path_layou
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_check_file_content: cdfs module #0x%lx not started.\n",
+                "error:cdfs_check_file_content: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4765,7 +4765,7 @@ EC_BOOL cdfs_check_replica_files_content(const UINT32 cdfs_md_id, const CSTRING 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_check_replica_files_content: cdfs module #0x%lx not started.\n",
+                "error:cdfs_check_replica_files_content: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4796,7 +4796,7 @@ EC_BOOL cdfs_check_replica_files_content(const UINT32 cdfs_md_id, const CSTRING 
     if(file_size != CDFSNP_FNODE_FILESZ(cdfsnp_fnode))
     {
         dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_check_replica_files_content: file path %s has file size %ld but expected is %ld\n",
-                            (char *)cstring_get_str(file_path), CDFSNP_FNODE_FILESZ(cdfsnp_fnode), file_size);
+                            (char *)cstring_get_str(file_path), (UINT32)CDFSNP_FNODE_FILESZ(cdfsnp_fnode), file_size);
         return (EC_FALSE);
     }
 
@@ -4838,7 +4838,7 @@ EC_BOOL cdfs_check_replica_files_content(const UINT32 cdfs_md_id, const CSTRING 
                 cdfsnp_inode = CDFSNP_FNODE_INODE(cdfsnp_fnode, cdfsnp_inode_pos);
                 dbg_log(SEC_0056_CDFS, 0)(LOGSTDOUT, "error:cdfs_check_replica_files_content: file %s on tcid %s with path layout %ld, foff %ld not matched\n",
                                     (char *)cstring_get_str(file_path), c_word_to_ipv4(CDFSNP_INODE_TCID(cdfsnp_inode)),
-                                    CDFSNP_INODE_PATH(cdfsnp_inode), CDFSNP_INODE_FOFF(cdfsnp_inode)
+                                    (UINT32)CDFSNP_INODE_PATH(cdfsnp_inode), (UINT32)CDFSNP_INODE_FOFF(cdfsnp_inode)
                         );
                 return (EC_FALSE);
             }
@@ -4860,7 +4860,7 @@ EC_BOOL cdfs_figure_out_block(const UINT32 cdfs_md_id, const UINT32 tcid, const 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_figure_out_block: cdfs module #0x%lx not started.\n",
+                "error:cdfs_figure_out_block: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4890,7 +4890,7 @@ EC_BOOL cdfs_show_npp(const UINT32 cdfs_md_id, LOG *log)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_show_npp: cdfs module #0x%lx not started.\n",
+                "error:cdfs_show_npp: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4923,7 +4923,7 @@ EC_BOOL cdfs_show_dn(const UINT32 cdfs_md_id, LOG *log)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_show_dn: cdfs module #0x%lx not started.\n",
+                "error:cdfs_show_dn: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4951,7 +4951,7 @@ EC_BOOL cdfs_show_cached_np(const UINT32 cdfs_md_id, LOG *log)
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_show_cached_np: cdfs module #0x%lx not started.\n",
+                "error:cdfs_show_cached_np: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -4976,7 +4976,7 @@ EC_BOOL cdfs_show_specific_np(const UINT32 cdfs_md_id, const UINT32 cdfsnp_path_
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_show_specific_np: cdfs module #0x%lx not started.\n",
+                "error:cdfs_show_specific_np: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -5013,7 +5013,7 @@ EC_BOOL cdfs_import_lost_fnode_from_file(const UINT32 cdfs_md_id, const CSTRING 
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_import_lost_fnode_from_file: cdfs module #0x%lx not started.\n",
+                "error:cdfs_import_lost_fnode_from_file: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }
@@ -5148,7 +5148,7 @@ EC_BOOL cdfs_import_lost_replica_from_file(const UINT32 cdfs_md_id, const CSTRIN
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cdfs_import_lost_replica_from_file: cdfs module #0x%lx not started.\n",
+                "error:cdfs_import_lost_replica_from_file: cdfs module #%ld not started.\n",
                 cdfs_md_id);
         dbg_exit(MD_CDFS, cdfs_md_id);
     }

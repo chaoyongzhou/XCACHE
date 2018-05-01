@@ -133,18 +133,18 @@ STATIC_CAST static EC_BOOL __cpgv_free_disk_fname(const CPGV *cpgv, uint8_t *cpg
 
 STATIC_CAST static void __cpgv_hdr_size_info_print()
 {
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR)   = %u\n", sizeof(CPGV_HDR));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGRB_POOL) = %u\n", sizeof(CPGRB_POOL));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGB_MODEL_NUM     = %u\n", CPGB_MODEL_NUM);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(uint64_t)   = %u\n", sizeof(uint64_t));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGV_HDR_PAD_SIZE  = %u\n", CPGV_HDR_PAD_SIZE);
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR)   = %ld\n", sizeof(CPGV_HDR));
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGRB_POOL) = %ld\n", sizeof(CPGRB_POOL));
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGB_MODEL_NUM     = %ld\n", (UINT32)CPGB_MODEL_NUM);
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(uint64_t)   = %ld\n", sizeof(uint64_t));
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGV_HDR_PAD_SIZE  = %ld\n", (UINT32)CPGV_HDR_PAD_SIZE);
     dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR) "
-                                 "- sizeof(CPGRB_POOL) "
-                                 "- CPGB_MODEL_NUM *sizeof(uint16_t) "
-                                 "- 3 * sizeof(uint16_t) "
-                                 "- 1 * sizeof(uint32_t) "
-                                 "- 3 * sizeof(uint64_t) = %u\n",
-                                 DEBUG_COUNT_CPGV_HDR_PAD_SIZE());
+                                         "- sizeof(CPGRB_POOL) "
+                                         "- CPGB_MODEL_NUM *sizeof(uint16_t) "
+                                         "- 3 * sizeof(uint16_t) "
+                                         "- 1 * sizeof(uint32_t) "
+                                         "- 3 * sizeof(uint64_t) = %ld\n",
+                                         DEBUG_COUNT_CPGV_HDR_PAD_SIZE());
     return;
 }
 
@@ -398,7 +398,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     /*flush rbtree pool*/
     if(EC_FALSE == cpgrb_flush(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_CPGRB_POOL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -406,7 +406,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = CPGB_MODEL_NUM * sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %u of fd %d failed\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n",
                             (*offset), fd);
         return (EC_FALSE);
     }
@@ -415,7 +415,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: pad %ld bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -423,7 +423,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGV_HDR_ASSIGN_BITMAP(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_ASSIGN_BITMAP at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_ASSIGN_BITMAP at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -431,7 +431,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_DISK_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -439,7 +439,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_MAX_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -447,7 +447,7 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_USED_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -455,14 +455,14 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_ACTUAL_USED_SIZE(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_ACTUAL_USED_SIZE at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_ACTUAL_USED_SIZE at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     /*skip rsvd2*/
     if(EC_FALSE == c_file_pad(fd, offset, CPGV_HDR_PAD_SIZE, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -478,7 +478,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     /*load rbtree pool*/
     if(EC_FALSE == cpgrb_load(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_CPGRB_POOL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -486,7 +486,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = CPGB_MODEL_NUM * sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -497,7 +497,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGV_HDR_ASSIGN_BITMAP(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_ASSIGN_BITMAP at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_ASSIGN_BITMAP at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -505,7 +505,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_DISK_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -513,7 +513,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_MAX_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -521,7 +521,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_USED_NUM(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -529,7 +529,7 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint64_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGV_HDR_PAGE_ACTUAL_USED_SIZE(cpgv_hdr))))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_ACTUAL_USED_SIZE at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_ACTUAL_USED_SIZE at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -552,7 +552,7 @@ CPGV *cpgv_new(const uint8_t *cpgv_fname)
     alloc_static_mem(MM_CPGV, &cpgv, LOC_CPGV_0010);
     if(NULL_PTR == cpgv)
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new:malloc cpgv failed\n");
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new: malloc cpgv failed\n");
         return (NULL_PTR);
     }
 
@@ -561,7 +561,7 @@ CPGV *cpgv_new(const uint8_t *cpgv_fname)
     CPGV_FNAME(cpgv) = (uint8_t *)c_str_dup((char *)cpgv_fname);
     if(NULL_PTR == CPGV_FNAME(cpgv))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new:str dup %s failed\n", cpgv_fname);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new: str dup %s failed\n", cpgv_fname);
         cpgv_free(cpgv);
         return (NULL_PTR);
     }
@@ -575,7 +575,7 @@ CPGV *cpgv_new(const uint8_t *cpgv_fname)
     }
 
     CPGV_FSIZE(cpgv) = sizeof(CPGV_HDR);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] sizeof(CPGV_HDR) = %u\n", sizeof(CPGV_HDR));
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] sizeof(CPGV_HDR) = %ld\n", sizeof(CPGV_HDR));
     if(EC_FALSE == c_file_truncate(CPGV_FD(cpgv), CPGV_FSIZE(cpgv)))
     {
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new: truncate %s to %u bytes failed\n", cpgv_fname, CPGV_FSIZE(cpgv));
@@ -1424,9 +1424,9 @@ EC_BOOL cpgv_new_space_from_disk(CPGV *cpgv, const uint32_t size, const uint16_t
 
     CPGV_ASSERT(EC_TRUE == cpgv_check(cpgv));
 
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space_from_disk: pgv_page_used_num %u due to increment %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space_from_disk: pgv_page_used_num %"PRId64" due to increment %u\n",
                         CPGV_PAGE_USED_NUM(cpgv), page_num_need);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space_from_disk: pgv_actual_used_size %u due to increment %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space_from_disk: pgv_actual_used_size %"PRId64" due to increment %u\n",
                         CPGV_PAGE_ACTUAL_USED_SIZE(cpgv), size);
 
     return (EC_TRUE);
@@ -1500,7 +1500,7 @@ EC_BOOL cpgv_new_space(CPGV *cpgv, const uint32_t size, uint16_t *disk_no, uint1
         /*add the disk into pool*/
         __cpgv_add_disk(cpgv, disk_no_t, page_model_t);
 
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "warn:cpgv_new_space: disk %u model %u relocation to page model %u\n", disk_no_t, page_model_t);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "warn:cpgv_new_space: disk %u model %u relocation to page model %u\n", disk_no_t, page_model_t, page_model_t);
     }
 
     pgd_assign_bitmap_new = CPGD_PAGE_MODEL_ASSIGN_BITMAP(cpgd);
@@ -1563,9 +1563,9 @@ EC_BOOL cpgv_new_space(CPGV *cpgv, const uint32_t size, uint16_t *disk_no, uint1
 
     CPGV_ASSERT(EC_TRUE == cpgv_check(cpgv));
 
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space: pgv_page_used_num %u due to increment %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space: pgv_page_used_num %"PRId64" due to increment %u\n",
                         CPGV_PAGE_USED_NUM(cpgv), page_num_need);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space: pgv_actual_used_size %u due to increment %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space: pgv_actual_used_size %"PRId64" due to increment %u\n",
                         CPGV_PAGE_ACTUAL_USED_SIZE(cpgv), size);
 
     return (EC_TRUE);
@@ -1620,9 +1620,9 @@ EC_BOOL cpgv_free_space(CPGV *cpgv, const uint16_t disk_no, const uint16_t block
     CPGV_PAGE_USED_NUM(cpgv)         -= page_num_used;
     CPGV_PAGE_ACTUAL_USED_SIZE(cpgv) -= size;
 
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_free_space: pgv_page_used_num %u due to decrement %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_free_space: pgv_page_used_num %"PRId64" due to decrement %u\n",
                         CPGV_PAGE_USED_NUM(cpgv), page_num_used);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_free_space: pgv_actual_used_size %u due to decrement %u\n",
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_free_space: pgv_actual_used_size %"PRId64" due to decrement %u\n",
                         CPGV_PAGE_ACTUAL_USED_SIZE(cpgv), size);
 
     return (EC_TRUE);
@@ -1673,7 +1673,7 @@ EC_BOOL cpgv_flush(const CPGV *cpgv, int fd, UINT32 *offset)
     /*flush CPGV_HEADER*/
     if(EC_FALSE == cpgv_hdr_flush(CPGV_HEADER(cpgv), fd, offset))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush CPGV_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush CPGV_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1691,14 +1691,14 @@ EC_BOOL cpgv_flush(const CPGV *cpgv, int fd, UINT32 *offset)
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(disk_no)))
         {
-            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush disk_no at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush disk_no at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         /*flush disk*/
         if(EC_FALSE == cpgd_flush(CPGV_DISK_NODE(cpgv, disk_no), fd, offset))
         {
-            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush CPGV_DISK_NODE of disk_no %u at offset %u of fd %d failed\n",
+            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush CPGV_DISK_NODE of disk_no %u at offset %ld of fd %d failed\n",
                                 disk_no, (*offset), fd);
             return (EC_FALSE);
         }
@@ -1728,7 +1728,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
     /*load rbtree pool*/
     if(EC_FALSE == cpgv_hdr_load(CPGV_HEADER(cpgv), fd, offset))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load CPGV_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load CPGV_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1751,7 +1751,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(disk_no)))
         {
-            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load disk_no at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load disk_no at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
@@ -1770,7 +1770,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
 
         if(EC_FALSE == cpgd_load(CPGV_DISK_CPGD(cpgv, disk_no), fd, offset))
         {
-            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load CPGV_DISK_NODE of disk_no %u at offset %u of fd %d failed\n",
+            dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: load CPGV_DISK_NODE of disk_no %u at offset %ld of fd %d failed\n",
                                 disk_no, (*offset), fd);
             return (EC_FALSE);
         }
@@ -1840,21 +1840,21 @@ EC_BOOL cpgv_check(const CPGV *cpgv)
 
     if(pgv_actual_used_size != pgd_actual_used_size)
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent actual used size: pgv_actual_used_size = %llu, pgd_actual_used_size = %llu\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent actual used size: pgv_actual_used_size = %"PRId64", pgd_actual_used_size = %"PRId64"\n",
                             pgv_actual_used_size, pgd_actual_used_size);
         return (EC_FALSE);
     }
 
     if(pgv_page_max_num != pgd_page_max_num)
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent page max num: pgv_page_max_num = %llu, pgd_page_max_num = %llu\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent page max num: pgv_page_max_num = %"PRId64", pgd_page_max_num = %"PRId64"\n",
                             pgv_page_max_num, pgd_page_max_num);
         return (EC_FALSE);
     }
 
     if(pgv_page_used_num != pgd_page_used_num)
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent page used num: pgv_page_used_num = %llu, pgd_page_used_num = %llu\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_check: inconsistent page used num: pgv_page_used_num = %"PRId64", pgd_page_used_num = %"PRId64"\n",
                             pgv_page_used_num, pgd_page_used_num);
         return (EC_FALSE);
     }
@@ -1916,7 +1916,7 @@ void cpgv_print(LOG *log, const CPGV *cpgv)
         page_desc = "8k-page";
     }
 
-    sys_log(log, "cpgv_print: cpgv %p, disk num %u, %s, page max num %llu, page used num %llu, page ratio %.2f, used size %llu, size ratio %.2f\n",
+    sys_log(log, "cpgv_print: cpgv %p, disk num %u, %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, used size %"PRId64", size ratio %.2f\n",
                  cpgv,
                  CPGV_PAGE_DISK_NUM(cpgv),
                  page_desc,
@@ -2012,7 +2012,7 @@ EC_BOOL cpgv_debug_cmp(const CPGV *cpgv_1st, const CPGV *cpgv_2nd)
     /*page max num*/
     if(CPGV_PAGE_MAX_NUM(cpgv_1st) != CPGV_PAGE_MAX_NUM(cpgv_1st))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_MAX_NUM: %u != %u\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_MAX_NUM: %"PRId64" != %"PRId64"\n",
                             CPGV_PAGE_MAX_NUM(cpgv_1st), CPGV_PAGE_MAX_NUM(cpgv_2nd));
         return (EC_FALSE);
     }
@@ -2020,7 +2020,7 @@ EC_BOOL cpgv_debug_cmp(const CPGV *cpgv_1st, const CPGV *cpgv_2nd)
     /*page used num*/
     if(CPGV_PAGE_USED_NUM(cpgv_1st) != CPGV_PAGE_USED_NUM(cpgv_1st))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_USED_NUM: %u != %u\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_USED_NUM: %"PRId64" != %"PRId64"\n",
                             CPGV_PAGE_USED_NUM(cpgv_1st), CPGV_PAGE_USED_NUM(cpgv_2nd));
         return (EC_FALSE);
     }
@@ -2028,7 +2028,7 @@ EC_BOOL cpgv_debug_cmp(const CPGV *cpgv_1st, const CPGV *cpgv_2nd)
     /*page actual used bytes num*/
     if(CPGV_PAGE_ACTUAL_USED_SIZE(cpgv_1st) != CPGV_PAGE_ACTUAL_USED_SIZE(cpgv_1st))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_ACTUAL_USED_SIZE: %u != %u\n",
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:cpgv_debug_cmp: inconsistent CPGV_PAGE_ACTUAL_USED_SIZE: %"PRId64" != %"PRId64"\n",
                             CPGV_PAGE_ACTUAL_USED_SIZE(cpgv_1st), CPGV_PAGE_ACTUAL_USED_SIZE(cpgv_2nd));
         return (EC_FALSE);
     }

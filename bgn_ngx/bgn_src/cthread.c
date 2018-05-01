@@ -194,7 +194,7 @@ STATIC_CAST static EC_BOOL cthread_check_tcid_offset()
     if(CTHREAD_GET_TID() != CTHREAD_FETCH_TID(pthread_self(), CTHREAD_TID_OFFSET))
     {
         UINT32 offset;
-        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "fatal error:cthread_check_tcid_offset: invalid tid offset %ld, where pthread_self = %u, got tid = %d, fetched tid = %d\n",
+        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "fatal error:cthread_check_tcid_offset: invalid tid offset %ld, where pthread_self = %ld, got tid = %ld, fetched tid = %d\n",
                             CTHREAD_TID_OFFSET,
                             pthread_self(),
                             CTHREAD_GET_TID(),
@@ -243,7 +243,7 @@ void * cthread_start(void *args)
 
         if (0 != (err = pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask)))
         {
-            dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_start: setaffinity of thread %u failed: %s\n",
+            dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_start: setaffinity of thread %ld failed: %s\n",
                                 pthread_self(), strerror(err));
         }
     }
@@ -445,26 +445,26 @@ EC_BOOL cthread_wait(CTHREAD_ID cthread_id)
         {
             case EINVAL:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - EINVAL: cthread_id %u NOT refer to a joinable thread\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - EINVAL: cthread_id %ld NOT refer to a joinable thread\n", cthread_id);
                 break;
             }
 
             case ESRCH:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - ESRCH: cthread_id %u not found\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - ESRCH: cthread_id %ld not found\n", cthread_id);
                 break;
             }
 
             case EDEADLK:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - EDEADLK: cthread_id %u detect deadlock\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - EDEADLK: cthread_id %ld detect deadlock\n", cthread_id);
                 break;
             }
 
             default:
             {
                 /* Unknown error */
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - UNKNOWN: cthread_id %u var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_wait - UNKNOWN: cthread_id %ld var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
                 break;
             }
         }
@@ -484,14 +484,14 @@ EC_BOOL cthread_cancel(CTHREAD_ID cthread_id)
         {
             case ESRCH:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - ESRCH: cthread_id %u not found\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - ESRCH: cthread_id %ld not found\n", cthread_id);
                 break;
             }
 
             default:
             {
                 /* Unknown error */
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - UNKNOWN: cthread_id %u var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - UNKNOWN: cthread_id %ld var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
                 break;
             }
         }
@@ -505,26 +505,26 @@ EC_BOOL cthread_cancel(CTHREAD_ID cthread_id)
         {
             case EINVAL:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - EINVAL: cthread_id %u NOT refer to a joinable thread\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - EINVAL: cthread_id %ld NOT refer to a joinable thread\n", cthread_id);
                 break;
             }
 
             case ESRCH:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - ESRCH: cthread_id %u not found\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - ESRCH: cthread_id %ld not found\n", cthread_id);
                 break;
             }
 
             case EDEADLK:
             {
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - EDEADLK: cthread_id %u detect deadlock\n", cthread_id);
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - EDEADLK: cthread_id %ld detect deadlock\n", cthread_id);
                 break;
             }
 
             default:
             {
                 /* Unknown error */
-                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - UNKNOWN: cthread_id %u var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
+                dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_cancel - UNKNOWN: cthread_id %ld var detect error, error no: %d, error info: %s\n", cthread_id, ret_val, strerror(ret_val));
                 break;
             }
         }
@@ -636,19 +636,19 @@ STATIC_CAST static void cthread_unbind(CTHREAD_BIND *cthread_bind)
     {
         clist_rmv(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool), CTHREAD_NODE_MOUNTED(cthread_node));
 
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free idle cthread_node %lx with thread id %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free idle cthread_node %p with thread id %ld\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         cthread_node_free(cthread_node);
     }
     else if(CTHREAD_IS_BUSY & CTHREAD_NODE_STATUS(cthread_node))
     {
         clist_rmv(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool), CTHREAD_NODE_MOUNTED(cthread_node));
 
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free busy cthread_node %lx with thread id %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free busy cthread_node %p with thread id %ld\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         cthread_node_free(cthread_node);
     }
     else
     {
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free cthread_node %lx with thread id %u but status %lx\n",
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthread_unbind: free cthread_node %p with thread id %ld but status %lx\n",
                             cthread_node, CTHREAD_NODE_ID(cthread_node), CTHREAD_NODE_STATUS(cthread_node));
         cthread_node_free(cthread_node);
     }
@@ -786,7 +786,7 @@ void * cthread_node_entry(void *args)
 
         if (0 != (err = pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask)))
         {
-            dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_node_entry: setaffinity of thread %u failed: %s\n",
+            dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_node_entry: setaffinity of thread %ld failed: %s\n",
                                 pthread_self(), strerror(err));
         }
     }
@@ -898,7 +898,7 @@ UINT32 cthread_node_shutdown(CTHREAD_NODE *cthread_node, CTHREAD_POOL *cthread_p
         return (0);
     }
 
-    dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_node_shutdown: neigher idle or busy cthread_node %lx, status %ld, thread %u\n",
+    dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_node_shutdown: neigher idle or busy cthread_node %p, status %ld, thread %ld\n",
                     cthread_node, CTHREAD_NODE_STATUS(cthread_node), CTHREAD_NODE_ID(cthread_node));
 
 #endif
@@ -958,7 +958,7 @@ EC_BOOL cthread_get_core_id()
 
     if (0 > pthread_getaffinity_np(pthread_self(), sizeof(mask), &mask))
     {
-        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_get_core_id: get thread %u affinity failed\n", pthread_self());
+        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_get_core_id: get thread %ld affinity failed\n", pthread_self());
         return (EC_FALSE);
     }
 
@@ -966,7 +966,7 @@ EC_BOOL cthread_get_core_id()
     {
         if (CPU_ISSET(core_idx, &mask))
         {
-            dbg_log(SEC_0016_CTHREAD, 9)(LOGSTDOUT, "[DEBUG] cthread_get_core_id: thread %u is running in processor %ld\n", pthread_self(), core_idx);
+            dbg_log(SEC_0016_CTHREAD, 9)(LOGSTDOUT, "[DEBUG] cthread_get_core_id: thread %ld is running in processor %ld\n", pthread_self(), core_idx);
         }
     }
     return (EC_TRUE);
@@ -997,7 +997,7 @@ UINT32 cthread_node_run(CTHREAD_NODE *cthread_node, CTHREAD_POOL *cthread_pool)
     for(;;)
     {
 #if 0
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "[DBG] cthread_node_run: thread %u, pthread self %u, cthread_node %lx, status %ld\n",
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "[DBG] cthread_node_run: thread %ld, pthread self %u, cthread_node %p, status %ld\n",
                             CTHREAD_NODE_ID(cthread_node), pthread_self(),
                             cthread_node, CTHREAD_NODE_STATUS(cthread_node)
                 );
@@ -1019,7 +1019,7 @@ UINT32 cthread_node_run(CTHREAD_NODE *cthread_node, CTHREAD_POOL *cthread_pool)
         /*as design, only busy cthread_node can reach here*/
         if(CTHREAD_IS_IDLE & CTHREAD_NODE_STATUS(cthread_node))
         {
-            dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: cthread node status is idle with thread %u\n", CTHREAD_NODE_ID(cthread_node));
+            dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: cthread node status is idle with thread %ld\n", CTHREAD_NODE_ID(cthread_node));
 
             /*move it from busy list to idle list*/
             cthread_node_busy_to_idle(cthread_node, cthread_pool);
@@ -1030,7 +1030,7 @@ UINT32 cthread_node_run(CTHREAD_NODE *cthread_node, CTHREAD_POOL *cthread_pool)
 
         if(NULL_PTR == CTHREAD_NODE_TASK(cthread_node))
         {
-            dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: busy but no task, return thread %u to idle list\n", CTHREAD_NODE_ID(cthread_node));
+            dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: busy but no task, return thread %ld to idle list\n", CTHREAD_NODE_ID(cthread_node));
 
             /*move it from busy list to idle list*/
             cthread_node_busy_to_idle(cthread_node, cthread_pool);
@@ -1049,7 +1049,7 @@ UINT32 cthread_node_run(CTHREAD_NODE *cthread_node, CTHREAD_POOL *cthread_pool)
         CTHREAD_CORE_LOAD_DEC(cthread_bind);
     }
 
-    dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: cthread_node %lx was dying.....\n", cthread_node);
+    dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDOUT, "warn:cthread_node_run: cthread_node %p was dying.....\n", cthread_node);
 
 #if (SWITCH_ON == CTHREAD_SET_CORE_SWITCH)
     CTHREAD_CLEANUP_POP( 0 );
@@ -1066,7 +1066,7 @@ void cthread_node_print(LOG *log, const CTHREAD_NODE *cthread_node)
     UINT32 ccond_counter;
 
     ccond_counter = ccond_spy((CCOND *)CTHREAD_NODE_CCOND(cthread_node), LOC_CTHREAD_0028);
-    sys_log(log, "cthread_node %lx: thread id %u, ccond counter %ld, thread task:\n",
+    sys_log(log, "cthread_node %p: thread id %ld, ccond counter %ld, thread task:\n",
                 cthread_node,
                 CTHREAD_NODE_ID(cthread_node),
                 ccond_counter
@@ -1182,7 +1182,7 @@ UINT32 cthreadp_shrink_no_lock(CTHREAD_POOL *cthread_pool, const UINT32 cthread_
     {
         cthread_node = (CTHREAD_NODE *)clist_pop_front(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
         CTHREAD_NODE_STATUS(cthread_node) |= CTHREAD_IS_DOWN;
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shrink_no_lock: shutdown idle cthread_node %lx, thread %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shrink_no_lock: shutdown idle cthread_node %p, thread %ld\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         ccond_release_all(CTHREAD_NODE_CCOND(cthread_node), LOC_CTHREAD_0030);
         cthread_node_free(cthread_node);/*Jan 12, 2017*/
     }
@@ -1243,7 +1243,7 @@ UINT32 cthreadp_shutdown(CTHREAD_POOL *cthread_pool)
     {
         cthread_node = (CTHREAD_NODE *)clist_pop_front(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
         CTHREAD_NODE_STATUS(cthread_node) |= CTHREAD_IS_DOWN;
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shutdown: shutdown idle cthread_node %lx, thread %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shutdown: shutdown idle cthread_node %p, thread %ld\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         ccond_release_all(CTHREAD_NODE_CCOND(cthread_node), LOC_CTHREAD_0036);
     }
 
@@ -1252,7 +1252,7 @@ UINT32 cthreadp_shutdown(CTHREAD_POOL *cthread_pool)
         cthread_node = (CTHREAD_NODE *)clist_pop_front(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
 
         CTHREAD_NODE_STATUS(cthread_node) |= CTHREAD_IS_DOWN;
-        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shutdown: shutdown busy cthread_node %lx, thread %u\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
+        dbg_log(SEC_0016_CTHREAD, 5)(LOGSTDOUT, "cthreadp_shutdown: shutdown busy cthread_node %p, thread %ld\n", cthread_node, CTHREAD_NODE_ID(cthread_node));
         cthread_cancel(CTHREAD_NODE_ID(cthread_node));
     }
 
@@ -1477,7 +1477,7 @@ CTHREAD_NODE * cthreadp_load_no_lock(CTHREAD_POOL *cthread_pool, const UINT32 st
 
     if(NULL_PTR == CTHREAD_NODE_TASK(cthread_node))
     {
-        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthreadp_load_no_lock: cthread node %lx task is null\n", cthread_node);
+        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthreadp_load_no_lock: cthread node %p task is null\n", cthread_node);
 
         clist_push_back(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool), (void *)cthread_node);
         return (NULL_PTR);

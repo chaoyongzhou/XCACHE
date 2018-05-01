@@ -1399,7 +1399,7 @@ EC_BOOL crb_tree_flush(const CRB_TREE *crbtree, int fd, UINT32 *offset, EC_BOOL 
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CRB_TREE_NODE_NUM(crbtree))))
     {
-        dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_flush: data_flush node num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_flush: data_flush node num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1415,7 +1415,7 @@ EC_BOOL crb_tree_load(CRB_TREE *crbtree, int fd, UINT32 *offset, void *(*data_ne
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_num)))
     {
-        dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: load node num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: load node num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1427,13 +1427,13 @@ EC_BOOL crb_tree_load(CRB_TREE *crbtree, int fd, UINT32 *offset, void *(*data_ne
         data = data_new();
         if(NULL_PTR == data)
         {
-            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: new data when reach offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: new data when reach offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         if(EC_FALSE == data_load(data, fd, offset))
         {
-            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: load data at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: load data at offset %ld of fd %d failed\n", (*offset), fd);
             CRB_TREE_DATA_FREE(crbtree)(data);
             return (EC_FALSE);
         }
@@ -1441,7 +1441,7 @@ EC_BOOL crb_tree_load(CRB_TREE *crbtree, int fd, UINT32 *offset, void *(*data_ne
         crb_node = crb_tree_insert_data(crbtree, data);
         if(NULL_PTR == crb_node)
         {
-            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: insert data at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0038_CRB, 0)(LOGSTDOUT, "error:crb_tree_load: insert data at offset %ld of fd %d failed\n", (*offset), fd);
             CRB_TREE_DATA_FREE(crbtree)(data);
             return (EC_FALSE);
         }

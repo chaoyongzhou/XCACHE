@@ -598,7 +598,6 @@ EC_BOOL chfsconhash_add_node(CHFSCONHASH *chfsconhash, const uint32_t tcid, cons
         chfsconhash_rnode = (CHFSCONHASH_RNODE *)cvector_get(CHFSCONHASH_RNODE_VEC(chfsconhash), chfsconhash_rnode_pos);
 
         dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_add_node: found rnode (tcid %s, replicas %u, status %s)\n",
-                           c_word_to_ipv4(tcid),
                            c_word_to_ipv4(CHFSCONHASH_RNODE_TCID(chfsconhash_rnode)),
                            CHFSCONHASH_RNODE_REPLICAS(chfsconhash_rnode),
                            chfsconhash_rnode_status(chfsconhash_rnode));
@@ -942,14 +941,14 @@ EC_BOOL chfsconhash_rnode_flush(const CHFSCONHASH_RNODE *chfsconhash_rnode, int 
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(replicas)))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush replicas at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush replicas at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         osize = sizeof(uint32_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(tcid)))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush tcid at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush tcid at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
     }
@@ -958,14 +957,14 @@ EC_BOOL chfsconhash_rnode_flush(const CHFSCONHASH_RNODE *chfsconhash_rnode, int 
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_RNODE_REPLICAS(chfsconhash_rnode))))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush replicas at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush replicas at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         osize = sizeof(uint32_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_RNODE_TCID(chfsconhash_rnode))))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush tcid at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_flush: flush tcid at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
     }
@@ -979,14 +978,14 @@ EC_BOOL chfsconhash_rnode_load(CHFSCONHASH_RNODE *chfsconhash_rnode, int fd, UIN
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_RNODE_REPLICAS(chfsconhash_rnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_load: load replicas at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_load: load replicas at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_RNODE_TCID(chfsconhash_rnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_load: load tcid at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_rnode_load: load tcid at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1005,7 +1004,7 @@ EC_BOOL chfsconhash_flush_rnodes(const CHFSCONHASH *chfsconhash, int fd, UINT32 
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(rnode_num)))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_rnodes: flush rnode_num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_rnodes: flush rnode_num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1015,7 +1014,7 @@ EC_BOOL chfsconhash_flush_rnodes(const CHFSCONHASH *chfsconhash, int fd, UINT32 
         chfsconhash_rnode = (CHFSCONHASH_RNODE *)cvector_get(CHFSCONHASH_RNODE_VEC(chfsconhash), rnode_pos);
         if(EC_FALSE == chfsconhash_rnode_flush(chfsconhash_rnode, fd, offset))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_rnodes: flush rnode %u# at offset %u of fd %d failed\n", rnode_pos, (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_rnodes: flush rnode %ld# at offset %ld of fd %d failed\n", rnode_pos, (*offset), fd);
             return (EC_FALSE);
         }
     }
@@ -1033,7 +1032,7 @@ EC_BOOL chfsconhash_load_rnodes(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(rnode_num)))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: load rnode_num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: load rnode_num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1044,13 +1043,13 @@ EC_BOOL chfsconhash_load_rnodes(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset
         chfsconhash_rnode = chfsconhash_rnode_new();
         if(NULL_PTR == chfsconhash_rnode)
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: new rnode at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: new rnode at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         if(EC_FALSE == chfsconhash_rnode_load(chfsconhash_rnode, fd, offset))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: load rnode %u# at offset %u of fd %d failed\n", rnode_pos, (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_rnodes: load rnode %ld# at offset %ld of fd %d failed\n", rnode_pos, (*offset), fd);
             chfsconhash_rnode_free(chfsconhash_rnode);
             return (EC_FALSE);
         }
@@ -1077,14 +1076,14 @@ EC_BOOL chfsconhash_vnode_flush(const CHFSCONHASH_VNODE *chfsconhash_vnode, int 
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_VNODE_HASH(chfsconhash_vnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_flush: flush hash at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_flush: flush hash at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_VNODE_POS(chfsconhash_vnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_flush: flush pos at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_flush: flush pos at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1098,14 +1097,14 @@ EC_BOOL chfsconhash_vnode_load(CHFSCONHASH_VNODE *chfsconhash_vnode, int fd, UIN
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_VNODE_HASH(chfsconhash_vnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_load: load hash at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_load: load hash at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_VNODE_POS(chfsconhash_vnode))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_load: load pos at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_vnode_load: load pos at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -1123,7 +1122,7 @@ STATIC_CAST static EC_BOOL __chfsconhash_flush_vnodes_inorder(const CHFSCONHASH 
     {
         if(EC_FALSE == __chfsconhash_flush_vnodes_inorder(chfsconhash, CRB_NODE_LEFT(node), fd, offset))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush left subtree %p at offset %u of fd %d failed\n", CRB_NODE_LEFT(node), (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush left subtree %p at offset %ld of fd %d failed\n", CRB_NODE_LEFT(node), (*offset), fd);
             return (EC_FALSE);
         }
     }
@@ -1131,13 +1130,13 @@ STATIC_CAST static EC_BOOL __chfsconhash_flush_vnodes_inorder(const CHFSCONHASH 
     chfsconhash_vnode = (CHFSCONHASH_VNODE *)CRB_NODE_DATA(node);
     if(NULL_PTR == chfsconhash_vnode)
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: data of crb node %p is null at offset %u of fd %d failed\n", node, (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: data of crb node %p is null at offset %ld of fd %d failed\n", node, (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chfsconhash_vnode_flush(chfsconhash_vnode, fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush vnode %p at offset %u of fd %d failed\n", chfsconhash_vnode, (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush vnode %p at offset %ld of fd %d failed\n", chfsconhash_vnode, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1145,7 +1144,7 @@ STATIC_CAST static EC_BOOL __chfsconhash_flush_vnodes_inorder(const CHFSCONHASH 
     {
         if(EC_FALSE == __chfsconhash_flush_vnodes_inorder(chfsconhash, CRB_NODE_RIGHT(node), fd, offset))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush right subtree %p at offset %u of fd %d failed\n", CRB_NODE_RIGHT(node), (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:__chfsconhash_flush_vnodes_inorder: flush right subtree %p at offset %ld of fd %d failed\n", CRB_NODE_RIGHT(node), (*offset), fd);
             return (EC_FALSE);
         }
     }
@@ -1164,13 +1163,13 @@ EC_BOOL chfsconhash_flush_vnodes(const CHFSCONHASH *chfsconhash, int fd, UINT32 
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(vnode_num)))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_vnodes: flush vnode num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_vnodes: flush vnode num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == __chfsconhash_flush_vnodes_inorder(chfsconhash, CRB_TREE_ROOT(CHFSCONHASH_VNODE_TREE(chfsconhash)), fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_vnodes: flush vnode tree at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush_vnodes: flush vnode tree at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1187,7 +1186,7 @@ EC_BOOL chfsconhash_load_vnodes(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(vnode_num)))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: load vnode num at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: load vnode num at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1198,20 +1197,20 @@ EC_BOOL chfsconhash_load_vnodes(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset
         chfsconhash_vnode = chfsconhash_vnode_new();
         if(NULL_PTR == chfsconhash_vnode)
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: new vnode at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: new vnode at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         if(EC_FALSE == chfsconhash_vnode_load(chfsconhash_vnode, fd, offset))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: load vnode %u# at offset %u of fd %d failed\n", vnode_pos, (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: load vnode %u# at offset %ld of fd %d failed\n", vnode_pos, (*offset), fd);
             chfsconhash_vnode_free(chfsconhash_vnode);
             return (EC_FALSE);
         }
 
         if(NULL_PTR == chfsconhash_add_vnode(chfsconhash, chfsconhash_vnode))
         {
-            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: add vnode %u# at offset %u of fd %d failed\n", vnode_pos, (*offset), fd);
+            dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load_vnodes: add vnode %u# at offset %ld of fd %d failed\n", vnode_pos, (*offset), fd);
             chfsconhash_vnode_free(chfsconhash_vnode);
             return (EC_FALSE);
         }
@@ -1228,21 +1227,21 @@ EC_BOOL chfsconhash_flush(const CHFSCONHASH *chfsconhash, int fd, UINT32 *offset
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_HASH_ID(chfsconhash))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush hash id at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush hash id at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     /*flush rnode vec*/
     if(EC_FALSE == chfsconhash_flush_rnodes(chfsconhash, fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush rnodes at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush rnodes at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     /*flush vnode tree*/
     if(EC_FALSE == chfsconhash_flush_vnodes(chfsconhash, fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush vnodes at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_flush: flush vnodes at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1257,7 +1256,7 @@ EC_BOOL chfsconhash_load(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset)
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSCONHASH_HASH_ID(chfsconhash))))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load hash id at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load hash id at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1271,14 +1270,14 @@ EC_BOOL chfsconhash_load(CHFSCONHASH *chfsconhash, int fd, UINT32 *offset)
     /*load rnode vec*/
     if(EC_FALSE == chfsconhash_load_rnodes(chfsconhash, fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load rnodes at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load rnodes at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
     /*load vnode tree*/
     if(EC_FALSE == chfsconhash_load_vnodes(chfsconhash, fd, offset))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load vnodes at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "error:chfsconhash_load: load vnodes at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1303,7 +1302,7 @@ EC_BOOL chfsconhash_is_equal(const CHFSCONHASH *chfsconhash_1st, const CHFSCONHA
 {
     if(CHFSCONHASH_HASH_ID(chfsconhash_1st) != CHFSCONHASH_HASH_ID(chfsconhash_2nd))
     {
-        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "chfsconhash_is_equal: hash id: %u != %u\n",
+        dbg_log(SEC_0162_CHFSCONHASH, 0)(LOGSTDOUT, "chfsconhash_is_equal: hash id: %ld != %ld\n",
                            CHFSCONHASH_HASH_ID(chfsconhash_1st),
                            CHFSCONHASH_HASH_ID(chfsconhash_2nd));
         return (EC_FALSE);

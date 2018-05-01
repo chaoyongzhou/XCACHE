@@ -144,14 +144,14 @@ EC_BOOL crfsdt_pnode_flush(const CRFSDT_PNODE *crfsdt_pnode, int fd, UINT32 *off
 {
     if(EC_FALSE == cstring_flush(CRFSDT_PNODE_PATH(crfsdt_pnode), fd, offset))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush path '%s' at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush path '%s' at offset %ld of fd %d failed\n",
                            CRFSDT_PNODE_PATH_STR(crfsdt_pnode), (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfsconhash_flush(CRFSDT_PNODE_CONHASH(crfsdt_pnode), fd, offset))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush conhash of path '%s' at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_flush: flush conhash of path '%s' at offset %ld of fd %d failed\n",
                            CRFSDT_PNODE_PATH_STR(crfsdt_pnode), (*offset), fd);
         return (EC_FALSE);
     }
@@ -162,14 +162,14 @@ EC_BOOL crfsdt_pnode_load(CRFSDT_PNODE *crfsdt_pnode, int fd, UINT32 *offset)
 {
     if(EC_FALSE == cstring_load(CRFSDT_PNODE_PATH(crfsdt_pnode), fd, offset))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_load: load path at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_load: load path at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfsconhash_load(CRFSDT_PNODE_CONHASH(crfsdt_pnode), fd, offset))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_load: load conhash of path '%s' at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_pnode_load: load conhash of path '%s' at offset %ld of fd %d failed\n",
                            CRFSDT_PNODE_PATH_STR(crfsdt_pnode), (*offset), fd);
         return (EC_FALSE);
     }
@@ -316,14 +316,14 @@ EC_BOOL crfsdt_rnode_flush(const CRFSDT_RNODE *crfsdt_rnode, int fd, UINT32 *off
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CRFSDT_RNODE_TCID(crfsdt_rnode))))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_flush: flush tcid %s at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_flush: flush tcid %s at offset %ld of fd %d failed\n",
                            c_word_to_ipv4(CRFSDT_RNODE_TCID(crfsdt_rnode)), (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crb_tree_flush(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode), fd, offset, (CRB_DATA_FLUSH)cstring_flush))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_flush: flush path tree of tcid %s at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_flush: flush path tree of tcid %s at offset %ld of fd %d failed\n",
                            c_word_to_ipv4(CRFSDT_RNODE_TCID(crfsdt_rnode)), (*offset), fd);
         return (EC_FALSE);
     }
@@ -337,14 +337,14 @@ EC_BOOL crfsdt_rnode_load(CRFSDT_RNODE *crfsdt_rnode, int fd, UINT32 *offset)
     osize = sizeof(UINT32);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CRFSDT_RNODE_TCID(crfsdt_rnode))))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_load: load tcid at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_load: load tcid at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crb_tree_load(CRFSDT_RNODE_PATH_TREE(crfsdt_rnode), fd, offset, (CRB_DATA_NEW)cstring_new_0, (CRB_DATA_LOAD)cstring_load))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_load: load path tree of tcid %s at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_rnode_load: load path tree of tcid %s at offset %ld of fd %d failed\n",
                            c_word_to_ipv4(CRFSDT_RNODE_TCID(crfsdt_rnode)), (*offset), fd);
         return (EC_FALSE);
     }
@@ -734,14 +734,14 @@ EC_BOOL crfsdt_flush(const CRFSDT *crfsdt, int fd, UINT32 *offset)
 {
     if(EC_FALSE == crb_tree_flush(CRFSDT_PNODE_TREE(crfsdt), fd, offset, (CRB_DATA_FLUSH)crfsdt_pnode_flush))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush pnode tree at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush pnode tree at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crb_tree_flush(CRFSDT_RNODE_TREE(crfsdt), fd, offset, (CRB_DATA_FLUSH)crfsdt_rnode_flush))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush rnode tree at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_flush: flush rnode tree at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }
@@ -752,14 +752,14 @@ EC_BOOL crfsdt_load(CRFSDT *crfsdt, int fd, UINT32 *offset)
 {
     if(EC_FALSE == crb_tree_load(CRFSDT_PNODE_TREE(crfsdt), fd, offset, (CRB_DATA_NEW)crfsdt_pnode_new, (CRB_DATA_LOAD)crfsdt_pnode_load))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load pnode tree at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load pnode tree at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crb_tree_load(CRFSDT_RNODE_TREE(crfsdt), fd, offset, (CRB_DATA_NEW)crfsdt_rnode_new, (CRB_DATA_LOAD)crfsdt_rnode_load))
     {
-        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load rnode tree at offset %u of fd %d failed\n",
+        dbg_log(SEC_0142_CRFSDT, 0)(LOGSTDOUT, "error:crfsdt_load: load rnode tree at offset %ld of fd %d failed\n",
                            (*offset), fd);
         return (EC_FALSE);
     }

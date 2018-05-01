@@ -180,10 +180,10 @@ UINT32 csys_info_print()
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:bufferram: %ld Bytes, %ld KB, %ld MB\n", info.bufferram, _B2KB_(info.bufferram), _B2MB_(info.bufferram));
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:totalswap: %ld Bytes, %ld KB, %ld MB\n", info.totalswap, _B2KB_(info.totalswap), _B2MB_(info.totalswap));
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:freeswap : %ld Bytes, %ld KB, %ld MB\n", info.freeswap , _B2KB_(info.freeswap) , _B2MB_(info.freeswap));
-    dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:procs    : %ld\n", info.procs);
+    dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:procs    : %d\n" , info.procs);
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:totalhigh: %ld\n", info.totalhigh);
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:freehigh : %ld\n", info.freehigh);
-    dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:mem_unit : %ld\n", info.mem_unit);
+    dbg_log(SEC_0077_CSYS, 5)(LOGSTDOUT, "csys_info_print:mem_unit : %u\n" , info.mem_unit);
 
     #undef _S2M_
     #undef _S2H_

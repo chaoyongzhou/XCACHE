@@ -323,7 +323,7 @@ STATIC_CAST static int __crfschttp_on_body(http_parser_t* http_parser, const cha
 
     if(EC_FALSE == chunk_mgr_append_data(body_chunks, (uint8_t *)at, length))
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_on_body: append %d bytes failed\n", length);
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_on_body: append %ld bytes failed\n", length);
         return (-1);
     }
 
@@ -1236,7 +1236,7 @@ EC_BOOL crfschttp_handle_setsmf_request(CRFSCHTTP_NODE *crfschttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_setsmf_request: node %p, content_len %lld > body_len %lld\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_setsmf_request: node %p, content_len %"PRId64" > body_len %"PRId64"\n",
                             crfschttp_node, content_len, body_len);
 
         //chunk_mgr_clean(CRFSCHTTP_NODE_REQ_BODY_CHUNKS(crfschttp_node));/*recycle space asap*/
@@ -1249,7 +1249,7 @@ EC_BOOL crfschttp_handle_setsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     content_cbytes = cbytes_new((UINT32)body_len);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_setsmf_request: node %p, new cbytes with len %d failed\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_setsmf_request: node %p, new cbytes with len %ld failed\n",
                             crfschttp_node, (UINT32)body_len);
         CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -1336,7 +1336,7 @@ EC_BOOL crfschttp_handle_update_request(CRFSCHTTP_NODE *crfschttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_update_request: node %p, content_len %lld > body_len %lld\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_update_request: node %p, content_len %"PRId64" > body_len %"PRId64"\n",
                             crfschttp_node, content_len, body_len);
 
         //chunk_mgr_clean(CRFSCHTTP_NODE_REQ_BODY_CHUNKS(crfschttp_node));/*recycle space asap*/
@@ -1349,7 +1349,7 @@ EC_BOOL crfschttp_handle_update_request(CRFSCHTTP_NODE *crfschttp_node)
     content_cbytes = cbytes_new((UINT32)body_len);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_update_request: node %p, new cbytes with len %d failed\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_update_request: node %p, new cbytes with len %ld failed\n",
                             crfschttp_node, (UINT32)body_len);
         CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -1434,7 +1434,7 @@ EC_BOOL crfschttp_handle_put_request(CRFSCHTTP_NODE *crfschttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_put_request: node %p, content_len %lld > body_len %lld\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_put_request: node %p, content_len %"PRId64" > body_len %"PRId64"\n",
                             crfschttp_node, content_len, body_len);
 
         //chunk_mgr_clean(CRFSCHTTP_NODE_REQ_BODY_CHUNKS(crfschttp_node));/*recycle space asap*/
@@ -1447,7 +1447,7 @@ EC_BOOL crfschttp_handle_put_request(CRFSCHTTP_NODE *crfschttp_node)
     content_cbytes = cbytes_new((UINT32)body_len);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_put_request: node %p, new cbytes with len %d failed\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_put_request: node %p, new cbytes with len %ld failed\n",
                             crfschttp_node, (UINT32)body_len);
         CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -1551,7 +1551,7 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_post_request: node %p, content_len %lld > body_len %lld\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "warn:crfschttp_handle_post_request: node %p, content_len %"PRId64" > body_len %"PRId64"\n",
                             crfschttp_node, content_len, body_len);
 
         //chunk_mgr_clean(CRFSCHTTP_NODE_REQ_BODY_CHUNKS(crfschttp_node));/*recycle space asap*/
@@ -1564,7 +1564,7 @@ EC_BOOL crfschttp_handle_post_request(CRFSCHTTP_NODE *crfschttp_node)
     content_cbytes = cbytes_new((UINT32)body_len);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_post_request: node %p, new cbytes with len %d failed\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_post_request: node %p, new cbytes with len %ld failed\n",
                             crfschttp_node, (UINT32)body_len);
         CRFSCHTTP_NODE_RSP_STATUS(crfschttp_node) = CRFSCHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -2045,7 +2045,7 @@ STATIC_CAST static EC_BOOL __crfschttp_handle_getbgf_request_read_body(CRFSCHTTP
 
     if(EC_FALSE == crfsc_read_b(CSOCKET_CNODE_MODI(csocket_cnode), store_path, &offset, max_len, &data_cbytes))
     {
-        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_read_body: node %p, crfsc read %s from offset %ld, max_len %u failed\n",
+        dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:__crfschttp_handle_getbgf_request_read_body: node %p, crfsc read %s from offset %ld, max_len %ld failed\n",
                             crfschttp_node, (char *)cstring_get_str(store_path), offset_save, max_len);
 
         return (EC_FALSE);
@@ -4162,7 +4162,7 @@ EC_BOOL crfschttp_send_on_csocket_cnode(CSOCKET_CNODE *csocket_cnode)
                                    CBUFFER_USED(CHUNK_BUFFER(chunk)),
                                    &pos))
         {
-            dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_send_on_csocket_cnode: node %p, sockfd %d send %ld bytes failed\n",
+            dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_send_on_csocket_cnode: node %p, sockfd %d send %u bytes failed\n",
                                crfschttp_node,
                                CSOCKET_CNODE_SOCKFD(csocket_cnode),
                                CBUFFER_USED(CHUNK_BUFFER(chunk)) - CHUNK_OFFSET(chunk)

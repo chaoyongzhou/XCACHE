@@ -189,7 +189,7 @@ EC_BOOL cindex_expand(CINDEX *cindex)
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_expand: failed to expand cindex %lx with capacity %ld, size %ld next %ld\n",
+    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_expand: failed to expand cindex %p with capacity %ld, size %ld next %ld\n",
                         cindex, cindex->capacity, cindex->size, cindex->next);
 
     CINDEX_UNLOCK(cindex, LOC_CINDEX_0015);
@@ -245,7 +245,7 @@ UINT32 cindex_reserve(CINDEX *cindex, const void *data)
         pos = next;/*move to next*/
     }
 
-    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_reserve: reserve index failed, cindex %lx, size %ld, capacity %ld, next %ld\n",
+    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_reserve: reserve index failed, cindex %p, size %ld, capacity %ld, next %ld\n",
                         cindex, cindex->size, cindex->capacity, cindex->next);
 
     CINDEX_UNLOCK(cindex, LOC_CINDEX_0020);
@@ -259,7 +259,7 @@ void * cindex_release(CINDEX *cindex, const UINT32 pos)
     CINDEX_LOCK(cindex, LOC_CINDEX_0021);
     if(pos >= cindex->capacity)
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release: release index %ld overflow, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release: release index %ld overflow, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
 
@@ -270,7 +270,7 @@ void * cindex_release(CINDEX *cindex, const UINT32 pos)
     data = cindex->data[ pos ];
     if(NULL_PTR == data)/*debug to prevent from anything wrong*/
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release: release index %ld refer to null, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release: release index %ld refer to null, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
         CINDEX_UNLOCK(cindex, LOC_CINDEX_0023);
@@ -291,7 +291,7 @@ void *cindex_spy(const CINDEX *cindex, const UINT32 pos)
     CINDEX_LOCK(cindex, LOC_CINDEX_0025);
     if(pos >= cindex->capacity)
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_spy: spy index %ld overflow, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_spy: spy index %ld overflow, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
         CINDEX_UNLOCK(cindex, LOC_CINDEX_0026);
@@ -457,7 +457,7 @@ void cindex_print(LOG *log, const CINDEX *cindex, void (*handler)(LOG *, const v
 {
     UINT32 pos;
 
-    sys_log(log, "cindex %lx, size %ld, capacity %ld, next %ld\n", cindex, cindex->size, cindex->capacity, cindex->next);
+    sys_log(log, "cindex %p, size %ld, capacity %ld, next %ld\n", cindex, cindex->size, cindex->capacity, cindex->next);
 
     CINDEX_LOCK(cindex, LOC_CINDEX_0040);
     for(pos = 0; pos < cindex->capacity; pos ++)
@@ -561,7 +561,7 @@ UINT32 cindex_reserve_no_lock(CINDEX *cindex, const void *data)
         pos = next;/*move to next*/
     }
 
-    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_reserve_no_lock: reserve index failed, cindex %lx, size %ld, capacity %ld, next %ld\n",
+    dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_reserve_no_lock: reserve index failed, cindex %p, size %ld, capacity %ld, next %ld\n",
                         cindex, cindex->size, cindex->capacity, cindex->next);
     return (CINDEX_ERR_POS);
 }
@@ -572,7 +572,7 @@ void * cindex_release_no_lock(CINDEX *cindex, const UINT32 pos)
 
     if(pos >= cindex->capacity)
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release_no_lock: release index %ld overflow, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release_no_lock: release index %ld overflow, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
         return (NULL_PTR);
@@ -581,7 +581,7 @@ void * cindex_release_no_lock(CINDEX *cindex, const UINT32 pos)
     data = cindex->data[ pos ];
     if(NULL_PTR == data)/*debug to prevent from anything wrong*/
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release_no_lock: release index %ld refer to null, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_release_no_lock: release index %ld refer to null, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
         return (NULL_PTR);
@@ -599,7 +599,7 @@ void *cindex_spy_no_lock(const CINDEX *cindex, const UINT32 pos)
 
     if(pos >= cindex->capacity)
     {
-        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_spy_no_lock: spy index %ld overflow, cindex %lx, size %ld, capacity %ld, next %ld\n",
+        dbg_log(SEC_0106_CINDEX, 0)(LOGSTDOUT, "error:cindex_spy_no_lock: spy index %ld overflow, cindex %p, size %ld, capacity %ld, next %ld\n",
                             pos,
                             cindex, cindex->size, cindex->capacity, cindex->next);
         return (void *)0;
@@ -721,7 +721,7 @@ void cindex_print_no_lock(LOG *log, const CINDEX *cindex, void (*handler)(LOG *,
 {
     UINT32 pos;
 
-    sys_log(log, "cindex %lx, size %ld, capacity %ld, next %ld\n", cindex, cindex->size, cindex->capacity, cindex->next);
+    sys_log(log, "cindex %p, size %ld, capacity %ld, next %ld\n", cindex, cindex->size, cindex->capacity, cindex->next);
 
     for(pos = 0; pos < cindex->capacity; pos ++)
     {

@@ -1270,7 +1270,7 @@ EC_BOOL chfsnprb_flush(const CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSNPRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1278,7 +1278,7 @@ EC_BOOL chfsnprb_flush(const CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSNPRB_POOL_NODE_MAX_NUM(pool))))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1286,7 +1286,7 @@ EC_BOOL chfsnprb_flush(const CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSNPRB_POOL_NODE_USED_NUM(pool))))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1294,7 +1294,7 @@ EC_BOOL chfsnprb_flush(const CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CHFSNPRB_POOL_NODE_SIZEOF(pool))))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_SIZEOF at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_SIZEOF at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1302,7 +1302,7 @@ EC_BOOL chfsnprb_flush(const CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CHFSNPRB_POOL_NODE_MAX_NUM(pool) * CHFSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CHFSNPRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CHFSNPRB_POOL_NODE_MAX_NUM is %u\n",
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_flush: write CHFSNPRB_POOL_NODE_TBL at offset %ld of fd %d failed where CHFSNPRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CHFSNPRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }
@@ -1321,7 +1321,7 @@ EC_BOOL chfsnprb_load(CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CHFSNPRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1329,7 +1329,7 @@ EC_BOOL chfsnprb_load(CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_max_num)))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CHFSNPRB_POOL_NODE_MAX_NUM(pool) = node_max_num;
@@ -1338,7 +1338,7 @@ EC_BOOL chfsnprb_load(CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_used_num)))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CHFSNPRB_POOL_NODE_MAX_NUM(pool) = node_used_num;
@@ -1347,7 +1347,7 @@ EC_BOOL chfsnprb_load(CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_sizeof)))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_SIZEOF at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_SIZEOF at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CHFSNPRB_POOL_NODE_SIZEOF(pool) = node_sizeof;
@@ -1356,7 +1356,7 @@ EC_BOOL chfsnprb_load(CHFSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CHFSNPRB_POOL_NODE_MAX_NUM(pool) * CHFSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CHFSNPRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CHFSNPRB_POOL_NODE_MAX_NUM is %u\n",
+        dbg_log(SEC_0073_CHFSNPRB, 0)(LOGSTDOUT, "error:chfsnprb_load: load CHFSNPRB_POOL_NODE_TBL at offset %ld of fd %d failed where CHFSNPRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CHFSNPRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }

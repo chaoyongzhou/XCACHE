@@ -264,7 +264,7 @@ EC_BOOL cdns_node_send(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
     pos = CHUNK_OFFSET(chunk);
     if(EC_FALSE == csocket_cnode_send(csocket_cnode, CHUNK_DATA(chunk), CHUNK_USED(chunk), &pos))
     {
-        dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_node_send: sockfd %d send %ld bytes failed\n",
+        dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_node_send: sockfd %d send %d bytes failed\n",
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
                            CHUNK_USED(chunk) - CHUNK_OFFSET(chunk)
                            );
@@ -724,7 +724,7 @@ EC_BOOL cdns_parse_host(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t *
     data = CBUFFER_DATA(CDNS_NODE_IN_BUF(cdns_node)) + (*pos);
     left = CBUFFER_USED(CDNS_NODE_IN_BUF(cdns_node)) - (*pos);
 
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_host: pos = %ld\n", (*pos));
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_host: pos = %d\n", (*pos));
 
     if(do_log(SEC_0150_CDNS, 9))
     {
@@ -819,7 +819,8 @@ EC_BOOL cdns_make_host(CDNS_NODE *cdns_node, const CSTRING *host)
         uint32_t idx;
         uint8_t *q;
 
-        sys_log(LOGSTDOUT, "[DEBUG] cdns_make_host: query host: %.*s\n", CSTRING_LEN(host), CSTRING_STR(host));
+        sys_log(LOGSTDOUT, "[DEBUG] cdns_make_host: query host: %.*s\n", 
+                           (uint32_t)CSTRING_LEN(host), CSTRING_STR(host));
 
         q = CHUNK_DATA(CDNS_NODE_SEND_BUF(cdns_node)) + CHUNK_USED(CDNS_NODE_SEND_BUF(cdns_node));
 
@@ -884,7 +885,8 @@ EC_BOOL cdns_parse_query(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t 
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_parse_query: parse host failed\n");
         return (EC_FALSE);
     }
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_query: parsed host: '%.*s'\n", CSTRING_LEN(host), CSTRING_STR(host));
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_query: parsed host: '%.*s'\n", 
+                    (uint32_t)CSTRING_LEN(host), CSTRING_STR(host));
 
     if(EC_FALSE == cdns_parse_uint16(cdns_node, max_len, pos, qt))
     {
@@ -1045,7 +1047,7 @@ EC_BOOL cdns_parse_answer(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t
         (*resource) = ((*resource) << 8) | (*q);
     }
     p = (uint16_t *)q;
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: resource = %x\n", (*resource));
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: resource = %lx\n", (*resource));
 
     (*pos) += ((void *)p - (void *)data);
     return (EC_TRUE);
@@ -1126,15 +1128,15 @@ EC_BOOL cdns_parse_rsp(CDNS_NODE *cdns_node, CDNS_RSP *cdns_rsp)
         cdns_rsp_node = cdns_rsp_node_new();
         if(NULL_PTR == cdns_rsp_node)
         {
-            dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_parse_rsp: new cdns_rsp_node for host %.*s resource %x failed\n",
-                                CSTRING_LEN(&host), CSTRING_STR(&host), resource);
+            dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_parse_rsp: new cdns_rsp_node for host %.*s resource %lx failed\n",
+                                (uint32_t)CSTRING_LEN(&host), CSTRING_STR(&host), resource);
 
             cstring_clean(&host);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_rsp: push host '%.*s' and resource %x\n",
-                            CSTRING_LEN(&host), CSTRING_STR(&host), resource);
+        dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_rsp: push host '%.*s' and resource %lx\n",
+                            (uint32_t)CSTRING_LEN(&host), CSTRING_STR(&host), resource);
 
         cstring_init(CDNS_RSP_NODE_HOST(cdns_rsp_node)  , (UINT8 *)cstring_get_str(&host));
         cstring_init(CDNS_RSP_NODE_IPADDR(cdns_rsp_node), (UINT8 *)c_word_to_ipv4(resource));
@@ -1314,7 +1316,7 @@ void cdns_req_print(LOG *log, const CDNS_REQ *cdns_req)
     sys_log(log, "cdns_req_print: port  : %ld\n" , CDNS_REQ_PORT(cdns_req));
 
     sys_log(log, "cdns_req_print: host  : %.*s\n",
-                        CSTRING_LEN(CDNS_REQ_HOST(cdns_req)), CSTRING_STR(CDNS_REQ_HOST(cdns_req)));
+                (uint32_t)CSTRING_LEN(CDNS_REQ_HOST(cdns_req)), CSTRING_STR(CDNS_REQ_HOST(cdns_req)));
 
     return;
 }
@@ -1469,10 +1471,10 @@ EC_BOOL cdns_rsp_node_free(CDNS_RSP_NODE *cdns_rsp_node)
 void cdns_rsp_node_print(LOG *log, const CDNS_RSP_NODE *cdns_rsp_node)
 {
     sys_log(log, "cdns_rsp_node_print: host  : %.*s\n",
-                        CSTRING_LEN(CDNS_RSP_NODE_HOST(cdns_rsp_node)), CSTRING_STR(CDNS_RSP_NODE_HOST(cdns_rsp_node)));
+                (uint32_t)CSTRING_LEN(CDNS_RSP_NODE_HOST(cdns_rsp_node)), CSTRING_STR(CDNS_RSP_NODE_HOST(cdns_rsp_node)));
 
     sys_log(log, "cdns_rsp_node_print: ipaddr: %.*s\n",
-                        CSTRING_LEN(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)), CSTRING_STR(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)));
+                (uint32_t)CSTRING_LEN(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)), CSTRING_STR(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)));
 
     return;
 }

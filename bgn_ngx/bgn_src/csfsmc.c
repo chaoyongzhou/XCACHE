@@ -468,7 +468,7 @@ EC_BOOL csfsmc_read_e_dn_no_lock(CSFSMC *csfsmc, const CSFSNP_FNODE *csfsnp_fnod
 
     if((*store_offset) >= file_size)
     {
-        dbg_log(SEC_0174_CSFSMC, 0)(LOGSTDOUT, "error:csfsmc_read_e_dn_no_lock: read file failed due to offset %ld overflow file size %ld\n",
+        dbg_log(SEC_0174_CSFSMC, 0)(LOGSTDOUT, "error:csfsmc_read_e_dn_no_lock: read file failed due to offset %ld overflow file size %u\n",
                            (*store_offset), file_size);
         return (EC_FALSE);
     }

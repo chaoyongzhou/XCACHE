@@ -1261,7 +1261,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_ROOT_POS(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_ROOT_POS at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_ROOT_POS at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1269,7 +1269,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1277,7 +1277,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_NODE_MAX_NUM(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1285,7 +1285,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_NODE_USED_NUM(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1293,7 +1293,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_NODE_SIZEOF(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_SIZEOF at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_SIZEOF at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1301,7 +1301,7 @@ EC_BOOL ctdnsnprb_flush(const CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CTDNSNPRB_POOL_NODE_MAX_NUM(pool) * CTDNSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CTDNSNPRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CTDNSNPRB_POOL_NODE_MAX_NUM is %u\n",
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_flush: write CTDNSNPRB_POOL_NODE_TBL at offset %ld of fd %d failed where CTDNSNPRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CTDNSNPRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }
@@ -1320,7 +1320,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_ROOT_POS(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_ROOT_POS at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_ROOT_POS at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1328,7 +1328,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CTDNSNPRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1336,7 +1336,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_max_num)))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CTDNSNPRB_POOL_NODE_MAX_NUM(pool) = node_max_num;
@@ -1345,7 +1345,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_used_num)))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_USED_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_USED_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CTDNSNPRB_POOL_NODE_MAX_NUM(pool) = node_used_num;
@@ -1354,7 +1354,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_sizeof)))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_SIZEOF at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_SIZEOF at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
     CTDNSNPRB_POOL_NODE_SIZEOF(pool) = node_sizeof;
@@ -1363,7 +1363,7 @@ EC_BOOL ctdnsnprb_load(CTDNSNPRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CTDNSNPRB_POOL_NODE_MAX_NUM(pool) * CTDNSNPRB_POOL_NODE_SIZEOF(pool);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CTDNSNPRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_TBL at offset %u of fd %d failed where CTDNSNPRB_POOL_NODE_MAX_NUM is %u\n",
+        dbg_log(SEC_0021_CTDNSNPRB, 0)(LOGSTDOUT, "error:ctdnsnprb_load: load CTDNSNPRB_POOL_NODE_TBL at offset %ld of fd %d failed where CTDNSNPRB_POOL_NODE_MAX_NUM is %u\n",
                             (*offset), fd, CTDNSNPRB_POOL_NODE_MAX_NUM(pool));
         return (EC_FALSE);
     }

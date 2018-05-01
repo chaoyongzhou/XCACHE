@@ -524,7 +524,7 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSB_PAGE_MAX_NUM(csfsb))))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: flush CSFSB_PAGE_MAX_NUM with %u bytes at offset %u of fd %d failed\n",
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: flush CSFSB_PAGE_MAX_NUM with %ld bytes at offset %ld of fd %d failed\n",
                             osize, (*offset), fd);
         return (EC_FALSE);
     }
@@ -533,7 +533,7 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     osize = CSFSB_PAD_SIZE * sizeof(uint8_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: flush rsvd01 at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: flush rsvd01 at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -541,7 +541,7 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     osize = (CSFSB_PAGE_NUM >> 5)  * sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CSFSB_PAGE_USED_BITMAP_TBL(csfsb)))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: write CSFSB_PAGE_USED_BITMAP_TBL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: write CSFSB_PAGE_USED_BITMAP_TBL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -549,7 +549,7 @@ EC_BOOL csfsb_flush(const CSFSB *csfsb, int fd, UINT32 *offset)
     osize = CSFSB_PAGE_NUM  * sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CSFSB_PAGE_NP_NODE_POS_TBL(csfsb)))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: write CSFSB_PAGE_NP_NODE_POS_TBL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_flush: write CSFSB_PAGE_NP_NODE_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -566,7 +566,7 @@ EC_BOOL csfsb_load(CSFSB *csfsb, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CSFSB_PAGE_MAX_NUM(csfsb))))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_MAX_NUM with %u bytes at offset %u of fd %d failed\n",
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_MAX_NUM with %ld bytes at offset %ld of fd %d failed\n",
                             osize, (*offset), fd);
         return (EC_FALSE);
     }
@@ -578,7 +578,7 @@ EC_BOOL csfsb_load(CSFSB *csfsb, int fd, UINT32 *offset)
     osize = (CSFSB_PAGE_NUM >> 5) * sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CSFSB_PAGE_USED_BITMAP_TBL(csfsb)))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_USED_BITMAP_TBL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_USED_BITMAP_TBL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -586,7 +586,7 @@ EC_BOOL csfsb_load(CSFSB *csfsb, int fd, UINT32 *offset)
     osize = CSFSB_PAGE_NUM * sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CSFSB_PAGE_NP_NODE_POS_TBL(csfsb)))
     {
-        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_NP_NODE_POS_TBL at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0166_CSFSB, 0)(LOGSTDOUT, "error:csfsb_load: load CSFSB_PAGE_NP_NODE_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 

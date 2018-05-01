@@ -248,7 +248,7 @@ UINT32 dbg_tiny_caller(const UINT32 func_para_num, const UINT32 func_addr, ...)
             func_ret_value = FUNC_CALL(16, func_addr, func_para_value);
             break;
         default:
-            dbg_log(SEC_0047_DEBUG, 0)(LOGSTDOUT, "error:dbg_tiny_caller: func para num = %d overflow\n", func_para_num);
+            dbg_log(SEC_0047_DEBUG, 0)(LOGSTDOUT, "error:dbg_tiny_caller: func para num = %ld overflow\n", func_para_num);
             return ((UINT32)(-1));
     }
 
@@ -362,7 +362,7 @@ EC_BOOL dbg_caller(const UINT32 func_addr, const UINT32 func_para_num, UINT32 *f
             func_ret_value = FUNC_CALL(16, func_addr, func_para_value);
             break;
         default:
-            dbg_log(SEC_0047_DEBUG, 0)(LOGSTDOUT, "error:dbg_caller: func para num = %d overflow\n", func_para_num);
+            dbg_log(SEC_0047_DEBUG, 0)(LOGSTDOUT, "error:dbg_caller: func para num = %ld overflow\n", func_para_num);
             return (EC_FALSE);
     }
 

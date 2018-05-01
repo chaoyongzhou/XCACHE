@@ -478,7 +478,7 @@ void cbitmap_print(LOG *log, const CBITMAP *cbitmap)
     UINT32 max_words;
     UINT32 word_offset;
 
-    dbg_log(SEC_0089_CBITMAP, 5)(LOGSTDOUT, "cbitmap %lx: max bits %ld, cur bits %ld\n",
+    dbg_log(SEC_0089_CBITMAP, 5)(LOGSTDOUT, "cbitmap %p: max bits %ld, cur bits %ld\n",
                         cbitmap, CBITMAP_MAX_BITS(cbitmap), CBITMAP_CUR_BITS(cbitmap));
 
     max_words = (CBITMAP_MAX_BITS(cbitmap) + WORDSIZE - 1) / WORDSIZE;

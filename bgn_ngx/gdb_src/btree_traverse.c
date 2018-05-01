@@ -287,7 +287,7 @@ uint8_t btreeCollectAllOffset(BTree *tree, offset_t **offset_list, uint32_t *off
     offset_ptr = (offset_t *)SAFE_MALLOC(tree->size * sizeof(offset_t), LOC_BTREE_0149);
     if(NULL == offset_ptr)
     {
-        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeCollectAllOffset: alloc %ld offset_t failed\n", tree->size);
+        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeCollectAllOffset: alloc %u offset_t failed\n", tree->size);
         return 0;
     }
 
@@ -307,7 +307,7 @@ uint8_t btreeCollectAllOffset(BTree *tree, offset_t **offset_list, uint32_t *off
     /*check consistency*/
     if(pos != tree->size)
     {
-        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeCollectAllOffset: found inconsistency where tree size %ld but collected %ld offset\n",
+        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeCollectAllOffset: found inconsistency where tree size %u but collected %u offset\n",
                            tree->size, pos);
     }
 

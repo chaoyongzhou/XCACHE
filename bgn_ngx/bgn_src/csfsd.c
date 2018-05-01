@@ -403,7 +403,7 @@ EC_BOOL csfsd_hdr_flush(const CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSD_HDR_BLOCK_MAX_NUM(csfsd_hdr))))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: flush CSFSD_HDR_BLOCK_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: flush CSFSD_HDR_BLOCK_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -411,7 +411,7 @@ EC_BOOL csfsd_hdr_flush(const CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: pad %u bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -419,7 +419,7 @@ EC_BOOL csfsd_hdr_flush(const CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSD_HDR_PAGE_MAX_NUM(csfsd_hdr))))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: flush CSFSD_HDR_PAGE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: flush CSFSD_HDR_PAGE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -427,7 +427,7 @@ EC_BOOL csfsd_hdr_flush(const CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = CSFSD_HDR_PAD_SIZE * sizeof(uint8_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: pad %u bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -444,7 +444,7 @@ EC_BOOL csfsd_hdr_load(CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CSFSD_HDR_BLOCK_MAX_NUM(csfsd_hdr))))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_load: load CSFSD_HDR_BLOCK_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_load: load CSFSD_HDR_BLOCK_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -455,7 +455,7 @@ EC_BOOL csfsd_hdr_load(CSFSD_HDR *csfsd_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CSFSD_HDR_PAGE_MAX_NUM(csfsd_hdr))))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_load: load CSFSD_HDR_PAGE_MAX_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_load: load CSFSD_HDR_PAGE_MAX_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -472,7 +472,7 @@ CSFSD_HDR *csfsd_hdr_mem_new(CSFSD *csfsd, const uint16_t block_num)
     csfsd_hdr = safe_malloc(CSFSD_FSIZE(csfsd), LOC_CSFSD_0005);
     if(NULL_PTR == csfsd_hdr)
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_mem_new: malloc %ld bytes failed\n",
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_hdr_mem_new: malloc %u bytes failed\n",
                            CSFSD_FSIZE(csfsd));
         return (NULL_PTR);
     }
@@ -538,7 +538,7 @@ CSFSD *csfsd_new(const uint8_t *csfsd_fname, const uint16_t block_num, const uin
     }
 
     dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "[DEBUG] csfsd_new: sizeof(CSFSD_HDR) %u, block_num %u\n",
-                        sizeof(CSFSD_HDR), block_num);
+                        (uint32_t)sizeof(CSFSD_HDR), block_num);
 
     CSFSD_FSIZE(csfsd) = sizeof(CSFSD_HDR) + sizeof(CSFSB) * block_num;
     if(EC_FALSE == c_file_truncate(CSFSD_FD(csfsd), CSFSD_FSIZE(csfsd)))
@@ -815,7 +815,7 @@ EC_BOOL csfsd_flush(const CSFSD *csfsd, int fd, UINT32 *offset)
     /*flush CSFSD_HEADER*/
     if(EC_FALSE == csfsd_hdr_flush(CSFSD_HEADER(csfsd), fd, offset))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_flush: flush CSFSD_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_flush: flush CSFSD_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -837,7 +837,7 @@ EC_BOOL csfsd_load(CSFSD *csfsd, int fd, UINT32 *offset)
     /*load CSFSD_HEADER*/
     if(EC_FALSE == csfsd_hdr_load(CSFSD_HEADER(csfsd), fd, offset))
     {
-        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_load: load CSFSD_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0165_CSFSD, 0)(LOGSTDOUT, "error:csfsd_load: load CSFSD_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -894,7 +894,7 @@ CSFSD *csfsd_mem_new(const uint16_t block_num)
     CSFSD_FD(csfsd) = ERR_FD;
 
     dbg_log(SEC_0165_CSFSD, 9)(LOGSTDOUT, "[DEBUG] csfsd_mem_new: sizeof(CSFSD_HDR) %u, block_num %u, sizeof(CSFSB) %u, sizeof(off_t) = %u\n",
-                        sizeof(CSFSD_HDR), block_num, sizeof(CSFSB), sizeof(off_t));
+                        (uint32_t)sizeof(CSFSD_HDR), block_num, (uint32_t)sizeof(CSFSB), (uint32_t)sizeof(off_t));
 
     CSFSD_FSIZE(csfsd) = sizeof(CSFSD_HDR) + block_num * sizeof(CSFSB);
 

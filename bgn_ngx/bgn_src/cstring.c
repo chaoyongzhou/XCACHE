@@ -627,7 +627,7 @@ UINT32 cstring_get_word(const CSTRING *cstring)
 {
     UINT32 c;            /* current char */
     UINT32 total;        /* current total */
-    UINT8 pos;
+    UINT32 pos;
 
     if(0 == cstring->len || NULL_PTR == cstring->str)
     {
@@ -640,7 +640,7 @@ UINT32 cstring_get_word(const CSTRING *cstring)
         if(c < '0' || c > '9')
         {
             dbg_log(SEC_0082_CSTRING, 0)(LOGSTDERR, "error:cstring_get_word: cstring %.*s found not digit char at pos %ld\n",
-                            cstring->len, cstring->str, pos);
+                            (uint32_t)cstring->len, cstring->str, pos);
             return ((UINT32)0);
         }
         total = 10 * total + (c - '0');
@@ -1180,14 +1180,14 @@ CSTRING * cstring_load0(int fd, UINT32 *offset)
     str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0023);
     if(NULL_PTR == str)
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %u bytes failed\n", len + 1);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %ld bytes failed\n", len + 1);
         cstring_free(cstring);
         return (NULL_PTR);
     }
 
     if(EC_FALSE == c_file_load(fd, offset, len, (UINT8 *)str))
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %u bytes failed\n", len);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %ld bytes failed\n", len);
         SAFE_FREE(str, LOC_CSTRING_0024);
         cstring_free(cstring);
         return (NULL_PTR);
@@ -1222,13 +1222,13 @@ EC_BOOL cstring_load(CSTRING *cstring, int fd, UINT32 *offset)
     str = (UINT8 *)SAFE_MALLOC(len + 1, LOC_CSTRING_0025);
     if(NULL_PTR == str)
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %u bytes failed\n", len + 1);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: malloc %ld bytes failed\n", len + 1);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == c_file_load(fd, offset, len, (UINT8 *)str))
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %u bytes failed\n", len);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_load: load %ld bytes failed\n", len);
         SAFE_FREE(str, LOC_CSTRING_0026);
         return (EC_FALSE);
     }
@@ -1263,7 +1263,7 @@ EC_BOOL cstring_flush(const CSTRING *cstring, int fd, UINT32 *offset)
     len = cstring->len;
     if(EC_FALSE == c_file_flush(fd, offset, sizeof(UINT32), (UINT8 *)&len))
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_flush: flush cstring len %u failed\n", len);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_flush: flush cstring len %ld failed\n", len);
         return (EC_FALSE);
     }
 
@@ -1275,7 +1275,7 @@ EC_BOOL cstring_flush(const CSTRING *cstring, int fd, UINT32 *offset)
     str = cstring->str;
     if(EC_FALSE == c_file_flush(fd, offset, len, str))
     {
-        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_flush: flush %u bytes failed\n", len);
+        dbg_log(SEC_0082_CSTRING, 0)(LOGSTDOUT, "error:cstring_flush: flush %ld bytes failed\n", len);
         return (EC_FALSE);
     }
 

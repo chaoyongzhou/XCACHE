@@ -691,15 +691,15 @@ EC_BOOL man_debug(const UINT8 *info, MM_MAN *pMan)
 
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] ========================== man_debug beg ==========================\n\n");
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "%s\n", info);
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: linknodeblockhead: (%lx, %lx, %lx)\n", MAN_LINKNODEBLOCK_HEAD(pMan), MAN_LINKNODEBLOCK_HEAD(pMan)->prev, MAN_LINKNODEBLOCK_HEAD(pMan)->next);
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: freenodeblockhead: (%lx, %lx, %lx)\n", MAN_FREENODEBLOCK_HEAD(pMan), MAN_FREENODEBLOCK_HEAD(pMan)->prev, MAN_FREENODEBLOCK_HEAD(pMan)->next);
+    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: linknodeblockhead: (%p, %p, %p)\n", MAN_LINKNODEBLOCK_HEAD(pMan), MAN_LINKNODEBLOCK_HEAD(pMan)->prev, MAN_LINKNODEBLOCK_HEAD(pMan)->next);
+    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: freenodeblockhead: (%p, %p, %p)\n", MAN_FREENODEBLOCK_HEAD(pMan), MAN_FREENODEBLOCK_HEAD(pMan)->prev, MAN_FREENODEBLOCK_HEAD(pMan)->next);
     MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
     {
-        dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: link nodeblock: %lx\n", pNodeBlock);
+        dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: link nodeblock: %p\n", pNodeBlock);
     }
     MAN_FREENODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
     {
-        dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: free nodeblock: %lx\n", pNodeBlock);
+        dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] man_debug: free nodeblock: %p\n", pNodeBlock);
     }
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] ========================== man_debug end ==========================\n\n");
 
@@ -710,11 +710,11 @@ EC_BOOL man_debug(const UINT8 *info, MM_MAN *pMan)
 EC_BOOL nodeblock_debug(const UINT8 *info, const MM_NODE_BLOCK *pNodeBlock)
 {
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "%s\n", info);
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %lx\n", pNodeBlock);
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %lx, link = (%lx, %lx, %lx)\n",
+    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %p\n", pNodeBlock);
+    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %p, link = (%p, %p, %p)\n",
                     pNodeBlock,
                     NODEBLOCK_LINKNODE(pNodeBlock), NODEBLOCK_LINKNODE(pNodeBlock)->prev, NODEBLOCK_LINKNODE(pNodeBlock)->next);
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %lx, free = (%lx, %lx, %lx)\n",
+    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] nodeblock_debug: nodeblock %p, free = (%p, %p, %p)\n",
                     pNodeBlock,
                     NODEBLOCK_FREENODE(pNodeBlock), NODEBLOCK_FREENODE(pNodeBlock)->prev, NODEBLOCK_FREENODE(pNodeBlock)->next);
 
@@ -1197,7 +1197,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
     pNode = &( pNodeBlock->pnodes[ node_idx ] );
     if ( MM_NODE_NOT_USED == pNode->usedflag)
     {
-        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:free_static_mem_0: status error:the node %lx to free of the Manager %ld is not used.\n",
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:free_static_mem_0: status error:the node %p to free of the Manager %ld is not used.\n",
                         pvoid, type);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
@@ -1336,12 +1336,12 @@ UINT32 destory_static_mem()
         /*validity checking*/
         if(0 < pMan->nodenumsum)
         {
-            dbg_log(SEC_0066_MM, 0)(LOGSTDERR, "error:destory_static_mem: manager %lx nodenumsum = %ld was not clean up to zero\n", pMan, pMan->nodenumsum);
+            dbg_log(SEC_0066_MM, 0)(LOGSTDERR, "error:destory_static_mem: manager %p nodenumsum = %ld was not clean up to zero\n", pMan, pMan->nodenumsum);
         }
 
         if(0 < pMan->nodeblocknum)
         {
-            dbg_log(SEC_0066_MM, 0)(LOGSTDERR, "error:destory_static_mem: manager %lx nodeblocknum = %ld was not clean up to zero\n", pMan, pMan->nodeblocknum);
+            dbg_log(SEC_0066_MM, 0)(LOGSTDERR, "error:destory_static_mem: manager %p nodeblocknum = %ld was not clean up to zero\n", pMan, pMan->nodeblocknum);
         }
 
         pMan->maxusedsum = 0;

@@ -758,7 +758,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_line(const UINT32 cdetectn_md_i
     {
         dbg_log(SEC_0070_CDETECTN, 6)(LOGSTDOUT, "[DEBUG] __cdetectn_parse_conf_line: "
                                                  "skip empty line '%.*s'\n",
-                                                 (cdetectn_conf_end - cdetectn_conf_start),
+                                                 (uint32_t)(cdetectn_conf_end - cdetectn_conf_start),
                                                  cdetectn_conf_start);
         /*skip empty line*/
         return (EC_TRUE);
@@ -769,14 +769,14 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_line(const UINT32 cdetectn_md_i
         /*skip commented line*/
         dbg_log(SEC_0070_CDETECTN, 6)(LOGSTDOUT, "[DEBUG] __cdetectn_parse_conf_line: "
                                                  "skip commented line '%.*s'\n",
-                                                 (cdetectn_conf_end - cdetectn_conf_start),
+                                                 (uint32_t)(cdetectn_conf_end - cdetectn_conf_start),
                                                  cdetectn_conf_start);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0070_CDETECTN, 6)(LOGSTDOUT, "[DEBUG] __cdetectn_parse_conf_line: "
                                              "handle line '%.*s'\n",
-                                             (cdetectn_conf_end - cdetectn_conf_start),
+                                             (uint32_t)(cdetectn_conf_end - cdetectn_conf_start),
                                              cdetectn_conf_start);
 
     segs_num = sizeof(segs)/sizeof(segs[ 0 ]);
@@ -784,7 +784,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_line(const UINT32 cdetectn_md_i
     {
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_conf_line: "
                                                  "unable to split '%.*s' into %u segs\n",
-                                                 (cdetectn_conf_end - cdetectn_conf_start),
+                                                 (uint32_t)(cdetectn_conf_end - cdetectn_conf_start),
                                                  cdetectn_conf_start,
                                                  segs_num);
         return (EC_FALSE);
@@ -892,7 +892,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_file(const UINT32 cdetectn_md_i
         dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "error:__cdetectn_parse_conf_file: "
                                                  "to parse line %u# '%.*s' failed\n",
                                                  cdetectn_conf_line_no,
-                                                 (cdetectn_conf_line_end - cdetectn_conf_line_start),
+                                                 (uint32_t)(cdetectn_conf_line_end - cdetectn_conf_line_start),
                                                  cdetectn_conf_line_start);
 
 #if 0
@@ -932,7 +932,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_file(const UINT32 cdetectn_md_i
                 dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_conf_file: "
                                                          "parse line %u# '%.*s' failed\n",
                                                          cdetectn_conf_line_no,
-                                                         (cdetectn_conf_line_end - cdetectn_conf_line_start),
+                                                         (uint32_t)(cdetectn_conf_line_end - cdetectn_conf_line_start),
                                                          cdetectn_conf_line_start);
                 return (EC_FALSE);
             }            
@@ -1441,7 +1441,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_ms(CDETECTN_ORIG_NO
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_ms: "
                                                      "[MS] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                      (char *)cstring_get_str(domain),
-                                                     ipaddr, port);
+                                                     c_word_to_ipv4(ipaddr), port);
             continue;
         }
 
@@ -1523,7 +1523,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_rrb(CDETECTN_ORIG_N
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_start_orig_node_choice_rrb: "
                                                      "[RRB] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                      (char *)cstring_get_str(domain),
-                                                     ipaddr, port);
+                                                     c_word_to_ipv4(ipaddr), port);
 
             /*move to tail*/
             clist_pop_front(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node));
@@ -1621,7 +1621,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_fast(CDETECTN_ORIG_
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_fast: "
                                                      "[FAST] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                      (char *)cstring_get_str(domain),
-                                                     ipaddr, port);
+                                                     c_word_to_ipv4(ipaddr), port);
             continue;
         }
 
@@ -1717,7 +1717,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_latest: "
                                                      "[LATEST] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                      (char *)cstring_get_str(domain),
-                                                     ipaddr, port);
+                                                     c_word_to_ipv4(ipaddr), port);
 
             break; /*fall through*/
         }
@@ -1792,7 +1792,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_latest: "
                                                      "[LATEST] detect (domain '%s', ip '%s', port '%ld') failed\n",
                                                      (char *)cstring_get_str(domain),
-                                                     ipaddr, port);
+                                                     c_word_to_ipv4(ipaddr), port);
 
             continue;
         }

@@ -1632,7 +1632,7 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
         }
 
         dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: "
-                                "[1] tasks_node %lx tcid %s ==> csocket_cnode %lx tcid %s sockfd %d\n",
+                                "[1] tasks_node %p tcid %s ==> csocket_cnode %p tcid %s sockfd %d\n",
                                 tasks_node, TASKS_NODE_TCID_STR(tasks_node),
                                 csocket_cnode, CSOCKET_CNODE_TCID_STR(csocket_cnode), CSOCKET_CNODE_SOCKFD(csocket_cnode)
                                 );
@@ -2300,7 +2300,7 @@ EC_BOOL tasks_monitor_add_csocket_cnode(TASKS_MONITOR *tasks_monitor, CSOCKET_CN
         }
 #endif
         dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_monitor_add_csocket_cnode "
-                                "[1] tasks_node %lx tcid %s ==> csocket_cnode %lx tcid %s sockfd %d\n",
+                                "[1] tasks_node %p tcid %s ==> csocket_cnode %p tcid %s sockfd %d\n",
                                 tasks_node, TASKS_NODE_TCID_STR(tasks_node),
                                 csocket_cnode, CSOCKET_CNODE_TCID_STR(csocket_cnode), CSOCKET_CNODE_SOCKFD(csocket_cnode)
                                 );

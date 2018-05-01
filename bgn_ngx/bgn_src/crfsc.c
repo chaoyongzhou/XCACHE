@@ -1761,7 +1761,7 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_delete: crfsc_md_id %u, path [invalid 0x%x] %s\n",
+    dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_delete: crfsc_md_id %ld, path [invalid 0x%lx] %s\n",
                         crfsc_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);

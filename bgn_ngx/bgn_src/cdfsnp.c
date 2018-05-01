@@ -226,7 +226,7 @@ void cdfsnp_print_buff_0(LOG *log, const UINT8 *buff, const UINT32 len)
 
 void cdfsnp_print_buff(LOG *log, const UINT8 *buff, const UINT32 len)
 {
-    sys_print(log, "%.*s", len, (char *)buff);
+    sys_print(log, "%.*s", (uint32_t)len, (char *)buff);
     return;
 }
 
@@ -516,7 +516,7 @@ void cdfsnp_fnode_print(LOG *log, const CDFSNP_FNODE *cdfsnp_fnode)
 {
     UINT32 pos;
 
-    sys_log(log, "cdfsnp_fnode %lx: file size %ld, replica num %ld, trunc flag %ld, actual fsize %ld\n",
+    sys_log(log, "cdfsnp_fnode %p: file size %ld, replica num %ld, trunc flag %ld, actual fsize %ld\n",
                     cdfsnp_fnode,
                     CDFSNP_FNODE_FILESZ(cdfsnp_fnode) & CDFSNP_32BIT_MASK,
                     CDFSNP_FNODE_REPNUM(cdfsnp_fnode) & CDFSNP_32BIT_MASK,
@@ -722,7 +722,7 @@ void cdfsnp_item_print(LOG *log, const CDFSNP_ITEM *cdfsnp_item)
 {
     UINT32 pos;
 
-    sys_print(log, "cdfsnp_item %lx: flag %ld, stat %ld, klen %ld, parent %ld, shash next %ld\n",
+    sys_print(log, "cdfsnp_item %p: flag %ld, stat %ld, klen %ld, parent %ld, shash next %ld\n",
                     cdfsnp_item,
                     CDFSNP_ITEM_DFLG(cdfsnp_item),
                     CDFSNP_ITEM_STAT(cdfsnp_item),
@@ -981,7 +981,7 @@ EC_BOOL cdfsnp_header_is_valid(const CDFSNP_HEADER *cdfsnp_header, const UINT32 
     if(item_min_num > CDFSNP_HEADER_ICNUM(cdfsnp_header))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid item cur num %ld < %ld\n",
-                            CDFSNP_HEADER_ICNUM(cdfsnp_header), item_min_num);
+                            (UINT32)CDFSNP_HEADER_ICNUM(cdfsnp_header), item_min_num);
         return (EC_FALSE);
     }
 
@@ -989,9 +989,9 @@ EC_BOOL cdfsnp_header_is_valid(const CDFSNP_HEADER *cdfsnp_header, const UINT32 
         CDFSNP_HEADER_ICNUM(cdfsnp_header) > CDFSNP_HEADER_IMNUM(cdfsnp_header)
     )
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid item cur num %ld to max num\n",
-                            CDFSNP_HEADER_ICNUM(cdfsnp_header),
-                            CDFSNP_HEADER_IMNUM(cdfsnp_header));
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid item cur num %ld to max num %ld\n",
+                            (UINT32)CDFSNP_HEADER_ICNUM(cdfsnp_header),
+                            (UINT32)CDFSNP_HEADER_IMNUM(cdfsnp_header));
         return (EC_FALSE);
     }
 
@@ -1001,14 +1001,15 @@ EC_BOOL cdfsnp_header_is_valid(const CDFSNP_HEADER *cdfsnp_header, const UINT32 
     )
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid file size %ld to item max num %ld\n",
-                            CDFSNP_HEADER_FSIZE(cdfsnp_header),
-                            CDFSNP_HEADER_IMNUM(cdfsnp_header));
+                            (UINT32)CDFSNP_HEADER_FSIZE(cdfsnp_header),
+                            (UINT32)CDFSNP_HEADER_IMNUM(cdfsnp_header));
         return (EC_FALSE);
     }
 
     if(0 < (CDFSNP_HEADER_FSIZE(cdfsnp_header) >> (WORDSIZE - 1)))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: file size %ld overflow\n", CDFSNP_HEADER_FSIZE(cdfsnp_header));
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: file size %ld overflow\n", 
+                            CDFSNP_HEADER_FSIZE(cdfsnp_header));
         return (EC_FALSE);
     }
 
@@ -1021,14 +1022,14 @@ EC_BOOL cdfsnp_header_is_valid(const CDFSNP_HEADER *cdfsnp_header, const UINT32 
     if(CHASH_ERR_ALGO_ID == CDFSNP_HEADER_FIRST_CHASH_ALGO_ID(cdfsnp_header))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid first hash algo id %ld\n",
-                            CDFSNP_HEADER_FIRST_CHASH_ALGO_ID(cdfsnp_header));
+                            (UINT32)CDFSNP_HEADER_FIRST_CHASH_ALGO_ID(cdfsnp_header));
         return (EC_FALSE);
     }
 
     if(CHASH_ERR_ALGO_ID == CDFSNP_HEADER_SECOND_CHASH_ALGO_ID(cdfsnp_header))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: invalid second hash algo id %ld\n",
-                            CDFSNP_HEADER_SECOND_CHASH_ALGO_ID(cdfsnp_header));
+                            (UINT32)CDFSNP_HEADER_SECOND_CHASH_ALGO_ID(cdfsnp_header));
         return (EC_FALSE);
     }
 
@@ -1241,12 +1242,12 @@ void cdfsnp_print_cbloom(LOG *log, const CDFSNP *cdfsnp)
 
 void cdfsnp_print(LOG *log, const CDFSNP *cdfsnp)
 {
-    sys_log(log, "cdfsnp %lx: path layout: %ld\n", cdfsnp, CDFSNP_PATH_LAYOUT(cdfsnp));
+    sys_log(log, "cdfsnp %p: path layout: %ld\n", cdfsnp, CDFSNP_PATH_LAYOUT(cdfsnp));
 
-    sys_log(log, "cdfsnp %lx: header: \n", cdfsnp);
+    sys_log(log, "cdfsnp %p: header: \n", cdfsnp);
     cdfsnp_print_header(log, cdfsnp);
 #if 0
-    sys_log(log, "cdfsnp %lx: bloom filter: \n", cdfsnp);
+    sys_log(log, "cdfsnp %p: bloom filter: \n", cdfsnp);
     cbloom_print(log, CDFSNP_CBLOOM(cdfsnp) );
     sys_print(log, "\n");
  #endif
@@ -1371,7 +1372,8 @@ UINT32 cdfsnp_dnode_search(const CDFSNP *cdfsnp, const CDFSNP_DNODE *cdfsnp_dnod
         }
 
         offset = (CDFSNP_ITEM_SHASH_NEXT(cdfsnp_item) & CDFSNP_32BIT_MASK);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_search: shash next %lx => offset %lx\n", CDFSNP_ITEM_SHASH_NEXT(cdfsnp_item), offset);
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_search: shash next %lx => offset %lx\n", 
+                        (UINT32)CDFSNP_ITEM_SHASH_NEXT(cdfsnp_item), offset);
     }
 
     return (CDFSNP_ITEM_ERR_OFFSET);
@@ -1416,8 +1418,8 @@ UINT32 cdfsnp_dnode_insert(CDFSNP *cdfsnp, const UINT32 parent_offset, const UIN
     if(CDFSNP_ITEM_FILE_IS_DIR != CDFSNP_ITEM_DFLG(cdfsnp_item_parent) || CDFSNP_ITEM_STAT_IS_NOT_USED == CDFSNP_ITEM_STAT(cdfsnp_item_parent))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_insert: invalid dir flag %ld or stat %ld\n",
-                        CDFSNP_ITEM_DFLG(cdfsnp_item_parent),
-                        CDFSNP_ITEM_STAT(cdfsnp_item_parent));
+                        (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item_parent),
+                        (UINT32)CDFSNP_ITEM_STAT(cdfsnp_item_parent));
         return (CDFSNP_ITEM_ERR_OFFSET);
     }
 
@@ -1482,8 +1484,8 @@ UINT32 cdfsnp_dnode_insert(CDFSNP *cdfsnp, const UINT32 parent_offset, const UIN
     CDFSNP_SET_UPDATED(cdfsnp);
 
     dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_insert: set bloom where path is ");
-    sys_print(LOGSTDNULL, "%.*s ", path_len, path);
-    sys_print(LOGSTDNULL, " and path to seg is %.*s\n", path_seg - path + path_seg_len, path);
+    sys_print(LOGSTDNULL, "%.*s ", (uint32_t)path_len, path);
+    sys_print(LOGSTDNULL, " and path to seg is %.*s\n", (uint32_t)(path_seg - path + path_seg_len), path);
 
     if(EC_TRUE == cdfsnp_is_full(cdfsnp))
     {
@@ -1545,7 +1547,8 @@ CDFSNP_ITEM * cdfsnp_dnode_umount_son(const CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsnp
 
         pre_cdfsnp_item = cur_cdfsnp_item;
         cur_offset = (CDFSNP_ITEM_SHASH_NEXT(cur_cdfsnp_item) & CDFSNP_32BIT_MASK);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_umount_son: shash next %lx => cur_offset %lx\n", CDFSNP_ITEM_SHASH_NEXT(cur_cdfsnp_item), cur_offset);
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_umount_son: shash next %lx => cur_offset %lx\n", 
+                        (UINT32)CDFSNP_ITEM_SHASH_NEXT(cur_cdfsnp_item), cur_offset);
     }
 
     return (NULL_PTR);
@@ -1601,8 +1604,9 @@ EC_BOOL cdfsnp_dnode_delete_one_bucket(const CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsn
 
         else
         {
-            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_delete_one_bucket: invald cdfsnp item flag %ld at offset %ld\n",
-                                CDFSNP_ITEM_DFLG(cdfsnp_item), CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos));
+            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_delete_one_bucket: invald cdfsnp item flag %ld at offset %d\n",
+                                (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), 
+                                (uint32_t)CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos));
         }
     }
     return (EC_TRUE);
@@ -1647,13 +1651,13 @@ UINT32 cdfsnp_search_with_hash_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, co
     if(EC_FALSE == cdfsnp_cbloom_is_set(cdfsnp, first_hash, second_hash))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_search_with_hash_no_lock: bloom was not set in np %ld where path: ", CDFSNP_PATH_LAYOUT(cdfsnp));
-        sys_print(LOGSTDOUT, "%.*s\n", path_len, path);
+        sys_print(LOGSTDOUT, "%.*s\n", (uint32_t)path_len, path);
         return (CDFSNP_ITEM_ERR_OFFSET);
     }
 
     if(CDFSNP_IS_NOT_CACHED(cdfsnp) || NULL_PTR == CDFSNP_BASE_BUFF(cdfsnp))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_search_with_hash_no_lock: np %ld invalid state %lx or base buff %lx\n",
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_search_with_hash_no_lock: np %ld invalid state %lx or base buff %p\n",
                             CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_STATE(cdfsnp), CDFSNP_BASE_BUFF(cdfsnp));
         return (CDFSNP_ITEM_ERR_OFFSET);
     }
@@ -1684,7 +1688,7 @@ UINT32 cdfsnp_search_with_hash_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, co
         if(EC_FALSE == cdfsnp_item_check(cdfsnp_item, path_seg_len, path_seg_beg))
         {
             dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_search_with_hash_no_lock: np %ld, check failed where path seg: ", CDFSNP_PATH_LAYOUT(cdfsnp));
-            sys_print(LOGSTDOUT, "%.*s\n", path_seg_len, path_seg_beg);
+            sys_print(LOGSTDOUT, "%.*s\n", (uint32_t)path_seg_len, path_seg_beg);
             return (CDFSNP_ITEM_ERR_OFFSET);
         }
 
@@ -1727,7 +1731,7 @@ UINT32 cdfsnp_search_with_hash_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, co
         else
         {
             dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_search_with_hash_no_lock_item: np %ld, invalid item dir flag %ld at offset %ld\n",
-                                CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+                                CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
             break;
         }
     }
@@ -1780,13 +1784,13 @@ UINT32 cdfsnp_insert_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 
     if('/' != (*path))
     {
         dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_insert: np %ld, invalid path ", CDFSNP_PATH_LAYOUT(cdfsnp));
-        sys_print(LOGSTDOUT, "%.*s\n", path_len, path);
+        sys_print(LOGSTDOUT, "%.*s\n", (uint32_t)path_len, path);
         return (CDFSNP_ITEM_ERR_OFFSET);
     }
 
     if(CDFSNP_IS_NOT_CACHED(cdfsnp) || NULL_PTR == CDFSNP_BASE_BUFF(cdfsnp))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_insert: np %ld invalid state %lx or base buff %lx\n",
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_insert: np %ld invalid state %lx or base buff %p\n",
                             CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_STATE(cdfsnp), CDFSNP_BASE_BUFF(cdfsnp));
         return (CDFSNP_ITEM_ERR_OFFSET);
     }
@@ -1809,12 +1813,12 @@ UINT32 cdfsnp_insert_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 
 
         cdfsnp_item = (CDFSNP_ITEM *)(CDFSNP_BASE_BUFF(cdfsnp) + offset);
         dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_insert: np %ld, item %ld# dir flag %ld\n",
-                            CDFSNP_PATH_LAYOUT(cdfsnp), (offset / sizeof(CDFSNP_ITEM)), CDFSNP_ITEM_DFLG(cdfsnp_item));
+                            CDFSNP_PATH_LAYOUT(cdfsnp), (offset / sizeof(CDFSNP_ITEM)), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
         if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(cdfsnp_item))
         {
             dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_insert: np %ld, find regular file at offset %ld has same key: ",
                                 CDFSNP_PATH_LAYOUT(cdfsnp), offset);
-            sys_print(LOGSTDOUT, "%.*s\n", CDFSNP_ITEM_KLEN(cdfsnp_item), CDFSNP_ITEM_KEY(cdfsnp_item));
+            sys_print(LOGSTDOUT, "%.*s\n", (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), CDFSNP_ITEM_KEY(cdfsnp_item));
 
             return (CDFSNP_ITEM_ERR_OFFSET);
         }
@@ -1871,7 +1875,7 @@ UINT32 cdfsnp_insert_no_lock(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 
         else
         {
             dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_insert: np %ld, invalid item dir flag %ld at offset %ld\n",
-                                CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+                                CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
             break;
         }
     }
@@ -1962,7 +1966,8 @@ EC_BOOL cdfsnp_dnode_update(CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsnp_dnode, const UI
     {
         if(EC_FALSE == cdfsnp_bucket_update(cdfsnp, CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos), src_dn_tcid, src_path_layout, des_tcid, des_path_layout))
         {
-            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_update: update bucket %ld failed\n", CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos));
+            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_update: update bucket %ld failed\n", 
+                            bucket_pos);
             return (EC_FALSE);
         }
     }
@@ -1987,7 +1992,8 @@ EC_BOOL cdfsnp_item_update(CDFSNP *cdfsnp, CDFSNP_ITEM *cdfsnp_item, const UINT3
         return cdfsnp_dnode_update(cdfsnp, CDFSNP_ITEM_DNODE(cdfsnp_item), src_dn_tcid, src_path_layout, des_tcid, des_path_layout);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_item_update: invalid item dflag %ld\n", CDFSNP_ITEM_DFLG(cdfsnp_item));
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_item_update: invalid item dflag %ld\n", 
+                    (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
 
@@ -1998,7 +2004,7 @@ EC_BOOL cdfsnp_update_no_lock(CDFSNP *cdfsnp, const UINT32 src_dn_tcid, const UI
 
     if(CDFSNP_IS_NOT_CACHED(cdfsnp) || NULL_PTR == CDFSNP_BASE_BUFF(cdfsnp))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_update_no_lock: np %ld invalid state %lx or base buff %lx\n",
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_update_no_lock: np %ld invalid state %lx or base buff %p\n",
                             CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_STATE(cdfsnp), CDFSNP_BASE_BUFF(cdfsnp));
         return (EC_FALSE);
     }
@@ -2019,7 +2025,9 @@ CDFSNP_ITEM *cdfsnp_reserve_item(CDFSNP *cdfsnp)
     if(CDFSNP_ITEM_ERR_OFFSET != offset && offset + sizeof(CDFSNP_ITEM) <= CDFSNP_FSIZE(cdfsnp) && 0 == (offset % sizeof(CDFSNP_ITEM)))
     {
         cdfsnp_item = (CDFSNP_ITEM *)(CDFSNP_BASE_BUFF(cdfsnp) + offset);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDOUT, "[DEBUG] cdfsnp_reserve_item: roff %ld => %ld\n", CDFSNP_ROFF(cdfsnp), CDFSNP_ITEM_ROFF(cdfsnp_item));
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDOUT, "[DEBUG] cdfsnp_reserve_item: roff %ld => %ld\n", 
+                            (UINT32)CDFSNP_ROFF(cdfsnp), 
+                            (UINT32)CDFSNP_ITEM_ROFF(cdfsnp_item));
         CDFSNP_ROFF(cdfsnp) = CDFSNP_ITEM_ROFF(cdfsnp_item);/*cdfsnp roff move to next*/
         CDFSNP_ITEM_ROFF(cdfsnp_item) = CDFSNP_ITEM_ERR_OFFSET;/*xxx*/
         CDFSNP_ICNUM(cdfsnp) ++;
@@ -2247,17 +2255,17 @@ EC_BOOL cdfsnp_path_name(const CDFSNP *cdfsnp, const UINT32 offset, const UINT32
         if(CDFSNP_ITEM_FILE_IS_DIR == CDFSNP_ITEM_DFLG(cdfsnp_item))
         {
             cur_path_len += snprintf((char *)path + cur_path_len, path_max_len - cur_path_len, "%.*s/",
-                                CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+                                (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         }
         else if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(cdfsnp_item))
         {
             cur_path_len += snprintf((char *)path + cur_path_len, path_max_len - cur_path_len, "%.*s",
-                                CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+                                (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         }
         else
         {
-            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_path_name: np %ld, invalid dir flag %ld at offset\n",
-                                CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), cur_offset);
+            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_path_name: np %ld, invalid dir flag %ld at offset %ld\n",
+                                CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), cur_offset);
         }
     }
 
@@ -2296,16 +2304,16 @@ EC_BOOL cdfsnp_path_name_cstr(const CDFSNP *cdfsnp, const UINT32 offset, CSTRING
 
         if(CDFSNP_ITEM_FILE_IS_DIR == CDFSNP_ITEM_DFLG(cdfsnp_item))
         {
-            cstring_format(path_cstr, "%.*s/", CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+            cstring_format(path_cstr, "%.*s/", (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         }
         else if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(cdfsnp_item))
         {
-            cstring_format(path_cstr, "%.*s", CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+            cstring_format(path_cstr, "%.*s", (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         }
         else
         {
-            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_path_name_cstr: np %ld, invalid dir flag %ld at offset\n",
-                                CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), cur_offset);
+            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_path_name_cstr: np %ld, invalid dir flag %ld at offset %ld\n",
+                                CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), cur_offset);
         }
     }
 
@@ -2323,18 +2331,18 @@ EC_BOOL cdfsnp_seg_name(const CDFSNP *cdfsnp, const UINT32 offset, const UINT32 
     if(CDFSNP_ITEM_FILE_IS_DIR == CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
         (*seg_name_len) = snprintf((char *)seg_name, seg_name_max_len, "%.*s/",
-                            CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+                            (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         return (EC_TRUE);
     }
     if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
         (*seg_name_len) = snprintf((char *)seg_name, seg_name_max_len, "%.*s",
-                            CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+                            (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_seg_name: np %ld, invalid dir flag %ld at offset\n",
-                        CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_seg_name: np %ld, invalid dir flag %ld at offset %ld\n",
+                        CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
     return (EC_FALSE);
 }
 
@@ -2350,17 +2358,17 @@ EC_BOOL cdfsnp_seg_name_cstr(const CDFSNP *cdfsnp, const UINT32 offset, CSTRING 
 
     if(CDFSNP_ITEM_FILE_IS_DIR == CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
-        cstring_format(seg_cstr, "%.*s/", CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+        cstring_format(seg_cstr, "%.*s/", (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         return (EC_TRUE);
     }
     if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
-        cstring_format(seg_cstr, "%.*s", CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
+        cstring_format(seg_cstr, "%.*s", (uint32_t)CDFSNP_ITEM_KLEN(cdfsnp_item), (char *)CDFSNP_ITEM_KEY(cdfsnp_item));
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_seg_name_cstr: np %ld, invalid dir flag %ld at offset\n",
-                        CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_seg_name_cstr: np %ld, invalid dir flag %ld at offset %ld\n",
+                        CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
     return (EC_FALSE);
 }
 
@@ -2379,8 +2387,8 @@ EC_BOOL cdfsnp_list_path_vec(const CDFSNP *cdfsnp, const UINT32 offset, CVECTOR 
 
     if(CDFSNP_ITEM_FILE_IS_REG != CDFSNP_ITEM_DFLG(cdfsnp_item) && CDFSNP_ITEM_FILE_IS_DIR != CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_list_path_vec: np %ld, invalid dir flag %ld at offset\n",
-                            CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_list_path_vec: np %ld, invalid dir flag %ld at offset %ld\n",
+                            CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
         return (EC_FALSE);
     }
 
@@ -2479,8 +2487,8 @@ EC_BOOL cdfsnp_list_seg_vec(const CDFSNP *cdfsnp, const UINT32 offset, CVECTOR *
 
     if(CDFSNP_ITEM_FILE_IS_REG != CDFSNP_ITEM_DFLG(cdfsnp_item) && CDFSNP_ITEM_FILE_IS_DIR != CDFSNP_ITEM_DFLG(cdfsnp_item))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_list_seg_vec: np %ld, invalid dir flag %ld at offset\n",
-                            CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_list_seg_vec: np %ld, invalid dir flag %ld at offset %ld\n",
+                            CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), offset);
         return (EC_FALSE);
     }
 
@@ -2582,7 +2590,8 @@ EC_BOOL cdfsnp_file_num(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 *path
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_num: np %ld, invalid dflg %lx\n", CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item));
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_num: np %ld, invalid dflg %lx\n", 
+                    CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
 
@@ -2606,7 +2615,8 @@ EC_BOOL cdfsnp_file_size(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 *pat
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_size: np %ld, invalid dflg %lx\n", CDFSNP_PATH_LAYOUT(cdfsnp), CDFSNP_ITEM_DFLG(cdfsnp_item));
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_size: np %ld, invalid dflg %lx\n", 
+                    CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
 
@@ -2614,7 +2624,7 @@ EC_BOOL cdfsnp_mkdirs(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 *path)
 {
     if(CDFSNP_ITEM_ERR_OFFSET == cdfsnp_insert(cdfsnp, path_len, path, CDFSNP_ITEM_FILE_IS_DIR))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_mkdirs: mkdirs %.*s failed\n", path_len, (char *)path);
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_mkdirs: mkdirs %.*s failed\n", (uint32_t)path_len, (char *)path);
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -2632,7 +2642,8 @@ EC_BOOL cdfsnp_flush(const CDFSNP *cdfsnp)
 
     if(0 < (wsize >> (WORDSIZE - 1)))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_flush: np %ld, wsize %lx overflow\n", CDFSNP_PATH_LAYOUT(cdfsnp), wsize);
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_flush: np %ld, wsize %lx overflow\n", 
+                        CDFSNP_PATH_LAYOUT(cdfsnp), wsize);
         return (EC_FALSE);
     }
 
@@ -3032,11 +3043,11 @@ EC_BOOL cdfsnp_show_item_full_path(LOG *log, const CDFSNP *cdfsnp, const UINT32 
         //sys_log(log, "%s ==> ", (char *)path);
         if(CDFSNP_ITEM_FILE_IS_DIR == CDFSNP_ITEM_DFLG(&cdfsnp_item_tmp))
         {
-            path_len += snprintf((char *)path + path_len, path_max_len - path_len, "%.*s/", CDFSNP_ITEM_KLEN(&cdfsnp_item_tmp), (char *)CDFSNP_ITEM_KEY(&cdfsnp_item_tmp));
+            path_len += snprintf((char *)path + path_len, path_max_len - path_len, "%.*s/", (uint32_t)CDFSNP_ITEM_KLEN(&cdfsnp_item_tmp), (char *)CDFSNP_ITEM_KEY(&cdfsnp_item_tmp));
         }
         else if(CDFSNP_ITEM_FILE_IS_REG == CDFSNP_ITEM_DFLG(&cdfsnp_item_tmp))
         {
-            path_len += snprintf((char *)path + path_len, path_max_len - path_len, "%.*s", CDFSNP_ITEM_KLEN(&cdfsnp_item_tmp), (char *)CDFSNP_ITEM_KEY(&cdfsnp_item_tmp));
+            path_len += snprintf((char *)path + path_len, path_max_len - path_len, "%.*s", (uint32_t)CDFSNP_ITEM_KLEN(&cdfsnp_item_tmp), (char *)CDFSNP_ITEM_KEY(&cdfsnp_item_tmp));
         }
         else
         {

@@ -59,7 +59,7 @@ gdbGetFreeBlockList(GDatabase *db, GdbFreeBlock **blocks, uint32_t *count)
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbGetFreeBlockList: Truncated block list.\n"
                           "Expected %d bytes, got %d bytes. Block list offset = %d\n"
                           "Free block count = %d. Filename = %s\n",
-                          listSize, s, DB_FREE_BLOCK_LIST_OFFSET, db->freeBlockCount,
+                          listSize, (uint32_t)s, DB_FREE_BLOCK_LIST_OFFSET, db->freeBlockCount,
                           db->filename);
         abort();
     }

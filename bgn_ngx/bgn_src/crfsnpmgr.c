@@ -1201,7 +1201,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file(CRFSNP_MGR *crfsnp_mgr, cons
     if(NULL_PTR == crfsnp)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file: no np for path %.*s\n",
-                           cstring_get_len(path), cstring_get_str(path));
+                           (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
@@ -1211,12 +1211,12 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file(CRFSNP_MGR *crfsnp_mgr, cons
     if(EC_FALSE == crfsnp_umount(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file: np %u umount %.*s failed\n",
-                            crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+                            crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file: np %u umount %.*s done\n",
-                        crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+                        crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
 
     return (EC_TRUE);
 }
@@ -1242,7 +1242,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir(CRFSNP_MGR *crfsnp_mgr, const
         if(EC_FALSE == crfsnp_umount(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:__crfsnp_mgr_umount_dir: np %u umount %.*s failed\n",
-                                crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
             //return (EC_FALSE);
         }
     }
@@ -1262,7 +1262,7 @@ EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UIN
         return __crfsnp_mgr_umount_dir(crfsnp_mgr, path, dflag);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount: found invalid dflag 0x%x before umount %.*s\n",
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount: found invalid dflag 0x%lx before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
     return (EC_FALSE);
 }
@@ -1290,7 +1290,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file_wildcard(CRFSNP_MGR *crfsnp_
         if(EC_TRUE == crfsnp_umount_wildcard(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wildcard: np %u umount %.*s succ\n",
-                                crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
             ret = EC_TRUE;
         }
     }
@@ -1323,7 +1323,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir_wildcard(CRFSNP_MGR *crfsnp_m
         if(EC_TRUE == crfsnp_umount_wildcard(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_dir_wildcard: np %u umount %.*s succ\n",
-                                crfsnp_id, cstring_get_len(path), cstring_get_str(path));
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
             ret = EC_TRUE;
         }
     }
@@ -1344,7 +1344,7 @@ EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
         return __crfsnp_mgr_umount_dir_wildcard(crfsnp_mgr, path, dflag);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard: found invalid dflag 0x%x before umount %.*s\n",
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard: found invalid dflag 0x%lx before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
     return (EC_FALSE);
 }
@@ -1360,7 +1360,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_move_file(CRFSNP_MGR *crfsnp_mgr, const 
     if(NULL_PTR == crfsnp)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_file: no np for path %.*s\n",
-                           cstring_get_len(path_src), cstring_get_str(path_src));
+                           (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src));
         return (EC_FALSE);
     }
 
@@ -1373,15 +1373,15 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_move_file(CRFSNP_MGR *crfsnp_mgr, const 
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_file: np %u move %.*s to %.*s failed\n",
                             crfsnp_id,
-                            cstring_get_len(path_src), cstring_get_str(path_src),
-                            cstring_get_len(path_des), cstring_get_str(path_des));
+                            (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
+                            (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_move_file: np %u move %.*s to %.*s done\n",
                         crfsnp_id,
-                        cstring_get_len(path_src), cstring_get_str(path_src),
-                        cstring_get_len(path_des), cstring_get_str(path_des));
+                        (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
+                        (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
 
     return (EC_TRUE);
 }
@@ -1412,8 +1412,8 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_move_dir(CRFSNP_MGR *crfsnp_mgr, const C
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:__crfsnp_mgr_move_dir: np %u move %.*s to %.*s failed\n",
                                 crfsnp_id,
-                                cstring_get_len(path_src), cstring_get_str(path_src),
-                                cstring_get_len(path_des), cstring_get_str(path_des));
+                                (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
+                                (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
             //return (EC_FALSE);
         }
     }
@@ -1435,7 +1435,7 @@ EC_BOOL crfsnp_mgr_move(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const C
         return __crfsnp_mgr_move_dir(crfsnp_mgr, path_src, path_des, dflag);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_move: found invalid dflag 0x%x before move %.*s to %.*s\n",
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_move: found invalid dflag 0x%lx before move %.*s to %.*s\n",
                         dflag,
                         (uint32_t)cstring_get_len(path_src), (char *)cstring_get_str(path_src),
                         (uint32_t)cstring_get_len(path_des), (char *)cstring_get_str(path_des));
@@ -1689,7 +1689,7 @@ EC_BOOL crfsnp_mgr_node_size(CRFSNP_MGR *crfsnp_mgr, CRFSNP *crfsnp, uint32_t no
         CRFSNP_BNODE *crfsnp_bnode;
         crfsnp_bnode = CRFSNP_ITEM_BNODE(item);
 
-        dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_node_size: bnode fsize = %llu\n", CRFSNP_BNODE_FILESZ(crfsnp_bnode));
+        dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_node_size: bnode fsize = %"PRId64"\n", CRFSNP_BNODE_FILESZ(crfsnp_bnode));
 
         (*file_size) += CRFSNP_BNODE_FILESZ(crfsnp_bnode);
     }
@@ -1699,7 +1699,7 @@ EC_BOOL crfsnp_mgr_node_size(CRFSNP_MGR *crfsnp_mgr, CRFSNP *crfsnp, uint32_t no
     }
     else
     {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_node_size: invalid dflg %lx\n", CRFSNP_ITEM_DIR_FLAG(item));
+        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_node_size: invalid dflg %x\n", CRFSNP_ITEM_DIR_FLAG(item));
         return (EC_FALSE);
     }
 
@@ -1831,7 +1831,7 @@ EC_BOOL crfsnp_mgr_dir_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr)
         if(EC_FALSE == crfsnp_expire(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_DIR))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:crfsnp_mgr_dir_expire: np %u expire %.*s failed\n",
-                                crfsnp_id, cstring_get_len(path_cstr), cstring_get_str(path_cstr));
+                                crfsnp_id, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr));
             //return (EC_FALSE);
         }
     }
@@ -1860,7 +1860,7 @@ EC_BOOL crfsnp_mgr_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, cons
         if(EC_FALSE == crfsnp_expire(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:crfsnp_mgr_expire: np %u expire %.*s failed\n",
-                                crfsnp_id, cstring_get_len(path_cstr), cstring_get_str(path_cstr));
+                                crfsnp_id, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr));
             //return (EC_FALSE);
         }
     }
@@ -1912,7 +1912,7 @@ EC_BOOL crfsnp_mgr_dir_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CR
         if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_DIR, crfsnp_dit_node))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:crfsnp_mgr_dir_walk: np %u walk %.*s failed\n",
-                                crfsnp_id, cstring_get_len(path_cstr), cstring_get_str(path_cstr));
+                                crfsnp_id, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr));
             //return (EC_FALSE);
         }
     }
@@ -1941,7 +1941,7 @@ EC_BOOL crfsnp_mgr_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const 
         if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, crfsnp_dit_node))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:crfsnp_mgr_walk: np %u walk %.*s failed\n",
-                                crfsnp_id, cstring_get_len(path_cstr), cstring_get_str(path_cstr));
+                                crfsnp_id, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr));
             //return (EC_FALSE);
         }
     }
@@ -1966,7 +1966,7 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
     if(EC_FALSE == crfsnp_walk(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, crfsnp_dit_node))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:crfsnp_mgr_walk_of_np: np %u walk %.*s failed\n",
-                            crfsnp_id, cstring_get_len(path_cstr), cstring_get_str(path_cstr));
+                            crfsnp_id, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 
@@ -2039,7 +2039,7 @@ EC_BOOL crfsnp_mgr_file_md5sum_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cst
     node_pos = crfsnp_file_md5sum_b(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), seg_no, md5sum);
     if(CRFSNPRB_ERR_POS == node_pos)
     {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum_b: get seg %u md5sum of bigfile %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum_b: get seg %u md5sum of bigfile %s failed\n", seg_no, (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 

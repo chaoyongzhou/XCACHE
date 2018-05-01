@@ -255,7 +255,7 @@ EC_BOOL cagent_release_tcid(CAGENT *cagent, const char *service, const char *tci
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
 
-    dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_release_tcid: released tcid '%s', port %ld\n",
+    dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_release_tcid: released tcid '%s', port %s\n",
                     tcid, port);
 
     return (EC_TRUE);

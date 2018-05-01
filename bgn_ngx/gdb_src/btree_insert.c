@@ -334,7 +334,7 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
     if (tree == NULL || key == NULL || filePos == 0 ||
         tree->block->db->mode == PM_MODE_READ_ONLY)
     {
-        dbg_log(SEC_0130_BTREE, 9)(LOGSTDOUT,"[DEBUG]btreeInsert: tree %lx, key %lx, filePos %d, mode %o(PM_MODE_READ_ONLY %o)\n",
+        dbg_log(SEC_0130_BTREE, 9)(LOGSTDOUT,"[DEBUG]btreeInsert: tree %p, key %p, filePos %d, mode %o(PM_MODE_READ_ONLY %o)\n",
                 tree, key, filePos, tree->block->db->mode, PM_MODE_READ_ONLY);
         return GDB_ERROR;
     }

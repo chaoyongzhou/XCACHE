@@ -316,7 +316,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_load(const uint32_t np_id, c
     buff = (uint8_t *)safe_malloc(fsize, LOC_CTDNSNP_0004);
     if(NULL_PTR == buff)
     {
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_load: malloc %u bytes failed for np %u, fd %d\n",
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_load: malloc %ld bytes failed for np %u, fd %d\n",
                             fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -325,7 +325,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_load(const uint32_t np_id, c
     if(EC_FALSE == c_file_load(fd, &offset, fsize, buff))
     {
         safe_free(buff, LOC_CTDNSNP_0005);
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_load: load %u bytes failed for np %u, fd %d\n",
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_load: load %ld bytes failed for np %u, fd %d\n",
                             fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -340,7 +340,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_dup(CTDNSNP_HEADER *src_ctdn
     des_ctdnsnp_header = (CTDNSNP_HEADER *)safe_malloc(fsize, LOC_CTDNSNP_0006);
     if(NULL_PTR == des_ctdnsnp_header)
     {
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_dup: new header with %u bytes for np %u fd %d failed\n",
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_dup: new header with %ld bytes for np %u fd %d failed\n",
                            fsize, des_np_id, fd);
         return (NULL_PTR);
     }
@@ -360,7 +360,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_new(const uint32_t np_id, co
     ctdnsnp_header = (CTDNSNP_HEADER *)safe_malloc(fsize, LOC_CTDNSNP_0007);
     if(NULL_PTR == ctdnsnp_header)
     {
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_new: new header with %u bytes for np %u fd %d failed\n",
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:__ctdnsnp_header_new: new header with %ld bytes for np %u fd %d failed\n",
                            fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -386,7 +386,7 @@ STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_flush(CTDNSNP_HEADER *ctdns
         offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnsnp_header))
         {
-            dbg_log(SEC_0022_CTDNSNP, 1)(LOGSTDOUT, "warn:__ctdnsnp_header_flush: flush ctdnsnp_hdr of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0022_CTDNSNP, 1)(LOGSTDOUT, "warn:__ctdnsnp_header_flush: flush ctdnsnp_hdr of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
     }
@@ -405,7 +405,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_free(CTDNSNP_HEADER *ctdnsnp
         && EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)ctdnsnp_header)
         )
         {
-            dbg_log(SEC_0022_CTDNSNP, 1)(LOGSTDOUT, "warn:__ctdnsnp_header_free: flush ctdnsnp_hdr of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0022_CTDNSNP, 1)(LOGSTDOUT, "warn:__ctdnsnp_header_free: flush ctdnsnp_hdr of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
 
@@ -485,12 +485,12 @@ STATIC_CAST static CTDNSNP_HEADER * __ctdnsnp_header_sync(CTDNSNP_HEADER *ctdnsn
     {
         if(0 != msync(ctdnsnp_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_sync: sync ctdnsnp_hdr of np %u %d with size %u failed\n",
+            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_sync: sync ctdnsnp_hdr of np %u %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_sync: sync ctdnsnp_hdr of np %u %d with size %u done\n",
+            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_sync: sync ctdnsnp_hdr of np %u %d with size %ld done\n",
                                np_id, fd, fsize);
         }
     }
@@ -503,22 +503,22 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_close(CTDNSNP_HEADER *ctdnsn
     {
         if(0 != msync(ctdnsnp_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_close: sync ctdnsnp_hdr of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_close: sync ctdnsnp_hdr of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_close: sync ctdnsnp_hdr of np %u fd %d with size %u done\n",
+            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_close: sync ctdnsnp_hdr of np %u fd %d with size %ld done\n",
                                np_id, fd, fsize);
         }
         if(0 != munmap(ctdnsnp_header, fsize))
         {
-            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_close: munmap ctdnsnp of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "warn:__ctdnsnp_header_close: munmap ctdnsnp of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_close: munmap ctdnsnp of np %u fd %d with size %u done\n",
+            dbg_log(SEC_0022_CTDNSNP, 9)(LOGSTDOUT, "[DEBUG] __ctdnsnp_header_close: munmap ctdnsnp of np %u fd %d with size %ld done\n",
                                np_id, fd, fsize);
         }
     }
@@ -950,7 +950,7 @@ CTDNSNP *ctdnsnp_clone(CTDNSNP *src_ctdns, const char *np_root_dir, const uint32
 
     if(EC_FALSE == c_file_truncate(fd, fsize))
     {
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_clone: truncate np %s to size %u failed\n", des_np_fname, fsize);
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_clone: truncate np %s to size %ld failed\n", des_np_fname, fsize);
         safe_free(des_np_fname, LOC_CTDNSNP_0019);
         c_file_close(fd);
         return (NULL_PTR);
@@ -1045,7 +1045,7 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
 
     if(EC_FALSE == c_file_truncate(fd, fsize))
     {
-        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_create: truncate np %s to size %u failed\n", np_fname, fsize);
+        dbg_log(SEC_0022_CTDNSNP, 0)(LOGSTDOUT, "error:ctdnsnp_create: truncate np %s to size %ld failed\n", np_fname, fsize);
         safe_free(np_fname, LOC_CTDNSNP_0024);
         c_file_close(fd);
         return (NULL_PTR);

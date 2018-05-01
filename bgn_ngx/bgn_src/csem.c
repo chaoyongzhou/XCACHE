@@ -279,7 +279,6 @@ EC_BOOL csem_named_unlink(const uint8_t *name, const UINT32 location)
     if(NULL_PTR == name)
     {
         dbg_log(SEC_0029_CSEM, 1)(LOGSTDOUT, "warn:csem_named_unlink: unlink sem name is null at %s:%ld\n",
-                           name,
                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
         return (EC_TRUE);

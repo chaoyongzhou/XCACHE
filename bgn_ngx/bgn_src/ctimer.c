@@ -295,7 +295,7 @@ UINT32 ctimer_node_start(CTIMER_NODE *ctimer_node)
 
         setitimer(ITIMER_REAL, phy_citimer, NULL_PTR);
 
-        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node_start: handle ctimer_node %lx\n", ctimer_node);
+        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node_start: handle ctimer_node %p\n", ctimer_node);
         ctimer_node_handle(ctimer_node);
 
         return (0);
@@ -305,14 +305,14 @@ UINT32 ctimer_node_start(CTIMER_NODE *ctimer_node)
     if(CTIMER_NODE_TIMEOUT(ctimer_node) > left)/*belong to (left, +)*/
     {
         CTIMER_NODE_EXPIRE(ctimer_node) = CTIMER_NODE_TIMEOUT(ctimer_node) - left;
-        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node %lx: expire = %ld\n", ctimer_node, CTIMER_NODE_EXPIRE(ctimer_node));
+        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node %p: expire = %ld\n", ctimer_node, CTIMER_NODE_EXPIRE(ctimer_node));
         return (0);
     }
 
     if(CTIMER_NODE_TIMEOUT(ctimer_node) + ctimer_md->ctimer_expire_delta > left) /*belong to (left - delta, left]*/
     {
         CTIMER_NODE_EXPIRE(ctimer_node) = ctimer_md->ctimer_expire_delta;/*will be triggered when timer reaches*/
-        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node %lx: expire = %ld\n", ctimer_node, CTIMER_NODE_EXPIRE(ctimer_node));
+        dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node %p: expire = %ld\n", ctimer_node, CTIMER_NODE_EXPIRE(ctimer_node));
         return (0);
     }
 
@@ -400,15 +400,15 @@ void ctimer_node_print(LOG *log, const CTIMER_NODE *ctimer_node)
         return;
     }
 
-    sys_log(log, "ctimer_node %lx: timeout %ld, expire %ld, usedflag %s, setflag %s\n",
+    sys_log(log, "ctimer_node %p: timeout %ld, expire %ld, usedflag %s, setflag %s\n",
                         ctimer_node, CTIMER_NODE_TIMEOUT(ctimer_node), CTIMER_NODE_EXPIRE(ctimer_node),
                         ctimer_get_flag_str(CTIMER_NODE_USEDFLAG(ctimer_node)),
                         ctimer_get_flag_str(CTIMER_NODE_SETFLAG(ctimer_node))
                         );
-    sys_log(log, "ctimer_node %lx: func_addr_node %lx:\n", ctimer_node, CTIMER_NODE_FUNC_ADDR_NODE(ctimer_node));
+    sys_log(log, "ctimer_node %p: func_addr_node %lx:\n", ctimer_node, CTIMER_NODE_FUNC_ADDR_NODE(ctimer_node));
     func_addr_node_print(log, CTIMER_NODE_FUNC_ADDR_NODE(ctimer_node));
 
-    sys_log(log, "ctimer_node %lx: handler %lx:\n", ctimer_node, CTIMER_NODE_HANDLER(ctimer_node));
+    sys_log(log, "ctimer_node %p: handler %lx:\n", ctimer_node, CTIMER_NODE_HANDLER(ctimer_node));
     task_func_print(log, CTIMER_NODE_HANDLER(ctimer_node));
 
     //dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_node_print: end===================================================================\n");
@@ -496,7 +496,7 @@ void ctimer_update(int signal)
             /*reset expire and handle it*/
             CTIMER_NODE_EXPIRE(ctimer_node) = CTIMER_NODE_TIMEOUT(ctimer_node);
 
-            dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_update: handle ctimer_node %lx\n", ctimer_node);
+            dbg_log(SEC_0075_CTIMER, 5)(LOGSTDOUT, "ctimer_update: handle ctimer_node %p\n", ctimer_node);
             ctimer_node_handle(ctimer_node);
             //ctimer_node_print(LOGSTDOUT, ctimer_node);
 

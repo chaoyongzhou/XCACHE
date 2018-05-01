@@ -112,7 +112,7 @@ __borrowRight(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div
     node = btreeReadNode(tree, prevNode->children[div + 1]);
     if(NULL == node)
     {
-        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowRight: read node of child %d of previous node %lx failed\n", div + 1, prevNode);
+        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowRight: read node of child %d of previous node %p failed\n", div + 1, prevNode);
         return (0);
     }
     btreeDebug(tree, LOC_BTREE_0033);
@@ -182,7 +182,7 @@ __borrowLeft(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
     node = btreeReadNode(tree, prevNode->children[div - 1]);
     if(NULL == node)
     {
-        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowLeft: read node of child %d of previous node %lx failed\n", div - 1, prevNode);
+        dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowLeft: read node of child %d of previous node %p failed\n", div - 1, prevNode);
         return (0);
     }
     btreeDebug(tree, LOC_BTREE_0047);
@@ -287,7 +287,7 @@ __mergeNode(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
         node = btreeReadNode(tree, prevNode->children[div - 1]);
         if(NULL == node)
         {
-            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %lx failed\n", div - 1, prevNode);
+            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %p failed\n", div - 1, prevNode);
             return (0);
         }
         btreeDebug(tree, LOC_BTREE_0066);
@@ -340,7 +340,7 @@ __mergeNode(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
         node = btreeReadNode(tree, prevNode->children[div + 1]);
         if(NULL == node)
         {
-            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %lx failed\n", div + 1, prevNode);
+            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %p failed\n", div + 1, prevNode);
             return (0);
         }
         btreeDebug(tree, LOC_BTREE_0078);

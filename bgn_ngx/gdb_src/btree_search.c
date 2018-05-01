@@ -81,7 +81,7 @@ btreeSearch(BTree *tree, const uint8_t *key, int (*keyCompare)(const uint8_t *, 
     tree->root     = btreeGetRootNode(tree);
     tree->leftLeaf = btreeGetLeftLeaf(tree);
 #endif
-    dbg_log(SEC_0130_BTREE, 9)(LOGSTDNULL, "[DEBUG] btreeSearch: tree %lx, root offset %d, left leaf offset %d\n", tree, tree->root, tree->leftLeaf);
+    dbg_log(SEC_0130_BTREE, 9)(LOGSTDNULL, "[DEBUG] btreeSearch: tree %p, root offset %d, left leaf offset %d\n", tree, tree->root, tree->leftLeaf);
 
     if (btreeIsEmpty(tree) == 1)
     {

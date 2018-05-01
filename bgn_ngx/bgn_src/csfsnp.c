@@ -671,20 +671,20 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_new(const uint32_t np_id, cons
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_new: fsize %lu, expect_fsize %lu, where node_max_num %u, "
                        "node_sizeof %u, sizeof(CSFSNP_HEADER) %u, sizeof(CSFSNP_ITEM) %u\n",
-                        fsize, expect_fsize, node_max_num, node_sizeof, sizeof(CSFSNP_HEADER), sizeof(CSFSNP_ITEM));
+                        fsize, expect_fsize, node_max_num, node_sizeof, (uint32_t)sizeof(CSFSNP_HEADER), (uint32_t)sizeof(CSFSNP_ITEM));
 
     if(expect_fsize > fsize)
     {
         dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_new: fsize %lu, but expect_fsize %lu, where node_max_num %u, "
                            "node_sizeof %u, sizeof(CSFSNP_HEADER) %u, sizeof(CSFSNP_ITEM) %u\n",
-                            fsize, expect_fsize, node_max_num, node_sizeof, sizeof(CSFSNP_HEADER), sizeof(CSFSNP_ITEM));
+                            fsize, expect_fsize, node_max_num, node_sizeof, (uint32_t)sizeof(CSFSNP_HEADER), (uint32_t)sizeof(CSFSNP_ITEM));
         return (NULL_PTR);
     }
 
     csfsnp_header = (CSFSNP_HEADER *)safe_malloc(fsize, LOC_CSFSNP_0007);
     if(NULL_PTR == csfsnp_header)
     {
-        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_new: new header with %u bytes for np %u fd %d failed\n",
+        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_new: new header with %ld bytes for np %u fd %d failed\n",
                            fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -720,7 +720,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_load(const uint32_t np_id, con
     buff = (uint8_t *)safe_malloc(fsize, LOC_CSFSNP_0008);
     if(NULL_PTR == buff)
     {
-        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_load: malloc %u bytes failed for np %u, fd %d\n",
+        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_load: malloc %ld bytes failed for np %u, fd %d\n",
                             fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -729,7 +729,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_load(const uint32_t np_id, con
     if(EC_FALSE == c_file_load(fd, &offset, fsize, buff))
     {
         safe_free(buff, LOC_CSFSNP_0009);
-        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_load: load %u bytes failed for np %u, fd %d\n",
+        dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_load: load %ld bytes failed for np %u, fd %d\n",
                             fsize, np_id, fd);
         return (NULL_PTR);
     }
@@ -748,7 +748,7 @@ STATIC_CAST static CSFSNP_HEADER * __csfsnp_header_flush(CSFSNP_HEADER *csfsnp_h
         offset = 0;
         if(EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)csfsnp_header))
         {
-            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_flush: flush header of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_flush: flush header of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
         else
@@ -771,7 +771,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_free(CSFSNP_HEADER *csfsnp_hea
         && EC_FALSE == c_file_flush(fd, &offset, fsize, (const UINT8 *)csfsnp_header)
         )
         {
-            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_free: flush header of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_free: flush header of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
 
@@ -820,13 +820,13 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_create(const uint32_t np_id, c
 
     dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_create: fsize %lu, expect_fsize %lu, where node_max_num %u, "
                        "node_sizeof %u, sizeof(CSFSNP_HEADER) %u, sizeof(CSFSNP_ITEM) %u\n",
-                        fsize, expect_fsize, node_max_num, node_sizeof, sizeof(CSFSNP_HEADER), sizeof(CSFSNP_ITEM));
+                        fsize, expect_fsize, node_max_num, node_sizeof, (uint32_t)sizeof(CSFSNP_HEADER), (uint32_t)sizeof(CSFSNP_ITEM));
 
     if(expect_fsize > fsize)
     {
         dbg_log(SEC_0173_CSFSNP, 0)(LOGSTDOUT, "error:__csfsnp_header_create: fsize %lu, but expect_fsize %lu, where node_max_num %u, "
                            "node_sizeof %u, sizeof(CSFSNP_HEADER) %u, sizeof(CSFSNP_ITEM) %u\n",
-                            fsize, expect_fsize, node_max_num, node_sizeof, sizeof(CSFSNP_HEADER), sizeof(CSFSNP_ITEM));
+                            fsize, expect_fsize, node_max_num, node_sizeof, (uint32_t)sizeof(CSFSNP_HEADER), (uint32_t)sizeof(CSFSNP_ITEM));
         return (NULL_PTR);
     }
 
@@ -869,12 +869,12 @@ STATIC_CAST static CSFSNP_HEADER * __csfsnp_header_sync(CSFSNP_HEADER *csfsnp_he
     {
         if(0 != msync(csfsnp_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_sync: sync header of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_sync: sync header of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
         else
         {
-            dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_sync: sync header of np %u fd %d with size %u done\n",
+            dbg_log(SEC_0173_CSFSNP, 9)(LOGSTDOUT, "[DEBUG] __csfsnp_header_sync: sync header of np %u fd %d with size %ld done\n",
                                np_id, fd, fsize);
         }
     }
@@ -887,13 +887,13 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_close(CSFSNP_HEADER *csfsnp_he
     {
         if(0 != msync(csfsnp_header, fsize, MS_SYNC))
         {
-            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: sync header of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: sync header of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
 
         if(0 != munmap(csfsnp_header, fsize))
         {
-            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: munmap header of np %u fd %d with size %u failed\n",
+            dbg_log(SEC_0173_CSFSNP, 1)(LOGSTDOUT, "warn:__csfsnp_header_close: munmap header of np %u fd %d with size %ld failed\n",
                                np_id, fd, fsize);
         }
     }

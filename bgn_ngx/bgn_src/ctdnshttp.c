@@ -901,7 +901,7 @@ EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node)
     if(CMPI_ERROR_SRVPORT != reserved_port)
     {
         dbg_log(SEC_0048_CTDNSHTTP, 0)(LOGSTDOUT, "[DEBUG] ctdnshttp_handle_settcid_get_request: "
-                                                  "(tcid '%s', ip '%s'), reset client port %ld => %ld\n",
+                                                  "(tcid '%s', ip '%s'), reset client %s port %ld => %ld\n",
                                                   tcid_str, ipaddr_str, c_word_to_ipv4(client_ipaddr),
                                                   client_port, reserved_port);
 

@@ -799,13 +799,13 @@ EC_BOOL ctdns_create_npp(const UINT32 ctdns_md_id,
 
     if(EC_FALSE == c_check_is_uint8_t(ctdnsnp_model))
     {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_create_npp: ctdnsnp_model %u is invalid\n", ctdnsnp_model);
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_create_npp: ctdnsnp_model %u is invalid\n", (uint32_t)ctdnsnp_model);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == c_check_is_uint32_t(ctdnsnp_max_num))
     {
-        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_create_npp: ctdnsnp_disk_max_num %u is invalid\n", ctdnsnp_max_num);
+        dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "error:ctdns_create_npp: ctdnsnp_disk_max_num %u is invalid\n", (uint32_t)ctdnsnp_max_num);
         return (EC_FALSE);
     }
 

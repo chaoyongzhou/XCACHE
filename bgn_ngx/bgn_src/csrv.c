@@ -448,7 +448,7 @@ EC_BOOL csrv_select(CSRV *csrv, int *ret)
     fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSRV_0004);
     if(NULL_PTR == fd_cset)
     {
-        dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_select: malloc FD_CSET with size %d failed\n", sizeof(FD_CSET));
+        dbg_log(SEC_0112_CSRV, 0)(LOGSTDOUT, "error:csrv_select: malloc FD_CSET with size %d failed\n", (uint32_t)sizeof(FD_CSET));
         return (EC_FALSE);
     }
 

@@ -171,7 +171,7 @@ CBYTES *cbytes_make_by_cstr(const CSTRING *cstr)
     if(EC_FALSE == cbytes_set(cbytes, cstring_get_str(cstr), cstring_get_len(cstr)))
     {
         dbg_log(SEC_0101_CBYTES, 0)(LOGSTDOUT, "error:cbytes_make_by_cstr: set cstr %.*s to cbytes failed\n",
-                            cstring_get_len(cstr), cstring_get_str(cstr));
+                            (uint32_t)cstring_get_len(cstr), cstring_get_str(cstr));
         cbytes_free(cbytes);
         return (NULL_PTR);
     }
@@ -644,7 +644,7 @@ EC_BOOL cbytes_print_str(LOG *log, const CBYTES *cbytes)
             return (EC_FALSE);
         }
     }
-    sys_print(log, "cbytes_print_str: size = %ld, buff = %.*s\n", CBYTES_LEN(cbytes), CBYTES_LEN(cbytes), (char *)CBYTES_BUF(cbytes));
+    sys_print(log, "cbytes_print_str: size = %ld, buff = %.*s\n", (uint32_t)CBYTES_LEN(cbytes), CBYTES_LEN(cbytes), (char *)CBYTES_BUF(cbytes));
     return (EC_TRUE);
 }
 

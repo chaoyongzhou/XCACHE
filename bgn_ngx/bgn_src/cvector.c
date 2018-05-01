@@ -1378,7 +1378,7 @@ EC_BOOL cvector_loop(CVECTOR *cvector,
     if(MAX_NUM_OF_FUNC_PARAS < func_para_num)
     {
         dbg_log(SEC_0080_CVECTOR, 0)(LOGSTDOUT, "error:cvector_loop: func_para_num %ld overflow which must be smaller than %ld\n",
-                           func_para_num, MAX_NUM_OF_FUNC_PARAS);
+                           func_para_num, (UINT32)MAX_NUM_OF_FUNC_PARAS);
         return (EC_FALSE);
     }
 
@@ -2328,7 +2328,7 @@ EC_BOOL cvector_loop_no_lock(CVECTOR *cvector,
     if(MAX_NUM_OF_FUNC_PARAS < func_para_num)
     {
         dbg_log(SEC_0080_CVECTOR, 0)(LOGSTDOUT, "error:cvector_loop: func_para_num %ld overflow which must be smaller than %ld\n",
-                           func_para_num, MAX_NUM_OF_FUNC_PARAS);
+                           func_para_num, (UINT32)MAX_NUM_OF_FUNC_PARAS);
         return (EC_FALSE);
     }
 

@@ -2589,7 +2589,8 @@ EC_BOOL cdfsnp_mgr_file_num(CDFSNP_MGR *cdfsnp_mgr, const CSTRING *path_cstr, UI
             continue;
         }
 
-        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_num: invalid dflg %lx\n", CDFSNP_ITEM_DFLG(cdfsnp_item));
+        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_num: invalid dflg %lx\n", 
+                            (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     }
 
     cvector_clean_no_lock(cdfsnp_item_vec, (CVECTOR_DATA_CLEANER)cdfsnp_item_free, LOC_CDFSNPMGR_0164);
@@ -2638,7 +2639,8 @@ EC_BOOL cdfsnp_mgr_file_size(CDFSNP_MGR *cdfsnp_mgr, const CSTRING *path_cstr, U
             continue;
         }
 
-        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_size: invalid dflg %lx\n", CDFSNP_ITEM_DFLG(cdfsnp_item));
+        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_size: invalid dflg %lx\n", 
+                            (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     }
 
     cvector_clean_no_lock(cdfsnp_item_vec, (CVECTOR_DATA_CLEANER)cdfsnp_item_free, LOC_CDFSNPMGR_0169);
@@ -2669,7 +2671,7 @@ EC_BOOL cdfsnp_mgr_check_replicas(CDFSNP_MGR *cdfsnp_mgr, const CSTRING *file_pa
     if(replica_num != CDFSNP_FNODE_REPNUM(cdfsnp_fnode))
     {
         dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_check_replicas: file %s replica num %ld not matched to the expected %ld\n",
-                            (char *)cstring_get_str(file_path), CDFSNP_FNODE_REPNUM(cdfsnp_fnode), replica_num);
+                            (char *)cstring_get_str(file_path), (UINT32)CDFSNP_FNODE_REPNUM(cdfsnp_fnode), replica_num);
         return (EC_FALSE);
     }
 

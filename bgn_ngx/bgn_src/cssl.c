@@ -323,7 +323,7 @@ EC_BOOL cssl_node_bind_socket(CSSL_NODE *cssl_node, const int sockfd)
 
     if(EC_FALSE == csocket_is_connected(sockfd))
     {
-        dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_bind_socket: socket %d is not connected\n");
+        dbg_log(SEC_0156_CSSL, 0)(LOGSTDOUT, "error:cssl_node_bind_socket: socket %d is not connected\n", sockfd);
         csocket_close(sockfd);
         return (EC_FALSE);
     }
@@ -603,7 +603,7 @@ EC_BOOL cssl_node_recv(CSSL_NODE *cssl_node, const UINT32 once_max_size, UINT8 *
         ret = SSL_read(ssl, (void *)(in_buff + (*pos)), once_recv_len);
         if(0 < ret)
         {
-            dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_recv: read in %d bytes\n", ret);
+            dbg_log(SEC_0156_CSSL, 9)(LOGSTDOUT, "[DEBUG] cssl_node_recv: read in %d bytes\n", (uint32_t)ret);
 #if 0
             if(do_log(SEC_0156_CSSL, 9))
             {

@@ -96,14 +96,14 @@ int ccache_on_url(http_parser_t* http_parser, const char* at, size_t length)
     if(NULL_PTR == chttp_rsp)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_url: "
-                                                "http_parser %p -> chttp_rsp is null\n",
-                                                http_parser);
+                                               "http_parser %p -> chttp_rsp is null\n",
+                                               http_parser);
         return (-1);/*error*/
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_url: "
-                                            "chttp_rsp %p, url: %.*s\n",
-                                            chttp_rsp, (int)length, at);
+                                           "chttp_rsp %p, url: %.*s\n",
+                                           chttp_rsp, (uint32_t)length, at);
 
     return (0);
 }
@@ -149,8 +149,8 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     if(NULL_PTR == cstrkv)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_field: "
-                                                "new cstrkv failed where header field: %.*s\n",
-                                               (int)length, at);
+                                               "new cstrkv failed where header field: %.*s\n",
+                                               (uint32_t)length, at);
         return (-1);
     }
 
@@ -158,8 +158,8 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     cstrkv_mgr_add_kv(CHTTP_RSP_HEADER(chttp_rsp), cstrkv);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_field: "
-                                            "chttp_rsp %p, Header field: '%.*s'\n",
-                                            chttp_rsp, (int)length, at);
+                                           "chttp_rsp %p, Header field: '%.*s'\n",
+                                           chttp_rsp, (uint32_t)length, at);
     return (0);
 }
 
@@ -181,15 +181,15 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
     if(NULL_PTR == cstrkv)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_value: "
-                                                "no cstrkv existing where value field: %.*s\n",
-                                               (int)length, at);
+                                               "no cstrkv existing where value field: %.*s\n",
+                                               (uint32_t)length, at);
         return (-1);
     }
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0002);
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_value: "
-                                            "chttp_rsp %p, Header value: '%.*s'\n",
-                                            chttp_rsp, (int)length, at);
+                                           "chttp_rsp %p, Header value: '%.*s'\n",
+                                           chttp_rsp, (uint32_t)length, at);
 
     return (0);
 }
@@ -210,8 +210,8 @@ int ccache_on_body(http_parser_t* http_parser, const char* at, size_t length)
     cbytes_append(CHTTP_RSP_BODY(chttp_rsp), (uint8_t *)at, length);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_body: "
-                                            "chttp_rsp %p, body len %d\n",
-                                            chttp_rsp, length);
+                                           "chttp_rsp %p, body len %d\n",
+                                           chttp_rsp, (uint32_t)length);
     return (0);
 }
 
@@ -237,7 +237,7 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
     http_parser_setting.on_message_complete = ccache_on_message_complete;
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: to parse '%.*s'\n",
-                CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
+                (uint32_t)CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
 
     parsed_len = http_parser_execute(&http_parser, &http_parser_setting,
                                      (char *)CBYTES_BUF(header_cbytes), CBYTES_LEN(header_cbytes));
@@ -264,7 +264,7 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
     if(do_log(SEC_0177_CCACHE, 9))
     {
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: header '%.*s' => \n",
-                    CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
+                    (uint32_t)CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
     }
@@ -532,7 +532,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_write_over_http: store '%.*s' with size %ld to %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         CBYTES_LEN(cbytes),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
@@ -551,7 +551,7 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
     }
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_write_over_http: store '%.*s' with size %ld to %s:%ld done => status %u\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     CBYTES_LEN(cbytes),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
@@ -585,7 +585,7 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_write_over_bgn: p2p: [token %s] file_path '%.*s', data %p [len %ld] => store_srv_tcid %s\n",
                 (char *)cstring_get_str(auth_token),
-                CSTRING_LEN(file_path), CSTRING_STR(file_path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
+                (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
                 c_word_to_ipv4(store_srv_tcid));
 
     ret = EC_FALSE;
@@ -645,7 +645,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_renew_headers_over_http: renew headers of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -656,7 +656,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_renew_headers_over_http: renew headers of '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -667,7 +667,7 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_renew_headers_over_http: renew headers of '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -696,7 +696,7 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_renew_headers_over_bgn: renew headers of '%.*s' on tcid %s\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
     ret = EC_FALSE;
@@ -737,7 +737,7 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_notify_over_http: file_notify '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -748,7 +748,7 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_notify_over_http: file_notify '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -759,7 +759,7 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_notify_over_http: file_notify '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
@@ -781,7 +781,7 @@ EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_notify_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
-                CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                 c_word_to_ipv4(store_srv_tcid));
 
     task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
@@ -820,8 +820,8 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_billing_set_over_http: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld failed\n",
-                        CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                        CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                        (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                        (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                         send_len, recv_len);
 
         chttp_req_clean(&chttp_req);
@@ -832,8 +832,8 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_billing_set_over_http: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => status %u\n",
-                        CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                        CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                        (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                        (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                         send_len, recv_len,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -844,8 +844,8 @@ EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_billing_set_over_http: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => OK\n",
-                    CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                    CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                    (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                    (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                     send_len, recv_len);
 
     chttp_req_clean(&chttp_req);
@@ -884,7 +884,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -895,7 +895,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(CHTTP_INTERNAL_SERVER_ERROR == CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -907,7 +907,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(CHTTP_FORBIDDEN == CHTTP_RSP_STATUS(&chttp_rsp))/*locked already*/
     {
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld => locked by other\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -920,7 +920,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -933,7 +933,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld => status %u but not found auth-token\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -945,7 +945,7 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     cstring_append_str(auth_token, (const UINT8 *)v);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_http: lock_req '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
@@ -978,7 +978,7 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         if(EC_TRUE == (*locked_already))
         {
             dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => locked by other\n",
-                            CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                            (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                             c_word_to_ipv4(store_srv_tcid));
             return (EC_TRUE);
         }
@@ -988,13 +988,13 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     if(EC_TRUE == (*locked_already))
     {
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_merge_file_lock: lock_req '%.*s' on %s => locked by other\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(tcid));
         return (EC_TRUE);
     }
 #endif
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => OK\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
     return (EC_TRUE);
@@ -1024,7 +1024,7 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_unlock_over_http: unlock_req '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1035,7 +1035,7 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_unlock_over_http: unlock_req '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1045,7 +1045,7 @@ EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 s
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_http: unlock_req '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
@@ -1075,14 +1075,14 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: unlock_req '%.*s' on %s => failed\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: unlock_req '%.*s' on %s => OK\n",
-                    CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
     return (EC_TRUE);
@@ -1105,10 +1105,10 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: uri '%.*s'\n",
-                        CSTRING_LEN(uri), CSTRING_STR(uri));
+                        (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' from %s:%ld start ...\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -1136,7 +1136,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_http: read '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1145,13 +1145,13 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' on %s:%ld back\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_http: read '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1161,7 +1161,7 @@ EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     }
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_http: read '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(EC_TRUE == chttp_rsp_has_body(&chttp_rsp))
@@ -1256,7 +1256,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_http: uri '%.*s'\n",
-                        CSTRING_LEN(uri), CSTRING_STR(uri));
+                        (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
 
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
@@ -1270,7 +1270,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_http: file_retire '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1281,7 +1281,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_http: file_retire '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1291,7 +1291,7 @@ EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 s
     }
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_http: file_retire '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req);
@@ -1352,7 +1352,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_http: uri '%.*s'\n",
-                        CSTRING_LEN(uri), CSTRING_STR(uri));
+                        (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     (*data_ready) = EC_FALSE;
 
@@ -1383,7 +1383,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_http: file_wait '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1394,7 +1394,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_http: file_wait '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1407,7 +1407,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_http: file_wait '%.*s' on %s:%ld => status %u but not found data-ready\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1419,7 +1419,7 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     (*data_ready) = c_str_to_bool(v);
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_http: file_wait '%.*s' on %s:%ld => OK, data_ready: '%s' [%ld]\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     v, (*data_ready));
 
@@ -1531,7 +1531,7 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     cstring_append_cstr(uri, file_path);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_ready_over_http: uri '%.*s'\n",
-                        CSTRING_LEN(uri), CSTRING_STR(uri));
+                        (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
 
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
@@ -1547,7 +1547,7 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_http: file_wait '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1558,7 +1558,7 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_http: file_wait '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1574,7 +1574,7 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
         if(NULL_PTR == v)
         {
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_http: file_wait '%.*s' on %s:%ld => status %u but not found data-ready\n",
-                            CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                            (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                             c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                             CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -1759,14 +1759,14 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => failed\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => OK\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
     return (EC_TRUE);
@@ -1816,7 +1816,7 @@ EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path)
         if(EC_FALSE == crfs_node_is_up(&crfs_node))
         {
             dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_http: delete '%.*s' skip rfs %s which is not up\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
                     );
             crfs_node_clean(&crfs_node);
@@ -1838,7 +1838,7 @@ EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path)
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_http: delete '%.*s' done\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path));
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));
 
     return (EC_TRUE);
 }
@@ -1887,7 +1887,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
         if(EC_FALSE == crfs_node_is_up(&crfs_node))
         {
             dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: delete '%.*s' skip rfs %s which is not up\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
                     );
             crfs_node_clean(&crfs_node);
@@ -1908,7 +1908,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: delete '%.*s' done\n",
-                    CSTRING_LEN(file_path), CSTRING_STR(file_path));
+                    (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));
 
     return (EC_TRUE);
 }

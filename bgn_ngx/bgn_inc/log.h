@@ -141,6 +141,9 @@ extern UINT32 g_log_level[ SEC_NONE_END ];
 #define DBG_LOG(SECTION, LEVEL)     NULL_LOG
 //#define DBG_LOG                     dbg_log
 
+/*for debug only: finger out log format issue*/
+#define std_log(X, ...)            fprintf(stdout, __VA_ARGS__)
+
 //#define rlog(SECTION, LEVEL)        !do_log(SECTION, LEVEL) ? (void) 0 : sys_log
 #define rlog(SECTION, LEVEL)        NULL_LOG 
 

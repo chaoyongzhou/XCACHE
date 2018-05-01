@@ -235,7 +235,8 @@ UINT32 c_chars_to_word(const char *chars, const UINT32 len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n", len, chars, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n", 
+                                (uint32_t)len, chars, pos);
             return ((UINT32)0);
         }
         total = 10 * total + (c - '0');
@@ -319,7 +320,7 @@ int c_str_to_int(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %s found not digit char at pos %d\n", str, pos);
             return ((int)0);
         }
         total = 10 * total + (c - '0');
@@ -481,7 +482,7 @@ uint32_t c_chars_to_uint32_t(const char *str, const uint32_t len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_chars_to_uint32_t: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_chars_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }
         total = 10 * total + (c - '0');
@@ -518,7 +519,7 @@ uint32_t c_str_to_uint32_t(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }
         total = 10 * total + (c - '0');
@@ -569,7 +570,7 @@ uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const ui
 
         if(ch < '0' || ch > '9')
         {   
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }        
 
@@ -623,7 +624,7 @@ uint16_t c_str_to_uint16_t(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint16_t: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint16_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint16_t)0);
         }
         total = 10 * total + (c - '0');
@@ -2706,7 +2707,8 @@ EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     UINT32 csize;/*read completed size*/
     UINT32 osize;/*read once size*/
 
-    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_pread: fd %d, offset %u, rsize %u\n", fd, (*offset), rsize);
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_pread: fd %d, offset %ld, rsize %ld\n", 
+                        fd, (*offset), rsize);
 
     for(csize = 0, osize = CMISC_READ_ONCE_MAX_BYTES; csize < rsize; csize += osize)
     {
@@ -3264,7 +3266,8 @@ ctime_t c_time(ctime_t *timestamp)
         }
 
         /*error happen*/
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_time: time return %d, errno = %d, errstr = %s\n", t, errno, strerror(errno));
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_time: time return %d, errno = %d, errstr = %s\n", 
+                            (uint32_t)t, errno, strerror(errno));
     }
     return (ctime_t)(-1);
 }
@@ -4210,7 +4213,7 @@ void c_backtrace_dump_details(LOG *log, ucontext_t *ucontext)
         for(reg_idx = 0; reg_idx < NGREG; reg_idx ++)
         {
             dbg_log(SEC_0013_CMISC, 5)(LOGSTDOUT, "reg[%02d]       = 0x" CMISC_REG_FORMAT "\n",
-                               reg_idx,
+                               (int)reg_idx,
                                ucontext->uc_mcontext.gregs[reg_idx]);
         }
     }
@@ -4919,7 +4922,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                 {
                     dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                           "[%u] host '%s' => "
-                                                          "family: Other %ld\n",
+                                                          "family: Other %d\n",
                                                           idx, host_name, ptr->ai_family);
                     break;
                 }
@@ -4955,7 +4958,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
                 dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_dns_resolve: "
                                                       "[%u] host '%s' => "
                                                       "family: AF_INET (IPv4), ip: %s\n",
-                                                      idx, host_name, sockaddr_ipv4);
+                                                      idx, host_name, ipv4_str);
 
                 (*ipv4)  = c_ipv4_to_word(ipv4_str); /*select the first one*/
 
@@ -4975,7 +4978,7 @@ EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4)
             {
                 dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dns_resolve: "
                                                       "[%u] host '%s' => "
-                                                      "family: Other %ld\n",
+                                                      "family: Other %d\n",
                                                       idx, host_name, ptr->ai_family);
                 break;
             }
@@ -5114,7 +5117,7 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     (*ipv4) = c_ipv4_to_word(ipv4_str);
     (*port) = c_str_to_word(port_str);
 
-    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_tdns_resolve: tdns resolve tcid '%s' => ip '%s', port %ld\n",
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_tdns_resolve: tdns resolve tcid '%s' => ip '%s', port %s\n",
                     c_word_to_ipv4(tcid), ipv4_str, port_str);
 
     chttp_rsp_clean(&chttp_rsp);

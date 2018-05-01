@@ -764,7 +764,7 @@ EC_BOOL coroutine_node_init(COROUTINE_NODE *coroutine_node, COROUTINE_NODE *coro
     COROUTINE_NODE_STACK_SPACE(coroutine_node) = safe_malloc(COROUTINE_STACK_SIZE_DEFAULT, LOC_COROUTINE_0018);
     if(NULL_PTR == COROUTINE_NODE_STACK_SPACE(coroutine_node))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_init: malloc %ld bytes failed\n", COROUTINE_STACK_SIZE_DEFAULT);
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_init: malloc %ld bytes failed\n", (UINT32)COROUTINE_STACK_SIZE_DEFAULT);
         return (EC_FALSE);
     }
     COROUTINE_NODE_STACK_SIZE(coroutine_node) = COROUTINE_STACK_SIZE_DEFAULT;

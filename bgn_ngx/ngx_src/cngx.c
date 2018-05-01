@@ -458,7 +458,7 @@ EC_BOOL cngx_get_var_size(ngx_http_request_t *r, const char *key, ssize_t *val, 
     vv = ngx_http_bgn_var_get(r, (const u_char *)key, (size_t)klen);
     if(NULL_PTR == vv || 0 == vv->len || NULL_PTR == vv->data)
     {
-        dbg_log(SEC_0176_CNGX, 5)(LOGSTDOUT, "[DEBUG] cngx_get_var_size: not found var '%s', set to default '%d'\n",
+        dbg_log(SEC_0176_CNGX, 5)(LOGSTDOUT, "[DEBUG] cngx_get_var_size: not found var '%s', set to default '%ld'\n",
                     key, def);
         (*val) = def;           
         return (EC_TRUE);
@@ -468,7 +468,7 @@ EC_BOOL cngx_get_var_size(ngx_http_request_t *r, const char *key, ssize_t *val, 
     str.data = vv->data;
     (*val) = ngx_parse_size(&str);
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_var_size: var '%s' = %d\n",
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_var_size: var '%s' = %ld\n",
                     key, (*val));
 
     return (EC_TRUE);
@@ -486,12 +486,12 @@ EC_BOOL cngx_set_var_size(ngx_http_request_t *r, const char *key, const ssize_t 
    
     if(NGX_OK != ngx_http_bgn_var_set(r, (const u_char *)key, (size_t)klen, (const u_char *)value, (size_t)vlen))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_var_size: set var '%s' = %d failed\n",
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_var_size: set var '%s' = %ld failed\n",
                     key, val);  
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_var_size: set var '%s' = %d done\n",
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_var_size: set var '%s' = %ld done\n",
                     key, val); 
 
     return (EC_TRUE);
@@ -763,14 +763,14 @@ EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val)
             break;
 
         default:
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_method_str: unsupported HTTP method: %d\n", r->method);
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_method_str: unsupported HTTP method: %ld\n", r->method);
             (*val) = NULL_PTR;
             return (EC_FALSE);
     }
    
     if(NULL_PTR == (*val))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_method_str: dup str of method %d failed\n", r->method);
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_method_str: dup str of method %ld failed\n", r->method);
         return (EC_FALSE);
     }
 
@@ -783,57 +783,49 @@ EC_BOOL cngx_get_req_info_debug(ngx_http_request_t *r)
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"host", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: host: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: host: %s\n", v);
         safe_free(v, LOC_CNGX_0007);
     }  
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"remote_addr", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_addr: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_addr: %s\n", v);
         safe_free(v, LOC_CNGX_0008);
     }    
     
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"remote_port", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_port: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_port: %s\n", v);
         safe_free(v, LOC_CNGX_0009);
     }   
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_addr", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_addr: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_addr: %s\n", v);
         safe_free(v, LOC_CNGX_0010);
     } 
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_port", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_port: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_port: %s\n", v);
         safe_free(v, LOC_CNGX_0011);
     }   
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_protocol", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_protocol: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_protocol: %s\n", v);
         safe_free(v, LOC_CNGX_0012);
     }  
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_name", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_name: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_name: %s\n", v);
         safe_free(v, LOC_CNGX_0013);
     } 
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"hostname", &v, NULL_PTR))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: hostname: %s\n",
-                    *v);
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: hostname: %s\n", v);
         safe_free(v, LOC_CNGX_0014);
     }    
 
@@ -1049,7 +1041,7 @@ EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r)
     if (NULL_PTR == r->uri.data) 
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_rearm_req_uri: "
-                                             "[cngx] ngx_pnalloc (size = %d) failed\n",
+                                             "[cngx] ngx_pnalloc (size = %ld) failed\n",
                                              r->uri.len); 
                                              
         cstring_clean(&req_url);
@@ -1100,7 +1092,7 @@ EC_BOOL cngx_get_req_port(const ngx_http_request_t *r, char **val)
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_port: "
                                              "dup port '%.*s' failed\n",
-                                             port_end - port_start, 
+                                             (uint32_t)(port_end - port_start), 
                                              port_start);
         
         return (EC_FALSE);
@@ -1165,7 +1157,7 @@ EC_BOOL cngx_read_req_body(ngx_http_request_t *r)
         return (EC_TRUE);
     }
     
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: unknown rc '%d'\n", rc);    
+    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: unknown rc '%ld'\n", rc);    
             
     return (EC_FALSE);
 }
@@ -1976,7 +1968,7 @@ void cngx_send_again(ngx_http_request_t *r)
     }
     
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
-                                         "r %p, rc = %d, timer_set = %d, delayed = %d, sent bytes = %ld\n", 
+                                         "r %p, rc = %ld, timer_set = %d, delayed = %d, sent bytes = %ld\n", 
                                          r, rc, wev->timer_set, wev->delayed, r->connection->sent);
     return;
 }
@@ -2037,7 +2029,7 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
         cngx_send_wait(r, 0);    
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "wait back, connection error: %d, rc: %d\n",
+                                             "wait back, connection error: %d, rc: %ld\n",
                                              c->error, NGX_W_RC(wev));  
     }        
 
@@ -2141,7 +2133,7 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
         
         if (rc == NGX_ERROR || rc > NGX_OK)
         {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body: send body failed, rc = %d\n", rc);
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body: send body failed, rc = %ld\n", rc);
             return (EC_FALSE);
         }
 
@@ -2536,7 +2528,7 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
     /*cache for GET or HEAD only*/
     if(NGX_HTTP_GET != r->method && NGX_HTTP_HEAD != r->method)
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_get_cacheable_method: not acceptable method '%d' => set false\n",
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_get_cacheable_method: not acceptable method '%ld' => set false\n",
                     r->method);
        
         CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_FALSE;

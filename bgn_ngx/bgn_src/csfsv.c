@@ -345,7 +345,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSV_HDR_CUR_DISK_NO(csfsv_hdr))))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_DISK_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_DISK_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -353,7 +353,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSV_HDR_CUR_BLOCK_NO(csfsv_hdr))))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_BLOCK_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_BLOCK_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -361,7 +361,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSV_HDR_CUR_PAGE_NO(csfsv_hdr))))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_PAGE_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_CUR_PAGE_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -369,7 +369,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CSFSV_HDR_DISK_NUM(csfsv_hdr))))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: flush CSFSV_HDR_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -377,7 +377,7 @@ EC_BOOL csfsv_hdr_flush(const CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = CSFSV_HDR_PAD_SIZE * sizeof(uint8_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: pad %ld bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -394,7 +394,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&CSFSV_HDR_CUR_DISK_NO(csfsv_hdr)))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_DISK_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_DISK_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -402,7 +402,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&CSFSV_HDR_CUR_BLOCK_NO(csfsv_hdr)))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_BLOCK_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_BLOCK_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -411,7 +411,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&CSFSV_HDR_CUR_PAGE_NO(csfsv_hdr)))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_PAGE_NO at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_CUR_PAGE_NO at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -420,7 +420,7 @@ EC_BOOL csfsv_hdr_load(CSFSV_HDR *csfsv_hdr, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&CSFSV_HDR_DISK_NUM(csfsv_hdr)))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_DISK_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_hdr_load: load CSFSV_HDR_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -467,7 +467,7 @@ CSFSV *csfsv_new(const uint8_t *csfsv_fname, const uint32_t np_node_err_pos, CSF
     }
 
     CSFSV_FSIZE(csfsv) = sizeof(CSFSV_HDR);
-    dbg_log(SEC_0164_CSFSV, 9)(LOGSTDOUT, "[DEBUG] sizeof(CSFSV_HDR) = %u\n", sizeof(CSFSV_HDR));
+    dbg_log(SEC_0164_CSFSV, 9)(LOGSTDOUT, "[DEBUG] sizeof(CSFSV_HDR) = %u\n", (uint32_t)sizeof(CSFSV_HDR));
     if(EC_FALSE == c_file_truncate(CSFSV_FD(csfsv), CSFSV_FSIZE(csfsv)))
     {
         dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_new: truncate %s to %u bytes failed\n", csfsv_fname, CSFSV_FSIZE(csfsv));
@@ -1024,7 +1024,7 @@ EC_BOOL csfsv_flush(const CSFSV *csfsv, int fd, UINT32 *offset)
     /*flush CSFSV_HEADER*/
     if(EC_FALSE == csfsv_hdr_flush(CSFSV_HEADER(csfsv), fd, offset))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush CSFSV_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush CSFSV_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1042,14 +1042,14 @@ EC_BOOL csfsv_flush(const CSFSV *csfsv, int fd, UINT32 *offset)
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(disk_no)))
         {
-            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush disk_no at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush disk_no at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
         /*flush disk*/
         if(EC_FALSE == csfsd_flush(CSFSV_DISK_NODE(csfsv, disk_no), fd, offset))
         {
-            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush CSFSV_DISK_NODE of disk_no %u at offset %u of fd %d failed\n",
+            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_flush: flush CSFSV_DISK_NODE of disk_no %u at offset %ld of fd %d failed\n",
                                 disk_no, (*offset), fd);
             return (EC_FALSE);
         }
@@ -1079,7 +1079,7 @@ EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
     /*load rbtree pool*/
     if(EC_FALSE == csfsv_hdr_load(CSFSV_HEADER(csfsv), fd, offset))
     {
-        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load CSFSV_HEADER at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load CSFSV_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1102,7 +1102,7 @@ EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
         osize = sizeof(uint16_t);
         if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(disk_no)))
         {
-            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load disk_no at offset %u of fd %d failed\n", (*offset), fd);
+            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load disk_no at offset %ld of fd %d failed\n", (*offset), fd);
             return (EC_FALSE);
         }
 
@@ -1121,7 +1121,7 @@ EC_BOOL csfsv_load(CSFSV *csfsv, int fd, UINT32 *offset)
 
         if(EC_FALSE == csfsd_load(CSFSV_DISK_CSFSD(csfsv, disk_no), fd, offset))
         {
-            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load CSFSV_DISK_NODE of disk_no %u at offset %u of fd %d failed\n",
+            dbg_log(SEC_0164_CSFSV, 0)(LOGSTDOUT, "error:csfsv_load: load CSFSV_DISK_NODE of disk_no %u at offset %ld of fd %d failed\n",
                                 disk_no, (*offset), fd);
             return (EC_FALSE);
         }

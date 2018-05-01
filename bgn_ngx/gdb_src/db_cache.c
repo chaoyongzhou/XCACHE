@@ -32,7 +32,7 @@ gdbCacheAddBlockNoLock(GDatabase *db, GdbBlock *block)
     tempBlock = gdbCacheGetBlockNoLock(db, block->offset);
     if (tempBlock != NULL)
     {
-        dbg_log(SEC_0131_DB, 9)(LOGSTDOUT, "[DEBUG] gdbCacheAddBlockNoLock: get cached block %lx with detail %lx and offset %d, db %lx (vs %lx)\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDOUT, "[DEBUG] gdbCacheAddBlockNoLock: get cached block %p with detail %p and offset %d, db %p (vs %p)\n",
                             block, block->detail, block->offset, block->db, db);
         return tempBlock;
     }
@@ -186,7 +186,7 @@ gdbCachePrintBlockNoLock(LOG *log, const GDatabase *db)
     {
         if(db->openBlocks[i] != NULL)
         {
-            sys_log(log, "[DEBUG] gdbCachePrintBlockNoLock: [%d] db %lx, block %lx, offset %d, refCount %d, detail %lx\n", i,
+            sys_log(log, "[DEBUG] gdbCachePrintBlockNoLock: [%d] db %p, block %p, offset %d, refCount %d, detail %p\n", i,
                          db, db->openBlocks[i], db->openBlocks[i]->offset, db->openBlocks[i]->refCount, db->openBlocks[i]->detail
                          );
         }

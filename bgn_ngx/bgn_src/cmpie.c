@@ -1176,7 +1176,7 @@ UINT32 cmpi_decode_kbuff(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
     if(NULL_PTR == KBUFF_CACHE(kbuff))
     {
 #if 0
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_kbuff: to decode len %ld but kbuff %lx cache is null\n",
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_kbuff: to decode len %ld but kbuff %p cache is null\n",
                            len, kbuff);
         return ((UINT32)-1);
 #endif
@@ -1186,7 +1186,7 @@ UINT32 cmpi_decode_kbuff(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
     if(len + KBUFF_CUR_LEN(kbuff) > KBUFF_MAX_LEN(kbuff))
     {
 #if 1
-       dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_kbuff: len %ld overflow kbuff %lx with cur len %ld and max len %ld\n",
+       dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_kbuff: len %ld overflow kbuff %p with cur len %ld and max len %ld\n",
                            len, kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff));
        return ((UINT32)-1);
 #endif
@@ -1200,7 +1200,7 @@ UINT32 cmpi_decode_kbuff(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
 
     KBUFF_CUR_LEN(kbuff) += len;
 
-    //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_kbuff: encoded len = %ld and kbuff %lx, cur_len = %ld, max_len = %ld\n", len, kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff));
+    //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_kbuff: encoded len = %ld and kbuff %p, cur_len = %ld, max_len = %ld\n", len, kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff));
 
     return ((UINT32)0);
 }
@@ -1234,7 +1234,7 @@ UINT32 cmpi_encode_cvector(const UINT32 comm, const CVECTOR *cvector, UINT8 *out
     type = cvector_type(cvector);
     num = cvector_size(cvector);
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector: cvector %lx, type = %ld, num = %ld, position = %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector: cvector %p, type = %ld, num = %ld, position = %ld\n",
                         cvector, type, num, *position));
 
     cmpi_encode_uint32(comm, type, out_buff, out_buff_max_len, position);
@@ -1284,7 +1284,7 @@ UINT32 cmpi_encode_cvector(const UINT32 comm, const CVECTOR *cvector, UINT8 *out
         data_encoder(comm, data, out_buff, out_buff_max_len, position);
     }
 #endif
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector: cvector %lx, type = %ld, num = %ld ==> position = %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector: cvector %p, type = %ld, num = %ld ==> position = %ld\n",
                         cvector, cvector_type(cvector), cvector_size(cvector), *position));
 
     return ((UINT32)0);
@@ -1301,11 +1301,11 @@ UINT32 cmpi_encode_cvector_size(const UINT32 comm, const CVECTOR *cvector, UINT3
     type = cvector_type(cvector);
     num = cvector_size(cvector);
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector_size: cvector %lx: type = %ld, num = %ld, size = %ld\n", cvector, type, num, *size));
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector_size: cvector %p: type = %ld, num = %ld, size = %ld\n", cvector, type, num, *size));
 
     if(MM_END == type)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cvector_size: cvector %lx: invalid type = %ld, num = %ld\n", cvector, type, num);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cvector_size: cvector %p: invalid type = %ld, num = %ld\n", cvector, type, num);
     }
 
     cmpi_encode_uint32_size(comm, type, size);
@@ -1319,12 +1319,12 @@ UINT32 cmpi_encode_cvector_size(const UINT32 comm, const CVECTOR *cvector, UINT3
     data_encoder_size = (CVECTOR_DATA_ENCODER_SIZE)cvector_codec_get(cvector, CVECTOR_CODEC_ENCODER_SIZE);
     if(NULL_PTR == data_encoder_size)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cvector_size: cvector %lx: type = %ld, num = %ld, data encoder_size is null\n",
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cvector_size: cvector %p: type = %ld, num = %ld, data encoder_size is null\n",
                             cvector, type, num);
         return ((UINT32)-1);
     }
 
-     //dbg_log(SEC_0035_CMPIE, 0)(LOGCONSOLE, "[DEBUG] cmpi_encode_cvector_size: cvector %lx, mm type %ld\n", cvector, cvector->data_mm_type);
+     //dbg_log(SEC_0035_CMPIE, 0)(LOGCONSOLE, "[DEBUG] cmpi_encode_cvector_size: cvector %p, mm type %ld\n", cvector, cvector->data_mm_type);
 
     if(MM_UINT32 == type)
     {
@@ -1345,7 +1345,7 @@ UINT32 cmpi_encode_cvector_size(const UINT32 comm, const CVECTOR *cvector, UINT3
         }
     }
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector_size: cvector %lx: type = %ld, num = %ld, ==> size %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_cvector_size: cvector %p: type = %ld, num = %ld, ==> size %ld\n",
                             cvector, cvector_type(cvector), cvector_size(cvector), *size));
 
     return ((UINT32)0);
@@ -1380,14 +1380,14 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(type));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
 
-    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: enter: cvector %lx, type = %ld, num = %ld, size = %ld\n", cvector, type, num, cvector->size);
+    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: enter: cvector %p, type = %ld, num = %ld, size = %ld\n", cvector, type, num, cvector->size);
 
     if(type != cvector->data_mm_type)
     {
-        dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: cvector %lx, data type %ld ==> %ld\n", cvector, cvector->data_mm_type, type);
+        dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: cvector %p, data type %ld ==> %ld\n", cvector, cvector->data_mm_type, type);
         cvector_codec_set(cvector, type);
     }
-    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: [0] cvector %lx, data type %ld \n", cvector, cvector->data_mm_type);
+    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_cvector: [0] cvector %p, data type %ld \n", cvector, cvector->data_mm_type);
 
     if(0 == num)
     {
@@ -1420,7 +1420,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
     data_decoder = (CVECTOR_DATA_DECODER)cvector_codec_get(cvector, CVECTOR_CODEC_DECODER);
     if(NULL_PTR == data_decoder)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %lx data decoder is null\n", cvector);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %p data decoder is null\n", cvector);
         return ((UINT32)-1);
     }
 
@@ -1438,7 +1438,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
             if(NULL_PTR == data)
             {
                 data = (void *)cvector_get_addr(cvector, pos);
-                //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_cvector: [2] cvector %lx, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
+                //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_cvector: [2] cvector %p, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
             }
             data_decoder(comm, in_buff, in_buff_max_len, position, data);
         }
@@ -1451,7 +1451,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
             data = (void *)cvector_get_addr(cvector, pos);
             if(NULL_PTR == data)
             {
-                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %lx, size %ld, capacity %ld, pos = %ld is null\n",
+                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %p, size %ld, capacity %ld, pos = %ld is null\n",
                                     cvector, cvector->size, cvector->capacity, pos);
                 return ((UINT32)-1);
             }
@@ -1467,7 +1467,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
         data_init = (CVECTOR_DATA_INIT)cvector_codec_get(cvector, CVECTOR_CODEC_INIT);/*data_init may be null pointer*/
         if(NULL_PTR == data_init)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %lx data init is null\n", cvector);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: cvector %p data init is null\n", cvector);
             return ((UINT32)-1);
         }
 
@@ -1483,7 +1483,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
                 alloc_static_mem(type, &data, LOC_CMPIE_0007);
                 data_init(data);
                 cvector_set(cvector, pos, (void *)data);/*add new one*/
-                //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_cvector: [3] cvector %lx, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
+                //dbg_log(SEC_0035_CMPIE, 3)(LOGSTDOUT, "info:cmpi_decode_cvector: [3] cvector %p, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
             }
             data_decoder(comm, in_buff, in_buff_max_len, position, data);
         }
@@ -1496,7 +1496,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
             alloc_static_mem(type, &data, LOC_CMPIE_0008);
             if(NULL_PTR == data)
             {
-                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: [3] cvector %lx, size %ld, capacity %ld, pos = %ld failed to alloc\n",
+                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cvector: [3] cvector %p, size %ld, capacity %ld, pos = %ld failed to alloc\n",
                                     cvector, cvector->size, cvector->capacity, pos);
             }
             data_init(data);
@@ -1504,7 +1504,7 @@ UINT32 cmpi_decode_cvector(const UINT32 comm, const UINT8 *in_buff, const UINT32
             cvector_push(cvector, (void *)data);/*add new one*/
         }
     }
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_decode_cvector: leave: cvector %lx, type = %ld, num = %ld, size = %ld\n", cvector, type, num, cvector->size));
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_decode_cvector: leave: cvector %p, type = %ld, num = %ld, size = %ld\n", cvector, type, num, cvector->size));
     return ((UINT32)0);
 }
 
@@ -3276,7 +3276,7 @@ UINT32 cmpi_encode_clist(const UINT32 comm, const CLIST *clist, UINT8 *out_buff,
     type = clist_type(clist);
     size = clist_size(clist);
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist: clist %lx, type = %ld, size = %ld, position = %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist: clist %p, type = %ld, size = %ld, position = %ld\n",
                         clist, type, size, *position));
 
     cmpi_encode_uint32(comm, type, out_buff, out_buff_max_len, position);
@@ -3312,7 +3312,7 @@ UINT32 cmpi_encode_clist(const UINT32 comm, const CLIST *clist, UINT8 *out_buff,
         return ((UINT32)-1);
     }
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist: clist %lx, type = %ld, num = %ld ==> position = %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist: clist %p, type = %ld, num = %ld ==> position = %ld\n",
                         clist, clist_type(clist), clist_size(clist), *position));
 
     return ((UINT32)0);
@@ -3328,11 +3328,11 @@ UINT32 cmpi_encode_clist_size(const UINT32 comm, const CLIST *clist, UINT32 *siz
     type = clist_type(clist);
     num = clist_size(clist);
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist_size: clist %lx: type = %ld, num = %ld, size = %ld\n", clist, type, num, *size));
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist_size: clist %p: type = %ld, num = %ld, size = %ld\n", clist, type, num, *size));
 
     if(MM_END == type)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_clist_size: clist %lx: invalid type = %ld, num = %ld\n", clist, type, num);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_clist_size: clist %p: invalid type = %ld, num = %ld\n", clist, type, num);
     }
 
     cmpi_encode_uint32_size(comm, type, size);
@@ -3346,7 +3346,7 @@ UINT32 cmpi_encode_clist_size(const UINT32 comm, const CLIST *clist, UINT32 *siz
     data_encoder_size = (CLIST_DATA_ENCODER_SIZE)clist_codec_get(clist, CLIST_CODEC_ENCODER_SIZE);
     if(NULL_PTR == data_encoder_size)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_clist_size: clist %lx: type = %ld, num = %ld, data encoder_size is null\n",
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_clist_size: clist %p: type = %ld, num = %ld, data encoder_size is null\n",
                             clist, type, num);
         return ((UINT32)-1);
     }
@@ -3378,7 +3378,7 @@ UINT32 cmpi_encode_clist_size(const UINT32 comm, const CLIST *clist, UINT32 *siz
         CLIST_UNLOCK(clist, LOC_CMPIE_0019);
     }
 
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist_size: clist %lx: type = %ld, num = %ld, ==> size %ld\n",
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_encode_clist_size: clist %p: type = %ld, num = %ld, ==> size %ld\n",
                             clist, clist_type(clist), clist_size(clist), *size));
 
     return ((UINT32)0);
@@ -3413,14 +3413,14 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(type));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
 
-    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: enter: clist %lx, type = %ld, num = %ld, size = %ld\n", clist, type, num, clist->size);
+    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: enter: clist %p, type = %ld, num = %ld, size = %ld\n", clist, type, num, clist->size);
 
     if(type != clist->data_mm_type)
     {
-        dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: clist %lx, data type %ld ==> %ld\n", clist, clist->data_mm_type, type);
+        dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: clist %p, data type %ld ==> %ld\n", clist, clist->data_mm_type, type);
         clist_codec_set(clist, type);
     }
-    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: [0] clist %lx, data type %ld \n", clist, clist->data_mm_type);
+    dbg_log(SEC_0035_CMPIE, 3)(LOGSTDNULL, "info:cmpi_decode_clist: [0] clist %p, data type %ld \n", clist, clist->data_mm_type);
 
     if(0 == num)
     {
@@ -3430,7 +3430,7 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
     data_decoder = (CLIST_DATA_DECODER)clist_codec_get(clist, CLIST_CODEC_DECODER);
     if(NULL_PTR == data_decoder)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: clist %lx data decoder is null\n", clist);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: clist %p data decoder is null\n", clist);
         return ((UINT32)-1);
     }
 
@@ -3452,7 +3452,7 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
         data_init = (CLIST_DATA_INIT)clist_codec_get(clist, CLIST_CODEC_INIT);/*data_init may be null pointer*/
         if(NULL_PTR == data_init)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: clist %lx data init is null\n", clist);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: clist %p data init is null\n", clist);
             return ((UINT32)-1);
         }
         /*alloc new item to accept the decoded result, and push the new item*/
@@ -3463,7 +3463,7 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
             alloc_static_mem(type, &data, LOC_CMPIE_0020);
             if(NULL_PTR == data)
             {
-                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: [3] clist %lx, size %ld, pos = %ld failed to alloc\n",
+                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: [3] clist %p, size %ld, pos = %ld failed to alloc\n",
                                     clist, clist->size, pos);
                 return ((UINT32)-1);
             }
@@ -3472,7 +3472,7 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
             clist_push_back(clist, (void *)data);/*add new one*/
         }
     }
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_decode_clist: leave: clist %lx, type = %ld, num = %ld, size = %ld\n", clist, type, num, clist->size));
+    CMPI_DBG((LOGSTDOUT, "info:cmpi_decode_clist: leave: clist %p, type = %ld, num = %ld, size = %ld\n", clist, type, num, clist->size));
     return ((UINT32)0);
 }
 
@@ -4545,13 +4545,13 @@ UINT32 cmpi_decode_crfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
         crfsconhash_rnode = crfsconhash_rnode_new();
         if(NULL_PTR == crfsconhash_rnode)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: new rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: new rnode %ld# failed\n", pos);
             return ((UINT32)-1);
         }
 
         if(EC_FALSE == cmpi_decode_crfsconhash_rnode(comm, in_buff, in_buff_max_len, position, crfsconhash_rnode))
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsconhash_rnode_vec: decode rnode %ld# failed\n", pos);
             crfsconhash_rnode_free(crfsconhash_rnode);
             return ((UINT32)-1);
         }
@@ -5966,13 +5966,13 @@ UINT32 cmpi_decode_chfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
         chfsconhash_rnode = chfsconhash_rnode_new();
         if(NULL_PTR == chfsconhash_rnode)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: new rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: new rnode %ld# failed\n", pos);
             return ((UINT32)-1);
         }
 
         if(EC_FALSE == cmpi_decode_chfsconhash_rnode(comm, in_buff, in_buff_max_len, position, chfsconhash_rnode))
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_chfsconhash_rnode_vec: decode rnode %ld# failed\n", pos);
             chfsconhash_rnode_free(chfsconhash_rnode);
             return ((UINT32)-1);
         }
@@ -6536,13 +6536,13 @@ UINT32 cmpi_decode_csfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff
         csfsconhash_rnode = csfsconhash_rnode_new();
         if(NULL_PTR == csfsconhash_rnode)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: new rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: new rnode %ld# failed\n", pos);
             return ((UINT32)-1);
         }
 
         if(EC_FALSE == cmpi_decode_csfsconhash_rnode(comm, in_buff, in_buff_max_len, position, csfsconhash_rnode))
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: decode rnode %u# failed\n", pos);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_csfsconhash_rnode_vec: decode rnode %ld# failed\n", pos);
             csfsconhash_rnode_free(csfsconhash_rnode);
             return ((UINT32)-1);
         }

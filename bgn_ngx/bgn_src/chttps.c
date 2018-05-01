@@ -200,7 +200,7 @@ STATIC_CAST static EC_BOOL __chttps_on_recv_complete(CHTTPS_NODE *chttps_node)
     }
 
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_recv_complete: socket %d, [type: HANDLE: unknown 0x%lx]\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTPS_NODE_TYPE(chttps_node));
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode), (UINT32)CHTTPS_NODE_TYPE(chttps_node));
 
     cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
     CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
@@ -469,12 +469,12 @@ STATIC_CAST static int __chttps_on_body(http_parser_t* http_parser, const char* 
 
     if(EC_FALSE == chunk_mgr_append_data_min(recv_chunks, (uint8_t *)at, length, CHTTP_IN_BUF_SIZE))
     {
-        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:__chttps_on_body: append %d bytes failed\n", length);
+        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:__chttps_on_body: append %ld bytes failed\n", length);
         return (-1);
     }
     CHTTPS_NODE_BODY_PARSED_LEN(chttps_node) += length;
 
-    dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_body: chttps_node %p, len %d => body parsed %"PRId64"\n",
+    dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_body: chttps_node %p, len %ld => body parsed %"PRId64"\n",
                     chttps_node, length, CHTTPS_NODE_BODY_PARSED_LEN(chttps_node));
 
     return (0);
@@ -1011,7 +1011,7 @@ EC_BOOL chttps_node_send(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode)
         ret = chttps_send(chttps_node, csocket_cnode, CHUNK_DATA(chunk), CHUNK_USED(chunk), &pos);
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_send: sockfd %d send %ld bytes failed\n",
+            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_send: sockfd %d send %d bytes failed\n",
                                CSOCKET_CNODE_SOCKFD(csocket_cnode),
                                CHUNK_USED(chunk) - CHUNK_OFFSET(chunk)
                                );
@@ -1177,7 +1177,7 @@ EC_BOOL chttps_node_renew_header(CHTTPS_NODE *chttps_node, const char *k, const 
 
     if(NULL_PTR == v)
     {
-        dbg_log(SEC_0157_CHTTPS, 1)(LOGSTDOUT, "[DEBUG] chttps_node_renew_header: v is null => header ['%s'] was deleted only\n");
+        dbg_log(SEC_0157_CHTTPS, 1)(LOGSTDOUT, "[DEBUG] chttps_node_renew_header: v is null => header ['%s'] was deleted only\n", k);
         return (EC_FALSE);
     }
 
@@ -3572,7 +3572,7 @@ EC_BOOL chttps_node_encode_rsp_body(CHTTPS_NODE *chttps_node, CBYTES *cbytes)
 
         if(EC_FALSE == chunk_mgr_export(recv_chunks, CBYTES_BUF(cbytes) + len , CBYTES_LEN(cbytes), NULL_PTR))
         {
-            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_encode_rsp_body: export recv chunks failed\n", size);
+            dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_encode_rsp_body: export recv chunks failed\n");
             return (EC_FALSE);
         }
     }

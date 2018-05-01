@@ -468,7 +468,7 @@ cngx_mp4_read(cngx_mp4_file_t *mp4, size_t size)
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT,"[DEBUG] cngx_mp4_read: "
-                  "mp4 %p: buffer_size = %d, offset = %ld, buffer_start = %p\n",
+                  "mp4 %p: buffer_size = %ld, offset = %ld, buffer_start = %p\n",
                   mp4, 
                   mp4->buffer_size, mp4->offset, mp4->buffer_start);     
 
@@ -487,7 +487,7 @@ cngx_mp4_read(cngx_mp4_file_t *mp4, size_t size)
                       ngx_read_file_n " read only %z of %z from \"%s\"",
                       n, mp4->buffer_size, mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read: "
-                      ngx_read_file_n " read only %d of %d from \"%s\"\n",
+                      ngx_read_file_n " read only %ld of %ld from \"%s\"\n",
                       n, mp4->buffer_size, mp4->file.name.data);                      
         return NGX_ERROR;
     }

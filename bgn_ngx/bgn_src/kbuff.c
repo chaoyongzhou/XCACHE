@@ -180,7 +180,7 @@ STATIC_CAST static void kbuff_print_cache(LOG *log, const KBUFF *kbuff)
     UINT32 pos;
     UINT32 count;
 
-    dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %lx: whole cache: \n", kbuff);
+    dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %p: whole cache: \n", kbuff);
     for(count = 1, pos = 0; pos < KBUFF_CUR_LEN(kbuff); count ++, pos ++)
     {
         kbuff_print_one_char_with_alignment(log, KBUFF_CACHE_CHAR(kbuff, pos), count);
@@ -192,11 +192,11 @@ STATIC_CAST static void kbuff_print_cache(LOG *log, const KBUFF *kbuff)
 
 void kbuff_print(LOG *log, const KBUFF *kbuff)
 {
-    dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %lx: max_len = %ld, cur_len = %ld\n", kbuff, KBUFF_MAX_LEN(kbuff), KBUFF_CUR_LEN(kbuff));
+    dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %p: max_len = %ld, cur_len = %ld\n", kbuff, KBUFF_MAX_LEN(kbuff), KBUFF_CUR_LEN(kbuff));
 
     if( 0 == KBUFF_CUR_LEN(kbuff))
     {
-        dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %lx: cache: (null)\n"      , kbuff);
+        dbg_log(SEC_0094_KBUFF, 5)(LOGSTDOUT, "kbuff %p: cache: (null)\n"      , kbuff);
         return;
     }
 
@@ -243,7 +243,7 @@ EC_BOOL kbuff_write(KBUFF *kbuff, const UINT8 *in_buff, const UINT32 in_buff_max
 
     if(0 == KBUFF_MAX_LEN(kbuff))
     {
-        dbg_log(SEC_0094_KBUFF, 0)(LOGSTDOUT, "error:kbuff_write: kbuff %lx is empty\n", kbuff);
+        dbg_log(SEC_0094_KBUFF, 0)(LOGSTDOUT, "error:kbuff_write: kbuff %p is empty\n", kbuff);
         return (EC_FALSE);
     }
 
@@ -268,12 +268,12 @@ EC_BOOL kbuff_fread(KBUFF *kbuff, const UINT32 size, FILE *fp)
 
     if(EC_FALSE == kbuff_resize(kbuff, KBUFF_CUR_LEN(kbuff) + size))
     {
-        dbg_log(SEC_0094_KBUFF, 1)(LOGSTDOUT, "warn:kbuff_fread: kbuff %lx with max_len = %ld, cur_len = %ld failed to resize to accept %ld bytes\n",
+        dbg_log(SEC_0094_KBUFF, 1)(LOGSTDOUT, "warn:kbuff_fread: kbuff %p with max_len = %ld, cur_len = %ld failed to resize to accept %ld bytes\n",
                            kbuff, KBUFF_MAX_LEN(kbuff), KBUFF_CUR_LEN(kbuff), size);
         return (EC_FALSE);
     }
 
-    //dbg_log(SEC_0094_KBUFF, 3)(LOGSTDOUT, "info:kbuff_fread: kbuff %lx, cur_len = %ld, max_len = %ld, size = %ld, fp = %lx\n", kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff), size, fp);
+    //dbg_log(SEC_0094_KBUFF, 3)(LOGSTDOUT, "info:kbuff_fread: kbuff %p, cur_len = %ld, max_len = %ld, size = %ld, fp = %lx\n", kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff), size, fp);
 
     read_bytes = fread(KBUFF_CACHE(kbuff) + KBUFF_CUR_LEN(kbuff), 1, size, fp);
     KBUFF_CUR_LEN(kbuff) += read_bytes;
@@ -286,11 +286,11 @@ EC_BOOL kbuff_fwrite(const KBUFF *kbuff, FILE *fp, UINT32 *pos)
 
     if(KBUFF_CUR_LEN(kbuff) <= (*pos))
     {
-        dbg_log(SEC_0094_KBUFF, 1)(LOGSTDOUT, "warn:kbuff_fwrite: kbuff %lx with %ld bytes cannot reach position %ld\n", kbuff, KBUFF_CUR_LEN(kbuff), (*pos));
+        dbg_log(SEC_0094_KBUFF, 1)(LOGSTDOUT, "warn:kbuff_fwrite: kbuff %p with %ld bytes cannot reach position %ld\n", kbuff, KBUFF_CUR_LEN(kbuff), (*pos));
         return (EC_FALSE);
     }
 
-    //dbg_log(SEC_0094_KBUFF, 3)(LOGSTDOUT, "info:kbuff_fwrite: kbuff %lx, cur_len = %ld, max_len = %ld, pos = %ld, fp = %lx\n", kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff), (*pos), fp);
+    //dbg_log(SEC_0094_KBUFF, 3)(LOGSTDOUT, "info:kbuff_fwrite: kbuff %p, cur_len = %ld, max_len = %ld, pos = %ld, fp = %lx\n", kbuff, KBUFF_CUR_LEN(kbuff), KBUFF_MAX_LEN(kbuff), (*pos), fp);
 
     write_bytes = fwrite(KBUFF_CACHE(kbuff) + (*pos), 1, KBUFF_CUR_LEN(kbuff) - (*pos), fp);
     (*pos) += write_bytes;

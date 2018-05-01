@@ -1155,7 +1155,7 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint32_t);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: pad %u bytes at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1163,7 +1163,7 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1171,7 +1171,7 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)&(CPGRB_POOL_NODE_NUM(pool))))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_NODE_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_NODE_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1179,7 +1179,7 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CPGRB_POOL_NODE_NUM(pool) * sizeof(CPGRB_NODE);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CPGRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_NODE_TBL at offset %u of fd %d failed where CPGRB_POOL_NODE_NUM is %u\n",
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: write CPGRB_POOL_NODE_TBL at offset %ld of fd %d failed where CPGRB_POOL_NODE_NUM is %u\n",
                             (*offset), fd, CPGRB_POOL_NODE_NUM(pool));
         return (EC_FALSE);
     }
@@ -1187,7 +1187,7 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize = (CPGRB_POOL_MAX_SIZE - CPGRB_POOL_NODE_NUM(pool)) * sizeof(CPGRB_NODE);
     if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: pad %u at offset %u of fd %d failed\n", osize, (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: pad %ld at offset %ld of fd %d failed\n", osize, (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1208,7 +1208,7 @@ EC_BOOL cpgrb_load(CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(CPGRB_POOL_FREE_HEAD(pool))))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_FREE_HEAD at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_FREE_HEAD at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1216,7 +1216,7 @@ EC_BOOL cpgrb_load(CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize  = sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)&(node_num)))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_NODE_NUM at offset %u of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_NODE_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
 
@@ -1226,7 +1226,7 @@ EC_BOOL cpgrb_load(CPGRB_POOL *pool, int fd, UINT32 *offset)
     osize  = CPGRB_POOL_NODE_NUM(pool) * sizeof(CPGRB_NODE);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CPGRB_POOL_NODE_TBL(pool)))
     {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_NODE_TBL at offset %u of fd %d failed where CPGRB_POOL_NODE_NUM is %u\n",
+        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_load: load CPGRB_POOL_NODE_TBL at offset %ld of fd %d failed where CPGRB_POOL_NODE_NUM is %u\n",
                             (*offset), fd, CPGRB_POOL_NODE_NUM(pool));
         return (EC_FALSE);
     }

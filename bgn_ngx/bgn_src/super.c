@@ -318,7 +318,7 @@ void super_ccond_print(LOG *log, const SUPER_CCOND *super_ccond)
 {
     sys_log(log, "super_ccond_print: %p: tag = %ld, key = %.*s\n", super_ccond,
                 SUPER_CCOND_TAG(super_ccond),
-                SUPER_CCOND_KEY_LEN(super_ccond), (char *)SUPER_CCOND_KEY_STR(super_ccond));
+                (uint32_t)SUPER_CCOND_KEY_LEN(super_ccond), (char *)SUPER_CCOND_KEY_STR(super_ccond));
     return;
 }
 
@@ -2773,7 +2773,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: trigger request %p failed\n", chttp_req);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: redirect_ctrl = %s, redirect_max_times = %u\n",
+    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: redirect_ctrl = %s, redirect_max_times = %ld\n",
                         c_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)),
                         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
     for(redirect_times = 0;
@@ -3218,7 +3218,7 @@ EC_BOOL super_exec_shell(const UINT32 super_md_id, const CSTRING *cmd_line, CBYT
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDNULL, "super_exec_shell: execute shell command: \"%s\", output len %ld, content is\n%.*s\n",
                         (char *)cstring_get_str(cmd_line_fix), cbytes_len(cbytes),
-                        cbytes_len(cbytes), cbytes_buf(cbytes));
+                        (uint32_t)cbytes_len(cbytes), cbytes_buf(cbytes));
 
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "super_exec_shell: execute shell command: \"%s\", output len %ld\n",
                         (char *)cstring_get_str(cmd_line_fix), cbytes_len(cbytes));
@@ -6873,7 +6873,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     if(NULL_PTR == super_ccond)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: new super_ccond [tag %ld, key '%.*s', timeout %ld ms] failed\n",
-                    tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         return (EC_FALSE);
     }
 
@@ -6881,7 +6881,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     if(NULL_PTR == crb_node)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree failed\n",
-                    tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         super_ccond_free(super_md_id, super_ccond);
         return (EC_FALSE);
     }
@@ -6889,20 +6889,20 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     if(CRB_NODE_DATA(crb_node) != super_ccond)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree but found duplicate\n",
-                    tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         super_ccond_free(super_md_id, super_ccond);
     }
 
     super_ccond_inserted = CRB_NODE_DATA(crb_node);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree done => cond %p\n",
-                tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+                tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
 
     croutine_cond_reserve(SUPER_CCOND_COND(super_ccond_inserted), 1, LOC_SUPER_0104);
     if(do_log(SEC_0117_SUPER, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] => cond %p\n",
-                    tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
     }
 
     if(EC_TIMEOUT == croutine_cond_wait(SUPER_CCOND_COND(super_ccond_inserted), LOC_SUPER_0105))
@@ -6910,7 +6910,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         if(do_log(SEC_0117_SUPER, 9))
         {
             sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to timeout <= cond %p\n",
-                      tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+                      tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
             /*here cannot print super_ccond due to it may be already free after wait*/
         }
 
@@ -6923,7 +6923,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     if(do_log(SEC_0117_SUPER, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to released <= cond %p\n",
-                          tag, CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+                          tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
         /*here cannot print super_ccond due to it may be already free after wait*/
     }
     return (EC_TRUE);
@@ -6956,7 +6956,7 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
     if(NULL_PTR == crb_node_searched)
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_wakeup: not found super_ccond [tag %ld, key '%.*s']\n",
-                    tag, CSTRING_LEN(key), CSTRING_STR(key));
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key));
         super_ccond_clean(super_md_id, &super_ccond_t);
         return (EC_TRUE);
     }
@@ -6966,7 +6966,7 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
     super_ccond_searched = CRB_NODE_DATA(crb_node_searched);
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_wakeup: release all super_ccond [tag %ld, key '%.*s'] <= cond %p\n",
-                tag, CSTRING_LEN(key), CSTRING_STR(key), SUPER_CCOND_COND(super_ccond_searched));
+                tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), SUPER_CCOND_COND(super_ccond_searched));
 
     croutine_cond_release_all(SUPER_CCOND_COND(super_ccond_searched), LOC_SUPER_0106);
 
@@ -7092,7 +7092,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_store: store '%.*s' with size %ld to %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         CBYTES_LEN(cbytes),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
@@ -7111,7 +7111,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     }
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_http_store: store '%.*s' with size %ld to %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     CBYTES_LEN(cbytes),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
@@ -7179,7 +7179,7 @@ STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chtt
         if(EC_FALSE == crfs_node_is_up(&crfs_node))
         {
             dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
                     );
             crfs_node_clean(&crfs_node);
@@ -7201,7 +7201,7 @@ STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chtt
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path));
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
     return (EC_TRUE);
 }
@@ -7221,17 +7221,17 @@ EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid,
     __super_http_store_after_ddir(chttp_store, CHTTP_STORE_BASEDIR(chttp_store));/*blocking*/
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_store_after_ddir: delete '%.*s' done\n",
-                    CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
+                    (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
 
     if(EC_FALSE == super_http_store(super_md_id, tcid, store_srv_ipaddr, store_srv_port, path, cbytes, auth_token))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_store_after_ddir: store '%.*s' done\n",
-                        CSTRING_LEN(path), CSTRING_STR(path));
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_store_after_ddir: store '%.*s' done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path));
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
     return (EC_TRUE);
 }
@@ -7280,7 +7280,7 @@ STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_sto
         if(EC_FALSE == crfs_node_is_up(&crfs_node))
         {
             dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
                     );
             crfs_node_clean(&crfs_node);
@@ -7300,7 +7300,7 @@ STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_sto
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path));
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
     return (EC_TRUE);
 }
@@ -7324,7 +7324,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
     __super_store_after_ddir(chttp_store, CHTTP_STORE_BASEDIR(chttp_store));/*blocking*/
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: delete '%.*s' done\n",
-                    CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
+                    (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
 
 
     /*make receiver*/
@@ -7335,7 +7335,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: p2p: [token %s] path '%.*s', data %p [len %ld] => tcid %s\n",
                 (char *)cstring_get_str(auth_token),
-                CSTRING_LEN(path), CSTRING_STR(path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
+                (uint32_t)CSTRING_LEN(path), CSTRING_STR(path), CBYTES_BUF(cbytes), CBYTES_LEN(cbytes),
                 c_word_to_ipv4(tcid));
 
     ret = EC_FALSE;
@@ -7344,7 +7344,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
             &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, auth_token);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: store '%.*s' done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path));
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
     return (EC_TRUE);
 }
@@ -7380,7 +7380,7 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
         super_cond_wakeup(0, tag, notify_key);
 
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_notify: wakeup waiters of '%.*s' done\n",
-                    CSTRING_LEN(notify_key), CSTRING_STR(notify_key));
+                    (uint32_t)CSTRING_LEN(notify_key), CSTRING_STR(notify_key));
 
         return (EC_TRUE);
     }
@@ -7388,7 +7388,7 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
     if(do_log(SEC_0117_SUPER, 1) && EC_FALSE == cstring_is_empty(notify_key))
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_notify: not notify waiters of '%.*s' due to flag is false\n",
-                    CSTRING_LEN(notify_key), CSTRING_STR(notify_key));
+                    (uint32_t)CSTRING_LEN(notify_key), CSTRING_STR(notify_key));
     }
     return (EC_TRUE);
 }
@@ -7431,7 +7431,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_unlock_notify: req uri '%.*s' done\n",
-                CSTRING_LEN(uri), CSTRING_STR(uri));
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     //chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -7440,7 +7440,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_unlock_notify: notify '%.*s' to %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7449,7 +7449,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     }
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_unlock_notify: notify '%.*s' to %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7496,7 +7496,7 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_http: req uri '%.*s'\n",
-                CSTRING_LEN(uri), CSTRING_STR(uri));
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     //chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -7506,7 +7506,7 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_unlock_over_http: unlock '%.*s' to %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7515,7 +7515,7 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_http: unlock '%.*s' to %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7555,14 +7555,14 @@ STATIC_CAST static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, con
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_bgn: unlock '%.*s' to %s done => failed\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(tcid));
 
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_bgn: unlock '%.*s' to %s done => OK\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(tcid));
 
     return (EC_TRUE);
@@ -7615,7 +7615,7 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data_e: file_wait '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7626,7 +7626,7 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data_e: file_wait '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7639,7 +7639,7 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data_e: file_wait '%.*s' on %s:%ld => status %u but not found data-ready\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7651,7 +7651,7 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     (*data_ready) = c_str_to_bool(v);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_wait_data_e: file_wait '%.*s' on %s:%ld => OK, data_ready: %s [%ld]\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     v, (*data_ready));
 
@@ -7689,7 +7689,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
     chttp_rsp_init(&chttp_rsp);
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data_e: read '%.*s' from %s:%ld start \n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
@@ -7708,7 +7708,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_read_data_e: read '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7717,13 +7717,13 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_read_data_e: read '%.*s' on %s:%ld back\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_read_data_e: read '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7733,7 +7733,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
     }
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data_e: read '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
@@ -7771,7 +7771,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
     if(EC_FALSE == __super_wait_data_e(super_md_id, store_srv_ipaddr, store_srv_port, path, store_offset, store_size, cbytes, &data_ready))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data_e: wait data of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
@@ -7779,7 +7779,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
     if(EC_TRUE == data_ready)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: wait data of '%.*s' on %s:%ld done and data is ready\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_TRUE);
     }
@@ -7789,7 +7789,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld => start \n",
                     tag,
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
@@ -7797,7 +7797,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_wait_data_e: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld failed\n",
                         tag,
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         timeout_msec,
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
@@ -7805,20 +7805,20 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld <= back\n",
                     tag,
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(EC_FALSE == __super_read_data_e(super_md_id, store_srv_ipaddr, store_srv_port, path, store_offset, store_size, cbytes))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data_e: read data of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: read data of '%.*s' on %s:%ld done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     return (EC_TRUE);
@@ -7859,7 +7859,7 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data: file_wait '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7870,7 +7870,7 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data: file_wait '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7883,7 +7883,7 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_wait_data: file_wait '%.*s' on %s:%ld => status %u but not found data-ready\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7895,7 +7895,7 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     (*data_ready) = c_str_to_bool(v);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_wait_data: file_wait '%.*s' on %s:%ld => OK, data_ready: '%s' [%ld]\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     v, (*data_ready));
 
@@ -7933,7 +7933,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
     chttp_rsp_init(&chttp_rsp);
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data: read '%.*s' from %s:%ld start \n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
@@ -7950,7 +7950,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_read_data: read '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -7959,13 +7959,13 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_read_data: read '%.*s' on %s:%ld back\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_read_data: read '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -7975,7 +7975,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
     }
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] __super_read_data: read '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
@@ -8013,7 +8013,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
     if(EC_FALSE == __super_wait_data(super_md_id, store_srv_ipaddr, store_srv_port, path, cbytes, &data_ready))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data: wait data of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
@@ -8021,7 +8021,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
     if(EC_TRUE == data_ready)
     {
         dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: wait data of '%.*s' on %s:%ld done and data is ready\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_TRUE);
     }
@@ -8031,7 +8031,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld => start \n",
                     tag,
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
@@ -8039,7 +8039,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_wait_data: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld failed\n",
                         tag,
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         timeout_msec,
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
@@ -8047,20 +8047,20 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld <= back\n",
                     tag,
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     timeout_msec,
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     if(EC_FALSE == __super_read_data(super_md_id, store_srv_ipaddr, store_srv_port, path, cbytes))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_wait_data: read data of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: read data of '%.*s' on %s:%ld done\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     return (EC_TRUE);
@@ -8100,7 +8100,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_renew_header: renew_header '%s:%s' of '%.*s' on %s:%ld failed\n",
                         (char *)CSTRING_STR(key), (char *)CSTRING_STR(val),
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -8112,7 +8112,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_renew_header: renew_header '%s:%s' of '%.*s' on %s:%ld => status %u\n",
                         (char *)CSTRING_STR(key), (char *)CSTRING_STR(val),
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8124,7 +8124,7 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_renew_header: renew_header '%s:%s' of '%.*s' on %s:%ld => OK\n",
                     (char *)CSTRING_STR(key), (char *)CSTRING_STR(val),
-                    CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -8191,7 +8191,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_renew_headers: renew headers of '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -8202,7 +8202,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_renew_headers: renew headers of '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8213,7 +8213,7 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_renew_headers: renew headers of '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -8259,7 +8259,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_file_notify: file_notify '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -8270,7 +8270,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_file_notify: file_notify '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8281,7 +8281,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_file_notify: file_notify '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -8321,7 +8321,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_delete_dir: delete dir '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -8332,7 +8332,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_delete_dir: delete dir '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8343,7 +8343,7 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_delete_dir: delete dir '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -8383,7 +8383,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_delete_file: delete file '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req_t);
@@ -8394,7 +8394,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_delete_file: delete file '%.*s' on %s:%ld => status %u\n",
-                        CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8405,7 +8405,7 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_delete_file: delete file '%.*s' on %s:%ld => OK\n",
-                    CSTRING_LEN(path), (char *)CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     chttp_req_clean(&chttp_req_t);
@@ -8450,8 +8450,8 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
     if(EC_FALSE == chttp_request_basic(&chttp_req_t, NULL_PTR, &chttp_rsp_t, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_set_billing: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld failed\n",
-                        CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                        CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                        (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                        (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                         send_len, recv_len);
 
         chttp_req_clean(&chttp_req_t);
@@ -8462,8 +8462,8 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp_t))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_set_billing: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => status %u\n",
-                        CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                        CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                        (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                        (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                         send_len, recv_len,
                         CHTTP_RSP_STATUS(&chttp_rsp_t));
 
@@ -8474,8 +8474,8 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_set_billing: set billing of [%.*s] '%.*s' and send_len %ld, recv_len %ld => OK\n",
-                    CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
-                    CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
+                    (uint32_t)CSTRING_LEN(billing_client_type), (char *)CSTRING_STR(billing_client_type),
+                    (uint32_t)CSTRING_LEN(billing_domain), (char *)CSTRING_STR(billing_domain),
                     send_len, recv_len);
 
     chttp_req_clean(&chttp_req_t);

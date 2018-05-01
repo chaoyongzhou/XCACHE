@@ -52,8 +52,8 @@ uint8_t btreeSplit(const BTree *src_tree, const RawFile *src_rawFile,
 
         if(RAW_FILE_FAIL == rawFileRead8s(src_rawFile, kv, data_len, &kv_len, offset + sizeof(uint32_t)) || kv_len != data_len)
         {
-            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeSplit: read kv %ld bytes at offset %d failed where count reaches %d, kv_len = %d\n",
-                    data_len, offset + sizeof(uint32_t), count, kv_len);
+            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeSplit: read kv %u bytes at offset %d failed where count reaches %d, kv_len = %d\n",
+                    data_len, (uint32_t)(offset + sizeof(uint32_t)), count, kv_len);
 
             SAFE_FREE(kv, LOC_BTREE_0128);
             btreeDestroyTraversal(trav);
@@ -97,8 +97,8 @@ uint8_t btreeSplit(const BTree *src_tree, const RawFile *src_rawFile,
 
         if(RAW_FILE_FAIL == rawFileRead8s(src_rawFile, kv, data_len, &kv_len, offset + sizeof(uint32_t)) || kv_len != data_len)
         {
-            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeSplit: read kv %ld bytes at offset %d failed where count reaches %d, kv_len = %d\n",
-                    data_len, offset + sizeof(uint32_t), count, kv_len);
+            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeSplit: read kv %u bytes at offset %d failed where count reaches %d, kv_len = %d\n",
+                    data_len, (uint32_t)(offset + sizeof(uint32_t)), count, kv_len);
 
             SAFE_FREE(kv, LOC_BTREE_0131);
             btreeDestroyTraversal(trav);
@@ -154,7 +154,7 @@ uint8_t btreeCompact(const BTree *src_tree, const RawFile *src_rawFile,
 
         if(RAW_FILE_FAIL == rawFileRead8slen(src_rawFile, kv, data_len, &kv_len, offset) || kv_len != data_len)
         {
-            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeCompact: read kv %ld bytes at offset %d failed where kv_len = %d\n",
+            dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeCompact: read kv %u bytes at offset %d failed where kv_len = %d\n",
                     data_len, offset, kv_len);
 
             SAFE_FREE(kv, LOC_BTREE_0134);

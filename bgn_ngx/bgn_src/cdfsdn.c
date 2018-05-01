@@ -193,7 +193,8 @@ EC_BOOL cdfsdn_record_mgr_link(CDFSDN_RECORD_MGR *cdfsdn_record_mgr)
 {
     UINT32 record_pos;
 
-    dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_record_mgr_link: CDFSDN_RECORD_MGR_NODE_NUM = %ld\n", CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr));
+    dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_record_mgr_link: CDFSDN_RECORD_MGR_NODE_NUM = %ld\n", 
+                        (UINT32)CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr));
 
     for(record_pos = 0; record_pos < CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr); record_pos ++)
     {
@@ -254,9 +255,9 @@ void cdfsdn_record_mgr_print(LOG *log, const CDFSDN_RECORD_MGR *cdfsdn_record_mg
     UINT32 total_size_in_kb;
 
     sys_log(log, "disk num %ld, record num %ld, beg pos %ld\n",
-                 CDFSDN_RECORD_MGR_DISK_NUM(cdfsdn_record_mgr),
-                 CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr),
-                 CDFSDN_RECORD_MGR_NODE_BEG(cdfsdn_record_mgr));
+                 (UINT32)CDFSDN_RECORD_MGR_DISK_NUM(cdfsdn_record_mgr),
+                 (UINT32)CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr),
+                 (UINT32)CDFSDN_RECORD_MGR_NODE_BEG(cdfsdn_record_mgr));
 
     for(record_pos = 0, total_size_in_kb = 0; record_pos < CDFSDN_RECORD_MGR_NODE_NUM(cdfsdn_record_mgr); record_pos ++)
     {
@@ -361,7 +362,7 @@ EC_BOOL cdfsdn_record_mgr_load(CDFSDN *cdfsdn)
         if(osize != read(CDFSDN_RECORD_FD(cdfsdn), buff + csize, osize))
         {
             dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_record_load: load record table failed where record num %ld, rsize %ld, csize %ld, osize %ld, errno %d, errstr %s\n",
-                                CDFSDN_NODE_NUM(cdfsdn), rsize, csize, osize, errno, strerror(errno));
+                                (UINT32)CDFSDN_NODE_NUM(cdfsdn), rsize, csize, osize, errno, strerror(errno));
             return (EC_FALSE);
         }
     }
@@ -454,7 +455,7 @@ EC_BOOL cdfsdn_record_mgr_set(CDFSDN *cdfsdn, const UINT32 path_layout, const UI
     if(path_layout > CDFSDN_NODE_NUM(cdfsdn))
     {
         dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_record_mgr_set: path layout %ld overflow record num %ld\n",
-                            path_layout, CDFSDN_NODE_NUM(cdfsdn));
+                            path_layout, (UINT32)CDFSDN_NODE_NUM(cdfsdn));
         return (EC_FALSE);
     }
 
@@ -467,7 +468,7 @@ EC_BOOL cdfsdn_record_mgr_get(const CDFSDN *cdfsdn, const UINT32 path_layout, UI
     if(path_layout > CDFSDN_NODE_NUM(cdfsdn))
     {
         dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_record_mgr_get: path layout %ld overflow record num %ld\n",
-                            path_layout, CDFSDN_NODE_NUM(cdfsdn));
+                            path_layout, (UINT32)CDFSDN_NODE_NUM(cdfsdn));
         return (EC_FALSE);
     }
 
@@ -480,7 +481,7 @@ EC_BOOL cdfsdn_record_is_full(const CDFSDN *cdfsdn, const UINT32 path_layout)
     if(path_layout > CDFSDN_NODE_NUM(cdfsdn))
     {
         dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_record_is_full: path layout %ld overflow record num %ld\n",
-                            path_layout, CDFSDN_NODE_NUM(cdfsdn));
+                            path_layout, (UINT32)CDFSDN_NODE_NUM(cdfsdn));
         return (EC_TRUE);
     }
     if(CDFSDN_NODE_IS_FULL(cdfsdn, path_layout))
@@ -929,7 +930,8 @@ EC_BOOL cdfsdn_block_burn(CDFSDN *cdfsdn, CDFSDN_BLOCK *cdfsdn_block, const UINT
     {
         UINT32 path_layout_next;
         path_layout_next = CDFSDN_NODE_NEXT(cdfsdn, CDFSDN_NODE_BEG(cdfsdn));
-        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_burn: CDFSDN_NODE_BEG move %ld => %ld\n", CDFSDN_NODE_BEG(cdfsdn), path_layout_next);
+        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_burn: CDFSDN_NODE_BEG move %ld => %ld\n", 
+                        (UINT32)CDFSDN_NODE_BEG(cdfsdn), path_layout_next);
         CDFSDN_NODE_NEXT(cdfsdn, CDFSDN_NODE_BEG(cdfsdn)) = CDFSDN_ERR_PATH;
         CDFSDN_NODE_BEG(cdfsdn) = path_layout_next;
     }
@@ -1099,14 +1101,17 @@ EC_BOOL cdfsdn_block_reserve_partition(CDFSDN *cdfsdn, CDFSDN_BLOCK *cdfsdn_bloc
     partition_idx_next = CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record);
     if(CDFSDN_BLOCK_PART_MAX_NUM <= partition_idx_next)
     {
-        dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_block_reserve_partition: block %ld is full where first partition idx = %ld\n",
-                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_next);
+        dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_block_reserve_partition: block %ld is full where first partition idx = %d\n",
+                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                            partition_idx_next);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_reserve_partition: beg: block %ld, next part idx %ld, cache room %ld, cache size %ld\n",
-                        CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record),
-                        CDFSDN_RECORD_ROOM(cdfsdn_record), CDFSDN_RECORD_SIZE(cdfsdn_record));
+                        (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                        (UINT32)CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record),
+                        (UINT32)CDFSDN_RECORD_ROOM(cdfsdn_record), 
+                        (UINT32)CDFSDN_RECORD_SIZE(cdfsdn_record));
 
     partition_idx_cur = ~(UINT32FIXED)0;
 
@@ -1116,8 +1121,11 @@ EC_BOOL cdfsdn_block_reserve_partition(CDFSDN *cdfsdn, CDFSDN_BLOCK *cdfsdn_bloc
         partition_idx_cur = partition_idx_next;
         partition_idx_next = CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur);
 
-        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_block_reserve_partition: push: block %ld, partition_idx_cur = %ld, burn_cache_len = %ld ==> room %ld\n",
-                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_cur, burn_cache_len, room);
+        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_block_reserve_partition: push: block %ld, partition_idx_cur = %d, burn_cache_len = %ld ==> room %ld\n",
+                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                            partition_idx_cur, 
+                            burn_cache_len, 
+                            room);
 
         data = partition_idx_cur;
         cvector_push_no_lock(partition_idx_vec, (void *)data);
@@ -1136,8 +1144,10 @@ EC_BOOL cdfsdn_block_reserve_partition(CDFSDN *cdfsdn, CDFSDN_BLOCK *cdfsdn_bloc
     CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record) = partition_idx_next;
 
     dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_reserve_partition: end: block %ld, next part idx %ld, cache room %ld, cache size %ld\n",
-                        CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record),
-                        CDFSDN_RECORD_ROOM(cdfsdn_record), CDFSDN_RECORD_SIZE(cdfsdn_record));
+                        (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                        (UINT32)CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record),
+                        (UINT32)CDFSDN_RECORD_ROOM(cdfsdn_record), 
+                        (UINT32)CDFSDN_RECORD_SIZE(cdfsdn_record));
 
     return (EC_TRUE);
 }
@@ -1199,21 +1209,25 @@ EC_BOOL cdfsdn_block_recycle_partition(CDFSDN *cdfsdn, CDFSDN_BLOCK *cdfsdn_bloc
     while(CDFSDN_BLOCK_PART_MAX_NUM > (partition_idx_next = CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur)))
     {
         dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_block_recycle_partition: block %ld, partition_idx_cur = %ld\n",
-                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_cur);
+                            (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                            (UINT32)partition_idx_cur);
         partition_idx_cur = partition_idx_next;
         burn_cache_len += CDFSDN_BLOCK_PER_PART_SIZE;
     }
 
     dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_recycle_partition: [1] block %ld, partition_idx_cur = %ld, CDFSDN_BLOCK_NEXT_PART_IDX %ld, CDFSDN_RECORD_FIRST_PART_IDX %ld\n",
-                        CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_cur,
-                        CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur) , CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record));
+                        (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                        (UINT32)partition_idx_cur,
+                        (UINT32)CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur) , 
+                        (UINT32)CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record));
 
     CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur) = CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record);
     CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record) = first_partition_idx;
 
     dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_block_recycle_partition: [2] block %ld, partition_idx_cur = %ld, CDFSDN_BLOCK_NEXT_PART_IDX %ld, CDFSDN_RECORD_FIRST_PART_IDX %ld\n",
-                        CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_cur,
-                        CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur) , CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record));
+                        (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), partition_idx_cur,
+                        (UINT32)CDFSDN_BLOCK_NEXT_PART_IDX(cdfsdn_block, partition_idx_cur), 
+                        (UINT32)CDFSDN_RECORD_FIRST_PART_IDX(cdfsdn_record));
 
     CDFSDN_RECORD_SIZE(cdfsdn_record) -= burn_cache_len;
 
@@ -1360,7 +1374,9 @@ EC_BOOL cdfsdn_is_full(CDFSDN *cdfsdn)
 {
     if(CDFSDN_NODE_BEG(cdfsdn) >= CDFSDN_NODE_NUM(cdfsdn))
     {
-        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_is_full: cdfsdn is full where node beg %ld num %ld\n", CDFSDN_NODE_BEG(cdfsdn), CDFSDN_NODE_NUM(cdfsdn));
+        dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_is_full: cdfsdn is full where node beg %ld num %ld\n", 
+                        (UINT32)CDFSDN_NODE_BEG(cdfsdn), 
+                        (UINT32)CDFSDN_NODE_NUM(cdfsdn));
         cdfsdn_print(LOGSTDOUT, cdfsdn);
         return (EC_TRUE);
     }
@@ -1545,10 +1561,14 @@ EC_BOOL cdfsdn_reserve_block_to_swapin(CDFSDN *cdfsdn, const UINT32 room, UINT32
         cdfsdn_record = CDFSDN_RECORD_MGR_NODE(CDFSDN_RECORD_MGR(cdfsdn), path_layout);
 
         dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_reserve_block_to_swapin: check record %ld, record room %ld, record size %ld, flag %lx => expect room %ld\n",
-                            path_layout, CDFSDN_RECORD_ROOM(cdfsdn_record), CDFSDN_RECORD_SIZE(cdfsdn_record), CDFSDN_RECORD_FLAG(cdfsdn_record), room);
+                            (UINT32)path_layout, 
+                            (UINT32)CDFSDN_RECORD_ROOM(cdfsdn_record), 
+                            (UINT32)CDFSDN_RECORD_SIZE(cdfsdn_record), 
+                            (UINT32)CDFSDN_RECORD_FLAG(cdfsdn_record), room);
         if(CDFSDN_RECORD_IS_CACHED(cdfsdn_record) || CDFSDN_RECORD_IS_WRITE(cdfsdn_record) || CDFSDN_RECORD_IS_SWAPOUT(cdfsdn_record))
         {
-            dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_reserve_block_to_swapin: ...... invalid stat[1]: %lx\n", CDFSDN_RECORD_FLAG(cdfsdn_record));
+            dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_reserve_block_to_swapin: ...... invalid stat[1]: %lx\n", 
+                            (UINT32)CDFSDN_RECORD_FLAG(cdfsdn_record));
             continue;
         }
 
@@ -1559,7 +1579,8 @@ EC_BOOL cdfsdn_reserve_block_to_swapin(CDFSDN *cdfsdn, const UINT32 room, UINT32
             || CDFSDN_RECORD_IS_WRITE(cdfsdn_record)
             || CDFSDN_RECORD_IS_SWAPOUT(cdfsdn_record))
             {
-                dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_reserve_block_to_swapin: ...... invalid stat[2]: %lx\n", CDFSDN_RECORD_FLAG(cdfsdn_record));
+                dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_reserve_block_to_swapin: ...... invalid stat[2]: %lx\n", 
+                                (UINT32)CDFSDN_RECORD_FLAG(cdfsdn_record));
                 continue;
             }
 
@@ -1613,10 +1634,10 @@ CDFSDN_BLOCK *cdfsdn_search_block_to_swapout(CDFSDN *cdfsdn, const UINT32 except
            )
         {
             dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_search_block_to_swapout: ignore block of path layout %ld to swapout where write flag %lx, reader num %ld, swapout flag %lx\n",
-                                CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block),
-                                CDFSDN_NODE_WRITE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block)),
-                                CDFSDN_NODE_READER_NUM(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block)),
-                                CDFSDN_NODE_SWAPOUT_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
+                                (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block),
+                                (UINT32)CDFSDN_NODE_WRITE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block)),
+                                (UINT32)CDFSDN_NODE_READER_NUM(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block)),
+                                (UINT32)CDFSDN_NODE_SWAPOUT_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
                                 );
 
             continue;
@@ -1715,8 +1736,8 @@ CDFSDN_BLOCK *cdfsdn_search_block_to_write(CDFSDN *cdfsdn, const UINT32 room)
             {
                 dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_search_block_to_write: block %ld is writting(%ld) or swapout(%ld)\n",
                                     path_layout,
-                                    CDFSDN_NODE_WRITE_FLAG(cdfsdn, path_layout),
-                                    CDFSDN_NODE_SWAPOUT_FLAG(cdfsdn, path_layout)
+                                    (UINT32)CDFSDN_NODE_WRITE_FLAG(cdfsdn, path_layout),
+                                    (UINT32)CDFSDN_NODE_SWAPOUT_FLAG(cdfsdn, path_layout)
                                     );
                 continue;
             }
@@ -1770,11 +1791,14 @@ CDFSDN_BLOCK *cdfsdn_reserve_block_to_write(CDFSDN *cdfsdn, const UINT32 room, U
         )
         {
             dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDOUT, "[DEBUG] cdfsdn_reserve_block_to_write: block %ld expect room %ld, cache room %ld, cache size %ld\n",
-                                CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), room, CDFSDN_RECORD_ROOM(cdfsdn_record), CDFSDN_RECORD_SIZE(cdfsdn_record));
+                                (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                                (UINT32)room, 
+                                (UINT32)CDFSDN_RECORD_ROOM(cdfsdn_record), 
+                                (UINT32)CDFSDN_RECORD_SIZE(cdfsdn_record));
             if(EC_FALSE == cdfsdn_block_reserve_partition(cdfsdn, cdfsdn_block, room, partition_beg, partition_idx_vec))
             {
                 dbg_log(SEC_0087_CDFSDN, 0)(LOGSTDOUT, "error:cdfsdn_reserve_block_to_write: reserve partition from block %ld failed\n",
-                                    CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block) );
+                                    (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block) );
 
                 cdfsdn_block_release_partition(cdfsdn, cdfsdn_block, partition_idx_vec);
                 CDFSDN_NODE_UNLOCK(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), LOC_CDFSDN_0058);
@@ -1830,7 +1854,8 @@ EC_BOOL cdfsdn_swapout(CDFSDN *cdfsdn, CDFSDN_BLOCK  *cdfsdn_block)
     else
     {
         dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_swapout: give up flush path layout %ld where flag %lx\n",
-                            CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), CDFSDN_NODE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
+                            (UINT32)CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), 
+                            (UINT32)CDFSDN_NODE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
                             );
     }
 
@@ -1945,8 +1970,8 @@ CDFSDN_BLOCK * cdfsdn_swapin_no_lock(CDFSDN *cdfsdn, const UINT32 path_layout, c
 
     dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_swapin_no_lock: swapin block %ld, cache size %ld, flag %lx\n",
                         path_layout,
-                        CDFSDN_RECORD_SIZE(cdfsdn_record),
-                        CDFSDN_NODE_FLAG(cdfsdn, path_layout)
+                        (UINT32)CDFSDN_RECORD_SIZE(cdfsdn_record),
+                        (UINT32)CDFSDN_NODE_FLAG(cdfsdn, path_layout)
                         );
     //dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_swapin_no_lock: after swapin, the block vec is:\n");
     //clist_print(LOGSTDNULL, CDFSDN_BLOCK_TBL(cdfsdn), (CLIST_DATA_DATA_PRINT)cdfsdn_block_print);
@@ -2064,7 +2089,7 @@ EC_BOOL cdfsdn_shrink_opt(CDFSDN *cdfsdn, const UINT32 except_cdfsdn_node_lock, 
             else
             {
                 dbg_log(SEC_0087_CDFSDN, 9)(LOGSTDNULL, "[DEBUG] cdfsdn_shrink_opt: give up swapout %ld where flag %lx\n",
-                                    CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), CDFSDN_NODE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
+                                    CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block), (UINT32)CDFSDN_NODE_FLAG(cdfsdn, CDFSDN_BLOCK_PATH_LAYOUT(cdfsdn_block))
                                     );
             }
 

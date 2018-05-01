@@ -91,7 +91,7 @@ UINT32 csfs_free_module_static_mem(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_free_module_static_mem: csfs module #0x%lx not started.\n",
+                "error:csfs_free_module_static_mem: csfs module #%ld not started.\n",
                 csfs_md_id);
         /*note: here do not exit but return only*/
         return ((UINT32)-1);
@@ -407,7 +407,7 @@ EC_BOOL csfs_flush(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_flush: csfs module #0x%lx not started.\n",
+                "error:csfs_flush: csfs module #%ld not started.\n",
                 csfs_md_id);
         csfs_print_module_status(csfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CSFS, csfs_md_id);
@@ -447,7 +447,7 @@ UINT32 csfs_set_npp_mod_mgr(const UINT32 csfs_md_id, const MOD_MGR * src_mod_mgr
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_set_npp_mod_mgr: csfs module #0x%lx not started.\n",
+                "error:csfs_set_npp_mod_mgr: csfs module #%ld not started.\n",
                 csfs_md_id);
         csfs_print_module_status(csfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CSFS, csfs_md_id);
@@ -457,15 +457,15 @@ UINT32 csfs_set_npp_mod_mgr(const UINT32 csfs_md_id, const MOD_MGR * src_mod_mgr
     csfs_md = CSFS_MD_GET(csfs_md_id);
     des_mod_mgr = CSFS_MD_NPP_MOD_MGR(csfs_md);
 
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_set_npp_mod_mgr: md_id %d, input src_mod_mgr %lx\n", csfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_set_npp_mod_mgr: md_id %ld, input src_mod_mgr %p\n", csfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of csfsnp_tcid_vec and csfsnp_tcid_vec*/
     mod_mgr_limited_clone(csfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_npp_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_npp_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_npp_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_npp_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -479,7 +479,7 @@ UINT32 csfs_set_dn_mod_mgr(const UINT32 csfs_md_id, const MOD_MGR * src_mod_mgr)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_set_dn_mod_mgr: csfs module #0x%lx not started.\n",
+                "error:csfs_set_dn_mod_mgr: csfs module #%ld not started.\n",
                 csfs_md_id);
         csfs_print_module_status(csfs_md_id, LOGSTDOUT);
         dbg_exit(MD_CSFS, csfs_md_id);
@@ -489,15 +489,15 @@ UINT32 csfs_set_dn_mod_mgr(const UINT32 csfs_md_id, const MOD_MGR * src_mod_mgr)
     csfs_md = CSFS_MD_GET(csfs_md_id);
     des_mod_mgr = CSFS_MD_DN_MOD_MGR(csfs_md);
 
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_set_dn_mod_mgr: md_id %d, input src_mod_mgr %lx\n", csfs_md_id, src_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_set_dn_mod_mgr: md_id %ld, input src_mod_mgr %p\n", csfs_md_id, src_mod_mgr);
     mod_mgr_print(LOGSTDOUT, src_mod_mgr);
 
     /*figure out mod_nodes with tcid belong to set of csfsnp_tcid_vec and csfsnp_tcid_vec*/
     mod_mgr_limited_clone(csfs_md_id, src_mod_mgr, des_mod_mgr);
 
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_dn_mod_mgr: des_mod_mgr %lx beg====================================\n", des_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_dn_mod_mgr: des_mod_mgr %p beg====================================\n", des_mod_mgr);
     mod_mgr_print(LOGSTDOUT, des_mod_mgr);
-    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_dn_mod_mgr: des_mod_mgr %lx end====================================\n", des_mod_mgr);
+    dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "====================================csfs_set_dn_mod_mgr: des_mod_mgr %p end====================================\n", des_mod_mgr);
 
     return (0);
 }
@@ -566,7 +566,7 @@ CSFSNP_MGR *csfs_get_npp(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_get_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_get_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -589,7 +589,7 @@ CSFSDN *csfs_get_dn(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_get_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_get_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -612,7 +612,7 @@ EC_BOOL csfs_open_npp(const UINT32 csfs_md_id, const CSTRING *csfsnp_db_root_dir
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_open_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_open_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -648,7 +648,7 @@ EC_BOOL csfs_close_npp(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_close_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_close_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -681,7 +681,7 @@ EC_BOOL csfs_is_npp(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_is_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_is_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -711,7 +711,7 @@ EC_BOOL csfs_is_dn(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_is_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_is_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -741,7 +741,7 @@ EC_BOOL csfs_is_npp_and_dn(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_is_npp_and_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_is_npp_and_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -809,7 +809,7 @@ EC_BOOL csfs_create_npp(const UINT32 csfs_md_id,
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_create_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_create_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -825,13 +825,13 @@ EC_BOOL csfs_create_npp(const UINT32 csfs_md_id,
 
     if(EC_FALSE == __csfs_check_is_uint8_t(csfsnp_model))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_create_npp: csfsnp_model %u is invalid\n", csfsnp_model);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_create_npp: csfsnp_model %u is invalid\n", (uint32_t)csfsnp_model);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == __csfs_check_is_uint32_t(csfsnp_max_num))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_create_npp: csfsnp_disk_max_num %u is invalid\n", csfsnp_max_num);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_create_npp: csfsnp_disk_max_num %u is invalid\n", (uint32_t)csfsnp_max_num);
         return (EC_FALSE);
     }
 
@@ -862,7 +862,7 @@ EC_BOOL csfs_add_npp(const UINT32 csfs_md_id, const UINT32 csfsnpp_tcid, const U
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_add_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_add_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -894,7 +894,7 @@ EC_BOOL csfs_add_dn(const UINT32 csfs_md_id, const UINT32 csfsdn_tcid, const UIN
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_add_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_add_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -931,7 +931,7 @@ EC_BOOL csfs_find_file(const UINT32 csfs_md_id, const CSTRING *file_path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_find_file: csfs module #0x%lx not started.\n",
+                "error:csfs_find_file: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -965,7 +965,7 @@ EC_BOOL csfs_find(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_find: csfs module #0x%lx not started.\n",
+                "error:csfs_find: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -997,7 +997,7 @@ EC_BOOL csfs_exists(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_exists: csfs module #0x%lx not started.\n",
+                "error:csfs_exists: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1017,7 +1017,7 @@ EC_BOOL csfs_is_file(const UINT32 csfs_md_id, const CSTRING *file_path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_is_file: csfs module #0x%lx not started.\n",
+                "error:csfs_is_file: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1045,7 +1045,7 @@ EC_BOOL csfs_reserve_dn(const UINT32 csfs_md_id, const UINT32 data_len, CSFSNP_F
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_reserve_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_reserve_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1055,7 +1055,7 @@ EC_BOOL csfs_reserve_dn(const UINT32 csfs_md_id, const UINT32 data_len, CSFSNP_F
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_reserve_dn: data_len %u overflow\n", data_len);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_reserve_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
     }
 
@@ -1071,7 +1071,7 @@ EC_BOOL csfs_reserve_dn(const UINT32 csfs_md_id, const UINT32 data_len, CSFSNP_F
     if(EC_FALSE == csfsv_new_space(CSFSDN_CSFSV(CSFS_MD_DN(csfs_md)), size, &disk_no, &block_no, &page_no))
     {
         csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0008);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_reserve_dn: new %u bytes space from vol failed\n", data_len);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
     csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0009);
@@ -1105,7 +1105,7 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__csfs_write: csfs module #0x%lx not started.\n",
+                "error:__csfs_write: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1149,7 +1149,7 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
 
     if(EC_FALSE == csfs_reserve_dn(csfs_md_id, CBYTES_LEN(cbytes), &csfsnp_fnode))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write: reserve dn %u bytes for file %s failed\n",
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write: reserve dn %ld bytes for file %s failed\n",
                             CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
 
         /*notify all waiters*/
@@ -1173,7 +1173,7 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
     }
 
     dbg_log(SEC_0167_CSFS, 9)(LOGSTDNULL, "[DEBUG] __csfs_write: write file %s is %.*s\n",
-                        (char *)cstring_get_str(file_path), DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
+                        (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
     CSFS_WRLOCK(csfs_md, LOC_CSFS_0013);
     if(EC_FALSE == __csfs_write_npp(csfs_md_id, file_path, &csfsnp_fnode, &crfsnp_id, &node_pos))
@@ -1231,7 +1231,7 @@ EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cby
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read: csfs module #0x%lx not started.\n",
+                "error:csfs_read: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1284,7 +1284,7 @@ EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *o
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read_e: csfs module #0x%lx not started.\n",
+                "error:csfs_read_e: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1358,7 +1358,7 @@ EC_BOOL csfs_update(const UINT32 csfs_md_id, const CSTRING *file_path, const CBY
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_update: csfs module #0x%lx not started.\n",
+                "error:csfs_update: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1396,7 +1396,7 @@ EC_BOOL csfs_update_no_lock(const UINT32 csfs_md_id, const CSTRING *file_path, c
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_update_no_lock: csfs module #0x%lx not started.\n",
+                "error:csfs_update_no_lock: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1452,7 +1452,7 @@ EC_BOOL csfs_renew_http_header(const UINT32 csfs_md_id, const CSTRING *file_path
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_renew_http_header: csfs module #0x%lx not started.\n",
+                "error:csfs_renew_http_header: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1528,7 +1528,7 @@ EC_BOOL csfs_renew_http_headers(const UINT32 csfs_md_id, const CSTRING *file_pat
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_renew_http_headers: csfs module #0x%lx not started.\n",
+                "error:csfs_renew_http_headers: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1621,7 +1621,7 @@ EC_BOOL csfs_wait_http_header(const UINT32 csfs_md_id, const UINT32 tcid, const 
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_wait_http_header: csfs module #0x%lx not started.\n",
+                "error:csfs_wait_http_header: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1700,7 +1700,7 @@ EC_BOOL csfs_wait_http_headers(const UINT32 csfs_md_id, const UINT32 tcid, const
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_wait_http_headers: csfs module #0x%lx not started.\n",
+                "error:csfs_wait_http_headers: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1863,7 +1863,7 @@ void csfs_wait_files_print(const UINT32 csfs_md_id, LOG *log)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_wait_files_print: csfs module #0x%lx not started.\n",
+                "error:csfs_wait_files_print: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1920,7 +1920,7 @@ EC_BOOL csfs_wait_file_owner_push(CSFS_WAIT_FILE *csfs_wait_file, const UINT32 t
         clist_push_back(owner_list, (void *)mod_node);
 
         dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_wait_file_owner_push: push %s to file '%.*s'\n",
-                    c_word_to_ipv4(tcid), CSFS_WAIT_FILE_NAME_LEN(csfs_wait_file), CSFS_WAIT_FILE_NAME_STR(csfs_wait_file));
+                    c_word_to_ipv4(tcid), (uint32_t)CSFS_WAIT_FILE_NAME_LEN(csfs_wait_file), CSFS_WAIT_FILE_NAME_STR(csfs_wait_file));
     }
 
     return (EC_TRUE);
@@ -1943,7 +1943,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_wait_file_owner_wakeup: csfs module #0x%lx not started.\n",
+                "error:csfs_wait_file_owner_wakeup: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -1963,7 +1963,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     cstring_append_cstr(uri, path);
 
     dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_wait_file_owner_wakeup: req uri '%.*s' done\n",
-                CSTRING_LEN(uri), CSTRING_STR(uri));
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
@@ -1971,7 +1971,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld failed\n",
-                        CSTRING_LEN(path), CSTRING_STR(path),
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
@@ -1980,7 +1980,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     }
 
     dbg_log(SEC_0167_CSFS, 1)(LOGSTDOUT, "[DEBUG] csfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld done => status %u\n",
-                    CSTRING_LEN(path), CSTRING_STR(path),
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
@@ -2167,7 +2167,7 @@ EC_BOOL csfs_file_wait(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_wait: csfs module #0x%lx not started.\n",
+                "error:csfs_file_wait: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2203,7 +2203,7 @@ EC_BOOL csfs_file_wait_e(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRI
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_wait: csfs module #0x%lx not started.\n",
+                "error:csfs_file_wait: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2247,7 +2247,7 @@ EC_BOOL csfs_file_notify(const UINT32 csfs_md_id, const CSTRING *file_path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_notify: csfs module #0x%lx not started.\n",
+                "error:csfs_file_notify: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2391,7 +2391,7 @@ void csfs_locked_files_print(const UINT32 csfs_md_id, LOG *log)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_locked_files_print: csfs module #0x%lx not started.\n",
+                "error:csfs_locked_files_print: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2521,7 +2521,7 @@ EC_BOOL csfs_locked_file_retire(const UINT32 csfs_md_id, const UINT32 retire_max
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_locked_file_retire: csfs module #0x%lx not started.\n",
+                "error:csfs_locked_file_retire: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2624,7 +2624,7 @@ EC_BOOL csfs_file_lock(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_lock: csfs module #0x%lx not started.\n",
+                "error:csfs_file_lock: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2736,7 +2736,7 @@ EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, cons
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_unlock: csfs module #0x%lx not started.\n",
+                "error:csfs_file_unlock: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2749,7 +2749,7 @@ EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, cons
 #if 0
     if(do_log(SEC_0167_CSFS, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] csfs_file_unlock: auth_token str: %.*s\n", CSTRING_LEN(token_str), CSTRING_STR(token_str));
+        sys_log(LOGSTDOUT, "[DEBUG] csfs_file_unlock: auth_token str: %.*s\n", (uint32_t)CSTRING_LEN(token_str), CSTRING_STR(token_str));
         sys_log(LOGSTDOUT, "[DEBUG] csfs_file_unlock: auth_token str => token: ");
         cbytes_print_chars(LOGSTDOUT, &token_cbyte);
 
@@ -2786,7 +2786,7 @@ EC_BOOL csfs_file_unlock_notify(const UINT32 csfs_md_id, const CSTRING *file_pat
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_unlock_notify: csfs module #0x%lx not started.\n",
+                "error:csfs_file_unlock_notify: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2812,7 +2812,7 @@ EC_BOOL csfs_cache_file(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_cache_file: csfs module #0x%lx not started.\n",
+                "error:csfs_cache_file: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2866,7 +2866,7 @@ EC_BOOL csfs_create_dn(const UINT32 csfs_md_id, const CSTRING *root_dir)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_create_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_create_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2905,7 +2905,7 @@ EC_BOOL csfs_add_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_add_disk: csfs module #0x%lx not started.\n",
+                "error:csfs_add_disk: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2920,7 +2920,7 @@ EC_BOOL csfs_add_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_add_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_add_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -2928,7 +2928,7 @@ EC_BOOL csfs_add_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == csfsdn_add_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
         CSFS_UNLOCK(csfs_md, LOC_CSFS_0043);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_add_disk: add disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_add_disk: add disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CSFS_UNLOCK(csfs_md, LOC_CSFS_0044);
@@ -2948,7 +2948,7 @@ EC_BOOL csfs_del_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_del_disk: csfs module #0x%lx not started.\n",
+                "error:csfs_del_disk: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -2963,7 +2963,7 @@ EC_BOOL csfs_del_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_del_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_del_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -2971,7 +2971,7 @@ EC_BOOL csfs_del_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == csfsdn_del_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
         CSFS_UNLOCK(csfs_md, LOC_CSFS_0046);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_del_disk: del disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_del_disk: del disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CSFS_UNLOCK(csfs_md, LOC_CSFS_0047);
@@ -2991,7 +2991,7 @@ EC_BOOL csfs_mount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_mount_disk: csfs module #0x%lx not started.\n",
+                "error:csfs_mount_disk: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3006,7 +3006,7 @@ EC_BOOL csfs_mount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_mount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_mount_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -3014,7 +3014,7 @@ EC_BOOL csfs_mount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == csfsdn_mount_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
         CSFS_UNLOCK(csfs_md, LOC_CSFS_0049);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_mount_disk: mount disk %u to dn failed\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_mount_disk: mount disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CSFS_UNLOCK(csfs_md, LOC_CSFS_0050);
@@ -3034,7 +3034,7 @@ EC_BOOL csfs_umount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_umount_disk: csfs module #0x%lx not started.\n",
+                "error:csfs_umount_disk: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3049,7 +3049,7 @@ EC_BOOL csfs_umount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
 
     if(EC_FALSE == c_check_is_uint16_t(disk_no))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_umount_disk: disk_no %u is invalid\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_umount_disk: disk_no %u is invalid\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
 
@@ -3057,7 +3057,7 @@ EC_BOOL csfs_umount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
     if(EC_FALSE == csfsdn_umount_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
         CSFS_UNLOCK(csfs_md, LOC_CSFS_0052);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_umount_disk: umount disk %u from dn failed\n", disk_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_umount_disk: umount disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
     CSFS_UNLOCK(csfs_md, LOC_CSFS_0053);
@@ -3078,7 +3078,7 @@ EC_BOOL csfs_open_dn(const UINT32 csfs_md_id, const CSTRING *root_dir)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_open_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_open_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3119,7 +3119,7 @@ EC_BOOL csfs_close_dn(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_close_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_close_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3162,7 +3162,7 @@ EC_BOOL csfs_export_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, const CSFS
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_export_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_export_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3175,7 +3175,7 @@ EC_BOOL csfs_export_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, const CSFS
     if(CPGB_CACHE_MAX_BYTE_SIZE <= data_len)
     {
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_export_dn: CBYTES_LEN %u or CSFSNP_FNODE_FILESZ %u overflow\n",
-                            CBYTES_LEN(cbytes), CSFSNP_FNODE_FILESZ(csfsnp_fnode));
+                            (uint32_t)CBYTES_LEN(cbytes), CSFSNP_FNODE_FILESZ(csfsnp_fnode));
         return (EC_FALSE);
     }
 
@@ -3195,11 +3195,11 @@ EC_BOOL csfs_export_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, const CSFS
     offset  = (((UINT32)(page_no)) << (CPGB_PAGE_BIT_SIZE));
     if(EC_FALSE == csfsdn_write_o(CSFS_MD_DN(csfs_md), data_len, CBYTES_BUF(cbytes), disk_no, block_no, &offset))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_export_dn: write %u bytes to disk %u block %u page %u failed\n",
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_export_dn: write %ld bytes to disk %u block %u page %u failed\n",
                             data_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_export_dn: write %u bytes to disk %u block %u page %u done\n",
+    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_export_dn: write %ld bytes to disk %u block %u page %u done\n",
                         data_len, disk_no, block_no, page_no);
 
     return (EC_TRUE);
@@ -3223,7 +3223,7 @@ EC_BOOL csfs_write_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, CSFSNP_FNOD
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_write_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_write_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3233,7 +3233,7 @@ EC_BOOL csfs_write_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, CSFSNP_FNOD
 
     if(CPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_dn: buff len (or file size) %u overflow\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_dn: buff len (or file size) %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
 
@@ -3242,7 +3242,7 @@ EC_BOOL csfs_write_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, CSFSNP_FNOD
     {
         csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0055);
 
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_dn: write %u bytes to dn failed\n", CBYTES_LEN(cbytes));
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
     csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0056);
@@ -3278,7 +3278,7 @@ EC_BOOL csfs_read_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode, 
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_read_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3304,7 +3304,7 @@ EC_BOOL csfs_read_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode, 
     block_no = CSFSNP_INODE_BLOCK_NO(csfsnp_inode);
     page_no  = CSFSNP_INODE_PAGE_NO(csfsnp_inode) ;
 
-    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_read_dn: file file %u, disk %u, block %u, page %u\n", file_size, disk_no, block_no, page_no);
+    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_read_dn: file size %u, disk %u, block %u, page %u\n", file_size, disk_no, block_no, page_no);
 
     if(CBYTES_LEN(cbytes) < file_size)
     {
@@ -3351,7 +3351,7 @@ EC_BOOL csfs_read_e_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read_e_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_read_e_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3379,7 +3379,7 @@ EC_BOOL csfs_read_e_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
 
     if((*offset) >= file_size)
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %u >= file size %u\n", (*offset), file_size);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: due to offset %ld >= file size %u\n", (*offset), file_size);
         return (EC_FALSE);
     }
 
@@ -3393,7 +3393,7 @@ EC_BOOL csfs_read_e_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
         max_len_t = DMIN(max_len, file_size - offset_t);
     }
 
-    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u, offset %u, max len %u\n",
+    dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e_dn: file size %u, disk %u, block %u, page %u, offset %u, max len %ld\n",
                         file_size, disk_no, block_no, page_no, offset_t, max_len_t);
 
     if(CBYTES_LEN(cbytes) < file_size)
@@ -3411,7 +3411,7 @@ EC_BOOL csfs_read_e_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
     {
         csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0065);
 
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_e_dn: read %u bytes from disk %u, block %u, page %u failed\n",
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_e_dn: read %ld bytes from disk %u, block %u, page %u failed\n",
                            max_len_t, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
@@ -3434,7 +3434,7 @@ EC_BOOL csfs_write_npp(const UINT32 csfs_md_id, const CSTRING *file_path, const 
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_write_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_write_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3475,7 +3475,7 @@ STATIC_CAST static EC_BOOL __csfs_write_npp(const UINT32 csfs_md_id, const CSTRI
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:__csfs_write_npp: csfs module #0x%lx not started.\n",
+                "error:__csfs_write_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3521,7 +3521,7 @@ EC_BOOL csfs_read_npp(const UINT32 csfs_md_id, const CSTRING *file_path, CSFSNP_
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_read_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3561,7 +3561,7 @@ EC_BOOL csfs_delete_npp(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_delete_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3600,7 +3600,7 @@ EC_BOOL csfs_delete_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_delete_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3622,7 +3622,7 @@ EC_BOOL csfs_delete(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete: csfs module #0x%lx not started.\n",
+                "error:csfs_delete: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3662,7 +3662,7 @@ EC_BOOL csfs_delete_dir(const UINT32 csfs_md_id, const CSTRING *dir_path, const 
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete_dir: csfs module #0x%lx not started.\n",
+                "error:csfs_delete_dir: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3738,7 +3738,7 @@ EC_BOOL csfs_qfile(const UINT32 csfs_md_id, const CSTRING *file_path, CSFSNP_ITE
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_qfile: csfs module #0x%lx not started.\n",
+                "error:csfs_qfile: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3782,7 +3782,7 @@ EC_BOOL csfs_flush_npp(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_flush_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_flush_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3822,7 +3822,7 @@ EC_BOOL csfs_flush_dn(const UINT32 csfs_md_id)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_flush_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_flush_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3863,7 +3863,7 @@ EC_BOOL csfs_file_num(const UINT32 csfs_md_id, UINT32 *file_num)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_num: csfs module #0x%lx not started.\n",
+                "error:csfs_file_num: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3902,7 +3902,7 @@ EC_BOOL csfs_file_size(const UINT32 csfs_md_id, const CSTRING *path_cstr, UINT32
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_size: csfs module #0x%lx not started.\n",
+                "error:csfs_file_size: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3941,7 +3941,7 @@ EC_BOOL csfs_search(const UINT32 csfs_md_id, const CSTRING *path_cstr)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_search: csfs module #0x%lx not started.\n",
+                "error:csfs_search: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -3988,7 +3988,7 @@ EC_BOOL csfs_check_file_content(const UINT32 csfs_md_id, const UINT32 disk_no, c
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_check_file_content: csfs module #0x%lx not started.\n",
+                "error:csfs_check_file_content: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4009,24 +4009,24 @@ EC_BOOL csfs_check_file_content(const UINT32 csfs_md_id, const UINT32 disk_no, c
     cbytes = cbytes_new(file_size);
     if(NULL_PTR == cbytes)
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: new csfs buff with len %u failed\n", file_size);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: new csfs buff with len %ld failed\n", file_size);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == csfsdn_read_p(CSFS_MD_DN(csfs_md), (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no, file_size,
                                   CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: read %u bytes from disk %u, block %u, page %u failed\n",
-                            file_size, disk_no, block_no, page_no);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: read %ld bytes from disk %u, block %u, page %u failed\n",
+                            file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no);
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
 
     if(CBYTES_LEN(cbytes) < cstring_get_len(file_content_cstr))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: read %u bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
-                            file_size, disk_no, block_no, page_no,
-                            CBYTES_LEN(cbytes), cstring_get_len(file_content_cstr));
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: read %ld bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
+                            file_size, (uint16_t)disk_no, (uint16_t)block_no,(uint16_t) page_no,
+                            (uint32_t)CBYTES_LEN(cbytes), (uint32_t)cstring_get_len(file_content_cstr));
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
@@ -4040,9 +4040,9 @@ EC_BOOL csfs_check_file_content(const UINT32 csfs_md_id, const UINT32 disk_no, c
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_content: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -4074,7 +4074,7 @@ EC_BOOL csfs_check_file_is(const UINT32 csfs_md_id, const CSTRING *file_path, co
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_check_file_is: csfs module #0x%lx not started.\n",
+                "error:csfs_check_file_is: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4106,7 +4106,7 @@ EC_BOOL csfs_check_file_is(const UINT32 csfs_md_id, const CSTRING *file_path, co
     {
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_is: mismatched len: file %s read len %u which should be %u\n",
                             (char *)cstring_get_str(file_path),
-                            CBYTES_LEN(cbytes), CBYTES_LEN(file_content));
+                            (uint32_t)CBYTES_LEN(cbytes), (uint32_t)CBYTES_LEN(file_content));
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
@@ -4120,9 +4120,9 @@ EC_BOOL csfs_check_file_is(const UINT32 csfs_md_id, const CSTRING *file_path, co
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_is: char at pos %u not matched\n", pos);
-            sys_print(LOGSTDOUT, "read buff: %.*s\n", len, buff);
-            sys_print(LOGSTDOUT, "expected : %.*s\n", len, str);
+            dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_check_file_is: char at pos %ld not matched\n", pos);
+            sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
+            sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
             cbytes_free(cbytes);
             return (EC_FALSE);
@@ -4147,7 +4147,7 @@ EC_BOOL csfs_show_npp(const UINT32 csfs_md_id, LOG *log)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_show_npp: csfs module #0x%lx not started.\n",
+                "error:csfs_show_npp: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4184,7 +4184,7 @@ EC_BOOL csfs_show_dn(const UINT32 csfs_md_id, LOG *log)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_show_dn: csfs module #0x%lx not started.\n",
+                "error:csfs_show_dn: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4214,7 +4214,7 @@ EC_BOOL csfs_show_cached_np(const UINT32 csfs_md_id, LOG *log)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_show_cached_np: csfs module #0x%lx not started.\n",
+                "error:csfs_show_cached_np: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4248,7 +4248,7 @@ EC_BOOL csfs_show_specific_np(const UINT32 csfs_md_id, const UINT32 csfsnp_id, L
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_show_specific_np: csfs module #0x%lx not started.\n",
+                "error:csfs_show_specific_np: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4264,7 +4264,7 @@ EC_BOOL csfs_show_specific_np(const UINT32 csfs_md_id, const UINT32 csfsnp_id, L
 
     if(EC_FALSE == __csfs_check_is_uint32_t(csfsnp_id))
     {
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_specific_np: csfsnp_id %u is invalid\n", csfsnp_id);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_specific_np: csfsnp_id %u is invalid\n", (uint32_t)csfsnp_id);
         return (EC_FALSE);
     }
 
@@ -4272,7 +4272,7 @@ EC_BOOL csfs_show_specific_np(const UINT32 csfs_md_id, const UINT32 csfsnp_id, L
     if(EC_FALSE == csfsnp_mgr_show_np(log, CSFS_MD_NPP(csfs_md), (uint32_t)csfsnp_id))
     {
         csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0105);
-        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_cached_np: show np %u but failed\n", csfsnp_id);
+        dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_cached_np: show np %u but failed\n", (uint32_t)csfsnp_id);
         return (EC_FALSE);
     }
     csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0106);
@@ -4287,7 +4287,7 @@ EC_BOOL csfs_write_memc(const UINT32 csfs_md_id, const CSTRING *file_path, const
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_write_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_write_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4328,7 +4328,7 @@ EC_BOOL csfs_check_memc(const UINT32 csfs_md_id, const CSTRING *file_path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_check_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_check_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4371,7 +4371,7 @@ EC_BOOL csfs_read_memc(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_read_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_read_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4415,7 +4415,7 @@ EC_BOOL csfs_update_memc(const UINT32 csfs_md_id, const CSTRING *file_path, cons
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_update_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_update_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4457,7 +4457,7 @@ EC_BOOL csfs_delete_memc(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_delete_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4479,7 +4479,7 @@ EC_BOOL csfs_delete_file_memc(const UINT32 csfs_md_id, const CSTRING *path)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_delete_file_memc: csfs module #0x%lx not started.\n",
+                "error:csfs_delete_file_memc: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4523,7 +4523,7 @@ EC_BOOL csfs_retire(const UINT32 csfs_md_id, const UINT32 nsec, const UINT32 exp
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_retire: csfs module #0x%lx not started.\n",
+                "error:csfs_retire: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4545,7 +4545,7 @@ EC_BOOL csfs_recycle(const UINT32 csfs_md_id, const UINT32 max_num_per_np, UINT3
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_recycle: csfs module #0x%lx not started.\n",
+                "error:csfs_recycle: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }
@@ -4571,7 +4571,7 @@ EC_BOOL csfs_file_expire(const UINT32 csfs_md_id, const CSTRING *path_cstr)
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:csfs_file_expire: csfs module #0x%lx not started.\n",
+                "error:csfs_file_expire: csfs module #%ld not started.\n",
                 csfs_md_id);
         dbg_exit(MD_CSFS, csfs_md_id);
     }

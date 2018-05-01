@@ -2565,7 +2565,7 @@ MOD_NODE * mod_mgr_ldb_loop_get(MOD_MGR *mod_mgr)
 
     MOD_MGR_REMOTE_POS(mod_mgr) = remote_mod_pos;
 
-    //dbg_log(SEC_0108_MOD, 5)(LOGSTDOUT, "mod_mgr_ldb_loop_get: mod_mgr %p: remote_mod_node %lx: ", mod_mgr, remote_mod_node);
+    //dbg_log(SEC_0108_MOD, 5)(LOGSTDOUT, "mod_mgr_ldb_loop_get: mod_mgr %p: remote_mod_node %p: ", mod_mgr, remote_mod_node);
     //mod_node_print(LOGSTDOUT, remote_mod_node);
 
     return (remote_mod_node);
@@ -3192,7 +3192,7 @@ EC_BOOL mod_mgr_remote_mod_load_set(const UINT32 load, const MOD_NODE *mod_node,
     pos = cvector_search_front(MOD_MGR_REMOTE_LIST(mod_mgr), mod_node, (CVECTOR_DATA_CMP)mod_node_cmp);
     if(CVECTOR_ERR_POS == pos)/*not found*/
     {
-        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_set: failed to match mod_node %lx: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
+        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_set: failed to match mod_node %p: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                         mod_node,
                         MOD_NODE_TCID_STR(mod_node),MOD_NODE_COMM(mod_node),
                         MOD_NODE_RANK(mod_node),MOD_NODE_MODI(mod_node));
@@ -3228,7 +3228,7 @@ EC_BOOL mod_mgr_remote_mod_load_inc(const UINT32 increasement, const MOD_NODE *m
     pos = cvector_search_front(MOD_MGR_REMOTE_LIST(mod_mgr), mod_node, (CVECTOR_DATA_CMP)mod_node_cmp);
     if(CVECTOR_ERR_POS == pos)/*not found*/
     {
-        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_inc: failed to match mod_node %lx: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
+        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_inc: failed to match mod_node %p: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                         mod_node,
                         MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node),
                         MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));
@@ -3269,7 +3269,7 @@ EC_BOOL mod_mgr_remote_mod_load_dec(const UINT32 decreasement, const MOD_NODE *m
     pos = cvector_search_front(MOD_MGR_REMOTE_LIST(mod_mgr), mod_node, (CVECTOR_DATA_CMP)mod_node_cmp);
     if(CVECTOR_ERR_POS == pos)/*not found*/
     {
-        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_dec: failed to match mod_node %lx: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
+        dbg_log(SEC_0108_MOD, 0)(LOGSTDOUT, "error:mod_mgr_remote_mod_load_dec: failed to match mod_node %p: (tcid %s, comm %ld, rank %ld, modi %ld)\n",
                         mod_node,
                         MOD_NODE_TCID_STR(mod_node), MOD_NODE_COMM(mod_node),
                         MOD_NODE_RANK(mod_node), MOD_NODE_MODI(mod_node));

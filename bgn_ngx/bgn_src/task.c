@@ -2267,7 +2267,7 @@ EC_BOOL task_req_md_mod_mgr_get(TASK_BRD *task_brd, TASK_REQ *task_req, MOD_MGR 
     md_id = TASK_REQ_RECV_MODI(task_req);
     if(0 == func_addr_mgr->md_fget_mod_mgr)
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDERR, "error:task_req_md_mod_mgr_get: func_addr_mgr %lx not define md_fget_mod_mgr\n", func_addr_mgr);
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDERR, "error:task_req_md_mod_mgr_get: func_addr_mgr %p not define md_fget_mod_mgr\n", func_addr_mgr);
         *mod_mgr = (MOD_MGR *)0;
         return (EC_FALSE);
     }
@@ -3075,7 +3075,7 @@ EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR 
 
     if(TASK_MGR_SEQNO(task_mgr) != TASK_REQ_SEQNO(task_req) || task_mgr != TASK_REQ_MGR(task_req))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_rsp_reserve: task_mgr %lx with seqno %lx, task req %lx with seqno %lx.%lx.%lx and task mgr %lx\n",
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_rsp_reserve: task_mgr %p with seqno %lx, task req %p with seqno %lx.%lx.%lx and task mgr %p\n",
                            task_mgr,
                            TASK_MGR_SEQNO(task_mgr),
                            task_req,
@@ -3516,7 +3516,7 @@ EC_BOOL task_rsp_md_mod_mgr_get(TASK_BRD *task_brd, TASK_RSP *task_rsp, MOD_MGR 
     md_id = TASK_RSP_SEND_MODI(task_rsp);
     if(0 == func_addr_mgr->md_fget_mod_mgr)
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDERR, "error:task_rsp_md_mod_mgr_get: func_addr_mgr %lx not define md_fget_mod_mgr\n", func_addr_mgr);
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDERR, "error:task_rsp_md_mod_mgr_get: func_addr_mgr %p not define md_fget_mod_mgr\n", func_addr_mgr);
         *mod_mgr = (MOD_MGR *)0;
         return (EC_FALSE);
     }
@@ -6220,7 +6220,7 @@ EC_BOOL task_brd_start_bcast_dhcp_udp_server(TASK_BRD *task_brd)
                                                 (UINT32)MCAST_CFG_IPADDR(mcast_cfg),
                                                 (UINT32)MCAST_CFG_PORT(mcast_cfg)
                                                 );
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_start_bcast_dhcp_udp_server: dhcp_server_do thread %u\n", TASK_BRD_BCAST_CTHREAD_ID(task_brd));
+    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_start_bcast_dhcp_udp_server: dhcp_server_do thread %ld\n", TASK_BRD_BCAST_CTHREAD_ID(task_brd));
     return (EC_TRUE);
 }
 
@@ -9689,7 +9689,7 @@ UINT32 task_req_decode_and_handle_thread(TASK_BRD *task_brd, TASK_NODE *task_nod
 {
     TASK_REQ *task_req;
 
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_req_decode_and_handle_thread: task_brd %lx, task_node %lx\n", task_brd, task_node);
+    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_req_decode_and_handle_thread: task_brd %p, task_node %p\n", task_brd, task_node);
 
     task_req_decode_no_queue_thread(task_brd, task_node);
 
@@ -9938,7 +9938,7 @@ CROUTINE_NODE *task_brd_recving_node_handle_load_thread(TASK_BRD *task_brd, TASK
             task_req = TASK_NODE_REQ(task_node);
 
 #if (SWITCH_ON == TASK_REQ_DECODE_AND_HANDLE_THREAD_SWITCH)
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %lx, task_node %lx\n", task_brd, task_node);
+            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %p, task_node %p\n", task_brd, task_node);
             TASK_REQ_CTHREAD_NODE(task_req) = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd),
                                                             (UINT32)task_req_decode_and_handle_thread,
                                                             (UINT32)2,
@@ -9966,7 +9966,7 @@ CROUTINE_NODE *task_brd_recving_node_handle_load_thread(TASK_BRD *task_brd, TASK
                 //continue;
             }
 #endif
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %lx, task_node %lx\n", task_brd, task_node);
+            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %p, task_node %p\n", task_brd, task_node);
             TASK_RSP_CTHREAD_NODE(task_rsp)= croutine_pool_load(TASK_RSP_CTHREAD_POOL(task_brd),
                                                             (UINT32)task_rsp_decode_thread,
                                                             (UINT32)2,
@@ -9981,7 +9981,7 @@ CROUTINE_NODE *task_brd_recving_node_handle_load_thread(TASK_BRD *task_brd, TASK
             task_fwd = TASK_NODE_FWD(task_node);
 
 #if (SWITCH_ON == TASK_FWD_DECODE_AND_HANDLE_THREAD_SWITCH)
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %lx, task_node %lx\n", task_brd, task_node);
+            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_recving_node_handle_load_thread: croutine_pool_load: task_brd %p, task_node %p\n", task_brd, task_node);
             TASK_FWD_CTHREAD_NODE(task_fwd)  = croutine_pool_load(TASK_FWD_CTHREAD_POOL(task_brd),
                                                             (UINT32)task_fwd_decode_and_handle_thread,
                                                             (UINT32)2,
@@ -10171,7 +10171,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
 #endif
                 //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: thread try to load...\n");
 
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: croutine_pool_load: task_brd %lx, task_node %lx\n", task_brd, task_node);
+                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: croutine_pool_load: task_brd %p, task_node %p\n", task_brd, task_node);
 
                 TASK_REQ_CTHREAD_NODE(task_req) = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd),
                                                                 (UINT32)task_req_handle_thread,
@@ -10662,7 +10662,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
             /*debug! had better wait task req timeout but not task mgr, seems the counters have issue, need more investigation*/
             if(EC_TRUE == task_mgr_is_timeout(task_mgr))
             {
-                dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_mgr_recv: task_mgr %lx timeout, need_rsp_num %ld, while %ld task req, %ld rsp succ, %ld rsp fail, %ld req discarded, %ld req timeout\n",
+                dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_mgr_recv: task_mgr %p timeout, need_rsp_num %ld, while %ld task req, %ld rsp succ, %ld rsp fail, %ld req discarded, %ld req timeout\n",
                                    task_mgr, need_rsp_num,
                                    task_req_num, succ_rsp_num, fail_rsp_num, discard_req_num, timeout_req_num);
                 return (EC_TRUE);
@@ -10688,7 +10688,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
         /*debug! had better wait task req timeout but not task mgr, seems the counters have issue, need more investigation*/
         if(EC_TRUE == task_mgr_is_timeout(task_mgr))
         {
-            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_mgr_recv: task_mgr %lx timeout, need_rsp_num %ld, while %ld task req, %ld rsp succ, %ld rsp fail, %ld req discarded, %ld req timeout\n",
+            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_mgr_recv: task_mgr %p timeout, need_rsp_num %ld, while %ld task req, %ld rsp succ, %ld rsp fail, %ld req discarded, %ld req timeout\n",
                                task_mgr, need_rsp_num,
                                task_req_num, succ_rsp_num, fail_rsp_num, discard_req_num, timeout_req_num);
             return (EC_TRUE);
@@ -11923,7 +11923,7 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
     TASKS_CFG  *tasks_cfg;
     EC_BOOL     tasks_monitor_empty_flag;
 
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "do_slave is running on tid %d\n", CTHREAD_GET_TID());
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "do_slave is running on tid %ld\n", CTHREAD_GET_TID());
 
     TASK_BRD_DO_SLAVE_PID(task_brd) = CTHREAD_GET_TID();
 
@@ -12280,7 +12280,7 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
                                                             (UINT32)1,/*para num*/
                                                             (UINT32)task_brd
                                                             );
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT,"do_slave_wait_default: do_slave thread %u\n", TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd));
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT,"do_slave_wait_default: do_slave thread %ld\n", TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd));
         task_brd_reset_cmutex_all(task_brd);
         /*TODO: should register to remote taskcomm again??*/
     }
@@ -12761,7 +12761,7 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
     //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "before add: ===========================================================\n");
     //clist_print(LOGSTDOUT, TASK_BRD_RECV_TASK_MGR_LIST(task_brd), (CLIST_DATA_DATA_PRINT)task_mgr_print);
 
-    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  start %lx [tid %ld] ==============================================\n",
+    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  start %p [tid %ld] ==============================================\n",
                         TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_MGR_SEQNO(task_mgr), task_mgr, CTHREAD_GET_TID());
 
     //coroutine_debug(LOGSTDOUT, "[task_wait]");
@@ -12782,7 +12782,7 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 
     /*when reach here, task is done*/
 
-    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  end %lx ================================================\n",
+    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  end %p ================================================\n",
                         TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_MGR_SEQNO(task_mgr), task_mgr);
 
     start_tm = CTIMET_TO_LOCAL_TIME(TASK_MGR_START_TIME_SEC(task_mgr));
@@ -12791,8 +12791,8 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
     dbg_log(SEC_0015_TASK, 2)(LOGSTDOUT, "task_wait report: start at %4d-%02d-%02d %02d:%02d:%02d.%03d, end at %4d-%02d-%02d %02d:%02d:%02d.%03d, "
                       "seqno %lx.%lx.%lx, req num %ld, need rsp %ld, succ rsp %ld, fail rsp %ld, rsvd rsp %ld, "
                       "sent req %ld, discard req %ld, timeout req %ld\n",
-                      TIME_IN_YMDHMS(start_tm), TASK_MGR_START_TIME_MSEC(task_mgr),
-                      TIME_IN_YMDHMS(end_tm), TASK_MGR_END_TIME_MSEC(task_mgr),
+                      TIME_IN_YMDHMS(start_tm), (int)TASK_MGR_START_TIME_MSEC(task_mgr),
+                      TIME_IN_YMDHMS(end_tm), (int)TASK_MGR_END_TIME_MSEC(task_mgr),
                        TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_MGR_SEQNO(task_mgr),
                        clist_size(TASK_MGR_QUEUE(task_mgr)),
                        TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_NEED),

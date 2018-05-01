@@ -404,8 +404,8 @@ btreeEraseNode(BTreeNode *node)
 void btreePrintNode(BTreeNode *node)
 {
     uint8_t i;
-    dbg_log(SEC_0130_BTREE, 9)(LOGSTDOUT,"[DEBUG] btreePrintNode: node %lx:\n", node);
-    dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"tree %lx, block %lx, keyCount %d\n", node->tree, node->block, node->keyCount);
+    dbg_log(SEC_0130_BTREE, 9)(LOGSTDOUT,"[DEBUG] btreePrintNode: node %p:\n", node);
+    dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"tree %p, block %p, keyCount %d\n", node->tree, node->block, node->keyCount);
     for(i = 0; i <= node->keyCount; i ++)
     {
         dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"child %d: %d\n", i, node->children[i]);

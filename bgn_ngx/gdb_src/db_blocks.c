@@ -106,7 +106,7 @@ gdbDestroyBlockNoLock(GdbBlock *block)
     }
     if (gdbCacheRemoveBlockNoLock(block->db, block) > 0)
     {
-        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbDestroyBlockNoLock: rmv cached block %lx with detail %lx and offset %d, db %lx, refCount %d\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbDestroyBlockNoLock: rmv cached block %p with detail %p and offset %d, db %p, refCount %d\n",
                             block, block->detail, block->offset, block->db, block->refCount);
         return;
     }
@@ -148,7 +148,7 @@ gdbDestroyBlock(GdbBlock *block)
     }
     if (gdbCacheRemoveBlock(block->db, block) > 0)
     {
-        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbDestroyBlock: rmv cached block %lx with detail %lx and offset %d, db %lx, refCount %d\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbDestroyBlock: rmv cached block %p with detail %p and offset %d, db %p, refCount %d\n",
                             block, block->detail, block->offset, block->db, block->refCount);
         return;
     }
@@ -245,13 +245,13 @@ gdbReadBlockHeaderNoLock(GDatabase *db, offset_t offset, uint8_t blockType)
 
     GDB_CLEAR_DIRTY(block);
 
-    dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlockHeaderNoLock: add cached block %lx with detail %lx and offset %d, db %lx\n",
+    dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlockHeaderNoLock: add cached block %p with detail %p and offset %d, db %p\n",
                         block, block->detail, block->offset, block->db);
 
     block_cached = gdbCacheAddBlockNoLock(block->db, block);
     if(block_cached != block)
     {
-        dbg_log(SEC_0131_DB, 1)(LOGSTDNULL, "warn:gdbReadBlockHeaderNoLock: add block %lx to cache but return cached block %lx\n", block, block_cached);
+        dbg_log(SEC_0131_DB, 1)(LOGSTDNULL, "warn:gdbReadBlockHeaderNoLock: add block %p to cache but return cached block %p\n", block, block_cached);
         gdbDestroyBlockNoLock(block);
         return block_cached;
     }
@@ -301,7 +301,7 @@ gdbWriteBlockHeader(GdbBlock *block)
 
     if (block->inList == 0)
     {
-        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbWriteBlockHeader: add cached block %lx with detail %lx and offset %d, db %lx\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbWriteBlockHeader: add cached block %p with detail %p and offset %d, db %p\n",
                             block, block->detail, block->offset, block->db);
         gdbCacheAddBlock(block->db, block);
     }
@@ -327,8 +327,8 @@ gdbReadBlock(GDatabase *db, offset_t offset, uint8_t blockType,
 
     if (!GDB_VALID_OFFSET(offset))
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbReadBlock: invalid offset %d < DB_FREE_BLOCK_LIST_OFFSET\n",
-                           offset, DB_FREE_BLOCK_LIST_OFFSET);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbReadBlock: invalid offset %d < DB_FREE_BLOCK_LIST_OFFSET %d\n",
+                           offset, (uint32_t)DB_FREE_BLOCK_LIST_OFFSET);
         return NULL;
     }
 
@@ -353,7 +353,7 @@ gdbReadBlock(GDatabase *db, offset_t offset, uint8_t blockType,
     if ((block = gdbCacheGetBlockNoLock(db, offset)) != NULL)
     {
         gdbUnlockFreeBlockList(db, LOC_DB_0074);
-        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlock: get cached block %lx with detail %lx and offset %d (vs %d), db %lx (vs %lx)\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlock: get cached block %p with detail %p and offset %d (vs %d), db %p (vs %p)\n",
                             block, block->detail, block->offset, offset, block->db, db);
         if (blockType == GDB_BLOCK_ANY || blockType == block->type)
         {
@@ -430,7 +430,7 @@ gdbReadBlock(GDatabase *db, offset_t offset, uint8_t blockType,
 
             rawFileSeek(db->idxRawFile, __offset, SEEK_SET);
             rawFileRead(db->idxRawFile, __offset, &nextOffset, sizeof(offset_t), 1, LOC_DB_0079);
-            dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlock: fp %lx: read nextOffset %d at offset %d\n", db->idxRawFile, gdb_ntoh_offset(nextOffset), __offset);
+            dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbReadBlock: fp %p: read nextOffset %d at offset %d\n", db->idxRawFile, gdb_ntoh_offset(nextOffset), __offset);
             __offset += sizeof(offset_t);
 
             nextOffset = gdb_ntoh_offset(nextOffset);
@@ -605,7 +605,7 @@ gdbWriteBlock(GdbBlock *block)
             /* Reset the block buffer. */
             memset(blockBuffer, 0, block->multiple);
 
-            dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbWriteBlock: fp %lx: write nextOffset %d at offset %d\n", db->idxRawFile, nextOffset, __offset);
+            dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbWriteBlock: fp %p: write nextOffset %d at offset %d\n", db->idxRawFile, nextOffset, __offset);
             /* Write to it. */
             nextOffset = gdb_hton_offset(nextOffset);
 
@@ -661,7 +661,7 @@ gdbBlockTypeAt(GDatabase *db, offset_t offset)
     }
     if ((block = gdbCacheGetBlock(db, offset)) != NULL)
     {
-        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbBlockTypeAt: get cached block %lx with detail %lx and block %d (vs %d), db %lx (vs %lx)\n",
+        dbg_log(SEC_0131_DB, 9)(LOGSTDNULL, "[DEBUG] gdbBlockTypeAt: get cached block %p with detail %p and block %d (vs %d), db %p (vs %p)\n",
                             block, block->detail, block->offset, offset, block->db, db);
         return block->type;
     }

@@ -603,7 +603,7 @@ gdbDeleteKey(GDatabase *db, const uint8_t *key, int(* keyCompare)(const uint8_t 
 {
     if(NULL == db || NULL == db->mainTree)
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbDeleteKey: db %lx is null or btree %lx is null\n", db, db->mainTree);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbDeleteKey: db %p is null or btree %p is null\n", db, db->mainTree);
         return GDB_ERROR;
     }
     BTREE_CRWLOCK_WRLOCK(db->mainTree, LOC_DB_0038);
@@ -913,7 +913,7 @@ gdbFetchFirstKey(const GDatabase *db, uint8_t  **key, uint16_t *klen)
 
     if(GDB_ERROR == gdbFetchKey(db, offset, key, klen))
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchFirstKey: table %ld fetch key at offset failed\n", db->table_id, offset);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchFirstKey: table %ld fetch key at offset %d failed\n", db->table_id, offset);
         btreeDestroyTraversal(trav);
         return GDB_ERROR;
     }
@@ -943,7 +943,7 @@ gdbFetchFirstKV(const GDatabase *db, uint8_t  **kv, uint32_t *kv_len)
 
     if(GDB_ERROR == gdbFetchKV(db, offset, kv, kv_len))
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchFirstKV: table %ld fetch key at offset failed\n", db->table_id, offset);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchFirstKV: table %ld fetch key at offset %d failed\n", db->table_id, offset);
         btreeDestroyTraversal(trav);
         return GDB_ERROR;
     }
@@ -974,7 +974,7 @@ gdbFetchLastKey(const GDatabase *db, uint8_t  **key, uint16_t *klen)
 
     if(GDB_ERROR == gdbFetchKey(db, offset, key, klen))
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchLastKey: table %ld fetch key at offset failed\n", db->table_id, offset);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchLastKey: table %ld fetch key at offset %d failed\n", db->table_id, offset);
         btreeDestroyTraversal(trav);
         return GDB_ERROR;
     }
@@ -1004,7 +1004,7 @@ gdbFetchLastKV(const GDatabase *db, uint8_t  **kv, uint32_t *kv_len)
 
     if(GDB_ERROR == gdbFetchKV(db, offset, kv, kv_len))
     {
-        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchLastKV: table %ld fetch key at offset failed\n", db->table_id, offset);
+        dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbFetchLastKV: table %ld fetch key at offset %d failed\n", db->table_id, offset);
         btreeDestroyTraversal(trav);
         return GDB_ERROR;
     }

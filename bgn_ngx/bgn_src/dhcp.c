@@ -1154,7 +1154,7 @@ ssize_t dhcp_if_send ( const INET_INFO *inet_info,
     if (result < 0)
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_packet_send: errno = %d, errstr = %s [fudge = %d, len %d]\n",
-                            errno, strerror(errno), fudge, ibufp + len - fudge);
+                            errno, strerror(errno), fudge, (int)(ibufp + len - fudge));
     }
     return result;
 }

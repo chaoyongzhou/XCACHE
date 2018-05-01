@@ -39,7 +39,7 @@ uint8_t *keyDupBase(const uint8_t *key, const word_t location)
 
     if(NULL_PTR == key)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase:key is null at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase:key is null at %ld\n", location);
         return NULL_PTR;
     }
 
@@ -47,7 +47,7 @@ uint8_t *keyDupBase(const uint8_t *key, const word_t location)
 
     if(0 == len)
     {
-        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyDupBase:key %lx len is zero at %d\n", key, location);
+        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyDupBase:key %p len is zero at %ld\n", key, location);
         //return NULL_PTR;
     }
 
@@ -55,14 +55,14 @@ uint8_t *keyDupBase(const uint8_t *key, const word_t location)
 
     if(len & (~0xFFFF))
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase:key len %d overflow at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase:key len %ld overflow at %ld\n", len, location);
         return NULL_PTR;
     }
 
     key_t = (uint8_t *)SAFE_MALLOC(len, location);
     if(NULL_PTR == key_t)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase: alloc %d bytes failed at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupBase: alloc %ld bytes failed at %ld\n", len, location);
         return (NULL_PTR);
     }
 
@@ -92,7 +92,7 @@ uint16_t keyLenBase(const uint8_t *key)
 
     if(len & (~0xFFFF))
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyLenBase:key len %d overflow\n", len);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyLenBase:key len %ld overflow\n", len);
         return 0xFFFF;
     }
 
@@ -106,13 +106,13 @@ uint8_t *keyNewBase(const uint16_t len, const word_t location)
 
     if(0 == len)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewBase:len is zero at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewBase:len is zero at %ld\n", location);
         return NULL_PTR;
     }
 
     if(1 == len)
     {
-        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyNewBase:len is one at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyNewBase:len is one at %ld\n", location);
     }
 
     size = len;
@@ -120,7 +120,7 @@ uint8_t *keyNewBase(const uint16_t len, const word_t location)
     key = (uint8_t *)SAFE_MALLOC(size, location);
     if(NULL_PTR == key)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewBase:malloc %d bytes failed at %d\n", size, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewBase:malloc %ld bytes failed at %ld\n", size, location);
         return NULL_PTR;
     }
 
@@ -133,7 +133,7 @@ void keyFreeBase(uint8_t *key, const word_t location)
 
     if(NULL_PTR == key)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyFreeBase:key is null at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyFreeBase:key is null at %ld\n", location);
         return;
     }
 
@@ -141,7 +141,7 @@ void keyFreeBase(uint8_t *key, const word_t location)
 
     if(0 == len)
     {
-        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyFreeBase:key %lx len is zero at %d\n", key, location);
+        dbg_log(SEC_0133_KEYVALUE, 1)(LOGSTDOUT,"warn:keyFreeBase:key %p len is zero at %ld\n", key, location);
         //return;
     }
 
@@ -149,7 +149,7 @@ void keyFreeBase(uint8_t *key, const word_t location)
 
     if(len & (~0xFFFF))
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyFreeBase:key len %d overflow at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyFreeBase:key len %ld overflow at %ld\n", len, location);
         return;
     }
 
@@ -185,7 +185,7 @@ int keyCmpBase(const uint8_t *key_1st, const uint8_t *key_2nd)
     len_1st ++;
     if(len_1st & (~0xFFFF))
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyCmpBase:key_1st len %d overflow\n", len_1st);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyCmpBase:key_1st len %ld overflow\n", len_1st);
         exit(1);
     }
 
@@ -199,7 +199,7 @@ int keyCmpBase(const uint8_t *key_1st, const uint8_t *key_2nd)
     len_2nd ++;
     if(len_2nd & (~0xFFFF))
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyCmpBase:key_2nd len %d overflow\n", len_2nd);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyCmpBase:key_2nd len %ld overflow\n", len_2nd);
         exit(1);
     }
 
@@ -336,7 +336,7 @@ uint8_t *keyDupHs(const uint8_t *key, const word_t location)
     key_t = (uint8_t *)SAFE_MALLOC(len, location);
     if(NULL_PTR == key_t)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupHs: alloc %d bytes failed at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyDupHs: alloc %d bytes failed at %ld\n", len, location);
         return (NULL_PTR);
     }
 
@@ -357,7 +357,7 @@ uint8_t *keyNewHs(const uint16_t klen, const word_t location)
     key = (uint8_t *)SAFE_MALLOC(klen + KV_FORMAT_KLEN + KV_FORMAT_VLEN, location);
     if(NULL_PTR == key)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewHs:malloc %d bytes failed at %d\n", klen + KV_FORMAT_KLEN + KV_FORMAT_VLEN, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyNewHs:malloc %d bytes failed at %ld\n", klen + KV_FORMAT_KLEN + KV_FORMAT_VLEN, location);
         return NULL_PTR;
     }
 
@@ -771,7 +771,7 @@ KeyValue *keyValueNewHs(const uint32_t vlen,
     keyValue = (KeyValue *)SAFE_MALLOC(sizeof(KeyValue), location);
     if(NULL_PTR == keyValue)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyValueNewHs:malloc KeyValue failed at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyValueNewHs:malloc KeyValue failed at %ld\n", location);
         return NULL_PTR;
     }
     BSET(keyValue, 0, sizeof(KeyValue));
@@ -795,7 +795,7 @@ KeyValue *keyValueMakeHs(const uint32_t vlen,
     keyValue = (KeyValue *)SAFE_MALLOC(sizeof(KeyValue), location);
     if(NULL_PTR == keyValue)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyValueNewHs:malloc KeyValue failed at %d\n", location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:keyValueNewHs:malloc KeyValue failed at %ld\n", location);
         return NULL_PTR;
     }
     BSET(keyValue, 0, sizeof(KeyValue));
@@ -1100,7 +1100,7 @@ uint8_t *kvNewHs(const KeyValue *keyValue, const word_t location)
     kv = (uint8_t *)SAFE_MALLOC(len, location);
     if(NULL_PTR == keyValue)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvNewHs:malloc %d bytes failed at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvNewHs:malloc %d bytes failed at %ld\n", len, location);
         return NULL_PTR;
     }
     BSET(kv, 0, len);
@@ -1115,7 +1115,7 @@ uint8_t *kvNewHs2(const uint16_t tlen, const word_t location)
     kv = (uint8_t *)SAFE_MALLOC(tlen, location);
     if(NULL_PTR == kv)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvNewHs2:malloc %d bytes failed at %d\n", tlen, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvNewHs2:malloc %d bytes failed at %ld\n", tlen, location);
         return NULL_PTR;
     }
     return (kv);
@@ -1307,7 +1307,7 @@ uint8_t *kvDupHs(const uint8_t *kv, const word_t location)
     kv_t = (uint8_t *)SAFE_MALLOC(len, location);
     if(NULL_PTR == kv_t)
     {
-        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvDupHs: alloc %d bytes failed at %d\n", len, location);
+        dbg_log(SEC_0133_KEYVALUE, 0)(LOGSTDOUT,"error:kvDupHs: alloc %d bytes failed at %ld\n", len, location);
         return (NULL_PTR);
     }
 
