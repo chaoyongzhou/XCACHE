@@ -9815,6 +9815,64 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             
             uint32_t                     max_age;
     
+            k = (const char *)"Cache-Control";
+            if(EC_FALSE == cngx_get_header_in(r, k, &v))
+            {
+                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
+                                                      "fetch header '%s' failed\n",
+                                                      k);
+                 return (EC_FALSE);
+            }
+
+            if(NULL_PTR == v)
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "not found '%s'\n",
+                                                     k);
+                break;
+            }
+
+            if(EC_FALSE == c_str_fetch_uint32_t(v, (const char *)"max-age", (const char *)"=", &max_age))
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "cannot fetch number from '%s':'%s'\n",
+                                                     k, v);
+                safe_free(v, LOC_CFLV_0120);
+                break;
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                 "'%s':'%s' => max_age = %u\n",
+                                                 k, v, max_age);            
+
+            if(EC_TRUE == chttp_rsp_is_aged(CFLV_MD_CHTTP_RSP(cflv_md), max_age))
+            {
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "'%s':'%s' => aged, cache => force orig procedure\n",
+                                                     k, v);
+                                                        
+                safe_free(v, LOC_CFLV_0120);  
+                
+                CFLV_MD_ORIG_FORCE_FLAG(cflv_md) = BIT_TRUE;
+                
+                return cflv_content_cache_procedure(cflv_md_id);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                 "'%s':'%s' => not aged\n",
+                                                 k, v);            
+            
+            safe_free(v, LOC_CFLV_0120);
+            /*fall through*/
+        }while(0);
+
+        do
+        {
+            const char                  *k;
+            char                        *v;
+            
+            uint32_t                     max_age;
+    
             k = (const char *)"max-age";
             if(EC_FALSE == cngx_get_header_in(r, k, &v))
             {
@@ -9833,17 +9891,25 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             }
 
             max_age = c_str_to_uint32_t(v);
-            safe_free(v, LOC_CFLV_0120);
 
             if(EC_TRUE == chttp_rsp_is_aged(CFLV_MD_CHTTP_RSP(cflv_md), max_age))
             {
-                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
-                                                     "aged, cache => force orig procedure\n");
+                dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                     "'%s':'%s' => aged, cache => force orig procedure\n",
+                                                     k, v);
                                                         
+                safe_free(v, LOC_CFLV_0120);
+                
                 CFLV_MD_ORIG_FORCE_FLAG(cflv_md) = BIT_TRUE;
                 
                 return cflv_content_cache_procedure(cflv_md_id);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                 "'%s':'%s' => not aged\n",
+                                                 k, v);
+                                                 
+            safe_free(v, LOC_CFLV_0120);
             /*fall through*/
         }while(0);
 

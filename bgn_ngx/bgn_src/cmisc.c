@@ -895,6 +895,82 @@ int c_long_to_str_buf(const long num, char *buf)
     return (len);
 }
 
+EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *delim, uint32_t *val)
+{
+    const char *p;
+
+    uint32_t  total;        /* current total */
+    uint32_t  negs;
+
+    /*locate prefix*/
+    p = strstr(str, prefix);
+    if(NULL_PTR == p)
+    {
+        return (EC_FALSE);
+    }
+    /*skip prefix*/
+    p += strlen(prefix);
+
+    /*skip space*/
+    while(' ' == (*p))
+    {
+        p ++;
+    }
+
+    /*delim must follow prefix*/
+    if('\0' == (*p) || p != strstr(p, delim))
+    {   
+        return (EC_FALSE);
+    }
+    p += strlen(delim);
+    
+    /*skip space*/
+    while(' ' == (*p))
+    {
+        p ++;
+    }
+
+    if('\0' == (*p))
+    {   
+        return (EC_FALSE);
+    }    
+
+    /*fetch number now*/
+
+    total = 0;
+    negs  = 1;
+
+    if('-' == (*p))
+    {
+        negs = -1;
+        p ++;
+    }
+
+    while(' ' == (*p))
+    {
+        p ++;
+    }
+
+    if('\0' == (*p))
+    {   
+        return (EC_FALSE);
+    }    
+
+    if((*p) < '0' || (*p) > '9') /*no number found*/
+    {
+        return (EC_FALSE);
+    }
+
+    do
+    {
+        total = 10 * total + ((*p ++) - '0');
+    }while((*p) >= '0' && (*p) <= '9');
+    
+    (*val) = (total * negs);
+    
+    return (EC_TRUE);    
+}
+
 char *c_inet_ntos(const struct in_addr *in)
 {
     char *ipv4_str_cache;

@@ -102,6 +102,8 @@ uint64_t c_str_to_uint64_t(const char *str);
 
 int c_long_to_str_buf(const long num, char *buf);
 
+EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *delim, uint32_t *val);
+
 #define c_inet_ntohs(num)   (ntohs(num))
 
 char *c_inet_ntos(const struct in_addr *in);
