@@ -10119,6 +10119,9 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                 break;
             }
 
+            /*convert to lowercase*/
+            str_to_lower((UINT8 *)v, strlen(v));
+
             if(EC_FALSE == c_str_fetch_uint32_t(v, (const char *)"max-age", (const char *)"=", &max_age))
             {
                 dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
