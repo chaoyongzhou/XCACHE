@@ -2343,12 +2343,12 @@ EC_BOOL cngx_set_store_expires_override(ngx_http_request_t *r, CHTTP_STORE *chtt
     }
     if(0 != n)
     {
-        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_TRUE; /*not override header 'Expires'*/
+        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_TRUE; /*not override header 'Expires'*/
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = n;
     }
     else
     {
-        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE; /*override header 'Expires'*/
+        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE; /*override header 'Expires'*/
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;    
     }
 
@@ -2393,12 +2393,12 @@ EC_BOOL cngx_set_store_redirect_max_times(ngx_http_request_t *r, CHTTP_STORE *ch
     }    
     if(0 != n)
     {
-        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_TRUE;
+        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = n;     
     }
     else
     {
-        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_FALSE;
+        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_FALSE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;    
     }
 

@@ -5558,11 +5558,11 @@ EC_BOOL cflv_content_orig_set_store(const UINT32 cflv_md_id)
 
     if(0 == CHTTP_STORE_SEG_ID(chttp_store))
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_FALSE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_FALSE;
     }
     else
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_TRUE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_TRUE;
     }
 
     if(EC_FALSE == cngx_set_store(r, chttp_store))
@@ -6155,13 +6155,13 @@ EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     dbg_log(SEC_0146_CFLV, 5)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: redirect ctrl '%s'\n",
-                        c_bool_str(CHTTP_STORE_REDIRECT_CTRL(CFLV_MD_CHTTP_STORE(cflv_md))));
+                        c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(CFLV_MD_CHTTP_STORE(cflv_md))));
 
     dbg_log(SEC_0146_CFLV, 5)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: redirect max times '%u'\n",
                         CHTTP_STORE_REDIRECT_MAX_TIMES(CFLV_MD_CHTTP_STORE(cflv_md)));
 
     for(redirect_times = 0;
-        EC_TRUE == CHTTP_STORE_REDIRECT_CTRL(CFLV_MD_CHTTP_STORE(cflv_md))
+        BIT_TRUE == CHTTP_STORE_REDIRECT_CTRL(CFLV_MD_CHTTP_STORE(cflv_md))
         && CHTTP_STORE_REDIRECT_MAX_TIMES(CFLV_MD_CHTTP_STORE(cflv_md)) > redirect_times
         && EC_TRUE == cflv_is_redirect_rsp(cflv_md_id);
         redirect_times ++

@@ -384,7 +384,7 @@ STATIC_CAST static int __chttp_on_message_complete(http_parser_t* http_parser)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         chttp_store   = CHTTP_NODE_STORE(chttp_node);
 
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_message_complete: sockfd %d, seg_id %u, cache_ctrl: 0x%lx\n",
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_message_complete: sockfd %d, seg_id %u, cache_ctrl: 0x%x\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
     }
@@ -701,31 +701,31 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         cstring_init(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), NULL_PTR);
 
         CHTTP_STORE_CACHE_CTRL(chttp_store)      = CHTTP_STORE_CACHE_ERR;
-        CHTTP_STORE_MERGE_FLAG(chttp_store)      = EC_FALSE;
-        CHTTP_STORE_LOCKED_FLAG(chttp_store)     = EC_FALSE;
-        CHTTP_STORE_EXPIRED_FLAG(chttp_store)    = EC_FALSE;
-        CHTTP_STORE_CHUNK_FLAG(chttp_store)      = EC_FALSE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)      = BIT_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store)     = BIT_FALSE;
+        CHTTP_STORE_EXPIRED_FLAG(chttp_store)    = BIT_FALSE;
+        CHTTP_STORE_CHUNK_FLAG(chttp_store)      = BIT_FALSE;
         cstring_init(CHTTP_STORE_AUTH_TOKEN(chttp_store), NULL_PTR);
 
-        CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = EC_TRUE;
+        CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = BIT_TRUE;
         cstring_init(CHTTP_STORE_ETAG(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_LAST_MODIFIED(chttp_store), NULL_PTR);
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = 0;
-        CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
+        CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = CHTTP_STORE_USE_GZIP_UNDEF;
 
-        CHTTP_STORE_CACHE_ALLOW(chttp_store)      = EC_FALSE;
+        CHTTP_STORE_CACHE_ALLOW(chttp_store)      = BIT_FALSE;
         cstring_init(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store), NULL_PTR);
         
-        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
+        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
 
-        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_TRUE;
+        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
     }
 
@@ -749,31 +749,31 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         cstring_clean(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store));
 
         CHTTP_STORE_CACHE_CTRL(chttp_store)      = CHTTP_STORE_CACHE_ERR;
-        CHTTP_STORE_MERGE_FLAG(chttp_store)      = EC_FALSE;
-        CHTTP_STORE_LOCKED_FLAG(chttp_store)     = EC_FALSE;
-        CHTTP_STORE_EXPIRED_FLAG(chttp_store)    = EC_FALSE;
-        CHTTP_STORE_CHUNK_FLAG(chttp_store)      = EC_FALSE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)      = BIT_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store)     = BIT_FALSE;
+        CHTTP_STORE_EXPIRED_FLAG(chttp_store)    = BIT_FALSE;
+        CHTTP_STORE_CHUNK_FLAG(chttp_store)      = BIT_FALSE;
         cstring_clean(CHTTP_STORE_AUTH_TOKEN(chttp_store));
 
-        CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = EC_TRUE;
+        CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store) = BIT_TRUE;
         cstring_clean(CHTTP_STORE_ETAG(chttp_store));
         cstring_clean(CHTTP_STORE_LAST_MODIFIED(chttp_store));
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = 0;
-        CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = EC_OBSCURE;
+        CHTTP_STORE_USE_GZIP_FLAG(chttp_store)  = CHTTP_STORE_USE_GZIP_UNDEF;
 
-        CHTTP_STORE_CACHE_ALLOW(chttp_store)      = EC_FALSE;
+        CHTTP_STORE_CACHE_ALLOW(chttp_store)      = BIT_FALSE;
         cstring_clean(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store));
         cstring_clean(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store));
         cstring_clean(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store));
        
-        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
+        CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
 
-        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_TRUE;
+        CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
     }
 
@@ -899,21 +899,21 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:billing domain         : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_DOMAIN(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_DOMAIN(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:billing client type    : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_ctrl             : 0x%lx\n", CHTTP_STORE_CACHE_CTRL(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:merge_flag             : %s\n", c_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:locked_flag            : %s\n", c_bool_str(CHTTP_STORE_LOCKED_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:expired_flag           : %s\n", c_bool_str(CHTTP_STORE_EXPIRED_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:chunk_flag             : %s\n", c_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:cache_ctrl             : 0x%x\n", CHTTP_STORE_CACHE_CTRL(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:merge_flag             : %s\n", c_bit_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:locked_flag            : %s\n", c_bit_bool_str(CHTTP_STORE_LOCKED_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:expired_flag           : %s\n", c_bit_bool_str(CHTTP_STORE_EXPIRED_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:chunk_flag             : %s\n", c_bit_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)));
 
     sys_log(LOGSTDOUT, "chttp_store_print:auth_token             : %.*s\n", (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store), CHTTP_STORE_AUTH_TOKEN_STR(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:last_modified_switch   : %s\n"       , c_bool_str(CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:last_modified_switch   : %s\n"       , c_bit_bool_str(CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:etag                   : %.*s\n"     , (uint32_t)CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:last_modified          : %.*s\n"     , (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:content_length         : %"PRId64"\n", CHTTP_STORE_CONTENT_LENGTH(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:use_gzip_flag          : %ld\n"      , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:use_gzip_flag          : %u\n"      , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_allow            : %s\n", c_bool_str(CHTTP_STORE_CACHE_ALLOW(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:cache_allow            : %s\n", c_bit_bool_str(CHTTP_STORE_CACHE_ALLOW(chttp_store)));
 
     sys_log(LOGSTDOUT, "chttp_store_print:cache_http_codes       : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:ncache_http_codes      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)));
@@ -921,11 +921,11 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:ncache_rsp_headers     : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:cache_if_http_codes    : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)));
     
-    sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec      : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl          : %s\n", c_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl          : %s\n", c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_max_times     : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
 
 
@@ -7126,7 +7126,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *
         return (EC_FALSE);/*not expired*/
     }
 
-    if(EC_TRUE == CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store))
+    if(BIT_TRUE == CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store))
     {
         if(EC_FALSE == __chttp_node_filter_header_check_etag(chttp_node, chttp_store))
         {
@@ -7155,7 +7155,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *
         return (EC_TRUE);/*expired*/
     }
 
-    if(EC_OBSCURE != CHTTP_STORE_USE_GZIP_FLAG(chttp_store)
+    if(CHTTP_STORE_USE_GZIP_UNDEF != CHTTP_STORE_USE_GZIP_FLAG(chttp_store)
     && chttp_node_check_use_gzip(chttp_node) != CHTTP_STORE_USE_GZIP_FLAG(chttp_store)
     )
     {
@@ -7221,8 +7221,8 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP
 {
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
-        UINT32         cache_control;
         CSOCKET_CNODE *csocket_cnode;
+        uint32_t       cache_control;
 
         cache_control = CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node));
 
@@ -7247,7 +7247,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP
 STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP_NODE *chttp_node)
 {
     CHTTP_STORE    *chttp_store;
-    UINT32          cache_control;
+    uint32_t        cache_control;
 
     chttp_store = CHTTP_NODE_STORE(chttp_node);
     if(NULL_PTR == chttp_store)
@@ -7265,7 +7265,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP
         return(EC_TRUE);
     }
 
-    if(EC_TRUE == CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store))
+    if(BIT_TRUE == CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store))
     {
         if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store))
         {
@@ -7402,11 +7402,11 @@ EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node)
     {
         if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
         {
-            CHTTP_STORE_CHUNK_FLAG(CHTTP_NODE_STORE(chttp_node)) = EC_TRUE;
+            CHTTP_STORE_CHUNK_FLAG(CHTTP_NODE_STORE(chttp_node)) = BIT_TRUE;
         }
     }
 
-    if(EC_TRUE == CHTTP_STORE_CHUNK_FLAG(CHTTP_NODE_STORE(chttp_node)))
+    if(BIT_TRUE == CHTTP_STORE_CHUNK_FLAG(CHTTP_NODE_STORE(chttp_node)))
     {
         if(NULL_PTR != CHTTP_NODE_CROUTINE_COND(chttp_node) && BIT_FALSE == CHTTP_NODE_COROUTINE_RESTORE(chttp_node))
         {
@@ -7447,7 +7447,7 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
         ccache_renew_headers(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                               &path, cstrkv_mgr, CHTTP_STORE_AUTH_TOKEN(chttp_store));
 
-        CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store) = BIT_FALSE;
 
         cstring_clean(&path);
         return (EC_TRUE);
@@ -7471,7 +7471,7 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
         __chttp_node_store_header_after_ddir(chttp_node, chttp_store, max_store_size, has_stored_size, &path, store_srv_tcid, store_srv_ipaddr, store_srv_port);
         CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node) = EC_FALSE; /*clear*/
     }
-    CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
+    CHTTP_STORE_LOCKED_FLAG(chttp_store) = BIT_FALSE;
 
     cstring_clean(&path);
 
@@ -7624,7 +7624,7 @@ EC_BOOL chttp_node_store_whole(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store,
         CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node) = EC_FALSE; /*clear*/
     }
 
-    CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
+    CHTTP_STORE_LOCKED_FLAG(chttp_store) = BIT_FALSE;
 
     cstring_clean(&path);
 
@@ -7727,7 +7727,7 @@ EC_BOOL chttp_node_store_no_next(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_stor
 /*no more to store*/
 EC_BOOL chttp_node_store_done_blocking(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
-    if(NULL_PTR != chttp_store && EC_TRUE == CHTTP_STORE_LOCKED_FLAG(chttp_store))
+    if(NULL_PTR != chttp_store && BIT_TRUE == CHTTP_STORE_LOCKED_FLAG(chttp_store))
     {
         CSTRING        path;
         CSTRING       *auth_token;
@@ -7762,7 +7762,7 @@ EC_BOOL chttp_node_store_done_blocking(CHTTP_NODE *chttp_node, CHTTP_STORE *chtt
             ccache_file_unlock(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path, auth_token);
         }
 
-        CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store) = BIT_FALSE;
 
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_node_store_done_blocking: p2p: unlock '%.*s' to server %s:%ld => done\n",
                             (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path), c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
@@ -7774,7 +7774,7 @@ EC_BOOL chttp_node_store_done_blocking(CHTTP_NODE *chttp_node, CHTTP_STORE *chtt
 
 EC_BOOL chttp_node_store_done_nonblocking(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
-    if(NULL_PTR != chttp_store && EC_TRUE == CHTTP_STORE_LOCKED_FLAG(chttp_store))
+    if(NULL_PTR != chttp_store && BIT_TRUE == CHTTP_STORE_LOCKED_FLAG(chttp_store))
     {
         CSTRING        path;
         CSTRING       *auth_token;
@@ -7804,7 +7804,7 @@ EC_BOOL chttp_node_store_done_nonblocking(CHTTP_NODE *chttp_node, CHTTP_STORE *c
 
         ccache_file_unlock(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path, auth_token);
 
-        CHTTP_STORE_LOCKED_FLAG(chttp_store) = EC_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store) = BIT_FALSE;
 
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_node_store_done_nonblocking: p2p: unlock '%.*s' to tcid %s => done\n",
                             (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path), c_word_to_ipv4(store_srv_tcid));
@@ -7829,7 +7829,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: sockfd %d, check seg_id %u and cache ctrl 0x%lx\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: sockfd %d, check seg_id %u and cache ctrl 0x%x\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
 
     /*filter and change store-path*/
@@ -7875,7 +7875,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
         }
 
         /*clear corresponding cache ctrl flag*/
-        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (UINT32)(~CHTTP_STORE_CACHE_HEADER);
+        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_HEADER);
     }
 
     /*if need to store recved data to storage and the starting seg is 0, i.e., header*/
@@ -7901,7 +7901,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
         }
 
         /*clear corresponding cache ctrl flag*/
-        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (UINT32)(~CHTTP_STORE_CACHE_HEADER);
+        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_HEADER);
     }
 
     return (EC_TRUE);
@@ -7923,7 +7923,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_message_complete: sockfd %d, [1] seg_id %u, check cache ctrl 0x%lx\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_message_complete: sockfd %d, [1] seg_id %u, check cache ctrl 0x%x\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
 
     /*after body data was appended to recv_chunks, store recv_chunks to storage*/
@@ -7961,7 +7961,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_message_complete: sockfd %d, now store body seg %u, stored %"PRId64", parsed %"PRId64", chunk_flag %s, is_chunked %s\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store),
                     CHTTP_NODE_BODY_STORED_LEN(chttp_node), CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
-                    c_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)), c_bool_str(chttp_node_is_chunked(chttp_node)));
+                    c_bit_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)), c_bool_str(chttp_node_is_chunked(chttp_node)));
 
         /*error happend, have to discard all left data*/
         if(CHTTP_NODE_BODY_STORED_LEN(chttp_node) < CHTTP_NODE_BODY_PARSED_LEN(chttp_node))
@@ -7976,7 +7976,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         }
         else if(0 == (CHTTP_NODE_BODY_PARSED_LEN(chttp_node) % CHTTP_STORE_SEG_SIZE(chttp_store)))
         {
-            if(EC_TRUE == CHTTP_STORE_CHUNK_FLAG(chttp_store) || EC_TRUE == chttp_node_is_chunked(chttp_node))
+            if(BIT_TRUE == CHTTP_STORE_CHUNK_FLAG(chttp_store) || EC_TRUE == chttp_node_is_chunked(chttp_node))
             {
                 /*notify all chunked-file waiters: no more data*/
                 chttp_node_store_no_body(chttp_node, chttp_store);
@@ -7985,10 +7985,10 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         }
 
         /*clear corresponding cache ctrl flag*/
-        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (UINT32)(~CHTTP_STORE_CACHE_BODY);
+        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_BODY);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_message_complete: sockfd %d, [2] check seg_id %u and cache ctrl 0x%lx\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_message_complete: sockfd %d, [2] check seg_id %u and cache ctrl 0x%x\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
 
     /*if need to store recved data to storage and the starting seg is 0, i.e., header*/
@@ -8017,7 +8017,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         }
 
         /*clear corresponding cache ctrl flag*/
-        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (UINT32)(~CHTTP_STORE_CACHE_WHOLE);
+        CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_WHOLE);
     }
 
     return (EC_TRUE);
@@ -8039,7 +8039,7 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_body: sockfd %d, seg_id %u, check cache ctrl 0x%lx\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_body: sockfd %d, seg_id %u, check cache ctrl 0x%x\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
 
     if(CHTTP_STORE_CACHE_BODY & CHTTP_STORE_CACHE_CTRL(chttp_store))
@@ -8966,12 +8966,12 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait_ready(const CHTTP_REQ
 STATIC_CAST static EC_BOOL __chttp_request_merge_file_orig(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
-    EC_BOOL        merge_flag_saved;
+    uint32_t       merge_flag_saved;
 
     /*trick: we cannot send merge flag to super and we want to reduce chttp_store clone, so ...*/
     chttp_store_t    = (CHTTP_STORE *)chttp_store; /*save*/
     merge_flag_saved = CHTTP_STORE_MERGE_FLAG(chttp_store_t);
-    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = EC_FALSE; /*clean*/
+    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = BIT_FALSE; /*clean*/
 
     ccache_trigger_http_request_merge(chttp_req, chttp_store_t, chttp_rsp, chttp_stat);
 
@@ -8995,7 +8995,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     CHTTP_STAT     chttp_stat_t; /*only for merge procedure statistics*/
 
     ASSERT(NULL_PTR != chttp_store);
-    ASSERT(EC_TRUE == CHTTP_STORE_MERGE_FLAG(chttp_store));
+    ASSERT(BIT_TRUE == CHTTP_STORE_MERGE_FLAG(chttp_store));
 
     chttp_store_t = chttp_store_new();
     if(NULL_PTR == chttp_store_t)
@@ -9039,12 +9039,12 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     if(EC_TRUE == locked_already)
     {
         /*[N] means this is not the auth-token owner*/
-        CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = EC_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = BIT_FALSE;
 
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [N] file lock '%.*s' => auth-token: (null)\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
 
-        if(0 == CHTTP_STORE_SEG_ID(chttp_store_t) && EC_TRUE == CHTTP_STORE_EXPIRED_FLAG(chttp_store_t))
+        if(0 == CHTTP_STORE_SEG_ID(chttp_store_t) && BIT_TRUE == CHTTP_STORE_EXPIRED_FLAG(chttp_store_t))
         {
             if(EC_FALSE == __chttp_request_merge_file_wait_ready(chttp_req, chttp_store_t, &path, chttp_rsp, chttp_stat))
             {
@@ -9156,14 +9156,14 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         return (EC_TRUE);
     }
 
-    CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = EC_TRUE;
+    CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = BIT_TRUE;
 
     /*[Y] means this is the auth-token owner*/
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [Y] file lock '%.*s' => auth-token: %.*s\n",
                 CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path),
                 (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store_t), (char *)CHTTP_STORE_AUTH_TOKEN_STR(chttp_store_t));
 
-    if(0 == CHTTP_STORE_SEG_ID(chttp_store_t) && EC_TRUE == CHTTP_STORE_EXPIRED_FLAG(chttp_store_t))
+    if(0 == CHTTP_STORE_SEG_ID(chttp_store_t) && BIT_TRUE == CHTTP_STORE_EXPIRED_FLAG(chttp_store_t))
     {
         if(EC_FALSE == __chttp_request_merge_file_wait_ready(chttp_req, chttp_store_t, &path, chttp_rsp, chttp_stat))
         {
@@ -9353,14 +9353,15 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_unlock(const CHTTP_REQ *c
 STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
-    EC_BOOL        merge_flag_saved;
     UINT32         super_md_id;
-    EC_BOOL        ret;
+    EC_BOOL        ret;    
+    uint32_t       merge_flag_saved;
+
 
     /*trick: we cannot send merge flag to super and we want to reduce chttp_store clone, so ...*/
     chttp_store_t = (CHTTP_STORE *)chttp_store; /*save*/
     merge_flag_saved = CHTTP_STORE_MERGE_FLAG(chttp_store_t);
-    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = EC_FALSE; /*clean*/
+    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = BIT_FALSE; /*clean*/
     /*note: filter determine to cache or not*/
     super_md_id = 0;
     ret = super_http_request(super_md_id, chttp_req, chttp_store_t, chttp_rsp, chttp_stat);
@@ -9373,17 +9374,18 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_RE
 STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_no_cache(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     CHTTP_STORE   *chttp_store_t;
-    EC_BOOL        merge_flag_saved;
-    UINT32         cache_ctrl_saved;
+    uint32_t       merge_flag_saved;
+    uint32_t       cache_ctrl_saved;
     UINT32         super_md_id;
     EC_BOOL        ret;
+    
 
     /*trick: we cannot send merge flag to super and we want to reduce chttp_store clone, so ...*/
     chttp_store_t = (CHTTP_STORE *)chttp_store; /*save*/
     merge_flag_saved = CHTTP_STORE_MERGE_FLAG(chttp_store_t);
     cache_ctrl_saved = CHTTP_STORE_CACHE_CTRL(chttp_store_t);
 
-    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = EC_FALSE; /*clean*/
+    CHTTP_STORE_MERGE_FLAG(chttp_store_t) = BIT_FALSE; /*clean*/
     CHTTP_STORE_CACHE_CTRL(chttp_store_t) = CHTTP_STORE_CACHE_NONE;/*force not to cache*/
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_orig_no_cache: set CHTTP_STORE_CACHE_NONE\n");
 
@@ -9445,7 +9447,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
     CHTTP_STAT     chttp_stat_t; /*only for merge procedure statistics*/
 
     ASSERT(NULL_PTR != chttp_store);
-    ASSERT(EC_TRUE == CHTTP_STORE_MERGE_FLAG(chttp_store));
+    ASSERT(BIT_TRUE == CHTTP_STORE_MERGE_FLAG(chttp_store));
     ASSERT(0 == CHTTP_STORE_SEG_ID(chttp_store));
 
     chttp_store_t = chttp_store_new();
@@ -9490,7 +9492,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
     if(EC_TRUE == locked_already)
     {
         /*[N] means this is not the auth-token owner*/
-        CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = EC_FALSE;
+        CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = BIT_FALSE;
 
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_header: [No.%ld] [N] file lock '%.*s' => auth-token: (null)\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
@@ -9595,7 +9597,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         return (EC_TRUE);
     }
 
-    CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = EC_TRUE;
+    CHTTP_STORE_LOCKED_FLAG(chttp_store_t) = BIT_TRUE;
 
     /*[Y] means this is the auth-token owner*/
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_header: [No.%ld] [Y] file lock '%.*s' => auth-token: %.*s\n",
@@ -9719,7 +9721,7 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         chttp_store_print(LOGSTDOUT, chttp_store);
     }
 
-    if(EC_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store))
+    if(BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store))
     {
         return chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat); /*need store only*/
     }

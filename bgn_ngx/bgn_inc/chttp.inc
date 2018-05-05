@@ -53,12 +53,18 @@ extern "C"{
 #define CHTTP_SEG_ERR_SIZE        ((uint32_t)~0)
 #define CHTTP_SEG_ERR_OFFSET      ((uint32_t)~0)
 
-#define CHTTP_STORE_CACHE_ERR      ((UINT32)0x0000)/*bitmap: 0000 0000*/
-#define CHTTP_STORE_CACHE_NONE     ((UINT32)0x0001)/*bitmap: 0000 0001*/
-#define CHTTP_STORE_CACHE_HEADER   ((UINT32)0x0010)/*bitmap: 0001 0000, cache header to storage as single file*/
-#define CHTTP_STORE_CACHE_BODY     ((UINT32)0x0020)/*bitmap: 0010 0000, cache body to storage as single file*/
-#define CHTTP_STORE_CACHE_BOTH     ((UINT32)0x0030)/*bitmap: 0011 0000, cache header and body to storage as two different files*/
-#define CHTTP_STORE_CACHE_WHOLE    ((UINT32)0x0040)/*bitmap: 0100 0000, cache header and body to storage as single file*/
+/*2 bits*/
+#define CHTTP_STORE_USE_GZIP_TRUE  ((uint32_t)0x00)
+#define CHTTP_STORE_USE_GZIP_FALSE ((uint32_t)0x01)
+#define CHTTP_STORE_USE_GZIP_UNDEF ((uint32_t)0x02)
+
+/*8 bits*/
+#define CHTTP_STORE_CACHE_ERR      ((uint32_t)0x00)/*bitmap: 0000 0000*/
+#define CHTTP_STORE_CACHE_NONE     ((uint32_t)0x01)/*bitmap: 0000 0001*/
+#define CHTTP_STORE_CACHE_HEADER   ((uint32_t)0x10)/*bitmap: 0001 0000, cache header to storage as single file*/
+#define CHTTP_STORE_CACHE_BODY     ((uint32_t)0x20)/*bitmap: 0010 0000, cache body to storage as single file*/
+#define CHTTP_STORE_CACHE_BOTH     ((uint32_t)0x30)/*bitmap: 0011 0000, cache header and body to storage as two different files*/
+#define CHTTP_STORE_CACHE_WHOLE    ((uint32_t)0x40)/*bitmap: 0100 0000, cache header and body to storage as single file*/
 
 #define CHTTP_STORE_ERR_LAST_MODIFIED ((uint64_t)(~((uint64_t)0)))
 
@@ -75,39 +81,39 @@ typedef struct
     CSTRING                   billing_flags;            /*billing control flags, used when set billing*/
     CSTRING                   billing_domain;           /*billing domain, used when set billing*/
     CSTRING                   billing_client_type;      /*billing client type domain, used when set billing*/
-
-    UINT32                    cache_control;            /*cache in storage or not*/
-    EC_BOOL                   merge_flag;               /*trigger merge flow*/
-    EC_BOOL                   locked_flag;              /*file locked flag*/
-    EC_BOOL                   expired_flag;             /*(merge) origin reasone: due to absence or due to expired*/
-    EC_BOOL                   chunk_flag;               /*process flow control determined by lua*/
+        
     CSTRING                   auth_token;               /*locked auth-token for owner*/
  
-    EC_BOOL                   last_modified_switch;     /*switch is on, check etag and last modified*/
     CSTRING                   etag;
     CSTRING                   last_modified;
     uint64_t                  content_length;           /*lua get content length from previous response header*/
-    EC_BOOL                   use_gzip_flag;            /*lua get use gzip flag from previouse response header. note when nil, set to EC_OBSCURE*/
-
+    
     /*cache control from configuration*/
-    EC_BOOL                   cache_allow;              /*orig or storage at first*/
     
     CSTRING                   cache_http_codes;         /*seperated by semicolon or space. cache if in http codes. format likes as 200;206*/
     CSTRING                   ncache_http_codes;        /*seperated by semicolon or space. not cache if in http codes. format likes as 404;504*/
     CSTRING                   cache_rsp_headers;        /*if http response has specific header(s), then cache it*/
     CSTRING                   ncache_rsp_headers;       /*if http response has specific header(s), then NOT cache it*/
     CSTRING                   cache_if_http_codes;      /*seperated by semicolon. cache if in http codes and renew Expires. format likes as 404=60;504=50*/
+
+    uint32_t                  cache_allow:1;            /*orig or storage at first*/
+    uint32_t                  cache_control:8;          /*cache in storage or not*/    
+    uint32_t                  merge_flag:1;             /*trigger merge flow*/
+    uint32_t                  locked_flag:1;            /*file locked flag*/
+    uint32_t                  expired_flag:1;           /*(merge) origin reasone: due to absence or due to expired*/
+    uint32_t                  chunk_flag:1;             /*process flow control determined by lua*/
+    uint32_t                  use_gzip_flag:2;          /*lua get use gzip flag from previouse response header. note when nil, set to EC_OBSCURE*/
+    uint32_t                  last_modified_switch:1;   /*switch is on, check etag and last modified*/
+    uint32_t                  override_expires_flag:1;  /*override orig expires switch*/
+    uint32_t                  redirect_control:1;       /*redirect location control from configuration*/
+    uint32_t                  rsvd01:14;
+
+    uint32_t                  orig_timeout_nsec;
     
-    EC_BOOL                   override_expires_flag;    /*override orig expires switch*/
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
 
-    uint32_t                  orig_timeout_nsec;
-    uint32_t                  rsvd01;
-
-    /*redirect location control from configuration*/
-    EC_BOOL                   redirect_control;
-    UINT32                    redirect_max_times;
+    UINT32                    redirect_max_times;/*redirect location control from configuration*/
     
     UINT32                    seq_no; /*for debug only!*/
 }CHTTP_STORE;

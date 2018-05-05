@@ -2774,10 +2774,10 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         return (EC_FALSE);
     }
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: redirect_ctrl = %s, redirect_max_times = %ld\n",
-                        c_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)),
+                        c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)),
                         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
     for(redirect_times = 0;
-        EC_TRUE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
+        BIT_TRUE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
         && CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) > redirect_times
         && (CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(chttp_rsp) || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(chttp_rsp));
         redirect_times ++
@@ -2906,12 +2906,12 @@ EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chtt
 
     /*
     if((CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(chttp_rsp) || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(chttp_rsp))
-    && EC_FALSE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
+    && BIT_FALSE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
     && CHTTP_STORE_CACHE_NONE == CHTTP_STORE_CACHE_CTRL(chttp_store))
     */
     if(NULL_PTR != chttp_store)
     {
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request_merge: request %p, cache_ctrl: 0x%lx\n",
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request_merge: request %p, cache_ctrl: 0x%x\n",
                         chttp_req, CHTTP_STORE_CACHE_CTRL(chttp_store));
 
         if(CHTTP_STORE_CACHE_NONE == CHTTP_STORE_CACHE_CTRL(chttp_store))

@@ -5765,11 +5765,11 @@ EC_BOOL cmp4_content_orig_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chttp_
 
     if(0 == CHTTP_STORE_SEG_ID(chttp_store))
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_FALSE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_FALSE;
     }
     else
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_TRUE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_TRUE;
     }
 
     if(EC_FALSE == cngx_set_store(r, chttp_store))
@@ -6535,13 +6535,13 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     dbg_log(SEC_0147_CMP4, 5)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: redirect ctrl '%s'\n",
-                        c_bool_str(CHTTP_STORE_REDIRECT_CTRL(CMP4_MD_CHTTP_STORE(cmp4_md))));
+                        c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(CMP4_MD_CHTTP_STORE(cmp4_md))));
 
     dbg_log(SEC_0147_CMP4, 5)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: redirect max times '%u'\n",
                         CHTTP_STORE_REDIRECT_MAX_TIMES(CMP4_MD_CHTTP_STORE(cmp4_md)));
 
     for(redirect_times = 0;
-        EC_TRUE == CHTTP_STORE_REDIRECT_CTRL(CMP4_MD_CHTTP_STORE(cmp4_md))
+        BIT_TRUE == CHTTP_STORE_REDIRECT_CTRL(CMP4_MD_CHTTP_STORE(cmp4_md))
         && CHTTP_STORE_REDIRECT_MAX_TIMES(CMP4_MD_CHTTP_STORE(cmp4_md)) > redirect_times
         && EC_TRUE == cmp4_is_redirect_rsp(cmp4_md_id);
         redirect_times ++
@@ -8009,11 +8009,11 @@ EC_BOOL cmp4_content_repair_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chtt
 
     if(0 == CHTTP_STORE_SEG_ID(chttp_store))
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_FALSE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_FALSE;
     }
     else
     {
-        CHTTP_STORE_MERGE_FLAG(chttp_store)   = EC_TRUE;
+        CHTTP_STORE_MERGE_FLAG(chttp_store)   = BIT_TRUE;
     }
 
     if(EC_FALSE == cngx_set_store(r, chttp_store))
