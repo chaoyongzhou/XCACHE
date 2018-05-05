@@ -5481,6 +5481,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     
     cmpi_encode_uint32(comm, CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), out_buff, out_buff_max_len, position);
 
@@ -5522,6 +5523,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     
     cmpi_encode_uint32_size(comm, CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store), size);
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), size);
     return ((UINT32)0);
@@ -5581,6 +5583,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_REDIRECT_CTRL(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
 

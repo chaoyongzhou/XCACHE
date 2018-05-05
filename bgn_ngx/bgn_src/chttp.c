@@ -723,6 +723,8 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
+        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
+
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
     }
@@ -768,6 +770,8 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
        
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = EC_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
+
+        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
 
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = EC_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
@@ -825,6 +829,8 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_src);
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_src);
+
+        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_des)  = CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_src);
 
         CHTTP_STORE_REDIRECT_CTRL(chttp_store_des)      =  CHTTP_STORE_REDIRECT_CTRL(chttp_store_src);
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_des) = CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_src);
@@ -917,6 +923,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec      : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
 
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl          : %s\n", c_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_max_times     : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
@@ -6458,6 +6465,17 @@ EC_BOOL chttp_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *cs
 
 EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 {
+    uint32_t    timeout_nsec;
+    
+    if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
+    {
+        timeout_nsec = CHTTP_STORE_ORIG_TIMEOUT_NSEC(CHTTP_NODE_STORE(chttp_node));
+    }
+    else
+    {
+        timeout_nsec = (uint32_t)CHTTP_SOCKET_TIMEOUT_NSEC;
+    }
+    
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))
     {
         cepoll_set_event(task_brd_default_get_cepoll(),
@@ -6482,7 +6500,7 @@ EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csock
 
         cepoll_set_timeout(task_brd_default_get_cepoll(),
                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                           (uint32_t)CHTTP_SOCKET_TIMEOUT_NSEC,
+                           timeout_nsec,
                            (const char *)"csocket_cnode_itimeout",
                            (CEPOLL_EVENT_HANDLER)csocket_cnode_itimeout,
                            (void *)csocket_cnode);
@@ -6513,7 +6531,7 @@ EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csock
 
         cepoll_set_timeout(task_brd_default_get_cepoll(),
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                        (uint32_t)CONN_TIMEOUT_NSEC,
+                        timeout_nsec,
                         (const char *)"csocket_cnode_itimeout",
                         (CEPOLL_EVENT_HANDLER)csocket_cnode_itimeout,
                         (void *)csocket_cnode);
@@ -6546,7 +6564,7 @@ EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csock
 
         cepoll_set_timeout(task_brd_default_get_cepoll(),
                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                       (uint32_t)CONN_TIMEOUT_NSEC,
+                       timeout_nsec,
                        (const char *)"csocket_cnode_itimeout",
                        (CEPOLL_EVENT_HANDLER)csocket_cnode_itimeout,
                        (void *)csocket_cnode);
