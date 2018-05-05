@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -36,7 +36,7 @@ extern "C"{
 
 #define CRFSCHTTP_REST_API_NAME            ("/rfsc")
 
-typedef struct 
+typedef struct
 {
     uint32_t    key;
     const char *val;
@@ -64,19 +64,19 @@ typedef struct _CRFSCHTTP_NODE
 {
     http_parser_t            http_parser;
     http_parser_settings_t   http_parser_setting;
-    
+
     CBUFFER                  cbuffer;
     uint32_t                 http_header_parsed_len;
     uint32_t                 http_rsp_status;
     uint32_t                 http_header_fsm;/*finite state machine*/
     uint32_t                 http_header_op;/*operation*/
-    
+
     CSOCKET_CNODE           *csocket_cnode;
     CTIMET                   recv_atime;  /*last recv in msecond*/
     CTIMET                   send_atime;  /*last send in msecond*/
     uint64_t                 recv_size;   /*total recv bytes*/
     uint64_t                 send_size;   /*total send bytes*/
-    
+
     CBUFFER                  url;   /*string*/
     CBUFFER                  host;  /*string*/
     CBUFFER                  uri;   /*string*/
@@ -108,7 +108,7 @@ typedef struct _CRFSCHTTP_NODE
     int                       rsvd1;
     UINT32                    block_size;
     UINT32                    block_pos;
-    
+
     uint64_t                  store_beg_offset;
     uint64_t                  store_end_offset;
     uint64_t                  store_cur_offset;
@@ -157,7 +157,7 @@ typedef struct _CRFSCHTTP_NODE
 #define CRFSCHTTP_NODE_STORE_END_OFFSET(crfschttp_node)    ((crfschttp_node)->store_end_offset)
 #define CRFSCHTTP_NODE_STORE_CUR_OFFSET(crfschttp_node)    ((crfschttp_node)->store_cur_offset)
 #define CRFSCHTTP_NODE_STORE_SIZE(crfschttp_node)          (CRFSCHTTP_NODE_STORE_END_OFFSET(crfschttp_node) - CRFSCHTTP_NODE_STORE_BEG_OFFSET(crfschttp_node))
-                                                         
+
 #define CSOCKET_CNODE_CRFSCHTTP_NODE(csocket_cnode)       (CSOCKET_CNODE_PTR(csocket_cnode))
 
 #define    CRFSCHTTP_STATUS_NONE                          ((uint32_t)   0)
@@ -199,7 +199,7 @@ typedef struct _CRFSCHTTP_NODE
 #define    CRFSCHTTP_UNPROCESSABLE_ENTITY                 ((uint32_t) 422)    /* RFC2518 section 10.3 */
 #define    CRFSCHTTP_LOCKED                               ((uint32_t) 423)    /* RFC2518 section 10.4 */
 #define    CRFSCHTTP_FAILED_DEPENDENCY                    ((uint32_t) 424)    /* RFC2518 section 10.5 */
-                                                              
+
 #define    CRFSCHTTP_INTERNAL_SERVER_ERROR                ((uint32_t) 500)
 #define    CRFSCHTTP_NOT_IMPLEMENTED                      ((uint32_t) 501)
 #define    CRFSCHTTP_BAD_GATEWAY                          ((uint32_t) 502)

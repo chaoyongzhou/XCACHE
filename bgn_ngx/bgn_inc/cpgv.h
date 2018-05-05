@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -33,14 +33,14 @@ extern "C"{
 typedef struct
 {
     CPGRB_POOL   pgv_disk_rb_pool; /*waste many rb nodes ...*/
-    
+
     uint16_t     pgv_disk_rb_root_pos[ CPGB_MODEL_NUM ];/*root pos of rbtree*/
     uint16_t     rsvd1;
-    
+
     uint16_t     pgv_assign_bitmap; /*when some page model can provide pages or can borrow from upper, set bit to 1*/
-    uint16_t     pgv_disk_num;      /*current disk number support up to*/    
+    uint16_t     pgv_disk_num;      /*current disk number support up to*/
     uint32_t     rsvd2;
-    
+
     uint64_t     pgv_page_max_num; /*max pages number */
     uint64_t     pgv_page_used_num;/*used pages number*/
     uint64_t     pgv_actual_used_size;/*actual used bytes*/

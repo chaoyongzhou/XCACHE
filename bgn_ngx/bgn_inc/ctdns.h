@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -147,7 +147,7 @@ void ctdns_end(const UINT32 ctdns_md_id);
 *  set suspicious server to monitor
 *
 **/
-EC_BOOL ctdns_set_susv(const UINT32 ctdns_md_id, const CSTRING *service, const UINT32 tcid, const UINT32 max_fails); 
+EC_BOOL ctdns_set_susv(const UINT32 ctdns_md_id, const CSTRING *service, const UINT32 tcid, const UINT32 max_fails);
 
 /**
 *
@@ -286,7 +286,7 @@ EC_BOOL ctdns_config_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name,
 *  reserve a tcid to use from specific service
 *
 **/
-EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 ipaddr, UINT32 *tcid, UINT32 *port); 
+EC_BOOL ctdns_reserve_tcid(const UINT32 ctdns_md_id, const CSTRING *service_name, const UINT32 ipaddr, UINT32 *tcid, UINT32 *port);
 
 /**
 *
@@ -365,7 +365,7 @@ EC_BOOL ctdns_refresh_cache_notify(const UINT32 ctdns_md_id, const UINT32 networ
 
 EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path);
 
-EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path); 
+EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, const UINT32 tcid, const CSTRING *service_name, const CSTRING *path);
 
 /**
 *

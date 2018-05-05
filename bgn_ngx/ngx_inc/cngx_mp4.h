@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -134,7 +134,7 @@ typedef struct {
 typedef struct {
     ngx_file_t            file;
 
-    ngx_uint_t            modi; 
+    ngx_uint_t            modi;
 
     /*file read handler*/
     ngx_int_t  (*handler)(ngx_uint_t modi, size_t size, off_t offset, uint8_t *buf, ssize_t *rsize);

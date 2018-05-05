@@ -331,7 +331,7 @@ EC_BOOL crfshttps_commit_http_head(CHTTPS_NODE *chttps_node)
         CBUFFER *uri_cbuffer;
 
         uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_head: invalid uri %.*s\n", 
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_head: invalid uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -385,7 +385,7 @@ EC_BOOL crfshttps_commit_http_post(CHTTPS_NODE *chttps_node)
         CBUFFER *uri_cbuffer;
 
         uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_post: invalid uri %.*s\n", 
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_post: invalid uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
@@ -531,7 +531,7 @@ EC_BOOL crfshttps_commit_http_get(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_commit_http_get: invalid uri %.*s", 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_commit_http_get: invalid uri %.*s",
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_ACCEPTABLE;
@@ -1164,7 +1164,7 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
     }
 
     auth_token_header_len = snprintf((char *)auth_token_header, sizeof(auth_token_header),
-                                    "auth-token:%.*s\r\n", 
+                                    "auth-token:%.*s\r\n",
                                     (uint32_t)CSTRING_LEN(&token_cstr), (char *)CSTRING_STR(&token_cstr));
     cbytes_set(content_cbytes, auth_token_header, auth_token_header_len);
 
@@ -2554,7 +2554,7 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf")),content_len);
 
@@ -2853,7 +2853,7 @@ EC_BOOL crfshttps_handle_setsmf_memc_post_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmfmemc")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmfmemc")),content_len);
 
@@ -3600,7 +3600,7 @@ EC_BOOL crfshttps_handle_update_memc_post_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update_memc")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update_memc")),content_len);
 
@@ -4516,7 +4516,7 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
 
@@ -4812,7 +4812,7 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_renew_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew")),content_len);
 
@@ -5667,7 +5667,7 @@ EC_BOOL crfshttps_commit_mexpire_post_request(CHTTPS_NODE *chttps_node)
     EC_BOOL ret;
 
     uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mexpire_post_request: uri %.*s\n", 
+    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mexpire_post_request: uri %.*s\n",
                     CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
 
@@ -5826,7 +5826,7 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: bad request %.*s", 
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
@@ -6030,7 +6030,7 @@ EC_BOOL crfshttps_commit_mdsmf_post_request(CHTTPS_NODE *chttps_node)
     EC_BOOL ret;
 
     uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mdsmf_post_request: uri %.*s\n", 
+    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mdsmf_post_request: uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
     if(EC_FALSE == crfshttps_handle_mdsmf_post_request(chttps_node))
@@ -6187,7 +6187,7 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: bad request %.*s", 
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
@@ -6391,7 +6391,7 @@ EC_BOOL crfshttps_commit_mddir_post_request(CHTTPS_NODE *chttps_node)
     EC_BOOL ret;
 
     uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mddir_post_request: uri %.*s\n", 
+    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mddir_post_request: uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
 
@@ -6550,7 +6550,7 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: bad request %.*s", 
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;

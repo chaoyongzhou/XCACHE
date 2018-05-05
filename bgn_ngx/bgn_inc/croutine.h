@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -45,8 +45,8 @@ typedef COROUTINE_MUTEX CROUTINE_MUTEX;
 
 #define croutine_mutex_clean(croutine_mutex, location)           coroutine_mutex_clean(croutine_mutex, location)
 
-#define croutine_mutex_free(croutine_mutex, location)            coroutine_mutex_free(croutine_mutex, location) 
- 
+#define croutine_mutex_free(croutine_mutex, location)            coroutine_mutex_free(croutine_mutex, location)
+
 //#define croutine_mutex_lock(croutine_mutex, location)            coroutine_mutex_lock(croutine_mutex, location)
 
 //#define croutine_mutex_unlock(croutine_mutex, location)          coroutine_mutex_unlock(croutine_mutex, location)
@@ -64,7 +64,7 @@ typedef COROUTINE_RWLOCK CROUTINE_RWLOCK;
 
 #define croutine_rwlock_clean(croutine_rwlock, location)         coroutine_rwlock_clean(croutine_rwlock, location)
 
-#define croutine_rwlock_free(croutine_rwlock, location)          coroutine_rwlock_free(croutine_rwlock, location) 
+#define croutine_rwlock_free(croutine_rwlock, location)          coroutine_rwlock_free(croutine_rwlock, location)
 
 //#define croutine_rwlock_rdlock(croutine_rwlock, location)        coroutine_rwlock_rdlock(croutine_rwlock, location)
 
@@ -87,13 +87,13 @@ typedef COROUTINE_COND CROUTINE_COND;
 
 #define croutine_cond_clean(croutine_cond, location)             coroutine_cond_clean(croutine_cond, location)
 
-#define croutine_cond_free(croutine_cond, location)              coroutine_cond_free(croutine_cond, location) 
+#define croutine_cond_free(croutine_cond, location)              coroutine_cond_free(croutine_cond, location)
 
-#define croutine_cond_reserve(croutine_cond, counter, location)  coroutine_cond_reserve(croutine_cond, counter, location) 
+#define croutine_cond_reserve(croutine_cond, counter, location)  coroutine_cond_reserve(croutine_cond, counter, location)
 
-#define croutine_cond_release(croutine_cond, location)           coroutine_cond_release(croutine_cond, location) 
+#define croutine_cond_release(croutine_cond, location)           coroutine_cond_release(croutine_cond, location)
 
-#define croutine_cond_release_all(croutine_cond, location)       coroutine_cond_release_all(croutine_cond, location) 
+#define croutine_cond_release_all(croutine_cond, location)       coroutine_cond_release_all(croutine_cond, location)
 
 #define croutine_cond_wait(croutine_cond, location)              coroutine_cond_wait(croutine_cond, location)
 
@@ -101,25 +101,25 @@ typedef COROUTINE_COND CROUTINE_COND;
 
 typedef COROUTINE_NODE   CROUTINE_NODE;
 
-#define CROUTINE_NODE_COND_INIT(croutine_node, nsec, location)                     COROUTINE_NODE_COND_INIT(croutine_node, nsec, location)   
+#define CROUTINE_NODE_COND_INIT(croutine_node, nsec, location)                     COROUTINE_NODE_COND_INIT(croutine_node, nsec, location)
 
-#define CROUTINE_NODE_COND_CLEAN(croutine_node, location)                          COROUTINE_NODE_COND_CLEAN(croutine_node, location)       
+#define CROUTINE_NODE_COND_CLEAN(croutine_node, location)                          COROUTINE_NODE_COND_CLEAN(croutine_node, location)
 
-#define CROUTINE_NODE_COND_RESERVE(croutine_node, counter, location)               COROUTINE_NODE_COND_RESERVE(croutine_node, counter, location) 
+#define CROUTINE_NODE_COND_RESERVE(croutine_node, counter, location)               COROUTINE_NODE_COND_RESERVE(croutine_node, counter, location)
 
-#define CROUTINE_NODE_COND_RELEASE(croutine_node, location)                        COROUTINE_NODE_COND_RELEASE(croutine_node, location)     
+#define CROUTINE_NODE_COND_RELEASE(croutine_node, location)                        COROUTINE_NODE_COND_RELEASE(croutine_node, location)
 
-#define CROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)                    COROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)   
+#define CROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)                    COROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)
 
-#define CROUTINE_NODE_COND_WAIT(croutine_node, location)                           COROUTINE_NODE_COND_WAIT(croutine_node, location)    
+#define CROUTINE_NODE_COND_WAIT(croutine_node, location)                           COROUTINE_NODE_COND_WAIT(croutine_node, location)
 
-#define CROUTINE_NODE_COND_SPY(croutine_node, location)                            COROUTINE_NODE_COND_SPY(croutine_node, location)     
+#define CROUTINE_NODE_COND_SPY(croutine_node, location)                            COROUTINE_NODE_COND_SPY(croutine_node, location)
 
 #define croutine_node_shutdown(croutine_node, croutine_pool)    coroutine_node_shutdown(croutine_node, croutine_pool)
 
 typedef COROUTINE_POOL   CROUTINE_POOL;
 
-#define croutine_pool_new(croutine_num, flag)                    coroutine_pool_new(croutine_num, flag) 
+#define croutine_pool_new(croutine_num, flag)                    coroutine_pool_new(croutine_num, flag)
 
 #define croutine_pool_free(__croutine_pool)                      coroutine_pool_free(__croutine_pool)
 
@@ -172,9 +172,9 @@ typedef CMUTEX CROUTINE_MUTEX;
 
 #define croutine_mutex_clean(croutine_mutex, location)           cmutex_clean(croutine_mutex, location)
 
-#define croutine_mutex_free(croutine_mutex, location)            cmutex_free(croutine_mutex, location) 
- 
-#define croutine_mutex_lock(croutine_mutex, location)            cmutex_lock(croutine_mutex, location) 
+#define croutine_mutex_free(croutine_mutex, location)            cmutex_free(croutine_mutex, location)
+
+#define croutine_mutex_lock(croutine_mutex, location)            cmutex_lock(croutine_mutex, location)
 
 #define croutine_mutex_unlock(croutine_mutex, location)          cmutex_unlock(croutine_mutex, location)
 
@@ -187,11 +187,11 @@ typedef CRWLOCK CROUTINE_RWLOCK;
 
 #define croutine_rwlock_clean(croutine_rwlock, location)         crwlock_clean(croutine_rwlock, location)
 
-#define croutine_rwlock_free(croutine_rwlock, location)          crwlock_free(croutine_rwlock, location) 
+#define croutine_rwlock_free(croutine_rwlock, location)          crwlock_free(croutine_rwlock, location)
 
-#define croutine_rwlock_rdlock(croutine_rwlock, location)        crwlock_rdlock(croutine_rwlock, location) 
+#define croutine_rwlock_rdlock(croutine_rwlock, location)        crwlock_rdlock(croutine_rwlock, location)
 
-#define croutine_rwlock_wrlock(croutine_rwlock, location)        crwlock_wrlock(croutine_rwlock, location) 
+#define croutine_rwlock_wrlock(croutine_rwlock, location)        crwlock_wrlock(croutine_rwlock, location)
 
 #define croutine_rwlock_unlock(croutine_rwlock, location)        crwlock_unlock(croutine_rwlock, location)
 
@@ -204,13 +204,13 @@ typedef CCOND CROUTINE_COND;
 
 #define croutine_cond_clean(croutine_cond, location)             ccond_clean(croutine_cond, location)
 
-#define croutine_cond_free(croutine_cond, location)              ccond_free(croutine_cond, location) 
+#define croutine_cond_free(croutine_cond, location)              ccond_free(croutine_cond, location)
 
-#define croutine_cond_reserve(croutine_cond, counter, location)  ccond_reserve(croutine_cond, counter, location) 
+#define croutine_cond_reserve(croutine_cond, counter, location)  ccond_reserve(croutine_cond, counter, location)
 
-#define croutine_cond_release(croutine_cond, location)           ccond_release(croutine_cond, location) 
+#define croutine_cond_release(croutine_cond, location)           ccond_release(croutine_cond, location)
 
-#define croutine_cond_release_all(croutine_cond, location)       ccond_release_all(croutine_cond, location) 
+#define croutine_cond_release_all(croutine_cond, location)       ccond_release_all(croutine_cond, location)
 
 #define croutine_cond_wait(croutine_cond, location)              ccond_wait(croutine_cond, location)
 
@@ -219,25 +219,25 @@ typedef CCOND CROUTINE_COND;
 
 typedef CTHREAD_NODE   CROUTINE_NODE;
 
-#define CROUTINE_NODE_COND_INIT(croutine_node, nsec, location)                     CTHREAD_NODE_CCOND_INIT(croutine_node, nsec, location)   
+#define CROUTINE_NODE_COND_INIT(croutine_node, nsec, location)                     CTHREAD_NODE_CCOND_INIT(croutine_node, nsec, location)
 
-#define CROUTINE_NODE_COND_CLEAN(croutine_node, location)                          CTHREAD_NODE_CCOND_CLEAN(croutine_node, location)       
+#define CROUTINE_NODE_COND_CLEAN(croutine_node, location)                          CTHREAD_NODE_CCOND_CLEAN(croutine_node, location)
 
-#define CROUTINE_NODE_COND_RESERVE(croutine_node, counter, location)               CTHREAD_NODE_CCOND_RESERVE(croutine_node, counter, location) 
+#define CROUTINE_NODE_COND_RESERVE(croutine_node, counter, location)               CTHREAD_NODE_CCOND_RESERVE(croutine_node, counter, location)
 
-#define CROUTINE_NODE_COND_RELEASE(croutine_node, location)                        CTHREAD_NODE_CCOND_RELEASE(croutine_node, location)     
+#define CROUTINE_NODE_COND_RELEASE(croutine_node, location)                        CTHREAD_NODE_CCOND_RELEASE(croutine_node, location)
 
-#define CROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)                    CTHREAD_NODE_CCOND_RELEASE_ALL(croutine_node, location)   
+#define CROUTINE_NODE_COND_RELEASE_ALL(croutine_node, location)                    CTHREAD_NODE_CCOND_RELEASE_ALL(croutine_node, location)
 
-#define CROUTINE_NODE_COND_WAIT(croutine_node, location)                           CTHREAD_NODE_CCOND_WAIT(croutine_node, location)    
+#define CROUTINE_NODE_COND_WAIT(croutine_node, location)                           CTHREAD_NODE_CCOND_WAIT(croutine_node, location)
 
-#define CROUTINE_NODE_COND_SPY(croutine_node, location)                            CTHREAD_NODE_CCOND_SPY(croutine_node, location)  
+#define CROUTINE_NODE_COND_SPY(croutine_node, location)                            CTHREAD_NODE_CCOND_SPY(croutine_node, location)
 
 #define croutine_node_shutdown(croutine_node, croutine_pool)    cthread_node_shutdown(croutine_node, croutine_pool)
 
 typedef CTHREAD_POOL   CROUTINE_POOL;
 
-#define croutine_pool_new(croutine_num, flag)                    cthreadp_new(croutine_num, flag) 
+#define croutine_pool_new(croutine_num, flag)                    cthreadp_new(croutine_num, flag)
 
 #define croutine_pool_free(__croutine_pool)                      cthreadp_free(__croutine_pool)
 

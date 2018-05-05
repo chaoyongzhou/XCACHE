@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -51,13 +51,13 @@ typedef EC_BOOL ( *CSTRKV_MGR_WALKER)(void *, const CSTRKV *);
 
 CSTRKV *cstrkv_new(const char *key, const char *val);
 
-EC_BOOL cstrkv_init(CSTRKV *cstrkv, const char *key, const char *val); 
+EC_BOOL cstrkv_init(CSTRKV *cstrkv, const char *key, const char *val);
 
 EC_BOOL cstrkv_init_0(CSTRKV *cstrkv);
 
-EC_BOOL cstrkv_clean(CSTRKV *cstrkv); 
+EC_BOOL cstrkv_clean(CSTRKV *cstrkv);
 
-EC_BOOL cstrkv_free(CSTRKV *cstrkv); 
+EC_BOOL cstrkv_free(CSTRKV *cstrkv);
 
 EC_BOOL cstrkv_cmp(const CSTRKV *cstrkv_1, const CSTRKV *cstrkv_2);
 
@@ -91,11 +91,11 @@ void cstrkv_print_plain(LOG *log, const CSTRKV *cstrkv);
 
 CSTRKV_MGR *cstrkv_mgr_new();
 
-EC_BOOL cstrkv_mgr_init(CSTRKV_MGR *cstrkv_mgr); 
+EC_BOOL cstrkv_mgr_init(CSTRKV_MGR *cstrkv_mgr);
 
-EC_BOOL cstrkv_mgr_clean(CSTRKV_MGR *cstrkv_mgr); 
+EC_BOOL cstrkv_mgr_clean(CSTRKV_MGR *cstrkv_mgr);
 
-EC_BOOL cstrkv_mgr_free(CSTRKV_MGR *cstrkv_mgr); 
+EC_BOOL cstrkv_mgr_free(CSTRKV_MGR *cstrkv_mgr);
 
 UINT32  cstrkv_mgr_size(const CSTRKV_MGR *cstrkv_mgr);
 

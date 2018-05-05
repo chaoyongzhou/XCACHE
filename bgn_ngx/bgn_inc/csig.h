@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -38,9 +38,9 @@ extern "C"{
 typedef EC_BOOL (*CSIG_ATEXIT_HANDLER)(UINT32);
 
 typedef struct
-{   
+{
     CLISTBASE_NODE       node;
-    
+
     CSIG_ATEXIT_HANDLER  handler;
     UINT32               arg;
 }CSIG_ATEXIT;
@@ -50,7 +50,7 @@ typedef struct
 {
     uint32_t count;
     uint32_t flag; /*range in {CSIG_HANDLE_NOW, CSIG_HANDLE_DEFER}*/
-    void (*handler)(int signo);    
+    void (*handler)(int signo);
 }CSIG_ACTION;
 
 typedef struct
@@ -59,7 +59,7 @@ typedef struct
     int             signal_queue[ CSIG_MAX_NUM ];/* in-order queue of received signals */
 
     CSIG_ACTION     signal_action[ CSIG_MAX_NUM ];
-    sigset_t        blocked_sig;    
+    sigset_t        blocked_sig;
 
     CSIG_ATEXIT     atexit_table[CSIG_ATEXIT_MAX_NUM];
 

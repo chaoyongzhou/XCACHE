@@ -1,16 +1,16 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
 extern "C"{
 #endif/*__cplusplus*/
 
-#ifndef _CMD5_H 
-#define _CMD5_H 
+#ifndef _CMD5_H
+#define _CMD5_H
 
 /*
  * This is the header file for the MD5 message-digest algorithm.
@@ -29,7 +29,7 @@ extern "C"{
 
 #define CMD5_DIGEST_LEN         (16)
 
-typedef struct 
+typedef struct
 {
     uint32_t buf[4];
     uint32_t bytes[2];

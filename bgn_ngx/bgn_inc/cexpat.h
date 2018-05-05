@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -140,11 +140,11 @@ typedef struct
 typedef struct _CEXPAT_NODE
 {
     struct _CEXPAT_NODE     *parent;
-    CLIST                    children; /*attribute list, item is CEXPAT_NODE*/    
-    
+    CLIST                    children; /*attribute list, item is CEXPAT_NODE*/
+
     CSTRING                  name;
     CBYTES                  *cdata;    /*cdata*/
-    CLIST                    attr_list;/*attribute list, item is CEXPAT_ATTR*/    
+    CLIST                    attr_list;/*attribute list, item is CEXPAT_ATTR*/
 }CEXPAT_NODE;
 
 #define CEXPAT_NODE_PARENT(cexpat_node)    ((cexpat_node)->parent)
@@ -160,15 +160,15 @@ typedef struct _CEXPAT_NODE
 #define CEXPAT_PARSE_SUCC                 ((uint16_t) 0)
 #define CEXPAT_PARSE_FAIL                 ((uint16_t) 1)
 
-#define CEXPAT_PARSE_HEADER_IS_DONE       ((uint16_t) 1)  
-#define CEXPAT_PARSE_HEADER_NOT_DONE      ((uint16_t) 0)  
+#define CEXPAT_PARSE_HEADER_IS_DONE       ((uint16_t) 1)
+#define CEXPAT_PARSE_HEADER_NOT_DONE      ((uint16_t) 0)
 
 typedef struct
 {
     XML_Parser   xml_parser;
     CEXPAT_NODE *root_node;
     CEXPAT_NODE *cur_node;
-    
+
     uint32_t     depth;/*depth recorder*/
     uint16_t     fail; /*fail flag*/
     uint16_t     header_done; /*header reached flag*/

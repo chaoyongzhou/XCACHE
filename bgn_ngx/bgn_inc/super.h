@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -52,7 +52,7 @@ typedef struct
 #define SUPER_MD_FNODE_LIST(super_md)        (&((super_md)->fnode_list))
 #define SUPER_MD_OBJ_ZONE(super_md)          ((super_md)->obj_zone)
 #define SUPER_MD_OBJ_ZONE_SIZE(super_md)     ((super_md)->obj_zone_size)
-#define SUPER_MD_COND_LOCKS(super_md)        (&((super_md)->cond_locks)) 
+#define SUPER_MD_COND_LOCKS(super_md)        (&((super_md)->cond_locks))
 
 typedef struct
 {

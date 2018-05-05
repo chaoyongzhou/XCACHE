@@ -147,10 +147,10 @@ UINT32 cflv_start(ngx_http_request_t *r)
     /* init */
     cngx_get_cache_seg_max_num(r, &cache_seg_max_num);
     CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) = cache_seg_max_num;
-    
+
     cngx_get_cache_seg_size(r, &cache_seg_size);
     CFLV_MD_CACHE_SEG_SIZE(cflv_md) = cache_seg_size;
-    
+
     cstring_init(CFLV_MD_CACHE_PATH(cflv_md), NULL_PTR);
     CFLV_MD_CACHE_STATUS(cflv_md) = CNGX_CACHE_STATUS_MISS;/*default*/
 
@@ -175,7 +175,7 @@ UINT32 cflv_start(ngx_http_request_t *r)
     CFLV_MD_CONTENT_LENGTH(cflv_md)   = 0;
     cstring_init(CFLV_MD_CACHED_ETAG(cflv_md), NULL_PTR);
     cstring_init(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), NULL_PTR);
-    
+
     cstring_init(CFLV_MD_HEADER_EXPIRES(cflv_md), NULL_PTR);
 
     CFLV_MD_FLV_START(cflv_md)        = 0;
@@ -364,7 +364,7 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
         return (EC_TRUE);
-    }    
+    }
 
     CFLV_MD_NGX_RC(cflv_md)  = rc;
     CFLV_MD_NGX_LOC(cflv_md) = location;
@@ -409,7 +409,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
         return (EC_TRUE);
-    }     
+    }
 
     if(NGX_OK != CFLV_MD_NGX_RC(cflv_md))
     {
@@ -603,7 +603,7 @@ EC_BOOL cflv_get_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_se
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_get_cache_seg_n: seg no %ld overflow!\n",
                                              CRANGE_SEG_NO(range_seg));
         return (EC_FALSE);
-    }    
+    }
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cflv_get_cache_seg_uri(cflv_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
@@ -678,8 +678,8 @@ EC_BOOL cflv_wait_cache_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *range_s
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_wait_cache_seg_n: seg no %ld overflow!\n",
                                              CRANGE_SEG_NO(range_seg));
         return (EC_FALSE);
-    } 
-    
+    }
+
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cflv_get_cache_seg_uri(cflv_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
     {
@@ -857,14 +857,14 @@ EC_BOOL cflv_get_rsp_length_segs(const UINT32 cflv_md_id, const UINT32 seg_size)
 
             CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md) = BIT_TRUE;
             CFLV_MD_CONTENT_LENGTH(cflv_md)            = content_length;
-                                                    
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_get_rsp_length_segs: "
                                                  "parse Content-Length '%s' to %ld\n",
                                                  content_length_str,
                                                  content_length);
             /*fall through*/
             break;
-        }     
+        }
 
         /*fall through*/
         break;
@@ -1177,7 +1177,7 @@ EC_BOOL cflv_filter_header_in_common(const UINT32 cflv_md_id)
     chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), (const char *)CNGX_BGN_MOD_DBG_EXPIRE_HDR);
 
     chttp_req_del_header(CFLV_MD_CHTTP_REQ(cflv_md), (const char *)"Proxy-Connection");
-    
+
     if(EC_FALSE == cngx_headers_dir1_filter(r, CFLV_MD_CHTTP_REQ(cflv_md)))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_filter_header_in_common: "
@@ -1280,11 +1280,11 @@ EC_BOOL cflv_filter_header_out_common(const UINT32 cflv_md_id, const char *proce
     {
         const char                  *k;
         const char                  *v;
-        
+
         uint32_t                     age;
         time_t                       date_time;
         time_t                       cur_time;
-        
+
         k = (const char *)"Age";
         v = (const char *)chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
         if(NULL_PTR == v)
@@ -1317,7 +1317,7 @@ EC_BOOL cflv_filter_header_out_common(const UINT32 cflv_md_id, const char *proce
                                                  k, v);
             return (EC_FALSE);
         }
-    }while(0);     
+    }while(0);
 
     cngx_set_cache_status(r, CFLV_MD_CACHE_STATUS(cflv_md));
 
@@ -1968,7 +1968,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     const char                  *k;
-    const char                  *v;    
+    const char                  *v;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -2058,7 +2058,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
                                              "%s:%s => direct procedure\n",
                                              k, v);
         return cflv_content_direct_procedure(cflv_md_id);
-    }    
+    }
 
     cngx_option_set_only_if_cached(r, CFLV_MD_CNGX_OPTION(cflv_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
@@ -2183,14 +2183,14 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CFLV_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_host: "
@@ -2202,7 +2202,7 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -2224,7 +2224,7 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
             safe_free(v, LOC_CFLV_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -2247,8 +2247,8 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
         (const char *)"host",
     };
 
-    UINT32                       tag_idx;  
-    
+    UINT32                       tag_idx;
+
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
     {
@@ -2311,7 +2311,7 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -2326,22 +2326,22 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CFLV_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CFLV_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CFLV_0059);
-            
+
             /*continue*/
-        }        
+        }
     }
-    
+
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -2373,7 +2373,7 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default head port*/
     chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
@@ -2429,9 +2429,9 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
                 safe_free(v, LOC_CFLV_0012);
-                
+
                 cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0013);
-                
+
                 return (EC_FALSE);
             }
             safe_free(v, LOC_CFLV_0014);
@@ -2598,7 +2598,7 @@ EC_BOOL cflv_content_head_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0033);
@@ -2607,8 +2607,8 @@ EC_BOOL cflv_content_head_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-            return (EC_TRUE);            
-        }    
+            return (EC_TRUE);
+        }
     }
 
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
@@ -2661,7 +2661,7 @@ EC_BOOL cflv_content_head_header_out_connection_filter(const UINT32 cflv_md_id)
 
     k = (const char *)"Connection";
     chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
-    
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_connection_filter: "
                                          "del rsp header '%s' done\n",
                                          k);
@@ -2708,10 +2708,10 @@ EC_BOOL cflv_content_head_header_out_filter(const UINT32 cflv_md_id)
                                              "connection filter failed\n");
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_filter: "
                                          "connection filter done\n");
-                                            
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -2878,7 +2878,7 @@ EC_BOOL cflv_content_head_send_response(const UINT32 cflv_md_id)
         cngx_set_header_only(r);
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_send_response: "
-                                             "set header only\n");        
+                                             "set header only\n");
 
         if(EC_FALSE == cngx_send_header(r, &(CFLV_MD_NGX_RC(cflv_md))))
         {
@@ -2890,7 +2890,7 @@ EC_BOOL cflv_content_head_send_response(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_send_response: "
                                              "send header done\n");
 
-        return (EC_TRUE);                                         
+        return (EC_TRUE);
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_send_response: "
@@ -3011,14 +3011,14 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CFLV_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_host: "
@@ -3030,7 +3030,7 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -3052,7 +3052,7 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
             safe_free(v, LOC_CFLV_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -3068,14 +3068,14 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
     char                        *v;
 
     CHTTP_REQ                   *chttp_req;
-    
+
     static const char           *tags[ ] = {
         (const char *)"http_host",
         (const char *)"server_name",
         (const char *)"host",
     };
 
-    UINT32                       tag_idx;    
+    UINT32                       tag_idx;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -3140,7 +3140,7 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -3155,22 +3155,22 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CFLV_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CFLV_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CFLV_0059);
-            
+
             /*continue*/
-        }        
+        }
     }
-    
+
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -3202,7 +3202,7 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default direct port*/
     chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
@@ -3260,7 +3260,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                 safe_free(v, LOC_CFLV_0010);
 
                 cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0011);
-                
+
                 return (EC_FALSE);
             }
             safe_free(v, LOC_CFLV_0012);
@@ -3282,7 +3282,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
                                                  "filter port failed\n");
             return (EC_FALSE);
-        }        
+        }
     }while(0);
 
     /*set http request method*/
@@ -3360,7 +3360,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
 
         /*FLV: carray on args to orig*/
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
-        {   
+        {
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
                                                  "[cngx] get args '%s'\n",
                                                  v);
@@ -3385,7 +3385,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                                                  "[cngx] append args '%s' done\n",
                                                  v);
             safe_free(v, LOC_CFLV_0063);
-        }        
+        }
     }while(0);
 
     /*set range*/
@@ -3656,7 +3656,7 @@ EC_BOOL cflv_content_direct_header_out_rsp_status_filter(const UINT32 cflv_md_id
         chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0031);
@@ -3665,8 +3665,8 @@ EC_BOOL cflv_content_direct_header_out_rsp_status_filter(const UINT32 cflv_md_id
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-            return (EC_TRUE);            
-        }    
+            return (EC_TRUE);
+        }
     }
 
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
@@ -3724,13 +3724,13 @@ EC_BOOL cflv_content_direct_header_out_connection_filter(const UINT32 cflv_md_id
     {
         k = (const char *)"Connection";
         chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_connection_filter: "
                                              "404 => del %s\n",
                                              k);
         return (EC_TRUE);
     }
-    
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_connection_filter: "
                                          "not 404\n");
 
@@ -3788,10 +3788,10 @@ EC_BOOL cflv_content_direct_header_out_filter(const UINT32 cflv_md_id)
                                              "connection filter failed\n");
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: "
                                          "connection filter done\n");
-                                            
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -3984,12 +3984,12 @@ EC_BOOL cflv_content_direct_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG
     /*check seg num*/
     if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
     && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-    {                
+    {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_seg_n: seg no %ld overflow!\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_seg_n: "
                                          "set absent_seg_no = %ld\n",
                                          CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -4388,14 +4388,14 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CFLV_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_host: "
@@ -4407,7 +4407,7 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -4429,7 +4429,7 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
             safe_free(v, LOC_CFLV_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -4505,7 +4505,7 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
-                                             v);                                                
+                                             v);
         safe_free(v, LOC_CFLV_0048);
         return (EC_TRUE);
     }
@@ -4522,7 +4522,7 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
     if(NULL_PTR != v)
     {
         char   *segs[ 2 ];
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                              "[cngx] get var '%s':'%s' done\n",
                                              k, v);
@@ -4537,20 +4537,20 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
                                                      segs[ 1 ]);
                 safe_free(v, LOC_CFLV_0046);
                 return (EC_FALSE);
-            }  
+            }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
-                                                 segs[ 1 ]); 
+                                                 segs[ 1 ]);
             safe_free(v, LOC_CFLV_0059);
-            
+
             return (EC_TRUE);
         }
-        
+
         safe_free(v, LOC_CFLV_0059);
-        
+
         /*continue*/
-    }        
+    }
 
     /*use $server_port as the port connecting to origin*/
     k = (const char *)"server_port";
@@ -4644,9 +4644,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
                 safe_free(v, LOC_CFLV_0043);
-                
+
                 cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0044);
-                
+
                 return (EC_FALSE);
             }
             safe_free(v, LOC_CFLV_0045);
@@ -4718,7 +4718,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 {
                     break;
                 }
-                
+
                 if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"/"))
                 {
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
@@ -4727,10 +4727,10 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                     "[cngx] append '/' done\n");                
+                                                     "[cngx] append '/' done\n");
                 break; /*fall through*/
             }
-            
+
             if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
@@ -4776,7 +4776,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             UINT32   arg_left_num;
             UINT32   arg_idx;
             char    *args; /*the final args*/
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "[cngx] get args '%s'\n",
                                                  v);
@@ -4789,12 +4789,12 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 {
                     continue;
                 }
-                
+
                 if(arg_idx != arg_left_num)
                 {
                     arg_fields[ arg_left_num ] = arg_fields[ arg_idx ];
                 }
-                
+
                 arg_left_num ++;
             }
 
@@ -4802,7 +4802,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                      "[cngx] append nothing to uri\n");
-                safe_free(v, LOC_CFLV_0063);            
+                safe_free(v, LOC_CFLV_0063);
                 break;
             }
 
@@ -4831,7 +4831,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[cngx] append args '%s' done\n",
                                                  v);
             safe_free(v, LOC_CFLV_0063);
-        }        
+        }
     }while(0);
 
     /*set keep-alive*/
@@ -4850,7 +4850,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);                                                 
+                                                 k);
         }
         else
         {
@@ -4864,7 +4864,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);                                                 
+                                                 k);
         }
     }while(0);
 
@@ -4875,7 +4875,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
         chttp_req_del_header(chttp_req, k);
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                              "del req header '%s' done\n",
-                                             k); 
+                                             k);
     }while(0);
 
     /*delete If-None-Match*/
@@ -4885,9 +4885,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
         chttp_req_del_header(chttp_req, k);
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                              "del req header '%s' done\n",
-                                             k); 
-    }while(0);    
-    
+                                             k);
+    }while(0);
+
     /*set range*/
     if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md))
     {
@@ -5018,10 +5018,10 @@ EC_BOOL cflv_content_orig_header_out_if_modified_since_filter(const UINT32 cflv_
     chttp_rsp_only_headers(CFLV_MD_CHTTP_RSP(cflv_md), g_cflv_304_headers, g_cflv_304_headers_num);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_if_modified_since_filter: "
                                          "reset rsp headers\n");
-                                            
+
     cngx_set_header_only(r);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_if_modified_since_filter: "
-                                         "set header only\n");    
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -5032,7 +5032,7 @@ EC_BOOL cflv_content_orig_header_out_if_none_match_filter(const UINT32 cflv_md_i
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
-    
+
     char                        *etag_src; /*ETag on cache side*/
     char                        *etag_des; /*ETag on client side*/
 
@@ -5089,7 +5089,7 @@ EC_BOOL cflv_content_orig_header_out_if_none_match_filter(const UINT32 cflv_md_i
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_if_none_match_filter: "
                                              "set rsp status = %u\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-                                                
+
         return (EC_TRUE);
     }
 
@@ -5111,7 +5111,7 @@ EC_BOOL cflv_content_orig_header_out_if_none_match_filter(const UINT32 cflv_md_i
 
     cngx_set_header_only(r);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_if_none_match_filter: "
-                                         "set header only\n");                                             
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -5210,7 +5210,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0064);
@@ -5219,9 +5219,9 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-            return (EC_TRUE);            
-        }    
-    }       
+            return (EC_TRUE);
+        }
+    }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
                                          "response status = %u [before]\n",
@@ -5234,7 +5234,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
-    
+
     if(CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md))
     || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
     {
@@ -5442,7 +5442,7 @@ EC_BOOL cflv_content_orig_header_out_filter(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_filter: "
-                                         "if-none-match filter done\n");      
+                                         "if-none-match filter done\n");
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_filter: done\n");
     return (EC_TRUE);
@@ -5540,7 +5540,7 @@ EC_BOOL cflv_content_orig_set_store(const UINT32 cflv_md_id)
 
     /*--- chttp_store settting --- BEG ---*/
     CHTTP_STORE_SEG_MAX_ID(chttp_store) = (uint32_t)CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md);
-    
+
     if(CFLV_ERR_SEG_NO == CFLV_MD_ABSENT_SEG_NO(cflv_md))
     {
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
@@ -5576,7 +5576,7 @@ EC_BOOL cflv_content_orig_set_store(const UINT32 cflv_md_id)
 
     cstring_clone(CFLV_MD_CACHED_ETAG(cflv_md)        , CHTTP_STORE_ETAG(chttp_store));
     cstring_clone(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), CHTTP_STORE_LAST_MODIFIED(chttp_store));
-   
+
     if(0 < CFLV_MD_CONTENT_LENGTH(cflv_md))
     {
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = CFLV_MD_CONTENT_LENGTH(cflv_md);
@@ -5736,7 +5736,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
         else
         {
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0072);
-        }        
+        }
         return (EC_FALSE);
     }
     if(do_log(SEC_0146_CFLV, 9))
@@ -5981,7 +5981,7 @@ EC_BOOL cflv_content_orig_send_response(const UINT32 cflv_md_id)
     if(EC_TRUE == cngx_need_header_only(r))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_send_response: "
-                                             "need header only => return\n");    
+                                             "need header only => return\n");
         return (EC_TRUE);
     }
 
@@ -6340,14 +6340,14 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CFLV_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_host: "
@@ -6359,7 +6359,7 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -6381,7 +6381,7 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
             safe_free(v, LOC_CFLV_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -6397,7 +6397,7 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
     char                        *v;
 
     CHTTP_REQ                   *chttp_req;
-    
+
     static const char           *tags[ ] = {
         (const char *)"http_host",
         (const char *)"server_name",
@@ -6405,7 +6405,7 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
     };
 
     UINT32                       tag_idx;
-    
+
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
     {
@@ -6468,7 +6468,7 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -6483,22 +6483,22 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CFLV_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CFLV_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CFLV_0059);
-            
+
             /*continue*/
-        }        
+        }
     }
-    
+
     /*when cngx NOT config ims port*/
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
@@ -6585,9 +6585,9 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
                 safe_free(v, LOC_CFLV_0085);
-                
+
                 cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0086);
-                
+
                 return (EC_FALSE);
             }
             safe_free(v, LOC_CFLV_0087);
@@ -6693,7 +6693,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             UINT32   arg_left_num;
             UINT32   arg_idx;
             char    *args; /*the final args*/
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                  "[cngx] get args '%s'\n",
                                                  v);
@@ -6706,12 +6706,12 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 {
                     continue;
                 }
-                
+
                 if(arg_idx != arg_left_num)
                 {
                     arg_fields[ arg_left_num ] = arg_fields[ arg_idx ];
                 }
-                
+
                 arg_left_num ++;
             }
 
@@ -6719,7 +6719,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                      "[cngx] append nothing to uri\n");
-                safe_free(v, LOC_CFLV_0063);            
+                safe_free(v, LOC_CFLV_0063);
                 break;
             }
 
@@ -7832,7 +7832,7 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
@@ -7858,12 +7858,12 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_seg_n: "
                                              "no-expired => direct, absent_seg_no %ld\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -7895,12 +7895,12 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -8379,10 +8379,10 @@ EC_BOOL cflv_content_cache_save_header(const UINT32 cflv_md_id)
         {
             cstring_clean(CFLV_MD_CACHED_ETAG(cflv_md));
             cstring_init(CFLV_MD_CACHED_ETAG(cflv_md), (const UINT8 *)v);
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
                                                  "save '%s':'%s'\n",
-                                                 k, v);            
+                                                 k, v);
         }
     }
 
@@ -8403,15 +8403,15 @@ EC_BOOL cflv_content_cache_save_header(const UINT32 cflv_md_id)
         {
             cstring_clean(CFLV_MD_CACHED_LAST_MODIFED(cflv_md));
             cstring_init(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), (const UINT8 *)v);
-            
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
                                                  "save '%s':'%s'\n",
-                                                 k, v);            
+                                                 k, v);
         }
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_save_header: "
-                                         "done\n");    
+                                         "done\n");
     return (EC_TRUE);
 }
 
@@ -8499,14 +8499,14 @@ EC_BOOL cflv_content_cache_header_out_if_modified_since_filter(const UINT32 cflv
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_modified_since_filter: "
                                          "clean cngx range mgr\n");
-                                         
+
     chttp_rsp_only_headers(CFLV_MD_CHTTP_RSP(cflv_md), g_cflv_304_headers, g_cflv_304_headers_num);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_modified_since_filter: "
                                          "reset rsp headers\n");
 
     cngx_set_header_only(r);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_modified_since_filter: "
-                                         "set header only\n"); 
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -8517,7 +8517,7 @@ EC_BOOL cflv_content_cache_header_out_if_none_match_filter(const UINT32 cflv_md_
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
-    
+
     char                        *etag_src; /*ETag on cache side*/
     char                        *etag_des; /*ETag on client side*/
 
@@ -8574,7 +8574,7 @@ EC_BOOL cflv_content_cache_header_out_if_none_match_filter(const UINT32 cflv_md_
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_none_match_filter: "
                                              "set rsp status = %u\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-                                                
+
         return (EC_TRUE);
     }
 
@@ -8596,7 +8596,7 @@ EC_BOOL cflv_content_cache_header_out_if_none_match_filter(const UINT32 cflv_md_
 
     cngx_set_header_only(r);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_none_match_filter: "
-                                         "set header only\n");                                             
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -8706,9 +8706,9 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
-            return (EC_TRUE);            
+            return (EC_TRUE);
         }
-        
+
         k = (const char *)"Location";
         if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
         && EC_TRUE == chttp_rsp_has_header_key(CFLV_MD_CHTTP_RSP(cflv_md), k))/*has 'Location'*/
@@ -8724,7 +8724,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
     if(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
     {
-#if 0    
+#if 0
         if(g_flv_header_len <= CFLV_MD_FLV_START(cflv_md))
         {
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
@@ -8936,9 +8936,9 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_age_filter: "
                                              "get '%s':'%s'\n",
-                                             k, v);    
+                                             k, v);
         age = c_str_to_uint32_t(v);
-    } 
+    }
 
     /*current time*/
     curtime = task_brd_default_get_time();
@@ -8950,8 +8950,8 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_age_filter: "
                                              "no '%s' => done\n",
-                                             k);  
-        return (EC_TRUE);    
+                                             k);
+        return (EC_TRUE);
     }
     datetime = c_parse_http_time((uint8_t *)v, strlen(v));
 
@@ -8962,7 +8962,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                              datetime, max_age, age, curtime);
 
         /*REFRESH_HIT or REFRESH_MISS*/
-        CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE; 
+        CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
         return (EC_TRUE);
     }
@@ -9048,7 +9048,7 @@ EC_BOOL cflv_content_cache_header_out_filter(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_filter: "
                                          "range filter done\n");
-                                         
+
     if(EC_FALSE == cflv_content_cache_header_out_rsp_status_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_header_out_filter: "
@@ -9075,7 +9075,7 @@ EC_BOOL cflv_content_cache_header_out_filter(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_filter: "
                                          "if-none-match filter done\n");
-                                         
+
     if(BIT_FALSE == CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md))
     {
         if(EC_FALSE == cflv_content_cache_header_out_expires_filter(cflv_md_id))
@@ -9098,8 +9098,8 @@ EC_BOOL cflv_content_cache_header_out_filter(const UINT32 cflv_md_id)
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_filter: "
                                              "age filter done\n");
-    }    
-    
+    }
+
     if(EC_FALSE == cflv_content_cache_header_out_cache_status_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_header_out_filter: "
@@ -9108,7 +9108,7 @@ EC_BOOL cflv_content_cache_header_out_filter(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_filter: "
                                          "cache status filter done\n");
-                                            
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -9276,12 +9276,12 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -9302,12 +9302,12 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "no-cache => direct, absent_seg_no %ld\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -9339,12 +9339,12 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
         /*check seg num*/
         if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
         && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-        {                
+        {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CFLV_MD_ABSENT_SEG_NO(cflv_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CFLV_MD_ABSENT_SEG_NO(cflv_md));
@@ -9541,9 +9541,9 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_response: "
-                                                 "[HEAD] send header done\n");        
-            return (EC_TRUE);            
-        }        
+                                                 "[HEAD] send header done\n");
+            return (EC_TRUE);
+        }
 
         if(EC_FALSE == cngx_need_header_only(r)
         && EC_TRUE == crange_mgr_is_empty(crange_mgr))
@@ -9565,10 +9565,10 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
     if(EC_TRUE == cngx_need_header_only(r))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_response: "
-                                             "need header only => return\n");    
+                                             "need header only => return\n");
         return (EC_TRUE);
     }
-    
+
     /*send body*/
 
     if(do_log(SEC_0146_CFLV, 9))
@@ -9704,12 +9704,12 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             /*check seg num*/
             if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
             && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-            {                
+            {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: seg no %ld overflow!\n",
                                                      CFLV_MD_ABSENT_SEG_NO(cflv_md));
                 return (EC_FALSE);
             }
-            
+
             if(EC_FALSE == cflv_content_orig_procedure(cflv_md_id))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
@@ -9748,9 +9748,9 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                      "[HEAD] cache miss => direct procedure\n");
-                                                        
+
                 return cflv_content_head_procedure(cflv_md_id);
-            }             
+            }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                  "absent_seg_no %ld => orig\n",
@@ -9762,12 +9762,12 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             /*check seg num*/
             if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md)
             && CFLV_MD_CACHE_SEG_MAX_NUM(cflv_md) < CFLV_MD_ABSENT_SEG_NO(cflv_md))
-            {                
+            {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: seg no %ld overflow!\n",
                                                      CFLV_MD_ABSENT_SEG_NO(cflv_md));
                 return (EC_FALSE);
             }
-            
+
             if(EC_FALSE == cflv_content_orig_procedure(cflv_md_id))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
@@ -9802,11 +9802,11 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
         }
 
         cbytes_clean(&seg_cbytes);
-        
+
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                              "parse seg %ld done\n",
                                              seg_no);
-        
+
         if(EC_FALSE == cngx_headers_dir2_filter(r, CFLV_MD_CHTTP_RSP(cflv_md)))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
@@ -9820,9 +9820,9 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
         {
             const char                  *k;
             char                        *v;
-            
+
             uint32_t                     max_age;
-    
+
             k = (const char *)"Cache-Control";
             if(EC_FALSE == cngx_get_header_in(r, k, &v))
             {
@@ -9842,7 +9842,7 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 
             /*convert to lowercase*/
             str_to_lower((UINT8 *)v, strlen(v));
-            
+
             if(EC_FALSE == c_str_fetch_uint32_t(v, (const char *)"max-age", (const char *)"=", &max_age))
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
@@ -9854,25 +9854,25 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                  "'%s':'%s' => max_age = %u\n",
-                                                 k, v, max_age);            
+                                                 k, v, max_age);
 
             if(EC_TRUE == chttp_rsp_is_aged(CFLV_MD_CHTTP_RSP(cflv_md), max_age))
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                      "'%s':'%s' => aged, cache => force orig procedure\n",
                                                      k, v);
-                                                        
-                safe_free(v, LOC_CFLV_0120);  
-                
+
+                safe_free(v, LOC_CFLV_0120);
+
                 CFLV_MD_ORIG_FORCE_FLAG(cflv_md) = BIT_TRUE;
-                
+
                 return cflv_content_cache_procedure(cflv_md_id);
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                  "'%s':'%s' => not aged\n",
-                                                 k, v);            
-            
+                                                 k, v);
+
             safe_free(v, LOC_CFLV_0120);
             /*fall through*/
         }while(0);
@@ -9881,9 +9881,9 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
         {
             const char                  *k;
             char                        *v;
-            
+
             uint32_t                     max_age;
-    
+
             k = (const char *)"max-age";
             if(EC_FALSE == cngx_get_header_in(r, k, &v))
             {
@@ -9908,18 +9908,18 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                      "'%s':'%s' => aged, cache => force orig procedure\n",
                                                      k, v);
-                                                        
+
                 safe_free(v, LOC_CFLV_0120);
-                
+
                 CFLV_MD_ORIG_FORCE_FLAG(cflv_md) = BIT_TRUE;
-                
+
                 return cflv_content_cache_procedure(cflv_md_id);
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
                                                  "'%s':'%s' => not aged\n",
                                                  k, v);
-                                                 
+
             safe_free(v, LOC_CFLV_0120);
             /*fall through*/
         }while(0);
@@ -9927,13 +9927,13 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
         if(EC_FALSE == cflv_content_cache_save_header(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
-                                                 "save header failed\n");        
+                                                 "save header failed\n");
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
-                                             "save header done\n");  
-                                                
+                                             "save header done\n");
+
         //ASSERT(EC_FALSE == crange_mgr_is_empty(CFLV_MD_CNGX_RANGE_MGR(cflv_md)));
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/

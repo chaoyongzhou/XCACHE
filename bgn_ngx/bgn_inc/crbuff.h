@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -20,7 +20,7 @@ typedef struct
 {
   UINT32     capacity;
   void      *data;
-  
+
   void      *begin;
   void      *end;
 }CRBUFF;

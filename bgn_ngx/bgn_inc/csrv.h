@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -27,7 +27,7 @@ typedef  EC_BOOL (*CSRV_INIT_CSOCKET_CNODE)(const UINT32, struct _CSOCKET_CNODE 
 typedef  EC_BOOL (*CSRV_ADD_CSOCKET_CNODE)(const UINT32, struct _CSOCKET_CNODE *);
 typedef  EC_BOOL (*CSRV_DEL_CSOCKET_CNODE)(const UINT32, struct _CSOCKET_CNODE *);
 
-typedef  EC_BOOL (*CSRV_RD_HANDLER_FUNC)(struct _CSOCKET_CNODE *); 
+typedef  EC_BOOL (*CSRV_RD_HANDLER_FUNC)(struct _CSOCKET_CNODE *);
 typedef  EC_BOOL (*CSRV_WR_HANDLER_FUNC)(struct _CSOCKET_CNODE *);
 typedef  EC_BOOL (*CSRV_TIMEOUT_HANDLER_FUNC)(struct _CSOCKET_CNODE *);
 typedef  EC_BOOL (*CSRV_COMPLETE_HANDLER_FUNC)(struct _CSOCKET_CNODE *);
@@ -53,7 +53,7 @@ typedef struct
     const char *                  timeout_name;
     const char *                  complete_name;
     const char *                  close_name;
-    
+
     CSRV_RD_HANDLER_FUNC          rd_handler;
     CSRV_WR_HANDLER_FUNC          wr_handler;
     CSRV_TIMEOUT_HANDLER_FUNC     timeout_handler;

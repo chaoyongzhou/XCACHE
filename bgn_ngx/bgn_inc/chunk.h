@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -21,7 +21,7 @@ extern "C"{
 #define CHUNK_DEFAULT_SIZE      ((uint32_t)(8 * 1024))        /*8K*/
 #define CHUNK_SUGGEST_SIZE      ((uint32_t)(256 * 1024))      /*256K*/
 #define CHUNK_MAX_SIZE          ((uint32_t)(1 * 1024 * 1024)) /*1M*/
- 
+
 typedef struct
 {
     CBUFFER    cbuffer;/* either the storage of the mem-chunk or the read-ahead buffer */
@@ -51,9 +51,9 @@ CHUNK *chunk_new(const uint32_t size);
 
 EC_BOOL chunk_init(CHUNK *chunk, const uint32_t size);
 
-EC_BOOL chunk_clean(CHUNK *chunk); 
+EC_BOOL chunk_clean(CHUNK *chunk);
 
-EC_BOOL chunk_free(CHUNK *chunk); 
+EC_BOOL chunk_free(CHUNK *chunk);
 
 EC_BOOL chunk_is_empty(const CHUNK *chunk);
 
@@ -91,7 +91,7 @@ CHUNK_MGR *chunk_mgr_new(void);
 
 EC_BOOL chunk_mgr_init(CHUNK_MGR *chunk_mgr);
 
-EC_BOOL chunk_mgr_clean(CHUNK_MGR *chunk_mgr); 
+EC_BOOL chunk_mgr_clean(CHUNK_MGR *chunk_mgr);
 
 EC_BOOL chunk_mgr_free(CHUNK_MGR *chunk_mgr);
 

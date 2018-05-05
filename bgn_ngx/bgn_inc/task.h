@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -59,7 +59,7 @@ extern "C"{
 #define TASK_DBG_ENTER(__func_name__)  do{}while(0)
 #define TASK_DBG_LEAVE(__func_name__)  do{}while(0)
 
- 
+
 EC_BOOL task_node_buff_type(const UINT32 buff_size, UINT32 *buff_type);
 EC_BOOL task_node_buff_alloc(TASK_NODE *task_node, const UINT32 buff_size);
 EC_BOOL task_node_buff_realloc(TASK_NODE *task_node, const UINT32 new_size);
@@ -336,7 +336,7 @@ UINT32  task_brd_default_get_network_level();
 
 UINT32  task_brd_default_get_crfsmon_id();
 UINT32  task_brd_default_get_chfsmon_id();
-UINT32  task_brd_default_get_csfsmon_id(); 
+UINT32  task_brd_default_get_csfsmon_id();
 
 EC_BOOL task_brd_default_check_validity();
 
@@ -363,7 +363,7 @@ EC_BOOL task_brd_default_add_runner(const UINT32 tcid, const UINT32 rank, const 
 EC_BOOL task_brd_default_start_runner();
 
 EC_BOOL task_brd_default_reg_md(
-                                        const UINT32 md_type, const UINT32 md_capaciy, 
+                                        const UINT32 md_type, const UINT32 md_capaciy,
                                         const UINT32 *func_num_ptr, const FUNC_ADDR_NODE *func_addr_node,
                                         const UINT32 md_start_func_id, const UINT32 md_end_func_id,
                                         const UINT32 md_set_mod_mgr_func_id, void * (*md_fget_mod_mgr)(const UINT32)
@@ -582,7 +582,7 @@ EC_BOOL task_brd_cpu_avg_stat_update_once(TASK_BRD *task_brd);
 
 
 EC_BOOL task_brd_cbtimer_register(TASK_BRD *task_brd, const UINT32 expire_nsec, const UINT32 timeout_nsec, const UINT32 timeout_func_id, ...);
-EC_BOOL task_brd_cbtimer_add(TASK_BRD *task_brd, const UINT8 *name, 
+EC_BOOL task_brd_cbtimer_add(TASK_BRD *task_brd, const UINT8 *name,
                                      const UINT32 expire_nsec, FUNC_ADDR_NODE *task_brd_expire_func_addr_node,
                                      const UINT32 timeout_nsec, FUNC_ADDR_NODE *task_brd_timeout_func_addr_node);
 
@@ -596,9 +596,9 @@ EC_BOOL task_brd_start_cdfs_srv(TASK_BRD *task_brd, const UINT32 cdfs_md_id, con
 EC_BOOL task_brd_default_start_cdfs_srv(const UINT32 cdfs_md_id, const UINT32 cdfs_srv_ipaddr, const UINT32 cdfs_srv_port);
 
 /*http server*/
-EC_BOOL task_brd_start_http_srv(TASK_BRD *task_brd, const UINT32 http_srv_ipaddr, const UINT32 http_srv_port); 
-EC_BOOL task_brd_default_start_http_srv(const UINT32 http_srv_ipaddr, const UINT32 http_srv_port); 
-EC_BOOL task_brd_stop_http_srv(TASK_BRD *task_brd); 
+EC_BOOL task_brd_start_http_srv(TASK_BRD *task_brd, const UINT32 http_srv_ipaddr, const UINT32 http_srv_port);
+EC_BOOL task_brd_default_start_http_srv(const UINT32 http_srv_ipaddr, const UINT32 http_srv_port);
+EC_BOOL task_brd_stop_http_srv(TASK_BRD *task_brd);
 EC_BOOL task_brd_default_stop_http_srv();
 EC_BOOL task_brd_bind_http_srv_modi(TASK_BRD *task_brd, const UINT32 modi);
 EC_BOOL task_brd_default_bind_http_srv_modi(const UINT32 modi);

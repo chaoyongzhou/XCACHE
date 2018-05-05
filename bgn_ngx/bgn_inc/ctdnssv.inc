@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -44,15 +44,15 @@ extern "C"{
 
 
 typedef struct
-{   
+{
     /*16B*/
     CTDNSSVRB_NODE   rb_node;
-    
+
     /*64 bits (8B)*/
     UINT32           tcid;     /*primary key of rb tree*/
 #if (32 == WORDSIZE)
     uint32_t         rsvd1;
-#endif/*(32 == WORDSIZE)*/ 
+#endif/*(32 == WORDSIZE)*/
 
     UINT32           ipaddr;   /*real ip*/
 #if (32 == WORDSIZE)
@@ -127,14 +127,14 @@ typedef struct
 #define CTDNSSV_POSTFIX                     (".service.dat")
 
 typedef struct
-{   
+{
     uint32_t            sname_len;
     uint32_t            rsvd02;
     uint8_t             sname[ CTDNSSV_SERVICE_NAME_MAX_LEN ];
-    
-    uint8_t             pad[ CTDNSSV_SERVICE_PAD_U8_SIZE - 8 - CTDNSSV_SERVICE_NAME_MAX_LEN - 24 ]; 
 
-    CTDNSSVRB_POOL      nodes_pool;     /*item is CTDNSSV_ITEM*/ 
+    uint8_t             pad[ CTDNSSV_SERVICE_PAD_U8_SIZE - 8 - CTDNSSV_SERVICE_NAME_MAX_LEN - 24 ];
+
+    CTDNSSVRB_POOL      nodes_pool;     /*item is CTDNSSV_ITEM*/
 }CTDNSSV_HEADER;
 
 #define CTDNSSV_HEADER_SNAME_LEN(ctdnssv_service_header)      ((ctdnssv_service_header)->sname_len)
@@ -142,7 +142,7 @@ typedef struct
 #define CTDNSSV_HEADER_NODES_POOL(ctdnssv_service_header)     (&((ctdnssv_service_header)->nodes_pool))
 
 typedef struct
-{   
+{
     uint8_t                         *fname;          /*file name*/
     int                              fd;             /* tdns fd  */
     uint32_t                         rsvd01;

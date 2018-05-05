@@ -819,7 +819,7 @@ EC_BOOL cdns_make_host(CDNS_NODE *cdns_node, const CSTRING *host)
         uint32_t idx;
         uint8_t *q;
 
-        sys_log(LOGSTDOUT, "[DEBUG] cdns_make_host: query host: %.*s\n", 
+        sys_log(LOGSTDOUT, "[DEBUG] cdns_make_host: query host: %.*s\n",
                            (uint32_t)CSTRING_LEN(host), CSTRING_STR(host));
 
         q = CHUNK_DATA(CDNS_NODE_SEND_BUF(cdns_node)) + CHUNK_USED(CDNS_NODE_SEND_BUF(cdns_node));
@@ -885,7 +885,7 @@ EC_BOOL cdns_parse_query(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t 
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_parse_query: parse host failed\n");
         return (EC_FALSE);
     }
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_query: parsed host: '%.*s'\n", 
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_query: parsed host: '%.*s'\n",
                     (uint32_t)CSTRING_LEN(host), CSTRING_STR(host));
 
     if(EC_FALSE == cdns_parse_uint16(cdns_node, max_len, pos, qt))

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -44,15 +44,15 @@ extern "C"{
 
 
 typedef struct
-{   
+{
     /*16B*/
     CTDNSNPRB_NODE   rb_node;
-    
+
     /*64 bits (8B)*/
     UINT32           tcid;     /*primary key of rb tree*/
 #if (32 == WORDSIZE)
     uint32_t         rsvd1;
-#endif/*(32 == WORDSIZE)*/ 
+#endif/*(32 == WORDSIZE)*/
 
     UINT32           ipaddr;   /*real ip*/
 #if (32 == WORDSIZE)
@@ -146,15 +146,15 @@ typedef struct
 
 /*each np own one header*/
 typedef struct
-{    
-    uint32_t         np_id;               /*ctdnsnp id              */    
-    uint8_t          np_model;            /*ctdnsnp model           */    
-    uint8_t          rsvd1;                    
+{
+    uint32_t         np_id;               /*ctdnsnp id              */
+    uint8_t          np_model;            /*ctdnsnp model           */
+    uint8_t          rsvd1;
     uint8_t          rsvd2;
-    uint8_t          rsvd3;      
+    uint8_t          rsvd3;
 
-    uint8_t          pad[ CTDNSNP_HEADER_PAD_U8_SIZE - 8 - 24]; /*pad the first part to 8KB*/ 
-    
+    uint8_t          pad[ CTDNSNP_HEADER_PAD_U8_SIZE - 8 - 24]; /*pad the first part to 8KB*/
+
     CTDNSNPRB_POOL   pool;                /*pool of CTDNSNP_ITEM, CTDNSNP_ITEM head must be CTDNSNPRB_NODE*/
 } CTDNSNP_HEADER;
 
@@ -166,12 +166,12 @@ typedef struct
 #define CTDNSNP_HEADER_ITEMS_USED_NUM(ctdnsnp_header)     (CTDNSNPRB_POOL_NODE_USED_NUM(CTDNSNP_HEADER_ITEMS_POOL(ctdnsnp_header)))
 
 typedef struct
-{   
+{
     int                fd;         /* tdns fd  */
-    uint32_t           rsvd; 
+    uint32_t           rsvd;
     UINT32             fsize;
     uint8_t           *fname;
-    CTDNSNP_HEADER    *header;     /* header */    
+    CTDNSNP_HEADER    *header;     /* header */
 
 } CTDNSNP;
 

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -14,10 +14,10 @@ extern "C"{
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 #include <signal.h>
-#include <time.h>  
+#include <time.h>
 #include <sys/time.h>
 
 #include "type.h"
@@ -28,8 +28,8 @@ extern "C"{
 
 #define CTIMER_NODE_NOT_USED         ((UINT32) 1)
 #define CTIMER_NODE_USED             ((UINT32) 2)
-#define CTIMER_NODE_NEVER_TIMEOUT    ((UINT32) 3) 
-#define CTIMER_NODE_WOULD_TIMEOUT    ((UINT32) 4) 
+#define CTIMER_NODE_NEVER_TIMEOUT    ((UINT32) 3)
+#define CTIMER_NODE_WOULD_TIMEOUT    ((UINT32) 4)
 #define CTIMER_NODE_UNDEF            ((UINT32)-1)
 
 #define CTIMER_SIGNAL_UNDEF          ((int)-1)
@@ -57,7 +57,7 @@ typedef struct
     UINT32    ctimer_expire_burn;
     CITIMER   phy_citimer;
     CITIMER   old_citimer;
-    
+
 }CTIMER_MD;
 
 #define CTIMER_MD_INITIALIZER {\

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -20,18 +20,18 @@ extern "C"{
 #define CSFSB_064MB_PAGE_4K_NUM  ((uint16_t)(1 << 14))
 #define CSFSB_032MB_PAGE_4K_NUM  ((uint16_t)(1 << 13))
 #define CSFSB_016MB_PAGE_4K_NUM  ((uint16_t)(1 << 12))
-#define CSFSB_008MB_PAGE_4K_NUM  ((uint16_t)(1 << 11)) 
-#define CSFSB_004MB_PAGE_4K_NUM  ((uint16_t)(1 << 10)) 
-#define CSFSB_002MB_PAGE_4K_NUM  ((uint16_t)(1 <<  9)) 
-#define CSFSB_001MB_PAGE_4K_NUM  ((uint16_t)(1 <<  8)) 
-#define CSFSB_512KB_PAGE_4K_NUM  ((uint16_t)(1 <<  7)) 
-#define CSFSB_256KB_PAGE_4K_NUM  ((uint16_t)(1 <<  6)) 
-#define CSFSB_128KB_PAGE_4K_NUM  ((uint16_t)(1 <<  5)) 
-#define CSFSB_064KB_PAGE_4K_NUM  ((uint16_t)(1 <<  4)) 
-#define CSFSB_032KB_PAGE_4K_NUM  ((uint16_t)(1 <<  3)) 
-#define CSFSB_016KB_PAGE_4K_NUM  ((uint16_t)(1 <<  2)) 
-#define CSFSB_008KB_PAGE_4K_NUM  ((uint16_t)(1 <<  1)) 
-#define CSFSB_004KB_PAGE_4K_NUM  ((uint16_t)(1 <<  0)) 
+#define CSFSB_008MB_PAGE_4K_NUM  ((uint16_t)(1 << 11))
+#define CSFSB_004MB_PAGE_4K_NUM  ((uint16_t)(1 << 10))
+#define CSFSB_002MB_PAGE_4K_NUM  ((uint16_t)(1 <<  9))
+#define CSFSB_001MB_PAGE_4K_NUM  ((uint16_t)(1 <<  8))
+#define CSFSB_512KB_PAGE_4K_NUM  ((uint16_t)(1 <<  7))
+#define CSFSB_256KB_PAGE_4K_NUM  ((uint16_t)(1 <<  6))
+#define CSFSB_128KB_PAGE_4K_NUM  ((uint16_t)(1 <<  5))
+#define CSFSB_064KB_PAGE_4K_NUM  ((uint16_t)(1 <<  4))
+#define CSFSB_032KB_PAGE_4K_NUM  ((uint16_t)(1 <<  3))
+#define CSFSB_016KB_PAGE_4K_NUM  ((uint16_t)(1 <<  2))
+#define CSFSB_008KB_PAGE_4K_NUM  ((uint16_t)(1 <<  1))
+#define CSFSB_004KB_PAGE_4K_NUM  ((uint16_t)(1 <<  0))
 
 #define CSFSB_PAGE_4K_BIT_SIZE         ((uint32_t)12)
 #define CSFSB_PAGE_4K_BYTE_SIZE        ((uint32_t)(1 << CSFSB_PAGE_4K_BIT_SIZE))
@@ -44,17 +44,17 @@ extern "C"{
 #define CSFSB_064MB_PAGE_8K_NUM  ((uint16_t)(1 << 13))
 #define CSFSB_032MB_PAGE_8K_NUM  ((uint16_t)(1 << 12))
 #define CSFSB_016MB_PAGE_8K_NUM  ((uint16_t)(1 << 11))
-#define CSFSB_008MB_PAGE_8K_NUM  ((uint16_t)(1 << 10)) 
-#define CSFSB_004MB_PAGE_8K_NUM  ((uint16_t)(1 <<  9)) 
-#define CSFSB_002MB_PAGE_8K_NUM  ((uint16_t)(1 <<  8)) 
-#define CSFSB_001MB_PAGE_8K_NUM  ((uint16_t)(1 <<  7)) 
-#define CSFSB_512KB_PAGE_8K_NUM  ((uint16_t)(1 <<  6)) 
-#define CSFSB_256KB_PAGE_8K_NUM  ((uint16_t)(1 <<  5)) 
-#define CSFSB_128KB_PAGE_8K_NUM  ((uint16_t)(1 <<  4)) 
-#define CSFSB_068KB_PAGE_8K_NUM  ((uint16_t)(1 <<  3)) 
-#define CSFSB_032KB_PAGE_8K_NUM  ((uint16_t)(1 <<  2)) 
-#define CSFSB_016KB_PAGE_8K_NUM  ((uint16_t)(1 <<  2)) 
-#define CSFSB_008KB_PAGE_8K_NUM  ((uint16_t)(1 <<  0)) 
+#define CSFSB_008MB_PAGE_8K_NUM  ((uint16_t)(1 << 10))
+#define CSFSB_004MB_PAGE_8K_NUM  ((uint16_t)(1 <<  9))
+#define CSFSB_002MB_PAGE_8K_NUM  ((uint16_t)(1 <<  8))
+#define CSFSB_001MB_PAGE_8K_NUM  ((uint16_t)(1 <<  7))
+#define CSFSB_512KB_PAGE_8K_NUM  ((uint16_t)(1 <<  6))
+#define CSFSB_256KB_PAGE_8K_NUM  ((uint16_t)(1 <<  5))
+#define CSFSB_128KB_PAGE_8K_NUM  ((uint16_t)(1 <<  4))
+#define CSFSB_068KB_PAGE_8K_NUM  ((uint16_t)(1 <<  3))
+#define CSFSB_032KB_PAGE_8K_NUM  ((uint16_t)(1 <<  2))
+#define CSFSB_016KB_PAGE_8K_NUM  ((uint16_t)(1 <<  2))
+#define CSFSB_008KB_PAGE_8K_NUM  ((uint16_t)(1 <<  0))
 #define CSFSB_004KB_PAGE_8K_NUM  ((uint16_t)(0)) /*xxx*/
 
 #define CSFSB_PAGE_8K_BIT_SIZE         ((uint32_t)13)
@@ -72,17 +72,17 @@ extern "C"{
 #define CSFSB_064MB_PAGE_NUM           (CSFSB_064MB_PAGE_4K_NUM)
 #define CSFSB_032MB_PAGE_NUM           (CSFSB_032MB_PAGE_4K_NUM)
 #define CSFSB_016MB_PAGE_NUM           (CSFSB_016MB_PAGE_4K_NUM)
-#define CSFSB_008MB_PAGE_NUM           (CSFSB_008MB_PAGE_4K_NUM) 
-#define CSFSB_004MB_PAGE_NUM           (CSFSB_004MB_PAGE_4K_NUM) 
-#define CSFSB_002MB_PAGE_NUM           (CSFSB_002MB_PAGE_4K_NUM) 
-#define CSFSB_001MB_PAGE_NUM           (CSFSB_001MB_PAGE_4K_NUM) 
-#define CSFSB_512KB_PAGE_NUM           (CSFSB_512KB_PAGE_4K_NUM) 
-#define CSFSB_256KB_PAGE_NUM           (CSFSB_256KB_PAGE_4K_NUM) 
-#define CSFSB_128KB_PAGE_NUM           (CSFSB_128KB_PAGE_4K_NUM) 
-#define CSFSB_064KB_PAGE_NUM           (CSFSB_064KB_PAGE_4K_NUM) 
-#define CSFSB_032KB_PAGE_NUM           (CSFSB_032KB_PAGE_4K_NUM) 
-#define CSFSB_016KB_PAGE_NUM           (CSFSB_016KB_PAGE_4K_NUM) 
-#define CSFSB_008KB_PAGE_NUM           (CSFSB_008KB_PAGE_4K_NUM) 
+#define CSFSB_008MB_PAGE_NUM           (CSFSB_008MB_PAGE_4K_NUM)
+#define CSFSB_004MB_PAGE_NUM           (CSFSB_004MB_PAGE_4K_NUM)
+#define CSFSB_002MB_PAGE_NUM           (CSFSB_002MB_PAGE_4K_NUM)
+#define CSFSB_001MB_PAGE_NUM           (CSFSB_001MB_PAGE_4K_NUM)
+#define CSFSB_512KB_PAGE_NUM           (CSFSB_512KB_PAGE_4K_NUM)
+#define CSFSB_256KB_PAGE_NUM           (CSFSB_256KB_PAGE_4K_NUM)
+#define CSFSB_128KB_PAGE_NUM           (CSFSB_128KB_PAGE_4K_NUM)
+#define CSFSB_064KB_PAGE_NUM           (CSFSB_064KB_PAGE_4K_NUM)
+#define CSFSB_032KB_PAGE_NUM           (CSFSB_032KB_PAGE_4K_NUM)
+#define CSFSB_016KB_PAGE_NUM           (CSFSB_016KB_PAGE_4K_NUM)
+#define CSFSB_008KB_PAGE_NUM           (CSFSB_008KB_PAGE_4K_NUM)
 #define CSFSB_004KB_PAGE_NUM           (CSFSB_004KB_PAGE_4K_NUM)
 
 #define CSFSB_PAGE_BIT_SIZE            (CSFSB_PAGE_4K_BIT_SIZE)
@@ -98,17 +98,17 @@ extern "C"{
 #define CSFSB_064MB_PAGE_NUM           (CSFSB_064MB_PAGE_8K_NUM)
 #define CSFSB_032MB_PAGE_NUM           (CSFSB_032MB_PAGE_8K_NUM)
 #define CSFSB_016MB_PAGE_NUM           (CSFSB_016MB_PAGE_8K_NUM)
-#define CSFSB_008MB_PAGE_NUM           (CSFSB_008MB_PAGE_8K_NUM) 
-#define CSFSB_004MB_PAGE_NUM           (CSFSB_004MB_PAGE_8K_NUM) 
-#define CSFSB_002MB_PAGE_NUM           (CSFSB_002MB_PAGE_8K_NUM) 
-#define CSFSB_001MB_PAGE_NUM           (CSFSB_001MB_PAGE_8K_NUM) 
-#define CSFSB_512KB_PAGE_NUM           (CSFSB_512KB_PAGE_8K_NUM) 
-#define CSFSB_256KB_PAGE_NUM           (CSFSB_256KB_PAGE_8K_NUM) 
-#define CSFSB_128KB_PAGE_NUM           (CSFSB_128KB_PAGE_8K_NUM) 
-#define CSFSB_064KB_PAGE_NUM           (CSFSB_068KB_PAGE_8K_NUM) 
-#define CSFSB_032KB_PAGE_NUM           (CSFSB_032KB_PAGE_8K_NUM) 
-#define CSFSB_016KB_PAGE_NUM           (CSFSB_016KB_PAGE_8K_NUM) 
-#define CSFSB_008KB_PAGE_NUM           (CSFSB_008KB_PAGE_8K_NUM) 
+#define CSFSB_008MB_PAGE_NUM           (CSFSB_008MB_PAGE_8K_NUM)
+#define CSFSB_004MB_PAGE_NUM           (CSFSB_004MB_PAGE_8K_NUM)
+#define CSFSB_002MB_PAGE_NUM           (CSFSB_002MB_PAGE_8K_NUM)
+#define CSFSB_001MB_PAGE_NUM           (CSFSB_001MB_PAGE_8K_NUM)
+#define CSFSB_512KB_PAGE_NUM           (CSFSB_512KB_PAGE_8K_NUM)
+#define CSFSB_256KB_PAGE_NUM           (CSFSB_256KB_PAGE_8K_NUM)
+#define CSFSB_128KB_PAGE_NUM           (CSFSB_128KB_PAGE_8K_NUM)
+#define CSFSB_064KB_PAGE_NUM           (CSFSB_068KB_PAGE_8K_NUM)
+#define CSFSB_032KB_PAGE_NUM           (CSFSB_032KB_PAGE_8K_NUM)
+#define CSFSB_016KB_PAGE_NUM           (CSFSB_016KB_PAGE_8K_NUM)
+#define CSFSB_008KB_PAGE_NUM           (CSFSB_008KB_PAGE_8K_NUM)
 #define CSFSB_004KB_PAGE_NUM           (CSFSB_008KB_PAGE_8K_NUM)
 
 #define CSFSB_PAGE_BIT_SIZE            (CSFSB_PAGE_8K_BIT_SIZE)
@@ -129,10 +129,10 @@ extern "C"{
 #define CSFSB_PAGE_NP_NODE_POS_CHECK(np_id, np_node_pos)   ASSERT(0 == ((np_id) & (~0x3)) && 0 == ((np_node_pos) & (0xC0000000)))
 
 #define CSFSB_PAGE_NP_NODE_POS_MAKE(np_id, np_node_pos)    (((np_id) << 30) | ((np_node_pos) & 0x3FFFFFFF))
-        
+
 #define CSFSB_PAGE_NP_NODE_POS_TO_NP_ID(__np_node_pos)     ((__np_node_pos) >> 30)
 
-#define CSFSB_PAGE_NP_NODE_POS_TO_POS(__np_node_pos)       ((__np_node_pos) & 0x3FFFFFFF)  
+#define CSFSB_PAGE_NP_NODE_POS_TO_POS(__np_node_pos)       ((__np_node_pos) & 0x3FFFFFFF)
 
 typedef struct
 {
@@ -142,8 +142,8 @@ typedef struct
 
     /*2KB*/
     uint32_t     sfsb_page_used_bitmap[ CSFSB_PAGE_NUM >> 5 ]; /*one bit for one page.*/
-                                                               /*note: only the first page of the stored file should set to used, i.e. 1*/                 
-                                                               /*note: bit 0 means the page is not used, or is used and part of a stored file*/ 
+                                                               /*note: only the first page of the stored file should set to used, i.e. 1*/
+                                                               /*note: bit 0 means the page is not used, or is used and part of a stored file*/
     /*64KB*/
     uint32_t     sfsb_page_np_node_pos[ CSFSB_PAGE_NUM ];      /*32 bits for one page*/
                                                                /*note: only the first page of the stored file would carray on the np node_pos info*/

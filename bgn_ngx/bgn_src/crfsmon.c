@@ -1871,7 +1871,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
 
     dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
                                             "file '%s' exist\n",
-                                            fname);    
+                                            fname);
 
     if(EC_FALSE == c_file_access(fname, F_OK | R_OK))
     {
@@ -1883,7 +1883,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
 
     dbg_log(SEC_0155_CRFSMON, 0)(LOGSTDOUT, "[DEBUG] crfsmon_crfs_hot_path_load: "
                                             "access file '%s' done\n",
-                                            fname);    
+                                            fname);
 
     fd = c_file_open(fname, O_RDONLY, 0666);
     if(ERR_FD == fd)

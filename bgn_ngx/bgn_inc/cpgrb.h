@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -28,7 +28,7 @@ typedef struct
 {
     uint16_t rb_parent_pos:15;
     uint16_t rb_used      : 1; /*CPGRB_USED or CPGRB_NOT_USED*/
-        
+
     uint16_t rb_right_pos :15;
     uint16_t rsvd1       : 1;
 
@@ -61,7 +61,7 @@ typedef struct
 {
     uint32_t    rsvd2;
     uint16_t    free_head;/*unused CPGRB_TREE head*/
-    uint16_t    node_num;    
+    uint16_t    node_num;
     CPGRB_NODE  rb_node[ CPGRB_POOL_MAX_SIZE ];  /*128KB,rb_nodes table*/
 }CPGRB_POOL;
 

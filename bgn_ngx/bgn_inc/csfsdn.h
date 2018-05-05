@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -43,12 +43,12 @@ extern "C"{
 /**********************************************************************************
 *   node_id bits (for 1 virtual disk = 1 TB)
 *   ========================================
-*   
+*
 *   64                              32               16  14       6      0
 *   |--------------------------------|----------------|--|--------|------|
 *           rsvd                         |              |     |       |
 *       (for 32-bit os, not exist)       |              |     |       |- seg no(6b)
-*                                        |              |     |    
+*                                        |              |     |
 *                                        |              |     |- path no(8b)
 *                                        |              |
 *                                        |              |- rsvd(2b) for 1T-disk
@@ -88,12 +88,12 @@ extern "C"{
 
 /*memory cached block info*/
 typedef struct
-{  
+{
     UINT32          id;         /*id = disk_no | block_no*/
 
     CMUTEX          cmutex;     /*cmutex for node read/write*/
     ctime_t         atime;      /*last access time (in seconds)*/
-    
+
     int             block_fd;   /* block fd */
 
 #if (64 == WORDSIZE)
@@ -171,7 +171,7 @@ typedef struct
 #define CSFSDN_CRWLOCK_CLEAN(csfsdn, location) do{\
     sys_log(LOGSTDOUT, "[DEBUG] CSFSDN_CRWLOCK_CLEAN: CSFSDN_CRWLOCK %p, at %s:%ld\n", CSFSDN_CRWLOCK(csfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
     croutine_rwlock_clean(CSFSDN_CRWLOCK(csfsdn), location);\
-}while(0)    
+}while(0)
 
 #define CSFSDN_CRWLOCK_RDLOCK(csfsdn, location)     do{\
     sys_log(LOGSTDOUT, "[DEBUG] CSFSDN_CRWLOCK_RDLOCK: CSFSDN_CRWLOCK %p, at %s:%ld\n", CSFSDN_CRWLOCK(csfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\

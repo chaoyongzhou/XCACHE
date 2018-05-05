@@ -482,11 +482,11 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == crfshttp_is_http_get_statusnp(chttp_node))
     {
         ret = crfshttp_commit_statusnp_get_request(chttp_node);
-    }    
+    }
     else if (EC_TRUE == crfshttp_is_http_get_statusdn(chttp_node))
     {
         ret = crfshttp_commit_statusdn_get_request(chttp_node);
-    }    
+    }
     else if (EC_TRUE == crfshttp_is_http_get_file_wait(chttp_node))
     {
         ret = crfshttp_commit_file_wait_get_request(chttp_node);
@@ -2853,7 +2853,7 @@ EC_BOOL crfshttp_handle_setsmf_memc_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmfmemc")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmfmemc")),content_len);
 
@@ -3604,7 +3604,7 @@ EC_BOOL crfshttp_handle_update_memc_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update_memc")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update_memc")),content_len);
 
@@ -4520,7 +4520,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
 
@@ -4816,7 +4816,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_renew_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew")),content_len);
 
@@ -5812,7 +5812,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: bad request %.*s",
                             (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6172,7 +6172,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6533,7 +6533,7 @@ EC_BOOL crfshttp_handle_mdbgf_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdbgf_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdbgf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6894,7 +6894,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -7738,7 +7738,7 @@ EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);  
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
@@ -7746,11 +7746,11 @@ EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
     if(EC_TRUE == __crfshttp_uri_is_statusnp_get_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        
+
         CRFSNP_MGR    * crfsnp_mgr;
         uint32_t        crfsnp_num;
         uint32_t        crfsnp_id;
-        
+
         json_object   * crfsnp_mgr_obj;
         json_object   * crfsnp_objs;
 
@@ -7780,12 +7780,12 @@ EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
 
             crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_id);
             if(NULL_PTR == crfsnp)
-            {   
+            {
                 continue;
             }
 
             crfsnp_header = CRFSNP_HDR(crfsnp);
-            
+
             crfsnp_obj = json_object_new_object();
             json_object_array_add(crfsnp_objs, crfsnp_obj);
 
@@ -7952,7 +7952,7 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);  
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
@@ -7960,10 +7960,10 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
     if(EC_TRUE == __crfshttp_uri_is_statusdn_get_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
-        
+
         CRFSDN        * crfsdn;
         CPGV          * cpgv;
-        
+
         json_object   * cpgv_obj;
         json_object   * cpgd_objs;
 
@@ -7995,8 +7995,8 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_8K_BIT_SIZE)
         {
             json_object_add_kv(cpgv_obj, "page_model"   , "8k-page");
-        }  
-    
+        }
+
         cpgd_objs = json_object_new_array();
         json_object_add_obj(cpgv_obj, "disk", cpgd_objs);
 
@@ -8007,10 +8007,10 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
 
             cpgd = CPGV_DISK_NODE(cpgv, disk_no);
             if(NULL_PTR == cpgd)
-            {   
+            {
                 continue;
             }
-            
+
             cpgd_obj = json_object_new_object();
             json_object_array_add(cpgd_objs, cpgd_obj);
 

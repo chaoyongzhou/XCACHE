@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -51,9 +51,9 @@ typedef EC_BOOL (*CRB_DATA_CLONE)(const void *, void *);
 
 typedef struct
 {
-    uint32_t            node_num;    
+    uint32_t            node_num;
     uint32_t            rsvd;
-    struct _CRB_NODE   *rb_node; 
+    struct _CRB_NODE   *rb_node;
     CRB_DATA_CMP        data_cmp_func;
     CRB_DATA_FREE       data_free_func;
     CRB_DATA_PRINT      data_print_func;

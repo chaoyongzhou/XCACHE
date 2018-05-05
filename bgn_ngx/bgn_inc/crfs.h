@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -120,7 +120,7 @@ typedef struct
 #define CRFS_CLEAN_LOCK(crfs_md, location) do{\
     sys_log(LOGSTDNULL, "[DEBUG] CRFS_CLEAN_LOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
     croutine_rwlock_clean(CRFS_CRWLOCK(crfs_md), location);\
-}while(0)    
+}while(0)
 
 #define CRFS_RDLOCK(crfs_md, location)     do{\
     sys_log(LOGSTDNULL, "[DEBUG] CRFS_RDLOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
@@ -354,10 +354,10 @@ EC_BOOL crfs_is_npp_and_dn(const UINT32 crfs_md_id);
 *  create name node pool
 *
 **/
-EC_BOOL crfs_create_npp(const UINT32 crfs_md_id, 
-                             const UINT32 crfsnp_model, 
-                             const UINT32 crfsnp_max_num, 
-                             const UINT32 crfsnp_2nd_chash_algo_id, 
+EC_BOOL crfs_create_npp(const UINT32 crfs_md_id,
+                             const UINT32 crfsnp_model,
+                             const UINT32 crfsnp_max_num,
+                             const UINT32 crfsnp_2nd_chash_algo_id,
                              const CSTRING *crfsnp_db_root_dir);
 
 /**
@@ -721,7 +721,7 @@ EC_BOOL crfs_delete_no_lock(const UINT32 crfs_md_id, const CSTRING *path, const 
 
 /**
 *
-*  update a file 
+*  update a file
 *
 **/
 EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes);

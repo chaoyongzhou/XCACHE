@@ -41,7 +41,7 @@ EC_BOOL              g_cngx_kssl_files_init_flag = EC_FALSE;
 CNGX_KSSL_NODE *cngx_kssl_node_new()
 {
     CNGX_KSSL_NODE *cngx_kssl_node;
-    
+
     alloc_static_mem(MM_CNGX_KSSL_NODE, &cngx_kssl_node, LOC_CNGX_0001);
     if(NULL_PTR != cngx_kssl_node)
     {
@@ -90,8 +90,8 @@ int cngx_kssl_node_cmp(const CNGX_KSSL_NODE *cngx_kssl_node_1st, const CNGX_KSSL
     if(CNGX_KSSL_NODE_HASH(cngx_kssl_node_1st) < CNGX_KSSL_NODE_HASH(cngx_kssl_node_2nd))
     {
         return (-1);
-    }    
-    
+    }
+
     return cstring_cmp(CNGX_KSSL_NODE_FNAME(cngx_kssl_node_1st), CNGX_KSSL_NODE_FNAME(cngx_kssl_node_2nd));
 }
 
@@ -113,7 +113,7 @@ void cngx_kssl_node_print(LOG *log, const CNGX_KSSL_NODE *cngx_kssl_node)
 void cngx_kssl_nodes_print(LOG *log)
 {
     crb_tree_print(log, &g_cngx_kssl_files);
- 
+
     return;
 }
 
@@ -141,7 +141,7 @@ EC_BOOL cngx_kssl_nodes_init()
                 (CRB_DATA_CMP  )cngx_kssl_node_cmp,
                 (CRB_DATA_FREE )cngx_kssl_node_free,
                 (CRB_DATA_PRINT)cngx_kssl_node_print);
-                
+
         cngx_kssl_nodes_set_init();
     }
 
@@ -164,7 +164,7 @@ EC_BOOL cngx_kssl_nodes_add(const char *fname, const CBYTES *content)
     if(NULL_PTR == cngx_kssl_node)
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_nodes_add: "
-                                             "new cngx_kssl_node failed\n");     
+                                             "new cngx_kssl_node failed\n");
         return (EC_FALSE);
     }
 
@@ -172,7 +172,7 @@ EC_BOOL cngx_kssl_nodes_add(const char *fname, const CBYTES *content)
     cstring_append_str(CNGX_KSSL_NODE_FNAME(cngx_kssl_node), (const UINT8 *)fname);
     CNGX_KSSL_NODE_HASH(cngx_kssl_node) = CNGX_KSSL_NODE_HASH_ALGO(strlen(fname), (const UINT8 *)fname);
     cbytes_append(CNGX_KSSL_NODE_CONTENT(cngx_kssl_node), CBYTES_BUF(content), CBYTES_LEN(content));
-    
+
     /*insert*/
     crb_node = crb_tree_insert_data(cngx_kssl_nodes_get(), (void *)cngx_kssl_node);/*compare fname*/
     if(NULL_PTR == crb_node)
@@ -180,27 +180,27 @@ EC_BOOL cngx_kssl_nodes_add(const char *fname, const CBYTES *content)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_nodes_add: "
                                              "insert '%s' to nodes failed\n",
                                             (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node));
-        cngx_kssl_node_free(cngx_kssl_node);                    
-        return (EC_FALSE);                     
+        cngx_kssl_node_free(cngx_kssl_node);
+        return (EC_FALSE);
     }
 
     if(CRB_NODE_DATA(crb_node) != cngx_kssl_node)/*found duplicate*/
     {
         CNGX_KSSL_NODE *cngx_kssl_node_duplicate;
-     
+
         cngx_kssl_node_duplicate = (CNGX_KSSL_NODE *)CRB_NODE_DATA(crb_node);
 
         cngx_kssl_node_free(cngx_kssl_node); /*no useful*/
-     
+
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_nodes_add: "
                                              "found duplicate '%s' in nodes\n",
-                                             (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node_duplicate));     
+                                             (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node_duplicate));
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_nodes_add: "
                                          "add '%s' to nodes done\n",
-                                         (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node));    
+                                         (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node));
 
     return (EC_TRUE);
 }
@@ -222,13 +222,13 @@ CBYTES *cngx_kssl_nodes_search(const char *fname)
     if(NULL_PTR == cngx_kssl_node)
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_nodes_search: "
-                                             "new cngx_kssl_node failed\n");     
+                                             "new cngx_kssl_node failed\n");
         return (NULL_PTR);
     }
 
     /*init*/
     cstring_append_str(CNGX_KSSL_NODE_FNAME(cngx_kssl_node), (const UINT8 *)fname);
-    CNGX_KSSL_NODE_HASH(cngx_kssl_node) = CNGX_KSSL_NODE_HASH_ALGO(strlen(fname), (const UINT8 *)fname); 
+    CNGX_KSSL_NODE_HASH(cngx_kssl_node) = CNGX_KSSL_NODE_HASH_ALGO(strlen(fname), (const UINT8 *)fname);
 
     crb_node = crb_tree_search_data(cngx_kssl_nodes_get(), (void *)cngx_kssl_node);
     if(NULL_PTR == crb_node)
@@ -246,8 +246,8 @@ CBYTES *cngx_kssl_nodes_search(const char *fname)
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_nodes_search: "
                                          "found node of '%s'\n",
-                                        (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node_found));    
-    
+                                        (char *)CNGX_KSSL_NODE_FNAME_STR(cngx_kssl_node_found));
+
     return CNGX_KSSL_NODE_CONTENT(cngx_kssl_node_found);
 }
 
@@ -260,25 +260,25 @@ EC_BOOL cngx_kssl_cache_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_cache_handler: "
                                              "MISS '%s'\n",
-                                             fname);     
+                                             fname);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_cache_handler: "
                                          "HIT '%s'\n",
-                                         fname);  
-                                         
+                                         fname);
+
     if(0 >= in->method->bwrite(in, (const char *)CBYTES_BUF(content), (int)CBYTES_LEN(content)))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_cache_handler: "
-                                             "BIO write %d bytes failed for '%s'\n", 
+                                             "BIO write %d bytes failed for '%s'\n",
                                              (int)CBYTES_LEN(content),
                                              fname);
         return (EC_FALSE);
     }
 
     (*fsize) = CBYTES_LEN(content);
-    
+
     return (EC_TRUE);
 }
 
@@ -288,7 +288,7 @@ EC_BOOL cngx_kssl_debug_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     UINT32              fsize_t;
     UINT32              offset;
     int                 fd;
-    
+
     fd = c_file_open(fname, O_RDONLY, 0666);
     ASSERT(-1 != fd);
     ASSERT(EC_TRUE == c_file_size(fd, &fsize_t));
@@ -314,7 +314,7 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     int                              kssl_port;
     const char                      *kssl_client_certificate_file;
     const char                      *kssl_client_private_key_file;
-    
+
     CHTTP_REQ                        chttp_req;
     CHTTP_RSP                        chttp_rsp;
     CBYTES                          *rsp_body;
@@ -327,29 +327,29 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
 
     kssl_client_certificate_file = (const char *)kscf->kssl_client_certificate.data;
     kssl_client_private_key_file = (const char *)kscf->kssl_client_certificate_key.data;
-    
+
     ASSERT(NULL_PTR != kssl_server);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "ca: %s\n",
-                                         kssl_server_ca_file); 
-                                         
+                                         kssl_server_ca_file);
+
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "server: %s\n",
-                                         kssl_server); 
+                                         kssl_server);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "server port: %d\n",
-                                         kssl_port);     
+                                         kssl_port);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "client certificate: %s\n",
-                                         kssl_client_certificate_file);   
+                                         kssl_client_certificate_file);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
                                          "client private key: %s\n",
-                                         kssl_client_private_key_file);                                          
-    
+                                         kssl_client_private_key_file);
+
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
@@ -379,15 +379,15 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     {
         chttp_req_set_client_private_key_file(&chttp_req, kssl_client_private_key_file);
     }
-    
+
     if(EC_FALSE == chttps_request(&chttp_req, &chttp_rsp, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_https_handler: "
-                                             "https request failed for '%s'\n", 
+                                             "https request failed for '%s'\n",
                                              fname);
 
         chttp_req_clean(&chttp_req);
-        chttp_rsp_clean(&chttp_rsp);            
+        chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
 
@@ -396,11 +396,11 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_https_handler: "
-                                             "https request return %u for '%s'\n", 
-                                             CHTTP_RSP_STATUS(&chttp_rsp), 
+                                             "https request return %u for '%s'\n",
+                                             CHTTP_RSP_STATUS(&chttp_rsp),
                                              fname);
-        
-        chttp_rsp_clean(&chttp_rsp);            
+
+        chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
 
@@ -409,35 +409,35 @@ EC_BOOL cngx_kssl_https_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UI
     if(0 == CBYTES_LEN(rsp_body))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_https_handler: "
-                                             "https response body is empty for '%s'\n", 
+                                             "https response body is empty for '%s'\n",
                                              fname);
-        chttp_rsp_clean(&chttp_rsp);            
+        chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_https_handler: "
-                                         "https response body %ld bytes for '%s'\n", 
+                                         "https response body %ld bytes for '%s'\n",
                                          CBYTES_LEN(rsp_body),
                                          fname);
-                                        
+
     if(0 >= in->method->bwrite(in, (const char *)CBYTES_BUF(rsp_body), (int)CBYTES_LEN(rsp_body)))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_https_handler: "
-                                             "BIO write %d bytes failed for '%s'\n", 
+                                             "BIO write %d bytes failed for '%s'\n",
                                              (int)CBYTES_LEN(rsp_body),
                                              fname);
-        chttp_rsp_clean(&chttp_rsp);            
+        chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
     }
 
     (*fsize) = CBYTES_LEN(rsp_body);
 
     if(kscf->kssl_cache)/*cache default is on*/
-    {   
+    {
         /*cache it if necessary*/
         cngx_kssl_nodes_add(fname, rsp_body);
     }
-    
+
     chttp_rsp_clean(&chttp_rsp);
 
     return (EC_TRUE);
@@ -449,10 +449,10 @@ EC_BOOL cngx_kssl_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UINT32 *
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_handler: "
                                          "fname: %s\n",
-                                         fname); 
-                                         
+                                         fname);
+
     kscf = ngx_ssl_get_server_conf(ssl_ctx);
-    
+
     if(kscf->kssl_debug)
     {
         return cngx_kssl_debug_handler(ssl_ctx, in, fname, fsize);
@@ -473,18 +473,18 @@ EC_BOOL cngx_kssl_handler(SSL_CTX *ssl_ctx, BIO *in, const char *fname, UINT32 *
 int cngx_kssl_callback(SSL_CTX *ssl_ctx, BIO *in, const char *fname)
 {
     UINT32  fsize;
-    
+
     if(EC_FALSE == cngx_kssl_handler(ssl_ctx, in, fname, &fsize))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_kssl_callback: "
                                              "load file '%s' failed\n",
-                                             fname);     
+                                             fname);
         return (-1);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_kssl_callback: "
                                          "load file '%s' done\n",
-                                         fname); 
+                                         fname);
     return ((int)fsize);
 }
 

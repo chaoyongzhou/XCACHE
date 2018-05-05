@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -75,21 +75,21 @@ typedef struct
     uint32_t                  seg_size;
     uint32_t                  seg_s_offset;
     uint32_t                  seg_e_offset;
-    
+
     CSTRING                   basedir;                  /*${basedir}/0: store http header, ${basedir}/1: the 1st seg, ...*/
 
     CSTRING                   billing_flags;            /*billing control flags, used when set billing*/
     CSTRING                   billing_domain;           /*billing domain, used when set billing*/
     CSTRING                   billing_client_type;      /*billing client type domain, used when set billing*/
-        
+
     CSTRING                   auth_token;               /*locked auth-token for owner*/
- 
+
     CSTRING                   etag;
     CSTRING                   last_modified;
     uint64_t                  content_length;           /*lua get content length from previous response header*/
-    
+
     /*cache control from configuration*/
-    
+
     CSTRING                   cache_http_codes;         /*seperated by semicolon or space. cache if in http codes. format likes as 200;206*/
     CSTRING                   ncache_http_codes;        /*seperated by semicolon or space. not cache if in http codes. format likes as 404;504*/
     CSTRING                   cache_rsp_headers;        /*if http response has specific header(s), then cache it*/
@@ -97,7 +97,7 @@ typedef struct
     CSTRING                   cache_if_http_codes;      /*seperated by semicolon. cache if in http codes and renew Expires. format likes as 404=60;504=50*/
 
     uint32_t                  cache_allow:1;            /*orig or storage at first*/
-    uint32_t                  cache_control:8;          /*cache in storage or not*/    
+    uint32_t                  cache_control:8;          /*cache in storage or not*/
     uint32_t                  merge_flag:1;             /*trigger merge flow*/
     uint32_t                  locked_flag:1;            /*file locked flag*/
     uint32_t                  expired_flag:1;           /*(merge) origin reasone: due to absence or due to expired*/
@@ -109,12 +109,12 @@ typedef struct
     uint32_t                  rsvd01:14;
 
     uint32_t                  orig_timeout_nsec;
-    
+
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
 
     UINT32                    redirect_max_times;/*redirect location control from configuration*/
-    
+
     UINT32                    seq_no; /*for debug only!*/
 }CHTTP_STORE;
 
@@ -179,7 +179,7 @@ typedef struct
 {
     uint32_t                  rsp_status;
     uint32_t                  rsvd;
-    
+
     /*transfer statistics*/
     uint32_t                  send_len;
     uint32_t                  recv_len;
@@ -188,13 +188,13 @@ typedef struct
     union
     {
         struct/*for http basic procedure*/
-        {   
+        {
             /*start time means the connection setup time or parser resumed time*/
             uint32_t                  s_nsec; /*start time in second*/
             uint32_t                  s_msec; /*start time in micro-second*/
             /*recv time means the whole http request including body received or parsed time*/
             uint32_t                  r_nsec; /*received time in second*/
-            uint32_t                  r_msec; /*received time in micro-second*/    
+            uint32_t                  r_msec; /*received time in micro-second*/
 
             /*load time means the http request was loaded time in coroutine*/
             uint32_t                  l_nsec;
@@ -218,7 +218,7 @@ typedef struct
 
             /*[merge] locked time means after locked/before wait_ready/wait_data time*/
             uint32_t                  l_nsec; /*locked done time in second*/
-            uint32_t                  l_msec; /*locked done time in micro-second*/    
+            uint32_t                  l_msec; /*locked done time in micro-second*/
 
             /*[merge] wait done time, wait_ready or wait_data*/
             uint32_t                  w_nsec; /*wait_ready or wait_data done time in second*/
@@ -234,7 +234,7 @@ typedef struct
 
             /*[merge] file read done time*/
             uint32_t                  r_nsec; /*read done time in second*/
-            uint32_t                  r_msec; /*read done time in micro-second*/       
+            uint32_t                  r_msec; /*read done time in micro-second*/
         }merge;
         struct/*for http header orig procedure*/
         {
@@ -244,7 +244,7 @@ typedef struct
 
             /*[header] locked time means after locked/before orig time*/
             uint32_t                  l_nsec; /*locked done time in second*/
-            uint32_t                  l_msec; /*locked done time in micro-second*/    
+            uint32_t                  l_msec; /*locked done time in micro-second*/
 
             /*[header] origin done time, for origin procedure owner only*/
             uint32_t                  o_nsec; /*origin done time in second*/
@@ -257,16 +257,16 @@ typedef struct
             /*[header] cond_wait done time*/
             uint32_t                  c_nsec; /*cond_wait done time in second*/
             uint32_t                  c_msec; /*cond_wait done time in micro-second*/
-            
+
             /*unsed*/
             uint32_t                  u_nsec;
             uint32_t                  u_msec;
 
-        }header;        
+        }header;
     }u;
 
-    uint8_t                   status_str[ CHTTP_STAT_STR_MAX_SIZE ]; 
-    uint8_t                   desc_str  [ CHTTP_DESC_STR_MAX_SIZE ];     
+    uint8_t                   status_str[ CHTTP_STAT_STR_MAX_SIZE ];
+    uint8_t                   desc_str  [ CHTTP_DESC_STR_MAX_SIZE ];
 }CHTTP_STAT;
 
 #define CHTTP_STAT_RSP_STATUS(chttp_stat)          ((chttp_stat)->rsp_status)
@@ -324,11 +324,11 @@ typedef struct
 #define CHTTP_STAT_DESC_STR_INIT(chttp_stat)       do{(chttp_stat)->desc_str[0] = 0x00;}while(0)
 #define CHTTP_STAT_DESC_STR_CLEAN(chttp_stat)      do{(chttp_stat)->desc_str[0] = 0x00;}while(0)
 
-#define CHTTP_STAT_S_SEND_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_SEND_LEN(chttp_stat) += (num)) 
-#define CHTTP_STAT_S_RECV_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_RECV_LEN(chttp_stat) += (num)) 
+#define CHTTP_STAT_S_SEND_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_SEND_LEN(chttp_stat) += (num))
+#define CHTTP_STAT_S_RECV_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_RECV_LEN(chttp_stat) += (num))
 
 
-typedef struct 
+typedef struct
 {
     uint32_t    key;
     const char *val;
@@ -342,14 +342,14 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_MORE_FUNC)(void *);
 typedef struct _CHTTP_NODE
 {
     void                     *csrv;          /*mount point*/
-    
+
     CROUTINE_NODE            *croutine_node; /*croutine mounted point*/
 
     CROUTINE_COND            *croutine_cond;/*croutine condition lock, used when trigger http request */
 
     UINT32                    http_type:32;   /*CHTTP_TYPE_xxx*/
     UINT32                    status_code:32; /*for http response only*/
-    
+
     http_parser_t             http_parser;
     http_parser_settings_t    http_parser_settings;
 
@@ -359,23 +359,23 @@ typedef struct _CHTTP_NODE
     CCALLBACK_LIST            parse_on_headers_complete_callback_list;
     CCALLBACK_LIST            parse_on_body_callback_list;
     CCALLBACK_LIST            parse_on_message_complete_callback_list;
-    
-    CBUFFER                   i_buf;   /*io buffer used by http. socket read buff, and the input buff of http_parser*/ 
-    CHUNK_MGR                 send_buf; /*io buffer used by http*/    
-    CHUNK_MGR                 recv_buf; /*io buffer used by http*/    
-    
+
+    CBUFFER                   i_buf;   /*io buffer used by http. socket read buff, and the input buff of http_parser*/
+    CHUNK_MGR                 send_buf; /*io buffer used by http*/
+    CHUNK_MGR                 recv_buf; /*io buffer used by http*/
+
     CSOCKET_CNODE            *csocket_cnode;
     CQUEUE_DATA              *cqueue_data; /*crfshttp_node mounted point in request defer queue*/
-    
+
     CBUFFER                   url;   /*string*/
     CBUFFER                   host;  /*string*/
     CBUFFER                   uri;   /*string*/
     CBUFFER                   expires;/*optional header in response*/
     CSTRKV_MGR                header_in_kvs;
     CSTRKV_MGR                header_out_kvs;
-    
+
     CSTRKV_MGR                header_renew_kvs;
-    EC_BOOL                   header_renew_flag;  
+    EC_BOOL                   header_renew_flag;
     EC_BOOL                   header_expired_flag;
 
     CTMV                      s_tmv;/*timeval when start for debug or stats*/
@@ -407,14 +407,14 @@ typedef struct _CHTTP_NODE
     int                       block_fd;
     UINT32                    block_size;
     UINT32                    block_pos;
-    
+
     uint64_t                  store_beg_offset;
     uint64_t                  store_end_offset;
-    uint64_t                  store_cur_offset;   
+    uint64_t                  store_cur_offset;
 
     /*[optional] store http data to storage*/
     CHTTP_STORE              *chttp_store;
-    
+
     /*statistics*/
     CHTTP_STAT                chttp_stat;/*mount point*/
 }CHTTP_NODE;
@@ -898,7 +898,7 @@ typedef struct
 #define    CHTTP_UNPROCESSABLE_ENTITY                 ((uint32_t) 422)    /* RFC2518 section 10.3 */
 #define    CHTTP_LOCKED                               ((uint32_t) 423)    /* RFC2518 section 10.4 */
 #define    CHTTP_FAILED_DEPENDENCY                    ((uint32_t) 424)    /* RFC2518 section 10.5 */
-                                                              
+
 #define    CHTTP_INTERNAL_SERVER_ERROR                ((uint32_t) 500)
 #define    CHTTP_NOT_IMPLEMENTED                      ((uint32_t) 501)
 #define    CHTTP_BAD_GATEWAY                          ((uint32_t) 502)

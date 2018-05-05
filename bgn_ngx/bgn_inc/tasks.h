@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -104,7 +104,7 @@ UINT32 tasks_worker_count(const TASKS_WORKER *tasks_worker, const UINT32 tcid, c
 
 CCALLBACK_NODE *tasks_worker_search_add_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
 
-CCALLBACK_NODE *tasks_worker_search_del_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func); 
+CCALLBACK_NODE *tasks_worker_search_del_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
 
 EC_BOOL tasks_worker_push_add_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
 

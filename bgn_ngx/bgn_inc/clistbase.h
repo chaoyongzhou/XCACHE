@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -81,7 +81,7 @@ typedef EC_BOOL (*CLISTBASE_RETVAL_CHECKER)(const void *);
 
 #define CLISTBASE_LOOP_NEXT_FROM_CUR(clistbase, data_cur, data_node) \
     for((data_node) = (data_cur);  (data_node) != CLISTBASE_NULL_NODE(clistbase); (data_node) = CLISTBASE_NODE_NEXT(data_node))
-    
+
 /*----------------------------------------------------------------interface----------------------------------------------------------------*/
 void clistbase_init(CLISTBASE *clistbase);
 

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -319,7 +319,7 @@ void    chttp_rsp_print_plain(LOG *log, const CHTTP_RSP *chttp_rsp);
 EC_BOOL chttp_rsp_is_chunked(const CHTTP_RSP *chttp_rsp);
 EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age);
 EC_BOOL chttp_rsp_add_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v);
-EC_BOOL chttp_rsp_add_header_chars(CHTTP_RSP *chttp_rsp, const char *k, const uint32_t klen, const char *v, const uint32_t vlen); 
+EC_BOOL chttp_rsp_add_header_chars(CHTTP_RSP *chttp_rsp, const char *k, const uint32_t klen, const char *v, const uint32_t vlen);
 char *  chttp_rsp_get_header(const CHTTP_RSP *chttp_rsp, const char *k);
 EC_BOOL chttp_rsp_del_header(CHTTP_RSP *chttp_rsp, const char *k);
 EC_BOOL chttp_rsp_renew_header(CHTTP_RSP *chttp_rsp, const char *k, const char *v);
@@ -361,7 +361,7 @@ EC_BOOL chttp_node_encode_req_header_end(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_encode_req_header(CHTTP_NODE *chttp_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, const CSTRKV_MGR *header);
 
-EC_BOOL chttp_node_encode_req_header_line(CHTTP_NODE *chttp_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, 
+EC_BOOL chttp_node_encode_req_header_line(CHTTP_NODE *chttp_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param,
                                             const uint16_t version_major, const uint16_t version_minor);
 EC_BOOL chttp_node_encode_req_body(CHTTP_NODE *chttp_node, const CBYTES *req_body);
 
@@ -381,7 +381,7 @@ EC_BOOL chttp_node_encode_rsp_param(CHTTP_NODE *chttp_node, const CSTRKV_MGR *pa
 
 EC_BOOL chttp_node_encode_rsp_uri(CHTTP_NODE *chttp_node , const CSTRING *uri, const CSTRKV_MGR *param, CBYTES *cbytes);
 
-EC_BOOL chttp_node_encode_rsp_header_line(CHTTP_NODE *chttp_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, 
+EC_BOOL chttp_node_encode_rsp_header_line(CHTTP_NODE *chttp_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param,
                                             const uint16_t version_major, const uint16_t version_minor, CBYTES *cbytes);
 
 EC_BOOL chttp_node_encode_rsp_header_end(CHTTP_NODE *chttp_node, CBYTES *cbytes);

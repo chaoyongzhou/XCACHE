@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -47,7 +47,7 @@ EC_BOOL cepoll_set_complete(CEPOLL *cepoll, const int sockfd, const char *name, 
 EC_BOOL cepoll_set_shutdown(CEPOLL *cepoll, const int sockfd, const char *name, CEPOLL_EVENT_HANDLER shutdown_handler, void *arg);
 
 EC_BOOL cepoll_set_timeout(CEPOLL *cepoll, const int sockfd, const uint32_t timeout_nsec, const char *name, CEPOLL_EVENT_HANDLER timeout_handler, void *arg);
-  
+
 EC_BOOL cepoll_del_events(CEPOLL *cepoll, const int sockfd, const uint32_t events);
 
 EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event);

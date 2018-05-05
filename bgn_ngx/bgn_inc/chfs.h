@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -56,10 +56,10 @@ typedef struct
     CRB_TREE             locked_files; /*item is CHFS_LOCKED_FILE*/
     CROUTINE_RWLOCK      locked_files_crwlock;/*RW lock for locked_files tree*/
 
-    CRB_TREE             wait_files;   /*item is CHFS_WAITING_FILE*/    
+    CRB_TREE             wait_files;   /*item is CHFS_WAITING_FILE*/
 
     CRFSDN              *crfsdn;
-    CHFSNP_MGR          *chfsnpmgr;/*namespace pool*/   
+    CHFSNP_MGR          *chfsnpmgr;/*namespace pool*/
 
     CHFSMC              *chfsmc;   /*memcache HFS  */
 
@@ -94,7 +94,7 @@ typedef struct
 #define CHFS_CLEAN_LOCK(chfs_md, location) do{\
     sys_log(LOGSTDOUT, "[DEBUG] CHFS_CLEAN_LOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
     croutine_rwlock_clean(CHFS_CRWLOCK(chfs_md), location);\
-}while(0)    
+}while(0)
 
 #define CHFS_RDLOCK(chfs_md, location)     do{\
     sys_log(LOGSTDOUT, "[DEBUG] CHFS_RDLOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
@@ -390,9 +390,9 @@ EC_BOOL chfs_is_npp_and_dn(const UINT32 chfs_md_id);
 *  create name node pool
 *
 **/
-EC_BOOL chfs_create_npp(const UINT32 chfs_md_id, 
-                             const UINT32 chfsnp_model, 
-                             const UINT32 chfsnp_max_num, 
+EC_BOOL chfs_create_npp(const UINT32 chfs_md_id,
+                             const UINT32 chfsnp_model,
+                             const UINT32 chfsnp_max_num,
                              const CSTRING *chfsnp_db_root_dir);
 
 EC_BOOL chfs_add_npp(const UINT32 chfs_md_id, const UINT32 chfsnpp_tcid, const UINT32 chfsnpp_rank);
@@ -459,14 +459,14 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
 *
 *  read a file from offset
 *
-*  when max_len = 0, return the partial content from offset to EOF (end of file) 
+*  when max_len = 0, return the partial content from offset to EOF (end of file)
 *
 **/
 EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
 
 /**
 *
-*  update a file 
+*  update a file
 *  (atomic operation)
 *
 **/
@@ -614,7 +614,7 @@ EC_BOOL chfs_delete(const UINT32 chfs_md_id, const CSTRING *path);
 *
 *  delete a dir from all npp and all dn
 *
-*  warning: 
+*  warning:
 *       this interface is only for specific purpose.
 *       the file name looks like ${path}/${idx}
 *       where ${idx} < ${max_idx}

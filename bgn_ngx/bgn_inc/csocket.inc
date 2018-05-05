@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -48,7 +48,7 @@ extern "C"{
 #define CSOCKET_TCP_FIN_WAIT2           TCPS_FIN_WAIT_2
 #define CSOCKET_TCP_TIME_WAIT           TCPS_TIME_WAIT
 #define CSOCKET_TCP_CLOSE               TCPS_CLOSED
-#define CSOCKET_TCP_CLOSE_WAIT          TCPS_CLOSE_WAIT 
+#define CSOCKET_TCP_CLOSE_WAIT          TCPS_CLOSE_WAIT
 #define CSOCKET_TCP_LAST_ACK            TCPS_LAST_ACK
 #define CSOCKET_TCP_LISTEN              TCPS_LISTEN
 #define CSOCKET_TCP_CLOSING             TCPS_CLOSING
@@ -60,7 +60,7 @@ typedef struct tcp_connection_info      CSOCKET_TCPI;
 #define CSOCKET_SOL_SOCKET              SOL_SOCKET
 #define CSOCKET_SOL_TCP                 SOL_SOCKET
 
-#define CSOCKET_TCP_KEEPIDLE            TCP_KEEPALIVE 
+#define CSOCKET_TCP_KEEPIDLE            TCP_KEEPALIVE
 
 /*--- same part ---*/
 #define CSOCKET_TCP_NODELAY             TCP_NODELAY
@@ -156,7 +156,7 @@ typedef struct tcp_info                 CSOCKET_TCPI;
 
 
 typedef struct _CSOCKET_CNODE
-{    
+{
     UINT32              ipaddr;
     UINT32              srvport;
     UINT32              tcid;
@@ -171,7 +171,7 @@ typedef struct _CSOCKET_CNODE
     uint32_t            reusing:1;/*re-use*/
     uint32_t            closing:1;/*if closing = 1, reusing would be ignore*/
     uint32_t            pending:1;/*wait resume*/
-    uint32_t            looping:1;/*timeout looping*/ 
+    uint32_t            looping:1;/*timeout looping*/
     uint32_t            nonblock:1;
     uint32_t            rsvd   :7;
 
@@ -193,7 +193,7 @@ typedef struct _CSOCKET_CNODE
             UINT8       pkt_hdr[CSOCKET_CNODE_PKT_HDR_SIZE];
             UINT32      pkt_pos;/*when pos reaches csocket_encode_actual_size, header is ready*/
         }pkt;
-        
+
         struct
         {
             void       *ptr;
@@ -266,7 +266,7 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_IS_CONNECTED(csocket_cnode)            (0 == (csocket_cnode)->rsvd? EC_TRUE : EC_FALSE)
 
 //typedef EC_BOOL (*CSOCKET_CNODE_SETUP_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode);
-typedef EC_BOOL (*CSOCKET_CNODE_RECV_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode); 
+typedef EC_BOOL (*CSOCKET_CNODE_RECV_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode);
 typedef EC_BOOL (*CSOCKET_CNODE_SEND_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode);
 typedef EC_BOOL (*CSOCKET_CNODE_COMPLETE_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode);
 typedef EC_BOOL (*CSOCKET_CNODE_CLOSE_CALLBACK)(UINT32 data, CSOCKET_CNODE *csocket_cnode);

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -114,14 +114,14 @@ typedef struct
 typedef struct
 {
     CPGRB_POOL   pgd_block_rb_pool;
-    
+
     uint16_t     pgd_block_rb_root_pos[ CPGB_MODEL_NUM ];/*root pos of rbtree*/
     uint16_t     rsvd1;
-    
+
     uint16_t     pgd_assign_bitmap; /*when some page model can provide pages or can borrow from upper, set bit to 1*/
-    uint16_t     pgd_block_max_num; /*max block number */    
+    uint16_t     pgd_block_max_num; /*max block number */
     uint32_t     rsvd2;
-    
+
     uint32_t     pgd_page_max_num; /*max pages number */
     uint32_t     pgd_page_used_num;/*used pages number*/
     uint64_t     pgd_actual_used_size;/*actual used bytes*/

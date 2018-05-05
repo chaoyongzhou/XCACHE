@@ -1130,7 +1130,7 @@ EC_BOOL csfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
     }
 
     auth_token_header_len = snprintf((char *)auth_token_header, sizeof(auth_token_header),
-                                    "auth-token:%.*s\r\n", 
+                                    "auth-token:%.*s\r\n",
                                     (uint32_t)CSTRING_LEN(&token_cstr), (char *)CSTRING_STR(&token_cstr));
     cbytes_set(content_cbytes, auth_token_header, auth_token_header_len);
 
@@ -2079,7 +2079,7 @@ EC_BOOL csfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64,
                             (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),(char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf")),content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2377,7 +2377,7 @@ EC_BOOL csfshttp_handle_setsmf_memc_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_setsmf_memc_post_request: path %.*s, invalid content length %"PRId64,
                             (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmfmemc")),
                             (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmfmemc")),content_len);
 
@@ -3136,7 +3136,7 @@ EC_BOOL csfshttp_handle_update_memc_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_update_memc_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update_memc")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update_memc")),content_len);
 
@@ -3840,7 +3840,7 @@ EC_BOOL csfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64, 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: csfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
 
@@ -4855,7 +4855,7 @@ EC_BOOL csfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:csfshttp_handle_mexpire_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:csfshttp_handle_mexpire_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5215,7 +5215,7 @@ EC_BOOL csfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "HFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:csfshttp_handle_mdsmf_post_request: bad request %.*s", 
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:csfshttp_handle_mdsmf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;

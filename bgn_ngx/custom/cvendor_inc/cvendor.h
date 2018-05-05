@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -44,7 +44,7 @@ typedef struct
 
     ngx_http_request_t  *ngx_http_req;
     CNGX_OPTION          cngx_option;
-    
+
     /*--- parse from cngx http request ---*/
     uint32_t             cngx_debug_switch_on_flag          :1; /*if debug mode indicated in cngx http req*/
     uint32_t             cngx_range_exist_flag              :1; /*exist field 'Range' in request header*/
@@ -62,13 +62,13 @@ typedef struct
     uint32_t             rsvd01                             :19;
     uint32_t             rsvd02;
 
-    CRANGE_MGR           cngx_range_mgr; 
+    CRANGE_MGR           cngx_range_mgr;
 
     UINT32               content_length;
-    CSTRING              cached_etag;   
+    CSTRING              cached_etag;
     CSTRING              cached_last_modified;
 
-    CSTRING              header_expires;   
+    CSTRING              header_expires;
 
     /*---- debug ----*/
     UINT32               depth;                   /*recursive depth*/
@@ -82,7 +82,7 @@ typedef struct
     UINT32               sent_body_size;
 
     UINT32               ngx_loc;  /*ngx rc report at location*/
-    ngx_int_t            ngx_rc;   /*save ngx calling result*/ 
+    ngx_int_t            ngx_rc;   /*save ngx calling result*/
 }CVENDOR_MD;
 
 #define CVENDOR_MD_TERMINATE_FLAG(cvendor_md)                     ((cvendor_md)->terminate_flag)
@@ -104,12 +104,12 @@ typedef struct
 #define CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 ((cvendor_md)->cngx_use_gzip_flag)
 #define CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                ((cvendor_md)->cache_use_gzip_flag)
 #define CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 ((cvendor_md)->cache_expired_flag)
-#define CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          ((cvendor_md)->content_length_exist_flag) 
-#define CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    ((cvendor_md)->orig_chunk_flag) 
+#define CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          ((cvendor_md)->content_length_exist_flag)
+#define CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    ((cvendor_md)->orig_chunk_flag)
 #define CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md)                    ((cvendor_md)->orig_force_flag)
 #define CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)                 ((cvendor_md)->orig_no_cache_flag)
 
-#define CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)                     (&((cvendor_md)->cngx_range_mgr)) 
+#define CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)                     (&((cvendor_md)->cngx_range_mgr))
 
 #define CVENDOR_MD_CONTENT_LENGTH(cvendor_md)                     ((cvendor_md)->content_length)
 #define CVENDOR_MD_CACHED_ETAG(cvendor_md)                        (&((cvendor_md)->cached_etag))

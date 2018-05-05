@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -37,7 +37,7 @@ extern "C"{
 #define CCOND_FNAME_MAX_SIZE  (64)
 
 #define CMUTEX_NODE_MAX_NUM     (4096)  /*the max cmutex num in one thread*/
-#define CMUTEX_BUCKET_MAX_NUM   ( 256)  /*the max buckets in one process  */ 
+#define CMUTEX_BUCKET_MAX_NUM   ( 256)  /*the max buckets in one process  */
 
 #define CMUTEX_NODE_IS_NOT_USED ((UINT32) 0)
 #define CMUTEX_NODE_IS_USED     ((UINT32) 1)
@@ -53,7 +53,7 @@ extern "C"{
 #define LOCATION_INIT(location) do{ (location) = LOC_NONE_BASE; }while(0)
 
 /*************************************************************************************************************************************
-* cmutex record node in pool. the pool initialize before mem initialization, 
+* cmutex record node in pool. the pool initialize before mem initialization,
 * the cmutex record node pool is used when cmutex init or clean. when some thread quit abnormally, we can reset all its cmutexs.
 * we cannot used list structer to manage the pool, otherwise, when init or clean concurrently happen, we have no way to serialize them,
 * especially, when happen on the adjacent record nodes. therefore, choose HASH BUCKET + TABLE + FLAG to manage
@@ -69,8 +69,8 @@ typedef struct
 
 typedef struct
 {
-    pthread_spinlock_t spinlock; 
-    CMUTEX_NODE cmutex_nodes[CMUTEX_NODE_MAX_NUM];   
+    pthread_spinlock_t spinlock;
+    CMUTEX_NODE cmutex_nodes[CMUTEX_NODE_MAX_NUM];
 }CMUTEX_BUCKET;
 
 #define CMUTEX_BUCKET_SPINLOCK(cmutex_bucket)   (&((cmutex_bucket)->spinlock))
@@ -259,14 +259,14 @@ typedef union
 # endif
   char __size[__SIZEOF_PTHREAD_RWLOCK_T];
   long int __align;
-} pthread_rwlock_t;    
+} pthread_rwlock_t;
 #endif
 
 typedef struct
 {
     pthread_rwlock_t    rwlock;
 
-    UINT32        location[CRWLOCK_OP_END];    
+    UINT32        location[CRWLOCK_OP_END];
 }CRWLOCK;
 
 #define CRWLOCK_RWLOCK(crwlock)          (&((crwlock)->rwlock))

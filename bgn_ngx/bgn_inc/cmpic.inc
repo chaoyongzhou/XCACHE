@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -36,7 +36,7 @@ extern "C"{
 #define CMPI_ANY_IPADDR     ((UINT32)( -3))
 #define CMPI_ANY_SRVPORT    ((UINT32)( -4))
 #define CMPI_ANY_TAG        ((UINT32)( -1))
-#define CMPI_ANY_SOCKFD     ((int)   ( -5)) 
+#define CMPI_ANY_SOCKFD     ((int)   ( -5))
 
 #define CMPI_ANY_DBG_TCID   ((UINT32)( -6))
 #define CMPI_ANY_MON_TCID   ((UINT32)( -7))
@@ -56,9 +56,9 @@ extern "C"{
 
 #if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
                             /*    new setting    *//*old setting*/
-#define CMPI_TOP_NETWORK    ((UINT32)(  0))/*((UINT32)(  0))*/  
-#define CMPI_ANY_NETWORK    ((UINT32)(0x0000FFFE))/*((UINT32)( -1))*/  
-#define CMPI_ERROR_NETWORK  ((UINT32)(0x0000FFF3))/*((UINT32)( -13))*/  
+#define CMPI_TOP_NETWORK    ((UINT32)(  0))/*((UINT32)(  0))*/
+#define CMPI_ANY_NETWORK    ((UINT32)(0x0000FFFE))/*((UINT32)( -1))*/
+#define CMPI_ERROR_NETWORK  ((UINT32)(0x0000FFF3))/*((UINT32)( -13))*/
 
 #define CMPI_ANY_TCID       ((UINT32)(0xFFFFFFFF))/*((UINT32)( -1))*/
 #define CMPI_ANY_MASK       ((UINT32)(0xFFFFFFFF))/*((UINT32)( -1))*/
@@ -68,10 +68,10 @@ extern "C"{
 #define CMPI_ANY_IPADDR     ((UINT32)(0xFFFFFFFD))/*((UINT32)( -3))*/
 #define CMPI_ANY_SRVPORT    ((UINT32)(0xFFFFFFFC))/*((UINT32)( -4))*/
 #define CMPI_ANY_TAG        ((UINT32)(0x000000FF)) /*((UINT32)( -1))*/
-#define CMPI_ANY_SOCKFD     ((int)   ( -5)) 
+#define CMPI_ANY_SOCKFD     ((int)   ( -5))
 
 #define CMPI_ANY_DBG_TCID   ((UINT32)(0xFFFFFFFA))/*((UINT32)( -6))*/
-#define CMPI_ANY_MON_TCID   ((UINT32)(0xFFFFFFF9))/*((UINT32)( -7))*/ 
+#define CMPI_ANY_MON_TCID   ((UINT32)(0xFFFFFFF9))/*((UINT32)( -7))*/
 
 #define CMPI_ERROR_TCID     ((UINT32)(0xFFFFFFF8))/*((UINT32)( -8))*/
 #define CMPI_ERROR_MASK     ((UINT32)(  1))

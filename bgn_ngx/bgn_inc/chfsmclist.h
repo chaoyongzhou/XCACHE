@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -24,7 +24,7 @@ extern "C"{
 #define CHFSMCLIST_MAX_SIZE        ((uint32_t)(1 << 23))/* < 2^23, about 8,000,000*/
 
 typedef struct
-{        
+{
     uint32_t left_pos :31;/*value range: [0, 0x7FFFFFFF)*/
     uint32_t used_flag: 1;
 
@@ -40,7 +40,7 @@ typedef struct
 #define CHFSMCLIST_NODE_IS_NOT_USED(node)      (CHFSMCLIST_NODE_NOT_USED == CHFSMCLIST_NODE_USED_FLAG(node))
 
 typedef struct
-{    
+{
     uint32_t              node_max_num; /*max node number in the pool    */
     uint32_t              node_used_num;/*used node number               */
     uint32_t              list_head;    /*unused CHFSMCLIST node head: head -> ... -> null*/

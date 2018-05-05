@@ -1264,7 +1264,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_optimize: sockfd %d failed to set SEND TIMEOUT to %d usecs\n", 
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_optimize: sockfd %d failed to set SEND TIMEOUT to %d usecs\n",
                                 sockfd, (uint32_t)usecs);
             ret = EC_FALSE;
         }
@@ -1280,7 +1280,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_optimize: sockfd %d failed to set RECV TIMEOUT to %d usecs\n", 
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_optimize: sockfd %d failed to set RECV TIMEOUT to %d usecs\n",
                                 sockfd, (uint32_t)usecs);
             ret = EC_FALSE;
         }
@@ -1462,7 +1462,7 @@ EC_BOOL csocket_udp_optimize(int sockfd)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_udp_optimize: sockfd %d failed to set SEND TIMEOUT to %d usecs\n", 
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_udp_optimize: sockfd %d failed to set SEND TIMEOUT to %d usecs\n",
                                 sockfd, (uint32_t)usecs);
             ret = EC_FALSE;
         }
@@ -1478,7 +1478,7 @@ EC_BOOL csocket_udp_optimize(int sockfd)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_udp_optimize: sockfd %d failed to set RECV TIMEOUT to %d usecs\n", 
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_udp_optimize: sockfd %d failed to set RECV TIMEOUT to %d usecs\n",
                                 sockfd, (uint32_t)usecs);
             ret = EC_FALSE;
         }
@@ -2563,7 +2563,7 @@ EC_BOOL csocket_udp_read(const int sockfd, const UINT32 ipaddr, const UINT32 por
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_udp_read: sockfd %d read in %d bytes\n", 
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_udp_read: sockfd %d read in %d bytes\n",
                             sockfd, (uint32_t)recved_num);
         (*pos) += (UINT32)recved_num;
     }
@@ -2650,7 +2650,7 @@ EC_BOOL csocket_connect_wait_ready(int sockfd)
     fd_cset = safe_malloc(sizeof(FD_CSET), LOC_CSOCKET_0003);
     if(NULL_PTR == fd_cset)
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: malloc FD_CSET with size %d failed\n", 
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_connect_wait_ready: malloc FD_CSET with size %d failed\n",
                             (uint32_t)sizeof(FD_CSET));
         return (EC_FALSE);
     }
@@ -3322,7 +3322,7 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_read: sockfd %d read in %d bytes while need_recv_len is %d\n", 
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_read: sockfd %d read in %d bytes while need_recv_len is %d\n",
                         sockfd, (uint32_t)recved_num, (uint32_t)need_recv_len);
         (*pos) += (UINT32)recved_num;
 
@@ -3349,7 +3349,7 @@ EC_BOOL csocket_read(const int sockfd, const UINT32 once_max_size, UINT8 *in_buf
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_read: sockfd %d read in %d bytes\n", 
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_read: sockfd %d read in %d bytes\n",
                     sockfd, (uint32_t)recved_num);
         (*pos) += (UINT32)recved_num;
     }

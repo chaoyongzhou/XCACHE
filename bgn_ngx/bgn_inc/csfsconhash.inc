@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -26,18 +26,18 @@ extern "C"{
 
 #define CSFSCONHASH_RNODE_DEBUG                  (SWITCH_ON)
 
-#define CSFSCONHASH_RNODE_IS_ERR                 ((uint16_t)0x0000) 
-#define CSFSCONHASH_RNODE_IS_UP                  ((uint16_t)0x0001) 
-#define CSFSCONHASH_RNODE_IS_DOWN                ((uint16_t)0x0002) 
+#define CSFSCONHASH_RNODE_IS_ERR                 ((uint16_t)0x0000)
+#define CSFSCONHASH_RNODE_IS_UP                  ((uint16_t)0x0001)
+#define CSFSCONHASH_RNODE_IS_DOWN                ((uint16_t)0x0002)
 
 typedef struct
 {
     uint16_t     replicas; /* number of replica virtual nodes */
     uint16_t     status;
     uint32_t     tcid;
-#if(SWITCH_ON == CSFSCONHASH_RNODE_DEBUG)    
+#if(SWITCH_ON == CSFSCONHASH_RNODE_DEBUG)
     UINT32       counter; /*debug only!*/
-#endif/*(SWITCH_ON == CSFSCONHASH_RNODE_DEBUG)*/    
+#endif/*(SWITCH_ON == CSFSCONHASH_RNODE_DEBUG)*/
 }CSFSCONHASH_RNODE;/*real node*/
 
 #define CSFSCONHASH_RNODE_REPLICAS(csfsconhash_rnode)           ((csfsconhash_rnode)->replicas)
@@ -73,7 +73,7 @@ typedef struct
 typedef struct
 {
     CVECTOR      rnode_vec; /*item is CSFSCONHASH_RNODE*/
-    CRB_TREE     vnode_tree;/*item is CSFSCONHASH_VNODE*/  
+    CRB_TREE     vnode_tree;/*item is CSFSCONHASH_VNODE*/
 
     UINT32       hash_id;
     UINT32      (*hash_func)(const UINT32, const UINT8 *);

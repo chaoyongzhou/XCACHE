@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -37,7 +37,7 @@ extern "C"{
 #define CRFSBK_NP_ID             ((uint32_t) 0x4000)
 #define CRFSBK_DISK_NO           ((uint32_t) 0x0000)
 #define CRFSBK_NP_MODEL          (CRFSNP_001G_MODEL)
-#define CRFSBK_HASH_ALGO_ID      (CHASH_JS_ALGO_ID) 
+#define CRFSBK_HASH_ALGO_ID      (CHASH_JS_ALGO_ID)
 
 #define CRFSBK_ROOM_SAFE_LEVEL   ((REAL) 0.80) /*80%*/
 
@@ -58,7 +58,7 @@ typedef struct
     uint16_t   crfs_op;   /*WRITE / DELETE*/
     uint16_t   path_type; /*regular file, big file,dir*/
     uint32_t   path_hash;
-    CSTRING    path_name;   
+    CSTRING    path_name;
 }CRFSOP;
 
 #define CRFSOP_OP_TYPE(crfsop)       ((crfsop)->crfs_op)

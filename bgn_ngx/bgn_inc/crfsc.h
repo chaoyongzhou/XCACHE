@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -190,7 +190,7 @@ EC_BOOL crfsc_write_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32
 *
 *  read a file from offset
 *
-*  when max_len = 0, return the partial content from offset to EOF (end of file); 
+*  when max_len = 0, return the partial content from offset to EOF (end of file);
 *
 **/
 EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
@@ -274,7 +274,7 @@ EC_BOOL crfsc_delete(const UINT32 crfsc_md_id, const CSTRING *path, const UINT32
 
 /**
 *
-*  update a file 
+*  update a file
 *
 **/
 EC_BOOL crfsc_update_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const CBYTES *cbytes);

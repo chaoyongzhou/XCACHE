@@ -2589,7 +2589,7 @@ EC_BOOL cdfsnp_mgr_file_num(CDFSNP_MGR *cdfsnp_mgr, const CSTRING *path_cstr, UI
             continue;
         }
 
-        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_num: invalid dflg %lx\n", 
+        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_num: invalid dflg %lx\n",
                             (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     }
 
@@ -2639,7 +2639,7 @@ EC_BOOL cdfsnp_mgr_file_size(CDFSNP_MGR *cdfsnp_mgr, const CSTRING *path_cstr, U
             continue;
         }
 
-        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_size: invalid dflg %lx\n", 
+        dbg_log(SEC_0127_CDFSNPMGR, 0)(LOGSTDOUT, "error:cdfsnp_mgr_file_size: invalid dflg %lx\n",
                             (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     }
 

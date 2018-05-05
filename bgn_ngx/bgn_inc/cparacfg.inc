@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -43,19 +43,19 @@ typedef struct
        int    csocket_so_sndtimeo_nsec      ;
        int    csocket_so_rcvtimeo_nsec      ;
 
-    UINT32    csocket_so_keepalive_switch   ;       
+    UINT32    csocket_so_keepalive_switch   ;
        int    csocket_tcp_keepidle_nsec     ;
        int    csocket_tcp_keepintvl_nsec    ;
        int    csocket_tcp_keepcnt_times     ;
        int    rsvd01;
 
-    UINT32    csocket_unix_domain_switch    ;       
-       
-    UINT32    csocket_send_once_max_size    ;/*for fwd rank only*/ 
-    UINT32    csocket_recv_once_max_size    ;/*for fwd rank only*/ 
+    UINT32    csocket_unix_domain_switch    ;
+
+    UINT32    csocket_send_once_max_size    ;/*for fwd rank only*/
+    UINT32    csocket_recv_once_max_size    ;/*for fwd rank only*/
     UINT32    csocket_cnode_num             ;/*for fwd rank only*/
     UINT32    csocket_heartbeat_intvl_nsec  ;/*for fwd rank only*/
-    
+
     UINT32    file_log_max_records          ;
     UINT32    file_log_name_with_date_switch;
 
@@ -65,7 +65,7 @@ typedef struct
 
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
-    UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/ 
+    UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
 
     UINT32    crfs_memc_switch              ; /* CRFS_MEMC_SWITCH */
     uint8_t   rsvd02;
@@ -86,7 +86,7 @@ typedef struct
 
     uint16_t  rsvd06;
     uint16_t  chfsmon_conhash_replicas      ; /* CHFSMON_CONHASH_REPLICAS */
-    UINT32    chfsmon_conhash_switch        ; /* CHFSMON_CONHASH_SWITCH */    
+    UINT32    chfsmon_conhash_switch        ; /* CHFSMON_CONHASH_SWITCH */
 
     UINT32    csfs_memc_switch              ; /* CSFS_MEMC_SWITCH */
     uint8_t   rsvd07;
@@ -96,8 +96,8 @@ typedef struct
     uint32_t  rsvd08;
     uint16_t  rsvd09;
     uint16_t  csfsmon_conhash_replicas      ; /* CSFSMON_CONHASH_REPLICAS */
-    UINT32    csfsmon_conhash_switch        ; /* CSFSMON_CONHASH_SWITCH */  
-    
+    UINT32    csfsmon_conhash_switch        ; /* CSFSMON_CONHASH_SWITCH */
+
     uint32_t  ngx_lua_output_blocking_lowat ; /* if buff to send is more than that, block for next sending;otherwise, return and prepare data for next sending*/
     uint32_t  ngx_epoll_timeout_msec        ;
 
@@ -211,14 +211,14 @@ typedef struct
 
 #define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)))
 
-#define CPARACFG_CRFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CRFS_MEMC_SWITCH(cparacfg))) 
+#define CPARACFG_CRFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CRFS_MEMC_SWITCH(cparacfg)))
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
 
-#define CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CHFS_MEMC_SWITCH(cparacfg))) 
+#define CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CHFS_MEMC_SWITCH(cparacfg)))
 #define CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)))
 
-#define CPARACFG_CSFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CSFS_MEMC_SWITCH(cparacfg))) 
+#define CPARACFG_CSFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CSFS_MEMC_SWITCH(cparacfg)))
 #define CPARACFG_CSFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CSFSMON_CONHASH_SWITCH(cparacfg)))
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
@@ -381,8 +381,8 @@ typedef struct
 #define    TASK_REQ_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_REQ_THREAD_MAX_NUM)
 #define    TASK_RSP_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_RSP_THREAD_MAX_NUM)
 
-#define    TASK_SLOW_DOWN_MSEC                           CPARACFG_DEFAULT_MAP(CPARACFG_TASK_SLOW_DOWN_MSEC) 
-#define    TASK_NOT_SLOW_DOWN_MAX_TIMES                  CPARACFG_DEFAULT_MAP(CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES) 
+#define    TASK_SLOW_DOWN_MSEC                           CPARACFG_DEFAULT_MAP(CPARACFG_TASK_SLOW_DOWN_MSEC)
+#define    TASK_NOT_SLOW_DOWN_MAX_TIMES                  CPARACFG_DEFAULT_MAP(CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES)
 
 #define    CSOCKET_HEARTBEAT_INTVL_NSEC                  CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC)
 

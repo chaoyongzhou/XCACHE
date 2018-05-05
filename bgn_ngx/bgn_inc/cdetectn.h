@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -64,17 +64,17 @@ typedef struct
     CSTRING             url;                   /*orig url to check*/
     CLIST               ip_nodes;              /*orig ip nodes. item is CDETECTN_IP_NODE*/
 
-    uint32_t            detect_interval_nsec;  /*orig detect interval in seconds*/ 
+    uint32_t            detect_interval_nsec;  /*orig detect interval in seconds*/
     uint32_t            detect_stopping_nsec;  /*orig detect stopping if no access in seconds*/
 
     uint32_t            reachable_status_beg;  /*orig return such status means orig is reachable*/
     uint32_t            reachable_status_end;  /*orig return such status means orig is reachable*/
     uint32_t            choice_strategy;       /*strategy to select orig*/
-    uint32_t            domain_hash;           /*hash value of domain*/     
+    uint32_t            domain_hash;           /*hash value of domain*/
 
     ctime_t             last_detect_time;      /*last detect time by worker*/
     ctime_t             last_access_time;      /*last access time by client*/
-    
+
     CLIST_DATA         *last_reachable_ip_node;/*shortcut to last reachable ip node*/
     CLIST_DATA         *detect_orig_node;      /*shortcut to [A.1] list*/
 }CDETECTN_ORIG_NODE;
@@ -103,14 +103,14 @@ typedef struct
 #define CDETECTN_IP_NODE_STATUS_ERR              ((uint32_t)  ~0)
 #define CDETECTN_IP_NODE_STATUS_REACHABLE        ((uint32_t)   1)
 
-#define CDETECTN_IP_NODE_COST_MSEC_ERR           ((uint32_t)  ~0) 
+#define CDETECTN_IP_NODE_COST_MSEC_ERR           ((uint32_t)  ~0)
 #define CDETECTN_IP_NODE_PORT_DEFAULT            (80)
 typedef struct
 {
     CSTRING            domain;
     UINT32             ipaddr;
     UINT32             port;
-    
+
     uint32_t           status;
     uint32_t           detect_cost_msec;
 }CDETECTN_IP_NODE;

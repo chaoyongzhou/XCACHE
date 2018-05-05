@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -28,7 +28,7 @@ extern "C"{
 typedef struct
 {
     CSTRING       path;
-    CRFSCONHASH   crfsconhash;   /*path in which mod_mgr*/       
+    CRFSCONHASH   crfsconhash;   /*path in which mod_mgr*/
 }CRFSDT_PNODE;
 
 #define CRFSDT_PNODE_PATH(crfsdt_pnode)      (&((crfsdt_pnode)->path))

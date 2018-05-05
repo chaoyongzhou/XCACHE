@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -28,7 +28,7 @@ typedef struct
 {
     uint32_t rb_parent_pos:31;
     uint32_t rb_used      : 1; /*CSFSNPRB_USED or CSFSNPRB_NOT_USED*/
-        
+
     uint32_t rb_right_pos :31;
     uint32_t rsvd1       : 1;
 
@@ -58,7 +58,7 @@ typedef struct
 
 
 typedef struct
-{    
+{
     uint32_t        node_max_num; /*max node number in the pool*/
     uint32_t        node_used_num;/*used node number           */
     uint32_t        node_sizeof;  /*actual size of each node   */

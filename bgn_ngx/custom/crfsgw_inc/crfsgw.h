@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -48,7 +48,7 @@ typedef struct
     UINT32               sent_body_size;
 
     UINT32               ngx_loc;  /*ngx rc report at location*/
-    ngx_int_t            ngx_rc;   /*save ngx calling result*/ 
+    ngx_int_t            ngx_rc;   /*save ngx calling result*/
 }CRFSGW_MD;
 
 #define CRFSGW_MD_TERMINATE_FLAG(crfsgw_md)               ((crfsgw_md)->terminate_flag)
@@ -59,7 +59,7 @@ typedef struct
 
 #define CRFSGW_MD_CHTTP_RSP(crfsgw_md)                    (&((crfsgw_md)->chttp_rsp))
 
-#define CRFSGW_MD_CONTENT_LENGTH(crfsgw_md)               ((crfsgw_md)->content_length) 
+#define CRFSGW_MD_CONTENT_LENGTH(crfsgw_md)               ((crfsgw_md)->content_length)
 
 #define CRFSGW_MD_SENT_BODY_SIZE(crfsgw_md)               ((crfsgw_md)->sent_body_size)
 
@@ -122,7 +122,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
 
 EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, const char *path);
 
-EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, const char *path); 
+EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, const char *path);
 
 EC_BOOL crfsgw_content_header_out_filter(const UINT32 crfsgw_md_id);
 

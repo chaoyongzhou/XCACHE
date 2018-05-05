@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -18,13 +18,13 @@ extern "C"{
 /**
 * note:
 *
-* the raw file with not more than RAW_DATA_FILE_MAX_SIZE or  RAW_IDX_FILE_MAX_SIZE bytes will 
+* the raw file with not more than RAW_DATA_FILE_MAX_SIZE or  RAW_IDX_FILE_MAX_SIZE bytes will
 * be compressed and pushed into cdfs file (if CBGT_BASED_ON_HSDFS_SWITCH == SWITCH_ON)
 * which accept up to RAW_CDFS_FILE_MAX_SIZE bytes
 *
-* one can set 
-*     RAW_DATA_FILE_MAX_SIZE >> RAW_CDFS_FILE_MAX_SIZE 
-*     RAW_IDX_FILE_MAX_SIZE  >> RAW_CDFS_FILE_MAX_SIZE 
+* one can set
+*     RAW_DATA_FILE_MAX_SIZE >> RAW_CDFS_FILE_MAX_SIZE
+*     RAW_IDX_FILE_MAX_SIZE  >> RAW_CDFS_FILE_MAX_SIZE
 * depending on compress algorithm
 *
 **/

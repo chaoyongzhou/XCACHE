@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -56,7 +56,7 @@ typedef struct
 /*current standby cdetectn*/
 #define CDETECT_MD_CDETECTN_MODI_STANDBY(cdetect_md)      \
         ((cdetect_md)->cdetectn_modi[ CDETECT_MD_CDETECTN_MODI_CHOICE(cdetect_md) ^ 1 ])
-        
+
 /**
 *   for test only
 *

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -89,7 +89,7 @@ typedef struct
 
 #define COROUTINE_MUTEX_GET_LOCATION(coroutine_mutex, __op__)  \
         COROUTINE_MUTEX_LOCATION(coroutine_mutex, __op__)
-        
+
 #define COROUTINE_MUTEX_SET_LOCATION(coroutine_mutex, __op__, __location__)  do{\
         COROUTINE_MUTEX_LOCATION(coroutine_mutex, __op__) = (__location__);\
 }while(0)
@@ -141,7 +141,7 @@ typedef struct
 
 #define COROUTINE_RWLOCK_GET_LOCATION(coroutine_rwlock, __op__)  \
         COROUTINE_RWLOCK_LOCATION(coroutine_rwlock, __op__)
-        
+
 #define COROUTINE_RWLOCK_SET_LOCATION(coroutine_rwlock, __op__, __location__)  do{\
         COROUTINE_RWLOCK_LOCATION(coroutine_rwlock, __op__) = (__location__);\
 }while(0)
@@ -168,7 +168,7 @@ typedef struct
     }\
 }while(0)
 #endif
-        
+
 #if 1
 #define COROUTINE_RWLOCK_SET_LOCATION(coroutine_rwlock, __op__, __location__)  do{}while(0)
 
@@ -195,7 +195,7 @@ typedef struct
 }COROUTINE_COND;
 
 #define COROUTINE_COND_COUNTER(coroutine_cond)        ((coroutine_cond)->counter)
- 
+
 #define COROUTINE_COND_START_TIME(coroutine_cond)     (&((coroutine_cond)->start_time))
 #define COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond)   ((coroutine_cond)->timeout_msec)
 
@@ -204,7 +204,7 @@ typedef struct
 
 #define COROUTINE_COND_GET_LOCATION(coroutine_cond, __op__)  \
         COROUTINE_COND_LOCATION(coroutine_cond, __op__)
-       
+
 #define COROUTINE_COND_SET_LOCATION(coroutine_cond, __op__, __location__)  do{\
         COROUTINE_COND_LOCATION(coroutine_cond, __op__) = (__location__);\
 }while(0)
@@ -238,7 +238,7 @@ typedef struct
 
 /*
 typedef struct
-{   
+{
     UINT32  start_routine_addr;
     UINT32  arg_num;
     UINT32  arg_list[CTHREAD_MAX_ARG_NUM];
@@ -283,14 +283,14 @@ typedef struct
     CLIST_DATA       *routine_mounted;
     COROUTINE_TASK    routine_task;
     COROUTINE_COND    routine_cond;
-    
+
     COROUTINE_COND   *user_cond;
     COROUTINE_MUTEX  *user_mutex;
     COROUTINE_RWLOCK *user_rwlock;
 
     /*prev-check: always check until false or move to idle*/
     CQUEUE          prev_checker_queue;/*FIFO*/
-    
+
     /*post-clean*/
     CSTACK          post_cleanup_stack;/*FILO*/
 }COROUTINE_NODE;

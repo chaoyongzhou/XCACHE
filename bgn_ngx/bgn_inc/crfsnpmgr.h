@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -63,7 +63,7 @@ typedef struct
 /*to reduce lock operation in name node*/
 #define CRFSNP_MGR_NP_GET_NO_LOCK(crfsnp_mgr, crfsnp_id) \
         ((CRFSNP *)cvector_get_no_lock(CRFSNP_MGR_NP_VEC(crfsnp_mgr), (crfsnp_id)))
-        
+
 #define CRFSNP_MGR_NP_SET_NO_LOCK(crfsnp_mgr, crfsnp_id, __crfsnp, location) \
         (cvector_set_no_lock(CRFSNP_MGR_NP_VEC(crfsnp_mgr), (crfsnp_id), (__crfsnp)))
 
@@ -127,9 +127,9 @@ EC_BOOL crfsnp_mgr_search(CRFSNP_MGR *crfsnp_mgr, const uint32_t path_len, const
 
 CRFSNP_ITEM *crfsnp_mgr_search_item(CRFSNP_MGR *crfsnp_mgr, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
-CRFSNP_MGR *crfsnp_mgr_create(const uint8_t crfsnp_model, 
-                                const uint32_t crfsnp_disk_max_num, 
-                                const uint8_t  crfsnp_2nd_chash_algo_id, 
+CRFSNP_MGR *crfsnp_mgr_create(const uint8_t crfsnp_model,
+                                const uint32_t crfsnp_disk_max_num,
+                                const uint8_t  crfsnp_2nd_chash_algo_id,
                                 const CSTRING *crfsnp_db_root_dir);
 
 EC_BOOL crfsnp_mgr_exist(const CSTRING *crfsnp_db_root_dir);

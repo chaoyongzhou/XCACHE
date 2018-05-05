@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -232,10 +232,10 @@ netinet/in.h
 
 #ifndef PRId64
 #if (32 == __WORDSIZE)
-#define PRId64 "lld" 
+#define PRId64 "lld"
 #endif
 #if (64 == __WORDSIZE)
-#define PRId64 "lu" 
+#define PRId64 "lu"
 #endif
 #endif/*PRId64*/
 
@@ -329,7 +329,7 @@ typedef struct _LOG
     UINT32 pid_info_enable;   /*enable or disable pid info at the first line*/
 
     struct _LOG *redirect_log;/*current log is rediect to*/
-    
+
     union
     {
         struct

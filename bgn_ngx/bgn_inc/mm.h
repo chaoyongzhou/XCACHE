@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -154,7 +154,7 @@ extern "C"{
 #define                        MM_CDFSDN    ((UINT32) 91)
 #define                 MM_CDFSDN_RECORD    ((UINT32) 92)
 #define             MM_CDFSDN_RECORD_MGR    ((UINT32) 93)
-#define                    MM_CLOAD_STAT    ((UINT32) 94) 
+#define                    MM_CLOAD_STAT    ((UINT32) 94)
 #define                    MM_CLOAD_NODE    ((UINT32) 95)
 #define                    MM_CDFSNP_MGR    ((UINT32) 96)
 #define                   MM_CDFSDN_STAT    ((UINT32) 97)
@@ -351,15 +351,15 @@ typedef struct _MM_NODE_BLOCK
 typedef struct
 {
     UINT32  type;
-    void   *pmem;    
+    void   *pmem;
 }MM_COMM;/*common dynamic stack memory*/
 
 typedef struct
 {
-    UINT32          type; 
+    UINT32          type;
     union
     {
-        MM_NODE_BLOCK * nodeblock;    
+        MM_NODE_BLOCK * nodeblock;
         MM_COMM       * mm_comm;
     }u;
 }MM_AUX;
@@ -394,7 +394,7 @@ typedef struct
     UINT32  type;
     UINT32          nodenumsum;        /*number of nodes*/
     UINT32          maxusedsum;        /*stat data: max number of used nodes*/
-    UINT32          curusedsum;        /*stat data: current number of used nodes*/    
+    UINT32          curusedsum;        /*stat data: current number of used nodes*/
 }MM_MAN_OCCUPY_NODE;
 
 #define MM_MAN_OCCUPY_NODE_TYPE(mm_man_occupy_node)          ((mm_man_occupy_node)->type)

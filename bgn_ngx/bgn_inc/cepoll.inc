@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -118,10 +118,10 @@ typedef struct
     uint32_t   timeout;/*timeout in second*/
     int        sockfd;
     uint16_t   used_flag;
-    uint16_t   counter;/*counter to distinguish cepoll_node which are inserted at same time*/ 
-    
+    uint16_t   counter;/*counter to distinguish cepoll_node which are inserted at same time*/
+
     CTIMET     next_access_time;  /*next access in second*/
-    
+
     CRB_NODE  *crb_node;
 
     const char          *rd_name;
@@ -129,15 +129,15 @@ typedef struct
     const char          *timeout_name;
     const char          *shutdown_name;
     const char          *complete_name;
-        
+
     void                *rd_arg;
     void                *wr_arg;
     void                *timeout_arg;
     void                *shutdown_arg;
     void                *complete_arg;
 
-    CEPOLL_EVENT_HANDLER rd_handler;        /*triggered by read event*/    
-    CEPOLL_EVENT_HANDLER wr_handler;        /*triggered by write event*/    
+    CEPOLL_EVENT_HANDLER rd_handler;        /*triggered by read event*/
+    CEPOLL_EVENT_HANDLER wr_handler;        /*triggered by write event*/
     CEPOLL_EVENT_HANDLER timeout_handler;   /*triggered by timeout*/
     CEPOLL_EVENT_HANDLER shutdown_handler;  /*triggered by error or exception*/
     CEPOLL_EVENT_HANDLER complete_handler;  /*triggered by done or complete succ*/
@@ -173,7 +173,7 @@ typedef struct
 typedef struct
 {
     int                  epoll_fd;
-    int                  epoll_event_num;/*max epoll event num*/    
+    int                  epoll_event_num;/*max epoll event num*/
     CEPOLL_EVENT        *epoll_event_tab;/*used by epoll*/
     CEPOLL_NODE         *epoll_node_tab; /*nodes table in array*/
 
@@ -183,7 +183,7 @@ typedef struct
 
     CMUTEX               cmutex;/*for epoll_timeout_tree*/
 
-    uint16_t             counter;/*counter to distinguish cepoll_node which are inserted at same time*/ 
+    uint16_t             counter;/*counter to distinguish cepoll_node which are inserted at same time*/
     uint8_t              rsvd[3];
     CRB_TREE             epoll_timeout_tree;/*timeout in order*/
 }CEPOLL;

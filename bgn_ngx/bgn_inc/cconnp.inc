@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -35,11 +35,11 @@ typedef struct
 {
     UINT32                         srv_ipaddr;
     UINT32                         srv_port;
-    
+
     UINT32                         srv_tcid;
     UINT32                         srv_comm;
     UINT32                         srv_size;
-   
+
     CQUEUE                         idle_conn_queue; /*FIFO*/
 }CCONNP;
 

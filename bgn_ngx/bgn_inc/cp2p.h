@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -24,7 +24,7 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
-#define CP2P_NODES_MAX_NUM          ((UINT32)1024)        
+#define CP2P_NODES_MAX_NUM          ((UINT32)1024)
 
 typedef struct
 {
@@ -52,15 +52,15 @@ typedef struct
 typedef struct
 {
     CSTRING              service_name;
-   
+
     CSTRING              src_file_name;
     CSTRING              des_file_name; /*full path*/
-    
+
     UINT32               src_file_size;
     CMD5_DIGEST          src_file_md5;
 
     UINT32               report_tcid;   /*report to tcid*/
-    
+
 }CP2P_FILE;
 
 #define CP2P_FILE_SERVICE_NAME(cp2p_file)       (&((cp2p_file)->service_name))
@@ -142,7 +142,7 @@ void    cp2p_file_print(LOG *log, const CP2P_FILE *cp2p_file);
 /**
 *
 *  compare the expected downloading file and local file
-*  
+*
 *
 **/
 EC_BOOL cp2p_file_exists_local(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file);
@@ -282,7 +282,7 @@ EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd);
 *  notify edges under current network to deliver p2p cmd
 *
 **/
-EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd); 
+EC_BOOL cp2p_cmd_deliver_notify(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CP2P_CMD *cp2p_cmd);
 
 /**
 *
@@ -318,7 +318,7 @@ EC_BOOL cp2p_refresh_local_cache(const UINT32 cp2p_md_id, const CSTRING *path);
 *  refresh cache
 *
 **/
-EC_BOOL cp2p_refresh_cache(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CSTRING *service, const CSTRING *path); 
+EC_BOOL cp2p_refresh_cache(const UINT32 cp2p_md_id, const UINT32 des_network, const UINT32 des_tcid, const CSTRING *service, const CSTRING *path);
 
 #endif /*_CP2P_H*/
 

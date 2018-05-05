@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -59,13 +59,13 @@ typedef struct
     uint32_t             rsvd01                             :22;
     uint32_t             rsvd02;
 
-    CRANGE_MGR           cngx_range_mgr; 
+    CRANGE_MGR           cngx_range_mgr;
 
     UINT32               content_length;
-    CSTRING              cached_etag;   
+    CSTRING              cached_etag;
     CSTRING              cached_last_modified;
-    
-    CSTRING              header_expires;   
+
+    CSTRING              header_expires;
 
     UINT32               flv_start;               /*for FLV*/
 
@@ -81,7 +81,7 @@ typedef struct
     UINT32               sent_body_size;
 
     UINT32               ngx_loc;  /*ngx rc report at location*/
-    ngx_int_t            ngx_rc;   /*save ngx calling result*/ 
+    ngx_int_t            ngx_rc;   /*save ngx calling result*/
 }CFLV_MD;
 
 #define CFLV_MD_TERMINATE_FLAG(cflv_md)                     ((cflv_md)->terminate_flag)
@@ -101,11 +101,11 @@ typedef struct
 #define CFLV_MD_CNGX_RANGE_FILTERED_FLAG(cflv_md)           ((cflv_md)->cngx_range_filtered_flag)
 #define CFLV_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cflv_md) ((cflv_md)->cngx_range_start_zero_endless_flag)
 #define CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md)                 ((cflv_md)->cache_expired_flag)
-#define CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md)          ((cflv_md)->content_length_exist_flag) 
+#define CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md)          ((cflv_md)->content_length_exist_flag)
 #define CFLV_MD_ORIG_FORCE_FLAG(cflv_md)                    ((cflv_md)->orig_force_flag)
 #define CFLV_MD_ORIG_NO_CACHE_FLAG(cflv_md)                 ((cflv_md)->orig_no_cache_flag)
 
-#define CFLV_MD_CNGX_RANGE_MGR(cflv_md)                     (&((cflv_md)->cngx_range_mgr)) 
+#define CFLV_MD_CNGX_RANGE_MGR(cflv_md)                     (&((cflv_md)->cngx_range_mgr))
 
 #define CFLV_MD_CONTENT_LENGTH(cflv_md)                     ((cflv_md)->content_length)
 #define CFLV_MD_CACHED_ETAG(cflv_md)                        (&((cflv_md)->cached_etag))

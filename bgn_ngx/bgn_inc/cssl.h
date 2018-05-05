@@ -20,7 +20,7 @@ EC_BOOL cssl_node_clean(CSSL_NODE *cssl_node);
 
 EC_BOOL cssl_node_free(CSSL_NODE *cssl_node);
 
-EC_BOOL cssl_node_load_certificate(CSSL_NODE *cssl_node, const char *file); 
+EC_BOOL cssl_node_load_certificate(CSSL_NODE *cssl_node, const char *file);
 
 EC_BOOL cssl_node_load_private_key(CSSL_NODE *cssl_node, const char *file);
 
@@ -40,7 +40,7 @@ EC_BOOL cssl_node_handshake(CSSL_NODE *cssl_node);
 
 EC_BOOL cssl_node_connect(CSSL_NODE *cssl_node); /* for client */
 
-EC_BOOL cssl_node_accept(CSSL_NODE *cssl_node); /* for server */ 
+EC_BOOL cssl_node_accept(CSSL_NODE *cssl_node); /* for server */
 
 EC_BOOL cssl_node_recv(CSSL_NODE *cssl_node, const UINT32 once_max_size, UINT8 *in_buff, const UINT32 in_buff_expect_len, UINT32 *pos);
 

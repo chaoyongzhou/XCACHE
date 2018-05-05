@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -128,7 +128,7 @@ extern "C"{
 #define              TASK_PRIO_PREEMPT      ((UINT32)  3) /*LIFO task, preempt any task, including the previous reached PREEMPT tasks*/
 #define              TASK_PRIO_UNDEF        ((UINT32) -1) /*FIFO task*/
 
-        
+
 
 typedef struct
 {
@@ -180,7 +180,7 @@ typedef struct
     UINT32         need_rsp_flag;         /* need or not response of task req*/
     UINT32         time_to_live;          /* task req/rsp is effective only in seconds. -1 means always living until response is available*/
     CTIMET         start_time;            /* start time*/
-   
+
     UINT32         this_prio;             /* priority*/
 
     UINT32         this_type;             /* TASK_REQ type: ACT, DEA, or NORMAL*/
@@ -219,13 +219,13 @@ typedef struct _TASK_NODE
 typedef EC_BOOL (*CHECKER)(const UINT32);
 
 #define TASK_MGR_COUNTER_TASK_REQ_IS_SENT    ((UINT32) 0) /* number of sent task req                         */
-#define TASK_MGR_COUNTER_TASK_REQ_DISCARD    ((UINT32) 1) /* number of discarded task req                    */   
+#define TASK_MGR_COUNTER_TASK_REQ_DISCARD    ((UINT32) 1) /* number of discarded task req                    */
 #define TASK_MGR_COUNTER_TASK_REQ_TIMEOUT    ((UINT32) 2) /* number of timeout task req                      */
 #define TASK_MGR_COUNTER_TASK_RSP_IS_NEED    ((UINT32) 3) /* number of waiting response of task req          */
-#define TASK_MGR_COUNTER_TASK_RSP_IS_SUCC    ((UINT32) 4) /* number of success response of task req          */ 
+#define TASK_MGR_COUNTER_TASK_RSP_IS_SUCC    ((UINT32) 4) /* number of success response of task req          */
 #define TASK_MGR_COUNTER_TASK_RSP_IS_FAIL    ((UINT32) 5) /* number of failure response of task req          */
 #define TASK_MGR_COUNTER_TASK_RSP_RESERVD    ((UINT32) 6) /* number of thread reserve or occupy this task mgr*/
-#define TASK_MGR_COUNTER_END                 ((UINT32) 7) 
+#define TASK_MGR_COUNTER_END                 ((UINT32) 7)
 
 #define TASK_MGR_COUNTER(task_mgr, counter_type)   ((task_mgr)->counter[ (counter_type) ])
 #if 0
@@ -281,9 +281,9 @@ do{\
 
 /* task req manager */
 typedef struct _TASK_MGR
-{  
+{
     CROUTINE_COND     croutine_cond;
-    
+
     MOD_MGR *         mod_mgr;         /* module mgr will deploy load balancing*/
     EC_BOOL           free_flag;       /* free or not free mod_mgr when free task mgr*/
 
@@ -301,7 +301,7 @@ typedef struct _TASK_MGR
     CROUTINE_RWLOCK   croutine_rwlock; /* lock for above num getting or setting */
 
     UINT32            need_reschedule_flag; /*need or not re-schedule task req when taskcomm broken*/
-    
+
     UINT32            time_to_live;    /* task mgr is effective only in seconds. -1 means always living until the expected responses collected*/
     CTMV              start_time;      /* start time*/
     CTMV              end_time;        /* end time*/
@@ -345,7 +345,7 @@ typedef struct
 {
     UINT32  tcid;
     UINT32  rank;
-    
+
     void (*executor)(void);
 }TASK_RUNNER;
 
@@ -386,7 +386,7 @@ typedef struct
     UINT32          jump_flag; /*task wait or task no wait*/
     UINT32          need_rsp_flag;
     UINT32          need_reschedule_flag;
-    
+
     UINT32          total_req_num;
     UINT32          sent_req_num;
     UINT32          discard_req_num;
@@ -427,14 +427,14 @@ typedef struct _TASK_BRD
     const char **saved_argv;
 
     UINT32       network_level;/*default is L0. e.g., 0 (L0), 1 (L1), ...*/
-    
+
     CTIMET       ctime;/*current task_brd time on wall*/
     CTM          ctm;  /*current task_brd time on wall*/
     CTMV         ctmv;
     char         time_str[64];
 
     CEPOLL      *cepoll;
-    
+
     CSIG        *csig;
     CSTRING     *sys_cfg_xml_fname_cstr;
     CSTRING     *basic_cfg_xml_fname_cstr;
@@ -443,7 +443,7 @@ typedef struct _TASK_BRD
     CSTRING     *ssl_path_cstr;
 
     CSET        *netcard_set;
-    
+
     SYS_CFG     *sys_cfg;         /*sys config of config.xml*/
     CPARACFG    *cparacfg;        /*only for current communicator which is a pointer to one cparacfg in sys_cfg*/
     TASKS_CFG   *local_tasks_cfg; /*local tasks cfg which is a pointer to one tasks_cfg in sys_cfg*/
@@ -452,11 +452,11 @@ typedef struct _TASK_BRD
 
     int          udp_srv_sockfd;
     int          rsvd02;
-    
+
     UINT32       reg_type;
-    
+
     CLIST        recv_task_mgr_list;  /* recving task mgr list*/
-    CLIST        aging_task_mgr_list; /* aging task mgr list which waiting for removal*/ 
+    CLIST        aging_task_mgr_list; /* aging task mgr list which waiting for removal*/
     CSTACK       task_mgr_stack;   /* stack of task mgr*/
 
     CVECTOR      type_conv_vec;
@@ -465,15 +465,15 @@ typedef struct _TASK_BRD
     pid_t        do_slave_pid;
     uint32_t     enable_slow_down:1;/*set by outside of BGN. if other enable it, BGN could be slow down or not depend on BGN*/
     uint32_t     rsvd2:31;
-    
+
     CTHREAD_ID   do_slave_cthread_id;            /* do_slave thread  */
     CTHREAD_ID   do_routine_cthread_id;          /* do_routine thread  */
     CTHREAD_ID   do_cbtimer_cthread_id;          /* do_cbtimer thread*/
-    CTHREAD_ID   bcast_cthread_id;               /* dhcp_server_do   */    
+    CTHREAD_ID   bcast_cthread_id;               /* dhcp_server_do   */
 
     UINT32       super_md_id;
 
-    CROUTINE_COND        fwd_croutine_cond;        /* CCOND for forwarding process. release it when forward process is ready*/ 
+    CROUTINE_COND        fwd_croutine_cond;        /* CCOND for forwarding process. release it when forward process is ready*/
 
     UINT32       this_tcid;        /* taskComm id*/
     UINT32       this_comm;        /* communicator of current process*/
@@ -490,19 +490,19 @@ typedef struct _TASK_BRD
     CTHREAD_POOL *task_rsp_thread_spool;/* task thread number in current process */
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
-#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)    
+#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
     CROUTINE_POOL *croutine_pool;/* croutine pool for task req in current process */
 #endif /*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
 
     CSRV         *csrv;
     CPROC        *cproc;
-    
+
     CCONNP_MGR   *http_cconnp_mgr;
 
     UINT32       crfsmon_id;
     UINT32       chfsmon_id;
     UINT32       csfsmon_id;
-    
+
     CLIST        task_queue[ TASK_QUEUE_END ];       /* task req/rsp queue - buffer! */
 
     CVECTOR      md_node_tbl;
@@ -521,7 +521,7 @@ typedef struct _TASK_BRD
     CLIST        task_report_list; /*task report log cache which records info when a task come to end. item data type: TASK_REPORT_NODE*/
     CLIST        task_cbtimer_list;
 
-    EC_BOOL      enable_flag;      /*when enabled (== EC_TRUE), obtain actual load, when disabled (== EC_FALSE), obtain faked load(-1, the max int value)*/ 
+    EC_BOOL      enable_flag;      /*when enabled (== EC_TRUE), obtain actual load, when disabled (== EC_FALSE), obtain faked load(-1, the max int value)*/
     EC_BOOL      reset_flag;       /*when enabled (== EC_TRUE), reset do_slave thread if down, otherwise, not reset do_slave thread if down*/
     EC_BOOL      ngx_exiting_flag;
 

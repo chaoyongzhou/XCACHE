@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -24,7 +24,7 @@ extern "C"{
 #define CRANGE_MAX_OFFSET          ((UINT32)~0)
 
 /*up to 1GB. for safe reason. prevent range segs from overflow*/
-#define CRANGE_MAX_LEN             (256 * 1024 * 4096) 
+#define CRANGE_MAX_LEN             (256 * 1024 * 4096)
 
 /*
 * range is left-close-right-close: [seg_start_offset, seg_end_offset]

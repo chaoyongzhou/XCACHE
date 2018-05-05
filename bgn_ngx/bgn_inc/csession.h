@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -69,7 +69,7 @@ typedef struct
     CSTRING      name;
     UINT32       id;
 
-    CMUTEX       cmutex;/*cmutex for updating access_time*/    
+    CMUTEX       cmutex;/*cmutex for updating access_time*/
 
     UINT32       expire_nsec;
     CTIMET       create_time; /*session created time*/

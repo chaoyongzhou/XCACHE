@@ -647,7 +647,7 @@ EC_BOOL chashdb_header_is_valid(const CHASHDB_HEADER *chashdb_header)
 
     if(0 < (CHASHDB_HEADER_FSIZE(chashdb_header) >> (WORDSIZE - 1)))
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_header_is_valid: file size %ld overflow\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_header_is_valid: file size %ld overflow\n",
                     CHASHDB_HEADER_FSIZE(chashdb_header));
         return (EC_FALSE);
     }
@@ -805,7 +805,7 @@ EC_BOOL chashdb_cbloom_load(CHASHDB *chashdb, const UINT32 offset, const RWSIZE 
 
     if(rsize != read(CHASHDB_FD(chashdb), CBLOOM_DATA_BUFF(chashdb_cbloom), rsize))
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_load: load bloom from offset %ld failed where rsize = %u\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_load: load bloom from offset %ld failed where rsize = %u\n",
                         offset, (uint32_t)rsize);
         return (EC_FALSE);
     }
@@ -823,7 +823,7 @@ EC_BOOL chashdb_cbloom_flush(CHASHDB *chashdb, const UINT32 offset, const RWSIZE
 
     if(wsize != write(CHASHDB_FD(chashdb), CBLOOM_DATA_BUFF(chashdb_cbloom), wsize))
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_cbloom_flush: flush cbloom to offset %ld failed where wsize = %u\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_cbloom_flush: flush cbloom to offset %ld failed where wsize = %u\n",
                             offset, (uint32_t)wsize);
         return (EC_FALSE);
     }
@@ -845,7 +845,7 @@ EC_BOOL chashdb_cbloom_word_flush(CHASHDB *chashdb, const UINT32 offset, const U
     if(wsize != write(CHASHDB_FD(chashdb), CBLOOM_DATA_BUFF(chashdb_cbloom) + word_offset, wsize))
     {
         dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_cbloom_word_flush: "
-                                                "flush cbloom to offset %ld failed where wsize = %u\n", 
+                                                "flush cbloom to offset %ld failed where wsize = %u\n",
                                                 offset, (uint32_t)wsize);
         return (EC_FALSE);
     }
@@ -1111,7 +1111,7 @@ EC_BOOL chashdb_buff_flush(const CHASHDB *chashdb, const UINT32 offset, const RW
 
     if(wsize != write(CHASHDB_FD(chashdb), buff, wsize))
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_header_flush: flush buff to offset %ld failed where wsize %u\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_header_flush: flush buff to offset %ld failed where wsize %u\n",
                     offset, (uint32_t)wsize);
         return (EC_FALSE);
     }
@@ -1224,7 +1224,7 @@ EC_BOOL chashdb_ahead_load(CHASHDB *chashdb)
     base_buff = (UINT8 *)SAFE_MALLOC(base_buff_len, LOC_CHASHDB_0013);
     if(NULL_PTR == base_buff)
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_ahead_load: alloc ahead memory failed where item offset %ld\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_ahead_load: alloc ahead memory failed where item offset %ld\n",
                         CHASHDB_HEADER_IOFF(chashdb_header));
         return (EC_FALSE);
     }
@@ -1480,7 +1480,7 @@ EC_BOOL chashdb_load(CHASHDB *chashdb)
 
     if(NULL_PTR == base_buff)
     {
-        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_load: alloc whole file memory failed where file size %ld\n", 
+        dbg_log(SEC_0061_CHASHDB, 0)(LOGSTDOUT, "error:chashdb_load: alloc whole file memory failed where file size %ld\n",
                     CHASHDB_HEADER_FSIZE(chashdb_header));
         return (EC_FALSE);
     }

@@ -235,7 +235,7 @@ UINT32 c_chars_to_word(const char *chars, const UINT32 len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n", 
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n",
                                 (uint32_t)len, chars, pos);
             return ((UINT32)0);
         }
@@ -555,7 +555,7 @@ uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const ui
         char    ch;
 
         ch = str[ pos ];
-        
+
         if(0 == pos && '-' == ch)
         {
             negs *= ((uint32_t)-1);
@@ -566,13 +566,13 @@ uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const ui
         {
             total = 10 * total + des_num;
             continue;
-        }   
+        }
 
         if(ch < '0' || ch > '9')
-        {   
+        {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
-        }        
+        }
 
         c = (uint32_t)(ch);
 
@@ -919,11 +919,11 @@ EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *de
 
     /*delim must follow prefix*/
     if('\0' == (*p) || p != strstr(p, delim))
-    {   
+    {
         return (EC_FALSE);
     }
     p += strlen(delim);
-    
+
     /*skip space*/
     while(' ' == (*p))
     {
@@ -931,9 +931,9 @@ EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *de
     }
 
     if('\0' == (*p))
-    {   
+    {
         return (EC_FALSE);
-    }    
+    }
 
     /*fetch number now*/
 
@@ -952,9 +952,9 @@ EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *de
     }
 
     if('\0' == (*p))
-    {   
+    {
         return (EC_FALSE);
-    }    
+    }
 
     if((*p) < '0' || (*p) > '9') /*no number found*/
     {
@@ -965,10 +965,10 @@ EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *de
     {
         total = 10 * total + ((*p ++) - '0');
     }while((*p) >= '0' && (*p) <= '9');
-    
+
     (*val) = (total * negs);
-    
-    return (EC_TRUE);    
+
+    return (EC_TRUE);
 }
 
 char *c_inet_ntos(const struct in_addr *in)
@@ -1510,7 +1510,7 @@ EC_BOOL c_char_is_in_ignore_case(const char ch, const char *chars, const uint32_
 
     lower_ch = tolower(ch);
     upper_ch = toupper(ch);
-    
+
     for(idx = 0; idx < len; idx ++)
     {
         if(lower_ch == chars[ idx ] || upper_ch == chars[ idx ])
@@ -2174,7 +2174,7 @@ uint32_t c_md5_to_hex_chars(const uint8_t *md5, char *chars, const uint32_t max_
 char *c_md5_sum_to_hex_str(const uint32_t data_len, const uint8_t *data)
 {
     uint8_t digest[ CMD5_DIGEST_LEN ];
-    
+
     cmd5_sum(data_len, data, digest);
 
     return c_md5_to_hex_str((uint8_t *)digest);
@@ -2783,7 +2783,7 @@ EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     UINT32 csize;/*read completed size*/
     UINT32 osize;/*read once size*/
 
-    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_pread: fd %d, offset %ld, rsize %ld\n", 
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_pread: fd %d, offset %ld, rsize %ld\n",
                         fd, (*offset), rsize);
 
     for(csize = 0, osize = CMISC_READ_ONCE_MAX_BYTES; csize < rsize; csize += osize)
@@ -3342,7 +3342,7 @@ ctime_t c_time(ctime_t *timestamp)
         }
 
         /*error happen*/
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_time: time return %d, errno = %d, errstr = %s\n", 
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_time: time return %d, errno = %d, errstr = %s\n",
                             (uint32_t)t, errno, strerror(errno));
     }
     return (ctime_t)(-1);

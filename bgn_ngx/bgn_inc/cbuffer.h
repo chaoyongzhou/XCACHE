@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ extern "C"{
 #define CBUFFER_MIN_SIZE      (64)
 
 
-typedef struct 
+typedef struct
 {
     uint8_t *data;
 
@@ -33,17 +33,17 @@ typedef struct
 
 #define CBUFFER_ROOM(cbuffer)   (CBUFFER_SIZE(cbuffer) - CBUFFER_USED(cbuffer))
 
-CBUFFER* cbuffer_new(const uint32_t size); 
+CBUFFER* cbuffer_new(const uint32_t size);
 
-EC_BOOL cbuffer_init(CBUFFER *cbuffer, const uint32_t size); 
+EC_BOOL cbuffer_init(CBUFFER *cbuffer, const uint32_t size);
 
-EC_BOOL cbuffer_clean(CBUFFER *cbuffer); 
+EC_BOOL cbuffer_clean(CBUFFER *cbuffer);
 
-EC_BOOL cbuffer_free(CBUFFER *cbuffer); 
+EC_BOOL cbuffer_free(CBUFFER *cbuffer);
 
 EC_BOOL cbuffer_set(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len) ;
 
-EC_BOOL cbuffer_reset(CBUFFER *cbuffer); 
+EC_BOOL cbuffer_reset(CBUFFER *cbuffer);
 
 EC_BOOL cbuffer_clone(const CBUFFER *cbuffer_src, CBUFFER *cbuffer_des);
 

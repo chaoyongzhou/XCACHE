@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -37,7 +37,7 @@ typedef CVECTOR CSYS_CPU_LOAD_AVG;/*data item type is MM_REAL*/
 
 /*file: /proc/stat */
 typedef struct
-{  
+{
     CSTRING  cstr;
     UINT32   user;
     UINT32   nice;
@@ -78,7 +78,7 @@ typedef struct
 
 #define CSYS_MEM_TOTAL(csys_mem_stat)       ((csys_mem_stat)->mem_total)
 #define CSYS_MEM_FREE(csys_mem_stat)        ((csys_mem_stat)->mem_free)
-    
+
 typedef struct
 {
     UINT32        mem_occupy;
@@ -169,8 +169,8 @@ Cpu(s):  0.3% us,  1.4% sy,  0.0% ni, 97.3% id,  0.8% wa,  0.2% hi,  0.0% si
 Mem:    808112k total,   564864k used,   243248k free,    96524k buffers
 Swap:   524280k total,        0k used,   524280k free,   341696k cached
 
-  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                                                             
- 2358 root      15   0     0    0    0 S  0.0  0.0   0:00.00 vmmemctl 
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+ 2358 root      15   0     0    0    0 S  0.0  0.0   0:00.00 vmmemctl
 */
 typedef struct
 {

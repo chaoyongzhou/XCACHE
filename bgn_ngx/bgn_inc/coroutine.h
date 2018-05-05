@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -65,13 +65,13 @@ extern "C"{
 
 #define __COROUTINE_TERMINATE()        __COROUTINE_WAIT();} do{}while(0)
 
-#define __COROUTINE_IF_EXCEPTION()     if(__COROUTINE_WAS_CANCELLED()) 
+#define __COROUTINE_IF_EXCEPTION()     if(__COROUTINE_WAS_CANCELLED())
 
 /**
 * e.g.
-*   __COROUTINE_CATCH_EXCEPTION() 
+*   __COROUTINE_CATCH_EXCEPTION()
 *  {
-*    
+*
 *   <clean up code>
 *
 *  }__COROUTINE_TERMINATE();

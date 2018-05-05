@@ -1008,7 +1008,7 @@ EC_BOOL cdfsnp_header_is_valid(const CDFSNP_HEADER *cdfsnp_header, const UINT32 
 
     if(0 < (CDFSNP_HEADER_FSIZE(cdfsnp_header) >> (WORDSIZE - 1)))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: file size %ld overflow\n", 
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_header_is_valid: file size %ld overflow\n",
                             CDFSNP_HEADER_FSIZE(cdfsnp_header));
         return (EC_FALSE);
     }
@@ -1372,7 +1372,7 @@ UINT32 cdfsnp_dnode_search(const CDFSNP *cdfsnp, const CDFSNP_DNODE *cdfsnp_dnod
         }
 
         offset = (CDFSNP_ITEM_SHASH_NEXT(cdfsnp_item) & CDFSNP_32BIT_MASK);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_search: shash next %lx => offset %lx\n", 
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_search: shash next %lx => offset %lx\n",
                         (UINT32)CDFSNP_ITEM_SHASH_NEXT(cdfsnp_item), offset);
     }
 
@@ -1547,7 +1547,7 @@ CDFSNP_ITEM * cdfsnp_dnode_umount_son(const CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsnp
 
         pre_cdfsnp_item = cur_cdfsnp_item;
         cur_offset = (CDFSNP_ITEM_SHASH_NEXT(cur_cdfsnp_item) & CDFSNP_32BIT_MASK);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_umount_son: shash next %lx => cur_offset %lx\n", 
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDNULL, "[DEBUG] cdfsnp_dnode_umount_son: shash next %lx => cur_offset %lx\n",
                         (UINT32)CDFSNP_ITEM_SHASH_NEXT(cur_cdfsnp_item), cur_offset);
     }
 
@@ -1605,7 +1605,7 @@ EC_BOOL cdfsnp_dnode_delete_one_bucket(const CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsn
         else
         {
             dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_delete_one_bucket: invald cdfsnp item flag %ld at offset %d\n",
-                                (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item), 
+                                (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item),
                                 (uint32_t)CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos));
         }
     }
@@ -1966,7 +1966,7 @@ EC_BOOL cdfsnp_dnode_update(CDFSNP *cdfsnp, CDFSNP_DNODE *cdfsnp_dnode, const UI
     {
         if(EC_FALSE == cdfsnp_bucket_update(cdfsnp, CDFSNP_DNODE_DIR_BUCKET(cdfsnp_dnode, bucket_pos), src_dn_tcid, src_path_layout, des_tcid, des_path_layout))
         {
-            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_update: update bucket %ld failed\n", 
+            dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_dnode_update: update bucket %ld failed\n",
                             bucket_pos);
             return (EC_FALSE);
         }
@@ -1992,7 +1992,7 @@ EC_BOOL cdfsnp_item_update(CDFSNP *cdfsnp, CDFSNP_ITEM *cdfsnp_item, const UINT3
         return cdfsnp_dnode_update(cdfsnp, CDFSNP_ITEM_DNODE(cdfsnp_item), src_dn_tcid, src_path_layout, des_tcid, des_path_layout);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_item_update: invalid item dflag %ld\n", 
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_item_update: invalid item dflag %ld\n",
                     (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
@@ -2025,8 +2025,8 @@ CDFSNP_ITEM *cdfsnp_reserve_item(CDFSNP *cdfsnp)
     if(CDFSNP_ITEM_ERR_OFFSET != offset && offset + sizeof(CDFSNP_ITEM) <= CDFSNP_FSIZE(cdfsnp) && 0 == (offset % sizeof(CDFSNP_ITEM)))
     {
         cdfsnp_item = (CDFSNP_ITEM *)(CDFSNP_BASE_BUFF(cdfsnp) + offset);
-        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDOUT, "[DEBUG] cdfsnp_reserve_item: roff %ld => %ld\n", 
-                            (UINT32)CDFSNP_ROFF(cdfsnp), 
+        dbg_log(SEC_0058_CDFSNP, 9)(LOGSTDOUT, "[DEBUG] cdfsnp_reserve_item: roff %ld => %ld\n",
+                            (UINT32)CDFSNP_ROFF(cdfsnp),
                             (UINT32)CDFSNP_ITEM_ROFF(cdfsnp_item));
         CDFSNP_ROFF(cdfsnp) = CDFSNP_ITEM_ROFF(cdfsnp_item);/*cdfsnp roff move to next*/
         CDFSNP_ITEM_ROFF(cdfsnp_item) = CDFSNP_ITEM_ERR_OFFSET;/*xxx*/
@@ -2590,7 +2590,7 @@ EC_BOOL cdfsnp_file_num(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 *path
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_num: np %ld, invalid dflg %lx\n", 
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_num: np %ld, invalid dflg %lx\n",
                     CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
@@ -2615,7 +2615,7 @@ EC_BOOL cdfsnp_file_size(CDFSNP *cdfsnp, const UINT32 path_len, const UINT8 *pat
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_size: np %ld, invalid dflg %lx\n", 
+    dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_file_size: np %ld, invalid dflg %lx\n",
                     CDFSNP_PATH_LAYOUT(cdfsnp), (UINT32)CDFSNP_ITEM_DFLG(cdfsnp_item));
     return (EC_FALSE);
 }
@@ -2642,7 +2642,7 @@ EC_BOOL cdfsnp_flush(const CDFSNP *cdfsnp)
 
     if(0 < (wsize >> (WORDSIZE - 1)))
     {
-        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_flush: np %ld, wsize %lx overflow\n", 
+        dbg_log(SEC_0058_CDFSNP, 0)(LOGSTDOUT, "error:cdfsnp_flush: np %ld, wsize %lx overflow\n",
                         CDFSNP_PATH_LAYOUT(cdfsnp), wsize);
         return (EC_FALSE);
     }

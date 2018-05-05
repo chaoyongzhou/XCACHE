@@ -487,11 +487,11 @@ STATIC_CAST static int __chttp_on_header_field(http_parser_t* http_parser, const
         cstrkv = CHTTP_NODE_PARSING_HEADER_KV(chttp_node);
     }
 
-    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0004); 
+    cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0004);
 
     if(s_header_value_discard_ws == http_parser->state)
     {
-        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: chttp_node %p, Header field: '%s' => OK\n", 
+        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: chttp_node %p, Header field: '%s' => OK\n",
                         chttp_node, CSTRKV_KEY_STR(cstrkv));
     }
 
@@ -512,7 +512,7 @@ STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const
     }
 
     rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: http state %s: '%.*s'\n",
-                    http_state_str(http_parser->state), (uint32_t)length, at);    
+                    http_state_str(http_parser->state), (uint32_t)length, at);
 
     cstrkv = CHTTP_NODE_PARSING_HEADER_KV(chttp_node);
     if(NULL_PTR == cstrkv)
@@ -528,13 +528,13 @@ STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const
     if(s_header_almost_done == http_parser->state)
     {
         cstrkv_mgr_add_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node), cstrkv);
-        CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;   
+        CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;
 
-        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%s' => OK\n", 
-                        chttp_node, CSTRKV_VAL_STR(cstrkv));     
+        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%s' => OK\n",
+                        chttp_node, CSTRKV_VAL_STR(cstrkv));
 
-        dbg_log(SEC_0149_CHTTP, 6)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header '%s': '%s' => OK\n", 
-                        chttp_node, CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));                     
+        dbg_log(SEC_0149_CHTTP, 6)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header '%s': '%s' => OK\n",
+                        chttp_node, CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));
     }
 #if 0
     if(do_log(SEC_0149_CHTTP, 9))
@@ -719,7 +719,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         cstring_init(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store), NULL_PTR);
         cstring_init(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store), NULL_PTR);
-        
+
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
@@ -767,7 +767,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         cstring_clean(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store));
         cstring_clean(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store));
-       
+
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
@@ -826,7 +826,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         cstring_clone(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store_src), CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store_des));
         cstring_clone(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store_src), CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store_des));
         cstring_clone(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store_src), CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store_des));
-        
+
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_src);
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_src);
 
@@ -851,7 +851,7 @@ EC_BOOL chttp_store_check(const CHTTP_STORE *chttp_store)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_check: invalid seg_max_id\n");
         return (EC_FALSE);
-    }    
+    }
 
     if(CHTTP_SEG_ERR_ID == CHTTP_STORE_SEG_SIZE(chttp_store))
     {
@@ -920,7 +920,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:cache_rsp_headers      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:ncache_rsp_headers     : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:cache_if_http_codes    : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)));
-    
+
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec      : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
@@ -984,14 +984,14 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
                 c_str_free(cache_http_codes_str);
                 return (EC_TRUE);
             }
-            
+
             continue;
         }
 
         /*else*/
 
         if(c_str_to_uint32_t_ireplace(cache_http_code, 'X', 0) <= status_code /*replace 'X' or 'x' with 0*/
-        && c_str_to_uint32_t_ireplace(cache_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/ 
+        && c_str_to_uint32_t_ireplace(cache_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/
         )
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: %u in '%s' => true\n",
@@ -1140,7 +1140,7 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
         /*else*/
 
         if(c_str_to_uint32_t_ireplace(not_cache_if_http_code, 'X', 0) <= status_code /*replace 'X' or 'x' with 0*/
-        && c_str_to_uint32_t_ireplace(not_cache_if_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/ 
+        && c_str_to_uint32_t_ireplace(not_cache_if_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/
         )
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: %u in '%s' => true\n",
@@ -1148,7 +1148,7 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
 
             c_str_free(not_cache_http_codes_str);
             return (EC_TRUE);
-        }        
+        }
     }
 
     c_str_free(not_cache_http_codes_str);
@@ -2421,7 +2421,7 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [client] sockfd %d timeout\n", sockfd);
-        
+
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -2489,7 +2489,7 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [server] sockfd %d shutdown\n", sockfd);
-        
+
         /*umount from defer request queue if necessary*/
         chttp_defer_request_queue_erase(chttp_node);
 
@@ -2511,7 +2511,7 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [client] sockfd %d shutdown\n", sockfd);
-        
+
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -3561,7 +3561,7 @@ EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len)
         if(BIT_TRUE == CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) && s_body_identity <= http_parser->state)
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, http state %s, parsed_len %u => [HEAD] recv completed\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);        
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
 
             CHTTP_NODE_RECV_COMPLETE(chttp_node) = BIT_TRUE;
             return (EC_TRUE);
@@ -5240,8 +5240,8 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
     uint32_t                     age;
 
     time_t                       curtime;
-    time_t                       datetime;    
-    
+    time_t                       datetime;
+
     k = (const char *)"Age";
     v = chttp_rsp_get_header(chttp_rsp, k);
     if(NULL_PTR == v)
@@ -5251,15 +5251,15 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
                                               k);
         return (EC_FALSE); /*not aged*/
     }
-    
+
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
                                           "get '%s':'%s'\n",
-                                          k, v);    
+                                          k, v);
     age = c_str_to_uint32_t(v);
 
     /*current time*/
     curtime = task_brd_default_get_time();
-   
+
     /*Date*/
     k = (const char *)"Date";
     v = chttp_rsp_get_header(chttp_rsp, k);
@@ -5267,7 +5267,7 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
                                               "no '%s' => done\n",
-                                              k);  
+                                              k);
         return (EC_FALSE);
     }
     datetime = c_parse_http_time((uint8_t *)v, strlen(v));
@@ -5276,7 +5276,7 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_rsp_is_aged: "
                                               "curtime '%d' < date '%d'\n",
-                                              (uint32_t)curtime, (uint32_t)datetime);  
+                                              (uint32_t)curtime, (uint32_t)datetime);
         return (EC_FALSE);
     }
 
@@ -5287,7 +5287,7 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
                                               max_age, (uint32_t)curtime, (uint32_t)datetime, age);
 
         return (EC_FALSE);
-    }    
+    }
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
                                           "max age '%d' <= curtime '%d' - date '%d' + age '%d' => aged\n",
@@ -5460,7 +5460,7 @@ EC_BOOL chttp_rsp_only_headers(CHTTP_RSP *chttp_rsp, const char **keys, const UI
             clist_data_prev = CLIST_DATA_PREV(clist_data);
             clist_rmv_no_lock(CSTRKV_MGR_LIST(cstrkv_mgr), clist_data);
             clist_data = clist_data_prev;
-            
+
             cstrkv_free(cstrkv);
         }
     }
@@ -6468,7 +6468,7 @@ EC_BOOL chttp_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *cs
 EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 {
     uint32_t    timeout_nsec;
-    
+
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
         timeout_nsec = CHTTP_STORE_ORIG_TIMEOUT_NSEC(CHTTP_NODE_STORE(chttp_node));
@@ -6477,7 +6477,7 @@ EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csock
     {
         timeout_nsec = (uint32_t)CHTTP_SOCKET_TIMEOUT_NSEC;
     }
-    
+
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))
     {
         cepoll_set_event(task_brd_default_get_cepoll(),
@@ -7005,7 +7005,7 @@ STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chtt
     ccache_dir_delete(CHTTP_STORE_BASEDIR(chttp_store));
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_header_after_ddir: delete '%s' done\n",
                     (char *)cstring_get_str(CHTTP_STORE_BASEDIR(chttp_store)));
-                    
+
     if(0 < CBYTES_LEN(cbytes))
     {
         ccache_file_write(store_srv_tcid, store_srv_ipaddr,store_srv_port, path, cbytes, CHTTP_STORE_AUTH_TOKEN(chttp_store));
@@ -7099,7 +7099,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *cht
         return (EC_TRUE);
     }
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_etag: store last-modified: %.*s\n",
-                (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));    
+                (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
 
     last_modified = chttp_node_get_header(chttp_node, (const char *)"Last-Modified");
     if(NULL_PTR == last_modified)
@@ -7115,10 +7115,10 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *cht
     }
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: Last-Modified: '%.*s' != '%s' => del '%.*s'\n",
-                        (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store), 
+                        (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store),
                         last_modified,
                         (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
-    
+
     return (EC_FALSE);
 }
 
@@ -7268,7 +7268,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP
     if(CHTTP_STORE_CACHE_ERR == cache_control || CHTTP_STORE_CACHE_NONE == cache_control)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: "
-                                              "not add 'Expires' due to cache_ctrl 0x%lx\n", 
+                                              "not add 'Expires' due to cache_ctrl 0x%lx\n",
                                               cache_control);
         return(EC_TRUE);
     }
@@ -7377,7 +7377,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_age(CHTTP_NODE *chttp_
     {
         return (EC_FALSE);
     }
-    
+
     v = chttp_node_get_header(chttp_node, (const char *)"Age");
     if(NULL_PTR != v)
     {
@@ -7463,11 +7463,11 @@ EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store
 
     __chttp_node_filter_header_set_content_range(chttp_node);
     __chttp_node_filter_header_set_age(chttp_node);
-    
+
     chttp_node_del_header(chttp_node, (const char *)"Connection"); /*remove header Connection before store*/
     chttp_node_del_header(chttp_node, (const char *)"Proxy-Connection"); /*remove header Connection before store*/
     chttp_node_del_header(chttp_node, (const char *)"Keep-alive"); /*remove header Keep-alive before store which is happen rarely*/
-    
+
     if(EC_FALSE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
     {
         /*not expired*/
@@ -7852,7 +7852,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
     }
 
     /*if found expired after check each segment etag, last-modifed and content-length*/
-    if(0 < CHTTP_STORE_SEG_ID(chttp_store) 
+    if(0 < CHTTP_STORE_SEG_ID(chttp_store)
     && (EC_TRUE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
     && ((CHTTP_STORE_CACHE_BOTH | CHTTP_STORE_CACHE_WHOLE) & CHTTP_STORE_CACHE_CTRL(chttp_store))
     )
@@ -7863,7 +7863,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
         /*trick: save seg id and reset it to 0*/
         seg_id_saved = CHTTP_STORE_SEG_ID(chttp_store);
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
-        
+
         /*WARNING: when store header to storage failed, the whole received header data would be shift out from buffer*/
         if(EC_FALSE == chttp_node_store_header(chttp_node, chttp_store, CHTTP_NODE_HEADER_PARSED_LEN(chttp_node), &stored_size))
         {
@@ -8453,7 +8453,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
 
         CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
-        
+
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
         return (EC_FALSE);
@@ -9367,7 +9367,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_cache(const CHTTP_RE
 {
     CHTTP_STORE   *chttp_store_t;
     UINT32         super_md_id;
-    EC_BOOL        ret;    
+    EC_BOOL        ret;
     uint32_t       merge_flag_saved;
 
 
@@ -9391,7 +9391,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_orig_no_cache(const CHTTP
     uint32_t       cache_ctrl_saved;
     UINT32         super_md_id;
     EC_BOOL        ret;
-    
+
 
     /*trick: we cannot send merge flag to super and we want to reduce chttp_store clone, so ...*/
     chttp_store_t = (CHTTP_STORE *)chttp_store; /*save*/

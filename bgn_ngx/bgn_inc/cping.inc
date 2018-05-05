@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -36,7 +36,7 @@ typedef struct
     uint32_t                  s_msec; /*start time in micro-second*/
 
     uint32_t                  e_nsec; /*end time in second*/
-    uint32_t                  e_msec; /*end time in micro-second*/      
+    uint32_t                  e_msec; /*end time in micro-second*/
 }CPING_NODE;
 
 #define CPING_NODE_SRV_IPADDR(cping_node)               ((cping_node)->srv_ipaddr)

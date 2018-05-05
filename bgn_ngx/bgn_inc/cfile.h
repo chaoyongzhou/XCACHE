@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -22,7 +22,7 @@ extern "C"{
 #include "cmd5.h"
 #include "mod.inc"
 
-#define CFILE_NODES_MAX_NUM          ((UINT32)1024)        
+#define CFILE_NODES_MAX_NUM          ((UINT32)1024)
 
 typedef struct
 {

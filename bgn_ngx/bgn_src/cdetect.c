@@ -161,7 +161,7 @@ UINT32 cdetect_start(const CSTRING *cdetect_conf_file)
     CDETECT_MD_CDETECTN_MODI_STANDBY(cdetect_md) = cdetectn_modi_standby;
 
     CDETECT_MD_REALOD_STATUS(cdetect_md) = CDETECT_RELOAD_STATUS_OK;
-    
+
     cstring_init(CDETECT_MD_CONF_FILE(cdetect_md), cstring_get_str(cdetect_conf_file));
 
     cdetect_md->usedcounter = 1;
@@ -247,8 +247,8 @@ void cdetect_end(const UINT32 cdetect_md_id)
     {
         cdetectn_end(CDETECT_MD_CDETECTN_MODI_STANDBY(cdetect_md));
         CDETECT_MD_CDETECTN_MODI_STANDBY(cdetect_md) = CMPI_ERROR_MODI;
-    }    
-    
+    }
+
     cstring_clean(CDETECT_MD_CONF_FILE(cdetect_md));
 
     CDETECT_MD_CDETECTN_MODI_CHOICE(cdetect_md) = 0;
@@ -340,7 +340,7 @@ EC_BOOL cdetect_dns_resolve(const UINT32 cdetect_md_id, const CSTRING *domain, U
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_dns_resolve: "
                                                 "resolve domain '%s' failed\n",
-                                                (char *)cstring_get_str(domain));    
+                                                (char *)cstring_get_str(domain));
         return (EC_FALSE);
     }
 
@@ -378,7 +378,7 @@ EC_BOOL cdetect_switch(const UINT32 cdetect_md_id)
     dbg_log(SEC_0043_CDETECT, 5)(LOGSTDOUT, "[DEBUG] cdetect_switch: "
                                             "switch to %ld\n",
                                             CDETECT_MD_CDETECTN_MODI_CHOICE(cdetect_md));
-                                            
+
     return (EC_TRUE);
 }
 
@@ -454,7 +454,7 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_reload: "
                                                 "invalid reload status %s\n",
-                                                cdetect_reload_status_str(cdetect_md_id));    
+                                                cdetect_reload_status_str(cdetect_md_id));
         return (EC_FALSE);
     }
 
@@ -483,7 +483,7 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_reload: "
                                                 "cdetectn %ld load conf '%s' failed\n",
                                                 cdetectn_modi_standby,
-                                                (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));    
+                                                (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));
         CDETECT_MD_REALOD_STATUS(cdetect_md) = CDETECT_RELOAD_STATUS_OK;
         return (EC_FALSE);
     }
@@ -492,7 +492,7 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_reload: "
                                                 "load conf '%s' failed\n",
-                                                (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));    
+                                                (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));
         CDETECT_MD_REALOD_STATUS(cdetect_md) = CDETECT_RELOAD_STATUS_OK;
         return (EC_FALSE);
     }
@@ -500,7 +500,7 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
     if(EC_FALSE == cdetect_switch(cdetect_md_id))
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_reload: "
-                                                "switch cdetectn failed\n");    
+                                                "switch cdetectn failed\n");
         CDETECT_MD_REALOD_STATUS(cdetect_md) = CDETECT_RELOAD_STATUS_OK;
         return (EC_FALSE);
     }
@@ -510,10 +510,10 @@ EC_BOOL cdetect_reload(const UINT32 cdetect_md_id)
 
     dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_reload: "
                                             "set reload status from ONGOING to COMPLETED\n");
-                                            
+
     dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_reload: "
                                             "reload conf '%s' done\n",
-                                            (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));     
+                                            (char *)cstring_get_str(CDETECT_MD_CONF_FILE(cdetect_md)));
 
     return (EC_TRUE);
 }
@@ -574,10 +574,10 @@ EC_BOOL cdetect_start_domain(const UINT32 cdetect_md_id, const CSTRING *domain)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_start_domain: "
                                                 "start domain '%s' failed\n",
-                                                (char *)cstring_get_str(domain));    
+                                                (char *)cstring_get_str(domain));
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_start_domain: "
                                             "start domain '%s' done\n",
                                             (char *)cstring_get_str(domain));
@@ -610,13 +610,13 @@ EC_BOOL cdetect_stop_domain(const UINT32 cdetect_md_id, const CSTRING *domain)
     {
         dbg_log(SEC_0043_CDETECT, 0)(LOGSTDOUT, "error:cdetect_stop_domain: "
                                                 "stop domain '%s' failed\n",
-                                                (char *)cstring_get_str(domain));    
+                                                (char *)cstring_get_str(domain));
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_stop_domain: "
                                             "stop domain '%s' done\n",
-                                            (char *)cstring_get_str(domain));    
+                                            (char *)cstring_get_str(domain));
 
     return (EC_TRUE);
 }
@@ -646,7 +646,7 @@ EC_BOOL cdetect_process(const UINT32 cdetect_md_id, const UINT32 detect_task_max
     if(EC_FALSE == cdetectn_process(CDETECT_MD_CDETECTN_MODI_ACTIVE(cdetect_md), detect_task_max_num))
     {
         dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "error:cdetect_process: "
-                                                "failed\n");    
+                                                "failed\n");
         return (EC_FALSE);
     }
 
@@ -664,7 +664,7 @@ EC_BOOL cdetect_process(const UINT32 cdetect_md_id, const UINT32 detect_task_max
 EC_BOOL cdetect_process_loop(const UINT32 cdetect_md_id, const UINT32 detect_task_max_num)
 {
     CDETECT_MD          *cdetect_md;
-    
+
     TASK_BRD            *task_brd;
     MOD_NODE             recv_mod_node;
 
@@ -684,11 +684,11 @@ EC_BOOL cdetect_process_loop(const UINT32 cdetect_md_id, const UINT32 detect_tas
     if(CDETECT_RELOAD_STATUS_COMPLETED == CDETECT_MD_REALOD_STATUS(cdetect_md))
     {
         /*update reload status*/
-        
+
         CDETECT_MD_REALOD_STATUS(cdetect_md) = CDETECT_RELOAD_STATUS_OK;
 
         dbg_log(SEC_0043_CDETECT, 9)(LOGSTDOUT, "[DEBUG] cdetect_process_loop: "
-                                                "update reload status to OK\n");           
+                                                "update reload status to OK\n");
     }
 
     cdetect_process(cdetect_md_id, detect_task_max_num);

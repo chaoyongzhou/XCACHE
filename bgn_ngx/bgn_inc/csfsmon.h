@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -54,7 +54,7 @@ typedef struct
     UINT32          ipaddr;
     UINT32          port;
     UINT32          modi;
-    
+
     UINT32          state;
 }CSFS_NODE;
 

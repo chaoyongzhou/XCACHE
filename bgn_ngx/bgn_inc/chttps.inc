@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -39,30 +39,30 @@ struct _CSOCKET_CNODE;
 typedef struct _CHTTPS_NODE
 {
     UINT32                    status;               /*ONGOING or IS_DONE*/
-    CSSL_NODE                *cssl_node;            /* for ssl */    
+    CSSL_NODE                *cssl_node;            /* for ssl */
     CSTRING                  *ca_file;              /* for ssl */
     CSTRING                  *client_cert_file;     /* for ssl */
     CSTRING                  *client_privkey_file;  /* for ssl */
 
     void                     *csrv;          /*mount point*/
-    
+
     CROUTINE_NODE            *croutine_node; /*croutine mounted point*/
 
     CROUTINE_COND            *croutine_cond;/*croutine condition lock, used when trigger http request */
 
     UINT32                    http_type:32;   /*CHTTP_TYPE_xxx*/
     UINT32                    status_code:32; /*for http response only*/
-    
+
     http_parser_t             http_parser;
     http_parser_settings_t    http_parser_settings;
 
-    CBUFFER                   i_buf;   /*io buffer used by http. socket read buff, and the input buff of http_parser*/ 
-    CHUNK_MGR                 send_buf; /*io buffer used by http*/    
-    CHUNK_MGR                 recv_buf; /*io buffer used by http*/    
-    
+    CBUFFER                   i_buf;   /*io buffer used by http. socket read buff, and the input buff of http_parser*/
+    CHUNK_MGR                 send_buf; /*io buffer used by http*/
+    CHUNK_MGR                 recv_buf; /*io buffer used by http*/
+
     struct _CSOCKET_CNODE    *csocket_cnode;
     CQUEUE_DATA              *cqueue_data; /*crfshttp_node mounted point in request defer queue*/
-    
+
     CBUFFER                   url;   /*string*/
     CBUFFER                   host;  /*string*/
     CBUFFER                   uri;   /*string*/
@@ -84,7 +84,7 @@ typedef struct _CHTTPS_NODE
     uint32_t                  send_complete    :1;/*flag*/
     uint32_t                  coroutine_restore:1;/*flag*/
     uint32_t                  header_parsed_len:16;
-  
+
     /*statistics*/
     CHTTP_STAT                chttp_stat;/*mount point*/
 }CHTTPS_NODE;

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -31,12 +31,12 @@ extern "C"{
 
 typedef struct
 {
-    /*disk pointer*/    
+    /*disk pointer*/
     uint16_t     sfsv_cur_disk_no;
     uint16_t     sfsv_cur_block_no;
     uint16_t     sfsv_cur_page_no;
-    
-    uint16_t     sfsv_disk_num;      /*current disk number support up to*/    
+
+    uint16_t     sfsv_disk_num;      /*current disk number support up to*/
 
     uint8_t      rsvd01[CSFSV_HDR_PAD_SIZE];
 }CSFSV_HDR;/*4k-alignment*/
@@ -61,7 +61,7 @@ typedef struct
     uint32_t           np_node_err_pos;
     uint32_t           rsvd3;
     CSFSNP_RECYCLE     np_node_recycle;
-    void              *npp;    
+    void              *npp;
 }CSFSV;
 
 #define CSFSV_FD(csfsv)                                            ((csfsv)->sfsv_fd)

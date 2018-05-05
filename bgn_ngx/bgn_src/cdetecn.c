@@ -259,7 +259,7 @@ EC_BOOL cdetectn_orig_node_clear(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 
     CDETECTN_ORIG_NODE_REACHABLE_STATUS_BEG(cdetectn_orig_node)    = CHTTP_OK;        /*default*/
     CDETECTN_ORIG_NODE_REACHABLE_STATUS_END(cdetectn_orig_node)    = CHTTP_OK;        /*default*/
-    
+
     CDETECTN_ORIG_NODE_CHOICE_STRATEGY(cdetectn_orig_node)         = CDETECTN_ORIG_NODE_CHOICE_LATEST;/*default*/
     //CDETECTN_ORIG_NODE_DOMAIN_HASH(cdetectn_orig_node)             = 0;
 
@@ -371,7 +371,7 @@ CDETECTN_IP_NODE *cdetectn_ip_node_new()
 EC_BOOL cdetectn_ip_node_init(CDETECTN_IP_NODE *cdetectn_ip_node)
 {
     cstring_init(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node), NULL_PTR);
-    
+
     CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node)                = CMPI_ERROR_IPADDR;
     CDETECTN_IP_NODE_PORT(cdetectn_ip_node)                  = CMPI_ERROR_SRVPORT;
     CDETECTN_IP_NODE_STATUS(cdetectn_ip_node)                = CDETECTN_IP_NODE_STATUS_ERR;
@@ -384,7 +384,7 @@ EC_BOOL cdetectn_ip_node_init(CDETECTN_IP_NODE *cdetectn_ip_node)
 EC_BOOL cdetectn_ip_node_clean(CDETECTN_IP_NODE *cdetectn_ip_node)
 {
     cstring_clean(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node));
-    
+
     CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node)                = CMPI_ERROR_IPADDR;
     CDETECTN_IP_NODE_PORT(cdetectn_ip_node)                  = CMPI_ERROR_SRVPORT;
     CDETECTN_IP_NODE_STATUS(cdetectn_ip_node)                = CDETECTN_IP_NODE_STATUS_ERR;
@@ -635,29 +635,29 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_ip_node(CLIST *cdetectn_ip_nodes, ch
 
         if(EC_TRUE == c_ipv4_is_ok(segs[ 0 ]))
         {
-            CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = c_ipv4_to_word(segs[ 0 ]);       
+            CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = c_ipv4_to_word(segs[ 0 ]);
         }
         else
         {
             UINT32                ipv4;
-            
+
             if(EC_FALSE == c_dns_resolve(segs[ 0 ], &ipv4))
             {
                 dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_ip_node: "
                                                          "dns resolve '%s' failed\n",
                                                          segs[ 0 ]);
                 cdetectn_ip_node_free(cdetectn_ip_node);
-                return (EC_FALSE);            
+                return (EC_FALSE);
             }
-            
+
             cstring_init(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node), (UINT8 *)segs[ 0 ]);
             CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = ipv4;
-            
+
         }
 
         CDETECTN_IP_NODE_PORT(cdetectn_ip_node)   = CDETECTN_IP_NODE_PORT_DEFAULT;
-        CDETECTN_IP_NODE_STATUS(cdetectn_ip_node) = CDETECTN_IP_NODE_STATUS_REACHABLE; /*default*/        
-        
+        CDETECTN_IP_NODE_STATUS(cdetectn_ip_node) = CDETECTN_IP_NODE_STATUS_REACHABLE; /*default*/
+
         clist_push_back(cdetectn_ip_nodes, (void *)cdetectn_ip_node);
 
         return (EC_TRUE);
@@ -677,29 +677,29 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_ip_node(CLIST *cdetectn_ip_nodes, ch
                                                      "new cdetectn_ip_node failed\n");
             return (EC_FALSE);
         }
-        
+
         if(EC_TRUE == c_ipv4_is_ok(segs[ 0 ]))
         {
-            CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = c_ipv4_to_word(segs[ 0 ]);       
+            CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = c_ipv4_to_word(segs[ 0 ]);
         }
         else
         {
             UINT32                ipv4;
-            
+
             if(EC_FALSE == c_dns_resolve(segs[ 0 ], &ipv4))
             {
                 dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_ip_node: "
                                                          "dns resolve '%s' failed\n",
                                                          segs[ 0 ]);
                 cdetectn_ip_node_free(cdetectn_ip_node);
-                return (EC_FALSE);            
+                return (EC_FALSE);
             }
 
             CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = ipv4;
             cstring_init(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node), (UINT8 *)segs[ 0 ]);
         }
 
-        CDETECTN_IP_NODE_PORT(cdetectn_ip_node)   = c_port_to_word(segs[ 1 ]); 
+        CDETECTN_IP_NODE_PORT(cdetectn_ip_node)   = c_port_to_word(segs[ 1 ]);
         CDETECTN_IP_NODE_STATUS(cdetectn_ip_node) = CDETECTN_IP_NODE_STATUS_REACHABLE; /*default*/
 
         clist_push_back(cdetectn_ip_nodes, (void *)cdetectn_ip_node);
@@ -912,7 +912,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_file(const UINT32 cdetectn_md_i
             TASK_BRD    *task_brd;
             MOD_NODE     recv_mod_node;
             EC_BOOL      ret;
-            
+
             task_brd = task_brd_default_get();
 
             MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
@@ -924,7 +924,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_file(const UINT32 cdetectn_md_i
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                      &recv_mod_node,
                      &ret,
-                     FI_cdetectn_parse_conf_line, CMPI_ERROR_MODI, 
+                     FI_cdetectn_parse_conf_line, CMPI_ERROR_MODI,
                      (UINT32)cdetectn_conf_line_start, (UINT32)cdetectn_conf_line_end);
 
             if(EC_FALSE == ret)
@@ -935,7 +935,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_conf_file(const UINT32 cdetectn_md_i
                                                          (uint32_t)(cdetectn_conf_line_end - cdetectn_conf_line_start),
                                                          cdetectn_conf_line_start);
                 return (EC_FALSE);
-            }            
+            }
         }
 #endif
         cdetectn_conf_line_no ++;
@@ -998,7 +998,7 @@ EC_BOOL cdetectn_load_conf(const UINT32 cdetectn_md_id, const CSTRING *cdetectn_
                                                  (char *)cstring_get_str(cdetectn_conf_file));
 
         return (EC_FALSE);
-    }    
+    }
 
     fd = c_file_open((char *)cstring_get_str(cdetectn_conf_file), O_RDONLY, 0666);
     if(ERR_FD == fd)
@@ -1060,7 +1060,7 @@ EC_BOOL cdetectn_load_conf(const UINT32 cdetectn_md_id, const CSTRING *cdetectn_
     CDETECTN_MD_DETECT_TASK_NUM(cdetectn_md) = 0;
 
     dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] cdetectn_load_conf: "
-                                             "clear old data done\n");    
+                                             "clear old data done\n");
 
     /*parse*/
     if(EC_FALSE == __cdetectn_parse_conf_file(cdetectn_md_id, (char *)fcontent, (char *)(fcontent + fsize)))
@@ -1433,7 +1433,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_ms(CDETECTN_ORIG_NO
 
             url    = CDETECTN_ORIG_NODE_URL(cdetectn_orig_node);
             domain = CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node);
-            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);            
+            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);
         }
 
         if(EC_FALSE == __cdetectn_request(domain, url, ipaddr, port, detect_task_num, &status))
@@ -1491,7 +1491,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_rrb(CDETECTN_ORIG_N
         CSTRING              *domain;
         UINT32                ipaddr;
         UINT32                port;
-        
+
         uint32_t              status;
 
         cdetectn_ip_node = clist_first_data(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node));
@@ -1515,7 +1515,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_rrb(CDETECTN_ORIG_N
 
             url    = CDETECTN_ORIG_NODE_URL(cdetectn_orig_node);
             domain = CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node);
-            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);            
+            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);
         }
 
         if(EC_FALSE == __cdetectn_request(domain, url, ipaddr, port, detect_task_num, &status))
@@ -1582,7 +1582,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_fast(CDETECTN_ORIG_
         CSTRING              *domain;
         UINT32                ipaddr;
         UINT32                port;
-        
+
         uint32_t              status;
 
         uint32_t              start_nsec;
@@ -1609,8 +1609,8 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_fast(CDETECTN_ORIG_
 
             url    = CDETECTN_ORIG_NODE_URL(cdetectn_orig_node);
             domain = CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node);
-            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);            
-        }        
+            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);
+        }
 
         /*record start time*/
         start_nsec = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());
@@ -1685,7 +1685,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
         CSTRING              *domain;
         UINT32                ipaddr;
         UINT32                port;
-        
+
         uint32_t              status;
 
         cdetectn_ip_node = CLIST_DATA_DATA(clist_data);
@@ -1709,9 +1709,9 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
 
             url    = CDETECTN_ORIG_NODE_URL(cdetectn_orig_node);
             domain = CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node);
-            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);            
+            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);
         }
-        
+
         if(EC_FALSE == __cdetectn_request(domain, url, ipaddr, port, detect_task_num, &status))
         {
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_latest: "
@@ -1754,7 +1754,7 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
         CSTRING              *domain;
         UINT32                ipaddr;
         UINT32                port;
-        
+
         uint32_t              status;
 
         if(clist_data == CDETECTN_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetectn_orig_node))
@@ -1784,9 +1784,9 @@ STATIC_CAST static EC_BOOL __cdetectn_start_orig_node_choice_latest(CDETECTN_ORI
 
             url    = CDETECTN_ORIG_NODE_URL(cdetectn_orig_node);
             domain = CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node);
-            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);            
+            port   = CDETECTN_IP_NODE_PORT(cdetectn_ip_node);
         }
-        
+
         if(EC_FALSE == __cdetectn_request(domain, url, ipaddr, port, detect_task_num, &status))
         {
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_start_orig_node_choice_latest: "

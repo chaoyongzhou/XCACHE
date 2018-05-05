@@ -5,9 +5,9 @@ extern "C"{
 #ifndef _CSSL_INC
 #define _CSSL_INC
 
-#include <arpa/inet.h>    
-#include <openssl/ssl.h>    
-#include <openssl/err.h> 
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include "type.h"
 #include "cstring.h"
@@ -18,7 +18,7 @@ typedef struct _CSSL_NODE
 {
     UINT32                  type; /* server:0 or client:1 */
     SSL                    *ssl;
-    SSL_CTX                *ctx;  
+    SSL_CTX                *ctx;
 
     CSTRING                 ca_file;
 
@@ -36,13 +36,13 @@ typedef struct _CSSL_NODE
 #define CSSL_NODE_CLIENT_PRIVKEY_FILE(cssl_node)    (&((cssl_node)->client_privkey_file))
 
 
-#define CSSL_NODE_SERVER_TYPE                       ((UINT32) 0)                
-#define CSSL_NODE_CLIENT_TYPE                       ((UINT32) 1)    
+#define CSSL_NODE_SERVER_TYPE                       ((UINT32) 0)
+#define CSSL_NODE_CLIENT_TYPE                       ((UINT32) 1)
 #define CSSL_NODE_UNKNOWN_TYPE                      ((UINT32)-1)
 
 #define EC_AGAIN_SSL_WANT_WRITE                     (((UINT32)0x1000) | EC_AGAIN)
 #define EC_AGAIN_SSL_WANT_READ                      (((UINT32)0x2000) | EC_AGAIN)
- 
+
 #endif/*_CSSL_INC*/
 
 #ifdef __cplusplus

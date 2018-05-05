@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -128,24 +128,24 @@ uint32_t chfsnp_insert(CHFSNP *chfsnp, const uint32_t path_len, const uint8_t *p
 
 CHFSNP_ITEM *chfsnp_fetch(const CHFSNP *chfsnp, const uint32_t node_pos);
 
-EC_BOOL chfsnp_inode_update(CHFSNP *chfsnp, CHFSNP_INODE *chfsnp_inode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL chfsnp_inode_update(CHFSNP *chfsnp, CHFSNP_INODE *chfsnp_inode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL chfsnp_fnode_update(CHFSNP *chfsnp, CHFSNP_FNODE *chfsnp_fnode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL chfsnp_fnode_update(CHFSNP *chfsnp, CHFSNP_FNODE *chfsnp_fnode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL chfsnp_update_all_buckets(CHFSNP *chfsnp, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL chfsnp_update_all_buckets(CHFSNP *chfsnp,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL chfsnp_item_update(CHFSNP *chfsnp, CHFSNP_ITEM *chfsnp_item, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL chfsnp_item_update(CHFSNP *chfsnp, CHFSNP_ITEM *chfsnp_item,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL chfsnp_update_no_lock(CHFSNP *chfsnp, 
-                               const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL chfsnp_update_no_lock(CHFSNP *chfsnp,
+                               const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
 CHFSNP_ITEM *chfsnp_set(CHFSNP *chfsnp, const uint32_t path_len, const uint8_t *path);

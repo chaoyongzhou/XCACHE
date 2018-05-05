@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -100,7 +100,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t     sfsd_block_max_num; /*max block number */    
+    uint16_t     sfsd_block_max_num; /*max block number */
     uint16_t     rsvd01;
     uint32_t     sfsd_page_max_num;  /*max pages number */
 }CSFSD_HDR;/*4k-alignment*/
@@ -114,7 +114,7 @@ typedef struct
     int                sfsd_fd;
     uint32_t           sfsd_fsize;
     uint8_t           *sfsd_fname;
-    
+
     CSFSD_HDR         *sfsd_hdr;
 
     CSFSB             *sfsd_block_tbl[ CSFSD_MAX_BLOCK_NUM ];
@@ -138,8 +138,8 @@ typedef struct
 #define CSFSD_BLOCK_MAX_NUM(csfsd)                                 (CSFSD_HDR_BLOCK_MAX_NUM(CSFSD_HEADER(csfsd)))
 #define CSFSD_PAGE_MAX_NUM(csfsd)                                  (CSFSD_HDR_PAGE_MAX_NUM(CSFSD_HEADER(csfsd)))
 
-#define CSFSD_BLOCK_TBL(csfsd)                                     ((csfsd)->sfsd_block_tbl) 
-#define CSFSD_BLOCK_NODE(csfsd, block_no)                          ((csfsd)->sfsd_block_tbl[ (block_no) ]) 
+#define CSFSD_BLOCK_TBL(csfsd)                                     ((csfsd)->sfsd_block_tbl)
+#define CSFSD_BLOCK_NODE(csfsd, block_no)                          ((csfsd)->sfsd_block_tbl[ (block_no) ])
 
 
 

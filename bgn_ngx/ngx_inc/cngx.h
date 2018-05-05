@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -62,13 +62,13 @@ extern "C"{
 #define  CNGX_VAR_CACHE_RSP_HEADERS               ("c_cache_rsp_headers")
 #define  CNGX_VAR_NCACHE_RSP_HEADERS              ("c_ncache_rsp_headers")
 
-#define  CNGX_VAR_CACHE_SEG_SIZE                  ("c_cache_seg_size")          /*default: 256KB*/ 
-#define  CNGX_VAR_CACHE_SEG_MAX_NUM               ("c_cache_seg_max_num")       /*default: 1024 * 4 * 64*/ 
+#define  CNGX_VAR_CACHE_SEG_SIZE                  ("c_cache_seg_size")          /*default: 256KB*/
+#define  CNGX_VAR_CACHE_SEG_MAX_NUM               ("c_cache_seg_max_num")       /*default: 1024 * 4 * 64*/
 #define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.request_uri*/
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
-#define  CNGX_VAR_DIRECT_ORIG_SWITCH              ("c_orig_direct_switch")      /*default: off*/ 
-#define  CNGX_VAR_ORIG_FORCE_SWITCH               ("c_orig_force_switch")       /*default: off*/          
+#define  CNGX_VAR_DIRECT_ORIG_SWITCH              ("c_orig_direct_switch")      /*default: off*/
+#define  CNGX_VAR_ORIG_FORCE_SWITCH               ("c_orig_force_switch")       /*default: off*/
 #define  CNGX_VAR_ORIG_REDIRECT_MAX_TIMES         ("c_orig_redirect_max_times") /*default: 3*/
 #define  CNGX_VAR_ORIG_REDIRECT_SPECIFIC          ("c_orig_redirect_specific")  /*default: null. format: <src status> => <des status> => <redirect url>[|...]*/
 #define  CNGX_VAR_ORIG_SERVER                     ("c_orig_server")             /*default: ngx.var.host or ngx.var.http_host*/
@@ -77,7 +77,7 @@ extern "C"{
 #define  CNGX_VAR_ORIG_URI                        ("c_orig_uri")                /*default: ngx.var.request_uri*/
 #define  CNGX_VAR_ORIG_EXPIRES_OVERRIDE_NSEC      ("c_orig_expires_override_nsec")
 #define  CNGX_VAR_ORIG_EXPIRES_CACHE_CODE         ("c_orig_expires_cache_code")
-#define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/ 
+#define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/
 #define  CNGX_VAR_ORIG_TIMEOUT_NSEC               ("c_orig_timeout_nsec")        /*default: 20 sec defined by CHTTP_SOCKET_TIMEOUT_NSEC*/
 
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
@@ -98,7 +98,7 @@ typedef struct
     uint32_t           only_if_cached  :1;/*bit bool*/
     uint32_t           rsvd01:30;
     uint32_t           rsvd02;
-    
+
 }CNGX_OPTION;
 
 #define CNGX_OPTION_CACHEABLE_METHOD(cngx_option)   ((cngx_option)->cacheable_method)
@@ -128,10 +128,10 @@ typedef EC_BOOL    (*CNGX_HTTP_BGN_MOD_HANDLE_FUNC)(const UINT32 modi);
 typedef struct {
     void                             *dl_lib;
     CSTRING                           dl_path;
-    
+
     CSTRING                           name;/*module name*/
     UINT32                            type;/*module type, like as MD_XXX*/
-    
+
     UINT32                            hash;/*hash of module name*/
 
     CNGX_HTTP_BGN_MOD_REG_FUNC        reg;
@@ -246,7 +246,7 @@ EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_direct_orig_switch_on(ngx_http_request_t *r);
 
-EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r); 
+EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r);
 
@@ -276,7 +276,7 @@ EC_BOOL cngx_has_header_in_key(const ngx_http_request_t *r, const char *k);
 
 EC_BOOL cngx_has_header_in(const ngx_http_request_t *r, const char *k, const char *v);
 
-EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v); 
+EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v);
 
 EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status);
 

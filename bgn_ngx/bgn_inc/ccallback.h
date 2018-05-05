@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ extern "C"{
 
 typedef struct
 {
-    const char     *name;     /*always const string, never free*/ 
+    const char     *name;     /*always const string, never free*/
     UINT32          func;     /*callback function address*/
     UINT32          data;     /*extra data*/
 }CCALLBACK_NODE;
@@ -42,7 +42,7 @@ typedef struct
     uint32_t            reset_flag:1;
     uint32_t            rsvd01:30;
     uint32_t            rsvd02;
-    
+
 }CCALLBACK_LIST;
 
 #define CCALLBACK_LIST_NAME(ccallback_list)         ((ccallback_list)->name)

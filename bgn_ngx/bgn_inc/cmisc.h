@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -78,7 +78,7 @@ uint32_t c_chars_to_uint32_t(const char *str, const uint32_t len);
 uint32_t c_str_to_uint32_t(const char *str);
 
 /*ignore case and replace src_ch with des_num*/
-uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const uint32_t des_num); 
+uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const uint32_t des_num);
 
 char *c_uint32_t_to_str(const uint32_t num);
 
@@ -298,13 +298,13 @@ void c_buff_print_hex(LOG *log, const UINT8 *buff, const UINT32 len);
 
 void c_buff_print_str(LOG *log, const UINT8 *buff, const UINT32 len);
 
-EC_BOOL c_isdigit(int c); 
+EC_BOOL c_isdigit(int c);
 
-EC_BOOL c_isxdigit(int c); 
+EC_BOOL c_isxdigit(int c);
 
-EC_BOOL c_isalpha(int c); 
+EC_BOOL c_isalpha(int c);
 
-EC_BOOL c_isalnum(int c); 
+EC_BOOL c_isalnum(int c);
 
 EC_BOOL c_memcmp(const uint8_t *s1, const uint8_t *s2, const uint32_t len);
 

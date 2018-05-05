@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -99,11 +99,11 @@ EC_BOOL cdns_make_req(CDNS_NODE *cdns_node, const CDNS_REQ *cdns_req);
 \*-------------------------------------------------------------------------------------------------------------------------------------------*/
 CDNS_REQ *cdns_req_new();
 
-EC_BOOL cdns_req_init(CDNS_REQ *cdns_req); 
+EC_BOOL cdns_req_init(CDNS_REQ *cdns_req);
 
-EC_BOOL cdns_req_clean(CDNS_REQ *cdns_req); 
+EC_BOOL cdns_req_clean(CDNS_REQ *cdns_req);
 
-EC_BOOL cdns_req_free(CDNS_REQ *cdns_req); 
+EC_BOOL cdns_req_free(CDNS_REQ *cdns_req);
 
 void    cdns_req_print(LOG *log, const CDNS_REQ *cdns_req);
 
@@ -117,21 +117,21 @@ EC_BOOL cdns_req_set_host(CDNS_REQ *cdns_req, const char *host);
 
 CDNS_RSP *cdns_rsp_new();
 
-EC_BOOL cdns_rsp_init(CDNS_RSP *cdns_rsp); 
+EC_BOOL cdns_rsp_init(CDNS_RSP *cdns_rsp);
 
-EC_BOOL cdns_rsp_clean(CDNS_RSP *cdns_rsp); 
+EC_BOOL cdns_rsp_clean(CDNS_RSP *cdns_rsp);
 
-EC_BOOL cdns_rsp_free(CDNS_RSP *cdns_rsp); 
+EC_BOOL cdns_rsp_free(CDNS_RSP *cdns_rsp);
 
 void    cdns_rsp_print(LOG *log, const CDNS_RSP *cdns_rsp);
 
 CDNS_RSP_NODE *cdns_rsp_node_new();
 
-EC_BOOL cdns_rsp_node_init(CDNS_RSP_NODE *cdns_rsp_node); 
+EC_BOOL cdns_rsp_node_init(CDNS_RSP_NODE *cdns_rsp_node);
 
-EC_BOOL cdns_rsp_node_clean(CDNS_RSP_NODE *cdns_rsp_node); 
+EC_BOOL cdns_rsp_node_clean(CDNS_RSP_NODE *cdns_rsp_node);
 
-EC_BOOL cdns_rsp_node_free(CDNS_RSP_NODE *cdns_rsp_node); 
+EC_BOOL cdns_rsp_node_free(CDNS_RSP_NODE *cdns_rsp_node);
 
 void    cdns_rsp_node_print(LOG *log, const CDNS_RSP_NODE *cdns_rsp_node);
 

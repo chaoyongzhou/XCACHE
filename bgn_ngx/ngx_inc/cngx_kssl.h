@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -14,9 +14,9 @@ extern "C"{
 #ifndef _CNGX_KSSL_H
 #define _CNGX_KSSL_H
 
-#include <arpa/inet.h>    
-#include <openssl/ssl.h>    
-#include <openssl/err.h> 
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 
 #include "type.h"

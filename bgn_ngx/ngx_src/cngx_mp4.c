@@ -200,7 +200,7 @@ cngx_mp4_process(cngx_mp4_file_t *mp4)
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_process: "
                       "no mp4 trak atoms were found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -210,7 +210,7 @@ cngx_mp4_process(cngx_mp4_file_t *mp4)
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_process: "
                       "no mp4 mdat atom was found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -312,7 +312,7 @@ cngx_mp4_process(cngx_mp4_file_t *mp4)
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_process: "
                       "start time is out mp4 mdat atom in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -322,7 +322,7 @@ cngx_mp4_process(cngx_mp4_file_t *mp4)
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, mp4->file.log, 0,
                    "mp4 adjustment:%O", adjustment);
-    
+
     for (i = 0; i < mp4->trak.nelts; i++) {
         if (trak[i].out[CNGX_MP4_CO64_DATA].buf) {
             cngx_mp4_adjust_co64_atom(mp4, &trak[i], adjustment);
@@ -385,7 +385,7 @@ cngx_mp4_read_atom(cngx_mp4_file_t *mp4,
                               mp4->file.name.data, atom_size);
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_atom: "
                               "\"%s\" mp4 atom is too small:%ld\n",
-                              mp4->file.name.data, (UINT32)atom_size);                              
+                              mp4->file.name.data, (UINT32)atom_size);
                 return NGX_ERROR;
             }
         }
@@ -409,7 +409,7 @@ cngx_mp4_read_atom(cngx_mp4_file_t *mp4,
                           mp4->file.name.data, atom_size);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_atom: "
                           "\"%s\" mp4 atom too large:%ld\n",
-                          mp4->file.name.data, (UINT32)atom_size);                          
+                          mp4->file.name.data, (UINT32)atom_size);
             return NGX_ERROR;
         }
 
@@ -454,7 +454,7 @@ cngx_mp4_read(cngx_mp4_file_t *mp4, size_t size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 file truncated", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read: "
-                      "\"%s\" mp4 file truncated\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 file truncated\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -469,14 +469,14 @@ cngx_mp4_read(cngx_mp4_file_t *mp4, size_t size)
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT,"[DEBUG] cngx_mp4_read: "
                   "mp4 %p: buffer_size = %ld, offset = %ld, buffer_start = %p\n",
-                  mp4, 
-                  mp4->buffer_size, mp4->offset, mp4->buffer_start);     
+                  mp4,
+                  mp4->buffer_size, mp4->offset, mp4->buffer_start);
 
     n = 0;
-    
-    if(NGX_OK != mp4->handler(mp4->modi, 
-                            mp4->buffer_size, mp4->offset, 
-                            mp4->buffer_start, 
+
+    if(NGX_OK != mp4->handler(mp4->modi,
+                            mp4->buffer_size, mp4->offset,
+                            mp4->buffer_start,
                             &n))
     {
         return NGX_ERROR;
@@ -488,7 +488,7 @@ cngx_mp4_read(cngx_mp4_file_t *mp4, size_t size)
                       n, mp4->buffer_size, mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read: "
                       ngx_read_file_n " read only %ld of %ld from \"%s\"\n",
-                      n, mp4->buffer_size, mp4->file.name.data);                      
+                      n, mp4->buffer_size, mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -516,7 +516,7 @@ cngx_mp4_read_ftyp_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                       mp4->file.name.data, atom_data_size);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_ftyp_atom: "
                       "\"%s\" mp4 ftyp atom is too large:%ld\n",
-                      mp4->file.name.data, (UINT32)atom_data_size);                      
+                      mp4->file.name.data, (UINT32)atom_data_size);
         return NGX_ERROR;
     }
 
@@ -581,7 +581,7 @@ cngx_mp4_read_moov_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_moov_atom: "
                           "\"%s\" mp4 moov atom is too large:%ld, "
                           "you may want to increase mp4_max_buffer_size\n",
-                          mp4->file.name.data, (UINT32)atom_data_size);                          
+                          mp4->file.name.data, (UINT32)atom_data_size);
             return NGX_ERROR;
         }
 
@@ -728,7 +728,7 @@ cngx_mp4_read_mvhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 mvhd atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_mvhd_atom: "
-                      "\"%s\" mp4 mvhd atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 mvhd atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -746,7 +746,7 @@ cngx_mp4_read_mvhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_mvhd_atom: "
                           "\"%s\" mp4 mvhd atom too small\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -763,7 +763,7 @@ cngx_mp4_read_mvhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT,"[DEBUG] cngx_mp4_read_mvhd_atom: "
                    "mvhd timescale:%u, duration:%ld, time:%.3fs",
                    timescale, (UINT32)duration, (double) duration / timescale);
-                   
+
     start_time = (uint64_t) mp4->start * timescale / 1000;
 
     if (duration < start_time) {
@@ -772,12 +772,12 @@ cngx_mp4_read_mvhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_mvhd_atom: "
                       "\"%s\" mp4 start time exceeds file duration: duration %ld, start_time %ld\n",
-                      mp4->file.name.data, (UINT32)duration, (UINT32)start_time);                      
+                      mp4->file.name.data, (UINT32)duration, (UINT32)start_time);
         return NGX_ERROR;
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT,"[DEBUG] cngx_mp4_read_mvhd_atom: "
                   "\"%s\" parsed: duration %ld, start_time %ld, timescale %u\n",
-                  mp4->file.name.data, (UINT32)duration, (UINT32)start_time, timescale);      
+                  mp4->file.name.data, (UINT32)duration, (UINT32)start_time, timescale);
 
     duration -= start_time;
 
@@ -791,8 +791,8 @@ cngx_mp4_read_mvhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT,"[DEBUG] cngx_mp4_read_mvhd_atom: "
                   "\"%s\" mvhd new duration: duration %ld, time:%.3fs\n",
-                  mp4->file.name.data, (UINT32)duration, (double) duration / timescale); 
-                  
+                  mp4->file.name.data, (UINT32)duration, (double) duration / timescale);
+
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, mp4->file.log, 0,
                    "mvhd new duration:%uL, time:%.3fs",
                    duration, (double) duration / timescale);
@@ -917,7 +917,7 @@ cngx_mp4_read_tkhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 tkhd atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_tkhd_atom: "
-                      "\"%s\" mp4 tkhd atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 tkhd atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -934,7 +934,7 @@ cngx_mp4_read_tkhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_tkhd_atom: "
                           "\"%s\" mp4 tkhd atom too small\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -1054,7 +1054,7 @@ cngx_mp4_read_mdhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 mdhd atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_mdhd_atom: "
-                      "\"%s\" mp4 mdhd atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 mdhd atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1072,7 +1072,7 @@ cngx_mp4_read_mdhd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_mdhd_atom: "
                           "\"%s\" mp4 mdhd atom too small\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -1359,7 +1359,7 @@ cngx_mp4_read_stsd_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stsd atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stsd_atom: "
-                      "\"%s\" mp4 stsd atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stsd atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1405,7 +1405,7 @@ cngx_mp4_read_stts_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stts atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stts_atom: "
-                      "\"%s\" mp4 stts atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stts atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1420,7 +1420,7 @@ cngx_mp4_read_stts_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stts atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stts_atom: "
-                      "\"%s\" mp4 stts atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stts atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1473,7 +1473,7 @@ cngx_mp4_update_stts_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stts_atom: "
                       "no mp4 stts atoms were found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1621,7 +1621,7 @@ cngx_mp4_read_stss_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stss atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stss_atom: "
-                      "\"%s\" mp4 stss atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stss atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1646,7 +1646,7 @@ cngx_mp4_read_stss_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stss atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stss_atom: "
-                      "\"%s\" mp4 stss atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stss atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1809,7 +1809,7 @@ cngx_mp4_read_ctts_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 ctts atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_ctts_atom: "
-                      "\"%s\" mp4 ctts atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 ctts atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1834,7 +1834,7 @@ cngx_mp4_read_ctts_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 ctts atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_ctts_atom: "
-                      "\"%s\" mp4 ctts atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 ctts atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -1996,7 +1996,7 @@ cngx_mp4_read_stsc_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stsc atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stsc_atom: "
-                      "\"%s\" mp4 stsc atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stsc atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2011,7 +2011,7 @@ cngx_mp4_read_stsc_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stsc atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stsc_atom: "
-                      "\"%s\" mp4 stsc atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stsc atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2067,7 +2067,7 @@ cngx_mp4_update_stsc_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stsc_atom: "
                       "no mp4 stsc atoms were found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2077,7 +2077,7 @@ cngx_mp4_update_stsc_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stsc_atom: "
                       "zero number of entries in stsc atom in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2213,7 +2213,7 @@ cngx_mp4_crop_stsc_data(cngx_mp4_file_t *mp4,
                       start ? "start" : "end", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_crop_stsc_data: "
                       "%s time is out mp4 stsc chunks in \"%s\"\n",
-                      start ? "start" : "end", mp4->file.name.data);                      
+                      start ? "start" : "end", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2228,7 +2228,7 @@ found:
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_crop_stsc_data: "
                       "zero number of samples in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2344,7 +2344,7 @@ cngx_mp4_read_stsz_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stsz atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stsz_atom: "
-                      "\"%s\" mp4 stsz atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stsz atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2375,7 +2375,7 @@ cngx_mp4_read_stsz_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stsz_atom: "
                           "\"%s\" mp4 stsz atom too small\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -2431,7 +2431,7 @@ cngx_mp4_update_stsz_atom(cngx_mp4_file_t *mp4,
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stsz_atom: "
                           "start time is out mp4 stsz samples in \"%s\"\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -2454,7 +2454,7 @@ cngx_mp4_update_stsz_atom(cngx_mp4_file_t *mp4,
                               mp4->file.name.data);
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stsz_atom: "
                               "end time is out mp4 stsz samples in \"%s\"\n",
-                              mp4->file.name.data);                              
+                              mp4->file.name.data);
                 return NGX_ERROR;
             }
 
@@ -2506,7 +2506,7 @@ cngx_mp4_read_stco_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stco atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stco_atom: "
-                      "\"%s\" mp4 stco atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stco atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2520,7 +2520,7 @@ cngx_mp4_read_stco_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 stco atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_stco_atom: "
-                      "\"%s\" mp4 stco atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 stco atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2575,7 +2575,7 @@ cngx_mp4_update_stco_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stco_atom: "
                       "no mp4 stco atoms were found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2585,7 +2585,7 @@ cngx_mp4_update_stco_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stco_atom: "
                       "start time is out mp4 stco chunks in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2606,7 +2606,7 @@ cngx_mp4_update_stco_atom(cngx_mp4_file_t *mp4,
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_stco_atom: "
                           "end time is out mp4 stco chunks in \"%s\"\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 
@@ -2694,7 +2694,7 @@ cngx_mp4_read_co64_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 co64 atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_co64_atom: "
-                      "\"%s\" mp4 co64 atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 co64 atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2708,7 +2708,7 @@ cngx_mp4_read_co64_atom(cngx_mp4_file_t *mp4, uint64_t atom_data_size)
         ngx_log_error(NGX_LOG_ERR, mp4->file.log, 0,
                       "\"%s\" mp4 co64 atom too small", mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_read_co64_atom: "
-                      "\"%s\" mp4 co64 atom too small\n", mp4->file.name.data);                      
+                      "\"%s\" mp4 co64 atom too small\n", mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2763,7 +2763,7 @@ cngx_mp4_update_co64_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_co64_atom: "
                       "no mp4 co64 atoms were found in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2773,7 +2773,7 @@ cngx_mp4_update_co64_atom(cngx_mp4_file_t *mp4,
                       mp4->file.name.data);
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_co64_atom: "
                       "start time is out mp4 co64 chunks in \"%s\"\n",
-                      mp4->file.name.data);                      
+                      mp4->file.name.data);
         return NGX_ERROR;
     }
 
@@ -2794,7 +2794,7 @@ cngx_mp4_update_co64_atom(cngx_mp4_file_t *mp4,
                           mp4->file.name.data);
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT,"error:cngx_mp4_update_co64_atom: "
                           "end time is out mp4 co64 chunks in \"%s\"\n",
-                          mp4->file.name.data);                          
+                          mp4->file.name.data);
             return NGX_ERROR;
         }
 

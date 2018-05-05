@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -48,7 +48,7 @@ typedef struct
     UINT32               sent_body_size;
 
     UINT32               ngx_loc;  /*ngx rc report at location*/
-    ngx_int_t            ngx_rc;   /*save ngx calling result*/ 
+    ngx_int_t            ngx_rc;   /*save ngx calling result*/
 }CREFRESH_MD;
 
 #define CREFRESH_MD_TERMINATE_FLAG(crefresh_md)               ((crefresh_md)->terminate_flag)
@@ -59,7 +59,7 @@ typedef struct
 
 #define CREFRESH_MD_CNGX_DEBUG_SWITCH_ON_FLAG(crefresh_md)    ((crefresh_md)->cngx_debug_switch_on_flag)
 
-#define CREFRESH_MD_CONTENT_LENGTH(crefresh_md)               ((crefresh_md)->content_length) 
+#define CREFRESH_MD_CONTENT_LENGTH(crefresh_md)               ((crefresh_md)->content_length)
 
 #define CREFRESH_MD_SENT_BODY_SIZE(crefresh_md)               ((crefresh_md)->sent_body_size)
 

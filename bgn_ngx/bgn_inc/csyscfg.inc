@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -49,7 +49,7 @@ typedef struct
     CSTRING     group;
     CSTRING     npdir;
     CSTRING     dndir;
-*/    
+*/
     UINT32      tcid;
     CVECTOR     rank_vec;/*item is rank (UINT32)*/
 }CLUSTER_NODE_CFG;
@@ -79,8 +79,8 @@ typedef struct
 typedef struct
 {
     UINT32     id;    /*unique cluster id       */
-    CSTRING    name;  /*cluster alias name      */   
-    UINT32     model; /*cluster model           */    
+    CSTRING    name;  /*cluster alias name      */
+    UINT32     model; /*cluster model           */
     CMAP       extras;/*key and val are CSTRING */
     CVECTOR    nodes; /*item is CLUSTER_NODE_CFG*/
 }CLUSTER_CFG;

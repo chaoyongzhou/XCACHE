@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -164,7 +164,7 @@ CRFSNP_ITEM *crfsnp_dnode_find(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_
 
 uint32_t crfsnp_dnode_search(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
-uint32_t crfsnp_dnode_match(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag); 
+uint32_t crfsnp_dnode_match(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 uint32_t crfsnp_dnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const uint32_t path_seg_second_hash, const uint32_t path_seg_len, const uint8_t *path_seg, const uint32_t dir_flag);
 
@@ -202,32 +202,32 @@ uint32_t crfsnp_insert(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *p
 
 CRFSNP_ITEM *crfsnp_fetch(const CRFSNP *crfsnp, const uint32_t node_pos);
 
-EC_BOOL crfsnp_inode_update(CRFSNP *crfsnp, CRFSNP_INODE *crfsnp_inode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_inode_update(CRFSNP *crfsnp, CRFSNP_INODE *crfsnp_inode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_fnode_update(CRFSNP *crfsnp, CRFSNP_FNODE *crfsnp_fnode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_fnode_update(CRFSNP *crfsnp, CRFSNP_FNODE *crfsnp_fnode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_bucket_update(CRFSNP *crfsnp, const uint32_t node_pos, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_bucket_update(CRFSNP *crfsnp, const uint32_t node_pos,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_dnode_update(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_dnode_update(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_bnode_update(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_bnode_update(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_item_update(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, 
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_item_update(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item,
+                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_update_no_lock(CRFSNP *crfsnp, 
-                               const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no, 
+EC_BOOL crfsnp_update_no_lock(CRFSNP *crfsnp,
+                               const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
 EC_BOOL crfsnp_bucket_expire(CRFSNP *crfsnp, const uint32_t node_pos);

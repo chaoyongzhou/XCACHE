@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -12,9 +12,9 @@ extern "C"{
 #ifndef _CHTTPS_H
 #define _CHTTPS_H
 
-#include <arpa/inet.h>    
-#include <openssl/ssl.h>    
-#include <openssl/err.h> 
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include "type.h"
 #include "debug.h"
@@ -92,7 +92,7 @@ EC_BOOL chttps_node_has_header_key(CHTTPS_NODE *chttps_node, const char *k);
 EC_BOOL chttps_node_has_header(CHTTPS_NODE *chttps_node, const char *k, const char *v);
 
 uint64_t chttps_node_fetch_file_size(CHTTPS_NODE *chttps_node);
-  
+
 /*---- TODO END : replace these interfaces by macros*/
 
 /*---------------------------------------- HTTP HEADER PASER  ----------------------------------------*/
@@ -245,7 +245,7 @@ EC_BOOL chttps_node_encode_req_header_end(CHTTPS_NODE *chttps_node);
 
 EC_BOOL chttps_node_encode_req_header(CHTTPS_NODE *chttps_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, const CSTRKV_MGR *header);
 
-EC_BOOL chttps_node_encode_req_header_line(CHTTPS_NODE *chttps_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, 
+EC_BOOL chttps_node_encode_req_header_line(CHTTPS_NODE *chttps_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param,
                                             const uint16_t version_major, const uint16_t version_minor);
 EC_BOOL chttps_node_encode_req_body(CHTTPS_NODE *chttps_node, const CBYTES *req_body);
 
@@ -265,7 +265,7 @@ EC_BOOL chttps_node_encode_rsp_param(CHTTPS_NODE *chttps_node, const CSTRKV_MGR 
 
 EC_BOOL chttps_node_encode_rsp_uri(CHTTPS_NODE *chttps_node , const CSTRING *uri, const CSTRKV_MGR *param, CBYTES *cbytes);
 
-EC_BOOL chttps_node_encode_rsp_header_line(CHTTPS_NODE *chttps_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param, 
+EC_BOOL chttps_node_encode_rsp_header_line(CHTTPS_NODE *chttps_node, const CSTRING *method, const CSTRING *uri, const CSTRKV_MGR *param,
                                             const uint16_t version_major, const uint16_t version_minor, CBYTES *cbytes);
 
 EC_BOOL chttps_node_encode_rsp_header_end(CHTTPS_NODE *chttps_node, CBYTES *cbytes);
@@ -287,7 +287,7 @@ EC_BOOL chttps_node_disconnect(CHTTPS_NODE *chttps_node);
 EC_BOOL chttps_node_handshake_on_client(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL chttps_node_handshake_on_server(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode);
-  
+
 EC_BOOL chttps_node_send_req(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL chttps_node_recv_rsp(CHTTPS_NODE *chttps_node, CSOCKET_CNODE *csocket_cnode);

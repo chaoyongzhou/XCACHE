@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -56,7 +56,7 @@ extern "C"{
 #define CTHREAD_ERR_FLAG              ((UINT32) -1)
 
 /*get tid of the thread when standing in the pthread*/
-#define CTHREAD_GET_TID()             (syscall(__NR_gettid)) 
+#define CTHREAD_GET_TID()             (syscall(__NR_gettid))
 
 #if (64 == WORDSIZE)
 //#define CTHREAD_TID_OFFSET            ((UINT32)144)/*on Centos 6.0 x86_64*/
@@ -93,7 +93,7 @@ typedef void (*CTHREAD_CLEANUP_ROUTINE)(void *);
 /* if pthread_setcanceltype set as PTHREAD_CANCEL_DEFERRED without testcancel set in flow, all pthreads will hung up when the thread cancel*/
 #define CTHREAD_TEST_CANCEL() \
     pthread_testcancel()
-    
+
 #define __cplusplus/*restore*/
 #else
 #define CTHREAD_CLEANUP_PUSH(thread_cancel_routine, thread_cancel_para) \
@@ -111,7 +111,7 @@ typedef void (*CTHREAD_CLEANUP_ROUTINE)(void *);
     pthread_testcancel()
 #endif/*__cplusplus*/
 typedef struct
-{   
+{
     UINT32  start_routine_addr;
     UINT32  core_id;
     UINT32  arg_num;
@@ -119,7 +119,7 @@ typedef struct
 }CTHREAD_TASK;
 
 typedef struct
-{    
+{
     CTHREAD_TASK *thread_task;
 
     UINT32        thread_status;

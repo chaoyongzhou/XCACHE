@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -48,9 +48,9 @@ struct _CBTREE_KEY
             uint32_t offset;/* Current file/buff pos when flush         */
             uint32_t rsvd;
         }e;/*used for encoding and record the offset info*/
-        
+
         CBTREE_KEY *ptr;/*used for decoding override with memory addr where this key was stored at*/
-        
+
     }u;
     uint8_t *kv[CBTREE_MAX_VERSION];
 };
@@ -78,7 +78,7 @@ typedef struct
     CBTREE_KEY_CMP         key_cmp_op;
     CBTREE_KEY_PRINT       key_print_op;
     CBTREE_KEY_ENCODE_SIZE key_encode_size_op;
-    CBTREE_KEY_ENCODE      key_encode_op;    
+    CBTREE_KEY_ENCODE      key_encode_op;
     CBTREE_KEY_DECODE      key_decode_op;
 }CBTREE_KEY_OPERATOR;
 
@@ -97,14 +97,14 @@ typedef struct
 struct _CBTREE
 {
     uint32_t     size;         /* The size of the tree.                    */
-    uint8_t      order;        /* The order of this tree.                  */  
+    uint8_t      order;        /* The order of this tree.                  */
     uint8_t      max_ver;      /* Max versions per kv                      */
     uint8_t      key_type;     /* B+Tree key type such as string,num,kv,etc*/
     uint8_t      min_leaf;     /* Minimum kv count in a leaf               */
-    
-    uint8_t      min_internal; /* Minimum kv count in an internal node.    */    
-    uint8_t      height;       /* The height of the tree                   */    
-    uint8_t      dirty;        /* dirty flag                               */    
+
+    uint8_t      min_internal; /* Minimum kv count in an internal node.    */
+    uint8_t      height;       /* The height of the tree                   */
+    uint8_t      dirty;        /* dirty flag                               */
     uint16_t     rsvd1;
     uint32_t     tlen;         /* total len of all keys,include multi vers */
 
@@ -113,7 +113,7 @@ struct _CBTREE
 
     /*key operation*/
     CBTREE_KEY_OPERATOR          key_op;
-    
+
 };
 
 #define CBTREE_SIZE(cbtree)                  ((cbtree)->size)
@@ -156,7 +156,7 @@ struct _CBTREE_NODE
             uint16_t     rsvd;
             union
             {
-                uint32_t     rsvd2;    
+                uint32_t     rsvd2;
                 uint32_t     offset;   /* Current filePos when flush         */
             }u2;
         }e;/*used for encoding and record the offset info*/
@@ -166,7 +166,7 @@ struct _CBTREE_NODE
     CBTREE_KEY  *keys[CBTREE_MAX_ORDER];     /*key part             */
     /*when node is leaf, all children is null pointer, except the last one which point to next leaf node*/
     /*when node is not leaf, children num = count + 1*/
-    CBTREE_NODE *children[CBTREE_MAX_ORDER]; /* children node       */    
+    CBTREE_NODE *children[CBTREE_MAX_ORDER]; /* children node       */
 };
 
 #define CBTREE_NODE_COUNT(cbtree_node)              ((cbtree_node)->u1.e.count)
@@ -212,7 +212,7 @@ uint8_t *cbtree_key_dup_latest(const CBTREE *cbtree, const CBTREE_KEY * cbtree_k
 CBTREE_KEY *cbtree_key_dup_all(const CBTREE *cbtree, const CBTREE_KEY * cbtree_key);
 
 uint32_t cbtree_key_tlen(const CBTREE *cbtree, const CBTREE_KEY * cbtree_key);
-   
+
 CBTREE_NODE *cbtree_node_new(const CBTREE *cbtree);
 
 EC_BOOL cbtree_node_init(const CBTREE *cbtree, CBTREE_NODE *cbtree_node);
@@ -309,8 +309,8 @@ CBTREE * cbtree_load_hsdfs(const UINT32 cdfs_md_id, const CSTRING *fname_cstr);
 CBTREE * cbtree_load(const char *fname);
 
 /*key_pos range from 0 to func_para_num - 1*/
-EC_BOOL cbtree_scan(CBTREE *cbtree, 
-                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *), 
+EC_BOOL cbtree_scan(CBTREE *cbtree,
+                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *),
                      const UINT32 func_para_num, const UINT32 key_pos,
                      const UINT32 handler_func_addr,...);
 

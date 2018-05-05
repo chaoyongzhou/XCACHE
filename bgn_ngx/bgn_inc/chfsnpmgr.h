@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -111,10 +111,10 @@ EC_BOOL chfsnp_mgr_search(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const
 
 CHFSNP_ITEM *chfsnp_mgr_search_item(CHFSNP_MGR *chfsnp_mgr, const uint32_t path_len, const uint8_t *path);
 
-CHFSNP_MGR *chfsnp_mgr_create(const uint8_t chfsnp_model, 
-                                const uint32_t chfsnp_disk_max_num, 
-                                const uint8_t  chfsnp_1st_chash_algo_id, 
-                                const uint8_t  chfsnp_2nd_chash_algo_id, 
+CHFSNP_MGR *chfsnp_mgr_create(const uint8_t chfsnp_model,
+                                const uint32_t chfsnp_disk_max_num,
+                                const uint8_t  chfsnp_1st_chash_algo_id,
+                                const uint8_t  chfsnp_2nd_chash_algo_id,
                                 const CSTRING *chfsnp_db_root_dir);
 
 EC_BOOL chfsnp_mgr_exist(const CSTRING *chfsnp_db_root_dir);

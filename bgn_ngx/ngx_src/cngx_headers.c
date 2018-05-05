@@ -41,10 +41,10 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_ADD][NGX_HTTP_BGN_HEADERS_DIR_0];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             ngx_http_bgn_set_header_in(r, kv->key, kv->value, 1 /*override*/);
@@ -57,10 +57,10 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_DEL][NGX_HTTP_BGN_HEADERS_DIR_0];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             ngx_http_bgn_del_header_in(r, kv->key);
@@ -72,10 +72,10 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_RENEW][NGX_HTTP_BGN_HEADERS_DIR_0];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             ngx_http_bgn_renew_header_in(r, kv->key, kv->value);
@@ -84,7 +84,7 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
                                         (const char *)(kv->value.data));
         }
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -99,10 +99,10 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_ADD][NGX_HTTP_BGN_HEADERS_DIR_1];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_req_renew_header(chttp_req, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -115,10 +115,10 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_DEL][NGX_HTTP_BGN_HEADERS_DIR_1];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_req_del_header(chttp_req, (const char *)(kv->key.data));
@@ -130,10 +130,10 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_RENEW][NGX_HTTP_BGN_HEADERS_DIR_1];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_req_renew_header(chttp_req, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -142,7 +142,7 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
                                         (const char *)(kv->value.data));
         }
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -157,10 +157,10 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_ADD][NGX_HTTP_BGN_HEADERS_DIR_2];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -173,10 +173,10 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_DEL][NGX_HTTP_BGN_HEADERS_DIR_2];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_del_header(chttp_rsp, (const char *)(kv->key.data));
@@ -188,10 +188,10 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_RENEW][NGX_HTTP_BGN_HEADERS_DIR_2];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -200,7 +200,7 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
                                         (const char *)(kv->value.data));
         }
     }
-    
+
     return (EC_TRUE);
 }
 
@@ -215,10 +215,10 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_ADD][NGX_HTTP_BGN_HEADERS_DIR_3];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -231,10 +231,10 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_DEL][NGX_HTTP_BGN_HEADERS_DIR_3];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_del_header(chttp_rsp, (const char *)(kv->key.data));
@@ -246,10 +246,10 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
     headers = blcf->headers[NGX_HTTP_BGN_HEADERS_OP_RENEW][NGX_HTTP_BGN_HEADERS_DIR_3];
     if(NULL_PTR != headers)
     {
-        for (idx = 0; idx < headers->nelts; idx ++) 
+        for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
-            
+
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
             chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
@@ -258,7 +258,7 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
                                         (const char *)(kv->value.data));
         }
     }
-    
+
     return (EC_TRUE);
 }
 

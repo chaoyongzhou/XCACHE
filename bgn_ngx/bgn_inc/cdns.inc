@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -49,7 +49,7 @@ extern "C"{
 
 struct _CSOCKET_CNODE;
 
-typedef struct 
+typedef struct
 {
     uint32_t    key;
     const char *val;
@@ -103,7 +103,7 @@ typedef struct
     uint16_t                  flag_ra    :1; /*  |  */
     uint16_t                  flag_zero  :3; /*  |  */
     uint16_t                  flag_rcode :4; /*  Hi */
-    
+
     uint16_t                  q_num; /*query number*/
     uint16_t                  r_num; /*resource number*/
     uint16_t                  o_num; /*oauth number*/
@@ -128,10 +128,10 @@ typedef struct _CDNS_NODE
     CROUTINE_NODE            *croutine_node; /*croutine mounted point*/
 
     CROUTINE_COND            *croutine_cond;/*croutine condition lock, used when trigger dns request */
-    
-    CBUFFER                   i_buf;    /*io buffer used by dns. socket read buff, and the input buff of dns_parser*/ 
-    CHUNK                     send_buf; /*io buffer used by dns*/    
-    
+
+    CBUFFER                   i_buf;    /*io buffer used by dns. socket read buff, and the input buff of dns_parser*/
+    CHUNK                     send_buf; /*io buffer used by dns*/
+
     struct _CSOCKET_CNODE    *csocket_cnode;
     //CQUEUE_DATA              *cqueue_data; /*crfsdns_node mounted point in request defer queue*/
 

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -50,7 +50,7 @@ typedef struct
     EC_BOOL (*data_init)(void *);
     EC_BOOL (*data_clean)(void *);
     EC_BOOL (*data_free)(void *);
-    
+
 }CLIST;
 
 typedef void * (*CLIST_DATA_DATA_MALLOC)();
@@ -127,7 +127,7 @@ typedef EC_BOOL (*CLIST_RETVAL_CHECKER)(const void *);
 
 #define CLIST_LOOP_NEXT_FROM_CUR(clist, data_cur, data_node) \
     for((data_node) = (data_cur);  (data_node) != CLIST_NULL_NODE(clist); (data_node) = CLIST_DATA_NEXT(data_node))
-    
+
 /*----------------------------------------------------------------interface----------------------------------------------------------------*/
 
 /*iterator*/
@@ -237,8 +237,8 @@ void clist_handover(CLIST *clist_src, CLIST *clist_des);
 
 void clist_bubble_sort(CLIST *clist, EC_BOOL (*cmp)(const void *, const void *));
 
-EC_BOOL clist_loop(CLIST *clist, 
-                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *), 
+EC_BOOL clist_loop(CLIST *clist,
+                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *),
                      const UINT32 func_para_num, const UINT32 clist_data_pos,
                      const UINT32 handler_func_addr,...);
 
@@ -325,8 +325,8 @@ void clist_handover_no_lock(CLIST *clist_src, CLIST *clist_des);
 
 void clist_bubble_sort_no_lock(CLIST *clist, EC_BOOL (*cmp)(const void *, const void *));
 
-EC_BOOL clist_loop_no_lock(CLIST *clist, 
-                                 void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *), 
+EC_BOOL clist_loop_no_lock(CLIST *clist,
+                                 void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *),
                                  const UINT32 func_para_num, const UINT32 clist_data_pos,
                                  const UINT32 handler_func_addr,...);
 

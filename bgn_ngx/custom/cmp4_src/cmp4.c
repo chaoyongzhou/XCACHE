@@ -143,10 +143,10 @@ UINT32 cmp4_start(ngx_http_request_t *r)
     /* init */
     cngx_get_cache_seg_max_num(r, &cache_seg_max_num);
     CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) = cache_seg_max_num;
-    
+
     cngx_get_cache_seg_size(r, &cache_seg_size);
     CMP4_MD_CACHE_SEG_SIZE(cmp4_md) = cache_seg_size;
-    
+
     cstring_init(CMP4_MD_CACHE_PATH(cmp4_md), NULL_PTR);
     CMP4_MD_CACHE_STATUS(cmp4_md) = CNGX_CACHE_STATUS_MISS;/*default*/
 
@@ -364,7 +364,7 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
         return (EC_TRUE);
-    }    
+    }
 
     CMP4_MD_NGX_RC(cmp4_md)  = rc;
     CMP4_MD_NGX_LOC(cmp4_md) = location;
@@ -409,7 +409,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
         return (EC_TRUE);
-    }     
+    }
 
     if(NGX_OK != CMP4_MD_NGX_RC(cmp4_md))
     {
@@ -530,7 +530,7 @@ EC_BOOL cmp4_get_cache_seg(const UINT32 cmp4_md_id, const UINT32 seg_no, CBYTES 
                                              seg_no);
         return (EC_FALSE);
     }
-    
+
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cmp4_get_cache_seg_uri(cmp4_md_id, seg_no, &cache_uri_cstr))
     {
@@ -715,7 +715,7 @@ EC_BOOL cmp4_wait_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *range_s
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_wait_cache_seg_n: seg no %ld overflow!\n",
                                              CRANGE_SEG_NO(range_seg));
         return (EC_FALSE);
-    }    
+    }
 
     cstring_init(&cache_uri_cstr, NULL_PTR);
     if(EC_FALSE == cmp4_get_cache_seg_uri(cmp4_md_id, CRANGE_SEG_NO(range_seg), &cache_uri_cstr))
@@ -1220,15 +1220,15 @@ EC_BOOL cmp4_get_rsp_length_segs(const UINT32 cmp4_md_id, const UINT32 seg_size)
 
             CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md) = BIT_TRUE;
             CMP4_MD_CONTENT_LENGTH(cmp4_md)            = content_length;
-                                                    
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_get_rsp_length_segs: "
                                                  "parse Content-Length '%s' to %ld\n",
                                                  content_length_str,
                                                  content_length);
             /*fall through*/
             break;
-        } 
-        
+        }
+
         /*fall through*/
         break;
     }
@@ -1622,11 +1622,11 @@ EC_BOOL cmp4_filter_header_out_common(const UINT32 cmp4_md_id, const char *proce
     {
         const char                  *k;
         const char                  *v;
-        
+
         uint32_t                     age;
         time_t                       date_time;
         time_t                       cur_time;
-        
+
         k = (const char *)"Age";
         v = (const char *)chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
         if(NULL_PTR == v)
@@ -1659,7 +1659,7 @@ EC_BOOL cmp4_filter_header_out_common(const UINT32 cmp4_md_id, const char *proce
                                                  k, v);
             return (EC_FALSE);
         }
-    }while(0);    
+    }while(0);
 
     cngx_set_cache_status(r, CMP4_MD_CACHE_STATUS(cmp4_md));
 
@@ -2301,7 +2301,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
 
     ngx_http_request_t          *r;
     const char                  *k;
-    const char                  *v;     
+    const char                  *v;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -2381,7 +2381,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
                                              k, v);
         return cmp4_content_direct_procedure(cmp4_md_id);
     }
-    
+
     k = (const char *)"Cache-Control";
     v = (const char *)"no-cache";
     if(EC_TRUE == cngx_has_header_in(r, k, v))
@@ -2391,7 +2391,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
                                              "%s:%s => direct procedure\n",
                                              k, v);
         return cmp4_content_direct_procedure(cmp4_md_id);
-    }     
+    }
 
     cngx_option_set_only_if_cached(r, CMP4_MD_CNGX_OPTION(cmp4_md));
     if(BIT_FALSE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
@@ -2519,14 +2519,14 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CMP4_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_host: "
@@ -2538,7 +2538,7 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -2560,7 +2560,7 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
             safe_free(v, LOC_CMP4_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -2583,8 +2583,8 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
         (const char *)"host",
     };
 
-    UINT32                       tag_idx;  
-    
+    UINT32                       tag_idx;
+
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
     {
@@ -2647,7 +2647,7 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -2662,22 +2662,22 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CMP4_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CMP4_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CMP4_0059);
-            
+
             /*continue*/
-        }        
+        }
     }
-    
+
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -2709,7 +2709,7 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default head port*/
     chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
@@ -2765,9 +2765,9 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
                 safe_free(v, LOC_CMP4_0012);
-                
+
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0013);
-                
+
                 return (EC_FALSE);
             }
             safe_free(v, LOC_CMP4_0014);
@@ -2934,7 +2934,7 @@ EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0033);
@@ -2943,8 +2943,8 @@ EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-            return (EC_TRUE);            
-        }    
+            return (EC_TRUE);
+        }
     }
 
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
@@ -2997,7 +2997,7 @@ EC_BOOL cmp4_content_head_header_out_connection_filter(const UINT32 cmp4_md_id)
 
     k = (const char *)"Connection";
     chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
-    
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_connection_filter: "
                                          "del rsp header '%s' done\n",
                                          k);
@@ -3044,10 +3044,10 @@ EC_BOOL cmp4_content_head_header_out_filter(const UINT32 cmp4_md_id)
                                              "connection filter failed\n");
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_filter: "
                                          "connection filter done\n");
-                                            
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -3214,7 +3214,7 @@ EC_BOOL cmp4_content_head_send_response(const UINT32 cmp4_md_id)
         cngx_set_header_only(r);
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_send_response: "
-                                             "set header only\n");        
+                                             "set header only\n");
 
         if(EC_FALSE == cngx_send_header(r, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
@@ -3226,7 +3226,7 @@ EC_BOOL cmp4_content_head_send_response(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_send_response: "
                                              "send header done\n");
 
-        return (EC_TRUE);                                         
+        return (EC_TRUE);
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_send_response: "
@@ -3347,16 +3347,16 @@ EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CMP4_0053);
-        
+
         return (EC_TRUE);
     }
 
     /*now cngx NOT config orig server and NOT config orig (host, port)*/
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_host: "
@@ -3368,7 +3368,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -3390,7 +3390,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
             safe_free(v, LOC_CMP4_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -3413,7 +3413,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
         (const char *)"host",
     };
 
-    UINT32                       tag_idx;    
+    UINT32                       tag_idx;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -3477,7 +3477,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -3492,21 +3492,21 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CMP4_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CMP4_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CMP4_0059);
-            
+
             /*continue*/
-        }        
-    }    
+        }
+    }
 
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
@@ -3539,7 +3539,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default direct port*/
     chttp_req_set_port_word(CMP4_MD_CHTTP_REQ(cmp4_md), CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
@@ -3617,7 +3617,7 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
                                                  "filter port failed\n");
             return (EC_FALSE);
-        }        
+        }
     }while(0);
 
     /*set http request method*/
@@ -3964,7 +3964,7 @@ EC_BOOL cmp4_content_direct_header_out_rsp_status_filter(const UINT32 cmp4_md_id
         chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0036);
@@ -3973,8 +3973,8 @@ EC_BOOL cmp4_content_direct_header_out_rsp_status_filter(const UINT32 cmp4_md_id
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-            return (EC_TRUE);            
-        }    
+            return (EC_TRUE);
+        }
     }
 
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
@@ -4032,13 +4032,13 @@ EC_BOOL cmp4_content_direct_header_out_connection_filter(const UINT32 cmp4_md_id
     {
         k = (const char *)"Connection";
         chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_connection_filter: "
                                              "404 => del %s\n",
                                              k);
         return (EC_TRUE);
     }
-    
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_connection_filter: "
                                          "not 404\n");
 
@@ -4096,10 +4096,10 @@ EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
                                              "connection filter failed\n");
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
                                          "connection filter done\n");
-                                         
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -4292,7 +4292,7 @@ EC_BOOL cmp4_content_direct_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG
     /*check seg num*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
     && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-    {                
+    {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_seg_n: seg no %ld overflow!\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
         return (EC_FALSE);
@@ -4696,14 +4696,14 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CMP4_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_host: "
@@ -4715,7 +4715,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -4737,7 +4737,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
             safe_free(v, LOC_CMP4_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -4751,7 +4751,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
-    
+
     CHTTP_REQ                   *chttp_req;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
@@ -4813,11 +4813,11 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
-                                             v);                                                
+                                             v);
         safe_free(v, LOC_CMP4_0048);
         return (EC_TRUE);
     }
-    
+
     /*extract request port from Host header*/
     k = (const char *)"http_host";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
@@ -4830,7 +4830,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
     if(NULL_PTR != v)
     {
         char   *segs[ 2 ];
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[cngx] get var '%s':'%s' done\n",
                                              k, v);
@@ -4845,20 +4845,20 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
                                                      segs[ 1 ]);
                 safe_free(v, LOC_CMP4_0046);
                 return (EC_FALSE);
-            }  
+            }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
-                                                 segs[ 1 ]); 
+                                                 segs[ 1 ]);
             safe_free(v, LOC_CMP4_0059);
-            
+
             return (EC_TRUE);
         }
-        
+
         safe_free(v, LOC_CMP4_0059);
-        
+
         /*continue*/
-    }        
+    }
 
     /*use $server_port as the port connecting to origin*/
     k = (const char *)"server_port";
@@ -5024,7 +5024,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 {
                     break;
                 }
-                
+
                 if(EC_FALSE == chttp_req_set_uri(chttp_req, (const char *)"/"))
                 {
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
@@ -5033,10 +5033,10 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                     "[cngx] append '/' done\n");                
+                                                     "[cngx] append '/' done\n");
                 break; /*fall through*/
             }
-            
+
             if(EC_FALSE == chttp_req_set_uri(chttp_req, v))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
@@ -5087,13 +5087,13 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
             chttp_req_renew_header(chttp_req, k, v);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "renew req header '%s':'%s' done\n",
-                                                 k, v);  
-                                                 
+                                                 k, v);
+
             k = (const char *)"Proxy-Connection";
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);                                                   
+                                                 k);
         }
         else
         {
@@ -5101,13 +5101,13 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);    
+                                                 k);
 
             k = (const char *)"Proxy-Connection";
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);                                                     
+                                                 k);
         }
     }while(0);
 
@@ -5118,7 +5118,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
         chttp_req_del_header(chttp_req, k);
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                              "del req header '%s' done\n",
-                                             k); 
+                                             k);
     }while(0);
 
     /*delete If-None-Match*/
@@ -5128,9 +5128,9 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
         chttp_req_del_header(chttp_req, k);
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                              "del req header '%s' done\n",
-                                             k); 
+                                             k);
     }while(0);
-    
+
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))
     {
@@ -5261,10 +5261,10 @@ EC_BOOL cmp4_content_orig_header_out_if_modified_since_filter(const UINT32 cmp4_
     chttp_rsp_only_headers(CMP4_MD_CHTTP_RSP(cmp4_md), g_cmp4_304_headers, g_cmp4_304_headers_num);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
                                          "reset rsp headers\n");
-                                            
+
     cngx_set_header_only(r);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_modified_since_filter: "
-                                         "set header only\n");    
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -5275,7 +5275,7 @@ EC_BOOL cmp4_content_orig_header_out_if_none_match_filter(const UINT32 cmp4_md_i
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
-    
+
     char                        *etag_src; /*ETag on cache side*/
     char                        *etag_des; /*ETag on client side*/
 
@@ -5332,7 +5332,7 @@ EC_BOOL cmp4_content_orig_header_out_if_none_match_filter(const UINT32 cmp4_md_i
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
                                              "set rsp status = %u\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-                                                
+
         return (EC_TRUE);
     }
 
@@ -5354,7 +5354,7 @@ EC_BOOL cmp4_content_orig_header_out_if_none_match_filter(const UINT32 cmp4_md_i
 
     cngx_set_header_only(r);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
-                                         "set header only\n");                                             
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -5455,7 +5455,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
 
         response_status = c_str_to_uint32_t(v);
-        
+
         if(CHTTP_NOT_FOUND == response_status)
         {
             cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0069);
@@ -5464,8 +5464,8 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-            return (EC_TRUE);            
-        }    
+            return (EC_TRUE);
+        }
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
@@ -5479,7 +5479,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
-    
+
     if(CHTTP_MOVED_PERMANENTLY == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md))
     || CHTTP_MOVED_TEMPORARILY == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
     {
@@ -5700,7 +5700,7 @@ EC_BOOL cmp4_content_orig_header_out_filter(const UINT32 cmp4_md_id)
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: "
-                                         "if-none-match filter done\n");      
+                                         "if-none-match filter done\n");
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_filter: done\n");
     return (EC_TRUE);
@@ -5747,7 +5747,7 @@ EC_BOOL cmp4_content_orig_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chttp_
 
     /*--- chttp_store settting --- BEG ---*/
     CHTTP_STORE_SEG_MAX_ID(chttp_store) = (uint32_t)CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md);
-    
+
     if(CMP4_ERR_SEG_NO == CMP4_MD_ABSENT_SEG_NO(cmp4_md))
     {
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
@@ -5783,7 +5783,7 @@ EC_BOOL cmp4_content_orig_set_store(const UINT32 cmp4_md_id, CHTTP_STORE *chttp_
 
     cstring_clone(CMP4_MD_CACHED_ETAG(cmp4_md)        , CHTTP_STORE_ETAG(chttp_store));
     cstring_clone(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), CHTTP_STORE_LAST_MODIFIED(chttp_store));
-   
+
     if(0 < CMP4_MD_CONTENT_LENGTH(cmp4_md))
     {
         CHTTP_STORE_CONTENT_LENGTH(chttp_store) = CMP4_MD_CONTENT_LENGTH(cmp4_md);
@@ -5935,7 +5935,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                              "http request failed\n");
-        
+
         if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
         {
             cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0077);
@@ -5943,7 +5943,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
         else
         {
             cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0077);
-        }        
+        }
         return (EC_FALSE);
     }
     if(do_log(SEC_0147_CMP4, 9))
@@ -6346,7 +6346,7 @@ EC_BOOL cmp4_content_orig_send_response(const UINT32 cmp4_md_id)
     if(EC_TRUE == cngx_need_header_only(r))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
-                                             "need header only => return\n");    
+                                             "need header only => return\n");
         return (EC_TRUE);
     }
 
@@ -6600,7 +6600,7 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: location '%s' =>  host '%s'\n", loc, host);
             chttp_req_set_ipaddr(&chttp_req_t, host);
             safe_free(host, LOC_CMP4_0083);
-            
+
             cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0084);
         }
 
@@ -6720,14 +6720,14 @@ EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CMP4_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_host: "
@@ -6739,7 +6739,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -6761,7 +6761,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id)
             safe_free(v, LOC_CMP4_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -6784,7 +6784,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
         (const char *)"host",
     };
 
-    UINT32                       tag_idx;      
+    UINT32                       tag_idx;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -6850,7 +6850,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -6865,22 +6865,22 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CMP4_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CMP4_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CMP4_0059);
-            
+
             /*continue*/
-        }        
-    }    
-    
+        }
+    }
+
     k = (const char *)"server_port";
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -6912,7 +6912,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default ims port*/
     chttp_req_set_port_word(CMP4_MD_CHTTP_REQ(cmp4_md), CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
@@ -8100,14 +8100,14 @@ EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id)
                                              "[conf] set host '%s' to http req done\n",
                                              v);
         safe_free(v, LOC_CMP4_0053);
-        
+
         return (EC_TRUE);
     }
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
-    {   
+    {
         k = tags[ tag_idx ];
-        
+
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_host: "
@@ -8119,7 +8119,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_host: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -8141,7 +8141,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id)
             safe_free(v, LOC_CMP4_0056);
 
             return (EC_TRUE);
-        }    
+        }
     }
 
     /*should never reach here*/
@@ -8165,7 +8165,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
     };
 
     UINT32                       tag_idx;
-    
+
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
     {
@@ -8228,7 +8228,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
         if(NULL_PTR != v)
         {
             char   *segs[ 2 ];
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_port: "
                                                  "[cngx] get var '%s':'%s' done\n",
                                                  k, v);
@@ -8243,21 +8243,21 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
                                                          segs[ 1 ]);
                     safe_free(v, LOC_CMP4_0046);
                     return (EC_FALSE);
-                }  
+                }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
-                                                     segs[ 1 ]); 
+                                                     segs[ 1 ]);
                 safe_free(v, LOC_CMP4_0059);
-                
+
                 return (EC_TRUE);
             }
-            
+
             safe_free(v, LOC_CMP4_0059);
-            
+
             /*continue*/
-        }        
-    }    
+        }
+    }
 
     /*when cngx NOT config repair port*/
     k = (const char *)"server_port";
@@ -8291,7 +8291,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
     }
 
     /*should never reach here*/
-    
+
     /*set default repair port*/
     chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
@@ -8357,7 +8357,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
 
             break; /*ok*/
         }
-        
+
         /*set host*/
         if(EC_FALSE == cmp4_content_repair_header_in_filter_host(cmp4_md_id))
         {
@@ -8461,7 +8461,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
             chttp_req_renew_header(chttp_req, k, v);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
                                                  "renew req header '%s':'%s' done\n",
-                                                 k, v);        
+                                                 k, v);
         }
         else
         {
@@ -8469,7 +8469,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
             chttp_req_del_header(chttp_req, k);
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
                                                  "del req header '%s' done\n",
-                                                 k);        
+                                                 k);
         }
     }while(0);
 
@@ -8803,12 +8803,12 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
     /*check seg num*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
     && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-    {                
+    {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_procedure: seg no %ld overflow!\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
         return (EC_FALSE);
     }
-    
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_procedure: "
                                          "set absent_seg_no = %ld\n",
                                          CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -9063,12 +9063,12 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -9089,12 +9089,12 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "no-expired => direct, absent_seg_no %ld\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -9126,12 +9126,12 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -9610,10 +9610,10 @@ EC_BOOL cmp4_content_cache_save_header(const UINT32 cmp4_md_id)
         {
             cstring_clean(CMP4_MD_CACHED_ETAG(cmp4_md));
             cstring_init(CMP4_MD_CACHED_ETAG(cmp4_md), (const UINT8 *)v);
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
                                                  "save '%s':'%s'\n",
-                                                 k, v);            
+                                                 k, v);
         }
     }
 
@@ -9634,15 +9634,15 @@ EC_BOOL cmp4_content_cache_save_header(const UINT32 cmp4_md_id)
         {
             cstring_clean(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md));
             cstring_init(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), (const UINT8 *)v);
-            
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
                                                  "save '%s':'%s'\n",
-                                                 k, v);            
+                                                 k, v);
         }
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_save_header: "
-                                         "done\n");    
+                                         "done\n");
     return (EC_TRUE);
 }
 
@@ -9737,7 +9737,7 @@ EC_BOOL cmp4_content_cache_header_out_if_modified_since_filter(const UINT32 cmp4
 
     cngx_set_header_only(r);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_modified_since_filter: "
-                                         "set header only\n"); 
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -9748,7 +9748,7 @@ EC_BOOL cmp4_content_cache_header_out_if_none_match_filter(const UINT32 cmp4_md_
     ngx_http_request_t          *r;
     const char                  *k;
     char                        *v;
-    
+
     char                        *etag_src; /*ETag on cache side*/
     char                        *etag_des; /*ETag on client side*/
 
@@ -9805,7 +9805,7 @@ EC_BOOL cmp4_content_cache_header_out_if_none_match_filter(const UINT32 cmp4_md_
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
                                              "set rsp status = %u\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-                                                
+
         return (EC_TRUE);
     }
 
@@ -9827,7 +9827,7 @@ EC_BOOL cmp4_content_cache_header_out_if_none_match_filter(const UINT32 cmp4_md_
 
     cngx_set_header_only(r);
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
-                                         "set header only\n");                                             
+                                         "set header only\n");
     return (EC_TRUE);
 }
 
@@ -9939,9 +9939,9 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
                                                  "[cngx] found 404 => response status = %ld [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
-            return (EC_TRUE);            
+            return (EC_TRUE);
         }
-        
+
         k = (const char *)"Location";
         if((CHTTP_MOVED_PERMANENTLY == response_status || CHTTP_MOVED_TEMPORARILY == response_status)
         && EC_TRUE == chttp_rsp_has_header_key(CMP4_MD_CHTTP_RSP(cmp4_md), k))/*has 'Location'*/
@@ -10087,7 +10087,7 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
                                          k, v);
 
     chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
-    
+
     return (EC_TRUE);
 }
 
@@ -10157,9 +10157,9 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_age_filter: "
                                              "get '%s':'%s'\n",
-                                             k, v);    
+                                             k, v);
         age = c_str_to_uint32_t(v);
-    } 
+    }
 
     /*current time*/
     curtime = task_brd_default_get_time();
@@ -10171,8 +10171,8 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_age_filter: "
                                              "no '%s' => done\n",
-                                             k);  
-        return (EC_TRUE);    
+                                             k);
+        return (EC_TRUE);
     }
     datetime = c_parse_http_time((uint8_t *)v, strlen(v));
 
@@ -10183,7 +10183,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                              datetime, max_age, age, curtime);
 
         /*REFRESH_HIT or REFRESH_MISS*/
-        CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md) = BIT_TRUE; 
+        CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md) = BIT_TRUE;
 
         return (EC_TRUE);
     }
@@ -10365,7 +10365,7 @@ EC_BOOL cmp4_content_cache_header_out_filter(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: "
                                          "if-none-match filter done\n");
-                                         
+
     if(BIT_FALSE == CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md))
     {
         if(EC_FALSE == cmp4_content_cache_header_out_expires_filter(cmp4_md_id))
@@ -10388,8 +10388,8 @@ EC_BOOL cmp4_content_cache_header_out_filter(const UINT32 cmp4_md_id)
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: "
                                              "age filter done\n");
-    }    
-    
+    }
+
     if(EC_FALSE == cmp4_content_cache_header_out_cache_status_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_header_out_filter: "
@@ -10398,7 +10398,7 @@ EC_BOOL cmp4_content_cache_header_out_filter(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: "
                                          "cache status filter done\n");
-                                         
+
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_filter: done\n");
 
     return (EC_TRUE);
@@ -10461,12 +10461,12 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "force orig, absent_seg_no %ld => orig\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -10483,16 +10483,16 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
         /*force change to direct procedure*/
         CMP4_MD_ABSENT_SEG_NO(cmp4_md) = CRANGE_SEG_NO(crange_seg);
-        
+
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
         }
-        
+
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "no-cache => direct, absent_seg_no %ld\n",
                                              CMP4_MD_ABSENT_SEG_NO(cmp4_md));
@@ -10524,11 +10524,11 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
         /*check seg num*/
         if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
         && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-        {                
+        {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: seg no %ld overflow!\n",
                                                  CMP4_MD_ABSENT_SEG_NO(cmp4_md));
             return (EC_FALSE);
-        }        
+        }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_seg_n: "
                                              "absent_seg_no %ld => orig\n",
@@ -10967,9 +10967,9 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
-                                                 "[HEAD] send header done\n");        
-            return (EC_TRUE);            
-        }        
+                                                 "[HEAD] send header done\n");
+            return (EC_TRUE);
+        }
 
         if(EC_FALSE == cngx_need_header_only(r)
         && EC_TRUE == crange_mgr_is_empty(crange_mgr)
@@ -10992,7 +10992,7 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
     if(EC_TRUE == cngx_need_header_only(r))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
-                                             "need header only => return\n");    
+                                             "need header only => return\n");
         return (EC_TRUE);
     }
 
@@ -11089,7 +11089,7 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
     ngx_http_request_t          *r;
-   
+
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
     {
@@ -11128,12 +11128,12 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             /*check seg num*/
             if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
             && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-            {                
+            {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: seg no %ld overflow!\n",
                                                      CMP4_MD_ABSENT_SEG_NO(cmp4_md));
                 return (EC_FALSE);
             }
-            
+
             if(EC_FALSE == cmp4_content_orig_procedure(cmp4_md_id))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
@@ -11172,9 +11172,9 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                      "[HEAD] cache miss => direct procedure\n");
-                                                        
+
                 return cmp4_content_head_procedure(cmp4_md_id);
-            }            
+            }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "absent_seg_no %ld => orig\n",
@@ -11186,12 +11186,12 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             /*check seg num*/
             if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md)
             && CMP4_MD_CACHE_SEG_MAX_NUM(cmp4_md) < CMP4_MD_ABSENT_SEG_NO(cmp4_md))
-            {                
+            {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: seg no %ld overflow!\n",
                                                      CMP4_MD_ABSENT_SEG_NO(cmp4_md));
                 return (EC_FALSE);
             }
-            
+
             if(EC_FALSE == cmp4_content_orig_procedure(cmp4_md_id))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
@@ -11238,15 +11238,15 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
-                                             "dir2 filter done\n");        
+                                             "dir2 filter done\n");
 
         do
         {
             const char                  *k;
             char                        *v;
-            
+
             uint32_t                     max_age;
-    
+
             k = (const char *)"Cache-Control";
             if(EC_FALSE == cngx_get_header_in(r, k, &v))
             {
@@ -11278,36 +11278,36 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "'%s':'%s' => max_age = %u\n",
-                                                 k, v, max_age);            
+                                                 k, v, max_age);
 
             if(EC_TRUE == chttp_rsp_is_aged(CMP4_MD_CHTTP_RSP(cmp4_md), max_age))
             {
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                      "'%s':'%s' => aged, cache => force orig procedure\n",
                                                      k, v);
-                                                        
-                safe_free(v, LOC_CMP4_0120);  
-                
+
+                safe_free(v, LOC_CMP4_0120);
+
                 CMP4_MD_ORIG_FORCE_FLAG(cmp4_md) = BIT_TRUE;
-                
+
                 return cmp4_content_cache_procedure(cmp4_md_id);
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "'%s':'%s' => not aged\n",
-                                                 k, v);            
-            
+                                                 k, v);
+
             safe_free(v, LOC_CMP4_0120);
             /*fall through*/
         }while(0);
-        
+
         do
         {
             const char                  *k;
             char                        *v;
-            
+
             uint32_t                     max_age;
-    
+
             k = (const char *)"max-age";
             if(EC_FALSE == cngx_get_header_in(r, k, &v))
             {
@@ -11332,19 +11332,19 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                      "'%s':'%s' => aged, cache => force orig procedure\n",
                                                      k, v);
-                                                        
+
 
                 safe_free(v, LOC_CMP4_0120);
-                
+
                 CMP4_MD_ORIG_FORCE_FLAG(cmp4_md) = BIT_TRUE;
-                
+
                 return cmp4_content_cache_procedure(cmp4_md_id);
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "'%s':'%s' => not aged\n",
                                                  k, v);
-                                                 
+
             safe_free(v, LOC_CMP4_0120);
             /*fall through*/
         }while(0);
@@ -11352,12 +11352,12 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
         if(EC_FALSE == cmp4_content_cache_save_header(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
-                                                 "save header failed\n");        
+                                                 "save header failed\n");
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
-                                             "save header done\n"); 
+                                             "save header done\n");
 
         /*parse Content-Length and segs from chttp rsp if cngx req has no 'Range'*/
         if(EC_TRUE == crange_mgr_is_empty(CMP4_MD_CNGX_RANGE_MGR(cmp4_md))

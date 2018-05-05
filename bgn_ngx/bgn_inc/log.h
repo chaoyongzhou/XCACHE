@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -72,7 +72,7 @@ extern LOG g_default_log_tbl[];
 #define LOG_FILE_CUR_RECORDS(file_log)              ((file_log)->logd.file.cur_records)
 #define LOG_FILE_TCID(file_log)                     ((file_log)->logd.file.tcid)
 #define LOG_FILE_RANK(file_log)                     ((file_log)->logd.file.rank)
-                                               
+
 #define LOG_CSTR(cstr_log)                          ((cstr_log)->logd.cstring)
 
 #if 1
@@ -145,7 +145,7 @@ extern UINT32 g_log_level[ SEC_NONE_END ];
 #define std_log(X, ...)            fprintf(stdout, __VA_ARGS__)
 
 //#define rlog(SECTION, LEVEL)        !do_log(SECTION, LEVEL) ? (void) 0 : sys_log
-#define rlog(SECTION, LEVEL)        NULL_LOG 
+#define rlog(SECTION, LEVEL)        NULL_LOG
 
 typedef struct
 {

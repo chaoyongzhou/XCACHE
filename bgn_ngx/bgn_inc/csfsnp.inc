@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -55,7 +55,7 @@ typedef struct
     uint16_t    rsvd2;          /*tcid: not used yet*/
     uint16_t    disk_no;        /*local disk_no*/
     uint16_t    block_no;       /*block_no in above disk*/
-    uint16_t    page_no;        /*page_no in above block*/    
+    uint16_t    page_no;        /*page_no in above block*/
 }CSFSNP_INODE;
 
 #define CSFSNP_INODE_DISK_NO(csfsnp_inode)           ((csfsnp_inode)->disk_no)
@@ -80,10 +80,10 @@ typedef struct
 #define CSFSNP_FNODE_INODE_PAGE_NO(csfsnp_fnode, idx)    CSFSNP_INODE_PAGE_NO(CSFSNP_FNODE_INODE(csfsnp_fnode, idx))
 
 typedef struct
-{   
+{
     CSFSNPRB_NODE   rb_node;/*16B*/
 
-    /*8B: c_time + rsvd1(only for 32bit OS)*/    
+    /*8B: c_time + rsvd1(only for 32bit OS)*/
     /*ctime_t is 32 bits for 32bit OS, 64 bits for 64bit OS*/
     ctime_t       c_time; /*create time       */
 
@@ -97,7 +97,7 @@ typedef struct
     uint32_t      stat :4;
     uint32_t      klen :8;
 
-    /*16B*/    
+    /*16B*/
     uint8_t       key[ CSFSNP_KEY_MAX_SIZE ];  /* file name or hash/digest value*/
 
     union
@@ -189,16 +189,16 @@ typedef struct
 typedef struct
 {
     /*8B*/
-    uint32_t       np_id;               /*csfsnp id              */    
-    uint8_t        np_model;            /*csfsnp model           */    
-    uint8_t        rsvd1;                    
+    uint32_t       np_id;               /*csfsnp id              */
+    uint8_t        np_model;            /*csfsnp model           */
+    uint8_t        rsvd1;
     uint8_t        chash_algo_1st_id ;  /*first hash algo func id : used to compute bucket pos in dnode   */
-    uint8_t        chash_algo_2nd_id;   /*second hash algo func id: used to compute csfsnprb_node hash data*/   
+    uint8_t        chash_algo_2nd_id;   /*second hash algo func id: used to compute csfsnprb_node hash data*/
 
     /*8B + (2MB - 4KB)*/
     uint32_t       del_items_max_num;   /*format: CFG_ITEM_MAX_NUM < CRFSNP_DEL_ITEM_BITMAP_UPPER_LIMIT * 8*/
     uint32_t       del_items_cur_num;
-    uint32_t       del_items_bitmap[ CSFSNP_DEL_ITEMS_BITMAP_U32_TAB_SIZE ]; 
+    uint32_t       del_items_bitmap[ CSFSNP_DEL_ITEMS_BITMAP_U32_TAB_SIZE ];
 
     /*4KB - 24B*/
     uint8_t        pad_a[ (1 << 12) -  24 - 16]; /*4KB - 24B: pad the first part to 2 MB*/
@@ -208,7 +208,7 @@ typedef struct
     uint32_t       bucket_offset;       /*bucket start position, offset from CSFSNP_HEADER*/
 
     /*1GB - 4MB. note: the tail 2MB is for buckets*/
-    CSFSNPRB_POOL  pool;                /*pool of CSFSNP_ITEM, CSFSNP_ITEM head must be CSFSNPRB_NODE*/    
+    CSFSNPRB_POOL  pool;                /*pool of CSFSNP_ITEM, CSFSNP_ITEM head must be CSFSNPRB_NODE*/
 } CSFSNP_HEADER;
 
 #define CSFSNP_HEADER_NP_ID(csfsnp_header)                      ((csfsnp_header)->np_id)
@@ -233,18 +233,18 @@ typedef struct
     int              fd;              /* sfs name node fd  */
     uint32_t         retire_node_pos; /*retire node_pos*/
     UINT32           fsize;
-    
+
     uint8_t         *fname;
 
     uint64_t         del_size;        /* deleted but not recycled bytes*/
     uint64_t         recycle_size;    /* recycled bytes*/
- 
+
     CRWLOCK          crwlock;         /* bucket crwlock*/
     CSFSNP_HEADER   *header;          /* hashdb header */
     uint32_t        *bucket_addr;
 
     CHASH_ALGO       chash_algo_1st;  /* hash algo for hash bucket              : used to compute bucket pos in dnode   */
-    CHASH_ALGO       chash_algo_2nd;  /* hash algo for rbtree in the hash bucket: used to compute csfsnprb_node hash data*/   
+    CHASH_ALGO       chash_algo_2nd;  /* hash algo for rbtree in the hash bucket: used to compute csfsnprb_node hash data*/
 } CSFSNP;
 
 #define CSFSNP_FD(csfsnp)                     ((csfsnp)->fd)

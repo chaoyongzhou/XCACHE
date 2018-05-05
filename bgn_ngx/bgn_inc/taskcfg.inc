@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -51,7 +51,7 @@ typedef struct
 {
     UINT32                         srv_ipaddr;
     UINT32                         srv_port;
-    
+
     UINT32                         srv_tcid;
 }TASKS_SRV;
 
@@ -117,7 +117,7 @@ typedef struct
 
     /*call back interface*/
     CCALLBACK_LIST           add_callback_list;
-    CCALLBACK_LIST           del_callback_list;  
+    CCALLBACK_LIST           del_callback_list;
 }TASKS_MONITOR;
 
 #define TASKS_MONITOR_NODES(tasks_monitor)               (&((tasks_monitor)->tasks_nodes))
@@ -135,13 +135,13 @@ typedef struct
     UINT32          srvport;      /*taskcomm srv port  , for local or remote*/
 
     UINT32          csrvport;     /*when valid, will start csrv on it*/
-    CVECTOR         cluster_vec;  /*belong to these clusters, item is cluster id (UINT32)*/   
+    CVECTOR         cluster_vec;  /*belong to these clusters, item is cluster id (UINT32)*/
 
     UINT32          ssrvport;     /*when valid, will start https on it: ssl server*/
 
     int             srvsockfd;    /*[ONLY FOR LOCAL TASKS CFG] local taskcomm srv listening sockfd */
     int             rsvd;
-    
+
     TASKS_WORKER    tasks_worker; /*[ONLY FOR LOCAL TASKS CFG] working clients: remote taskcomm connection to local taskcomm : tasks_node vector  */
     TASKS_MONITOR   tasks_monitor;/*[ONLY FOR LOCAL TASKS CFG] monitoring clients: remote taskcomm connection to local taskcomm: csocket_cnode vector*/
 

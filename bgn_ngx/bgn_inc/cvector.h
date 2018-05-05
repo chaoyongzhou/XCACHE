@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -103,9 +103,9 @@ EC_BOOL cvector_cmp(const CVECTOR *cvector_1st, const CVECTOR *cvector_2nd, EC_B
 
 UINT32 cvector_add(CVECTOR *cvector, const void *data);
 
-EC_BOOL cvector_asc_cmp_default(const void *data_1, const void *data_2); 
+EC_BOOL cvector_asc_cmp_default(const void *data_1, const void *data_2);
 
-EC_BOOL cvector_desc_cmp_default(const void *data_1, const void *data_2); 
+EC_BOOL cvector_desc_cmp_default(const void *data_1, const void *data_2);
 
 UINT32 cvector_push_in_order(CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(const void *, const void *));
 
@@ -199,8 +199,8 @@ EC_BOOL cvector_check_all_is_true(const CVECTOR *cvector);
 
 EC_BOOL cvector_check_one_is_true(const CVECTOR *cvector);
 
-EC_BOOL cvector_loop(CVECTOR *cvector, 
-                         void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *), 
+EC_BOOL cvector_loop(CVECTOR *cvector,
+                         void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *),
                          const UINT32 func_para_num, const UINT32 cvector_data_pos,
                          const UINT32 handler_func_addr,...);
 
@@ -295,8 +295,8 @@ EC_BOOL cvector_check_all_is_true_no_lock(const CVECTOR *cvector);
 
 EC_BOOL cvector_check_one_is_true_no_lock(const CVECTOR *cvector);
 
-EC_BOOL cvector_loop_no_lock(CVECTOR *cvector, 
-                                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *), 
+EC_BOOL cvector_loop_no_lock(CVECTOR *cvector,
+                                     void *handler_retval_addr, EC_BOOL (*handler_retval_checker)(const void *),
                                      const UINT32 func_para_num, const UINT32 cvector_data_pos,
                                      const UINT32 handler_func_addr,...);
 
