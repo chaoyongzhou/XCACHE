@@ -6051,7 +6051,16 @@ EC_BOOL cvendor_content_orig_send_request(const UINT32 cvendor_md_id)
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_request: "
                                                 "http request failed\n");
-        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0082);
+
+        if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CVENDOR_0082);
+        }
+        else
+        {
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0082);
+        }
+        
         return (EC_FALSE);
     }
     if(do_log(SEC_0175_CVENDOR, 9))

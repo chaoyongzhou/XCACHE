@@ -177,6 +177,9 @@ typedef struct
 /*statistics*/
 typedef struct
 {
+    uint32_t                  rsp_status;
+    uint32_t                  rsvd;
+    
     /*transfer statistics*/
     uint32_t                  send_len;
     uint32_t                  recv_len;
@@ -265,6 +268,8 @@ typedef struct
     uint8_t                   status_str[ CHTTP_STAT_STR_MAX_SIZE ]; 
     uint8_t                   desc_str  [ CHTTP_DESC_STR_MAX_SIZE ];     
 }CHTTP_STAT;
+
+#define CHTTP_STAT_RSP_STATUS(chttp_stat)          ((chttp_stat)->rsp_status)
 
 #define CHTTP_STAT_S_SEND_LEN(chttp_stat)          ((chttp_stat)->send_len)
 #define CHTTP_STAT_S_RECV_LEN(chttp_stat)          ((chttp_stat)->recv_len)

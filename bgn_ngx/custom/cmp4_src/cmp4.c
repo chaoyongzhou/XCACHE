@@ -5935,7 +5935,15 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0077);
+        
+        if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0077);
+        }
+        else
+        {
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0077);
+        }        
         return (EC_FALSE);
     }
     if(do_log(SEC_0147_CMP4, 9))

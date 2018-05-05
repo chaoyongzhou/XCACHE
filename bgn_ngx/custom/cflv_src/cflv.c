@@ -5728,7 +5728,15 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                              "http request failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0072);
+
+        if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
+        {
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CFLV_0072);
+        }
+        else
+        {
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0072);
+        }        
         return (EC_FALSE);
     }
     if(do_log(SEC_0146_CFLV, 9))

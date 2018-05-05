@@ -2384,6 +2384,8 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
 
+    CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_GATEWAY_TIMEOUT;
+
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [server] sockfd %d timeout\n", sockfd);
@@ -6600,6 +6602,8 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect: connect server %s:%ld failed\n",
                                 c_word_to_ipv4(ipaddr), port);
+
+            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_BAD_GATEWAY;
             return (EC_FALSE);
         }
 
@@ -6611,6 +6615,8 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect: sockfd %d to server %s:%ld is not connected\n",
                             sockfd, c_word_to_ipv4(ipaddr), port);
             csocket_close(sockfd);
+
+            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_BAD_GATEWAY;
             return (EC_FALSE);
         }
 
@@ -6626,6 +6632,8 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect:new csocket cnode for sockfd %d to server %s:%ld failed\n",
                             sockfd, c_word_to_ipv4(ipaddr), port);
             csocket_close(sockfd);
+
+            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_FALSE);
         }
         CSOCKET_CNODE_TCID(csocket_cnode)           = CMPI_ANY_TCID;
@@ -8444,6 +8452,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
 
+        CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
+        
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
         return (EC_FALSE);
@@ -8464,6 +8474,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
+
+        CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
 
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
@@ -8507,6 +8519,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                 dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: croutine load for chttp_node_detach failed\n");
 
                 /*exception*/
+                CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
 
                 chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
 
