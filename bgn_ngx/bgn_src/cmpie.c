@@ -5331,6 +5331,8 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
     }
 #endif /* ENCODE_DEBUG_SWITCH */
 
+    cmpi_encode_uint32_t(comm, CHTTP_STAT_RSP_STATUS(chttp_stat), out_buff, out_buff_max_len, position);
+    
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), out_buff, out_buff_max_len, position);
 
@@ -5357,6 +5359,8 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
 
 UINT32 cmpi_encode_chttp_stat_size(const UINT32 comm, const CHTTP_STAT *chttp_stat, UINT32 *size)
 {
+    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_RSP_STATUS(chttp_stat), size);
+    
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), size);
 
@@ -5400,6 +5404,8 @@ UINT32 cmpi_decode_chttp_stat(const UINT32 comm, const UINT8 *in_buff, const UIN
         dbg_exit(MD_TBD, 0);
     }
 #endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_RSP_STATUS(chttp_stat));
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_SEND_LEN(chttp_stat));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_RECV_LEN(chttp_stat));
