@@ -161,6 +161,7 @@ UINT32 cvendor_start(ngx_http_request_t *r)
     CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md)           = BIT_FALSE;
     CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) = BIT_FALSE;
     CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md)               = BIT_FALSE;
     CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                = BIT_FALSE;
     CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 = BIT_FALSE;
     CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          = BIT_FALSE;
@@ -243,6 +244,7 @@ void cvendor_end(const UINT32 cvendor_md_id)
     CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md)           = BIT_FALSE;
     CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) = BIT_FALSE;
     CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 = BIT_FALSE;
+    CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md)               = BIT_FALSE;
     CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                = BIT_FALSE;
     CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 = BIT_FALSE;
     CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          = BIT_FALSE;
@@ -3610,7 +3612,7 @@ EC_BOOL cvendor_content_direct_header_out_connection_filter(const UINT32 cvendor
 
 EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
 {
-    //CVENDOR_MD                  *cvendor_md;
+    CVENDOR_MD                  *cvendor_md;
 
     //ngx_http_request_t          *r;
     const char                  *k;
@@ -3625,23 +3627,26 @@ EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     k = (const char *)"direct";
     cvendor_filter_header_out_common(cvendor_md_id, k);
 
-    /*Content-Length and Content-Range*/
-    if(EC_FALSE == cvendor_content_direct_header_out_range_filter(cvendor_md_id))
+    if(BIT_FALSE == CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
-                                                "range filter failed\n");
-        return (EC_FALSE);
+        /*Content-Length and Content-Range*/
+        if(EC_FALSE == cvendor_content_direct_header_out_range_filter(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
+                                                    "range filter failed\n");
+            return (EC_FALSE);
+        }
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
+                                                "range filter done\n");
     }
-
-    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
-                                            "range filter done\n");
 
     if(EC_FALSE == cvendor_content_direct_header_out_rsp_status_filter(cvendor_md_id))
     {
@@ -10033,6 +10038,18 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                 return cvendor_content_head_procedure(cvendor_md_id);
             }
 
+            /*if IMS and switch on, direct procedure*/
+            if(EC_TRUE == cngx_has_header_in_key(r, (const char *)"If-Modified-Since")
+            && EC_TRUE == cngx_is_direct_ims_switch_on(r))
+            {
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "[IMS] cache miss => direct procedure\n");
+
+                CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md) = BIT_TRUE;
+                
+                return cvendor_content_direct_procedure(cvendor_md_id);           
+            }
+            
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                     "absent_seg_no %ld => orig\n",
                                                     seg_no);

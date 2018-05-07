@@ -57,11 +57,12 @@ typedef struct
     uint32_t             cngx_range_adjusted_flag           :1; /*if range is adjust or split*/
     uint32_t             cngx_range_filtered_flag           :1; /*if range is adjust or split*/
     uint32_t             cngx_range_start_zero_endless_flag :1; /*range is "0-"*/
+    uint32_t             cngx_direct_ims_flag               :1; /*direct orig when ims miss and switch is on*/
     uint32_t             cache_expired_flag                 :1; /*if cache is expired*/
     uint32_t             content_length_exist_flag          :1; /*exist field 'Content-Length' in response header*/
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
-    uint32_t             rsvd01                             :22;
+    uint32_t             rsvd01                             :21;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr;
@@ -107,6 +108,7 @@ typedef struct
 #define CMP4_MD_CNGX_RANGE_ADJUSTED_FLAG(cmp4_md)           ((cmp4_md)->cngx_range_adjusted_flag)
 #define CMP4_MD_CNGX_RANGE_FILTERED_FLAG(cmp4_md)           ((cmp4_md)->cngx_range_filtered_flag)
 #define CMP4_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cmp4_md) ((cmp4_md)->cngx_range_start_zero_endless_flag)
+#define CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md)               ((cmp4_md)->cngx_direct_ims_flag)
 #define CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md)                 ((cmp4_md)->cache_expired_flag)
 #define CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md)          ((cmp4_md)->content_length_exist_flag)
 #define CMP4_MD_ORIG_FORCE_FLAG(cmp4_md)                    ((cmp4_md)->orig_force_flag)

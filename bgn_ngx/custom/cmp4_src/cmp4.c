@@ -161,6 +161,7 @@ UINT32 cmp4_start(ngx_http_request_t *r)
     CMP4_MD_CNGX_RANGE_ADJUSTED_FLAG(cmp4_md)           = BIT_FALSE;
     CMP4_MD_CNGX_RANGE_FILTERED_FLAG(cmp4_md)           = BIT_FALSE;
     CMP4_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cmp4_md) = BIT_FALSE;
+    CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md)               = BIT_FALSE;
     CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md)                 = BIT_FALSE;
     CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md)          = BIT_FALSE;
     CMP4_MD_ORIG_FORCE_FLAG(cmp4_md)                    = BIT_FALSE;
@@ -244,6 +245,7 @@ void cmp4_end(const UINT32 cmp4_md_id)
     CMP4_MD_CNGX_RANGE_ADJUSTED_FLAG(cmp4_md)           = BIT_FALSE;
     CMP4_MD_CNGX_RANGE_FILTERED_FLAG(cmp4_md)           = BIT_FALSE;
     CMP4_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cmp4_md) = BIT_FALSE;
+    CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md)               = BIT_FALSE;
     CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md)                 = BIT_FALSE;
     CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md)          = BIT_FALSE;
     CMP4_MD_ORIG_FORCE_FLAG(cmp4_md)                    = BIT_FALSE;
@@ -4047,7 +4049,7 @@ EC_BOOL cmp4_content_direct_header_out_connection_filter(const UINT32 cmp4_md_id
 
 EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
 {
-    //CMP4_MD                  *cmp4_md;
+    CMP4_MD                     *cmp4_md;
 
     //ngx_http_request_t          *r;
     const char                  *k;
@@ -4062,24 +4064,27 @@ EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     k = (const char *)"direct";
     cmp4_filter_header_out_common(cmp4_md_id, k);
 
-    /*Content-Length and Content-Range*/
-    if(EC_FALSE == cmp4_content_direct_header_out_range_filter(cmp4_md_id))
+    if(BIT_FALSE == CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md))
     {
-        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
-                                             "range filter failed\n");
-        return (EC_FALSE);
+        /*Content-Length and Content-Range*/
+        if(EC_FALSE == cmp4_content_direct_header_out_range_filter(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
+                                                 "range filter failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
+                                             "range filter done\n");
     }
-
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
-                                         "range filter done\n");
-
+    
     if(EC_FALSE == cmp4_content_direct_header_out_rsp_status_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
@@ -11176,6 +11181,18 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
                 return cmp4_content_head_procedure(cmp4_md_id);
             }
 
+            /*if IMS and switch on, direct procedure*/
+            if(EC_TRUE == cngx_has_header_in_key(r, (const char *)"If-Modified-Since")
+            && EC_TRUE == cngx_is_direct_ims_switch_on(r))
+            {
+                dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                                     "[IMS] cache miss => direct procedure\n");
+
+                CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md) = BIT_TRUE;
+                
+                return cmp4_content_direct_procedure(cmp4_md_id);           
+            } 
+            
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
                                                  "absent_seg_no %ld => orig\n",
                                                  seg_no);

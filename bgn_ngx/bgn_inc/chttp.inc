@@ -110,6 +110,9 @@ typedef struct
 
     uint32_t                  orig_timeout_nsec;
 
+    uint32_t                  merge_lock_expires_nsec;  /*lock storage will expires in seconds*/
+    uint32_t                  merge_wait_timeout_nsec;  /*merge procedure wait response and will resume in seconds*/
+
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
 
@@ -152,6 +155,9 @@ typedef struct
 #define CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)     ((chttp_store)->override_expires_nsec)
 
 #define CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)         ((chttp_store)->orig_timeout_nsec)
+
+#define CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store)   ((chttp_store)->merge_lock_expires_nsec)
+#define CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store)   ((chttp_store)->merge_wait_timeout_nsec)
 
 #define CHTTP_STORE_REDIRECT_CTRL(chttp_store)             ((chttp_store)->redirect_control)
 #define CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store)        ((chttp_store)->redirect_max_times)

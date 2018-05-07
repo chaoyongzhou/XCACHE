@@ -723,7 +723,10 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
-        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
+        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)        = 0;
+
+        CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store)  = 0;
+        CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store)  = 0;
 
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
@@ -771,7 +774,10 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
 
-        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)  = 0;
+        CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)        = 0;
+
+        CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store)  = 0;
+        CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store)  = 0;
 
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
@@ -831,6 +837,9 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_src);
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_des)  = CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_src);
+
+        CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store_des)  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store_src);
+        CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store_des)  = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store_src);
 
         CHTTP_STORE_REDIRECT_CTRL(chttp_store_des)      =  CHTTP_STORE_REDIRECT_CTRL(chttp_store_src);
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_des) = CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_src);
@@ -924,6 +933,9 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec      : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
+
+    sys_log(LOGSTDOUT, "chttp_store_print:merge_lock_expires_nsec: %u\n", CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:merge_wait_timeout_nsec: %u\n", CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store));
 
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl          : %s\n", c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_max_times     : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
@@ -9022,8 +9034,8 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     chttp_stat_init(&chttp_stat_t);
     CHTTP_STAT_LOG_MERGE_TIME_WHEN_START(&chttp_stat_t); /*record merge start time*/
 
-    timeout_msec = 60 * 1000;
-    expire_nsec  = 60;
+    timeout_msec = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) * 1000;
+    expire_nsec  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store);
     tag          = MD_CRFS;
 
     /*make path*/

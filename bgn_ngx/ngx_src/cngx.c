@@ -1310,6 +1310,22 @@ EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r)
     return (SWITCH_OFF == v) ? EC_FALSE : EC_TRUE;
 }
 
+/*direct to orig for ims request*/
+EC_BOOL cngx_is_direct_ims_switch_on(ngx_http_request_t *r)
+{
+    const char                  *k;
+    UINT32                       v;
+
+    k = (const char *)CNGX_VAR_DIRECT_IMS_SWITCH;
+    cngx_get_var_switch(r, k, &v, SWITCH_OFF);
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_direct_ims_switch_on: "
+                                         "get var '%s':'%s' done\n",
+                                         k, c_switch_to_str(v));
+
+    return (SWITCH_OFF == v) ? EC_FALSE : EC_TRUE;
+}
+
 /*merge rsp header to client*/
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r)
 {
@@ -2378,6 +2394,52 @@ EC_BOOL cngx_set_store_orig_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_st
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
+{
+    const char      *k;
+    uint32_t         n;
+
+    k = (const char *)CNGX_VAR_MERGE_LOCK_EXPIRES_NSEC;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &n, (uint32_t)60))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_merge_lock_expires: "
+                                             "cngx get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store) = n;
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_merge_lock_expires: "
+                                         "cngx var '%s':'%u' done\n",
+                                         k, n);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_set_store_merge_wait_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
+{
+    const char      *k;
+    uint32_t         n;
+
+    k = (const char *)CNGX_VAR_MERGE_WAIT_TIMEOUT_NSEC;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &n, (uint32_t)60))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_merge_wait_timeout: "
+                                             "cngx get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) = n;
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_merge_wait_timeout: "
+                                         "cngx var '%s':'%u' done\n",
+                                         k, n);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_set_store_redirect_max_times(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
@@ -2526,6 +2588,8 @@ EC_BOOL cngx_set_store(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
     || EC_FALSE == cngx_set_store_expires_cache_code(r, chttp_store)
     || EC_FALSE == cngx_set_store_expires_override(r, chttp_store)
     || EC_FALSE == cngx_set_store_orig_timeout(r, chttp_store)
+    || EC_FALSE == cngx_set_store_merge_lock_expires(r, chttp_store)
+    || EC_FALSE == cngx_set_store_merge_wait_timeout(r, chttp_store)
     || EC_FALSE == cngx_set_store_redirect_max_times(r, chttp_store)
     )
     {

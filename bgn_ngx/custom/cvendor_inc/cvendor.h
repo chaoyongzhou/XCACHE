@@ -53,13 +53,14 @@ typedef struct
     uint32_t             cngx_range_filtered_flag           :1; /*if range is adjust or split*/
     uint32_t             cngx_range_start_zero_endless_flag :1; /*range is "0-"*/
     uint32_t             cngx_use_gzip_flag                 :1; /*exist header 'Accept-Encoding':'gzip'*/
+    uint32_t             cngx_direct_ims_flag               :1; /*direct orig when ims miss and switch is on*/
     uint32_t             cache_use_gzip_flag                :1; /*use gzip path for cache reading/writing*/
     uint32_t             cache_expired_flag                 :1; /*if cache is expired*/
     uint32_t             content_length_exist_flag          :1; /*exist field 'Content-Length' in response header*/
     uint32_t             orig_chunk_flag                    :1; /*orig is chunk*/
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
-    uint32_t             rsvd01                             :19;
+    uint32_t             rsvd01                             :18;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr;
@@ -102,12 +103,14 @@ typedef struct
 #define CVENDOR_MD_CNGX_RANGE_FILTERED_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_filtered_flag)
 #define CVENDOR_MD_CNGX_RANGE_START_ZERO_ENDLESS_FLAG(cvendor_md) ((cvendor_md)->cngx_range_start_zero_endless_flag)
 #define CVENDOR_MD_CNGX_USE_GZIP_FLAG(cvendor_md)                 ((cvendor_md)->cngx_use_gzip_flag)
+#define CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md)               ((cvendor_md)->cngx_direct_ims_flag)
 #define CVENDOR_MD_CACHE_USE_GZIP_FLAG(cvendor_md)                ((cvendor_md)->cache_use_gzip_flag)
 #define CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md)                 ((cvendor_md)->cache_expired_flag)
 #define CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)          ((cvendor_md)->content_length_exist_flag)
 #define CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    ((cvendor_md)->orig_chunk_flag)
 #define CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md)                    ((cvendor_md)->orig_force_flag)
 #define CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)                 ((cvendor_md)->orig_no_cache_flag)
+
 
 #define CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)                     (&((cvendor_md)->cngx_range_mgr))
 

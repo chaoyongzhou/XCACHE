@@ -80,6 +80,11 @@ extern "C"{
 #define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/
 #define  CNGX_VAR_ORIG_TIMEOUT_NSEC               ("c_orig_timeout_nsec")        /*default: 20 sec defined by CHTTP_SOCKET_TIMEOUT_NSEC*/
 
+#define  CNGX_VAR_DIRECT_IMS_SWITCH               ("c_direct_ims_switch")        /*default: off. if switch on, direct orig when miss*/
+
+#define  CNGX_VAR_MERGE_LOCK_EXPIRES_NSEC         ("c_merge_lock_expires_nsec")  /*default: 60s. lock storage expires*/
+#define  CNGX_VAR_MERGE_WAIT_TIMEOUT_NSEC         ("c_merge_wait_timeout_nsec")  /*default: 60s. merge wait timeout*/
+
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
 
 #define  CNGX_VAR_MP4_BUFFER_SIZE                 ("c_mp4_buffer_size")
@@ -248,6 +253,8 @@ EC_BOOL cngx_is_direct_orig_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r);
 
+EC_BOOL cngx_is_direct_ims_switch_on(ngx_http_request_t *r);
+
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_orig_keepalive_switch_on(ngx_http_request_t *r);
@@ -305,6 +312,10 @@ EC_BOOL cngx_set_store_expires_cache_code(ngx_http_request_t *r, CHTTP_STORE *ch
 EC_BOOL cngx_set_store_expires_override(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
 EC_BOOL cngx_set_store_orig_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
+
+EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
+
+EC_BOOL cngx_set_store_merge_wait_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
 EC_BOOL cngx_set_store_redirect_max_times(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
