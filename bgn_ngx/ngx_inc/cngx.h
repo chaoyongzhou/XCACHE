@@ -82,7 +82,7 @@ extern "C"{
 
 #define  CNGX_VAR_DIRECT_IMS_SWITCH               ("c_direct_ims_switch")        /*default: off. if switch on, direct orig when miss*/
 
-#define  CNGX_VAR_MERGE_LOCK_EXPIRES_NSEC         ("c_merge_lock_expires_nsec")  /*default: 60s. lock storage expires*/
+//#define  CNGX_VAR_MERGE_LOCK_EXPIRES_NSEC         ("c_merge_lock_expires_nsec")  /*default: 60s. lock storage expires*/
 #define  CNGX_VAR_MERGE_WAIT_TIMEOUT_NSEC         ("c_merge_wait_timeout_nsec")  /*default: 60s. merge wait timeout*/
 
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
@@ -313,7 +313,7 @@ EC_BOOL cngx_set_store_expires_override(ngx_http_request_t *r, CHTTP_STORE *chtt
 
 EC_BOOL cngx_set_store_orig_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
-EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
+//EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
 EC_BOOL cngx_set_store_merge_wait_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 

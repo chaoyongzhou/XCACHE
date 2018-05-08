@@ -2394,6 +2394,7 @@ EC_BOOL cngx_set_store_orig_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_st
     return (EC_TRUE);
 }
 
+#if 0
 EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
@@ -2416,7 +2417,7 @@ EC_BOOL cngx_set_store_merge_lock_expires(ngx_http_request_t *r, CHTTP_STORE *ch
 
     return (EC_TRUE);
 }
-
+#endif
 EC_BOOL cngx_set_store_merge_wait_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
@@ -2432,6 +2433,7 @@ EC_BOOL cngx_set_store_merge_wait_timeout(ngx_http_request_t *r, CHTTP_STORE *ch
     }
 
     CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) = n;
+    CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store) = n + 1; /*add one more second*/
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_merge_wait_timeout: "
                                          "cngx var '%s':'%u' done\n",
@@ -2588,7 +2590,7 @@ EC_BOOL cngx_set_store(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
     || EC_FALSE == cngx_set_store_expires_cache_code(r, chttp_store)
     || EC_FALSE == cngx_set_store_expires_override(r, chttp_store)
     || EC_FALSE == cngx_set_store_orig_timeout(r, chttp_store)
-    || EC_FALSE == cngx_set_store_merge_lock_expires(r, chttp_store)
+    //|| EC_FALSE == cngx_set_store_merge_lock_expires(r, chttp_store)
     || EC_FALSE == cngx_set_store_merge_wait_timeout(r, chttp_store)
     || EC_FALSE == cngx_set_store_redirect_max_times(r, chttp_store)
     )

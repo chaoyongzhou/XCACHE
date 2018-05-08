@@ -6917,7 +6917,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         }
 
         /*note: here initiatives to unlock*/
-        super_cond_wakeup(super_md_id, tag, key);
+        super_cond_wakeup(super_md_id, tag, key);/*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
         crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node);        
@@ -6935,7 +6935,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         }
 
         /*note: here initiatives to unlock*/
-        super_cond_terminate(super_md_id, tag, key);
+        super_cond_terminate(super_md_id, tag, key);/*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
         crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node);         
