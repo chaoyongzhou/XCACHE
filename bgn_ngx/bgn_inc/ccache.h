@@ -49,6 +49,8 @@ EC_BOOL ccache_renew_headers(const UINT32 store_srv_tcid, const UINT32 store_srv
 
 EC_BOOL ccache_file_notify(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
 
+EC_BOOL ccache_file_terminate(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
+
 EC_BOOL ccache_file_lock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already);
 
@@ -109,6 +111,10 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
 EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
 
 EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
+
+EC_BOOL ccache_file_terminate_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
+
+EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
 
 EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port,
                                            const CSTRING *billing_flags,

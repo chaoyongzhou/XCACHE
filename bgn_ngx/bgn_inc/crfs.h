@@ -282,6 +282,8 @@ EC_BOOL crfs_wait_file_owner_push(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 t
 
 EC_BOOL crfs_wait_file_owner_notify (CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag);
 
+EC_BOOL crfs_wait_file_owner_terminate(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag);
+
 int crfs_wait_file_cmp(const CRFS_WAIT_FILE *crfs_wait_file_1st, const CRFS_WAIT_FILE *crfs_wait_file_2nd);
 
 void crfs_wait_file_print(LOG *log, const CRFS_WAIT_FILE *crfs_wait_file);
@@ -899,10 +901,24 @@ EC_BOOL crfs_file_notify(const UINT32 crfs_md_id, const CSTRING *file_path);
 
 /**
 *
+*  terminate all waiters
+*
+**/
+EC_BOOL crfs_file_terminate(const UINT32 crfs_md_id, const CSTRING *file_path);
+
+/**
+*
 *  wakeup remote waiter
 *
 **/
 EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path);
+
+/**
+*
+*  cancel remote waiter (over http)
+*
+**/
+EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path);
 
 /**
 *

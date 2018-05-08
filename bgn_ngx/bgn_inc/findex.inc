@@ -158,6 +158,7 @@
 #define                 FI_super_store_after_ddir  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  139))
 #define                          FI_super_connect  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  140))
 #define               FI_super_diag_csocket_cnode  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  141))
+#define                   FI_super_cond_terminate  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  142))
 
 #define               FI_cdfs_print_module_status  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  0))
 #define            FI_cdfs_free_module_static_mem  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  1))
@@ -491,6 +492,8 @@
 #define              FI_crfs_delete_file_wildcard  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 132))
 #define            FI_crfs_delete_file_b_wildcard  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 133))
 #define               FI_crfs_delete_dir_wildcard  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 134))
+#define            FI_crfs_wait_file_owner_cancel  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 135))
+#define                    FI_crfs_file_terminate  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + 136))
 
 //#define                       FI_crfs_write_cache  ((UINT32) ((MD_CRFS << (WORDSIZE/2)) + XX))
 

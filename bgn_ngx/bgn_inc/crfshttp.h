@@ -248,11 +248,23 @@ EC_BOOL crfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_file_notify_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_file_notify_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL crfshttp_is_http_get_file_terminate(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_file_terminate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_make_file_terminate_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_file_terminate_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL crfshttp_is_http_get_cond_wakeup(const CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_cond_wakeup_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_cond_wakeup_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_cond_wakeup_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL crfshttp_is_http_get_cond_terminate(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_cond_terminate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_make_cond_terminate_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_cond_terminate_get_response(CHTTP_NODE *chttp_node);
 
 EC_BOOL crfshttp_is_http_get_renew_header(const CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_renew_header_get_request(CHTTP_NODE *chttp_node);

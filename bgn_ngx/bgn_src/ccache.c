@@ -321,6 +321,16 @@ EC_BOOL ccache_file_notify(const UINT32 store_srv_tcid, const UINT32 store_srv_i
     return ccache_file_notify_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path);
 }
 
+EC_BOOL ccache_file_terminate(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
+{
+    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
+    {
+        return ccache_file_terminate_over_http(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path);
+    }
+
+    return ccache_file_terminate_over_bgn(store_srv_tcid, store_srv_ipaddr, store_srv_port, file_path);
+}
+
 EC_BOOL ccache_file_lock(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already)
 {
@@ -790,6 +800,84 @@ EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
 
     return (EC_TRUE);
 }
+
+EC_BOOL ccache_file_terminate_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
+{
+    CHTTP_REQ    chttp_req;
+    CHTTP_RSP    chttp_rsp;
+
+    chttp_req_init(&chttp_req);
+    chttp_rsp_init(&chttp_rsp);
+
+    chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
+    chttp_req_set_port_word(&chttp_req, store_srv_port);
+    chttp_req_set_method(&chttp_req, (const char *)"GET");
+
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_terminate");
+    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), file_path);
+
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
+
+    if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
+    {
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_terminate_over_http: file_terminate '%.*s' on %s:%ld failed\n",
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    if(CHTTP_OK != CHTTP_RSP_STATUS(&chttp_rsp))
+    {
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_terminate_over_http: file_terminate '%.*s' on %s:%ld => status %u\n",
+                        (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
+                        CHTTP_RSP_STATUS(&chttp_rsp));
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_terminate_over_http: file_terminate '%.*s' on %s:%ld => OK\n",
+                    (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
+
+    chttp_req_clean(&chttp_req);
+    chttp_rsp_clean(&chttp_rsp);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
+{
+    TASK_BRD      *task_brd;
+    MOD_NODE       recv_mod_node;
+    EC_BOOL        ret;
+
+    /*make receiver*/
+    task_brd = task_brd_default_get();
+    MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
+    MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+
+    dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_terminate_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
+                (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
+                c_word_to_ipv4(store_srv_tcid));
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+            &recv_mod_node,
+            &ret, FI_crfs_file_terminate, CMPI_ERROR_MODI, file_path);
+
+    return (EC_TRUE);
+}
+
 
 EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port,
                                            const CSTRING *billing_flags,

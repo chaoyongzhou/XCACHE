@@ -185,14 +185,19 @@ typedef struct
 
     UINT32          counter;/*down from nonzero to zero: reserve a nonzero, and then down one step when release*/
 
+    uint32_t        terminate_flag:1;
+    uint32_t        rsvd01:31;
+    uint32_t        rsvd02;
+
     UINT32          location[CCOND_OP_END];
 }CCOND;
 
 #define ERR_CCOND_TIMES         ((UINT32) -2)
 
-#define CCOND_MUTEX(ccond)    (&((ccond)->mutex))
-#define CCOND_VAR(ccond)      (&((ccond)->var))
-#define CCOND_COUNTER(ccond)  ((ccond)->counter)
+#define CCOND_MUTEX(ccond)           (&((ccond)->mutex))
+#define CCOND_VAR(ccond)             (&((ccond)->var))
+#define CCOND_COUNTER(ccond)         ((ccond)->counter)
+#define CCOND_TERMINATE_FLAG(ccond)  ((ccond)->terminate_flag)
 
 #define CCOND_LOCATION(ccond, __op__)  (((ccond)->location)[__op__])
 

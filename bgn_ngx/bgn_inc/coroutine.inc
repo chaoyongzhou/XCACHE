@@ -51,7 +51,8 @@ extern "C"{
 #define COROUTINE_COND_OP_WAIT          ((UINT32) 4)
 #define COROUTINE_COND_OP_RESERVE       ((UINT32) 5)
 #define COROUTINE_COND_OP_RELEASE       ((UINT32) 6)
-#define COROUTINE_COND_OP_END           ((UINT32) 7)
+#define COROUTINE_COND_OP_TERMINATE     ((UINT32) 7)
+#define COROUTINE_COND_OP_END           ((UINT32) 8)
 
 #define COROUTINE_STACK_SIZE_DEFAULT    CROUTINE_STACK_MAX_SIZE
 
@@ -191,6 +192,10 @@ typedef struct
     CTMV          start_time;   /*timeval when start*/
     UINT32        timeout_msec; /*0 means never timeout*/
 
+    uint32_t      terminate_flag:1; /*is terminated flag*/
+    uint32_t      rsvd01:31;
+    uint32_t      rsvd02;
+
     UINT32        location[COROUTINE_COND_OP_END];
 }COROUTINE_COND;
 
@@ -198,6 +203,7 @@ typedef struct
 
 #define COROUTINE_COND_START_TIME(coroutine_cond)     (&((coroutine_cond)->start_time))
 #define COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond)   ((coroutine_cond)->timeout_msec)
+#define COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) ((coroutine_cond)->terminate_flag)
 
 #if 0
 #define COROUTINE_COND_LOCATION(coroutine_cond, __op__)  ((coroutine_cond)->location[__op__])

@@ -69,6 +69,8 @@ EC_BOOL chttp_stat_clone(const CHTTP_STAT *chttp_stat_src, CHTTP_STAT *chttp_sta
 
 void    chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat);
 
+EC_BOOL chttp_stat_set_rsp_status(CHTTP_STAT *chttp_stat, const uint32_t status);
+
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
 CHTTP_NODE *chttp_node_new(const UINT32 type);
 
@@ -410,6 +412,7 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
 
 EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node);
 
+EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);
 EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
 EC_BOOL chttp_node_store_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
 EC_BOOL chttp_node_store_no_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);

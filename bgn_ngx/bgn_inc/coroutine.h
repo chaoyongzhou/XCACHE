@@ -128,6 +128,8 @@ EC_BOOL coroutine_cond_release(COROUTINE_COND *coroutine_cond, const UINT32 loca
 
 EC_BOOL coroutine_cond_release_all(COROUTINE_COND *coroutine_cond, const UINT32 location);
 
+EC_BOOL coroutine_cond_terminate(COROUTINE_COND *coroutine_cond, const UINT32 location);
+
 EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 location);
 
 UINT32  coroutine_cond_spy(COROUTINE_COND *coroutine_cond, const UINT32 location);
@@ -135,6 +137,8 @@ UINT32  coroutine_cond_spy(COROUTINE_COND *coroutine_cond, const UINT32 location
 EC_BOOL coroutine_cond_set_timeout(COROUTINE_COND *coroutine_cond, const UINT32 timeout_msec);
 
 EC_BOOL coroutine_cond_is_timeout(const COROUTINE_COND *coroutine_cond);
+
+EC_BOOL coroutine_cond_is_terminate(const COROUTINE_COND *coroutine_cond);
 
 COROUTINE_CHECKER *coroutine_checker_new(EC_BOOL (*func)(void *, void *), void *arg1, void *arg2);
 

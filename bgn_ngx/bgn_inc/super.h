@@ -696,6 +696,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
 
 EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key);
 
+EC_BOOL super_cond_terminate(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key);
 /**
 *
 * switch ngx memcache on

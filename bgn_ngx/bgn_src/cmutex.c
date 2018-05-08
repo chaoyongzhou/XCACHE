@@ -779,6 +779,8 @@ EC_BOOL ccond_init(CCOND *ccond, const UINT32 location)
 
     CCOND_COUNTER(ccond) = 0;
 
+    CCOND_TERMINATE_FLAG(ccond) = BIT_FALSE;
+
     //pthread_mutexattr_destroy(&mutex_attr);
 
     //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] init %p, location %ld, __nwaiters %d, __kind %d\n", CTHREAD_GET_TID(), ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
@@ -860,6 +862,7 @@ EC_BOOL ccond_clean(CCOND *ccond, const UINT32 location)
     }
 
     CCOND_COUNTER(ccond) = 0;
+    CCOND_TERMINATE_FLAG(ccond) = BIT_FALSE;
 
     //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] clean %p, location %ld, __nwaiters %d, __kind %d\n", CTHREAD_GET_TID(), ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
     //cmutex_print("[DEBUG][CCOND] clean", CCOND_MUTEX(ccond));
@@ -1049,6 +1052,57 @@ EC_BOOL ccond_release_all(CCOND *ccond, const UINT32 location)
     if(0 != ret_val)
     {
         cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_release_all: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release_all %p, location %ld, __nwaiters %d, __kind %d [3]\n", CTHREAD_GET_TID(),ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
+    //cmutex_print("[DEBUG][CCOND] release_all[3]", CCOND_MUTEX(ccond));
+    //ccond_print_var("[DEBUG][CCOND] release_all[3]", ccond);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL ccond_terminate(CCOND *ccond, const UINT32 location)
+{
+    int ret_val;
+
+    cmutex_dbg_log(SEC_0083_CMUTEX, 9)(LOGSTDOUT, "[DEBUG] ccond_terminate: ccond %p: release at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release_all %p, location %ld\n", CTHREAD_GET_TID(),ccond, location);
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release_all %p, location %ld, __nwaiters %d, __kind %d [1]\n", CTHREAD_GET_TID(),ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
+    //cmutex_print("[DEBUG][CCOND] release_all[1]", CCOND_MUTEX(ccond));
+    //ccond_print_var("[DEBUG][CCOND] release_all[1]", ccond);
+
+    CCOND_TERMINATE_FLAG(ccond) = BIT_TRUE;
+
+    ret_val = pthread_mutex_lock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_terminate: failed to lock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        return (EC_FALSE);
+    }
+
+    CCOND_SET_LOCATION(ccond, CCOND_OP_RELEASE, location);
+
+    -- CCOND_COUNTER(ccond);
+
+    //sys_log(LOGSTDOUT, "[DEBUG][CCOND][tid %ld] release_all %p, location %ld, __nwaiters %d, __kind %d [2]\n", CTHREAD_GET_TID(),ccond, location, ccond->var.__data.__nwaiters, CCOND_MUTEX(ccond)->__data.__kind);
+    //cmutex_print("[DEBUG][CCOND] release_all[2]", CCOND_MUTEX(ccond));
+    //ccond_print_var("[DEBUG][CCOND] release_all[2]", ccond);
+
+    if(0 == CCOND_COUNTER(ccond))
+    {
+        ret_val = pthread_cond_broadcast(CCOND_VAR(ccond));/*broadcast to all*/
+        if(0 != ret_val)
+        {
+            cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_terminate: something wrong, error no: %d, error info: %s, called at %s:%ld\n", ret_val, strerror(ret_val), MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+    }
+
+    ret_val = pthread_mutex_unlock(CCOND_MUTEX(ccond));
+    if(0 != ret_val)
+    {
+        cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:ccond_terminate: failed to unlock mutex of ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         return (EC_FALSE);
     }
 
@@ -1756,6 +1810,11 @@ EC_BOOL ccond_release(CCOND *ccond, const UINT32 location)
 }
 
 EC_BOOL ccond_release_all(CCOND *ccond, const UINT32 location)
+{
+    return (EC_FALSE);
+}
+
+EC_BOOL ccond_terminate(CCOND *ccond, const UINT32 location)
 {
     return (EC_FALSE);
 }

@@ -2042,6 +2042,36 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path); -- */
+/*func module     */     MD_CRFS,
+/*func logic addr */     (UINT32)crfs_wait_file_owner_cancel,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "crfs_wait_file_owner_cancel",
+/*func index      */     FI_crfs_wait_file_owner_cancel,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL crfs_file_terminate(const UINT32 crfs_md_id, const CSTRING *file_path); -- */
+/*func module     */     MD_CRFS,
+/*func logic addr */     (UINT32)crfs_file_terminate,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "crfs_file_terminate",
+/*func index      */     FI_crfs_file_terminate,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
 #if 0
 {
 /* -- EC_BOOL crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes); -- */

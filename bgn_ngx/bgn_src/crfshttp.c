@@ -495,10 +495,18 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = crfshttp_commit_file_notify_get_request(chttp_node);
     }
+    else if (EC_TRUE == crfshttp_is_http_get_file_terminate(chttp_node))
+    {
+        ret = crfshttp_commit_file_terminate_get_request(chttp_node);
+    }    
     else if (EC_TRUE == crfshttp_is_http_get_cond_wakeup(chttp_node))
     {
         ret = crfshttp_commit_cond_wakeup_get_request(chttp_node);
     }
+    else if (EC_TRUE == crfshttp_is_http_get_cond_terminate(chttp_node))
+    {
+        ret = crfshttp_commit_cond_terminate_get_request(chttp_node);
+    }    
     else if (EC_TRUE == crfshttp_is_http_get_renew_header(chttp_node))
     {
         ret = crfshttp_commit_renew_header_get_request(chttp_node);
@@ -8660,6 +8668,215 @@ EC_BOOL crfshttp_commit_file_notify_get_response(CHTTP_NODE *chttp_node)
 #endif
 
 #if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: file_terminate ----------------------------------------*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_file_terminate_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/file_terminate/") < uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/file_terminate/")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_is_http_get_file_terminate(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_file_terminate: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_file_terminate_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_file_terminate_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == crfshttp_handle_file_terminate_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_file_terminate_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = crfshttp_commit_file_terminate_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    uint8_t       *cache_key;
+    uint32_t       cache_len;
+
+    CSTRING        path_cstr;
+    CBYTES        *content_cbytes;
+
+    UINT32         req_body_chunk_num;
+
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_terminate");
+    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
+
+    cstring_init(&path_cstr, NULL_PTR);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0033);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CRFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_file_terminate_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_file_terminate_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_file_terminate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_file_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        cstring_clean(&path_cstr);
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __crfshttp_uri_is_file_terminate_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == crfs_file_terminate(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_file_terminate_get_request: crfs terminate %s failed\n",
+                                (char *)cstring_get_str(&path_cstr));
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_file_terminate_get_request: crfs terminate %s failed", (char *)cstring_get_str(&path_cstr));
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
+
+            cstring_clean(&path_cstr);
+
+            //return (EC_FALSE);
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_file_terminate_get_request: crfs terminate %s done\n",
+                            (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_file_terminate_get_request: crfs terminate %s done", (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    cstring_clean(&path_cstr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_file_terminate_get_response(CHTTP_NODE *chttp_node)
+{
+    if(do_log(SEC_0049_CRFSHTTP, 9))
+    {
+        CBUFFER       *uri_cbuffer;
+        uint8_t       *cache_key;
+        uint32_t       cache_len;
+
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
+        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_terminate");
+        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
+
+        sys_log(LOGSTDOUT, "[DEBUG] crfshttp_make_file_terminate_get_response: path %.*s\n", cache_len, cache_key);
+    }
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_file_terminate_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_file_terminate_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_file_terminate_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_file_terminate_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
+
+#if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: cond_wakeup ----------------------------------------*/
 STATIC_CAST static EC_BOOL __crfshttp_uri_is_cond_wakeup_get_op(const CBUFFER *uri_cbuffer)
 {
@@ -8863,6 +9080,217 @@ EC_BOOL crfshttp_commit_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: cond_terminate ----------------------------------------*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_cond_terminate_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/cond_terminate/") < uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/cond_terminate/")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_is_http_get_cond_terminate(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_cond_terminate: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_cond_terminate_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_cond_terminate_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == crfshttp_handle_cond_terminate_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_cond_terminate_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = crfshttp_commit_cond_terminate_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    uint8_t       *cache_key;
+    uint32_t       cache_len;
+
+    CSTRING        path_cstr;
+    CBYTES        *content_cbytes;
+
+    UINT32         req_body_chunk_num;
+
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_terminate");
+    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
+
+    cstring_init(&path_cstr, NULL_PTR);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0034);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CRFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_cond_terminate_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_cond_terminate_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_cond_terminate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_cond_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        cstring_clean(&path_cstr);
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __crfshttp_uri_is_cond_terminate_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+        UINT32 tag;
+
+        tag = MD_CRFS;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == super_cond_terminate(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_cond_terminate_get_request: cond terminate %s failed\n",
+                                (char *)cstring_get_str(&path_cstr));
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_cond_terminate_get_request: cond terminate %s failed", (char *)cstring_get_str(&path_cstr));
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            cstring_clean(&path_cstr);
+
+            //return (EC_FALSE);
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_cond_terminate_get_request: cond terminate %s done\n",
+                            (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_cond_terminate_get_request: cond terminate %s done", (char *)cstring_get_str(&path_cstr));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    cstring_clean(&path_cstr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_cond_terminate_get_response(CHTTP_NODE *chttp_node)
+{
+    if(do_log(SEC_0049_CRFSHTTP, 9))
+    {
+        CBUFFER       *uri_cbuffer;
+        uint8_t       *cache_key;
+        uint32_t       cache_len;
+
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
+        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_terminate");
+        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
+
+        sys_log(LOGSTDOUT, "[DEBUG] crfshttp_make_cond_terminate_get_response: path %.*s\n", cache_len, cache_key);
+    }
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_cond_terminate_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_cond_terminate_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_cond_terminate_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_cond_terminate_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

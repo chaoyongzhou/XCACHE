@@ -1434,6 +1434,15 @@ void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
     return;
 }
 
+EC_BOOL chttp_stat_set_rsp_status(CHTTP_STAT *chttp_stat, const uint32_t status)
+{
+    if(0 == CHTTP_STAT_RSP_STATUS(chttp_stat) || CHTTP_OK == CHTTP_STAT_RSP_STATUS(chttp_stat))
+    {
+        CHTTP_STAT_RSP_STATUS(chttp_stat) = status;
+    }
+    return (EC_TRUE);
+}
+
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
 STATIC_CAST static EC_BOOL __chttp_node_parse_on_message_begin_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
 {
@@ -2396,7 +2405,7 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
 
-    CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_GATEWAY_TIMEOUT;
+    chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_GATEWAY_TIMEOUT);
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
@@ -6615,7 +6624,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_connect: connect server %s:%ld failed\n",
                                 c_word_to_ipv4(ipaddr), port);
 
-            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_BAD_GATEWAY;
+            chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_BAD_GATEWAY);
             return (EC_FALSE);
         }
 
@@ -6628,7 +6637,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
                             sockfd, c_word_to_ipv4(ipaddr), port);
             csocket_close(sockfd);
 
-            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_BAD_GATEWAY;
+            chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_BAD_GATEWAY);
             return (EC_FALSE);
         }
 
@@ -6645,7 +6654,7 @@ EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mo
                             sockfd, c_word_to_ipv4(ipaddr), port);
             csocket_close(sockfd);
 
-            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
+            chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
             return (EC_FALSE);
         }
         CSOCKET_CNODE_TCID(csocket_cnode)           = CMPI_ANY_TCID;
@@ -7149,15 +7158,17 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *
     if(BIT_TRUE == CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store))
     {
         if(EC_FALSE == __chttp_node_filter_header_check_etag(chttp_node, chttp_store))
-        {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found etag mismatched\n");
+        {            
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found etag mismatched => %u\n",
+                            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)));
             /*__chttp_node_delete_dir(chttp_node, CHTTP_STORE_BASEDIR(chttp_store));*//*this will blocking the main coroutine! remove it!*/
             return (EC_TRUE);/*expired*/
         }
 
         if(EC_FALSE == __chttp_node_filter_header_check_lsmd(chttp_node, chttp_store))
-        {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found last-modified mismatched\n");
+        {            
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found last-modified mismatched => %u\n",
+                            CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)));
             /*__chttp_node_delete_dir(chttp_node, CHTTP_STORE_BASEDIR(chttp_store));*//*this will blocking the main coroutine! remove it!*/
             return (EC_TRUE);/*expired*/
         }
@@ -7434,6 +7445,43 @@ EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node)
             croutine_cond_release(CHTTP_NODE_CROUTINE_COND(chttp_node), LOC_CHTTP_0044);
         }
     }
+    return (EC_TRUE);
+}
+
+EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
+{
+    CSTRING        path;
+
+    UINT32         store_srv_tcid;
+    UINT32         store_srv_ipaddr;
+    UINT32         store_srv_port;
+
+    if(EC_FALSE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
+    {
+        return (EC_TRUE);
+    }
+
+    /*make path*/
+    cstring_init(&path, NULL_PTR);
+    chttp_store_path_get(chttp_store, &path);
+
+    /*select storage server*/
+    if(EC_FALSE == chttp_store_srv_get(chttp_store, &path, &store_srv_tcid, &store_srv_ipaddr, &store_srv_port))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_waiter_terminate: select storage server for '%.*s' failed\n",
+                            (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+                            
+    /*expired => terminate all waiters*/
+    ccache_file_terminate(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path);
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_waiter_terminate: terminate waiters on storage server for '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
+                        
+    cstring_clean(&path);
+
     return (EC_TRUE);
 }
 
@@ -7863,7 +7911,19 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
 
     }
 
-    /*if found expired after check each segment etag, last-modifed and content-length*/
+    /*terminate all waiters if found expired after check each segment etag, last-modifed and content-length*/
+    if(0 < CHTTP_STORE_SEG_ID(chttp_store)
+    && (EC_TRUE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
+    && ((CHTTP_STORE_CACHE_BOTH | CHTTP_STORE_CACHE_WHOLE) & CHTTP_STORE_CACHE_CTRL(chttp_store))
+    )
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: [expired] sockfd %d, terminate all orig procedues\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
+                    
+        chttp_node_store_waiter_terminate(chttp_node, chttp_store);
+    }
+    
+    /*store new header if found expired after check each segment etag, last-modifed and content-length*/
     if(0 < CHTTP_STORE_SEG_ID(chttp_store)
     && (EC_TRUE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
     && ((CHTTP_STORE_CACHE_BOTH | CHTTP_STORE_CACHE_WHOLE) & CHTTP_STORE_CACHE_CTRL(chttp_store))
@@ -8464,7 +8524,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
 
-        CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
+        chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
@@ -8487,7 +8547,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
 
-        CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
+        chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
@@ -8531,7 +8591,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                 dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: croutine load for chttp_node_detach failed\n");
 
                 /*exception*/
-                CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_INTERNAL_SERVER_ERROR;
+                chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
                 chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
 

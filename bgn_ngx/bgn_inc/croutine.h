@@ -95,6 +95,8 @@ typedef COROUTINE_COND CROUTINE_COND;
 
 #define croutine_cond_release_all(croutine_cond, location)       coroutine_cond_release_all(croutine_cond, location)
 
+#define croutine_cond_terminate(croutine_cond, location)         coroutine_cond_terminate(croutine_cond, location)
+
 #define croutine_cond_wait(croutine_cond, location)              coroutine_cond_wait(croutine_cond, location)
 
 #define croutine_cond_spy(croutine_cond, location)               coroutine_cond_spy(croutine_cond, location)
@@ -211,6 +213,8 @@ typedef CCOND CROUTINE_COND;
 #define croutine_cond_release(croutine_cond, location)           ccond_release(croutine_cond, location)
 
 #define croutine_cond_release_all(croutine_cond, location)       ccond_release_all(croutine_cond, location)
+
+#define croutine_cond_terminate(croutine_cond, location)         ccond_terminate(croutine_cond, location)
 
 #define croutine_cond_wait(croutine_cond, location)              ccond_wait(croutine_cond, location)
 

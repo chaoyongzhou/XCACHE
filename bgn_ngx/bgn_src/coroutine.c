@@ -329,9 +329,9 @@ COROUTINE_COND *coroutine_cond_new(const UINT32 timeout_msec, const UINT32 locat
 EC_BOOL coroutine_cond_init(COROUTINE_COND *coroutine_cond, const UINT32 timeout_msec, const UINT32 location)
 {
     COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_INIT, location);
-    COROUTINE_COND_COUNTER(coroutine_cond)      = 0;
-
-    COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond) = timeout_msec;
+    COROUTINE_COND_COUNTER(coroutine_cond)          = 0;
+    COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond)     = timeout_msec;
+    COROUTINE_COND_TERMINATE_FLAG(coroutine_cond)   = BIT_FALSE;
 
     if(0 < timeout_msec)
     {
@@ -353,8 +353,9 @@ EC_BOOL coroutine_cond_clean(COROUTINE_COND *coroutine_cond, const UINT32 locati
                         MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
     COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_CLEAN, location);
-    COROUTINE_COND_COUNTER(coroutine_cond)      = 0;
-    COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond) = 0;
+    COROUTINE_COND_COUNTER(coroutine_cond)        = 0;
+    COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond)   = 0;
+    COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) = BIT_FALSE;
     CTMV_CLEAN(COROUTINE_COND_START_TIME(coroutine_cond));
 
     return (EC_TRUE);
@@ -417,6 +418,19 @@ EC_BOOL coroutine_cond_release_all(COROUTINE_COND *coroutine_cond, const UINT32 
     return (EC_TRUE);
 }
 
+EC_BOOL coroutine_cond_terminate(COROUTINE_COND *coroutine_cond, const UINT32 location)
+{
+    COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_TERMINATE, location);
+   
+    COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) = BIT_TRUE;
+
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_terminate: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+
+    return (EC_TRUE);
+}
+
 EC_BOOL coroutine_cond_set_timeout(COROUTINE_COND *coroutine_cond, const UINT32 timeout_msec)
 {
     COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond) = timeout_msec;
@@ -455,6 +469,15 @@ EC_BOOL coroutine_cond_is_timeout(const COROUTINE_COND *coroutine_cond)
     return (EC_FALSE);
 }
 
+EC_BOOL coroutine_cond_is_terminate(const COROUTINE_COND *coroutine_cond)
+{
+    if(BIT_TRUE == COROUTINE_COND_TERMINATE_FLAG(coroutine_cond))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
 EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 location)
 {
     COROUTINE_NODE *coroutine_node_cur;
@@ -480,6 +503,15 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
                             coroutine_node_cur, COROUTINE_NODE_USER_COND(coroutine_node_cur), coroutine_cond);
             return (EC_TRUE);
         }
+
+        if(EC_TRUE == coroutine_cond_is_terminate(coroutine_cond))
+        {
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld [terminate]\n",
+                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
+            COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
+            __COROUTINE_NO_WAIT();
+            return (EC_TERMINATE);
+        }        
 
         if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
         {
@@ -1414,10 +1446,15 @@ EC_BOOL coroutine_node_is_runnable(const COROUTINE_NODE *coroutine_node)
                 return (EC_TRUE);
             }
 
-            if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
+            if(EC_TRUE == coroutine_cond_is_terminate(coroutine_cond))
             {
                 return (EC_TRUE);
             }
+
+            if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
+            {
+                return (EC_TRUE);
+            }            
 
             return (EC_FALSE);
         }

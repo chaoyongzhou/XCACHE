@@ -263,6 +263,7 @@ netinet/in.h
 #define EC_BUSY      ((UINT32) 4)
 #define EC_AGAIN     ((UINT32) 5)
 #define EC_TIMEOUT   ((UINT32) 6) /*used by coroutine*/
+#define EC_TERMINATE ((UINT32) 7) /*used by coroutine*/
 
 #define EC_EQ        ((UINT32) 0) /* == */
 #define EC_GT        ((UINT32) 1) /* >  */

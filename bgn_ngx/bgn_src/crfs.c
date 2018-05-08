@@ -9580,6 +9580,189 @@ EC_BOOL crfs_wait_file_owner_notify(CRFS_WAIT_FILE *crfs_wait_file, const UINT32
     return crfs_wait_file_owner_notify_over_bgn(crfs_wait_file, tag);
 }
 
+/**
+*
+*  cancel remote waiter (over http)
+*
+**/
+EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
+{
+    CRFS_MD     *crfs_md;
+
+    CHTTP_REQ    chttp_req;
+    CHTTP_RSP    chttp_rsp;
+    CSTRING     *uri;
+
+#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
+    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfs_wait_file_owner_cancel: crfs module #%ld not started.\n",
+                crfs_md_id);
+        dbg_exit(MD_CRFS, crfs_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfs_md = CRFS_MD_GET(crfs_md_id);
+
+    chttp_req_init(&chttp_req);
+    chttp_rsp_init(&chttp_rsp);
+
+    chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
+    chttp_req_set_port_word(&chttp_req, store_srv_port);
+    chttp_req_set_method(&chttp_req, (const char *)"GET");
+
+    uri = CHTTP_REQ_URI(&chttp_req);
+    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/cond_terminate");
+    cstring_append_cstr(uri, path);
+
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_cancel: req uri '%.*s' done\n",
+                (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
+
+    chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
+    chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
+
+    if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_wait_file_owner_cancel: terminate '%.*s' on %s:%ld failed\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
+
+        chttp_req_clean(&chttp_req);
+        chttp_rsp_clean(&chttp_rsp);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_cancel: terminate '%.*s' on %s:%ld done => status %u\n",
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                    c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
+                    CHTTP_RSP_STATUS(&chttp_rsp));
+
+    chttp_req_clean(&chttp_req);
+    chttp_rsp_clean(&chttp_rsp);
+
+    return (EC_TRUE);
+}
+EC_BOOL crfs_wait_file_owner_terminate_over_http (CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag)
+{
+    if(EC_FALSE == clist_is_empty(CRFS_WAIT_FILE_OWNER_LIST(crfs_wait_file)))
+    {
+        TASK_BRD *task_brd;
+        TASK_MGR *task_mgr;
+        MOD_NODE  recv_mod_node;
+        EC_BOOL   ret; /*ignore it*/
+
+        task_brd = task_brd_default_get();
+
+        /*all tasks own same recv_mod_node*/
+        MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
+        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+        MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one crfs module*/
+
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
+
+        for(;;)
+        {
+            MOD_NODE   *mod_node;
+            TASKS_CFG  *remote_tasks_cfg;
+
+            /*note : after terminate owner, we can kick off the owner from list*/
+            mod_node = clist_pop_front(CRFS_WAIT_FILE_OWNER_LIST(crfs_wait_file));
+            if(NULL_PTR == mod_node)
+            {
+                break;
+            }
+
+            remote_tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), MOD_NODE_TCID(mod_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
+            if(NULL_PTR == remote_tasks_cfg)
+            {
+                dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "info:crfs_wait_file_owner_terminate: not found tasks_cfg of node %s\n", c_word_to_ipv4(MOD_NODE_TCID(mod_node)));
+                mod_node_free(mod_node);
+                continue;
+            }
+
+            task_p2p_inc(task_mgr, CMPI_ANY_MODI, &recv_mod_node,
+                        &ret,
+                        FI_crfs_wait_file_owner_cancel,
+                        CMPI_ERROR_MODI,
+                        TASKS_CFG_TCID(remote_tasks_cfg),
+                        TASKS_CFG_SRVIPADDR(remote_tasks_cfg),
+                        TASKS_CFG_CSRVPORT(remote_tasks_cfg),
+                        CRFS_WAIT_FILE_NAME(crfs_wait_file));
+
+            dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_terminate : file %s tag %ld terminate owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
+                            (char *)CRFS_WAIT_FILE_NAME_STR(crfs_wait_file), tag,
+                            MOD_NODE_TCID_STR(mod_node),
+                            MOD_NODE_COMM(mod_node),
+                            MOD_NODE_RANK(mod_node),
+                            MOD_NODE_MODI(mod_node));
+
+            mod_node_free(mod_node);
+        }
+
+        task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_terminate : file %s tag %ld terminate none due to no owner\n",
+                            (char *)CRFS_WAIT_FILE_NAME_STR(crfs_wait_file), tag);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_wait_file_owner_terminate_over_bgn (CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag)
+{
+    if(EC_FALSE == clist_is_empty(CRFS_WAIT_FILE_OWNER_LIST(crfs_wait_file)))
+    {
+        TASK_MGR *task_mgr;
+        EC_BOOL   ret; /*ignore it*/
+
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
+
+        for(;;)
+        {
+            MOD_NODE *mod_node;
+
+            /*note : after terminate owner, we can kick off the owner from list*/
+            mod_node = clist_pop_front(CRFS_WAIT_FILE_OWNER_LIST(crfs_wait_file));
+            if(NULL_PTR == mod_node)
+            {
+                break;
+            }
+
+            task_p2p_inc(task_mgr, CMPI_ANY_MODI, mod_node, &ret, FI_super_cond_terminate, CMPI_ERROR_MODI, tag, CRFS_WAIT_FILE_NAME(crfs_wait_file));
+
+            dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_terminate : file %s tag %ld terminate owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
+                            (char *)CRFS_WAIT_FILE_NAME_STR(crfs_wait_file), tag,
+                            MOD_NODE_TCID_STR(mod_node),
+                            MOD_NODE_COMM(mod_node),
+                            MOD_NODE_RANK(mod_node),
+                            MOD_NODE_MODI(mod_node));
+
+            mod_node_free(mod_node);
+        }
+
+        task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_terminate : file %s tag %ld terminate none due to no owner\n",
+                            (char *)CRFS_WAIT_FILE_NAME_STR(crfs_wait_file), tag);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfs_wait_file_owner_terminate(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag)
+{
+    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
+    {
+        return crfs_wait_file_owner_terminate_over_http(crfs_wait_file, tag);
+    }
+
+    return crfs_wait_file_owner_terminate_over_bgn(crfs_wait_file, tag);
+}
+
 STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path)
 {
     CRFS_MD          *crfs_md;
@@ -9773,6 +9956,65 @@ EC_BOOL crfs_file_notify(const UINT32 crfs_md_id, const CSTRING *file_path)
     crb_tree_delete(CRFS_MD_WAIT_FILES(crfs_md), crb_node);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_notify: notify waiters of file '%s' done\n",
+                    (char *)CSTRING_STR(file_path));
+    return (EC_TRUE);
+}
+
+/*terminate all waiters*/
+EC_BOOL crfs_file_terminate(const UINT32 crfs_md_id, const CSTRING *file_path)
+{
+    CRFS_MD          *crfs_md;
+
+    CRFS_WAIT_FILE   *crfs_wait_file;
+    CRFS_WAIT_FILE   *crfs_wait_file_found;
+    CRB_NODE         *crb_node;
+    UINT32            tag;
+
+#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
+    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:crfs_file_terminate: crfs module #%ld not started.\n",
+                crfs_md_id);
+        dbg_exit(MD_CRFS, crfs_md_id);
+    }
+#endif/*CRFS_DEBUG_SWITCH*/
+
+    crfs_md = CRFS_MD_GET(crfs_md_id);
+
+    crfs_wait_file = crfs_wait_file_new();
+    if(NULL_PTR == crfs_wait_file)
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_terminate: new crfs_wait_file failed\n");
+        return (EC_FALSE);
+    }
+
+    crfs_wait_file_name_set(crfs_wait_file, file_path);
+
+    crb_node = crb_tree_search_data(CRFS_MD_WAIT_FILES(crfs_md), (void *)crfs_wait_file);
+    if(NULL_PTR == crb_node)
+    {
+        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_terminate: not found waiters of file '%s'\n",
+                        (char *)CSTRING_STR(file_path));
+        crfs_wait_file_free(crfs_wait_file);
+        return (EC_TRUE);
+    }
+
+    crfs_wait_file_free(crfs_wait_file);
+
+    crfs_wait_file_found = CRB_NODE_DATA(crb_node);
+    tag = MD_CRFS;
+
+    if(EC_FALSE == crfs_wait_file_owner_terminate (crfs_wait_file_found, tag))
+    {
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_terminate: terminate waiters of file '%s' failed\n",
+                        (char *)CSTRING_STR(file_path));
+        return (EC_FALSE);
+    }
+
+    crb_tree_delete(CRFS_MD_WAIT_FILES(crfs_md), crb_node);
+
+    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_terminate: terminate waiters of file '%s' done\n",
                     (char *)CSTRING_STR(file_path));
     return (EC_TRUE);
 }
