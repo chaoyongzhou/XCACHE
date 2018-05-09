@@ -92,7 +92,7 @@ EC_BOOL cvendor_reg()
     /*do nothing*/
 
     /*register module*/
-    return cbc_md_reg(MD_CVENDOR , 32);
+    return cbc_md_reg(MD_CVENDOR , 128);
 }
 
 /**
@@ -10207,7 +10207,6 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
             }
 
             max_age = c_str_to_uint32_t(v);
-
 
             if(EC_TRUE == chttp_rsp_is_aged(CVENDOR_MD_CHTTP_RSP(cvendor_md), max_age))
             {

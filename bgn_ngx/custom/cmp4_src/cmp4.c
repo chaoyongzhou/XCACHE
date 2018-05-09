@@ -93,7 +93,7 @@ EC_BOOL cmp4_reg()
     /*do nothing*/
 
     /*register module*/
-    return cbc_md_reg(MD_CMP4 , 32);
+    return cbc_md_reg(MD_CMP4 , 128);
 }
 
 /**

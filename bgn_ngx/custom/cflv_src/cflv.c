@@ -97,7 +97,7 @@ EC_BOOL cflv_reg()
     /*do nothing*/
 
     /*register module*/
-    return cbc_md_reg(MD_CFLV , 32);
+    return cbc_md_reg(MD_CFLV , 128);
 }
 
 /**

@@ -69,7 +69,7 @@ EC_BOOL cbc_md_reg(const UINT32 md_type, const UINT32 md_capaciy)
 
     if(NULL_PTR == g_cbc)
     {
-        cbc_new(MM_END);
+        cbc_new(MD_END);
     }
 
     CARRAY_LOCK(g_cbc, LOC_CBC_0004);

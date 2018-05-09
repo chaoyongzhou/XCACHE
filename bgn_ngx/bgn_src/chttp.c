@@ -7107,6 +7107,12 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_etag(CHTTP_NODE *cht
                         (uint32_t)CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store), etag,
                         (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
 
+    /*update etag in chttp_store. it is necessary if orig is chunk or 200 response to range request.*/
+    cstring_clean(CHTTP_STORE_ETAG(chttp_store));
+    cstring_init(CHTTP_STORE_ETAG(chttp_store), (UINT8 *)etag);
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_etag: update chttp_store ETag to '%.*s'\n",
+                        (uint32_t)CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store));
     return (EC_FALSE);
 }
 
@@ -7140,6 +7146,12 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_lsmd(CHTTP_NODE *cht
                         last_modified,
                         (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
 
+    /*update etag in chttp_store. it is necessary if orig is chunk or 200 response to range request.*/
+    cstring_clean(CHTTP_STORE_LAST_MODIFIED(chttp_store));
+    cstring_init(CHTTP_STORE_LAST_MODIFIED(chttp_store), (UINT8 *)last_modified);
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_lsmd: update chttp_store Last-Modified to '%.*s'\n",
+                        (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
     return (EC_FALSE);
 }
 
