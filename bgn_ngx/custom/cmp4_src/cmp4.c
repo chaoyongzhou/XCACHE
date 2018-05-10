@@ -1663,6 +1663,17 @@ EC_BOOL cmp4_filter_header_out_common(const UINT32 cmp4_md_id, const char *proce
         }
     }while(0);
 
+    do
+    {
+        const char                  *k;
+        
+        k = (const char *)"Connection";
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_filter_header_out_common: "
+                                             "del rsp header '%s' done\n",
+                                             k);    
+    }while(0);
+
     cngx_set_cache_status(r, CMP4_MD_CACHE_STATUS(cmp4_md));
 
     /*merge header function. it should be optional function*/
@@ -5425,6 +5436,34 @@ EC_BOOL cmp4_content_orig_header_out_range_filter(const UINT32 cmp4_md_id)
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_range_filter: "
                                              "filter range done\n");
+    }
+    else if(BIT_TRUE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))/*no range*/
+    {
+        const char                  *k;
+        const char                  *v;
+
+        UINT32                       content_length; /*rsp body length*/
+
+        content_length = CMP4_MD_CONTENT_LENGTH(cmp4_md);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_out_range_filter: "
+                                                 "renew header %s:%s failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_range_filter: "
+                                             "renew header %s:%s done\n",
+                                             k, v); 
+                                             
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_range_filter: "
+                                             "del header %s done\n",
+                                             k);        
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_range_filter: "
                                          "done\n");
@@ -9901,6 +9940,34 @@ EC_BOOL cmp4_content_cache_header_out_range_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_range_filter: "
                                              "filter range done\n");
     }
+    else if(BIT_TRUE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))/*no range*/
+    {
+        const char                  *k;
+        const char                  *v;
+
+        UINT32                       content_length; /*rsp body length*/
+
+        content_length = CMP4_MD_CONTENT_LENGTH(cmp4_md);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_header_out_range_filter: "
+                                                 "renew header %s:%s failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_range_filter: "
+                                             "renew header %s:%s done\n",
+                                             k, v); 
+                                             
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_range_filter: "
+                                             "del header %s done\n",
+                                             k);        
+    }    
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_range_filter: "
                                          "done\n");
 
@@ -11388,6 +11455,8 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0166);
                 return (EC_FALSE);
             }
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
+                                                 "get range segs from chttp rsp done\n");            
         }
 
         if(EC_FALSE == cmp4_filter_rsp_range(cmp4_md_id))
