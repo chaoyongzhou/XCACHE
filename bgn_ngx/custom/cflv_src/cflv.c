@@ -6883,8 +6883,8 @@ EC_BOOL cflv_content_ims_header_out_304_last_modified_filter(const UINT32 cflv_m
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_304_last_modified_filter: "
-                                             "[status %u] ims rsp has no header '%s' which is\n",
-                                             status, k, v);
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
 
@@ -7071,14 +7071,13 @@ EC_BOOL cflv_content_ims_header_out_304_content_range_filter(const UINT32 cflv_m
     v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md_t), k);
     if(NULL_PTR == v)
     {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_304_content_range_filter: "
-                                             "[status %u] ims rsp has no header '%s' which is\n",
-                                             status, k, v);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_304_content_range_filter: "
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
 
-        chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
-
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
+    
     chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_304_content_range_filter: "
                                          "[status %u] renew rsp header '%s':'%s' done\n",
@@ -7188,8 +7187,8 @@ EC_BOOL cflv_content_ims_header_out_not_304_last_modified_filter(const UINT32 cf
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_last_modified_filter: "
-                                             "[status %u] ims rsp has no header '%s' which is\n",
-                                             status, k, v);
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
 
@@ -7402,8 +7401,8 @@ EC_BOOL cflv_content_ims_header_out_not_304_content_range_filter(const UINT32 cf
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_content_range_filter: "
-                                             "[status %u] ims rsp has no header '%s' which is\n",
-                                             status, k, v);
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
 
@@ -7701,7 +7700,7 @@ EC_BOOL cflv_content_expired_header_out_range_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    if(1) /*renew content-length info*/
+    do /*renew content-length info*/
     {
         const char *k;
         char       *v;
@@ -7710,22 +7709,23 @@ EC_BOOL cflv_content_expired_header_out_range_filter(const UINT32 cflv_md_id)
         UINT32      range_end;
         UINT32      content_length;
 
-        /*ignore Content-Length*/
-
         k = (const char *)"Content-Range";
         v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
         if(NULL_PTR == v)
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_header_out_range_filter: "
-                                                 "no 'Content-Range' => failed\n");
-            return (EC_FALSE);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_header_out_range_filter: "
+                                                 "no '%s'\n",
+                                                 k);
+            break;/*fall through*/
         }
+
+        /*ignore Content-Length*/
 
         if(EC_FALSE == crange_parse_content_range(v, &range_start, &range_end, &content_length))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_header_out_range_filter: "
-                                                 "invalid Content-Range '%s'\n",
-                                                 v);
+                                                 "invalid '%s':'%s'\n",
+                                                 k, v);
             return (EC_FALSE);
         }
 
@@ -7733,10 +7733,38 @@ EC_BOOL cflv_content_expired_header_out_range_filter(const UINT32 cflv_md_id)
         CFLV_MD_CONTENT_LENGTH(cflv_md)            = content_length;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_header_out_range_filter: "
-                                             "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
-                                             v,
+                                             "parse '%s':'%s' to [%ld, %ld] / %ld\n",
+                                             k, v,
                                              range_start, range_end, content_length);
         /*fall through*/
+    }while(0);
+
+    if(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
+    {
+        const char *k;
+        char       *v;
+
+        UINT32      content_length;
+
+        k = (const char *)"Content-Length";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_header_out_range_filter: "
+                                                 "no '%s' => failed\n",
+                                                 k);
+            return (EC_FALSE);
+        }
+
+        content_length = c_str_to_word(v);
+
+        CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md) = BIT_TRUE;
+        CFLV_MD_CONTENT_LENGTH(cflv_md)            = content_length;
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_header_out_range_filter: "
+                                             "parse '%s':'%s' to %ld\n",
+                                             k, v,
+                                             content_length);
     }
 
     if(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
@@ -8249,7 +8277,7 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
         const char      *cache_status;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_procedure: "
-                                             "found Expires '%s' => ims\n",
+                                             "expired, found last-modified '%s' => ims\n",
                                              (char *)cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md)));
 
         if(EC_TRUE == cflv_content_ims_procedure(cflv_md_id))
@@ -8916,7 +8944,21 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
         /*REFRESH_HIT or REFRESH_MISS*/
         CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                                 "not found '%s' => done\n",
+                                                 k);
+            return (EC_TRUE);
+        }        
+
         cstring_append_str(CFLV_MD_HEADER_EXPIRES(cflv_md), (const UINT8 *)v);
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                             "found '%s', set '%s' to expires\n",
+                                             k, v);         
         return (EC_TRUE);
     }
 
@@ -8930,8 +8972,21 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
         /*REFRESH_HIT or REFRESH_MISS*/
         CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
-        v = c_http_time(curtime);
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                                 "not found '%s' => done\n",
+                                                 k);
+            return (EC_TRUE);
+        }
+        
         cstring_append_str(CFLV_MD_HEADER_EXPIRES(cflv_md), (const UINT8 *)v);
+        
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                             "found '%s', set '%s' to expires\n",
+                                             k, v);        
         return (EC_TRUE);
     }
 

@@ -7078,8 +7078,8 @@ EC_BOOL cvendor_content_ims_header_out_304_last_modified_filter(const UINT32 cve
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_304_last_modified_filter: "
-                                                "[status %u] ims rsp has no header '%s' which is\n",
-                                                status, k, v);
+                                                "[status %u] ims rsp has no header '%s'\n",
+                                                status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
 
@@ -7149,8 +7149,8 @@ EC_BOOL cvendor_content_ims_header_out_304_expires_filter(const UINT32 cvendor_m
     if(EC_FALSE == cngx_get_var_uint32_t(r, k, &nsec, 0))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_304_expires_filter: "
-                                             "[cngx] get var '%s' failed\n",
-                                             k);
+                                                "[cngx] get var '%s' failed\n",
+                                                k);
         return (EC_FALSE);
     }
 
@@ -7266,14 +7266,12 @@ EC_BOOL cvendor_content_ims_header_out_304_content_range_filter(const UINT32 cve
     v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md_t), k);
     if(NULL_PTR == v)
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_304_content_range_filter: "
-                                                "[status %u] ims rsp has no header '%s' which is\n",
-                                                status, k, v);
-
-        chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
-
-        return (EC_FALSE);
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_out_304_content_range_filter: "
+                                                "[status %u] ims rsp has no header '%s' => done\n",
+                                                status, k, v);        
+        return (EC_TRUE);
     }
+    
     chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_out_304_content_range_filter: "
                                             "[status %u] renew rsp header '%s':'%s' done\n",
@@ -7383,8 +7381,8 @@ EC_BOOL cvendor_content_ims_header_out_not_304_last_modified_filter(const UINT32
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_last_modified_filter: "
-                                                "[status %u] ims rsp has no header '%s' which is\n",
-                                                status, k, v);
+                                                "[status %u] ims rsp has no header '%s'\n",
+                                                status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
 
@@ -7597,8 +7595,8 @@ EC_BOOL cvendor_content_ims_header_out_not_304_content_range_filter(const UINT32
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_out_not_304_content_range_filter: "
-                                                "[status %u] ims rsp has no header '%s' which is\n",
-                                                status, k, v);
+                                                "[status %u] ims rsp has no header '%s'\n",
+                                                status, k);
 
         chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md_t));
 
@@ -7884,7 +7882,7 @@ EC_BOOL cvendor_content_ims_procedure(const UINT32 cvendor_md_id)
 EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
-
+    
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
     {
@@ -7896,8 +7894,8 @@ EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
-
-    if(1) /*renew content-length info*/
+                                            
+    do /*renew content-length info*/
     {
         const char *k;
         char       *v;
@@ -7906,23 +7904,23 @@ EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_
         UINT32      range_end;
         UINT32      content_length;
 
-        /*ignore Content-Length*/
-
         k = (const char *)"Content-Range";
         v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
         if(NULL_PTR == v)
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
-                                                    "no 'Content-Range'\n");
-            /*maybe chunk*/
-            return (EC_FALSE);
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                    "no '%s'\n",
+                                                    k);
+            break;/*fall through*/
         }
+
+        /*ignore Content-Length*/
 
         if(EC_FALSE == crange_parse_content_range(v, &range_start, &range_end, &content_length))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
-                                                    "invalid Content-Range '%s'\n",
-                                                    v);
+                                                    "invalid '%s':'%s'\n",
+                                                    k, v);
             return (EC_FALSE);
         }
 
@@ -7930,10 +7928,38 @@ EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_
         CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
-                                                "parse Content-Range '%s' to [%ld, %ld] / %ld\n",
-                                                v,
+                                                "parse '%s':'%s' to [%ld, %ld] / %ld\n",
+                                                k, v,
                                                 range_start, range_end, content_length);
         /*fall through*/
+    }while(0);
+
+    if(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
+    {
+        const char *k;
+        char       *v;
+
+        UINT32      content_length;
+
+        k = (const char *)"Content-Length";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_header_out_range_filter: "
+                                                    "no '%s' => failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        content_length = c_str_to_word(v);
+
+        CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md) = BIT_TRUE;
+        CVENDOR_MD_CONTENT_LENGTH(cvendor_md)            = content_length;
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                "parse '%s':'%s' to %ld\n",
+                                                k, v,
+                                                content_length);
     }
 
     if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
@@ -8487,7 +8513,7 @@ EC_BOOL cvendor_content_expired_procedure(const UINT32 cvendor_md_id)
         const char      *cache_status;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
-                                                "found Expires '%s' => ims\n",
+                                                "expired, found last-modified '%s' => ims\n",
                                                 (char *)cstring_get_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md)));
 
         if(EC_TRUE == cvendor_content_ims_procedure(cvendor_md_id))
@@ -9168,7 +9194,20 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
         /*REFRESH_HIT or REFRESH_MISS*/
         CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md) = BIT_TRUE;
 
+        k = (const char *)"Last-Modified";
+        v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
+        if(NULL_PTR == v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                    "not found '%s' => done\n",
+                                                    k);
+            return (EC_TRUE);
+        }
         cstring_append_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), (const UINT8 *)v);
+        
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
+                                                "found '%s', set '%s' to expires\n",
+                                                k, v);        
         return (EC_TRUE);
     }
 
@@ -9182,21 +9221,19 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
         /*REFRESH_HIT or REFRESH_MISS*/
         CVENDOR_MD_CACHE_EXPIRED_FLAG(cvendor_md) = BIT_TRUE;
 
-        k = (const char *)"Date";
+        k = (const char *)"Last-Modified";
         v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
-        if(NULL_PTR != v)
+        if(NULL_PTR == v)
         {
-            cstring_append_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), (const UINT8 *)v);
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                    "found '%s':'%s', set it to expires\n",
-                                                    k, v);
+                                                    "not found '%s' => done\n",
+                                                    k);
             return (EC_TRUE);
         }
-
-        v = c_http_time(curtime);
+        
         cstring_append_str(CVENDOR_MD_HEADER_EXPIRES(cvendor_md), (const UINT8 *)v);
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                "not found '%s', set '%s' to expires\n",
+                                                "found '%s', set '%s' to expires\n",
                                                 k, v);
         return (EC_TRUE);
     }
