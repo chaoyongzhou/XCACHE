@@ -1321,6 +1321,17 @@ EC_BOOL cflv_filter_header_out_common(const UINT32 cflv_md_id, const char *proce
         }
     }while(0);
 
+    do
+    {
+        const char                  *k;
+        
+        k = (const char *)"Connection";
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_filter_header_out_common: "
+                                             "del rsp header '%s' done\n",
+                                             k);    
+    }while(0);
+    
     cngx_set_cache_status(r, CFLV_MD_CACHE_STATUS(cflv_md));
 
     /*merge header function. it should be optional function*/
@@ -5171,12 +5182,43 @@ EC_BOOL cflv_content_orig_header_out_range_filter(const UINT32 cflv_md_id)
     }
 
     /*single range and multiple range*/
-    if(EC_FALSE == cflv_filter_header_out_range(cflv_md_id))
+    if(BIT_TRUE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
     {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_out_range_filter: "
-                                             "filter range failed\n");
-        return (EC_FALSE);
+        if(EC_FALSE == cflv_filter_header_out_range(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_out_range_filter: "
+                                                 "filter range failed\n");
+            return (EC_FALSE);
+        }
     }
+    else if(BIT_TRUE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))/*no range*/
+    {
+        const char                  *k;
+        const char                  *v;
+
+        UINT32                       content_length; /*rsp body length*/
+
+        content_length = CFLV_MD_CONTENT_LENGTH(cflv_md);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_out_range_filter: "
+                                                 "renew header %s:%s failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_range_filter: "
+                                             "renew header %s:%s done\n",
+                                             k, v); 
+                                             
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_range_filter: "
+                                             "del header %s done\n",
+                                             k);        
+    }    
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_range_filter: "
                                          "filter range done\n");
@@ -5952,6 +5994,8 @@ EC_BOOL cflv_content_orig_send_response(const UINT32 cflv_md_id)
                                                  "get range segs from chttp rsp failed\n");
             return (EC_FALSE);
         }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_send_response: "
+                                             "get range segs from chttp rsp done\n");        
     }
 
     if(0 == CFLV_MD_ABSENT_SEG_NO(cflv_md))
@@ -8658,11 +8702,42 @@ EC_BOOL cflv_content_cache_header_out_range_filter(const UINT32 cflv_md_id)
     }
 
     /*single range and multiple range*/
-    if(EC_FALSE == cflv_filter_header_out_range(cflv_md_id))
+    if(BIT_TRUE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
     {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_header_out_range_filter: "
-                                             "filter range failed\n");
-        return (EC_FALSE);
+        if(EC_FALSE == cflv_filter_header_out_range(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_header_out_range_filter: "
+                                                 "filter range failed\n");
+            return (EC_FALSE);
+        }
+    }
+    else if(BIT_TRUE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))/*no range*/
+    {
+        const char                  *k;
+        const char                  *v;
+
+        UINT32                       content_length; /*rsp body length*/
+
+        content_length = CFLV_MD_CONTENT_LENGTH(cflv_md);
+
+        k = (const char *)"Content-Length";
+        v = (const char *)c_word_to_str(content_length);
+        if(EC_FALSE == chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_header_out_range_filter: "
+                                                 "renew header %s:%s failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_range_filter: "
+                                             "renew header %s:%s done\n",
+                                             k, v); 
+                                             
+        k = (const char *)"Content-Range";
+        chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_range_filter: "
+                                             "del header %s done\n",
+                                             k);        
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_range_filter: "
@@ -9964,6 +10039,8 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
                 cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0125);
                 return (EC_FALSE);
             }
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
+                                                 "get range segs from chttp rsp done\n");            
         }
 
         if(EC_FALSE == cflv_filter_rsp_range(cflv_md_id))
