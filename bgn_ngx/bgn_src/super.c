@@ -6920,7 +6920,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         super_cond_wakeup(super_md_id, tag, key);/*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
-        crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node);        
+        super_cond_delete(super_md_id, tag, key);
 
         return (EC_TRUE);
     }
@@ -6938,7 +6938,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         super_cond_terminate(super_md_id, tag, key);/*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
-        crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node);         
+         super_cond_delete(super_md_id, tag, key);
 
         return (EC_FALSE);
     }    
@@ -6951,7 +6951,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     }
 
     /*super_ccond_searched will be free when delete its crb node from tree*/
-    crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node);     
+     super_cond_delete(super_md_id, tag, key);  
     return (EC_TRUE);
 }
 
@@ -7045,6 +7045,51 @@ EC_BOOL super_cond_terminate(const UINT32 super_md_id, const UINT32 tag, const C
 
     /*super_ccond_searched will be free when delete its crb node from tree*/
     //crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node_searched);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL super_cond_delete(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key)
+{
+    SUPER_MD    *super_md;
+
+    SUPER_CCOND  super_ccond_t;
+    SUPER_CCOND *super_ccond_searched;
+
+    CRB_NODE    *crb_node_searched;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cond_delete: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    super_md = SUPER_MD_GET(super_md_id);
+
+    /*note: must confirm super_ccond existing and then delete it*/
+    super_ccond_init(super_md_id, &super_ccond_t, tag, key, 0/*any value*/);
+
+    crb_node_searched = crb_tree_search_data(SUPER_MD_COND_LOCKS(super_md), (void *)&super_ccond_t);
+    if(NULL_PTR == crb_node_searched)
+    {
+        dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_delete: not found super_ccond [tag %ld, key '%.*s']\n",
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key));
+        return (EC_TRUE);
+    }
+
+    super_ccond_clean(super_md_id, &super_ccond_t);/*no userful any longer*/
+
+    super_ccond_searched = CRB_NODE_DATA(crb_node_searched);
+
+    dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_delete: delete super_ccond [tag %ld, key '%.*s'] <= cond %p\n",
+                tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), SUPER_CCOND_COND(super_ccond_searched));
+
+    /*super_ccond_searched will be free when delete its crb node from tree*/
+    crb_tree_delete(SUPER_MD_COND_LOCKS(super_md), crb_node_searched);
 
     return (EC_TRUE);
 }
