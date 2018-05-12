@@ -173,7 +173,8 @@ UINT32 cmp4_start(ngx_http_request_t *r)
     cstring_init(CMP4_MD_CACHED_ETAG(cmp4_md), NULL_PTR);
     cstring_init(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md), NULL_PTR);
 
-    cstring_init(CMP4_MD_HEADER_EXPIRES(cmp4_md), NULL_PTR);
+    cstring_init(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md), NULL_PTR);
+    cstring_init(CMP4_MD_HEADER_ETAG(cmp4_md), NULL_PTR);
 
     CMP4_MD_MP4(cmp4_md)              = NULL_PTR;
     CMP4_MD_MP4_START(cmp4_md)        = 0;
@@ -257,7 +258,8 @@ void cmp4_end(const UINT32 cmp4_md_id)
     cstring_clean(CMP4_MD_CACHED_ETAG(cmp4_md));
     cstring_clean(CMP4_MD_CACHED_LAST_MODIFED(cmp4_md));
 
-    cstring_clean(CMP4_MD_HEADER_EXPIRES(cmp4_md));
+    cstring_clean(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md));
+    cstring_clean(CMP4_MD_HEADER_ETAG(cmp4_md));
 
     CMP4_MD_MP4(cmp4_md)              = NULL_PTR;
     CMP4_MD_MP4_START(cmp4_md)        = 0;
@@ -7165,10 +7167,10 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
     }
 
     /*set If-Modified-Since*/
-    if(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_EXPIRES(cmp4_md)))
+    if(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)))
     {
         k = (const char *)"If-Modified-Since";
-        v = (char *      )cstring_get_str(CMP4_MD_HEADER_EXPIRES(cmp4_md));
+        v = (char *      )cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md));
 
         if(EC_FALSE == chttp_req_add_header(CMP4_MD_CHTTP_REQ(cmp4_md), k, v))
         {
@@ -7182,6 +7184,24 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                              k, v);
     }
 
+    /*set If-None-Match*/
+    if(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_ETAG(cmp4_md)))
+    {
+        k = (const char *)"If-None-Match";
+        v = (char *      )cstring_get_str(CMP4_MD_HEADER_ETAG(cmp4_md));
+
+        if(EC_FALSE == chttp_req_add_header(CMP4_MD_CHTTP_REQ(cmp4_md), k, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                 "set header '%s':'%s' failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                             "set header '%s':'%s' done\n",
+                                             k, v);
+    }
+    
     return cmp4_filter_header_in_common(cmp4_md_id, CMP4_MD_CHTTP_REQ(cmp4_md));
 }
 
@@ -7374,6 +7394,107 @@ EC_BOOL cmp4_content_ims_header_out_304_expires_filter(const UINT32 cmp4_md_id, 
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_ims_header_out_304_date_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status)
+{
+    CMP4_MD                     *cmp4_md;
+    CMP4_MD                     *cmp4_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_304_date_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_304_date_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id_t);
+        dbg_exit(MD_CMP4, cmp4_md_id_t);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md   = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md_t = CMP4_MD_GET(cmp4_md_id_t);
+
+    /*override*/
+    k = (const char *)"Date";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md_t), k);
+    if(NULL_PTR != v)
+    {
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
+    
+        /*update cache*/
+        cmp4_renew_header_cache(cmp4_md_id_t, k, v);    
+    }
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_ims_header_out_304_age_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status)
+{
+    CMP4_MD                     *cmp4_md;
+    CMP4_MD                     *cmp4_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_304_age_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_304_age_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id_t);
+        dbg_exit(MD_CMP4, cmp4_md_id_t);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md   = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md_t = CMP4_MD_GET(cmp4_md_id_t);
+
+    /*override*/
+    k = (const char *)"Age";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md_t), k);
+    if(NULL_PTR != v)
+    {
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
+        
+        /*update cache*/
+        cmp4_renew_header_cache(cmp4_md_id_t, k, v);    
+    }
+    else
+    {
+        v = (const char *)"0";
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
+        
+        /*update cache*/
+        cmp4_renew_header_cache(cmp4_md_id_t, k, v);    
+    }
+    
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_ims_header_out_304_content_range_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status)
 {
     CMP4_MD                     *cmp4_md;
@@ -7469,6 +7590,28 @@ EC_BOOL cmp4_content_ims_header_out_304_filter(const UINT32 cmp4_md_id, const UI
                                          "[status %u] expires filter done\n",
                                          status);
 
+    if(EC_FALSE == cmp4_content_ims_header_out_304_date_filter(cmp4_md_id, cmp4_md_id_t, status))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_304_filter: "
+                                             "[status %u] date filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_304_filter: "
+                                         "[status %u] date filter done\n",
+                                         status);
+
+    if(EC_FALSE == cmp4_content_ims_header_out_304_age_filter(cmp4_md_id, cmp4_md_id_t, status))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_304_filter: "
+                                             "[status %u] age filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_304_filter: "
+                                         "[status %u] age filter done\n",
+                                         status);
+                                         
     if(EC_FALSE == cmp4_content_ims_header_out_304_content_range_filter(cmp4_md_id, cmp4_md_id_t, status))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_304_filter: "
@@ -7534,8 +7677,8 @@ EC_BOOL cmp4_content_ims_header_out_not_304_last_modified_filter(const UINT32 cm
         return (EC_FALSE);
     }
 
-    time_if_modified_since = c_parse_http_time(cstring_get_str(CMP4_MD_HEADER_EXPIRES(cmp4_md)),
-                                               (size_t)cstring_get_len(CMP4_MD_HEADER_EXPIRES(cmp4_md)));
+    time_if_modified_since = c_parse_http_time(cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)),
+                                               (size_t)cstring_get_len(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)));
 
     time_last_modified = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
@@ -7546,7 +7689,7 @@ EC_BOOL cmp4_content_ims_header_out_not_304_last_modified_filter(const UINT32 cm
                                              "=> return false\n",
                                              status,
                                              v,
-                                             (char *)cstring_get_str(CMP4_MD_HEADER_EXPIRES(cmp4_md)));
+                                             (char *)cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)));
 
         chttp_rsp_print_plain(LOGSTDOUT, CMP4_MD_CHTTP_RSP(cmp4_md_t));
 
@@ -7558,7 +7701,7 @@ EC_BOOL cmp4_content_ims_header_out_not_304_last_modified_filter(const UINT32 cm
                                          "=> ims works\n",
                                          status,
                                          v,
-                                         (char *)cstring_get_str(CMP4_MD_HEADER_EXPIRES(cmp4_md)));
+                                         (char *)cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)));
 
     /*renew Last-Modified in previous rsp*/
     chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
@@ -7576,6 +7719,73 @@ EC_BOOL cmp4_content_ims_header_out_not_304_last_modified_filter(const UINT32 cm
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_not_304_last_modified_filter: "
+                                         "[status %u] renew cache header '%s':'%s' done\n",
+                                         status, k, v);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_ims_header_out_not_304_etag_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status)
+{
+    CMP4_MD                     *cmp4_md;
+    CMP4_MD                     *cmp4_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_not_304_etag_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_out_not_304_etag_filter: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id_t);
+        dbg_exit(MD_CMP4, cmp4_md_id_t);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md   = CMP4_MD_GET(cmp4_md_id);
+    cmp4_md_t = CMP4_MD_GET(cmp4_md_id_t);
+
+    /*update rsp header*/
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md_t), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_etag_filter: "
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
+
+        chttp_rsp_print_plain(LOGSTDOUT, CMP4_MD_CHTTP_RSP(cmp4_md_t));
+
+        return (EC_FALSE);
+    }
+
+    /*renew Last-Modified in previous rsp*/
+    chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_not_304_etag_filter: "
+                                         "[status %u] renew rsp header '%s':'%s' done\n",
+                                         status, k, v);
+
+    /*renew Last-Modified in cache (seg-0)*/
+    if(EC_FALSE == cmp4_renew_header_cache(cmp4_md_id_t, k, v))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_etag_filter: "
+                                             "[status %u] renew cache header '%s':'%s' failed => ignore\n",
+                                             status, k, v);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_not_304_etag_filter: "
                                          "[status %u] renew cache header '%s':'%s' done\n",
                                          status, k, v);
 
@@ -7789,6 +7999,17 @@ EC_BOOL cmp4_content_ims_header_out_not_304_filter(const UINT32 cmp4_md_id, cons
                                          "[status %u] last modified filter done\n",
                                          status);
 
+    if(EC_FALSE == cmp4_content_ims_header_out_not_304_etag_filter(cmp4_md_id, cmp4_md_id_t, status))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_filter: "
+                                             "[status %u] etag filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_out_not_304_filter: "
+                                         "[status %u] etag filter done\n",
+                                         status);
+                                         
     if(EC_FALSE == cmp4_content_ims_header_out_not_304_expires_filter(cmp4_md_id, cmp4_md_id_t, status))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_out_not_304_filter: "
@@ -7946,7 +8167,8 @@ EC_BOOL cmp4_content_ims_procedure(const UINT32 cmp4_md_id)
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
-    ASSERT(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_EXPIRES(cmp4_md)));
+    ASSERT(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)));
+    ASSERT(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_ETAG(cmp4_md)));
 
     /*create new module*/
     cmp4_md_id_t = cmp4_start(r);
@@ -7964,7 +8186,8 @@ EC_BOOL cmp4_content_ims_procedure(const UINT32 cmp4_md_id)
     CMP4_MD_DEPTH(cmp4_md_t) = CMP4_MD_DEPTH(cmp4_md) + 1;
 
     /*clone header Expires*/
-    cstring_clone(CMP4_MD_HEADER_EXPIRES(cmp4_md), CMP4_MD_HEADER_EXPIRES(cmp4_md_t));
+    cstring_clone(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md), CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md_t));
+    cstring_clone(CMP4_MD_HEADER_ETAG(cmp4_md), CMP4_MD_HEADER_ETAG(cmp4_md_t));
     cstring_clone(CMP4_MD_CACHE_PATH(cmp4_md), CMP4_MD_CACHE_PATH(cmp4_md_t));
 
     if(EC_FALSE == cmp4_content_ims_send_request(cmp4_md_id_t))
@@ -9498,13 +9721,15 @@ EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id)
     ASSERT(BIT_TRUE == CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md));
 
     /*check If-Modified-Since*/
-    if(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_EXPIRES(cmp4_md)))
+    if(EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md))
+    || EC_FALSE == cstring_is_empty(CMP4_MD_HEADER_ETAG(cmp4_md)))
     {
         const char      *cache_status;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_procedure: "
-                                             "expired, found last-modified '%s' => ims\n",
-                                             (char *)cstring_get_str(CMP4_MD_HEADER_EXPIRES(cmp4_md)));
+                                             "expired, found last-modified '%s' or etag '%s' => ims\n",
+                                             (char *)cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)),
+                                             (char *)cstring_get_str(CMP4_MD_HEADER_ETAG(cmp4_md)));
 
         if(EC_TRUE == cmp4_content_ims_procedure(cmp4_md_id))
         {
@@ -10124,8 +10349,8 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                                "not found '%s' => done\n",
-                                                k);
+                                             "not found '%s' => done\n",
+                                             k);
         return (EC_TRUE);
     }
 
@@ -10159,19 +10384,25 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
 
         k = (const char *)"Last-Modified";
         v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
-        if(NULL_PTR == v)
+        if(NULL_PTR != v)
         {
+            cstring_append_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md), (const UINT8 *)v);
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                                 "not found '%s' => done\n",
-                                                 k);
-            return (EC_TRUE);
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);
         } 
 
-        cstring_append_str(CMP4_MD_HEADER_EXPIRES(cmp4_md), (const UINT8 *)v);
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        if(NULL_PTR != v)
+        {
+            cstring_append_str(CMP4_MD_HEADER_ETAG(cmp4_md), (const UINT8 *)v);
 
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                             "found '%s', set '%s' to expires\n",
-                                             k, v);         
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);
+        }            
         return (EC_TRUE);
     }
 
@@ -10187,19 +10418,25 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
 
         k = (const char *)"Last-Modified";
         v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
-        if(NULL_PTR == v)
+        if(NULL_PTR != v)
         {
+            cstring_append_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md), (const UINT8 *)v);
+
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                                 "not found '%s' => done\n",
-                                                 k);
-            return (EC_TRUE);
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);  
         }
         
-        cstring_append_str(CMP4_MD_HEADER_EXPIRES(cmp4_md), (const UINT8 *)v);
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
+        if(NULL_PTR != v)
+        {
+            cstring_append_str(CMP4_MD_HEADER_ETAG(cmp4_md), (const UINT8 *)v);
 
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                             "found '%s', set '%s' to expires\n",
-                                             k, v);           
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);  
+        }
         return (EC_TRUE);
     }
 

@@ -177,7 +177,8 @@ UINT32 cflv_start(ngx_http_request_t *r)
     cstring_init(CFLV_MD_CACHED_ETAG(cflv_md), NULL_PTR);
     cstring_init(CFLV_MD_CACHED_LAST_MODIFED(cflv_md), NULL_PTR);
 
-    cstring_init(CFLV_MD_HEADER_EXPIRES(cflv_md), NULL_PTR);
+    cstring_init(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md), NULL_PTR);
+    cstring_init(CFLV_MD_HEADER_ETAG(cflv_md), NULL_PTR);
 
     CFLV_MD_FLV_START(cflv_md)        = 0;
 
@@ -259,7 +260,8 @@ void cflv_end(const UINT32 cflv_md_id)
     cstring_clean(CFLV_MD_CACHED_ETAG(cflv_md));
     cstring_clean(CFLV_MD_CACHED_LAST_MODIFED(cflv_md));
 
-    cstring_clean(CFLV_MD_HEADER_EXPIRES(cflv_md));
+    cstring_clean(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md));
+    cstring_clean(CFLV_MD_HEADER_ETAG(cflv_md));
 
     CFLV_MD_FLV_START(cflv_md)        = 0;
 
@@ -6826,10 +6828,10 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
     }
 
     /*set If-Modified-Since*/
-    if(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_EXPIRES(cflv_md)))
+    if(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)))
     {
         k = (const char *)"If-Modified-Since";
-        v = (char *      )cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md));
+        v = (char *      )cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md));
 
         if(EC_FALSE == chttp_req_add_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v))
         {
@@ -6843,6 +6845,23 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                              k, v);
     }
 
+    /*set If-None-Match*/
+    if(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_ETAG(cflv_md)))
+    {
+        k = (const char *)"If-None-Match";
+        v = (char *      )cstring_get_str(CFLV_MD_HEADER_ETAG(cflv_md));
+
+        if(EC_FALSE == chttp_req_add_header(CFLV_MD_CHTTP_REQ(cflv_md), k, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                 "set header '%s':'%s' failed\n",
+                                                 k, v);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                             "set header '%s':'%s' done\n",
+                                             k, v);
+    }
     return cflv_filter_header_in_common(cflv_md_id);
 }
 
@@ -7035,6 +7054,107 @@ EC_BOOL cflv_content_ims_header_out_304_expires_filter(const UINT32 cflv_md_id, 
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_ims_header_out_304_date_filter(const UINT32 cflv_md_id, const UINT32 cflv_md_id_t, uint32_t status)
+{
+    CFLV_MD                     *cflv_md;
+    CFLV_MD                     *cflv_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_304_date_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_304_date_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id_t);
+        dbg_exit(MD_CFLV, cflv_md_id_t);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md   = CFLV_MD_GET(cflv_md_id);
+    cflv_md_t = CFLV_MD_GET(cflv_md_id_t);
+
+    /*override*/
+    k = (const char *)"Date";
+    v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md_t), k);
+    if(NULL_PTR != v)
+    {
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
+    
+        /*update cache*/
+        cflv_renew_header_cache(cflv_md_id_t, k, v);    
+    }
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_ims_header_out_304_age_filter(const UINT32 cflv_md_id, const UINT32 cflv_md_id_t, uint32_t status)
+{
+    CFLV_MD                     *cflv_md;
+    CFLV_MD                     *cflv_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_304_age_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_304_age_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id_t);
+        dbg_exit(MD_CFLV, cflv_md_id_t);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md   = CFLV_MD_GET(cflv_md_id);
+    cflv_md_t = CFLV_MD_GET(cflv_md_id_t);
+
+    /*override*/
+    k = (const char *)"Age";
+    v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md_t), k);
+    if(NULL_PTR != v)
+    {
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
+        
+        /*update cache*/
+        cflv_renew_header_cache(cflv_md_id_t, k, v);    
+    }
+    else
+    {
+        v = (const char *)"0";
+        /*update old (previous)*/
+        chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
+        
+        /*update cache*/
+        cflv_renew_header_cache(cflv_md_id_t, k, v);    
+    }
+    
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_ims_header_out_304_content_range_filter(const UINT32 cflv_md_id, const UINT32 cflv_md_id_t, uint32_t status)
 {
     CFLV_MD                     *cflv_md;
@@ -7130,6 +7250,28 @@ EC_BOOL cflv_content_ims_header_out_304_filter(const UINT32 cflv_md_id, const UI
                                          "[status %u] expires filter done\n",
                                          status);
 
+    if(EC_FALSE == cflv_content_ims_header_out_304_date_filter(cflv_md_id, cflv_md_id_t, status))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_304_filter: "
+                                             "[status %u] date filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_304_filter: "
+                                         "[status %u] date filter done\n",
+                                         status);
+
+    if(EC_FALSE == cflv_content_ims_header_out_304_age_filter(cflv_md_id, cflv_md_id_t, status))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_304_filter: "
+                                             "[status %u] age filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_304_filter: "
+                                         "[status %u] age filter done\n",
+                                         status);
+                                         
     if(EC_FALSE == cflv_content_ims_header_out_304_content_range_filter(cflv_md_id, cflv_md_id_t, status))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_304_filter: "
@@ -7195,8 +7337,8 @@ EC_BOOL cflv_content_ims_header_out_not_304_last_modified_filter(const UINT32 cf
         return (EC_FALSE);
     }
 
-    time_if_modified_since = c_parse_http_time(cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md)),
-                                               (size_t)cstring_get_len(CFLV_MD_HEADER_EXPIRES(cflv_md)));
+    time_if_modified_since = c_parse_http_time(cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)),
+                                               (size_t)cstring_get_len(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)));
 
     time_last_modified = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
@@ -7207,7 +7349,7 @@ EC_BOOL cflv_content_ims_header_out_not_304_last_modified_filter(const UINT32 cf
                                              "=> return false\n",
                                              status,
                                              v,
-                                             (char *)cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md)));
+                                             (char *)cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)));
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
 
@@ -7219,7 +7361,7 @@ EC_BOOL cflv_content_ims_header_out_not_304_last_modified_filter(const UINT32 cf
                                          "=> ims works\n",
                                          status,
                                          v,
-                                         (char *)cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md)));
+                                         (char *)cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)));
 
     /*renew Last-Modified in previous rsp*/
     chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
@@ -7237,6 +7379,73 @@ EC_BOOL cflv_content_ims_header_out_not_304_last_modified_filter(const UINT32 cf
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_not_304_last_modified_filter: "
+                                         "[status %u] renew cache header '%s':'%s' done\n",
+                                         status, k, v);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_ims_header_out_not_304_etag_filter(const UINT32 cflv_md_id, const UINT32 cflv_md_id_t, uint32_t status)
+{
+    CFLV_MD                     *cflv_md;
+    CFLV_MD                     *cflv_md_t;
+
+    const char                  *k;
+    const char                  *v;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_not_304_etag_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id_t) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_out_not_304_etag_filter: cflv module #0x%lx not started.\n",
+                cflv_md_id_t);
+        dbg_exit(MD_CFLV, cflv_md_id_t);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md   = CFLV_MD_GET(cflv_md_id);
+    cflv_md_t = CFLV_MD_GET(cflv_md_id_t);
+
+    /*update rsp header*/
+    k = (const char *)"ETag";
+    v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md_t), k);
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_etag_filter: "
+                                             "[status %u] ims rsp has no header '%s'\n",
+                                             status, k);
+
+        chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md_t));
+
+        return (EC_FALSE);
+    }
+
+    /*renew Last-Modified in previous rsp*/
+    chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_not_304_etag_filter: "
+                                         "[status %u] renew rsp header '%s':'%s' done\n",
+                                         status, k, v);
+
+    /*renew Last-Modified in cache (seg-0)*/
+    if(EC_FALSE == cflv_renew_header_cache(cflv_md_id_t, k, v))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_etag_filter: "
+                                             "[status %u] renew cache header '%s':'%s' failed => ignore\n",
+                                             status, k, v);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_not_304_etag_filter: "
                                          "[status %u] renew cache header '%s':'%s' done\n",
                                          status, k, v);
 
@@ -7450,6 +7659,17 @@ EC_BOOL cflv_content_ims_header_out_not_304_filter(const UINT32 cflv_md_id, cons
                                          "[status %u] last modified filter done\n",
                                          status);
 
+    if(EC_FALSE == cflv_content_ims_header_out_not_304_etag_filter(cflv_md_id, cflv_md_id_t, status))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_filter: "
+                                             "[status %u] etag filter done\n",
+                                             status);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_out_not_304_filter: "
+                                         "[status %u] etag filter done\n",
+                                         status);
+                                         
     if(EC_FALSE == cflv_content_ims_header_out_not_304_expires_filter(cflv_md_id, cflv_md_id_t, status))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_out_not_304_filter: "
@@ -7608,7 +7828,8 @@ EC_BOOL cflv_content_ims_procedure(const UINT32 cflv_md_id)
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
-    ASSERT(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_EXPIRES(cflv_md)));
+    ASSERT(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)));
+    ASSERT(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_ETAG(cflv_md)));
 
     /*create new module*/
     cflv_md_id_t = cflv_start(r);
@@ -7626,7 +7847,8 @@ EC_BOOL cflv_content_ims_procedure(const UINT32 cflv_md_id)
     CFLV_MD_DEPTH(cflv_md_t) = CFLV_MD_DEPTH(cflv_md) + 1;
 
     /*clone header Expires*/
-    cstring_clone(CFLV_MD_HEADER_EXPIRES(cflv_md), CFLV_MD_HEADER_EXPIRES(cflv_md_t));
+    cstring_clone(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md), CFLV_MD_HEADER_LAST_MODIFIED(cflv_md_t));
+    cstring_clone(CFLV_MD_HEADER_ETAG(cflv_md), CFLV_MD_HEADER_ETAG(cflv_md_t));
     cstring_clone(CFLV_MD_CACHE_PATH(cflv_md), CFLV_MD_CACHE_PATH(cflv_md_t));
 
     if(EC_FALSE == cflv_content_ims_send_request(cflv_md_id_t))
@@ -8272,13 +8494,15 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
     ASSERT(BIT_TRUE == CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md));
 
     /*check If-Modified-Since*/
-    if(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_EXPIRES(cflv_md)))
+    if(EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md))
+    || EC_FALSE == cstring_is_empty(CFLV_MD_HEADER_ETAG(cflv_md)))
     {
         const char      *cache_status;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_procedure: "
-                                             "expired, found last-modified '%s' => ims\n",
-                                             (char *)cstring_get_str(CFLV_MD_HEADER_EXPIRES(cflv_md)));
+                                             "expired, found last-modified '%s' or etag '%s' => ims\n",
+                                             (char *)cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)),
+                                             (char *)cstring_get_str(CFLV_MD_HEADER_ETAG(cflv_md)));
 
         if(EC_TRUE == cflv_content_ims_procedure(cflv_md_id))
         {
@@ -8946,19 +9170,26 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
 
         k = (const char *)"Last-Modified";
         v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
-        if(NULL_PTR == v)
+        if(NULL_PTR != v)
         {
+            cstring_append_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md), (const UINT8 *)v);
+
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                                 "not found '%s' => done\n",
-                                                 k);
-            return (EC_TRUE);
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);   
         }        
 
-        cstring_append_str(CFLV_MD_HEADER_EXPIRES(cflv_md), (const UINT8 *)v);
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR != v)
+        {
+            cstring_append_str(CFLV_MD_HEADER_ETAG(cflv_md), (const UINT8 *)v);
 
-        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                             "found '%s', set '%s' to expires\n",
-                                             k, v);         
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);   
+        }
+        
         return (EC_TRUE);
     }
 
@@ -8974,19 +9205,26 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
 
         k = (const char *)"Last-Modified";
         v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
-        if(NULL_PTR == v)
+        if(NULL_PTR != v)
         {
+            cstring_append_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md), (const UINT8 *)v);
+            
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                                 "not found '%s' => done\n",
-                                                 k);
-            return (EC_TRUE);
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);  
         }
         
-        cstring_append_str(CFLV_MD_HEADER_EXPIRES(cflv_md), (const UINT8 *)v);
+        k = (const char *)"ETag";
+        v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
+        if(NULL_PTR != v)
+        {
+            cstring_append_str(CFLV_MD_HEADER_ETAG(cflv_md), (const UINT8 *)v);
+            
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
+                                                 "found '%s', set '%s' to expires\n",
+                                                 k, v);  
+        }
         
-        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                             "found '%s', set '%s' to expires\n",
-                                             k, v);        
         return (EC_TRUE);
     }
 

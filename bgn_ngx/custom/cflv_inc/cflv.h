@@ -66,7 +66,8 @@ typedef struct
     CSTRING              cached_etag;
     CSTRING              cached_last_modified;
 
-    CSTRING              header_expires;
+    CSTRING              header_last_modified;
+    CSTRING              header_etag;
 
     UINT32               flv_start;               /*for FLV*/
 
@@ -113,7 +114,9 @@ typedef struct
 #define CFLV_MD_CACHED_ETAG(cflv_md)                        (&((cflv_md)->cached_etag))
 #define CFLV_MD_CACHED_LAST_MODIFED(cflv_md)                (&((cflv_md)->cached_last_modified))
 
-#define CFLV_MD_HEADER_EXPIRES(cflv_md)                     (&((cflv_md)->header_expires))
+#define CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)               (&((cflv_md)->header_last_modified))
+#define CFLV_MD_HEADER_ETAG(cflv_md)                        (&((cflv_md)->header_etag))
+
 #define CFLV_MD_FLV_START(cflv_md)                          ((cflv_md)->flv_start)
 #define CFLV_MD_DEPTH(cflv_md)                              ((cflv_md)->depth)
 

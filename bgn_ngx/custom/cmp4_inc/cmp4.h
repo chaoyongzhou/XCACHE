@@ -71,7 +71,8 @@ typedef struct
     CSTRING              cached_etag;
     CSTRING              cached_last_modified;
 
-    CSTRING              header_expires;
+    CSTRING              header_last_modified;
+    CSTRING              header_etag;
 
     cngx_mp4_file_t     *mp4;
     UINT32               mp4_start;               /*for MP4*/
@@ -120,7 +121,8 @@ typedef struct
 #define CMP4_MD_CACHED_ETAG(cmp4_md)                        (&((cmp4_md)->cached_etag))
 #define CMP4_MD_CACHED_LAST_MODIFED(cmp4_md)                (&((cmp4_md)->cached_last_modified))
 
-#define CMP4_MD_HEADER_EXPIRES(cmp4_md)                     (&((cmp4_md)->header_expires))
+#define CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)               (&((cmp4_md)->header_last_modified))
+#define CMP4_MD_HEADER_ETAG(cmp4_md)                        (&((cmp4_md)->header_etag))
 
 #define CMP4_MD_MP4(cmp4_md)                                ((cmp4_md)->mp4)
 #define CMP4_MD_MP4_START(cmp4_md)                          ((cmp4_md)->mp4_start)

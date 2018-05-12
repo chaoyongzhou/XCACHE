@@ -69,7 +69,8 @@ typedef struct
     CSTRING              cached_etag;
     CSTRING              cached_last_modified;
 
-    CSTRING              header_expires;
+    CSTRING              header_last_modified;
+    CSTRING              header_etag;
 
     /*---- debug ----*/
     UINT32               depth;                   /*recursive depth*/
@@ -118,7 +119,9 @@ typedef struct
 #define CVENDOR_MD_CACHED_ETAG(cvendor_md)                        (&((cvendor_md)->cached_etag))
 #define CVENDOR_MD_CACHED_LAST_MODIFED(cvendor_md)                (&((cvendor_md)->cached_last_modified))
 
-#define CVENDOR_MD_HEADER_EXPIRES(cvendor_md)                     (&((cvendor_md)->header_expires))
+#define CVENDOR_MD_HEADER_LAST_MODIFIED(cvendor_md)               (&((cvendor_md)->header_last_modified))
+#define CVENDOR_MD_HEADER_ETAG(cvendor_md)                        (&((cvendor_md)->header_etag))
+
 #define CVENDOR_MD_DEPTH(cvendor_md)                              ((cvendor_md)->depth)
 
 #define CVENDOR_MD_CHTTP_REQ(cvendor_md)                          ((cvendor_md)->chttp_req)
