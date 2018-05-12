@@ -2371,6 +2371,30 @@ EC_BOOL cngx_set_store_expires_override(ngx_http_request_t *r, CHTTP_STORE *chtt
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_set_store_expires_default(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
+{
+    const char      *k;
+    uint32_t         n;
+    uint32_t         m;
+
+    m = 1 * 24 * 60; /*default: one day*/
+    k = (const char *)CNGX_VAR_ORIG_EXPIRES_DEFAULT_NMIN;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &n, m))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_expires_default: "
+                                             "cngx get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store) = n * 60; /*convert minutes to seconds*/
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_orig_timeout: "
+                                         "cngx var '%s':'%u' done\n",
+                                         k, n);
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_set_store_orig_timeout(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
@@ -2589,6 +2613,7 @@ EC_BOOL cngx_set_store(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
     || EC_FALSE == cngx_set_store_ncache_rsp_headers(r, chttp_store)
     || EC_FALSE == cngx_set_store_expires_cache_code(r, chttp_store)
     || EC_FALSE == cngx_set_store_expires_override(r, chttp_store)
+    || EC_FALSE == cngx_set_store_expires_default(r, chttp_store)
     || EC_FALSE == cngx_set_store_orig_timeout(r, chttp_store)
     //|| EC_FALSE == cngx_set_store_merge_lock_expires(r, chttp_store)
     || EC_FALSE == cngx_set_store_merge_wait_timeout(r, chttp_store)

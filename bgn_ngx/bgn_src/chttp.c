@@ -722,6 +722,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
 
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
+        CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store)  = 0;
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)        = 0;
 
@@ -773,6 +774,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
 
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store) = 0;
+        CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store)  = 0;
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)        = 0;
 
@@ -835,6 +837,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
 
         CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store_src);
         CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_des) = CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store_src);
+        CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store_des)  = CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store_src);
 
         CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_des)  = CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store_src);
 
@@ -932,6 +935,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag  : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec  : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:default_expires_nsec   : %u\n", CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec      : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
 
     sys_log(LOGSTDOUT, "chttp_store_print:merge_lock_expires_nsec: %u\n", CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store));
@@ -7332,34 +7336,63 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP
             /*note: time_t unit is second but not mico-second*/
             expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)));
             chttp_node_renew_header(chttp_node, (const char *)"Expires", expires_str);
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: renew header: 'Expires':'%s'\n", expires_str);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: [override] renew header: 'Expires':'%s'\n", expires_str);
+
+            return (EC_TRUE);
         }
     }
-    else
+    
+    if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)
+    && EC_FALSE == chttp_node_has_header_key(chttp_node, (const char *)"Expires"))
     {
-        if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)
-        && EC_FALSE == chttp_node_has_header_key(chttp_node, (const char *)"Expires"))
+        char       *last_modified_str;
+        char       *expires_str;
+
+        time_t      last_modified_time;
+
+        if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
+        || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
         {
-            char       *last_modified_str;
-            char       *expires_str;
-
-            time_t      last_modified_time;
-
-            if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
-            || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
-            {
-                last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
-            }
-            else
-            {
-                last_modified_time = task_brd_default_get_time();
-            }
-
-            /*note: time_t unit is second but not mico-second*/
-            expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)));
-            chttp_node_add_header(chttp_node, (const char *)"Expires", expires_str);
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: add header: 'Expires':'%s'\n", expires_str);
+            last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
         }
+        else
+        {
+            last_modified_time = task_brd_default_get_time();
+        }
+
+        /*note: time_t unit is second but not mico-second*/
+        expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)));
+        chttp_node_add_header(chttp_node, (const char *)"Expires", expires_str);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: [override] add header: 'Expires':'%s'\n", expires_str);
+
+        return (EC_TRUE);
+    }
+
+    if(0 == CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)
+    && 0 < CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store)
+    && EC_FALSE == chttp_node_has_header_key(chttp_node, (const char *)"Expires"))
+    {
+        char       *last_modified_str;
+        char       *expires_str;
+
+        time_t      last_modified_time;
+
+        if(NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Date"))
+        || NULL_PTR != (last_modified_str = chttp_node_get_header(chttp_node, (const char *)"Last-Modified")))
+        {
+            last_modified_time = c_parse_http_time((uint8_t *)last_modified_str, strlen(last_modified_str));
+        }
+        else
+        {
+            last_modified_time = task_brd_default_get_time();
+        }
+
+        /*note: time_t unit is second but not mico-second*/
+        expires_str = c_http_time((time_t)(last_modified_time + CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store)));
+        chttp_node_add_header(chttp_node, (const char *)"Expires", expires_str);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: [default] add header: 'Expires':'%s'\n", expires_str);
+
+        return (EC_TRUE);
     }
 
     return (EC_TRUE);

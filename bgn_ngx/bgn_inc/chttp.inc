@@ -116,6 +116,9 @@ typedef struct
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
 
+    uint32_t                  default_expires_nsec;     /*default orig expires in seconds*/ 
+    uint32_t                  rsvd02;
+
     UINT32                    redirect_max_times;/*redirect location control from configuration*/
 
     UINT32                    seq_no; /*for debug only!*/
@@ -153,6 +156,8 @@ typedef struct
 
 #define CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)     ((chttp_store)->override_expires_flag)
 #define CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)     ((chttp_store)->override_expires_nsec)
+
+#define CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store)      ((chttp_store)->default_expires_nsec)
 
 #define CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store)         ((chttp_store)->orig_timeout_nsec)
 
