@@ -5268,15 +5268,17 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
-                                              "not found '%s'\n",
+                                              "not found '%s' => age = 0\n",
                                               k);
-        return (EC_FALSE); /*not aged*/
+        age = 0;
     }
-
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
-                                          "get '%s':'%s'\n",
-                                          k, v);
-    age = c_str_to_uint32_t(v);
+    else
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_rsp_is_aged: "
+                                              "get '%s':'%s'\n",
+                                              k, v);
+        age = c_str_to_uint32_t(v);
+    }
 
     /*current time*/
     curtime = task_brd_default_get_time();
