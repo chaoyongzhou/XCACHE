@@ -1309,7 +1309,7 @@ EC_BOOL coroutine_node_post_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL
     /*check coroutine status*/
     if(COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_CANL)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: [IS_CANL] %p, status 0x%lx\n", coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 1)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: [IS_CANL] %p, status 0x%lx\n", coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_DOWN;
     }
 
