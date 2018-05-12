@@ -416,24 +416,87 @@ EC_BOOL c_ipv4_is_ok(const char *ipv4_str)
 /*return host order*/
 UINT32 c_ipv4_to_word(const char *ipv4_str)
 {
-    /*network order is big endian*/
-    /*network order to host order. e.g., "1.2.3.4" -> 0x01020304*/
+    size_t   len;
+    size_t   idx;
+    uint32_t num;
+    uint32_t segs;
 
-    UINT32 a,b,c,d;
-    sscanf(ipv4_str, "%ld.%ld.%ld.%ld",&a, &b, &c, &d);
-    if(!(256 > a && 256 > b && 256 > c && 256 > d))
+    UINT32   ipsegs[4] = {0, 0, 0, 0};
+
+    /*network order is big endian*/
+    /*network order to host order. e.g., "1.2.3.4" -> 0x01020304*/    
+
+    if(NULL_PTR == ipv4_str)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: invalid ipv4 str '%s'\n", ipv4_str);
-        ASSERT( 256 > a);
-        ASSERT( 256 > b);
-        ASSERT( 256 > c);
-        ASSERT( 256 > d);
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: ipv4_str is null\n");
+        return (0);
     }
 
-    return ((a << 24) | (b << 16) | (c << 8) | (d));
-    //return (ntohl(inet_addr(ipv4_str)));
-}
+    len = strlen(ipv4_str);
+    if(16 <= len)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: ipv4_str %s len %d overflow\n", 
+                        ipv4_str, len);
+        return (0);
+    }
 
+    segs = 0;
+    num  = 0;
+    for(idx = 0; idx < len; idx ++)
+    {
+        char ch;
+
+        ch = ipv4_str[ idx ];
+        if('.' == ch)
+        {
+            segs ++;
+            if(255 < num || 3 < segs)
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: invalid ipv4_str %s\n", ipv4_str);
+                return (0);
+            }
+            
+            ipsegs[ segs - 1 ] = num;
+
+            num = 0; /*reset*/
+            continue;
+        }
+
+        if('0' > ch || '9' < ch)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: invalid ipv4_str %s\n", ipv4_str);        
+            return (0);
+        }
+        num = num * 10 + ch - '0';
+    }
+
+    segs ++;
+
+    ipsegs[ segs - 1 ] = num;
+
+    if(255 < num)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: invalid ipv4_str %s\n", ipv4_str);
+        return (0);
+    }
+
+    if(1 == segs)
+    {
+        return ipsegs[ 0 ];
+    }
+
+    if(2 == segs)
+    {
+        return ((ipsegs[ 0 ] << 24) | ipsegs[ 1 ]);
+    }
+
+    if(3 == segs)
+    {
+        return ((ipsegs[ 0 ] << 24) | (ipsegs[ 1 ] << 16) | ipsegs[ 2 ]);
+    }
+
+    return ((ipsegs[ 0 ] << 24) | (ipsegs[ 1 ] << 16) | (ipsegs[ 2 ] << 8) | ipsegs[ 3 ]);
+}
 
 /*ipv4_num is host order*/
 char *c_word_to_ipv4(const UINT32 ipv4_num)

@@ -2570,7 +2570,17 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
     if(EC_FALSE == cngx_get_req_uri(r, &uri_str))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
-                                                "fetch req uri failed\n");
+                                             "fetch req uri failed\n");
+        return (EC_FALSE);
+    }
+
+    /*uri len is 0 or 1, i.e. uri is empty or uri == '/'*/
+    if((0x00 == uri_str[ 0 ]) || (0x00 == uri_str[ 1 ]))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
+                                             "fetched req uri is '%s'\n",
+                                             uri_str);
+        safe_free(uri_str, LOC_CNGX_0045);
         return (EC_FALSE);
     }
 
