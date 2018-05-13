@@ -5581,6 +5581,7 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
 
     TASK_BRD_DO_SLAVE_PID(task_brd)          = ERR_PID;
     TASK_BRD_ENABLE_SLOW_DOWN(task_brd)      = BIT_TRUE;
+    TASK_BRD_TASKS_IS_RUNNING(task_brd)      = BIT_FALSE;
 
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd)   = ERR_CTHREAD_ID;
     TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = ERR_CTHREAD_ID;
@@ -7912,6 +7913,8 @@ LOG * task_brd_default_init(int argc, char **argv)
 
             task_brd_default_abort();/*abort !*/
         }
+        TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start server done\n");
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
@@ -7922,6 +7925,8 @@ LOG * task_brd_default_init(int argc, char **argv)
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
             c_usleep(1, LOC_TASK_0134);
         }
+        TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start server done\n");
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     }
 
@@ -12367,6 +12372,24 @@ EC_BOOL task_brd_default_abort()
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_abort: exit\n");
     exit(0);
     return(EC_TRUE);
+}
+
+EC_BOOL task_brd_is_running(TASK_BRD *task_brd)
+{
+    if(BIT_TRUE == TASK_BRD_TASKS_IS_RUNNING(task_brd))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL task_brd_default_is_running()
+{
+    TASK_BRD *task_brd;
+
+    task_brd = task_brd_default_get();
+
+    return task_brd_is_running(task_brd);
 }
 
 EC_BOOL task_brd_end(TASK_BRD *task_brd)

@@ -1568,6 +1568,9 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
         return ( EC_FALSE );
     }
 
+    dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "[DEBUG] csocket_listen: bind %s:%ld done\n",
+                c_word_to_ipv4(srv_ipaddr), srv_port);    
+
     /* create listen queues */
     if( 0 !=  listen( sockfd, CSOCKET_BACKLOG) )/*SOMAXCONN = 128 is a system constant*/
     {

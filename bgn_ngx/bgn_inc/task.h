@@ -350,6 +350,10 @@ EC_BOOL task_brd_set_abort(TASK_BRD *task_brd);
 
 void    task_brd_set_abort_default();
 
+EC_BOOL task_brd_is_running(TASK_BRD *task_brd);
+
+EC_BOOL task_brd_default_is_running();
+
 EC_BOOL task_brd_end(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_default_end();

@@ -464,7 +464,8 @@ typedef struct _TASK_BRD
 
     pid_t        do_slave_pid;
     uint32_t     enable_slow_down:1;/*set by outside of BGN. if other enable it, BGN could be slow down or not depend on BGN*/
-    uint32_t     rsvd2:31;
+    uint32_t     tasks_is_running:1;
+    uint32_t     rsvd2:30;
 
     CTHREAD_ID   do_slave_cthread_id;            /* do_slave thread  */
     CTHREAD_ID   do_routine_cthread_id;          /* do_routine thread  */
@@ -899,6 +900,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 
 #define TASK_BRD_DO_SLAVE_PID(task_brd)                    ((task_brd)->do_slave_pid)
 #define TASK_BRD_ENABLE_SLOW_DOWN(task_brd)                ((task_brd)->enable_slow_down)
+#define TASK_BRD_TASKS_IS_RUNNING(task_brd)                ((task_brd)->tasks_is_running)
 
 #define TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd)             ((task_brd)->do_slave_cthread_id)
 #define TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd)           ((task_brd)->do_routine_cthread_id)

@@ -670,7 +670,8 @@ EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     return (EC_TRUE);
 }
 
-EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
+/*close one socket in the tasks*/
+EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
 {
     TASK_BRD        *task_brd;
     TASKS_CFG       *tasks_cfg;
@@ -678,6 +679,8 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     UINT32           broken_tcid;
 
     TASK_NODE       *task_node;
+
+    CLIST_DATA      *clist_data;
 
     ASSERT(NULL_PTR != csocket_cnode);
     ASSERT(NULL_PTR != tasks_node);
@@ -687,7 +690,7 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     tasks_worker    = TASKS_CFG_WORKER(tasks_cfg);
     broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
 
-    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_close: close sockfd %d on tcid %s, vec size %ld => \n",
+    dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "[DEBUG] tasks_node_iclose: close sockfd %d on tcid %s, vec size %ld\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
                     TASKS_NODE_TCID_STR(tasks_node),
                     cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)));
@@ -696,38 +699,67 @@ EC_BOOL tasks_node_close(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     cvector_delete(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);
     tasks_worker_callback_when_del(tasks_worker, tasks_node);
 
-    while(NULL_PTR != (task_node = clist_pop_front(TASKS_NODE_SENDING_LIST(tasks_node))))
+    /*free recving task_node*/
+    if(NULL_PTR != CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode))
     {
-        if(TASK_NODE_BUFF_POS(task_node) != TASK_NODE_BUFF_LEN(task_node))/*sending not completed*/
+        task_node_free(CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
+        CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = NULL_PTR;
+    }
+
+    if(NULL_PTR == CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode))
+    {
+        /*do nothing*/
+        return (EC_TRUE);
+    }
+
+    /*reset sending task_node*/
+    task_node = CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode);
+    CLIST_LOOP_NEXT(TASKS_NODE_SENDING_LIST(tasks_node), clist_data)
+    {        
+        if(task_node == CLIST_DATA_DATA(clist_data))
         {
-            TASK_NODE_BUFF_POS(task_node) = 0; /*reset*/
+            clist_erase_no_lock(TASKS_NODE_SENDING_LIST(tasks_node), clist_data);
+            break;
+        }
+    }
 
-            if(TAG_TASK_REQ == TASK_NODE_TAG(task_node))
-            {
-                TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
-                TASK_NODE_STATUS(task_node) = TASK_REQ_TO_SEND;
-            }
+    /*clear mounting*/
+    CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode) = NULL_PTR;
 
-            else if(TAG_TASK_RSP == TASK_NODE_TAG(task_node))
-            {
-                TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
-                TASK_NODE_STATUS(task_node) = TASK_RSP_TO_SEND;
+    if(TASK_NODE_BUFF_POS(task_node) != TASK_NODE_BUFF_LEN(task_node))/*sending not completed*/
+    {
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "[DEBUG] tasks_node_iclose: close sockfd %d on tcid %s, reset task_node %p\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                        TASKS_NODE_TCID_STR(tasks_node),
+                        task_node);
+    
+        TASK_NODE_BUFF_POS(task_node) = 0; /*reset*/
 
-                clist_del(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), (void *)task_node, NULL_PTR);
-                clist_push_back(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), (void *)task_node);
-            }
-            else if(TAG_TASK_FWD == TASK_NODE_TAG(task_node))
-            {
-                TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
-                TASK_NODE_STATUS(task_node) = TASK_FWD_IS_RECV;
+        if(TAG_TASK_REQ == TASK_NODE_TAG(task_node))
+        {
+            TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
+            TASK_NODE_STATUS(task_node) = TASK_REQ_TO_SEND;
+        }
 
-                clist_del(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), (void *)task_node, NULL_PTR);
-                clist_push_back(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), (void *)task_node);
-            }
-            else
-            {
-                task_node_free(task_node);
-            }
+        else if(TAG_TASK_RSP == TASK_NODE_TAG(task_node))
+        {
+            TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
+            TASK_NODE_STATUS(task_node) = TASK_RSP_TO_SEND;
+
+            clist_del(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), (void *)task_node, NULL_PTR);
+            clist_push_back(TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), (void *)task_node);
+        }
+        else if(TAG_TASK_FWD == TASK_NODE_TAG(task_node))
+        {
+            TASK_NODE_COMP(task_node)   = TASK_NOT_COMP;
+            TASK_NODE_STATUS(task_node) = TASK_FWD_IS_RECV;
+
+            clist_del(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), (void *)task_node, NULL_PTR);
+            clist_push_back(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), (void *)task_node);
+        }
+        else
+        {
+            task_node_free(task_node);
         }
     }
 
@@ -815,8 +847,8 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
 
         csocket_cnode_reset_close_callback(csocket_cnode);
         csocket_cnode_push_close_callback(csocket_cnode,
-                                         (const char *)"tasks_node_close",
-                                         (UINT32)tasks_node, (UINT32)tasks_node_close);
+                                         (const char *)"tasks_node_iclose",
+                                         (UINT32)tasks_node, (UINT32)tasks_node_iclose);
 
         csocket_cnode_reset_timeout_callback(csocket_cnode);
         csocket_cnode_push_timeout_callback(csocket_cnode,
@@ -826,8 +858,8 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
 
         csocket_cnode_reset_shutdown_callback(csocket_cnode);
         csocket_cnode_push_shutdown_callback(csocket_cnode,
-                                         (const char *)"tasks_node_close",
-                                         (UINT32)tasks_node, (UINT32)tasks_node_close);
+                                         (const char *)"tasks_node_iclose",
+                                         (UINT32)tasks_node, (UINT32)tasks_node_iclose);
     }
     else
     {
