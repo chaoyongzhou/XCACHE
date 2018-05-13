@@ -6202,6 +6202,16 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
+        if(EC_FALSE == cvendor_content_cache_save_header(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                                                    "save header failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_send_response: "
+                                                "save header done\n");        
+
         cngx_import_header_out(r, CVENDOR_MD_CHTTP_RSP(cvendor_md));
 
         cngx_disable_write_delayed(r);

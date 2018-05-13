@@ -5972,6 +5972,16 @@ EC_BOOL cflv_content_orig_send_response(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
+        if(EC_FALSE == cflv_content_cache_save_header(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_response: "
+                                                 "save header failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_send_response: "
+                                             "save header done\n");         
+
         cngx_import_header_out(r, CFLV_MD_CHTTP_RSP(cflv_md));
 
         cngx_disable_write_delayed(r);

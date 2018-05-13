@@ -6321,6 +6321,16 @@ EC_BOOL cmp4_content_orig_send_response(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
+        if(EC_FALSE == cmp4_content_cache_save_header(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_response: "
+                                                 "save header failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_response: "
+                                             "save header done\n");        
+
         cngx_import_header_out(r, CMP4_MD_CHTTP_RSP(cmp4_md));
 
         cngx_disable_write_delayed(r);
