@@ -539,6 +539,10 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = crfshttp_commit_rfs_list_get_request(chttp_node);
     }
+    else if (EC_TRUE == crfshttp_is_http_get_ngx_breathe(chttp_node))
+    {
+        ret = crfshttp_commit_ngx_breathe_get_request(chttp_node);
+    }    
     else
     {
         CBUFFER *uri_cbuffer;
@@ -11435,6 +11439,204 @@ EC_BOOL crfshttp_commit_rfs_list_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_rfs_list_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ngx_breathe ----------------------------------------*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_ngx_breathe_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/ngx_breathe") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/ngx_breathe")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_is_http_get_ngx_breathe(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_ngx_breathe: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_ngx_breathe_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_ngx_breathe_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == crfshttp_handle_ngx_breathe_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ngx_breathe_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_ngx_breathe_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ngx_breathe_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = crfshttp_commit_ngx_breathe_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ngx_breathe_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    CBYTES        *content_cbytes;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CRFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_ngx_breathe_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_ngx_breathe_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error: crfshttp_handle_ngx_breathe_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_ngx_breathe_get_request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __crfshttp_uri_is_ngx_breathe_get_op(uri_cbuffer))
+    {
+        char        *v;
+        UINT32       ngx_tcid;
+
+        MOD_NODE     recv_mod_node;
+
+        v = chttp_node_get_header(chttp_node, (const char *)"ngx-tcid");
+        if(NULL_PTR == v)
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ngx_breathe_get_request: no ngx-tcid");
+
+            return (EC_TRUE);        
+        }
+
+        if(EC_FALSE == c_ipv4_is_ok(v))
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ngx_breathe_get_request: invalid ngx-tcid '%s'", v);
+
+            return (EC_TRUE);
+        }        
+
+        ngx_tcid = c_ipv4_to_word(v);
+        dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_ngx_breathe_get_request: header ngx-tcid %s => 0x%lx\n",
+                            v, ngx_tcid);
+
+        MOD_NODE_TCID(&recv_mod_node) = ngx_tcid;
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*super_md_id = 0*/
+
+        task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                         &recv_mod_node,
+                         NULL,
+                         FI_super_breathing_mem, CMPI_ERROR_MODI);
+                 
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_ngx_breathe_get_request: send ngx %s to breath mem done", 
+                                c_word_to_ipv4(ngx_tcid));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_ngx_breathe_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_ngx_breathe_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_ngx_breathe_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_ngx_breathe_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_ngx_breathe_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ngx_breathe_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
