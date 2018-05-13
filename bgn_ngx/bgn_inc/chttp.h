@@ -42,6 +42,8 @@ EC_BOOL chttp_store_srv_get(const CHTTP_STORE *chttp_store, const CSTRING *path,
 
 EC_BOOL chttp_store_path_get(const CHTTP_STORE *chttp_store, CSTRING *path);
 
+EC_BOOL chttp_store_waiter_terminate(const CHTTP_STORE *chttp_store);
+
 void    chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store);
 
 EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32_t status_code);

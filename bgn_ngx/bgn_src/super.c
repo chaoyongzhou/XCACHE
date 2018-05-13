@@ -2901,6 +2901,7 @@ EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chtt
     if(EC_FALSE == super_http_request(super_md_id, chttp_req, chttp_store, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request_merge: trigger request %p failed\n", chttp_req);
+        chttp_store_waiter_terminate(chttp_store);
         return (EC_FALSE);
     }
 
@@ -6917,7 +6918,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         }
 
         /*note: here initiatives to unlock*/
-        super_cond_wakeup(super_md_id, tag, key);/*xxx unuseful xxx*/
+        /*super_cond_wakeup(super_md_id, tag, key);*//*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
         super_cond_delete(super_md_id, tag, key);
@@ -6935,7 +6936,7 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
         }
 
         /*note: here initiatives to unlock*/
-        super_cond_terminate(super_md_id, tag, key);/*xxx unuseful xxx*/
+        /*super_cond_terminate(super_md_id, tag, key);*//*xxx unuseful xxx*/
 
         /*super_ccond_searched will be free when delete its crb node from tree*/
          super_cond_delete(super_md_id, tag, key);

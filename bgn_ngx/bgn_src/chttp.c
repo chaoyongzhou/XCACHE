@@ -898,6 +898,38 @@ EC_BOOL chttp_store_path_get(const CHTTP_STORE *chttp_store, CSTRING *path)
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_store_waiter_terminate(const CHTTP_STORE *chttp_store)
+{
+    CSTRING        path;
+
+    UINT32         store_srv_tcid;
+    UINT32         store_srv_ipaddr;
+    UINT32         store_srv_port;
+
+    /*make path*/
+    cstring_init(&path, NULL_PTR);
+    chttp_store_path_get(chttp_store, &path);
+
+    /*select storage server*/
+    if(EC_FALSE == chttp_store_srv_get(chttp_store, &path, &store_srv_tcid, &store_srv_ipaddr, &store_srv_port))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_store_waiter_terminate: select storage server for '%.*s' failed\n",
+                            (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+                            
+    /*expired => terminate all waiters*/
+    ccache_file_terminate(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path);
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_waiter_terminate: terminate waiters on storage server for '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
+                        
+    cstring_clean(&path);
+
+    return (EC_TRUE);
+}
+
 void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 {
     sys_log(LOGSTDOUT, "chttp_store_print:seg_max_id             : %u\n", CHTTP_STORE_SEG_MAX_ID(chttp_store));
@@ -7497,37 +7529,26 @@ EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node)
 
 EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
 {
-    CSTRING        path;
-
-    UINT32         store_srv_tcid;
-    UINT32         store_srv_ipaddr;
-    UINT32         store_srv_port;
-
     if(EC_FALSE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))
     {
         return (EC_TRUE);
     }
 
-    /*make path*/
-    cstring_init(&path, NULL_PTR);
-    chttp_store_path_get(chttp_store, &path);
-
-    /*select storage server*/
-    if(EC_FALSE == chttp_store_srv_get(chttp_store, &path, &store_srv_tcid, &store_srv_ipaddr, &store_srv_port))
+    if(EC_FALSE == chttp_store_waiter_terminate(chttp_store))
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_waiter_terminate: select storage server for '%.*s' failed\n",
-                            (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
-        cstring_clean(&path);
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_waiter_terminate: "
+                                              "terminate store waiters with basedir '%.*s' and seg_id '%u' failed\n",
+                                              (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), 
+                                              CHTTP_STORE_BASEDIR_STR(chttp_store),
+                                              CHTTP_STORE_SEG_ID(chttp_store));
         return (EC_FALSE);
     }
-                            
-    /*expired => terminate all waiters*/
-    ccache_file_terminate(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path);
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_waiter_terminate: terminate waiters on storage server for '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
-                        
-    cstring_clean(&path);
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_waiter_terminate: "
+                                          "terminate store waiters with basedir '%.*s' and seg_id '%u' done\n",
+                                          (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), 
+                                          CHTTP_STORE_BASEDIR_STR(chttp_store),
+                                          CHTTP_STORE_SEG_ID(chttp_store));
 
     return (EC_TRUE);
 }
