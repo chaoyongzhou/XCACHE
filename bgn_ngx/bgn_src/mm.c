@@ -1203,6 +1203,9 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
         MAN_UNLOCK(pMan, LOC_MM_0241);
+
+        c_backtrace_dump(LOGSTDOUT);
+        
         exit ( 2 );
     }
 

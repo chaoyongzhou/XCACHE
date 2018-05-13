@@ -40,6 +40,12 @@ extern "C"{
 static CRB_TREE  g_cngx_http_bgn_mod_tree;
 static EC_BOOL   g_cngx_http_bgn_mod_tree_init_flag = EC_FALSE;
 
+static const char *g_cngx_default_cache_http_codes_str = "200 203 206 301 401";
+
+static const uint32_t g_cngx_default_cache_http_codes[] = {200, 203, 206, 301, 401};
+static UINT32         g_cngx_default_cache_http_codes_num = 
+      sizeof(g_cngx_default_cache_http_codes)/sizeof(g_cngx_default_cache_http_codes[0]);
+
 CNGX_RANGE *cngx_range_new()
 {
     CNGX_RANGE *cngx_range;
@@ -2256,11 +2262,53 @@ EC_BOOL cngx_set_store_ncache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *ch
     return (EC_TRUE);
 }
 
+static EC_BOOL __cngx_status_code_is_in_strs(const uint32_t status_code, const char **cache_http_codes, const UINT32 num)
+{
+    UINT32 pos;
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        const char *cache_http_code;
+
+        cache_http_code = cache_http_codes[ pos ];
+        
+        if(EC_FALSE == c_char_is_in_ignore_case('X', cache_http_code, strlen(cache_http_code)))
+        {
+            if(c_str_to_uint32_t(cache_http_code) == status_code)
+            {
+                return (EC_TRUE);
+            }
+
+            continue;
+        }
+
+        /*else*/
+
+        if(c_str_to_uint32_t_ireplace(cache_http_code, 'X', 0) <= status_code /*replace 'X' or 'x' with 0*/
+        && c_str_to_uint32_t_ireplace(cache_http_code, 'X', 9) >= status_code /*replace 'X' or 'x' with 9*/
+        )
+        {
+            return (EC_TRUE);
+        }        
+    }
+
+    return (EC_FALSE);
+}
+
 EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chttp_store)
 {
     const char      *k;
     char            *v;
+    
+    char            *cache_http_codes_str;
+    char            *cache_http_codes[ 32 ];
 
+    char             lost_codes_str[ 32 ];
+    UINT32           lost_codes_pos;
+    
+    UINT32           num;
+    UINT32           idx;
+    
     k = (const char *)CNGX_VAR_CACHE_HTTP_CODES;
     if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
     {
@@ -2271,16 +2319,68 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
     }
     if(NULL_PTR == v)
     {
+        const char *def;
+        
+        def = g_cngx_default_cache_http_codes_str;
+        cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)def);
+
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_http_codes: "
-                                             "cngx var '%s' not found => ignore\n",
-                                             k);
+                                             "cngx var '%s' not found => set default '%s' by force\n",
+                                             k, def);
         return (EC_TRUE);
     }
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_http_codes: "
-                                         "cngx var '%s':'%s' done\n",
-                                         k, v);
-    cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)v);
 
+    /*append default cache http codes to var if necessary*/
+
+    cache_http_codes_str = c_str_dup(v);
+    if(NULL_PTR == cache_http_codes_str)
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_http_codes: "
+                                             "dup str '%s' failed\n",
+                                             v);
+        safe_free(v, LOC_CNGX_0008);
+        return (EC_FALSE);
+    }
+
+    num = sizeof(cache_http_codes)/sizeof(cache_http_codes[0]);
+    num = c_str_split(cache_http_codes_str, (const char *)"; ", (char **)cache_http_codes, num);   
+
+    lost_codes_pos = 0;
+    for(idx = 0; idx < g_cngx_default_cache_http_codes_num; idx ++)
+    {
+        uint32_t status_code;
+
+        status_code = g_cngx_default_cache_http_codes[ idx ];
+
+        if(EC_FALSE == __cngx_status_code_is_in_strs(status_code, (const char **)cache_http_codes, num))
+        {
+            lost_codes_pos += snprintf((char *)lost_codes_str + lost_codes_pos, 
+                                        sizeof(lost_codes_str) - lost_codes_pos, 
+                                        " %u", status_code);
+        }
+    }
+    safe_free(cache_http_codes_str, LOC_CNGX_0008);
+
+    if(0 == lost_codes_pos)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_http_codes: "
+                                             "cngx var '%s':'%s' done\n",
+                                             k, v);
+        cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)v);  
+
+        return (EC_TRUE);
+    }
+
+    cache_http_codes_str = c_str_cat(v, (const char *)lost_codes_str);
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_http_codes: "
+                                         "cngx var '%s':'%s', add lost default '%s' => '%s' done\n",
+                                         k, v, (char *)lost_codes_str, cache_http_codes_str);
+
+    safe_free(v, LOC_CNGX_0008);
+
+    cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)cache_http_codes_str);      
+    
     return (EC_TRUE);
 }
 
