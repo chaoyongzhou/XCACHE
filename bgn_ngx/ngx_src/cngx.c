@@ -2322,7 +2322,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
         const char *def;
         
         def = g_cngx_default_cache_http_codes_str;
-        cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)def);
+        cstring_append_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)def);
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_http_codes: "
                                              "cngx var '%s' not found => set default '%s' by force\n",
