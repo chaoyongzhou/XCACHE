@@ -367,6 +367,7 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 
@@ -412,6 +413,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 

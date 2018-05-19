@@ -264,6 +264,8 @@ EC_BOOL cngx_set_chunked(ngx_http_request_t *r);
 
 EC_BOOL cngx_set_keepalive(ngx_http_request_t *r);
 
+EC_BOOL cngx_disable_keepalive(ngx_http_request_t *r);
+
 EC_BOOL cngx_get_flv_start(ngx_http_request_t *r, UINT32 *flv_start);
 
 EC_BOOL cngx_get_mp4_start_length(ngx_http_request_t *r, UINT32 *mp4_start, UINT32 *mp4_length);

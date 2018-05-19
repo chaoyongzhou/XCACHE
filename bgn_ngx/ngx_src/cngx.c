@@ -1376,6 +1376,12 @@ EC_BOOL cngx_set_keepalive(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_disable_keepalive(ngx_http_request_t *r)
+{
+    r->keepalive = 0;
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_get_flv_start(ngx_http_request_t *r, UINT32 *flv_start)
 {
     if(r->args.len)

@@ -367,6 +367,7 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 
@@ -412,6 +413,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
                                              "ignore rc %d due to header had sent out\n",
                                              rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 

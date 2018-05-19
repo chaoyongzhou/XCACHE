@@ -364,6 +364,7 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
                                                 "ignore rc %d due to header had sent out\n",
                                                 rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 
@@ -409,6 +410,7 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
                                                 "ignore rc %d due to header had sent out\n",
                                                 rc);
+        cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
 
