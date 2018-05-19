@@ -410,13 +410,20 @@ EC_BOOL chttp_node_clone_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP
 
 EC_BOOL chttp_node_clone_rsp_header(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 
+EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node);
+
+EC_BOOL chttp_node_send_rsp_body(CHTTP_NODE *chttp_node, const UINT32 seg_no, const UINT8 *data, const UINT32 len);
+
 EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 
 EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node);
 
+EC_BOOL chttp_node_send_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
+
 EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);
 EC_BOOL chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
 EC_BOOL chttp_node_store_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
+
 EC_BOOL chttp_node_store_no_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);
 EC_BOOL chttp_node_store_whole(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size);
 EC_BOOL chttp_node_store_no_next(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);

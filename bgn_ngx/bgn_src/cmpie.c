@@ -5466,6 +5466,8 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_cstring(comm, CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_CACHE_CTRL(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_LOCKED_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_EXPIRED_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_CHUNK_FLAG(chttp_store), out_buff, out_buff_max_len, position);
@@ -5495,6 +5497,11 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_uint32_t(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), out_buff, out_buff_max_len, position);
 
+    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_ORIG_MOID(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
+
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_encode_chttp_store: position: %ld, chttp_store: %p => end\n", (*position), chttp_store);
     return ((UINT32)0);
 }
@@ -5513,6 +5520,8 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CACHE_CTRL(chttp_store), size);
 
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), size);
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), size);
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_LOCKED_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_EXPIRED_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CHUNK_FLAG(chttp_store), size);
@@ -5542,6 +5551,11 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), size);
+
+    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_ORIG_MOID(chttp_store), size);
+    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store), size);
+    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store), size);
+    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store), size);
     return ((UINT32)0);
 }
 
@@ -5583,6 +5597,12 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_MERGE_FLAG(chttp_store) = flag;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
+    CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = flag;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
+    CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = flag;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_LOCKED_FLAG(chttp_store) = flag;
@@ -5628,6 +5648,11 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
     CHTTP_STORE_REDIRECT_CTRL(chttp_store) = flag;
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_ORIG_MOID(chttp_store));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store));
 
     //rlog(SEC_0035_CMPIE, 0)(LOGSTDOUT, "[DEBUG] cmpi_decode_chttp_store: position: %ld, chttp_store: %p => end\n", (*position), chttp_store);
     return ((UINT32)0);

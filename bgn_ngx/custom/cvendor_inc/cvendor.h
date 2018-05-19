@@ -241,9 +241,43 @@ EC_BOOL cvendor_content_direct_body_out_filter(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_direct_send_request(const UINT32 cvendor_md_id);
 
+EC_BOOL cvendor_content_direct_import_header(const UINT32 cvendor_md_id, const CHTTP_NODE *chttp_node);
+
+EC_BOOL cvendor_content_direct_send_header(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_direct_send_body(const UINT32 cvendor_md_id, const UINT32 seg_no, const UINT8 *data, const UINT32 len);
+
 EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_in_filter_host(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_in_filter_port(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_out_length_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_out_range_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_out_rsp_status_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_out_connection_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_header_out_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_body_out_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_send_request(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg);
+
+EC_BOOL cvendor_content_repair_send_node(const UINT32 cvendor_md_id, CRANGE_NODE *crange_node);
+
+EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_repair_procedure(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_chunk_header_out_length_filter(const UINT32 cvendor_md_id);
 
@@ -284,6 +318,46 @@ EC_BOOL cvendor_content_orig_send_seg_n(const UINT32 cvendor_md_id, const CRANGE
 EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_in_filter_host(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_in_filter_port(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_if_modified_since_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_if_none_match_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_range_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_rsp_status_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_cache_control_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_gzip_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_connection_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_header_out_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len);
+
+EC_BOOL cvendor_content_ms_set_store(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_send_request(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *crange_seg);
+
+EC_BOOL cvendor_content_ms_import_header(const UINT32 cvendor_md_id, const CHTTP_NODE *chttp_node);
+
+EC_BOOL cvendor_content_ms_send_header(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_send_body(const UINT32 cvendor_md_id, const UINT32 seg_no, const UINT8 *data, const UINT32 len);
+
+EC_BOOL cvendor_content_ms_send_response(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id);
 

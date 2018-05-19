@@ -283,6 +283,15 @@ EC_BOOL crange_node_free(CRANGE_NODE *crange_node)
     return (EC_TRUE);
 }
 
+EC_BOOL crange_node_has_segs(const CRANGE_NODE *crange_node)
+{
+    if(EC_TRUE == clist_is_empty(CRANGE_NODE_RANGE_SEGS(crange_node)))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
 EC_BOOL crange_node_has_boundary(const CRANGE_NODE *crange_node)
 {
     if(EC_TRUE == cstring_is_empty(CRANGE_NODE_BOUNDARY(crange_node)))

@@ -258,7 +258,7 @@ AR       = /usr/bin/ar cr
 SO       = /usr/bin/gcc -shared -o
 
 # ignore Wunused-function, Wuninitialized, Wunused-parameter
-CWARNS   = -Wall
+CWARNS   = -Wall -Werror
 
 COPTS    = -g
 #COPTS    = -O2
@@ -360,7 +360,7 @@ install-lib:
 
 uninstall-lib:
 	$(if $(wildcard $(DESTDIR)/lib/libngx.so)    , rm -f $(DESTDIR)/lib/libngx.so,)
-	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libcvendor.so,)
+	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libngx.so,)
 
 clean-obj:
 	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	

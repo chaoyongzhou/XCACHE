@@ -102,6 +102,8 @@ EC_BOOL crange_node_clean(CRANGE_NODE *crange_node);
 
 EC_BOOL crange_node_free(CRANGE_NODE *crange_node);
 
+EC_BOOL crange_node_has_segs(const CRANGE_NODE *crange_node);
+
 EC_BOOL crange_node_has_boundary(const CRANGE_NODE *crange_node);
 
 void    crange_node_print(LOG *log, const CRANGE_NODE *crange_node);
