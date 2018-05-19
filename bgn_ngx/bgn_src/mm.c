@@ -1205,7 +1205,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
         MAN_UNLOCK(pMan, LOC_MM_0241);
 
         c_backtrace_dump(LOGSTDOUT);
-        
+
         exit ( 2 );
     }
 

@@ -421,7 +421,7 @@ EC_BOOL coroutine_cond_release_all(COROUTINE_COND *coroutine_cond, const UINT32 
 EC_BOOL coroutine_cond_terminate(COROUTINE_COND *coroutine_cond, const UINT32 location)
 {
     COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_TERMINATE, location);
-   
+
     COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) = BIT_TRUE;
 
     dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_terminate: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
@@ -511,7 +511,7 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
             COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
             __COROUTINE_NO_WAIT();
             return (EC_TERMINATE);
-        }        
+        }
 
         if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
         {
@@ -1454,7 +1454,7 @@ EC_BOOL coroutine_node_is_runnable(const COROUTINE_NODE *coroutine_node)
             if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
             {
                 return (EC_TRUE);
-            }            
+            }
 
             return (EC_FALSE);
         }

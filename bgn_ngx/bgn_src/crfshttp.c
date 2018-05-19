@@ -498,7 +498,7 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == crfshttp_is_http_get_file_terminate(chttp_node))
     {
         ret = crfshttp_commit_file_terminate_get_request(chttp_node);
-    }    
+    }
     else if (EC_TRUE == crfshttp_is_http_get_cond_wakeup(chttp_node))
     {
         ret = crfshttp_commit_cond_wakeup_get_request(chttp_node);
@@ -506,7 +506,7 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == crfshttp_is_http_get_cond_terminate(chttp_node))
     {
         ret = crfshttp_commit_cond_terminate_get_request(chttp_node);
-    }    
+    }
     else if (EC_TRUE == crfshttp_is_http_get_renew_header(chttp_node))
     {
         ret = crfshttp_commit_renew_header_get_request(chttp_node);
@@ -542,7 +542,7 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == crfshttp_is_http_get_ngx_breathe(chttp_node))
     {
         ret = crfshttp_commit_ngx_breathe_get_request(chttp_node);
-    }    
+    }
     else
     {
         CBUFFER *uri_cbuffer;
@@ -8754,7 +8754,7 @@ EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0033);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0034);
 
     dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8963,7 +8963,7 @@ EC_BOOL crfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0034);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0035);
 
     dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -9174,7 +9174,7 @@ EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0034);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0036);
 
     dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -9391,7 +9391,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0035);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0037);
 
     dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -9772,7 +9772,7 @@ EC_BOOL crfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0036);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSHTTP_0038);
 
     dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -11563,7 +11563,7 @@ EC_BOOL crfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ngx_breathe_get_request: no ngx-tcid");
 
-            return (EC_TRUE);        
+            return (EC_TRUE);
         }
 
         if(EC_FALSE == c_ipv4_is_ok(v))
@@ -11575,7 +11575,7 @@ EC_BOOL crfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ngx_breathe_get_request: invalid ngx-tcid '%s'", v);
 
             return (EC_TRUE);
-        }        
+        }
 
         ngx_tcid = c_ipv4_to_word(v);
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_ngx_breathe_get_request: header ngx-tcid %s => 0x%lx\n",
@@ -11590,10 +11590,10 @@ EC_BOOL crfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node)
                          &recv_mod_node,
                          NULL,
                          FI_super_breathing_mem, CMPI_ERROR_MODI);
-                 
+
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_ngx_breathe_get_request: send ngx %s to breath mem done", 
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_ngx_breathe_get_request: send ngx %s to breath mem done",
                                 c_word_to_ipv4(ngx_tcid));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;

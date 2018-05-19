@@ -918,13 +918,13 @@ EC_BOOL chttp_store_waiter_terminate(const CHTTP_STORE *chttp_store)
         cstring_clean(&path);
         return (EC_FALSE);
     }
-                            
+
     /*expired => terminate all waiters*/
     ccache_file_terminate(store_srv_tcid, store_srv_ipaddr, store_srv_port, &path);
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_waiter_terminate: terminate waiters on storage server for '%.*s' done\n",
                         (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path));
-                        
+
     cstring_clean(&path);
 
     return (EC_TRUE);
@@ -7208,7 +7208,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *
     if(BIT_TRUE == CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store))
     {
         if(EC_FALSE == __chttp_node_filter_header_check_etag(chttp_node, chttp_store))
-        {            
+        {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found etag mismatched => %u\n",
                             CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)));
             /*__chttp_node_delete_dir(chttp_node, CHTTP_STORE_BASEDIR(chttp_store));*//*this will blocking the main coroutine! remove it!*/
@@ -7216,7 +7216,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_check_expired(CHTTP_NODE *
         }
 
         if(EC_FALSE == __chttp_node_filter_header_check_lsmd(chttp_node, chttp_store))
-        {            
+        {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_check_expired: found last-modified mismatched => %u\n",
                             CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)));
             /*__chttp_node_delete_dir(chttp_node, CHTTP_STORE_BASEDIR(chttp_store));*//*this will blocking the main coroutine! remove it!*/
@@ -7373,7 +7373,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP
             return (EC_TRUE);
         }
     }
-    
+
     if(0 < CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store)
     && EC_FALSE == chttp_node_has_header_key(chttp_node, (const char *)"Expires"))
     {
@@ -7538,7 +7538,7 @@ EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *c
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_waiter_terminate: "
                                               "terminate store waiters with basedir '%.*s' and seg_id '%u' failed\n",
-                                              (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), 
+                                              (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store),
                                               CHTTP_STORE_BASEDIR_STR(chttp_store),
                                               CHTTP_STORE_SEG_ID(chttp_store));
         return (EC_FALSE);
@@ -7546,7 +7546,7 @@ EC_BOOL chttp_node_store_waiter_terminate(CHTTP_NODE *chttp_node, CHTTP_STORE *c
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_waiter_terminate: "
                                           "terminate store waiters with basedir '%.*s' and seg_id '%u' done\n",
-                                          (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), 
+                                          (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store),
                                           CHTTP_STORE_BASEDIR_STR(chttp_store),
                                           CHTTP_STORE_SEG_ID(chttp_store));
 
@@ -7987,10 +7987,10 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: [expired] sockfd %d, terminate all orig procedues\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode));
-                    
+
         chttp_node_store_waiter_terminate(chttp_node, chttp_store);
     }
-    
+
     /*store new header if found expired after check each segment etag, last-modifed and content-length*/
     if(0 < CHTTP_STORE_SEG_ID(chttp_store)
     && (EC_TRUE == CHTTP_NODE_HEADER_EXPIRED_FLAG(chttp_node))

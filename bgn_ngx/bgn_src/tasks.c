@@ -715,7 +715,7 @@ EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     /*reset sending task_node*/
     task_node = CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode);
     CLIST_LOOP_NEXT(TASKS_NODE_SENDING_LIST(tasks_node), clist_data)
-    {        
+    {
         if(task_node == CLIST_DATA_DATA(clist_data))
         {
             clist_erase_no_lock(TASKS_NODE_SENDING_LIST(tasks_node), clist_data);
@@ -732,7 +732,7 @@ EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         TASKS_NODE_TCID_STR(tasks_node),
                         task_node);
-    
+
         TASK_NODE_BUFF_POS(task_node) = 0; /*reset*/
 
         if(TAG_TASK_REQ == TASK_NODE_TAG(task_node))
