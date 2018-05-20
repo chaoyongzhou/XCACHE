@@ -60,45 +60,55 @@ typedef struct
 
 typedef struct
 {
+    uint32_t            status_beg;
+    uint32_t            status_end;
+}CDETECTN_STATUS_RANGE;
+
+#define CDETECTN_STATUS_RANGE_BEG(cdetectn_status_range)        ((cdetectn_status_range)->status_beg)
+#define CDETECTN_STATUS_RANGE_END(cdetectn_status_range)        ((cdetectn_status_range)->status_end)
+
+typedef struct
+{
     CSTRING             domain;                /*orig domain*/
-    CSTRING             url;                   /*orig url to check*/
+    CSTRING             uri;                   /*orig uri to check*/
     CLIST               ip_nodes;              /*orig ip nodes. item is CDETECTN_IP_NODE*/
 
     uint32_t            detect_interval_nsec;  /*orig detect interval in seconds*/
     uint32_t            detect_stopping_nsec;  /*orig detect stopping if no access in seconds*/
 
-    uint32_t            reachable_status_beg;  /*orig return such status means orig is reachable*/
-    uint32_t            reachable_status_end;  /*orig return such status means orig is reachable*/
-    uint32_t            choice_strategy;       /*strategy to select orig*/
-    uint32_t            domain_hash;           /*hash value of domain*/
+    CLIST               reachable_status_range_mgr; /*orig is reachable if orig return status in some range. item is CDETECTN_STATUS_RANGE*/
+    uint32_t            reachable_status_beg;       /*orig return such status means orig is reachable*/
+    uint32_t            reachable_status_end;       /*orig return such status means orig is reachable*/
+    uint32_t            choice_strategy;            /*strategy to select orig*/
+    uint32_t            domain_hash;                /*hash value of domain*/
 
-    ctime_t             last_detect_time;      /*last detect time by worker*/
-    ctime_t             last_access_time;      /*last access time by client*/
+    ctime_t             last_detect_time;           /*last detect time by worker*/
+    ctime_t             last_access_time;           /*last access time by client*/
 
     CLIST_DATA         *last_reachable_ip_node;/*shortcut to last reachable ip node*/
     CLIST_DATA         *detect_orig_node;      /*shortcut to [A.1] list*/
 }CDETECTN_ORIG_NODE;
 
-#define CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)                   (&((cdetectn_orig_node)->domain))
-#define CDETECTN_ORIG_NODE_URL(cdetectn_orig_node)                      (&((cdetectn_orig_node)->url))
-#define CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node)                 (&((cdetectn_orig_node)->ip_nodes))
+#define CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)                       (&((cdetectn_orig_node)->domain))
+#define CDETECTN_ORIG_NODE_URI(cdetectn_orig_node)                          (&((cdetectn_orig_node)->uri))
+#define CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node)                     (&((cdetectn_orig_node)->ip_nodes))
 
-#define CDETECTN_ORIG_NODE_DOMAIN_STR(cdetectn_orig_node)               (cstring_get_str(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)))
-#define CDETECTN_ORIG_NODE_URL_STR(cdetectn_orig_node)                  (cstring_get_str(CDETECTN_ORIG_NODE_URL(cdetectn_orig_node)))
+#define CDETECTN_ORIG_NODE_DOMAIN_STR(cdetectn_orig_node)                   (cstring_get_str(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)))
+#define CDETECTN_ORIG_NODE_URI_STR(cdetectn_orig_node)                      (cstring_get_str(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node)))
 
-#define CDETECTN_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetectn_orig_node)     ((cdetectn_orig_node)->detect_interval_nsec)
-#define CDETECTN_ORIG_NODE_DETECT_STOPPING_NSEC(cdetectn_orig_node)     ((cdetectn_orig_node)->detect_stopping_nsec)
+#define CDETECTN_ORIG_NODE_DETECT_INTERVAL_NSEC(cdetectn_orig_node)         ((cdetectn_orig_node)->detect_interval_nsec)
+#define CDETECTN_ORIG_NODE_DETECT_STOPPING_NSEC(cdetectn_orig_node)         ((cdetectn_orig_node)->detect_stopping_nsec)
 
-#define CDETECTN_ORIG_NODE_REACHABLE_STATUS_BEG(cdetectn_orig_node)     ((cdetectn_orig_node)->reachable_status_beg)
-#define CDETECTN_ORIG_NODE_REACHABLE_STATUS_END(cdetectn_orig_node)     ((cdetectn_orig_node)->reachable_status_end)
-#define CDETECTN_ORIG_NODE_CHOICE_STRATEGY(cdetectn_orig_node)          ((cdetectn_orig_node)->choice_strategy)
-#define CDETECTN_ORIG_NODE_DOMAIN_HASH(cdetectn_orig_node)              ((cdetectn_orig_node)->domain_hash)
+#define CDETECTN_ORIG_NODE_REACHABLE_STATUS_RANGE_MGR(cdetectn_orig_node)   (&((cdetectn_orig_node)->reachable_status_range_mgr))
 
-#define CDETECTN_ORIG_NODE_LAST_DETECT_TIME(cdetectn_orig_node)         ((cdetectn_orig_node)->last_detect_time)
-#define CDETECTN_ORIG_NODE_LAST_ACCESS_TIME(cdetectn_orig_node)         ((cdetectn_orig_node)->last_access_time)
-#define CDETECTN_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetectn_orig_node)   ((cdetectn_orig_node)->last_reachable_ip_node)
+#define CDETECTN_ORIG_NODE_CHOICE_STRATEGY(cdetectn_orig_node)              ((cdetectn_orig_node)->choice_strategy)
+#define CDETECTN_ORIG_NODE_DOMAIN_HASH(cdetectn_orig_node)                  ((cdetectn_orig_node)->domain_hash)
 
-#define CDETECTN_ORIG_NODE_DETECT_ORIG_NODE(cdetectn_orig_node)         ((cdetectn_orig_node)->detect_orig_node)
+#define CDETECTN_ORIG_NODE_LAST_DETECT_TIME(cdetectn_orig_node)             ((cdetectn_orig_node)->last_detect_time)
+#define CDETECTN_ORIG_NODE_LAST_ACCESS_TIME(cdetectn_orig_node)             ((cdetectn_orig_node)->last_access_time)
+#define CDETECTN_ORIG_NODE_LAST_REACHABLE_IP_NODE(cdetectn_orig_node)       ((cdetectn_orig_node)->last_reachable_ip_node)
+
+#define CDETECTN_ORIG_NODE_DETECT_ORIG_NODE(cdetectn_orig_node)             ((cdetectn_orig_node)->detect_orig_node)
 
 #define CDETECTN_IP_NODE_STATUS_ERR              ((uint32_t)  ~0)
 #define CDETECTN_IP_NODE_STATUS_REACHABLE        ((uint32_t)   1)
@@ -169,6 +179,12 @@ int cdetectn_orig_node_cmp(const CDETECTN_ORIG_NODE *cdetectn_orig_node_1st, con
 
 void cdetectn_orig_node_print(LOG *log, const CDETECTN_ORIG_NODE *cdetectn_orig_node);
 
+EC_BOOL cdetectn_orig_node_parse_uri(CDETECTN_ORIG_NODE *cdetectn_orig_node, const char *uri);
+
+EC_BOOL cdetectn_orig_node_parse_reachable_status_code(CDETECTN_ORIG_NODE *cdetectn_orig_node, const char *conf_status_str);
+
+EC_BOOL cdetectn_orig_node_has_reachable_status_code(const CDETECTN_ORIG_NODE *cdetectn_orig_node, const uint32_t status);
+
 /*stop detecting or not*/
 EC_BOOL cdetectn_orig_node_need_stop_detecting(const CDETECTN_ORIG_NODE *cdetectn_orig_node);
 
@@ -189,6 +205,30 @@ EC_BOOL cdetectn_ip_node_free(CDETECTN_IP_NODE *cdetectn_ip_node);
 void cdetectn_ip_node_print(LOG *log, const CDETECTN_IP_NODE *cdetectn_ip_node);
 
 void cdetectn_ip_node_print_plain(LOG *log, const CDETECTN_IP_NODE *cdetectn_ip_node);
+
+CDETECTN_STATUS_RANGE *cdetectn_status_range_new();
+
+EC_BOOL cdetectn_status_range_init(CDETECTN_STATUS_RANGE *cdetectn_status_range);
+
+EC_BOOL cdetectn_status_range_clean(CDETECTN_STATUS_RANGE *cdetectn_status_range);
+
+EC_BOOL cdetectn_status_range_free(CDETECTN_STATUS_RANGE *cdetectn_status_range);
+
+void    cdetectn_status_range_print(LOG *log, const CDETECTN_STATUS_RANGE *cdetectn_status_range);
+
+EC_BOOL cdetectn_status_range_is_in(const CDETECTN_STATUS_RANGE *cdetectn_status_range, const uint32_t status);
+
+EC_BOOL cdetectn_status_range_mgr_init(CLIST *cdetectn_status_range_mgr);
+
+EC_BOOL cdetectn_status_range_mgr_clean(CLIST *cdetectn_status_range_mgr);
+
+void    cdetectn_status_range_mgr_print(LOG *log, const CLIST *cdetectn_status_range_mgr);
+
+EC_BOOL cdetectn_status_range_mgr_add(CLIST *cdetectn_status_range_mgr, const uint32_t status_beg, const uint32_t status_end);
+
+EC_BOOL cdetectn_status_range_mgr_parse(CLIST *cdetectn_status_range_mgr, const char *status_conf_str);
+
+EC_BOOL cdetectn_status_range_mgr_has_status_code(const CLIST *cdetectn_status_range_mgr, const uint32_t status);
 
 /**
 *

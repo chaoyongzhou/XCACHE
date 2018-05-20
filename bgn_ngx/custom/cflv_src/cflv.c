@@ -4154,7 +4154,8 @@ EC_BOOL cflv_content_direct_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
     }
 
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
-    {        UINT32      seg_no;
+    {
+        UINT32      seg_no;
 
         seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
 
@@ -5686,8 +5687,7 @@ EC_BOOL cflv_content_repair_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
     }
 
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
-    {
-        UINT32      seg_no;
+    {        UINT32      seg_no;
 
         seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
 
@@ -9356,7 +9356,8 @@ EC_BOOL cflv_content_ms_import_header(const UINT32 cflv_md_id, const CHTTP_NODE 
     cstrkv_mgr_clone(CHTTP_NODE_HEADER_IN_KVS(chttp_node), CHTTP_RSP_HEADER(chttp_rsp));
 
     if(do_log(SEC_0146_CFLV, 9))
-    {        sys_log(LOGSTDOUT, "[DEBUG] cflv_content_ms_import_header: cloned chttp_rsp: \n");
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cflv_content_ms_import_header: cloned chttp_rsp: \n");
         chttp_rsp_print(LOGSTDOUT, chttp_rsp);
     }
 
@@ -11941,8 +11942,7 @@ EC_BOOL cflv_content_expired_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cra
     }
 
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
-    {
-        UINT32      seg_no;
+    {        UINT32      seg_no;
 
         seg_no = CRANGE_SEG_NO(crange_seg); /*range_seg may be free at other place, save it here*/
 
