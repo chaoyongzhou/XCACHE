@@ -323,13 +323,13 @@ EC_BOOL cdetectn_orig_node_parse_uri(CDETECTN_ORIG_NODE *cdetectn_orig_node, con
 
     if(7 < strlen(uri) && 0 == STRNCASECMP(uri, (const char *)"http://", 7))
     {
-        cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), (const uint8_t *)(uri + 6));
+        cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), (const uint8_t *)(uri));
         return (EC_TRUE);
     }
 
     if(8 < strlen(uri) && 0 == STRNCASECMP(uri, (const char *)"https://", 8))
     {
-        cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), (const uint8_t *)(uri + 7));
+        cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), (const uint8_t *)(uri));
         return (EC_TRUE);
     }
 
