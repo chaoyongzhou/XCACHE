@@ -465,21 +465,6 @@ EC_BOOL csocket_cnode_erase_timeout_callback(CSOCKET_CNODE *csocket_cnode, const
     return ccallback_list_erase(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), name, data, func);
 }
 
-EC_BOOL csocket_cnode_pop_close_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_pop(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_pop_shutdown_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_pop(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_pop_timeout_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_pop(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode));
-}
-
 EC_BOOL csocket_cnode_reset_recv_callback(CSOCKET_CNODE *csocket_cnode)
 {
     dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_recv_callback: sockfd %d reset recv callback list\n",

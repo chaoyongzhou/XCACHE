@@ -8338,9 +8338,15 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_headers_complete: sockfd %d, [ms] send rsp header done\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
+
+        /*if no chance later to change seg_id, inc it now*/
+        if(0 == (CHTTP_STORE_CACHE_HEADER & CHTTP_STORE_CACHE_CTRL(chttp_store)))
+        {
+            CHTTP_STORE_SEG_ID(chttp_store) ++; /*prepare for body store*/
+        }
     }
 
-    if(BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))/*direct procedure*/
+    if(0 == CHTTP_STORE_SEG_ID(chttp_store) && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))/*direct procedure*/
     {
         if(EC_FALSE == chttp_node_send_rsp_header(chttp_node))
         {
@@ -8353,6 +8359,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
 
+        ASSERT(0 == (CHTTP_STORE_CACHE_HEADER & CHTTP_STORE_CACHE_CTRL(chttp_store)));
         CHTTP_STORE_SEG_ID(chttp_store) ++;
     }
 

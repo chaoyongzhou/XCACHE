@@ -32,19 +32,22 @@ CCALLBACK_NODE *ccallback_node_new()
 
 EC_BOOL ccallback_node_init(CCALLBACK_NODE *ccallback_node)
 {
-    CCALLBACK_NODE_NAME(ccallback_node) = NULL_PTR;
-    CCALLBACK_NODE_FUNC(ccallback_node) = NULL_PTR;
-    CCALLBACK_NODE_DATA(ccallback_node) = NULL_PTR;
+    CCALLBACK_NODE_NAME(ccallback_node)      = NULL_PTR;
+    CCALLBACK_NODE_FUNC(ccallback_node)      = NULL_PTR;
+    CCALLBACK_NODE_DATA(ccallback_node)      = NULL_PTR;
+
+    CCALLBACK_NODE_USED_FLAG(ccallback_node) = BIT_FALSE;
 
     return (EC_TRUE);
 }
 
 EC_BOOL ccallback_node_clean(CCALLBACK_NODE *ccallback_node)
 {
-    CCALLBACK_NODE_NAME(ccallback_node) = NULL_PTR;
+    CCALLBACK_NODE_NAME(ccallback_node)      = NULL_PTR;
+    CCALLBACK_NODE_FUNC(ccallback_node)      = NULL_PTR;
+    CCALLBACK_NODE_DATA(ccallback_node)      = NULL_PTR;
 
-    CCALLBACK_NODE_FUNC(ccallback_node) = NULL_PTR;
-    CCALLBACK_NODE_DATA(ccallback_node) = NULL_PTR;
+    CCALLBACK_NODE_USED_FLAG(ccallback_node) = BIT_FALSE;
     return (EC_TRUE);
 }
 
@@ -60,11 +63,12 @@ EC_BOOL ccallback_node_free(CCALLBACK_NODE *ccallback_node)
 
 void ccallback_node_print(LOG *log, const CCALLBACK_NODE *ccallback_node)
 {
-    sys_log(log, "ccallback_node_print: ccallback_node %p: '%s':%lx:%lx\n",
+    sys_log(log, "ccallback_node_print: ccallback_node %p: '%s':%lx:%p, used: %s\n",
                   ccallback_node,
                   CCALLBACK_NODE_NAME(ccallback_node),
                   CCALLBACK_NODE_DATA(ccallback_node),
-                  CCALLBACK_NODE_FUNC(ccallback_node));
+                  CCALLBACK_NODE_FUNC(ccallback_node),
+                  c_bit_bool_str(CCALLBACK_NODE_USED_FLAG(ccallback_node)));
     return;
 }
 
@@ -89,13 +93,11 @@ EC_BOOL ccallback_list_init(CCALLBACK_LIST *ccallback_list)
 {
     CCALLBACK_LIST_NAME(ccallback_list)   = NULL_PTR;
 
-    clist_init(CCALLBACK_LIST_NODES(ccallback_list), MM_CCALLBACK_NODE, LOC_CCALLBACK_0003);
+    cvector_init(CCALLBACK_LIST_NODES(ccallback_list), 2, MM_CCALLBACK_NODE, CVECTOR_LOCK_DISABLE, LOC_CCALLBACK_0003);
 
     CCALLBACK_LIST_RUNNER(ccallback_list) = NULL_PTR;
     CCALLBACK_LIST_FILTER(ccallback_list) = NULL_PTR;
 
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list)  = BIT_FALSE;
-    CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_FALSE;
     return (EC_TRUE);
 }
 
@@ -103,13 +105,11 @@ EC_BOOL ccallback_list_clean(CCALLBACK_LIST *ccallback_list)
 {
     CCALLBACK_LIST_NAME(ccallback_list)   = NULL_PTR;
 
-    clist_clean(CCALLBACK_LIST_NODES(ccallback_list), (CLIST_DATA_DATA_CLEANER)ccallback_node_free);
+    cvector_clean(CCALLBACK_LIST_NODES(ccallback_list), (CVECTOR_DATA_CLEANER)ccallback_node_free, LOC_CCALLBACK_0003);
 
     CCALLBACK_LIST_RUNNER(ccallback_list) = NULL_PTR;
     CCALLBACK_LIST_FILTER(ccallback_list) = NULL_PTR;
 
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list)  = BIT_FALSE;
-    CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_FALSE;
     return (EC_TRUE);
 }
 
@@ -139,15 +139,15 @@ void ccallback_list_print(LOG *log, const CCALLBACK_LIST *ccallback_list)
                   CCALLBACK_LIST_RUNNER(ccallback_list),
                   CCALLBACK_LIST_FILTER(ccallback_list));
 
-    clist_print(log, CCALLBACK_LIST_NODES(ccallback_list), (CLIST_DATA_DATA_PRINT)ccallback_node_print);
+    cvector_print(log, CCALLBACK_LIST_NODES(ccallback_list), (CVECTOR_DATA_PRINT)ccallback_node_print);
     return;
 }
 
 CCALLBACK_NODE *ccallback_list_search(CCALLBACK_LIST *ccallback_list, const char *name, const UINT32 data, const UINT32 func)
 {
-    CLIST_DATA          *clist_data;
-
     CCALLBACK_FILTER     callback_filter;
+    UINT32               num;
+    UINT32               pos;
 
     if(NULL_PTR != CCALLBACK_LIST_FILTER(ccallback_list))
     {
@@ -158,16 +158,25 @@ CCALLBACK_NODE *ccallback_list_search(CCALLBACK_LIST *ccallback_list, const char
         callback_filter = ccallback_node_filter_default;
     }
 
-    CLIST_LOOP_NEXT(CCALLBACK_LIST_NODES(ccallback_list), clist_data)
+    num = cvector_size(CCALLBACK_LIST_NODES(ccallback_list));
+    for(pos = 0; pos < num; pos ++)
     {
-        CCALLBACK_NODE              *ccallback_node;
+        CCALLBACK_NODE *ccallback_node;
 
-        ccallback_node = (CCALLBACK_NODE *)CLIST_DATA_DATA(clist_data);
+        ccallback_node = (CCALLBACK_NODE *)cvector_get(CCALLBACK_LIST_NODES(ccallback_list), pos);
+
+        /*skip not used node*/
+        if(NULL_PTR == ccallback_node || BIT_FALSE == CCALLBACK_NODE_USED_FLAG(ccallback_node))
+        {
+            continue;
+        }
+        
         if(EC_TRUE == callback_filter(ccallback_node, name, data, func))
         {
             return (ccallback_node);
-        }
+        }        
     }
+
     return (NULL_PTR);
 }
 
@@ -180,7 +189,7 @@ CCALLBACK_NODE *ccallback_list_push(CCALLBACK_LIST *ccallback_list, const char *
     {
         dbg_log(SEC_0178_CCALLBACK, 9)(LOGSTDOUT, "warn:ccallback_list_push: "
                                                   "ccallback_list %p [%s], "
-                                                  "ccallback_node '%s':%lx:%lx exist already\n",
+                                                  "ccallback_node '%s':%lx:%p exist already\n",
                                                   ccallback_list,
                                                   CCALLBACK_LIST_NAME(ccallback_list),
                                                   CCALLBACK_NODE_NAME(ccallback_node),
@@ -200,24 +209,22 @@ CCALLBACK_NODE *ccallback_list_push(CCALLBACK_LIST *ccallback_list, const char *
         return (NULL_PTR);
     }
 
-    CCALLBACK_NODE_NAME(ccallback_node) = name;
-    CCALLBACK_NODE_FUNC(ccallback_node) = func;
-    CCALLBACK_NODE_DATA(ccallback_node) = data;
+    CCALLBACK_NODE_NAME(ccallback_node)      = name;
+    CCALLBACK_NODE_FUNC(ccallback_node)      = func;
+    CCALLBACK_NODE_DATA(ccallback_node)      = data;
+    CCALLBACK_NODE_USED_FLAG(ccallback_node) = BIT_TRUE;
 
-    if(BIT_TRUE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list))
-    {
-        ASSERT(BIT_TRUE == CCALLBACK_LIST_RESET_FLAG(ccallback_list));
-    }
-
-    clist_push_back(CCALLBACK_LIST_NODES(ccallback_list), (void *)ccallback_node);
+    cvector_push(CCALLBACK_LIST_NODES(ccallback_list), (void *)ccallback_node);
+    
     dbg_log(SEC_0178_CCALLBACK, 9)(LOGSTDOUT, "[DEBUG] ccallback_list_push: "
                                               "ccallback_list %p [%s], "
-                                              "push ccallback_node '%s':%lx:%lx done\n",
+                                              "push ccallback_node '%s':%lx:%p done => size %ld\n",
                                               ccallback_list,
                                               CCALLBACK_LIST_NAME(ccallback_list),
                                               CCALLBACK_NODE_NAME(ccallback_node),
                                               CCALLBACK_NODE_DATA(ccallback_node),
-                                              CCALLBACK_NODE_FUNC(ccallback_node));
+                                              CCALLBACK_NODE_FUNC(ccallback_node),
+                                              cvector_size(CCALLBACK_LIST_NODES(ccallback_list)));
 
     return (ccallback_node);
 }
@@ -225,74 +232,94 @@ CCALLBACK_NODE *ccallback_list_push(CCALLBACK_LIST *ccallback_list, const char *
 EC_BOOL ccallback_list_erase(CCALLBACK_LIST *ccallback_list, const char *name, const UINT32 data, const UINT32 func)
 {
     CCALLBACK_NODE  *ccallback_node;
-
+    
     ccallback_node = ccallback_list_search(ccallback_list, name, data, func);
     if(NULL_PTR != ccallback_node)
     {
-        ASSERT(BIT_FALSE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list));
-
-        clist_del(CCALLBACK_LIST_NODES(ccallback_list), (void *)ccallback_node, NULL_PTR);
+        /*set node to be not used*/ 
+        CCALLBACK_NODE_USED_FLAG(ccallback_node) = BIT_FALSE;
 
         dbg_log(SEC_0178_CCALLBACK, 9)(LOGSTDOUT, "[DEBUG] ccallback_list_erase: "
                                                   "ccallback_list %p [%s], "
-                                                  "pop '%s'\n",
+                                                  "erase '%s'\n",
                                                   ccallback_list,
                                                   CCALLBACK_LIST_NAME(ccallback_list),
                                                   CCALLBACK_NODE_NAME(ccallback_node));
-        ccallback_node_free(ccallback_node);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL ccallback_list_pop(CCALLBACK_LIST *ccallback_list)
+/*clear dead nodes. be careful if must use this interface!*/
+EC_BOOL ccallback_list_clear(CCALLBACK_LIST *ccallback_list)
 {
-    CCALLBACK_NODE  *ccallback_node;
+    UINT32           num;
+    UINT32           pos;
 
-    ASSERT(BIT_FALSE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list));
+    num = cvector_size(CCALLBACK_LIST_NODES(ccallback_list));
 
-    ccallback_node = clist_pop_back(CCALLBACK_LIST_NODES(ccallback_list));
-    if(NULL_PTR != ccallback_node)
+    for(pos = 0; pos < num; pos ++)
     {
-        dbg_log(SEC_0178_CCALLBACK, 9)(LOGSTDOUT, "[DEBUG] ccallback_list_pop: "
-                                                  "ccallback_list %p [%s], "
-                                                  "pop '%s'\n",
-                                                  ccallback_list,
-                                                  CCALLBACK_LIST_NAME(ccallback_list),
-                                                  CCALLBACK_NODE_NAME(ccallback_node));
+        CCALLBACK_NODE *ccallback_node;
+
+        ccallback_node = (CCALLBACK_NODE *)cvector_get(CCALLBACK_LIST_NODES(ccallback_list), pos); 
+
+        /*skip used node*/
+        if(NULL_PTR == ccallback_node || BIT_TRUE == CCALLBACK_NODE_USED_FLAG(ccallback_node))
+        {
+            continue;
+        }
+
+        cvector_set(CCALLBACK_LIST_NODES(ccallback_list), pos, NULL_PTR);
+        
         ccallback_node_free(ccallback_node);
     }
-
+ 
     return (EC_TRUE);
 }
 
 /*note: reset nodes but not runner or filter*/
 EC_BOOL ccallback_list_reset(CCALLBACK_LIST *ccallback_list)
 {
-    CCALLBACK_NODE  *ccallback_node;
+    UINT32           num;
+    UINT32           pos;
 
-    //ASSERT(BIT_FALSE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list));
+    /*set all nodes to be not used*/
 
-    while(NULL_PTR != (ccallback_node = clist_pop_back(CCALLBACK_LIST_NODES(ccallback_list))))
+    num = cvector_size(CCALLBACK_LIST_NODES(ccallback_list));
+
+    for(pos = 0; pos < num; pos ++)
     {
+        CCALLBACK_NODE *ccallback_node;
+
+        ccallback_node = (CCALLBACK_NODE *)cvector_get(CCALLBACK_LIST_NODES(ccallback_list), pos); 
+
+        if(NULL_PTR == ccallback_node || BIT_FALSE == CCALLBACK_NODE_USED_FLAG(ccallback_node))
+        {
+            continue;
+        }
+
+        /*set node to be not used*/ 
+        CCALLBACK_NODE_USED_FLAG(ccallback_node) = BIT_FALSE;
+
         dbg_log(SEC_0178_CCALLBACK, 9)(LOGSTDOUT, "[DEBUG] ccallback_list_reset: "
                                                   "ccallback_list %p [%s], "
-                                                  "pop '%s'\n",
+                                                  "reset [%ld/%ld] '%s'\n",
                                                   ccallback_list,
                                                   CCALLBACK_LIST_NAME(ccallback_list),
-                                                  CCALLBACK_NODE_NAME(ccallback_node));
-        ccallback_node_free(ccallback_node);
+                                                  pos, num,
+                                                  CCALLBACK_NODE_NAME(ccallback_node));        
     }
-
-    CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_TRUE;
-
+ 
     return (EC_TRUE);
 }
 
 EC_BOOL ccallback_list_run_not_check(CCALLBACK_LIST *ccallback_list, UINT32 arg)
 {
-    CLIST_DATA        *clist_data;
     CCALLBACK_RUNNER   callback_runner;
+
+    UINT32             num;
+    UINT32             pos;
 
     if(NULL_PTR == CCALLBACK_LIST_RUNNER(ccallback_list))
     {
@@ -303,47 +330,50 @@ EC_BOOL ccallback_list_run_not_check(CCALLBACK_LIST *ccallback_list, UINT32 arg)
         callback_runner = CCALLBACK_LIST_RUNNER(ccallback_list);
     }
 
-    ASSERT(BIT_FALSE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list));
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list) = BIT_TRUE;
+    num = cvector_size(CCALLBACK_LIST_NODES(ccallback_list));
 
     /*stack, FILO*/
-    CLIST_LOOP_PREV(CCALLBACK_LIST_NODES(ccallback_list), clist_data)
+    /*note: if new node is pushed into cvector during old node running, new node should not run at this loop*/
+    for(pos = num; pos -- > 0; )
     {
         CCALLBACK_NODE    *ccallback_node;
         const char        *ccallback_node_name;
 
-        ccallback_node = (CCALLBACK_NODE *)CLIST_DATA_DATA(clist_data);
+        ccallback_node = (CCALLBACK_NODE *)cvector_get(CCALLBACK_LIST_NODES(ccallback_list), pos); 
+        
+        /*skip not used node*/
+        if(NULL_PTR == ccallback_node || BIT_FALSE == CCALLBACK_NODE_USED_FLAG(ccallback_node))
+        {
+            continue;
+        }
+        
         ccallback_node_name = CCALLBACK_NODE_NAME(ccallback_node);
 
-        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_not_check: [%s] run '%s'\n",
+        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_not_check: [%s] run [%ld/%ld] '%s'\n",
                                                   CCALLBACK_LIST_NAME(ccallback_list),
+                                                  pos, num,
                                                   ccallback_node_name);
 
         callback_runner(arg, ccallback_node);
 
-        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_not_check: [%s] run '%s' ... done\n",
+        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_not_check: [%s] run [%ld/%ld] '%s' ... done\n",
                                                   CCALLBACK_LIST_NAME(ccallback_list),
+                                                  pos, num,
                                                   ccallback_node_name);
-
-        if(BIT_TRUE == CCALLBACK_LIST_RESET_FLAG(ccallback_list))
-        {
-            CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_FALSE;
-            break;
-        }
     }
-
 
     dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_not_check: [%s] done\n",
                                               CCALLBACK_LIST_NAME(ccallback_list));
 
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list) = BIT_FALSE;
     return (EC_TRUE);
 }
 
 EC_BOOL ccallback_list_run_and_check(CCALLBACK_LIST *ccallback_list, UINT32 arg)
 {
-    CLIST_DATA        *clist_data;
     CCALLBACK_RUNNER   callback_runner;
+
+    UINT32             num;
+    UINT32             pos;    
 
     if(NULL_PTR == CCALLBACK_LIST_RUNNER(ccallback_list))
     {
@@ -354,55 +384,53 @@ EC_BOOL ccallback_list_run_and_check(CCALLBACK_LIST *ccallback_list, UINT32 arg)
         callback_runner = CCALLBACK_LIST_RUNNER(ccallback_list);
     }
 
-    ASSERT(BIT_FALSE == CCALLBACK_LIST_LOOP_FLAG(ccallback_list));
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list) = BIT_TRUE;
+    num = cvector_size(CCALLBACK_LIST_NODES(ccallback_list));
 
     /*stack, FILO*/
-    CLIST_LOOP_PREV(CCALLBACK_LIST_NODES(ccallback_list), clist_data)
+    /*note: if new node is pushed into cvector during old node running, new node should not run at this loop*/
+    for(pos = num; pos -- > 0; )
     {
         CCALLBACK_NODE    *ccallback_node;
         const char        *ccallback_node_name;
         EC_BOOL            ret;
 
-        ccallback_node = (CCALLBACK_NODE *)CLIST_DATA_DATA(clist_data);
-        ccallback_node_name = CCALLBACK_NODE_NAME(ccallback_node);
+        ccallback_node = (CCALLBACK_NODE *)cvector_get(CCALLBACK_LIST_NODES(ccallback_list), pos);
 
-        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: [%s] run '%s' [size %ld] [%p]\n",
+        /*skip not used node*/
+        if(NULL_PTR == ccallback_node || BIT_FALSE == CCALLBACK_NODE_USED_FLAG(ccallback_node))
+        {
+            continue;
+        }
+        
+        ccallback_node_name = CCALLBACK_NODE_NAME(ccallback_node);
+   
+        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: [%s] run [%ld/%ld] '%s' [old size %ld, cur size %ld] [%p]\n",
                                                   CCALLBACK_LIST_NAME(ccallback_list),
+                                                  pos, num,
                                                   ccallback_node_name,
-                                                  clist_size(CCALLBACK_LIST_NODES(ccallback_list)), clist_data);
+                                                  num, cvector_size(CCALLBACK_LIST_NODES(ccallback_list)), 
+                                                  ccallback_node);
 
         ret = callback_runner(arg, ccallback_node);
         if(EC_TRUE != ret/* && EC_AGAIN != ret && EC_DONE != ret*/)
         {
-            dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: [%s] run '%s' ... terminate [%ld]\n",
+            dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: [%s] run [%ld/%ld] '%s' ... terminate [%ld]\n",
                                                       CCALLBACK_LIST_NAME(ccallback_list),
+                                                      pos, num,
                                                       ccallback_node_name, ret);
-            CCALLBACK_LIST_LOOP_FLAG(ccallback_list) = BIT_FALSE;
-
-            if(BIT_TRUE == CCALLBACK_LIST_RESET_FLAG(ccallback_list))
-            {
-                CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_FALSE;
-            }
 
             return (ret);
         }
 
-        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: run [%s] '%s' ... ok\n",
+        dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: [%s] run [%ld/%ld] '%s' ... ok\n",
                                                   CCALLBACK_LIST_NAME(ccallback_list),
+                                                  pos, num,
                                                   ccallback_node_name);
-
-        if(BIT_TRUE == CCALLBACK_LIST_RESET_FLAG(ccallback_list))
-        {
-            CCALLBACK_LIST_RESET_FLAG(ccallback_list) = BIT_FALSE;
-            break;
-        }
     }
 
     dbg_log(SEC_0178_CCALLBACK, 5)(LOGSTDOUT, "[DEBUG] ccallback_list_run_and_check: run [%s] done\n",
                                               CCALLBACK_LIST_NAME(ccallback_list));
 
-    CCALLBACK_LIST_LOOP_FLAG(ccallback_list) = BIT_FALSE;
     return (EC_TRUE);
 }
 

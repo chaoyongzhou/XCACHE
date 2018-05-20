@@ -16,17 +16,23 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 
+#include "cvector.h"
+
 
 typedef struct
 {
     const char     *name;     /*always const string, never free*/
     UINT32          func;     /*callback function address*/
     UINT32          data;     /*extra data*/
+    uint32_t        used_flag:1;
+    uint32_t        rsvd01:31;
+    uint32_t        rsvd02;    
 }CCALLBACK_NODE;
 
 #define CCALLBACK_NODE_NAME(ccallback_node)             ((ccallback_node)->name)
 #define CCALLBACK_NODE_FUNC(ccallback_node)             ((ccallback_node)->func)
 #define CCALLBACK_NODE_DATA(ccallback_node)             ((ccallback_node)->data)
+#define CCALLBACK_NODE_USED_FLAG(ccallback_node)        ((ccallback_node)->used_flag)
 
 typedef EC_BOOL (*CCALLBACK_RUNNER)(UINT32, CCALLBACK_NODE *);
 typedef EC_BOOL (*CCALLBACK_FILTER)(const CCALLBACK_NODE *, const char *, const UINT32, const UINT32);
@@ -34,23 +40,15 @@ typedef EC_BOOL (*CCALLBACK_FILTER)(const CCALLBACK_NODE *, const char *, const 
 typedef struct
 {
     const char *        name;
-    CLIST               callback_nodes;     /*item is CCALLBACK_NODE*/
+    CVECTOR             callback_nodes;     /*item is CCALLBACK_NODE*/
     CCALLBACK_RUNNER    callback_runner;
     CCALLBACK_FILTER    callback_filter;
-
-    uint32_t            loop_flag :1;/*for debug*/
-    uint32_t            reset_flag:1;
-    uint32_t            rsvd01:30;
-    uint32_t            rsvd02;
-
 }CCALLBACK_LIST;
 
 #define CCALLBACK_LIST_NAME(ccallback_list)         ((ccallback_list)->name)
 #define CCALLBACK_LIST_NODES(ccallback_list)        (&((ccallback_list)->callback_nodes))
 #define CCALLBACK_LIST_RUNNER(ccallback_list)       ((ccallback_list)->callback_runner)
 #define CCALLBACK_LIST_FILTER(ccallback_list)       ((ccallback_list)->callback_filter)
-#define CCALLBACK_LIST_LOOP_FLAG(ccallback_list)    ((ccallback_list)->loop_flag)
-#define CCALLBACK_LIST_RESET_FLAG(ccallback_list)   ((ccallback_list)->reset_flag)
 
 CCALLBACK_NODE *ccallback_node_new();
 
@@ -84,7 +82,7 @@ CCALLBACK_NODE *ccallback_list_push(CCALLBACK_LIST *ccallback_list, const char *
 
 EC_BOOL ccallback_list_erase(CCALLBACK_LIST *ccallback_list, const char *name, const UINT32 data, const UINT32 func);
 
-EC_BOOL ccallback_list_pop(CCALLBACK_LIST *ccallback_list);
+EC_BOOL ccallback_list_clear(CCALLBACK_LIST *ccallback_list);
 
 EC_BOOL ccallback_list_reset(CCALLBACK_LIST *ccallback_list);
 

@@ -90,12 +90,6 @@ EC_BOOL csocket_cnode_erase_shutdown_callback(CSOCKET_CNODE *csocket_cnode, cons
 
 EC_BOOL csocket_cnode_erase_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
 
-EC_BOOL csocket_cnode_pop_close_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_pop_shutdown_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_pop_timeout_callback(CSOCKET_CNODE *csocket_cnode);
-
 EC_BOOL csocket_cnode_reset_recv_callback(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL csocket_cnode_reset_send_callback(CSOCKET_CNODE *csocket_cnode);
