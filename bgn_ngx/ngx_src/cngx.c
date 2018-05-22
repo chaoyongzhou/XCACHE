@@ -1932,6 +1932,7 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
     ngx_event_t               *wev;
 
     COROUTINE_COND            *coroutine_cond;
+    EC_BOOL                    ret;
 
     c = r->connection;
     wev = c->write;
@@ -1941,11 +1942,11 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
         return (EC_TRUE);
     }
 #endif
-    coroutine_cond = coroutine_cond_new((UINT32)send_timeout, LOC_NONE_BASE);
+    coroutine_cond = coroutine_cond_new((UINT32)send_timeout, LOC_CNGX_0047);
     if(NULL_PTR == coroutine_cond)
     {
-        rlog(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
-                                          "new coroutine_cond failed\n");
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
+                                             "new coroutine_cond failed\n");
         return (EC_FALSE);
     }
 
@@ -1955,19 +1956,30 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
                                          "coroutine_cond %p on r:%p, c:%p, wev:%p <= start\n",
                                          coroutine_cond, r, c, wev);
 
-    coroutine_cond_reserve(coroutine_cond, 1, LOC_NONE_BASE);
-    coroutine_cond_wait(coroutine_cond, LOC_NONE_BASE);
+    coroutine_cond_reserve(coroutine_cond, 1, LOC_CNGX_0048);
+    ret = coroutine_cond_wait(coroutine_cond, LOC_CNGX_0049);
 
     __COROUTINE_CATCH_EXCEPTION() { /*exception*/
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
                                              "coroutine_cond %p on r:%p, c:%p, wev:%p => cancelled\n",
                                              coroutine_cond, r, c, wev);
-        coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0050);
         NGX_W_COROUTINE_COND(wev) = NULL_PTR;
     }__COROUTINE_TERMINATE();
 
-    coroutine_cond_free(coroutine_cond, LOC_NONE_BASE);
-    NGX_W_COROUTINE_COND(wev) = NULL_PTR;
+    if(NULL_PTR != NGX_W_COROUTINE_COND(wev))/*double confirm its validity for safe reason*/
+    {
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0051);
+        NGX_W_COROUTINE_COND(wev) = NULL_PTR;
+    }
+
+    if(EC_TRUE != ret) /*ret maybe EC_TRUE, EC_FALSE, EC_TIMEOUT, EC_TERMINATE, etc.*/
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
+                                             "coroutine_cond %p on r:%p, c:%p, wev:%p => back but ret = %ld\n",
+                                             coroutine_cond, r, c, wev, ret);
+        return (EC_FALSE);
+    }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_wait: "
                                          "coroutine_cond %p on r:%p, c:%p, wev:%p => back\n",
@@ -1989,10 +2001,9 @@ void cngx_send_again(ngx_http_request_t *r)
 
     NGX_W_RC(wev) = rc;
 
-    if(NGX_W_COROUTINE_COND(wev))
+    if(NULL_PTR != NGX_W_COROUTINE_COND(wev))
     {
-        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_NONE_BASE);
-        NGX_W_COROUTINE_COND(wev) = NULL_PTR;
+        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0052);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
@@ -2007,6 +2018,7 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
     ngx_event_t               *wev;
 
     ngx_http_core_loc_conf_t  *clcf;
+    ngx_msec_t                 send_timeout;
 
     c = r->connection;
     wev = c->write;
@@ -2017,7 +2029,12 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
-    r->write_event_handler = cngx_send_again; /*xxx*/
+    send_timeout = clcf->send_timeout; /*default is 60s*/
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                         "set send_timeout to clcf->send_timeout %ld ms\n",
+                                         clcf->send_timeout);
+
+    r->write_event_handler = cngx_send_again;
 
     NGX_W_RC(wev) = NGX_AGAIN;
     while(NGX_AGAIN == NGX_W_RC(wev))
@@ -2053,8 +2070,17 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
                                                  "add write event done\n");
         }
+
         /*--- blocking ---*/
-        cngx_send_wait(r, 0);
+        if(EC_FALSE == cngx_send_wait(r, send_timeout))
+        {
+            NGX_W_RC(wev) = NGX_ERROR;
+
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
+                                                 "wait back, connection error: %d, reset rc to %ld\n",
+                                                 c->error, NGX_W_RC(wev));
+            break;
+        }
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
                                              "wait back, connection error: %d, rc: %ld\n",
@@ -2344,7 +2370,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_http_codes: "
                                              "dup str '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CNGX_0047);
+        safe_free(v, LOC_CNGX_0053);
         return (EC_FALSE);
     }
 
@@ -2365,7 +2391,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
                                         " %u", status_code);
         }
     }
-    safe_free(cache_http_codes_str, LOC_CNGX_0048);
+    safe_free(cache_http_codes_str, LOC_CNGX_0054);
 
     if(0 == lost_codes_pos)
     {
@@ -2383,7 +2409,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
                                          "cngx var '%s':'%s', add lost default '%s' => '%s' done\n",
                                          k, v, (char *)lost_codes_str, cache_http_codes_str);
 
-    safe_free(v, LOC_CNGX_0049);
+    safe_free(v, LOC_CNGX_0055);
 
     cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)cache_http_codes_str);
 
@@ -2640,7 +2666,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
 
             cstring_append_str(store_path, (const uint8_t *)(v + 6));
 
-            safe_free(v, LOC_CNGX_0050);
+            safe_free(v, LOC_CNGX_0056);
             return (EC_TRUE);
         }
 
@@ -2652,7 +2678,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
 
             cstring_append_str(store_path, (const uint8_t *)(v + 7));
 
-            safe_free(v, LOC_CNGX_0051);
+            safe_free(v, LOC_CNGX_0057);
             return (EC_TRUE);
         }
 
@@ -2661,14 +2687,14 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                                  "format store_path '/%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CNGX_0052);
+            safe_free(v, LOC_CNGX_0058);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                              "format store_path '/%s' done\n",
                                              v);
-        safe_free(v, LOC_CNGX_0053);
+        safe_free(v, LOC_CNGX_0059);
 
         return (EC_TRUE);
     }
@@ -2686,7 +2712,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "fetched req uri is '%s'\n",
                                              uri_str);
-        safe_free(uri_str, LOC_CNGX_0054);
+        safe_free(uri_str, LOC_CNGX_0060);
         return (EC_FALSE);
     }
 
@@ -2697,7 +2723,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "fetch '%s' failed\n",
                                              k);
-        safe_free(uri_str, LOC_CNGX_0055);
+        safe_free(uri_str, LOC_CNGX_0061);
         return (EC_FALSE);
     }
 
@@ -2706,12 +2732,12 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "format store_path '/%s%s' failed\n",
                                              host_str, uri_str);
-        safe_free(host_str, LOC_CNGX_0056);
-        safe_free(uri_str, LOC_CNGX_0057);
+        safe_free(host_str, LOC_CNGX_0062);
+        safe_free(uri_str, LOC_CNGX_0063);
         return (EC_FALSE);
     }
-    safe_free(host_str, LOC_CNGX_0058);
-    safe_free(uri_str, LOC_CNGX_0059);
+    safe_free(host_str, LOC_CNGX_0064);
+    safe_free(uri_str, LOC_CNGX_0065);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                          "set store_path '%s' done\n",
@@ -2801,7 +2827,7 @@ EC_BOOL cngx_option_set_only_if_cached(ngx_http_request_t *r, CNGX_OPTION *cngx_
 CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_new()
 {
     CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-    alloc_static_mem(MM_CNGX_HTTP_BGN_MOD, &cngx_http_bgn_mod, LOC_CNGX_0060);
+    alloc_static_mem(MM_CNGX_HTTP_BGN_MOD, &cngx_http_bgn_mod, LOC_CNGX_0066);
     if(NULL_PTR != cngx_http_bgn_mod)
     {
         cngx_http_bgn_mod_init(cngx_http_bgn_mod);
@@ -2856,7 +2882,7 @@ EC_BOOL cngx_http_bgn_mod_free(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
     if(NULL_PTR != cngx_http_bgn_mod)
     {
         cngx_http_bgn_mod_clean(cngx_http_bgn_mod);
-        free_static_mem(MM_CNGX_HTTP_BGN_MOD, cngx_http_bgn_mod, LOC_CNGX_0061);
+        free_static_mem(MM_CNGX_HTTP_BGN_MOD, cngx_http_bgn_mod, LOC_CNGX_0067);
     }
     return (EC_TRUE);
 }

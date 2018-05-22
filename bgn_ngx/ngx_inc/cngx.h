@@ -37,7 +37,7 @@ extern "C"{
 #define  CNGX_CACHE_SEG_SIZE_DEFAULT              (256 * 1024)    /*default seg size is 256KB*/
 #define  CNGX_CACHE_SEG_MAX_NUM_DEFAULT           (1024 * 4 * 64) /*default seg max num*/
 
-#define  CNGX_ORIG_PORT_DEFAULT                   (80)         /*default orig server port*/
+#define  CNGX_ORIG_PORT_DEFAULT                   (80)            /*default orig server port*/
 
 #define  CNGX_ORIG_REDIRECT_TIMES_DEFAULT         (3)
 
