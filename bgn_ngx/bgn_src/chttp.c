@@ -132,6 +132,9 @@ static UINT32  g_chttp_store_seqno = 10000;
 }while(0)
 #endif
 
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_lock(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, const CSTRING *path, const UINT32 expire_nsec, UINT32 *locked_already);
+STATIC_CAST static EC_BOOL __chttp_request_merge_file_unlock(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, const CSTRING *path);
+
 const char *chttp_status_str_get(const uint32_t http_status)
 {
     uint32_t idx;
@@ -7286,6 +7289,109 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
     return (EC_TRUE);
 }
 
+/*ms procedure*/
+STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
+{
+    CHTTP_STORE   *chttp_store_t;
+    
+    chttp_store_t = CHTTP_NODE_STORE(chttp_node);
+    
+    if(NULL_PTR != chttp_store_t 
+    && BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store_t)
+    && BIT_FALSE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_t)
+    && BIT_TRUE  == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_t)
+    && 0 == CHTTP_STORE_SEG_ID(chttp_store_t)
+    )
+    {
+        UINT32         expire_nsec;
+        CSTRING        path;
+        UINT32         locked_already;
+    
+        expire_nsec  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store_t);
+
+        /*make path*/
+        cstring_init(&path, NULL_PTR);
+        chttp_store_path_get(chttp_store_t, &path);
+
+        /*file lock: acquire auth-token*/
+        locked_already = EC_FALSE;
+        
+        if(EC_FALSE == __chttp_request_merge_file_lock(chttp_req, chttp_store_t, &path, expire_nsec, &locked_already))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_node_store_ddir_after_lock_header: [ms] file lock '%.*s' failed\n",
+                            (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+            cstring_clean(&path);
+            return (EC_FALSE);
+        }    
+
+        if(EC_TRUE == locked_already)
+        {
+            /*[N] means this is not the auth-token owner*/
+            dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [N] file lock '%.*s' => auth-token: (null)\n",
+                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));    
+        }
+        else
+        {
+            /*[Y] means this is the auth-token owner*/
+            dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [Y] file lock '%.*s' => auth-token: %.*s\n",
+                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path),
+                        (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store_t), (char *)CHTTP_STORE_AUTH_TOKEN_STR(chttp_store_t));        
+
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [Y] cache ddir '%s'\n",
+                        (char *)CHTTP_STORE_BASEDIR_STR(chttp_store_t));
+                        
+            ccache_dir_delete(CHTTP_STORE_BASEDIR(chttp_store_t));
+        }
+
+        cstring_clean(&path);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
+/*ms procedure*/
+STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
+{
+    CHTTP_STORE   *chttp_store_t;
+    
+    chttp_store_t = CHTTP_NODE_STORE(chttp_node);
+    
+    if(NULL_PTR != chttp_store_t 
+    && BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store_t)
+    && BIT_FALSE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_t)
+    && BIT_TRUE  == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_t)
+    && EC_FALSE  == cstring_is_empty(CHTTP_STORE_AUTH_TOKEN(chttp_store_t))
+    )
+    {
+        CSTRING        path;
+
+        /*make path*/
+        cstring_init(&path, NULL_PTR);
+        chttp_store_path_get(chttp_store_t, &path);
+        
+        if(EC_FALSE == __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_node_store_unlock_header_after_http: [ms] [Y] file unlock '%.*s' failed\n",
+                            (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+            cstring_clean(&path);
+            return (EC_FALSE);
+        }    
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_unlock_header_after_http: [ms] [Y] file unlock '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));        
+
+        cstring_clean(&path);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
 {
     CBYTES        *cbytes;
@@ -8950,7 +9056,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     if(NULL_PTR != chttp_store)/*store data to storage as long as http recving*/
     {
         CHTTP_STORE *chttp_store_t;
-
         chttp_store_t = chttp_store_new();
         if(NULL_PTR == chttp_store_t)
         {
@@ -8965,6 +9070,9 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         chttp_store_clone(chttp_store, CHTTP_NODE_STORE(chttp_node));
     }
 
+    /*ms procedure: lock seg-0 to prevent storage from different client request triggering ddir at near time*/
+    __chttp_node_store_ddir_after_lock_header(chttp_node, chttp_req);
+    
     if(EC_TRUE == chttp_req_is_head_method(chttp_req))
     {
         CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) = BIT_TRUE;
@@ -8976,6 +9084,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: new croutine_cond failed\n");
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
@@ -8989,7 +9098,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
+        
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
         return (EC_FALSE);
@@ -9013,6 +9123,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
 
         chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
@@ -9036,6 +9147,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
 
         chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
@@ -9066,6 +9178,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         /*when current coroutine was cancelled, blocking-mode is prohibitted*/
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);  /*for merge orign termination in nonblocking mode*/
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
     } else {/*normal*/
 
         /*chunk trigger detached http flow*/
@@ -9106,6 +9219,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         }
 
         chttp_node_store_done_blocking(chttp_node, chttp_store);  /*for merge orign termination in blocking mode*/
+        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
     }
 
     chttp_node_set_billing(chttp_node, chttp_store); /*set billing in non-blocking mode*/

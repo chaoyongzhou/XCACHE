@@ -14001,7 +14001,7 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
-                                                 "absent_seg_no %ld => orig\n",
+                                                 "absent_seg_no %ld => ms\n",
                                                  seg_no);
 
             /*change to orig procedure*/

@@ -15416,7 +15416,7 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
-                                                 "absent_seg_no %ld => orig\n",
+                                                 "absent_seg_no %ld => ms\n",
                                                  seg_no);
 
             /*change to orig procedure*/
