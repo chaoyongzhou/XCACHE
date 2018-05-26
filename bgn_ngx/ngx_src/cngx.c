@@ -2029,11 +2029,22 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
-    send_timeout = clcf->send_timeout; /*default is 60s*/
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                         "set send_timeout to clcf->send_timeout %ld ms\n",
-                                         clcf->send_timeout);
-
+    if(0 < clcf->send_timeout)
+    {
+        send_timeout = clcf->send_timeout; /*default is 60s*/
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                             "set send_timeout to clcf->send_timeout %ld ms\n",
+                                             clcf->send_timeout);
+    }
+    else
+    {
+        /*should never reach here due to ngx would set clcf->send_timeout to default 60s*/
+        send_timeout = 60 * 1000; /*set to default 60s */
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+                                             "set send_timeout to default %ld ms\n",
+                                             clcf->send_timeout);    
+    }
+    
     r->write_event_handler = cngx_send_again;
 
     NGX_W_RC(wev) = NGX_AGAIN;

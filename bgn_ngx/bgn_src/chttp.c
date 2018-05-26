@@ -9084,7 +9084,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: new croutine_cond failed\n");
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
@@ -9098,7 +9097,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
         
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
@@ -9123,7 +9121,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
 
         chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
@@ -9147,7 +9144,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
 
         chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
 
@@ -9178,7 +9174,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         /*when current coroutine was cancelled, blocking-mode is prohibitted*/
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);  /*for merge orign termination in nonblocking mode*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
     } else {/*normal*/
 
         /*chunk trigger detached http flow*/
@@ -9219,7 +9214,6 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         }
 
         chttp_node_store_done_blocking(chttp_node, chttp_store);  /*for merge orign termination in blocking mode*/
-        //__chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);/*for ms orign exception*/
     }
 
     chttp_node_set_billing(chttp_node, chttp_store); /*set billing in non-blocking mode*/
