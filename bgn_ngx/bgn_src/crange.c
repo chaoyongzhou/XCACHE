@@ -41,6 +41,7 @@ EC_BOOL crange_seg_init(CRANGE_SEG *crange_seg)
 
 EC_BOOL crange_seg_clean(CRANGE_SEG *crange_seg)
 {
+    CRANGE_SEG_SIZE(crange_seg)     = 0;
     CRANGE_SEG_NO(crange_seg)       = 0;
     CRANGE_SEG_S_OFFSET(crange_seg) = 0;
     CRANGE_SEG_E_OFFSET(crange_seg) = 0;
@@ -69,7 +70,7 @@ void crange_seg_print(LOG *log, const CRANGE_SEG *crange_seg)
     return;
 }
 
-EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, const UINT32 range_seg_size, CLIST *range_segs)
+EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, const UINT32 range_seg_size, CLIST *crange_segs)
 {
     UINT32      seg_start;
     UINT32      seg_end;
@@ -108,7 +109,7 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
         CRANGE_SEG_S_OFFSET(crange_seg) = range_seg_s_offset;
         CRANGE_SEG_E_OFFSET(crange_seg) = range_seg_e_offset;
 
-        if(NULL_PTR == clist_push_back(range_segs, (void *)crange_seg))
+        if(NULL_PTR == clist_push_back(crange_segs, (void *)crange_seg))
         {
             dbg_log(SEC_0018_CRANGE, 0)(LOGSTDOUT, "error:crange_segs_split: push [%ld] crange_seg failed\n",
                             range_seg_no);
@@ -127,25 +128,25 @@ EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, cons
     {
         dbg_log(SEC_0018_CRANGE, 9)(LOGSTDOUT, "[DEBUG] crange_segs_split: content-range: %ld-%ld, seg size %ld ==> \n",
                     range_start, range_end, range_seg_size);
-        clist_print(LOGSTDOUT, range_segs, (CLIST_DATA_DATA_PRINT)crange_seg_print);
+        clist_print(LOGSTDOUT, crange_segs, (CLIST_DATA_DATA_PRINT)crange_seg_print);
     }
 
     return (EC_TRUE);
 }
 
 /*filter [content_start, content_end] / content_length*/
-EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length)
+EC_BOOL crange_segs_filter(CLIST *crange_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length)
 {
     CRANGE_SEG    *crange_seg;
 
     if(0 == content_length)
     {
-        clist_clean(range_segs, (CLIST_DATA_DATA_CLEANER)crange_seg_free);
+        clist_clean(crange_segs, (CLIST_DATA_DATA_CLEANER)crange_seg_free);
         return (EC_TRUE);
     }
 
     /*filter content_length*/
-    while(NULL_PTR != (crange_seg = clist_last_data(range_segs)))
+    while(NULL_PTR != (crange_seg = clist_last_data(crange_segs)))
     {
         if(content_length <= CRANGE_SEG_E_OFFSET(crange_seg))
         {
@@ -163,12 +164,12 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
                                                content_length);
-        clist_pop_back(range_segs);
+        clist_pop_back(crange_segs);
         crange_seg_free(crange_seg);
     }
 
     /*filter content_end*/
-    while(content_end + 1 < content_length && NULL_PTR != (crange_seg = clist_last_data(range_segs)))
+    while(content_end + 1 < content_length && NULL_PTR != (crange_seg = clist_last_data(crange_segs)))
     {
         if(content_end <= CRANGE_SEG_E_OFFSET(crange_seg))
         {
@@ -186,12 +187,12 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
                                                content_end);
-        clist_pop_back(range_segs);
+        clist_pop_back(crange_segs);
         crange_seg_free(crange_seg);
     }
 
     /*filter content_start*/
-    while(0 < content_start && NULL_PTR != (crange_seg = clist_first_data(range_segs)))
+    while(0 < content_start && NULL_PTR != (crange_seg = clist_first_data(crange_segs)))
     {
         UINT32          s_offset;
         UINT32          e_offset;
@@ -227,7 +228,7 @@ EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const 
                                                CRANGE_SEG_S_OFFSET(crange_seg),
                                                CRANGE_SEG_E_OFFSET(crange_seg),
                                                content_start);
-        clist_pop_front(range_segs);
+        clist_pop_front(crange_segs);
         crange_seg_free(crange_seg);
     }
 

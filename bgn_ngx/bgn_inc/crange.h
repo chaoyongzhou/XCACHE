@@ -90,9 +90,9 @@ EC_BOOL crange_seg_free(CRANGE_SEG *crange_seg);
 
 void    crange_seg_print(LOG *log, const CRANGE_SEG *crange_seg);
 
-EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, const UINT32 range_seg_size, CLIST *range_segs);
+EC_BOOL crange_segs_split(const UINT32 range_start, const UINT32 range_end, const UINT32 range_seg_size, CLIST *crange_segs);
 
-EC_BOOL crange_segs_filter(CLIST *range_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length);
+EC_BOOL crange_segs_filter(CLIST *crange_segs, const UINT32 content_start, const UINT32 content_end, const UINT32 content_length);
 
 CRANGE_NODE *crange_node_new();
 
