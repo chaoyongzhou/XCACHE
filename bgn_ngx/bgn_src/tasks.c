@@ -217,6 +217,8 @@ EC_BOOL tasks_node_init(TASKS_NODE *tasks_node, const UINT32 srvipaddr, const UI
     TASKS_NODE_SIZE(tasks_node)      = size;
     TASKS_NODE_LOAD(tasks_node)      = 0;
 
+    TASKS_NODE_CLOSING(tasks_node)   = BIT_FALSE;
+
     CTIMET_GET(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
     CTIMET_GET(TASKS_NODE_LAST_SEND_TIME(tasks_node));
 
@@ -239,6 +241,8 @@ EC_BOOL tasks_node_clean(TASKS_NODE *tasks_node)
     TASKS_NODE_SIZE(tasks_node)      = 0;
     TASKS_NODE_LOAD(tasks_node)      = 0;
 
+    TASKS_NODE_CLOSING(tasks_node)   = BIT_FALSE;
+
     //CTIMET_GET(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
     //CTIMET_GET(TASKS_NODE_LAST_SEND_TIME(tasks_node));
 
@@ -249,8 +253,13 @@ EC_BOOL tasks_node_free(TASKS_NODE *tasks_node)
 {
     if(NULL_PTR != tasks_node)
     {
-        tasks_node_clean(tasks_node);
-        free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0006);
+        if(BIT_FALSE == TASKS_NODE_CLOSING(tasks_node))
+        {
+            TASKS_NODE_CLOSING(tasks_node) = BIT_TRUE;
+            
+            tasks_node_clean(tasks_node);
+            free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0006);
+        }
     }
     return (EC_TRUE);
 }
@@ -272,6 +281,8 @@ EC_BOOL tasks_node_clone_0(const TASKS_NODE *tasks_node_src, TASKS_NODE *tasks_n
     TASKS_NODE_TCID(tasks_node_des)      = TASKS_NODE_TCID(tasks_node_src);
     TASKS_NODE_COMM(tasks_node_des)      = TASKS_NODE_COMM(tasks_node_src);
     TASKS_NODE_SIZE(tasks_node_des)      = TASKS_NODE_SIZE(tasks_node_src);
+
+    TASKS_NODE_CLOSING(tasks_node_des)   = TASKS_NODE_CLOSING(tasks_node_src);
 
     /*left was ignored ...*/
     return (EC_TRUE);
@@ -1849,6 +1860,8 @@ EC_BOOL tasks_worker_clean(TASKS_WORKER *tasks_worker)
         TASKS_NODE      *tasks_node;
 
         tasks_node = cvector_get(TASKS_WORKER_NODES(tasks_worker), pos);
+
+        /*actually, after callback, tasks_node had been already free*/
         ccallback_list_run_not_check(TASKS_WORKER_DEL_CALLBACK_LIST(tasks_worker), (UINT32)tasks_node);
     }
     ccallback_list_clean(TASKS_WORKER_DEL_CALLBACK_LIST(tasks_worker));
@@ -2931,11 +2944,11 @@ EC_BOOL tasks_handshake_shutdown(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
 
             if(CSOCKET_CNODE_XCHG_TASKC_NODE != CSOCKET_CNODE_STATUS(csocket_cnode))
             {
-                cvector_delete(TASKS_MONITOR_NODES(tasks_monitor), (void *)tasks_node);
+                cvector_remove(TASKS_MONITOR_NODES(tasks_monitor), (void *)tasks_node);
             }
             else
             {
-                cvector_delete(TASKS_WORKER_NODES(tasks_worker), (void *)tasks_node);
+                cvector_remove(TASKS_WORKER_NODES(tasks_worker), (void *)tasks_node);
             }
 
             tasks_node_free(tasks_node);

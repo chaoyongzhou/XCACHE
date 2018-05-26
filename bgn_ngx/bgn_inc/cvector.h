@@ -157,6 +157,7 @@ EC_BOOL cvector_runthrough_back(const CVECTOR *cvector, const void *pvoid, EC_BO
 
 EC_BOOL cvector_delete(CVECTOR *cvector, const void * data);
 
+EC_BOOL cvector_remove(CVECTOR *cvector, const void * data);
 
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
@@ -249,6 +250,7 @@ EC_BOOL cvector_runthrough_back_no_lock(const CVECTOR *cvector, const void *pvoi
 
 EC_BOOL cvector_delete_no_lock(CVECTOR *cvector, const void * data);
 
+EC_BOOL cvector_remove_no_lock(CVECTOR *cvector, const void * data);
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
 * where "<" is a kind of order

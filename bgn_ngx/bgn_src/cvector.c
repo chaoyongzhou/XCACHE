@@ -926,6 +926,22 @@ EC_BOOL cvector_delete(CVECTOR *cvector, const void * data)
     return (EC_TRUE);
 }
 
+EC_BOOL cvector_remove(CVECTOR *cvector, const void * data)
+{
+    UINT32 pos;
+
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0065);
+    for(pos = 0; pos < cvector->size; pos ++)
+    {
+        if(data == cvector->data[ pos ])
+        {
+            cvector->data[ pos ] = NULL_PTR;
+        }
+    }
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0067);
+    return (EC_TRUE);
+}
+
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
 * where "<" is a kind of order
@@ -1915,6 +1931,21 @@ EC_BOOL cvector_delete_no_lock(CVECTOR *cvector, const void * data)
 
     cvector->data[ pos ] = NULL_PTR;
     cvector->size --;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cvector_remove_no_lock(CVECTOR *cvector, const void * data)
+{
+    UINT32 pos;
+
+    for(pos = 0; pos < cvector->size; pos ++)
+    {
+        if(data == cvector->data[ pos ])
+        {
+            cvector->data[ pos ] = NULL_PTR;
+        }
+    }
 
     return (EC_TRUE);
 }

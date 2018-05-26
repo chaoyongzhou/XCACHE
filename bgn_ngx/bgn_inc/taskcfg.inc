@@ -62,20 +62,24 @@ typedef struct
 /*remote task server node*/
 typedef struct
 {
-    UINT32  srvipaddr;   /*remote tasks node srv ipaddr*/
-    UINT32  srvport;     /*remote tasks node srv port*/
-    UINT32  tcid;        /*remote tasks node tcid*/
-    UINT32  comm;        /*remote tasks node communicator*/
-    UINT32  size;        /*remote tasks node communicator size*/
+    UINT32      srvipaddr;   /*remote tasks node srv ipaddr*/
+    UINT32      srvport;     /*remote tasks node srv port*/
+    UINT32      tcid;        /*remote tasks node tcid*/
+    UINT32      comm;        /*remote tasks node communicator*/
+    UINT32      size;        /*remote tasks node communicator size*/
 
-    UINT32  load;        /*load of sending direction*/
+    UINT32      load;        /*load of sending direction*/
 
-    CTIMET  last_update_time;   /*last update time. update when send or recv heartbeat successfully*/
-    CTIMET  last_send_time;     /*last send heartbeat time*/
+    uint32_t    closing:1;
+    uint32_t    rsvd01 :31;
+    uint32_t    rsvd02;
 
-    CVECTOR csocket_cnode_vec;/*csocket cnodes connecting to remote tasks node*/
+    CTIMET      last_update_time;   /*last update time. update when send or recv heartbeat successfully*/
+    CTIMET      last_send_time;     /*last send heartbeat time*/
 
-    CLIST   sending_list;   /*be sending data. item is TASK_NODE, mount only*//*FIFO*/
+    CVECTOR     csocket_cnode_vec;/*csocket cnodes connecting to remote tasks node*/
+
+    CLIST       sending_list;   /*be sending data. item is TASK_NODE, mount only*//*FIFO*/
 }TASKS_NODE;
 
 #define TASKS_NODE_SRVIPADDR(tasks_node)                    ((tasks_node)->srvipaddr)
@@ -86,6 +90,7 @@ typedef struct
 #define TASKS_NODE_COMM(tasks_node)                         ((tasks_node)->comm)
 #define TASKS_NODE_SIZE(tasks_node)                         ((tasks_node)->size)
 #define TASKS_NODE_LOAD(tasks_node)                         ((tasks_node)->load)
+#define TASKS_NODE_CLOSING(tasks_node)                      ((tasks_node)->closing)
 #define TASKS_NODE_LAST_UPDATE_TIME(tasks_node)             (((tasks_node)->last_update_time))
 #define TASKS_NODE_LAST_SEND_TIME(tasks_node)               (((tasks_node)->last_send_time))
 #define TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)            (&((tasks_node)->csocket_cnode_vec))
