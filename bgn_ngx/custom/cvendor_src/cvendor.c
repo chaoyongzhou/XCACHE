@@ -14307,7 +14307,7 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
             if(EC_TRUE == cngx_is_head_method(r))
             {
                 dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
-                                                        "[HEAD] cache miss => direct procedure\n");
+                                                        "[HEAD] cache miss => head procedure\n");
 
                 return cvendor_content_head_procedure(cvendor_md_id);
             }

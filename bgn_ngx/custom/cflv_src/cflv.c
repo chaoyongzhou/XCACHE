@@ -9395,15 +9395,26 @@ EC_BOOL cflv_content_ms_send_header(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cflv_filter_rsp_range(cflv_md_id))
+    if(EC_FALSE == cflv_content_ms_header_out_cache_control_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_header: "
-                                             "chttp rsp header range filter failed\n");
+                                             "filter rsp cache-control failed\n");
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_send_header: "
-                                         "chttp rsp header range filter done\n");
+                                         "filter rsp cache-control done\n");     
 
+    if(BIT_FALSE == CFLV_MD_ORIG_NO_CACHE_FLAG(cflv_md))
+    {
+        if(EC_FALSE == cflv_filter_rsp_range(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_header: "
+                                                 "chttp rsp header range filter failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_send_header: "
+                                             "chttp rsp header range filter done\n");
+    }
     /*send header*/
     if(EC_FALSE == cflv_content_ms_header_out_filter(cflv_md_id))
     {

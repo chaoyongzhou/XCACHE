@@ -9742,7 +9742,7 @@ EC_BOOL cmp4_content_ms_import_header(const UINT32 cmp4_md_id, const CHTTP_NODE 
 /*shortcut in http orig procedure*/
 EC_BOOL cmp4_content_ms_send_header(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                  *cmp4_md;
+    CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
     CRANGE_MGR                  *crange_mgr;
@@ -9770,15 +9770,27 @@ EC_BOOL cmp4_content_ms_send_header(const UINT32 cmp4_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cmp4_filter_rsp_range(cmp4_md_id))
+    if(EC_FALSE == cmp4_content_ms_header_out_cache_control_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_header: "
-                                             "chttp rsp header range filter failed\n");
+                                             "filter rsp cache-control failed\n");
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_send_header: "
-                                         "chttp rsp header range filter done\n");
+                                         "filter rsp cache-control done\n");    
 
+    if(BIT_FALSE == CMP4_MD_ORIG_NO_CACHE_FLAG(cmp4_md))
+    {
+        if(EC_FALSE == cmp4_filter_rsp_range(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_header: "
+                                                 "chttp rsp header range filter failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_send_header: "
+                                             "chttp rsp header range filter done\n");
+    }
+    
     /*send header*/
     if(EC_FALSE == cmp4_content_ms_header_out_filter(cmp4_md_id))
     {
