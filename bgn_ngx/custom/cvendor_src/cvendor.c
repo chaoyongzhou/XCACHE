@@ -10193,7 +10193,7 @@ EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_procedure: "
                                             "filter rsp cache-control done\n");
-
+#if 0
     if(BIT_TRUE == CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_procedure: "
@@ -10201,7 +10201,7 @@ EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id)
 
         return cvendor_content_direct_send_response(cvendor_md_id);
     }
-
+#endif
     if(EC_FALSE == cvendor_content_ms_send_response(cvendor_md_id))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_procedure: "
