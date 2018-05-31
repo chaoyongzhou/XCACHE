@@ -105,6 +105,7 @@ void csig_stop(int signo);
 void csig_interrupt(int signo);
 void csig_terminate(int signo);
 void csig_quit_now(int signo);
+void csig_abort_now(int signo);
 
 #endif /*_CSIG_H*/
 

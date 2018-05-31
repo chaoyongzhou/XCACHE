@@ -404,6 +404,9 @@ EC_BOOL csig_takeover(CSIG *csig)
     csig_register(SIGTTOU, csig_stop      , CSIG_HANDLE_DEFER);
     csig_register(SIGTTIN, csig_stop      , CSIG_HANDLE_DEFER);
 
+    /*takeover SIGABRT due to that it does not call atexit callback*/
+    csig_register(SIGABRT, csig_abort_now , CSIG_HANDLE_NOW  );
+
     /********************************************************************************
     *
     *  note:
@@ -839,6 +842,16 @@ void csig_quit_now(int signo)
 
     abort();
     return;
+}
+
+void csig_abort_now(int signo)
+{
+    dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_abort_now: signal %d trigger atexit process ......\n", signo);
+
+    csig_atexit_process_queue();
+
+    signal(signo, SIG_DFL);/*restore to OS default handler!*/
+    raise(signo);    
 }
 
 #if 0
