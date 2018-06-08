@@ -1669,10 +1669,15 @@ EC_BOOL cngx_export_header_in(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     const ngx_list_part_t        *part;
     const ngx_table_elt_t        *header;
     ngx_uint_t                    i;
-    int                           count = 0;
+    int                           count;
 
     part  = &(r->headers_in.headers.part);
     count = part->nelts;
+    if(0 >= count)
+    {
+        return (EC_TRUE);
+    }
+    
     while(part->next)
     {
         part   = part->next;
@@ -1731,12 +1736,17 @@ EC_BOOL cngx_has_header_in_key(const ngx_http_request_t *r, const char *k)
     uint32_t                      klen;
 
     ngx_uint_t                    i;
-    int                           count = 0;
+    int                           count;
 
     klen  = strlen(k);
 
     part  = &(r->headers_in.headers.part);
     count = part->nelts;
+    if(0 >= count)
+    {
+        return (EC_FALSE);
+    }
+    
     while(part->next)
     {
         part   = part->next;
@@ -1784,13 +1794,18 @@ EC_BOOL cngx_has_header_in(const ngx_http_request_t *r, const char *k, const cha
     uint32_t                      vlen;
 
     ngx_uint_t                    i;
-    int                           count = 0;
+    int                           count;
 
     klen  = strlen(k);
     vlen  = strlen(v);
 
     part  = &(r->headers_in.headers.part);
     count = part->nelts;
+    if(0 >= count)
+    {
+        return (EC_FALSE);
+    }
+    
     while(part->next)
     {
         part   = part->next;
@@ -1841,13 +1856,18 @@ EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v)
     uint32_t                      vlen;
 
     ngx_uint_t                    i;
-    int                           count = 0;
+    int                           count;
 
     klen  = strlen(k);
     (*v)  = NULL_PTR;
 
     part  = &(r->headers_in.headers.part);
     count = part->nelts;
+    if(0 >= count)
+    {
+        return (EC_TRUE);
+    }
+    
     while(part->next)
     {
         part   = part->next;
