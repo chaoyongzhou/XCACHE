@@ -395,6 +395,8 @@ extern long int lrint(double x);
 #define STRCASECMP(pstr1, pstr2)       strcasecmp(pstr1, pstr2)
 #define STRNCMP(pstr1,pstr2, len)      strncmp(pstr1, pstr2, len)
 #define STRNCASECMP(pstr1,pstr2, len)  strncasecmp(pstr1, pstr2, len)
+#define STRCOPY(src, des)              strcpy(des, src)
+#define STRNCOPY(src, des, len)        strncpy(des, src, len)
 
 #define DMIN(a, b)      ((a) <= (b) ? (a) : (b))
 #define DMAX(a, b)      ((a) <= (b) ? (b) : (a))

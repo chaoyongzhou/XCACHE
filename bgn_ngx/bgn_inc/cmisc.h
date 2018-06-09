@@ -191,6 +191,9 @@ char c_str_last_char(const char *str);
 
 char *c_str_sub(const char *str, const char *sub, const char sub_terminate_char, UINT32 *sub_len);
 
+/*return the end point*/
+char * c_copy_str_n(const char *src, char *des, size_t n);
+
 char *c_str_fetch_line(char *str);
 
 char *c_str_fetch_next_line(char *str);
@@ -402,6 +405,10 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port);
 UINT32  c_finger_ip_from_netcards(const CSET *cnetcard_set);
 
 CSET * c_collect_netcards();
+
+EC_BOOL c_save_args(const int argc, const char **argv);
+
+EC_BOOL c_save_environ();
 
 #endif /*_CMISC_H*/
 

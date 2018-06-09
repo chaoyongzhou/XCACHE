@@ -913,7 +913,14 @@ int sys_log_rotate(LOG *log)
         int ret;
 
         LOG_FILE_LOCK(des_log, LOC_LOG_0008);
-        ret = log_file_rotate(des_log);
+        if(EC_TRUE == log_file_rotate(des_log))
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = -1;
+        }
         if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
         {
             LOG_FILE_CUR_RECORDS(des_log) = 0;
@@ -1328,6 +1335,11 @@ EC_BOOL log_file_rotate(LOG *log)
     if(SWITCH_ON == LOG_FILE_NAME_WITH_DATE_SWITCH(log))
     {
         return log_file_freopen(log);
+    }
+
+    if(EC_TRUE == cstring_is_empty(LOG_FILE_NAME(log)))
+    {
+        return (EC_TRUE);
     }
 
     cur_time = LOG_TM();

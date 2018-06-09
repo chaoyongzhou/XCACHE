@@ -205,6 +205,14 @@ EC_BOOL csig_init(CSIG *csig)
                                              idx, csig_atexit);
     }
 
+    if(1)
+    {
+        CSIG_CHLD       *child_quit;
+        
+        child_quit = &(csig->child_quit);
+        child_quit->handler = NULL_PTR;
+    }
+
     return (EC_TRUE);
 }
 
@@ -381,6 +389,42 @@ EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
     return (EC_TRUE);
 }
 
+EC_BOOL csig_chld_register(CSIG_CHLD_HANDLER chld_handler)
+{
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+    CSIG_CHLD       *csig_chld;
+
+    if(NULL_PTR == chld_handler)
+    {
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_chld_register: chld_handler is null\n");
+        return (EC_FALSE);
+    }
+
+    task_brd = task_brd_default_get();
+    csig = TASK_BRD_CSIG(task_brd);
+
+    csig_chld = &(csig->child_quit);
+    csig_chld->handler = chld_handler;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csig_chld_unregister()
+{
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+    CSIG_CHLD       *csig_chld;
+
+    task_brd = task_brd_default_get();
+    csig = TASK_BRD_CSIG(task_brd);
+
+    csig_chld = &(csig->child_quit);
+    csig_chld->handler = NULL_PTR;
+
+    return (EC_TRUE);
+}
+
 EC_BOOL csig_takeover(CSIG *csig)
 {
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
@@ -406,6 +450,8 @@ EC_BOOL csig_takeover(CSIG *csig)
 
     /*takeover SIGABRT due to that it does not call atexit callback*/
     csig_register(SIGABRT, csig_abort_now , CSIG_HANDLE_NOW  );
+
+    csig_register(SIGCHLD, csig_chld_process, CSIG_HANDLE_NOW);
 
     /********************************************************************************
     *
@@ -852,6 +898,22 @@ void csig_abort_now(int signo)
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
     raise(signo);    
+}
+
+void csig_chld_process(int signo)
+{
+    TASK_BRD        *task_brd;
+    CSIG            *csig;
+    CSIG_CHLD       *csig_chld;
+
+    task_brd = task_brd_default_get();
+    csig = TASK_BRD_CSIG(task_brd);
+
+    csig_chld = &(csig->child_quit);
+    if(NULL_PTR != csig_chld->handler)
+    {
+        csig_chld->handler();
+    }
 }
 
 #if 0

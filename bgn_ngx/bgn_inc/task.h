@@ -190,6 +190,8 @@ UINT32  task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, co
 /*--------------------------------------------- task brd interface ---------------------------------------------*/
 LOG * task_brd_default_init(int argc, char **argv);
 
+EC_BOOL task_brd_exit(TASK_BRD *task_brd);
+
 TASKS_CFG *task_brd_register_node_fetch(TASK_BRD *task_brd, const UINT32 tcid);
 
 EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port, const UINT32 conn_num);

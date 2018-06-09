@@ -45,6 +45,12 @@ typedef struct
     UINT32               arg;
 }CSIG_ATEXIT;
 
+typedef EC_BOOL (*CSIG_CHLD_HANDLER)(void);
+
+typedef struct
+{
+    CSIG_CHLD_HANDLER  handler;
+}CSIG_CHLD;
 
 typedef struct
 {
@@ -65,6 +71,8 @@ typedef struct
 
     CLISTBASE       atexit_free_list;
     CLISTBASE       atexit_used_list;
+
+    CSIG_CHLD       child_quit;
 }CSIG;
 
 CSIG *csig_new();
@@ -80,6 +88,10 @@ void csigaction_register(int signo, void (*handler)(int));
 EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg);
 
 EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg);
+
+EC_BOOL csig_chld_register(CSIG_CHLD_HANDLER chld_handler);
+
+EC_BOOL csig_chld_unregister();
 
 EC_BOOL csig_takeover(CSIG *csig);
 
@@ -106,6 +118,7 @@ void csig_interrupt(int signo);
 void csig_terminate(int signo);
 void csig_quit_now(int signo);
 void csig_abort_now(int signo);
+void csig_chld_process(int signo);
 
 #endif /*_CSIG_H*/
 

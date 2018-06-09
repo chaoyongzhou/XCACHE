@@ -22,6 +22,8 @@ extern "C"{
 #include <sys/prctl.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "zlib.h"
 
@@ -5546,8 +5548,17 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
     /*update task_brd time*/
     task_brd_update_time(task_brd);
 
-    TASK_BRD_SAVED_ARGC(task_brd)           = argc;
-    TASK_BRD_SAVED_ARGV(task_brd)           = (const char **)argv;
+    if(EC_FALSE == c_save_args(argc, (const char **)argv))
+    {
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_save_environ())
+    {
+        return (EC_FALSE);
+    }
+
+    TASK_BRD_CACHE_ENVIRON(task_brd)        = NULL_PTR;
 
     TASK_BRD_NETWORK_LEVEL(task_brd)        = network_level;
 
@@ -5851,7 +5862,7 @@ EC_BOOL task_brd_pull_config(TASK_BRD *task_brd, UINT32 *this_tcid, UINT32 *this
     CSTRING         *edge_service_name;
 
     service_name_str = task_brd_parse_arg(TASK_BRD_SAVED_ARGC(task_brd),
-                                          TASK_BRD_SAVED_ARGV(task_brd),
+                                          (const char **)TASK_BRD_SAVED_ARGV(task_brd),
                                           (const char *)"-p2p_service");
     if(NULL_PTR == service_name_str)
     {
@@ -7478,13 +7489,236 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
     return (EC_TRUE);
 }
 
+char *task_brd_finger_arg(const char *k)
+{
+    TASK_BRD    *task_brd;
+
+    int          argc;
+    char       **argv;
+    
+    int          idx;
+
+    task_brd = task_brd_default_get();
+    
+    argc = TASK_BRD_SAVED_ARGC(task_brd);
+    argv = TASK_BRD_SAVED_ARGV(task_brd);
+    
+    for(idx = 0; idx < argc; idx ++)
+    {
+        if(0 == strcasecmp(argv[idx], k) && idx + 1 < argc)
+        {
+            return (argv[idx + 1]);
+        }
+    }
+
+     return (NULL_PTR);
+}
+
+/*copied from nginx*/
+EC_BOOL task_brd_init_setproctitle()
+{
+    TASK_BRD    *task_brd;
+    char       **os_argv;
+    char        *os_argv_last;
+    
+    char        *p;
+    size_t       size;
+    int          i;
+
+    task_brd = task_brd_default_get();
+
+    os_argv = TASK_BRD_OS_ARGV(task_brd);
+
+    size = 0;
+
+    for(i = 0; NULL_PTR != environ[i]; i ++) 
+    {
+        size += strlen(environ[i]) + 1;
+    }
+
+    p = safe_malloc(size, LOC_TASK_0001);
+    if(NULL_PTR == p) 
+    {
+        return (EC_FALSE);
+    }
+
+     TASK_BRD_CACHE_ENVIRON(task_brd) = p;
+
+    os_argv_last = os_argv[0];
+
+    for(i = 0; NULL_PTR != os_argv[i]; i++) 
+    {
+        if(os_argv_last == os_argv[i]) 
+        {
+            os_argv_last = os_argv[i] + strlen(os_argv[i]) + 1;
+        }
+    }
+
+    for(i = 0; environ[i]; i++) 
+    {
+        if (os_argv_last == environ[i]) 
+        {
+            size = strlen(environ[i]) + 1;
+            os_argv_last = environ[i] + size;
+
+            BCOPY((void *)environ[i], (void *)p, size);
+            environ[i] = (char *) p;
+            p += size;
+        }
+    }
+
+    os_argv_last --;
+
+    TASK_BRD_OS_ARGV_LAST(task_brd) = os_argv_last;
+
+    return (EC_TRUE);
+}
+
+void task_brd_setproctitle(const char *title)
+{
+    TASK_BRD    *task_brd;
+    char        *node_type;
+    
+    char       **os_argv;
+    char        *os_argv_last;
+    
+    char        *p;
+
+    task_brd = task_brd_default_get();
+
+    node_type = task_brd_finger_arg("-node_type");
+    if(NULL_PTR == node_type)
+    {
+        /*do nothing*/
+        return;
+    }
+
+    os_argv      = TASK_BRD_OS_ARGV(task_brd);
+    os_argv_last = TASK_BRD_OS_ARGV_LAST(task_brd);
+
+    os_argv[1] = NULL_PTR;
+
+    p = c_copy_str_n(node_type, os_argv[0], os_argv_last - os_argv[0]);
+    p = c_copy_str_n(": "     , p         , os_argv_last - (char *) p);
+    p = c_copy_str_n(title    , p         , os_argv_last - (char *) p);
+
+    if(os_argv_last - (char *) p) 
+    {
+        BSET(p, ' ', os_argv_last - (char *) p);
+    }
+    return;
+}
+
+void task_brd_restsore_setproctitle()
+{
+    TASK_BRD    *task_brd;
+    char        *p;
+    int          i;
+
+    task_brd = task_brd_default_get();
+    
+    if(NULL_PTR != TASK_BRD_CACHE_ENVIRON(task_brd))
+    {
+        safe_free(TASK_BRD_CACHE_ENVIRON(task_brd), LOC_TASK_0001);
+        TASK_BRD_CACHE_ENVIRON(task_brd) = NULL_PTR;
+    }
+
+    for(i = 0; environ[i]; i++) 
+    {
+        environ[i] = TASK_BRD_OS_ENVIRON(task_brd)[i];
+        dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "[DEBUG] restore env[%d] %s\n", i, environ[i]);
+    }
+
+    p = TASK_BRD_OS_ARGV(task_brd)[ 0 ];
+    for(i = 0; TASK_BRD_SAVED_ARGV(task_brd)[i]; i++) 
+    {
+        size_t len;
+
+        TASK_BRD_OS_ARGV(task_brd)[ i ] = p;
+        
+        len = strlen(TASK_BRD_SAVED_ARGV(task_brd)[i]) + 1;
+        BCOPY(TASK_BRD_SAVED_ARGV(task_brd)[i], TASK_BRD_OS_ARGV(task_brd)[ i ], len);
+        
+        p += len;
+
+        dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "[DEBUG] restore argv[%d] %s\n", i, TASK_BRD_OS_ARGV(task_brd)[i]);
+    }
+    TASK_BRD_OS_ARGV(task_brd)[ i ] = NULL_PTR;
+
+    return;
+}
+
+void task_brd_stop_child(UINT32 arg)
+{
+    pid_t child_pid;
+
+    child_pid = (pid_t)arg;
+
+    dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_stop_child: child pid = %ld\n", child_pid);    
+    
+    kill(child_pid, SIGTERM);
+    return;
+}
+
+
+EC_BOOL task_brd_wait_status(pid_t child_pid)
+{
+    for( ;; ) 
+    {
+        pid_t            pid;
+        int              status;
+       
+        pid = waitpid(child_pid/*-1*/, &status, 0/*WNOHANG*/);
+
+        if(0 == pid) 
+        {            
+            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: waitpid done, pid = 0\n");
+            continue;
+        }
+
+        if(-1 == pid) 
+        {
+            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: waitpid failed, errno = %d, errstr = %s => continue\n", 
+                                errno, strerror(errno));
+            continue;
+        }
+
+        if(WTERMSIG(status))
+        {
+            if(SIGKILL == WTERMSIG(status) 
+            || SIGTERM == WTERMSIG(status)
+            || SIGINT  == WTERMSIG(status))
+            {
+                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited on signal %d => stop\n",
+                                   pid, WTERMSIG(status));        
+                return (EC_FALSE);
+            }
+            else
+            {
+                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited on signal %d => restart\n",
+                                   pid, WTERMSIG(status));        
+                return (EC_TRUE);        
+            }        
+        }
+        else
+        {
+            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited with code %d => restart\n",
+                               pid, WEXITSTATUS(status));
+                               
+            return (EC_TRUE);         
+        }
+    }
+    return (EC_FALSE);
+}
+
 void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
 {
-    pid_t pid;
+    TASK_BRD *task_brd;
+    pid_t     pid;
 
     pid = fork();
 
-    if (0 > pid)/*fatal error*/
+    if(0 > pid)/*fatal error*/
     {
         /* there has been an error */
         fprintf(stderr, "error:task_brd_launch_daemon: fork failed\n");
@@ -7492,10 +7726,17 @@ void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
         exit(1);
     }
 
-    if (0 == pid) /*child*/
+    if(0 == pid) /*child*/
     {
         /* child continues running */
         return;
+    }
+
+    task_brd = task_brd_default_get();
+
+    if(EC_TRUE == task_brd_init_setproctitle())
+    {
+        task_brd_setproctitle("master");
     }
 
     /*parent*/
@@ -7509,7 +7750,26 @@ void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
     {
         //task_brd_write_pidfile((const char *)"/var/run/bgn.pid", pid);
     }
-    exit(0);/* parent must leave */
+
+    if(0)
+    {
+        exit(0);/* parent must leave */
+    }
+
+    csig_register(SIGTERM, csig_terminate , CSIG_HANDLE_NOW);/*update flag*/
+
+    csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
+    csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_stop_child, (UINT32)pid);
+
+    if(EC_FALSE == task_brd_wait_status(pid))
+    {
+        exit(0);/* parent must leave */
+    }
+
+    /*restore*/
+    task_brd_restsore_setproctitle();
+    
+    task_brd_launch_daemon(pid_path_cstr);
 }
 
 EC_BOOL task_brd_exit(TASK_BRD *task_brd)
@@ -7610,11 +7870,6 @@ LOG * task_brd_default_init(int argc, char **argv)
         task_brd_default_abort();
     }
 
-    if(EC_TRUE == daemon_flag)
-    {
-        task_brd_launch_daemon(NULL_PTR);
-    }
-
     if(NULL_PTR != pid_path_cstr)
     {
         task_brd_write_pidfile((char *)cstring_get_str(pid_path_cstr), getpid());/*ignore failure*/
@@ -7643,6 +7898,11 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     /*set os or process limite*/
     task_brd_os_setting(task_brd);
+
+    if(EC_TRUE == daemon_flag)
+    {
+        task_brd_launch_daemon(NULL_PTR);
+    }
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
 
@@ -7757,6 +8017,8 @@ LOG * task_brd_default_init(int argc, char **argv)
     sys_log_redirect_setup(LOGSTDOUT, log);
     sys_log_redirect_setup(LOGSTDERR, log);
     cstring_free(log_file_name);
+
+    csig_atexit_register((CSIG_ATEXIT_HANDLER)sys_log_rotate_by_index, (UINT32)DEFAULT_STDOUT_LOG_INDEX);
 
     /*console log to file if need*/
     if(NULL_PTR != console_path_cstr)

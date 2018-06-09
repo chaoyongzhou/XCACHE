@@ -424,7 +424,13 @@ typedef struct _TASK_BRD
     int          rsvd01;
 
     int          saved_argc;
-    const char **saved_argv;
+    char       **saved_argv;
+    char       **os_argv;
+    char        *os_argv_last;
+
+    char       **os_environ;
+    char       **saved_environ;
+    char        *cache_environ;
 
     UINT32       network_level;/*default is L0. e.g., 0 (L0), 1 (L1), ...*/
 
@@ -878,6 +884,11 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 /*---------------------------------------- interface of task board ----------------------------------------------*/
 #define TASK_BRD_SAVED_ARGC(task_brd)                      ((task_brd)->saved_argc)
 #define TASK_BRD_SAVED_ARGV(task_brd)                      ((task_brd)->saved_argv)
+#define TASK_BRD_OS_ARGV(task_brd)                         ((task_brd)->os_argv)
+#define TASK_BRD_OS_ARGV_LAST(task_brd)                    ((task_brd)->os_argv_last)
+#define TASK_BRD_OS_ENVIRON(task_brd)                      ((task_brd)->os_environ)
+#define TASK_BRD_SAVED_ENVIRON(task_brd)                   ((task_brd)->saved_environ)
+#define TASK_BRD_CACHE_ENVIRON(task_brd)                   ((task_brd)->cache_environ)
 
 #define TASK_BRD_NETWORK_LEVEL(task_brd)                   ((task_brd)->network_level)
 
