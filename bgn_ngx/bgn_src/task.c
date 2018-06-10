@@ -7680,7 +7680,7 @@ EC_BOOL task_brd_wait_status(pid_t child_pid)
         {
             dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: waitpid failed, errno = %d, errstr = %s => continue\n", 
                                 errno, strerror(errno));
-            continue;
+            return (EC_TRUE);
         }
 
         if(WTERMSIG(status))
@@ -7714,62 +7714,102 @@ EC_BOOL task_brd_wait_status(pid_t child_pid)
 void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
 {
     TASK_BRD *task_brd;
-    pid_t     pid;
-
-    pid = fork();
-
-    if(0 > pid)/*fatal error*/
-    {
-        /* there has been an error */
-        fprintf(stderr, "error:task_brd_launch_daemon: fork failed\n");
-        fflush(stderr);
-        exit(1);
-    }
-
-    if(0 == pid) /*child*/
-    {
-        /* child continues running */
-        return;
-    }
 
     task_brd = task_brd_default_get();
-
-    if(EC_TRUE == task_brd_init_setproctitle())
-    {
-        task_brd_setproctitle("master");
-    }
-
-    /*parent*/
-    /*we can write pid to file here. */
-    /*if option '-pidfile' is set, child process will also write it*/
-    if(NULL_PTR != pid_path_cstr)
-    {
-        task_brd_write_pidfile((char *)cstring_get_str(pid_path_cstr), pid);
-    }
-    else
-    {
-        //task_brd_write_pidfile((const char *)"/var/run/bgn.pid", pid);
-    }
-
-    if(0)
-    {
-        exit(0);/* parent must leave */
-    }
-
-    csig_register(SIGTERM, csig_terminate , CSIG_HANDLE_NOW);/*update flag*/
-
-    csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
-    csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_stop_child, (UINT32)pid);
-
-    if(EC_FALSE == task_brd_wait_status(pid))
-    {
-        exit(0);/* parent must leave */
-    }
-
-    /*restore*/
-    task_brd_restsore_setproctitle();
     
-    task_brd_launch_daemon(pid_path_cstr);
+    for(;;)
+    {
+        pid_t     pid;
+        int      *sync_status;
+
+        sync_status = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        if(MAP_FAILED == sync_status)
+        {
+            exit(1);
+        }
+        
+        /*else*/
+
+        (*sync_status) = 0; /*child is not ready yet*/
+        
+        pid = fork();
+
+        if(0 > pid)/*fatal error*/
+        {
+            /* there has been an error */
+            fprintf(stderr, "error:task_brd_launch_daemon: fork failed\n");
+            fflush(stderr);
+            exit(1);
+        }
+
+        if(0 == pid) /*child*/
+        {
+            (*sync_status) = 1;
+
+            munmap(sync_status, sizeof(int));
+            sync_status = NULL_PTR;
+            /* child continues running */
+            return;
+        }
+
+        /*parent*/
+
+        /*wait for child ready. do not use wait()*/
+        while(sync_status && 0 == (*sync_status))
+        {
+            c_usleep(1, LOC_TASK_0001);
+        }
+
+        if(sync_status)
+        {
+            munmap(sync_status, sizeof(int));
+            sync_status = NULL_PTR;
+        }
+
+        /*master can modify title only after child is ready*/
+        if(EC_TRUE == task_brd_init_setproctitle())
+        {
+            task_brd_setproctitle("master");
+        }
+        
+        /*we can write pid to file here. */
+        /*if option '-pidfile' is set, child process will also write it*/
+        if(NULL_PTR != pid_path_cstr)
+        {
+            task_brd_write_pidfile((char *)cstring_get_str(pid_path_cstr), pid);
+        }
+        else
+        {
+            //task_brd_write_pidfile((const char *)"/var/run/bgn.pid", pid);
+        }
+
+        if(0)
+        {
+            exit(0);/* parent must leave */
+        }
+
+        csig_register(SIGTERM, csig_terminate , CSIG_HANDLE_NOW);/*update flag*/
+
+        csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
+        csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_stop_child, (UINT32)pid);
+
+        if(EC_FALSE == task_brd_wait_status(pid))
+        {
+            /*if child stop and not need to launch it, exit*/
+            exit(0);/* parent must leave */
+        }
+
+        /*restore*/
+        task_brd_restsore_setproctitle();
+
+        /*pop old atexit callback*/
+        csig_atexit_unregister((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
+        csig_atexit_unregister((CSIG_ATEXIT_HANDLER)task_brd_stop_child, (UINT32)pid);
+
+        /*next loop, try to launch the corrupted daemon*/
+    }
+
+    return;
 }
 
 EC_BOOL task_brd_exit(TASK_BRD *task_brd)
@@ -8043,10 +8083,10 @@ LOG * task_brd_default_init(int argc, char **argv)
     if(CMPI_FWD_RANK == this_rank)
     {
         int idx;
-        dbg_log(SEC_0015_TASK, 0)(LOGCONSOLE, "rank %d: pid = %d, path_name = %s\n", this_rank, getpid(), (const char *)argv[0]);
+        dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "rank %d: pid = %d, path_name = %s\n", this_rank, getpid(), (const char *)argv[0]);
         for(idx = 0; NULL_PTR != argv[ idx ]; idx ++)
         {
-            dbg_log(SEC_0015_TASK, 0)(LOGCONSOLE, "rank %d: pid = %d, para %ld = %s\n", this_rank, getpid(), idx, (const char *)argv[ idx ]);
+            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "rank %d: pid = %d, para %ld = %s\n", this_rank, getpid(), idx, (const char *)argv[ idx ]);
         }
     }
 #endif
