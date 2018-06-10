@@ -2928,6 +2928,12 @@ EC_BOOL tasks_handshake_shutdown(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
         /*remove csocket_cnode if existing*/
         cvector_delete(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);
 
+        if(NULL_PTR != CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode))
+        {
+            task_node_free(CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
+            CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode) = NULL_PTR;
+        }
+
         if(EC_TRUE == cvector_is_empty(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)))
         {
             TASK_BRD         *task_brd;
