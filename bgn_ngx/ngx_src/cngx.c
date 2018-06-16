@@ -2103,7 +2103,7 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
         }
 
         /*--- blocking ---*/
-        if(EC_FALSE == cngx_send_wait(r, send_timeout))
+        if(EC_FALSE == cngx_send_wait(r, send_timeout) || c->error)
         {
             NGX_W_RC(wev) = NGX_ERROR;
 

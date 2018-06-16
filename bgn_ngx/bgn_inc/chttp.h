@@ -84,6 +84,12 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node);/*note: chttp_node_clear is ONLY for memory recycle asap before it comes to life-cycle end*/
 
+EC_BOOL chttp_node_has_error(CHTTP_NODE *chttp_node);
+
+EC_BOOL chttp_node_reserve(CHTTP_NODE *chttp_node);
+
+EC_BOOL chttp_node_release(CHTTP_NODE *chttp_node);
+
 EC_BOOL chttp_node_wait_resume(CHTTP_NODE *chttp_node);
 
 void    chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node);

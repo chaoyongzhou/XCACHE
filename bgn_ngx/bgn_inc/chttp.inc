@@ -366,6 +366,11 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_MORE_FUNC)(void *);
 
 typedef struct _CHTTP_NODE
 {
+    uint32_t                  is_error:1;
+    uint32_t                  counter :4;     /*reference counting*/
+    uint32_t                  rsvd01  :27;
+    uint32_t                  rsvd02;
+    
     void                     *csrv;          /*mount point*/
 
     CROUTINE_NODE            *croutine_node; /*croutine mounted point*/
@@ -443,6 +448,9 @@ typedef struct _CHTTP_NODE
     /*statistics*/
     CHTTP_STAT                chttp_stat;/*mount point*/
 }CHTTP_NODE;
+
+#define CHTTP_NODE_IS_ERROR(chttp_node)                    ((chttp_node)->is_error)
+#define CHTTP_NODE_COUNTER(chttp_node)                     ((chttp_node)->counter)
 
 #define CHTTP_NODE_CSRV(chttp_node)                        ((chttp_node)->csrv)
 
