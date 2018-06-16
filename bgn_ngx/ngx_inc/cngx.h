@@ -33,6 +33,7 @@ extern "C"{
 #define  CNGX_SEND_BODY_FLUSH_FLAG                ((unsigned)0x0002)
 #define  CNGX_SEND_BODY_IN_MEM_FLAG               ((unsigned)0x0004)
 #define  CNGX_SEND_BODY_RECYCLED_FLAG             ((unsigned)0x0008)
+#define  CNGX_SEND_BODY_PRELOAD_FLAG              ((unsigned)0x1000)
 
 #define  CNGX_CACHE_SEG_SIZE_DEFAULT              (256 * 1024)    /*default seg size is 256KB*/
 #define  CNGX_CACHE_SEG_MAX_NUM_DEFAULT           (1024 * 4 * 64) /*default seg max num*/
@@ -301,6 +302,10 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r);
 EC_BOOL cngx_send_header(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_need_send_header(ngx_http_request_t *r);
+
+EC_BOOL cngx_disable_send_header(ngx_http_request_t *r);
+
+EC_BOOL cngx_enable_send_header(ngx_http_request_t *r);
 
 EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const unsigned flag, ngx_int_t *ngx_rc);
 

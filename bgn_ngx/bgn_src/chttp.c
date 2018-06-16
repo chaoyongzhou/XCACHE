@@ -2255,16 +2255,6 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         return (EC_FALSE);
     }
 
-    if(EC_TRUE == csocket_cnode_has_error(csocket_cnode))
-    {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_recv_rsp: chttp_node %p => csocket_cnode %p has error\n", 
-                        chttp_node, csocket_cnode);
-
-        chttp_node_disconnect(chttp_node);
-        chttp_node_free(chttp_node);
-        return (EC_FALSE);
-    }
-
     chttp_node_reserve(chttp_node);
 
      /**

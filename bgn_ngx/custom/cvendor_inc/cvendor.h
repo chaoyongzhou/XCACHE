@@ -60,7 +60,8 @@ typedef struct
     uint32_t             orig_chunk_flag                    :1; /*orig is chunk*/
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
-    uint32_t             rsvd01                             :18;
+    uint32_t             cngx_preload_switch_on_flag        :1; /*cngx http PUT req indicate preload mode*/
+    uint32_t             rsvd01                             :17;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr;
@@ -98,6 +99,7 @@ typedef struct
 #define CVENDOR_MD_CNGX_OPTION(cvendor_md)                        (&((cvendor_md)->cngx_option))
 
 #define CVENDOR_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cvendor_md)          ((cvendor_md)->cngx_debug_switch_on_flag)
+#define CVENDOR_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cvendor_md)        ((cvendor_md)->cngx_preload_switch_on_flag)
 #define CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)              ((cvendor_md)->cngx_range_exist_flag)
 #define CVENDOR_MD_CNGX_RANGE_MULTIPLE_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_multiple_flag)
 #define CVENDOR_MD_CNGX_RANGE_ADJUSTED_FLAG(cvendor_md)           ((cvendor_md)->cngx_range_adjusted_flag)
@@ -133,6 +135,9 @@ typedef struct
 
 #define CVENDOR_MD_NGX_LOC(cvendor_md)                            ((cvendor_md)->ngx_loc)
 #define CVENDOR_MD_NGX_RC(cvendor_md)                             ((cvendor_md)->ngx_rc)
+
+#define CVENDOR_MD_SEND_BODY_PRELOAD_FLAG(cvendor_md) \
+    ((BIT_FALSE == CVENDOR_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cvendor_md)) ? 0 : CNGX_SEND_BODY_PRELOAD_FLAG)
 
 /**
 *   for test only
@@ -359,6 +364,18 @@ EC_BOOL cvendor_content_ms_send_response(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id);
 
+EC_BOOL cvendor_content_preload_parse_header(const UINT32 cvendor_md_id, const CBYTES *header_cbytes);
+
+EC_BOOL cvendor_content_preload_header_out_range_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_preload_header_out_filter(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_preload_send_response(const UINT32 cvendor_md_id);
+
+EC_BOOL cvendor_content_preload_procedure(const UINT32 cvendor_md_id);
+
 EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBYTES *header_cbytes);
@@ -386,6 +403,8 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
 EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id);
+
+
 
 #endif /*_CVENDOR_H*/
 

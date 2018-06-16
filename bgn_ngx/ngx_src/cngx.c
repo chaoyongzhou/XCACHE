@@ -1606,6 +1606,7 @@ EC_BOOL cngx_import_header_out(ngx_http_request_t *r, const CHTTP_RSP *chttp_rsp
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_import_header_out: import headers failed\n");
         return (EC_FALSE);
     }
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_import_header_out: import headers done\n");
     return (EC_TRUE);
 }
 
@@ -2164,6 +2165,18 @@ EC_BOOL cngx_need_send_header(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_disable_send_header(ngx_http_request_t *r)
+{
+    r->header_sent = 1;
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_enable_send_header(ngx_http_request_t *r)
+{
+    r->header_sent = 0;
+    return (EC_TRUE);
+}
+
 static EC_BOOL __cngx_set_buf_flags(ngx_buf_t *b, const unsigned flags)
 {
     if(CNGX_SEND_BODY_IN_MEM_FLAG & flags)
@@ -2195,6 +2208,11 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
     ngx_chain_t                  cl;
     ngx_buf_t                   *b;
     ngx_int_t                    rc;
+
+    if(CNGX_SEND_BODY_PRELOAD_FLAG & flags)
+    {
+        return (EC_TRUE);
+    }
 
     if(NULL_PTR == body || 0 == len)
     {
@@ -2813,10 +2831,37 @@ EC_BOOL cngx_option_clean(CNGX_OPTION *cngx_option)
 
 EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cngx_option)
 {
+    if(NGX_HTTP_PUT == r->method)
+    {
+        if(3 != r->method_name.len || NULL_PTR == r->method_name.data)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_option_set_cacheable_method: invalid r->method_name: len %ld, data %p\n",
+                            r->method_name.len, r->method_name.data);
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: r->method_name: len %ld, data %p\n",
+                        r->method_name.len, r->method_name.data);
+                        
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: modify method 'PUT' to 'GET' => set true\n");
+
+        r->method = NGX_HTTP_GET;
+        r->method_name.data[ 0 ] = 'G';
+        r->method_name.data[ 1 ] = 'E';
+        r->method_name.data[ 2 ] = 'T';
+        r->method_name.len       = 3;
+        
+        BCOPY("GET", r->method_name.data, 3);
+        
+        CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_TRUE;
+        return (EC_TRUE);
+    }
+    
     /*cache for GET or HEAD only*/
     if(NGX_HTTP_GET != r->method && NGX_HTTP_HEAD != r->method)
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_get_cacheable_method: not acceptable method '%ld' => set false\n",
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: not acceptable method '%ld' => set false\n",
                     r->method);
 
         CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_FALSE;
@@ -2826,13 +2871,13 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
     /*check ngx conf*/
     if(EC_FALSE == cngx_is_cacheable_method(r))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_get_cacheable_method: not cachable method => set false\n");
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: not cachable method => set false\n");
 
         CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_FALSE;
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_get_cacheable_method: OK, cachable method => set true\n");
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: OK, cachable method => set true\n");
 
     CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_TRUE;
     return (EC_TRUE);

@@ -57,7 +57,8 @@ typedef struct
     uint32_t             content_length_exist_flag          :1; /*exist field 'Content-Length' in response header*/
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
-    uint32_t             rsvd01                             :21;
+    uint32_t             cngx_preload_switch_on_flag        :1; /*cngx http PUT req indicate preload mode*/
+    uint32_t             rsvd01                             :20;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr;
@@ -97,6 +98,7 @@ typedef struct
 #define CFLV_MD_CNGX_OPTION(cflv_md)                        (&((cflv_md)->cngx_option))
 
 #define CFLV_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cflv_md)          ((cflv_md)->cngx_debug_switch_on_flag)
+#define CFLV_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cflv_md)        ((cflv_md)->cngx_preload_switch_on_flag)
 #define CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md)              ((cflv_md)->cngx_range_exist_flag)
 #define CFLV_MD_CNGX_RANGE_MULTIPLE_FLAG(cflv_md)           ((cflv_md)->cngx_range_multiple_flag)
 #define CFLV_MD_CNGX_RANGE_ADJUSTED_FLAG(cflv_md)           ((cflv_md)->cngx_range_adjusted_flag)
@@ -130,6 +132,9 @@ typedef struct
 #define CFLV_MD_NGX_LOC(cflv_md)                            ((cflv_md)->ngx_loc)
 #define CFLV_MD_NGX_RC(cflv_md)                             ((cflv_md)->ngx_rc)
 
+#define CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) \
+    ((BIT_FALSE == CFLV_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cflv_md)) ? 0 : CNGX_SEND_BODY_PRELOAD_FLAG)
+    
 /**
 *   for test only
 *
@@ -335,6 +340,18 @@ EC_BOOL cflv_content_ms_send_body(const UINT32 cflv_md_id, const UINT32 seg_no, 
 EC_BOOL cflv_content_ms_send_response(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_ms_procedure(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_preload_parse_header(const UINT32 cflv_md_id, const CBYTES *header_cbytes);
+
+EC_BOOL cflv_content_preload_header_out_range_filter(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_preload_header_out_filter(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_preload_send_response(const UINT32 cflv_md_id);
+
+EC_BOOL cflv_content_preload_procedure(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id);
 
