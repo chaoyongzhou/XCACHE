@@ -208,7 +208,7 @@ EC_BOOL csig_init(CSIG *csig)
     if(1)
     {
         CSIG_CHLD       *child_quit;
-        
+
         child_quit = &(csig->child_quit);
         child_quit->handler = NULL_PTR;
     }
@@ -897,7 +897,7 @@ void csig_abort_now(int signo)
     csig_atexit_process_queue();
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
-    raise(signo);    
+    raise(signo);
 }
 
 void csig_chld_process(int signo)

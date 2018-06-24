@@ -256,7 +256,7 @@ EC_BOOL tasks_node_free(TASKS_NODE *tasks_node)
         if(BIT_FALSE == TASKS_NODE_CLOSING(tasks_node))
         {
             TASKS_NODE_CLOSING(tasks_node) = BIT_TRUE;
-            
+
             tasks_node_clean(tasks_node);
             free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0006);
         }

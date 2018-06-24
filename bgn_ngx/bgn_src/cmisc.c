@@ -1820,19 +1820,19 @@ char *c_str_sub(const char *str, const char *sub, const char sub_terminate_char,
 char * c_copy_str_n(const char *src, char *des, size_t n)
 {
     char *p;
-    
-    if(0 == n) 
+
+    if(0 == n)
     {
         return (des);
     }
 
     p = (char *)src;
-    
-    while(-- n) 
+
+    while(-- n)
     {
         *des = *p;
 
-        if('\0' == *des) 
+        if('\0' == *des)
         {
             return (des);
         }
@@ -5418,23 +5418,23 @@ EC_BOOL c_save_args(const int argc, const char **argv)
     }
 
     TASK_BRD_OS_ARGV(task_brd) = (char **)argv;
-    
+
     TASK_BRD_SAVED_ARGC(task_brd) = argc;
 
-    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0066);
+    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0067);
     if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd))
     {
         return (EC_FALSE);
     }
 
-    for(idx = 0; idx < argc; idx ++) 
+    for(idx = 0; idx < argc; idx ++)
     {
         size_t     len;
-        
+
         len = strlen(argv[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0066);
-        if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ]) 
+        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0068);
+        if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ])
         {
             return (EC_FALSE);
         }
@@ -5442,7 +5442,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
         BCOPY((void *)argv[ idx ], (void *)TASK_BRD_SAVED_ARGV(task_brd)[ idx ], len);
     }
 
-    TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = NULL_PTR;    
+    TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -5465,20 +5465,20 @@ EC_BOOL c_save_environ()
         /*do nothing*/
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0066);
+    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0069);
     if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd))
     {
         return (EC_FALSE);
     }
 
-    for(idx = 0; idx < envc; idx ++) 
+    for(idx = 0; idx < envc; idx ++)
     {
         size_t     len;
-        
+
         len = strlen(environ[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0066);
-        if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ]) 
+        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0070);
+        if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ])
         {
             return (EC_FALSE);
         }
@@ -5486,7 +5486,7 @@ EC_BOOL c_save_environ()
         BCOPY((void *)environ[ idx ], (void *)TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ], len);
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = NULL_PTR;     
+    TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = NULL_PTR;
 
     return (EC_TRUE);
 }

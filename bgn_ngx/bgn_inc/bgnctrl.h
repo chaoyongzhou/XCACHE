@@ -75,6 +75,9 @@ extern "C"{
 /*CP2P Package Debug Switch*/
 #define CP2P_DEBUG_SWITCH SWITCH_ON
 
+/*CMIAOPAI Package Debug Switch*/
+#define CMIAOPAI_DEBUG_SWITCH SWITCH_ON
+
 /*CFILE Package Debug Switch*/
 #define CFILE_DEBUG_SWITCH SWITCH_ON
 

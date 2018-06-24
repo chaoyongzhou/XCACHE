@@ -365,7 +365,7 @@ STATIC_CAST static int __chttp_on_headers_complete(http_parser_t* http_parser, c
     if(EC_TRUE == chttp_node_has_error(chttp_node))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_headers_complete: chttp_node %p has error\n",
-                            chttp_node);        
+                            chttp_node);
         return (-1);/*error*/
     }
 
@@ -424,7 +424,7 @@ STATIC_CAST static int __chttp_on_message_complete(http_parser_t* http_parser)
     if(EC_TRUE == chttp_node_has_error(chttp_node))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_message_complete: found chttp_node %p has error\n",
-                            chttp_node);        
+                            chttp_node);
         return (-1);/*error*/
     }
 
@@ -622,10 +622,10 @@ STATIC_CAST static int __chttp_on_body(http_parser_t* http_parser, const char* a
     if(EC_TRUE == chttp_node_has_error(chttp_node))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_body: found chttp_node %p has error\n",
-                            chttp_node);        
+                            chttp_node);
         return (-1);/*error*/
     }
-    
+
     return (0);
 }
 
@@ -1624,7 +1624,7 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_init: chttp_node: %p\n", chttp_node);
         CHTTP_NODE_IS_ERROR(chttp_node)      = BIT_FALSE;
         CHTTP_NODE_COUNTER(chttp_node)       = 1; /*one owner*/
-        
+
         CHTTP_NODE_CSRV(chttp_node)          = NULL_PTR;
 
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR;
@@ -1728,7 +1728,7 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_IS_ERROR(chttp_node)      = BIT_FALSE;
         CHTTP_NODE_COUNTER(chttp_node)       = 0;
-        
+
         CHTTP_NODE_CSRV(chttp_node)          = NULL_PTR;
 
         if(NULL_PTR != CHTTP_NODE_CROUTINE_NODE(chttp_node))
@@ -1838,12 +1838,12 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node)
         ASSERT(0 < CHTTP_NODE_COUNTER(chttp_node));
 
         CHTTP_NODE_COUNTER(chttp_node) --;
-        
+
         if(BIT_FALSE == CHTTP_NODE_IS_ERROR(chttp_node))
         {
             CHTTP_NODE_IS_ERROR(chttp_node) = BIT_TRUE;
         }
-        
+
         if(0 == CHTTP_NODE_COUNTER(chttp_node))
         {
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_free: chttp_node %p\n", chttp_node);
@@ -1853,7 +1853,7 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node)
         }
         else
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_free: chttp_node %p, counter %u => give up\n", 
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_free: chttp_node %p, counter %u => give up\n",
                             chttp_node, CHTTP_NODE_COUNTER(chttp_node));
         }
     }
@@ -1879,7 +1879,7 @@ EC_BOOL chttp_node_reserve(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEUG] chttp_node_reserve: reserve chttp_node %p, error %s, counter %u\n",
                                           chttp_node,
                                           c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)),
-                                          CHTTP_NODE_COUNTER(chttp_node));     
+                                          CHTTP_NODE_COUNTER(chttp_node));
     return (EC_TRUE);
 }
 
@@ -1895,8 +1895,8 @@ EC_BOOL chttp_node_release(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEUG] chttp_node_release: reserve chttp_node %p, error %s, counter %u\n",
                                           chttp_node,
                                           c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)),
-                                          CHTTP_NODE_COUNTER(chttp_node)); 
-                                            
+                                          CHTTP_NODE_COUNTER(chttp_node));
+
     return (EC_TRUE);
 }
 
@@ -2056,7 +2056,7 @@ void chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node)
 
     sys_log(log, "chttp_node_print:is_error: %s\n", c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)));
     sys_log(log, "chttp_node_print:counter : %u\n", CHTTP_NODE_COUNTER(chttp_node));
-    
+
     sys_log(log, "chttp_node_print:url : \n");
     cbuffer_print_str(log, CHTTP_NODE_URL(chttp_node));
 
@@ -2185,7 +2185,7 @@ EC_BOOL chttp_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 }
 
 EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
-{   
+{
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_req: sockfd %d is not connected\n",
@@ -2288,7 +2288,7 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_recv_rsp: recv rsp on sockfd %d failed\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
-                            
+
         chttp_node_release(chttp_node);
         return (EC_FALSE);
     }
@@ -2309,7 +2309,7 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
         cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-        
+
         /*note: when origin return 502, e.g., here is the last chance to save to storage*/
         chttp_node_store_on_message_complete(chttp_node);
 #if 0
@@ -2320,7 +2320,7 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
                           (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv,
                           (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-#endif        
+#endif
         chttp_node_release(chttp_node);
         return (EC_DONE); /*fix*/
     }
@@ -2330,7 +2330,7 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_recv_rsp: found chttp_node %p has error => free it\n",
                             chttp_node);
-                            
+
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
@@ -2349,7 +2349,7 @@ EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_recv_rsp: parse on sockfd %d again\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
-        chttp_node_release(chttp_node);        
+        chttp_node_release(chttp_node);
         return chttp_node_recv_rsp(chttp_node, csocket_cnode);
     }
 
@@ -2849,7 +2849,7 @@ EC_BOOL chttp_node_parse_on_headers_complete(CHTTP_NODE *chttp_node)
 
         cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-     
+
         /*if need to store recved data to storage and the starting seg is 0, i.e., header*/
         chttp_node_store_on_headers_complete(chttp_node);
 
@@ -2862,10 +2862,10 @@ EC_BOOL chttp_node_parse_on_headers_complete(CHTTP_NODE *chttp_node)
         if(EC_TRUE == chttp_node_has_error(chttp_node))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_parse_on_headers_complete: found chttp_node %p has error\n",
-                                chttp_node);        
+                                chttp_node);
             return (EC_FALSE);
         }
-        
+
         cepoll_set_event(task_brd_default_get_cepoll(),
                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                           CEPOLL_RD_EVENT,
@@ -2912,7 +2912,7 @@ EC_BOOL chttp_node_parse_on_body(CHTTP_NODE *chttp_node)
         if(EC_TRUE == chttp_node_has_error(chttp_node))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_parse_on_body: found chttp_node %p has error\n",
-                                chttp_node);        
+                                chttp_node);
             return (EC_FALSE);
         }
 
@@ -2948,7 +2948,7 @@ EC_BOOL chttp_node_parse_on_message_complete(CHTTP_NODE *chttp_node)
 
         cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
-       
+
         /*after body data was appended to recv_chunks, store recv_chunks to storage*/
         /*if need to store recved data to storage and the starting seg is 0, i.e., header*/
         chttp_node_store_on_message_complete(chttp_node);
@@ -2962,10 +2962,10 @@ EC_BOOL chttp_node_parse_on_message_complete(CHTTP_NODE *chttp_node)
         if(EC_TRUE == chttp_node_has_error(chttp_node))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_parse_on_message_complete: found chttp_node %p has error\n",
-                                chttp_node);        
+                                chttp_node);
             return (EC_FALSE);
         }
-        
+
         if(EC_TRUE == chttp_node_is_chunked(chttp_node))
         {
             chttp_node_renew_content_length(chttp_node,  CHTTP_NODE_STORE(chttp_node), CHTTP_NODE_BODY_PARSED_LEN(chttp_node));
@@ -2978,7 +2978,7 @@ EC_BOOL chttp_node_parse_on_message_complete(CHTTP_NODE *chttp_node)
                           (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv,
                           (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
-#endif        
+#endif
     }
 
     return (EC_TRUE);
@@ -3973,10 +3973,10 @@ EC_BOOL chttp_parse(CHTTP_NODE *chttp_node)
     {
         /*exception happend, chttp_node had been free somewhere*/
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse: found chttp_node %p has error\n",
-                           chttp_node);        
+                           chttp_node);
         return (EC_FALSE);
     }
-    
+
     return chttp_parse_post(chttp_node, parsed_len);
 }
 
@@ -7224,14 +7224,14 @@ EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node)
     CHTTP_NODE_SEND_HEADER_CALLBACK     bgn_send_header_callback;
 
     int sockfd;
-    
+
     if(NULL_PTR == chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_rsp_header: chttp_node is null\n");
 
         return (EC_FALSE);
     }
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
@@ -7240,7 +7240,7 @@ EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node)
 
         return (EC_FALSE);
     }
-    
+
     chttp_store = CHTTP_NODE_STORE(chttp_node);
     if(NULL_PTR == chttp_store)
     {
@@ -7311,7 +7311,7 @@ EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node)
 
     /*csocket_cnode may be free during body sending. here save sockfd*/
     sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
-    
+
     if(EC_FALSE == bgn_send_header_callback(bgn_modi))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_rsp_header: sockfd %d (%d), send headers failed\n",
@@ -7385,7 +7385,7 @@ EC_BOOL chttp_node_send_rsp_body(CHTTP_NODE *chttp_node, const UINT32 seg_no, co
 
         return (EC_FALSE);
     }
-    
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
@@ -7558,10 +7558,10 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
 STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
 {
     CHTTP_STORE   *chttp_store_t;
-    
+
     chttp_store_t = CHTTP_NODE_STORE(chttp_node);
-    
-    if(NULL_PTR != chttp_store_t 
+
+    if(NULL_PTR != chttp_store_t
     && BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store_t)
     && BIT_FALSE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_t)
     && BIT_TRUE  == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_t)
@@ -7571,7 +7571,7 @@ STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE 
         UINT32         expire_nsec;
         CSTRING        path;
         UINT32         locked_already;
-    
+
         expire_nsec  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store_t);
 
         /*make path*/
@@ -7580,7 +7580,7 @@ STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE 
 
         /*file lock: acquire auth-token*/
         locked_already = EC_FALSE;
-        
+
         if(EC_FALSE == __chttp_request_merge_file_lock(chttp_req, chttp_store_t, &path, expire_nsec, &locked_already))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_node_store_ddir_after_lock_header: [ms] file lock '%.*s' failed\n",
@@ -7588,24 +7588,24 @@ STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE 
 
             cstring_clean(&path);
             return (EC_FALSE);
-        }    
+        }
 
         if(EC_TRUE == locked_already)
         {
             /*[N] means this is not the auth-token owner*/
             dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [N] file lock '%.*s' => auth-token: (null)\n",
-                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));    
+                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
         }
         else
         {
             /*[Y] means this is the auth-token owner*/
             dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [Y] file lock '%.*s' => auth-token: %.*s\n",
                         (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path),
-                        (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store_t), (char *)CHTTP_STORE_AUTH_TOKEN_STR(chttp_store_t));        
+                        (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store_t), (char *)CHTTP_STORE_AUTH_TOKEN_STR(chttp_store_t));
 
             dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_ddir_after_lock_header: [ms] [Y] cache ddir '%s'\n",
                         (char *)CHTTP_STORE_BASEDIR_STR(chttp_store_t));
-                        
+
             ccache_dir_delete(CHTTP_STORE_BASEDIR(chttp_store_t));
         }
 
@@ -7621,10 +7621,10 @@ STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE 
 STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
 {
     CHTTP_STORE   *chttp_store_t;
-    
+
     chttp_store_t = CHTTP_NODE_STORE(chttp_node);
-    
-    if(NULL_PTR != chttp_store_t 
+
+    if(NULL_PTR != chttp_store_t
     && BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store_t)
     && BIT_FALSE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_t)
     && BIT_TRUE  == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_t)
@@ -7636,7 +7636,7 @@ STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NOD
         /*make path*/
         cstring_init(&path, NULL_PTR);
         chttp_store_path_get(chttp_store_t, &path);
-        
+
         if(EC_FALSE == __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_node_store_unlock_header_after_http: [ms] [Y] file unlock '%.*s' failed\n",
@@ -7644,10 +7644,10 @@ STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NOD
 
             cstring_clean(&path);
             return (EC_FALSE);
-        }    
+        }
 
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_store_unlock_header_after_http: [ms] [Y] file unlock '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));        
+                        (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
 
         cstring_clean(&path);
 
@@ -8957,10 +8957,10 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node)
         {
             uint32_t stored_size;
             int      sockfd;
-            
+
             /*csocket_cnode may be free during body sending. here save sockfd*/
             sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
-            
+
             /*WARNING: when store body to storage failed, the received data would not be shift out from recv_chunks*/
             if(EC_FALSE == chttp_node_store_body(chttp_node, chttp_store, CHTTP_STORE_SEG_SIZE(chttp_store), &stored_size))
             {
@@ -9001,7 +9001,7 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node)
 
             /*csocket_cnode may be free during body sending. here save sockfd*/
             sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
-            
+
             /*WARNING: when store body to storage failed, the received data would not be shift out from recv_chunks*/
             if(EC_FALSE == chttp_node_send_body(chttp_node, chttp_store, CHTTP_STORE_SEG_SIZE(chttp_store), &stored_size))
             {
@@ -9015,7 +9015,7 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_BODY_STORED_LEN(chttp_node) += stored_size;/*update stored len*/
 
                 dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_body: sockfd %d (%d), send body seg %u size %u done => sent %"PRId64"\n",
-                            sockfd, CSOCKET_CNODE_SOCKFD(csocket_cnode), 
+                            sockfd, CSOCKET_CNODE_SOCKFD(csocket_cnode),
                             CHTTP_STORE_SEG_ID(chttp_store), stored_size, CHTTP_NODE_BODY_STORED_LEN(chttp_node));
 
                 if(stored_size == CHTTP_STORE_SEG_SIZE(chttp_store))
@@ -9346,7 +9346,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     /*ms procedure: lock seg-0 to prevent storage from different client request triggering ddir at near time*/
     __chttp_node_store_ddir_after_lock_header(chttp_node, chttp_req);
-    
+
     if(EC_TRUE == chttp_req_is_head_method(chttp_req))
     {
         CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) = BIT_TRUE;
@@ -9371,7 +9371,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
-        
+
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
         return (EC_FALSE);

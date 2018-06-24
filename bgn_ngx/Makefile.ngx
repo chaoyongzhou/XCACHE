@@ -95,6 +95,9 @@ CFLV_INC  = -I $(ROOT_DIR)/custom/cflv_inc
 CMP4_SRC  = $(ROOT_DIR)/custom/cmp4_src
 CMP4_INC  = -I $(ROOT_DIR)/custom/cmp4_inc
 
+CMIAOPAI_SRC  = $(ROOT_DIR)/custom/cmiaopai_src
+CMIAOPAI_INC  = -I $(ROOT_DIR)/custom/cmiaopai_inc
+
 TST_SRC = $(ROOT_DIR)/test
 TST_INC =
 
@@ -274,6 +277,7 @@ GDB_OBJS      = $(patsubst $(GDB_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(GDB_SRC)
 JSON_OBJS     = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*.c))
 REL_OBJS      = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
 NGX_OBJS      = $(patsubst $(NGX_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(NGX_SRC)/*.c))
+CMIAOPAI_OBJS = $(patsubst $(CMIAOPAI_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CMIAOPAI_SRC)/*.c))
 CVENDOR_OBJS  = $(patsubst $(CVENDOR_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CVENDOR_SRC)/*.c))
 CREFRESH_OBJS = $(patsubst $(CREFRESH_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CREFRESH_SRC)/*.c))
 CRFSGW_OBJS   = $(patsubst $(CRFSGW_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(CRFSGW_SRC)/*.c))
@@ -295,31 +299,29 @@ libgdb: $(GDB_OBJS)
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
 
+libcmiaopai: $(CMIAOPAI_OBJS)
+	$(SO) $(LIB_DIR)/libcmiaopai.so $(CMIAOPAI_OBJS)
+
 libcvendor: $(CVENDOR_OBJS)
 	$(SO) $(LIB_DIR)/libcvendor.so $(CVENDOR_OBJS)
-#$(SO) $(LIB_DIR)/libcvendor.so $(CVENDOR_OBJS)
 
 libcrefresh: $(CREFRESH_OBJS)
 	$(SO) $(LIB_DIR)/libcrefresh.so $(CREFRESH_OBJS)
-#$(SO) $(LIB_DIR)/libcrefresh.so $(CREFRESH_OBJS)
 
 libcrfsgw: $(CRFSGW_OBJS)
 	$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
-#$(SO) $(LIB_DIR)/libcrfsgw.so $(CRFSGW_OBJS)
 
 libcflv: $(CFLV_OBJS)
 	$(SO) $(LIB_DIR)/libcflv.so $(CFLV_OBJS)
-#$(SO) $(LIB_DIR)/libcflv.so $(CFLV_OBJS)
 
 libcmp4: $(CMP4_OBJS)
 	$(SO) $(LIB_DIR)/libcmp4.so $(CMP4_OBJS)
-#$(SO) $(LIB_DIR)/libcmp4.so $(CMP4_OBJS)
 
 libngx: $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 
-libs: libngx libcvendor libcflv libcmp4	libcrefresh
+libs: libngx libcvendor libcflv libcmp4	libcrfsgw libcrefresh libcmiaopai
 
 $(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
@@ -335,6 +337,9 @@ $(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
 
 $(NGX_OBJS): $(OBJ_DIR)/%.o: $(NGX_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
+
+$(CMIAOPAI_OBJS): $(OBJ_DIR)/%.o: $(CMIAOPAI_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMIAOPAI_INC) $(EXT_INC) -o $@
 
 $(CVENDOR_OBJS): $(OBJ_DIR)/%.o: $(CVENDOR_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
@@ -360,7 +365,7 @@ install-lib:
 
 uninstall-lib:
 	$(if $(wildcard $(DESTDIR)/lib/libngx.so)    , rm -f $(DESTDIR)/lib/libngx.so,)
-	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libngx.so,)
+	$(if $(wildcard $(DESTDIR)/lib/libcvendor.so), rm -f $(DESTDIR)/lib/libcvendor.so,)
 
 clean-obj:
 	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	

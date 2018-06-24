@@ -46,7 +46,8 @@ extern "C"{
 #define     MD_CP2P      ((UINT32) 23)
 #define     MD_CFILE     ((UINT32) 24)
 #define     MD_CDETECTN  ((UINT32) 25)
-#define     MD_END       ((UINT32) 26)
+#define     MD_CMIAOPAI  ((UINT32) 26)
+#define     MD_END       ((UINT32) 27)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)

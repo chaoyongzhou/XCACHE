@@ -92,7 +92,7 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
 {
     ngx_http_bgn_loc_conf_t     *blcf;
     ngx_array_t                 *headers;
-    ngx_int_t                   idx;
+    ngx_int_t                    idx;
 
     blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
 
@@ -150,7 +150,7 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
 {
     ngx_http_bgn_loc_conf_t     *blcf;
     ngx_array_t                 *headers;
-    ngx_int_t                   idx;
+    ngx_int_t                    idx;
 
     blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
 
@@ -208,7 +208,7 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
 {
     ngx_http_bgn_loc_conf_t     *blcf;
     ngx_array_t                 *headers;
-    ngx_int_t                   idx;
+    ngx_int_t                    idx;
 
     blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
 

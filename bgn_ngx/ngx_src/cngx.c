@@ -1678,7 +1678,7 @@ EC_BOOL cngx_export_header_in(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     {
         return (EC_TRUE);
     }
-    
+
     while(part->next)
     {
         part   = part->next;
@@ -1747,7 +1747,7 @@ EC_BOOL cngx_has_header_in_key(const ngx_http_request_t *r, const char *k)
     {
         return (EC_FALSE);
     }
-    
+
     while(part->next)
     {
         part   = part->next;
@@ -1806,7 +1806,7 @@ EC_BOOL cngx_has_header_in(const ngx_http_request_t *r, const char *k, const cha
     {
         return (EC_FALSE);
     }
-    
+
     while(part->next)
     {
         part   = part->next;
@@ -1868,7 +1868,7 @@ EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v)
     {
         return (EC_TRUE);
     }
-    
+
     while(part->next)
     {
         part   = part->next;
@@ -2063,9 +2063,9 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
         send_timeout = 60 * 1000; /*set to default 60s */
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
                                              "set send_timeout to default %ld ms\n",
-                                             clcf->send_timeout);    
+                                             clcf->send_timeout);
     }
-    
+
     r->write_event_handler = cngx_send_again;
 
     NGX_W_RC(wev) = NGX_AGAIN;
@@ -2843,7 +2843,7 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: r->method_name: len %ld, data %p\n",
                         r->method_name.len, r->method_name.data);
-                        
+
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_cacheable_method: modify method 'PUT' to 'GET' => set true\n");
 
         r->method = NGX_HTTP_GET;
@@ -2851,13 +2851,13 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
         r->method_name.data[ 1 ] = 'E';
         r->method_name.data[ 2 ] = 'T';
         r->method_name.len       = 3;
-        
+
         BCOPY("GET", r->method_name.data, 3);
-        
+
         CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_TRUE;
         return (EC_TRUE);
     }
-    
+
     /*cache for GET or HEAD only*/
     if(NGX_HTTP_GET != r->method && NGX_HTTP_HEAD != r->method)
     {
@@ -3169,7 +3169,9 @@ void cngx_http_bgn_mod_table_print(LOG *log)
     return;
 }
 
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len, const char *mod_name, const uint32_t mod_name_len)
+CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len,
+                                                      const char *mod_name, const uint32_t mod_name_len,
+                                                      const char *posix_name, const uint32_t posix_name_len)
 {
     CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
 
@@ -3327,7 +3329,7 @@ CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t
     }
 
     /*load content_handler interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_content_handler", mod_name_len, mod_name);
+    snprintf(func_name, sizeof(func_name), "%.*s""_""%.*s", mod_name_len, mod_name, posix_name_len, posix_name);
     CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_HANDLE_FUNC)dlsym(
                                                         CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
                                                         (const char *)func_name);

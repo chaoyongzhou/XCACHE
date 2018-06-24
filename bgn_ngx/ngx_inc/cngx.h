@@ -368,7 +368,9 @@ EC_BOOL cngx_http_bgn_mod_table_del(const char *name, const uint32_t len);
 
 void    cngx_http_bgn_mod_table_print(LOG *log);
 
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len, const char *mod_name, const uint32_t mod_name_len);
+CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len, 
+                                                      const char *mod_name, const uint32_t mod_name_len,
+                                                      const char *posix_name, const uint32_t posix_name_len);
 
 EC_BOOL cngx_http_bgn_mod_dl_unload(const char *name, const uint32_t len);
 
