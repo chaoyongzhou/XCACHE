@@ -2225,12 +2225,27 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0008);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0009);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
@@ -3055,12 +3070,27 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0037);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0038);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
@@ -4674,12 +4704,27 @@ EC_BOOL cflv_content_repair_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0069);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0070);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
@@ -6056,12 +6101,27 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0102);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0103);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
@@ -7925,12 +7985,27 @@ EC_BOOL cflv_content_ms_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0145);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0146);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
@@ -10706,12 +10781,27 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_host: "
-                                                 "[conf] set host '%s' to http req failed\n",
+                                                 "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
             safe_free(v, LOC_CFLV_0200);
             cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0201);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_host: "
+                                             "[conf] set ipaddr of host '%s' to http req done\n",
+                                             v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_host: "
+                                                 "[conf] set host '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0102);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);

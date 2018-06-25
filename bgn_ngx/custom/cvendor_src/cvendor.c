@@ -2139,12 +2139,27 @@ EC_BOOL cvendor_content_head_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0010);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0011);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
@@ -2967,12 +2982,27 @@ EC_BOOL cvendor_content_direct_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0039);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0040);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
@@ -4585,12 +4615,27 @@ EC_BOOL cvendor_content_repair_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0071);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0072);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
@@ -6367,12 +6412,27 @@ EC_BOOL cvendor_content_orig_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0106);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0107);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
@@ -8160,12 +8220,27 @@ EC_BOOL cvendor_content_ms_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0147);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0148);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
@@ -10957,12 +11032,27 @@ EC_BOOL cvendor_content_ims_header_in_filter_host(const UINT32 cvendor_md_id)
         if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
-                                                    "[conf] set host '%s' to http req failed\n",
+                                                    "[conf] set ipaddr of host '%s' to http req failed\n",
                                                     v);
             safe_free(v, LOC_CVENDOR_0201);
             cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0202);
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
+                                                "[conf] set ipaddr of host '%s' to http req done\n",
+                                                v);        
+
+        if(EC_FALSE == chttp_req_renew_header(chttp_req, (const char *)"Host", v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_host: "
+                                                    "[conf] set host '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0106);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0107);
+            return (EC_FALSE);
+        }
+        
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_host: "
                                                 "[conf] set host '%s' to http req done\n",
                                                 v);
