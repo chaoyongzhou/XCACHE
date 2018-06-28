@@ -1941,6 +1941,29 @@ EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const char *deny_reason)
+{
+    const char                  *k;
+    const char                  *v;
+
+    k = (const char *)CNGX_VAR_DENY_REASON;
+    v = (const char *)deny_reason;
+
+    if(EC_FALSE == cngx_set_var_str(r, k, v))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_deny_reason: "
+                                             "cngx set var '%s':'%s' failed\n",
+                                             k, v);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_deny_reason: "
+                                         "cngx set var '%s':'%s' done\n",
+                                         k, v);
+    return (EC_TRUE);
+}
+
+
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status)
 {
     ngx_http_finalize_request(r, status);

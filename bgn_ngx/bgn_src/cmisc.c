@@ -3376,7 +3376,8 @@ int c_file_open(const char *pathname, const int flags, const mode_t mode)
     fd = open(pathname, flags, mode);
     if(-1 == fd)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT,"error:c_file_open: open %s failed\n", pathname);
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT,"error:c_file_open: open %s failed, errno = %d, errstr = %s\n", 
+                             pathname, errno, strerror(errno));
         return (-1);
     }
 

@@ -92,6 +92,8 @@ extern "C"{
 #define  CNGX_VAR_MP4_BUFFER_SIZE                 ("c_mp4_buffer_size")
 #define  CNGX_VAR_MP4_MAX_BUFFER_SIZE             ("c_mp4_max_buffer_size")
 
+#define  CNGX_VAR_DENY_REASON                     ("c_deny_reason")
+
 /*cache status definition*/
 #define  CNGX_CACHE_STATUS_HIT                    ("TCP_HIT")
 #define  CNGX_CACHE_STATUS_MISS                   ("TCP_MISS")
@@ -290,6 +292,8 @@ EC_BOOL cngx_has_header_in(const ngx_http_request_t *r, const char *k, const cha
 EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v);
 
 EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status);
+
+EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const char *deny_reason);
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status);
 
