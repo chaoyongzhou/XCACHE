@@ -24,6 +24,7 @@ extern "C"{
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #include "zlib.h"
 
@@ -7436,39 +7437,56 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
 {
     task_brd_enable_coredump();
 
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] warn:task_brd_os_setting: ulimit not implemented yet !\n");
-#if 0
-    /* ulimits */
-    if (!global.rlimit_nofile)
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    /*set RLIMIT_NOFILE*/
     {
-        global.rlimit_nofile = global.maxsock;
-    }
+        struct rlimit limit;
+        int           resource;
 
-    if (global.rlimit_nofile)
-    {
-        limit.rlim_cur = limit.rlim_max = global.rlimit_nofile;
-        if (setrlimit(RLIMIT_NOFILE, &limit) == -1)
+        resource = RLIMIT_NOFILE;
+        if(0 != getrlimit(resource, &limit))
         {
-            Warning("[%s.main()] Cannot raise FD limit to %d.\n", argv[0], global.rlimit_nofile);
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_os_setting: "
+                                                 "[RLIMIT_NOFILE] getrlimit failed, errno = %d, errstr = %s\n",
+                                                 errno, strerror(errno));
+            return (EC_FALSE);
         }
-    }
 
-    if (global.rlimit_memmax)
-    {
-        limit.rlim_cur = limit.rlim_max =
-            global.rlimit_memmax * 1048576 / global.nbproc;
-#ifdef RLIMIT_AS
-        if (setrlimit(RLIMIT_AS, &limit) == -1)
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
+                                             "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
+                                             limit.rlim_cur, limit.rlim_max);        
+
+        limit.rlim_cur = 819200; /*Soft limit*/
+        limit.rlim_max = 819200; /*Hard limit (ceiling for rlim_cur)*/
+
+        if(0 != setrlimit(resource, &limit))
         {
-            Warning("[%s.main()] Cannot fix MEM limit to %d megs.\n", argv[0], global.rlimit_memmax);
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_os_setting: "
+                                                 "[RLIMIT_NOFILE] setrlimit soft limit %d or hard limit %d failed, "
+                                                 "errno = %d, errstr = %s\n",
+                                                 limit.rlim_cur, limit.rlim_max,
+                                                 errno, strerror(errno));
+            return (EC_FALSE);
         }
-#else
-        if (setrlimit(RLIMIT_DATA, &limit) == -1)
+
+        /*clean*/
+        limit.rlim_cur = 0;
+        limit.rlim_max = 0;       
+
+        if(0 != getrlimit(resource, &limit))
         {
-            Warning("[%s.main()] Cannot fix MEM limit to %d megs.\n", argv[0], global.rlimit_memmax);
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_os_setting: "
+                                                 "[RLIMIT_NOFILE] getrlimit failed, errno = %d, errstr = %s\n",
+                                                 errno, strerror(errno));
+            return (EC_FALSE);
         }
-#endif
-#endif
+
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
+                                             "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
+                                             limit.rlim_cur, limit.rlim_max); 
+        
+    }
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if 0
     /* setgid / setuid */
@@ -7486,6 +7504,26 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
         exit(1);
     }
 #endif
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_os_setting_print(LOG *log)
+{
+    struct rlimit limit;
+
+    if(0 == getrlimit(RLIMIT_NOFILE, &limit))
+    {
+        sys_log(log, "task_brd_os_setting_print: "
+                     "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
+                     limit.rlim_cur, limit.rlim_max);
+    }
+   
+    if(0 == getrlimit(RLIMIT_CORE, &limit))
+    {
+        sys_log(log, "task_brd_os_setting_print: "
+                     "[RLIMIT_CORE] resource soft limit: %d, hard limit: %d\n",
+                     limit.rlim_cur, limit.rlim_max); 
+    }
     return (EC_TRUE);
 }
 
@@ -8057,6 +8095,9 @@ LOG * task_brd_default_init(int argc, char **argv)
     sys_log_redirect_setup(LOGSTDOUT, log);
     sys_log_redirect_setup(LOGSTDERR, log);
     cstring_free(log_file_name);
+
+    /*print os setting*/
+    task_brd_os_setting_print(LOGSTDOUT);
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)sys_log_rotate_by_index, (UINT32)DEFAULT_STDOUT_LOG_INDEX);
 
