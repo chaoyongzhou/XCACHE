@@ -3484,7 +3484,7 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , out_buff, out_size, &pos, &tag);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
 
-        if(CSOCKET_BUFF_MAX_LEN <= len)/*should never overflow 1 GB*/
+        if(CSOCKET_BUFF_MAX_LEN <= len || 0 == len)/*should never overflow 1 GB*/
         {
             CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode);
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: disconnect sockfd %d due to invalid len 0x%lx\n",
