@@ -29,7 +29,7 @@ extern "C"{
 #define CSIG_SHELL_CMD_OUTPUT_BUFF_SIZE (1024)
 
 #define CSIG_MAX_NUM          (256)
-#define CSIG_ATEXIT_MAX_NUM   (1024)
+#define CSIG_ATEXIT_MAX_NUM   (8192)
 
 #define CSIG_HANDLE_UNDEF ((uint32_t) 0)
 #define CSIG_HANDLE_NOW   ((uint32_t) 1)
