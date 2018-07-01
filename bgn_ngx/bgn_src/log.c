@@ -700,6 +700,12 @@ STATIC_CAST static int sys_print_to_fd_no_lock(LOG *log, const char * format,va_
 
 STATIC_CAST static int sys_print_to_cstring(CSTRING *cstring, const char * format, va_list ap)
 {
+    if(NULL_PTR != cstring && LOG_NODE_BUF_SIZE <= CSTRING_LEN(cstring))
+    {
+        sys_log(LOGSTDOUT, "error:sys_print_to_cstring: length %ld >= limit %ld\n", 
+                           CSTRING_LEN(cstring), (UINT32)LOG_NODE_BUF_SIZE);
+        return (-1);
+    }
     cstring_vformat(cstring, format, ap);
     return (0);
 }
