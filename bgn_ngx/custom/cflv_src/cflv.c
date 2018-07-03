@@ -12922,7 +12922,7 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
                                              (char *)cstring_get_str(CFLV_MD_HEADER_LAST_MODIFIED(cflv_md)),
                                              (char *)cstring_get_str(CFLV_MD_HEADER_ETAG(cflv_md)));
 
-        if(EC_TRUE == cflv_content_ims_procedure(cflv_md_id))
+        if(0 && EC_TRUE == cflv_content_ims_procedure(cflv_md_id))
         {
             cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
             CFLV_MD_CACHE_STATUS(cflv_md) = cache_status;
@@ -12931,6 +12931,16 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
                                                  cache_status);
             return cflv_content_expired_send_response(cflv_md_id);
         }
+
+        if(EC_TRUE == cflv_content_orig_procedure(cflv_md_id))
+        {
+            cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
+            CFLV_MD_CACHE_STATUS(cflv_md) = cache_status;
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_procedure: "
+                                                 "orig succ => cache_status = %s\n",
+                                                 cache_status);
+            return cflv_content_expired_send_response(cflv_md_id);
+        }        
 
         cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_MISS;
         CFLV_MD_CACHE_STATUS(cflv_md) = cache_status;

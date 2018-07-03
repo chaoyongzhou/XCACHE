@@ -14101,7 +14101,7 @@ EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id)
                                              (char *)cstring_get_str(CMP4_MD_HEADER_LAST_MODIFIED(cmp4_md)),
                                              (char *)cstring_get_str(CMP4_MD_HEADER_ETAG(cmp4_md)));
 
-        if(EC_TRUE == cmp4_content_ims_procedure(cmp4_md_id))
+        if(0 && EC_TRUE == cmp4_content_ims_procedure(cmp4_md_id))
         {
             cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
             CMP4_MD_CACHE_STATUS(cmp4_md) = cache_status;
@@ -14110,6 +14110,16 @@ EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id)
                                                  cache_status);
             return cmp4_content_expired_send_response(cmp4_md_id);
         }
+
+        if(EC_TRUE == cmp4_content_orig_procedure(cmp4_md_id))
+        {
+            cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
+            CMP4_MD_CACHE_STATUS(cmp4_md) = cache_status;
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_procedure: "
+                                                 "ims succ => cache_status = %s\n",
+                                                 cache_status);
+            return cmp4_content_expired_send_response(cmp4_md_id);
+        }        
 
         cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_MISS;
         CMP4_MD_CACHE_STATUS(cmp4_md) = cache_status;

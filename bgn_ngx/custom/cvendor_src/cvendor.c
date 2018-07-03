@@ -13179,7 +13179,7 @@ EC_BOOL cvendor_content_expired_procedure(const UINT32 cvendor_md_id)
                                                 (char *)cstring_get_str(CVENDOR_MD_HEADER_LAST_MODIFIED(cvendor_md)),
                                                 (char *)cstring_get_str(CVENDOR_MD_HEADER_ETAG(cvendor_md)));
 
-        if(EC_TRUE == cvendor_content_ims_procedure(cvendor_md_id))
+        if(0 && EC_TRUE == cvendor_content_ims_procedure(cvendor_md_id))
         {
             cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
             CVENDOR_MD_CACHE_STATUS(cvendor_md) = cache_status;
@@ -13188,6 +13188,16 @@ EC_BOOL cvendor_content_expired_procedure(const UINT32 cvendor_md_id)
                                                     cache_status);
             return cvendor_content_expired_send_response(cvendor_md_id);
         }
+
+        if(EC_TRUE == cvendor_content_orig_procedure(cvendor_md_id))
+        {
+            cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_HIT;
+            CVENDOR_MD_CACHE_STATUS(cvendor_md) = cache_status;
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_procedure: "
+                                                    "orig succ => cache_status = %s\n",
+                                                    cache_status);
+            return cvendor_content_expired_send_response(cvendor_md_id);
+        }        
 
         cache_status = (const char *)CNGX_CACHE_STATUS_REFRESH_MISS;
         CVENDOR_MD_CACHE_STATUS(cvendor_md) = cache_status;
