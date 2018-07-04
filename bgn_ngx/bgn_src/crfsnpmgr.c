@@ -692,7 +692,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_search_dir(CRFSNP_MGR *crfsnp_mgr, const
 
 EC_BOOL crfsnp_mgr_search(CRFSNP_MGR *crfsnp_mgr, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, uint32_t *searched_crfsnp_id)
 {
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __crfsnp_mgr_search_file(crfsnp_mgr, path_len, path, dflag, searched_crfsnp_id);
     }
@@ -729,13 +729,6 @@ CRFSNP_ITEM *crfsnp_mgr_search_item(CRFSNP_MGR *crfsnp_mgr, const uint32_t path_
     }
 
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
-#if 0
-    if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] crfsnp_mgr_search_item: bnode is\n");
-        crfsnp_bnode_print_all(LOGSTDOUT, crfsnp, CRFSNP_ITEM_BNODE(crfsnp_item));
-    }
-#endif
     return (crfsnp_item);
 }
 
@@ -919,15 +912,6 @@ EC_BOOL crfsnp_mgr_find_file(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path)
                                     NULL_PTR);
 }
 
-EC_BOOL crfsnp_mgr_find_file_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path)
-{
-    return __crfsnp_mgr_search_file(crfsnp_mgr,
-                                    (uint32_t)cstring_get_len(file_path),
-                                    cstring_get_str(file_path),
-                                    CRFSNP_ITEM_FILE_IS_BIG,
-                                    NULL_PTR);
-}
-
 EC_BOOL crfsnp_mgr_find(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     if(0 == strcmp("/", (char *)cstring_get_str(path)))/*patch*/
@@ -1099,75 +1083,6 @@ EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP
     return (EC_FALSE);
 }
 
-EC_BOOL crfsnp_mgr_write_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const uint64_t *file_size, UINT32 (*hash_func)(const UINT32, const UINT8 *))
-{
-    CRFSNP *crfsnp;
-    CRFSNP_ITEM  *crfsnp_item;
-    CRFSNP_BNODE *crfsnp_bnode;
-    uint32_t crfsnp_id;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_write_b: no np for path %s\n", (char *)cstring_get_str(file_path));
-        return (EC_FALSE);
-    }
-
-    crfsnp_item = crfsnp_set(crfsnp, cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_BIG);
-    if(NULL_PTR == crfsnp_item)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_write_b: set file %s to np %u failed\n",
-                            (char *)cstring_get_str(file_path), crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    if(CRFSNP_ITEM_FILE_IS_BIG != CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_write_b: file path %s is not big file\n",
-                            (char *)cstring_get_str(file_path));
-        return (EC_FALSE);
-    }
-
-    crfsnp_bnode = CRFSNP_ITEM_BNODE(crfsnp_item);
-
-    CRFSNP_BNODE_FILESZ(crfsnp_bnode)      = (*file_size);
-    CRFSNP_BNODE_STORESZ(crfsnp_bnode)     = 0;
-    CRFSNP_BNODE_HASH(crfsnp_bnode)        = hash_func(cstring_get_len(file_path), cstring_get_str(file_path));
-
-    if(do_log(SEC_0009_CRFSNPMGR, 9))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] crfsnp_mgr_write_b: item is\n");
-        crfsnp_item_print(LOGSTDOUT, crfsnp_item);
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos)
-{
-    CRFSNP *crfsnp;
-    uint32_t node_pos;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_read_b: no np for path %s\n", (char *)cstring_get_str(file_path));
-        return (EC_FALSE);
-    }
-
-    node_pos = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_BIG);
-    if(CRFSNPRB_ERR_POS != node_pos)
-    {
-        CRFSNP_ITEM *crfsnp_item;
-
-        (*parent_pos) = node_pos;
-        crfsnp_item   = crfsnp_fetch(crfsnp, node_pos);
-
-        return (EC_TRUE);
-    }
-    return (EC_FALSE);
-}
-
 EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const CRFSNP_FNODE *crfsnp_fnode)
 {
     CRFSNP *crfsnp;
@@ -1252,7 +1167,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir(CRFSNP_MGR *crfsnp_mgr, const
 
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __crfsnp_mgr_umount_file(crfsnp_mgr, path, dflag);
     }
@@ -1334,7 +1249,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir_wildcard(CRFSNP_MGR *crfsnp_m
 
 EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __crfsnp_mgr_umount_file_wildcard(crfsnp_mgr, path, dflag);
     }
@@ -1425,7 +1340,7 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_move_dir(CRFSNP_MGR *crfsnp_mgr, const C
 /*note: here path_des MUST be in /recycle directory !!!*/
 EC_BOOL crfsnp_mgr_move(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag)
 {
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag || CRFSNP_ITEM_FILE_IS_BIG == dflag)
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __crfsnp_mgr_move_file(crfsnp_mgr, path_src, path_des, dflag);
     }
@@ -1682,16 +1597,6 @@ EC_BOOL crfsnp_mgr_node_size(CRFSNP_MGR *crfsnp_mgr, CRFSNP *crfsnp, uint32_t no
         crfsnp_fnode = CRFSNP_ITEM_FNODE(item);
 
         (*file_size) += CRFSNP_FNODE_FILESZ(crfsnp_fnode);
-    }
-
-    else if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(item))
-    {
-        CRFSNP_BNODE *crfsnp_bnode;
-        crfsnp_bnode = CRFSNP_ITEM_BNODE(item);
-
-        dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_node_size: bnode fsize = %"PRId64"\n", CRFSNP_BNODE_FILESZ(crfsnp_bnode));
-
-        (*file_size) += CRFSNP_BNODE_FILESZ(crfsnp_bnode);
     }
     else if(CRFSNP_ITEM_FILE_IS_DIR == CRFSNP_ITEM_DIR_FLAG(item))
     {
@@ -1973,33 +1878,6 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size)
-{
-    CRFSNP  *crfsnp;
-    uint32_t crfsnp_id;
-    uint32_t node_pos;
-    uint64_t cur_store_size;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_store_size_b: no np for path %s\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    node_pos = crfsnp_store_size_b(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_store_size);
-    if(CRFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_store_size_b: get store size of file %s\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    //(*store_size) += cur_store_size;
-    (*store_size) = cur_store_size;
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CMD5_DIGEST *md5sum)
 {
     CRFSNP  *crfsnp;
@@ -2022,30 +1900,6 @@ EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr,
 
     return (EC_TRUE);
 }
-
-EC_BOOL crfsnp_mgr_file_md5sum_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const uint32_t seg_no, CMD5_DIGEST *md5sum)
-{
-    CRFSNP  *crfsnp;
-    uint32_t crfsnp_id;
-    uint32_t node_pos;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum_b: no np for path %s\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    node_pos = crfsnp_file_md5sum_b(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), seg_no, md5sum);
-    if(CRFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum_b: get seg %u md5sum of bigfile %s failed\n", seg_no, (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
 
 EC_BOOL crfsnp_mgr_show_cached_np(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
 {
@@ -2140,78 +1994,6 @@ EC_BOOL crfsnp_mgr_recycle_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
     }
 
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_recycle_np: recycle np %u done\n", crfsnp_id);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsnp_mgr_transfer_pre_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode)
-{
-    CRFSNP  *crfsnp;
-
-    crfsnp = __crfsnp_mgr_get_np_of_id(crfsnp_mgr, crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_pre_np: get np %u failed\n", crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsnp_transfer_pre(crfsnp, dir_path, crfsdt_pnode))
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_pre_np: transfer dir %s prepare in np %u failed\n",
-                            (char *)cstring_get_str(dir_path), crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_transfer_pre_np: transfer dir %s prepare in np %u done\n",
-                        (char *)cstring_get_str(dir_path), crfsnp_id);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsnp_mgr_transfer_handle_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
-{
-    CRFSNP  *crfsnp;
-
-    crfsnp = __crfsnp_mgr_get_np_of_id(crfsnp_mgr, crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_handle_np: get np %u failed\n", crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsnp_transfer_handle(crfsnp, dir_path, crfsdt_pnode, crfsnp_trans_dn))
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_handle_np: transfer dir %s handle in np %u failed\n",
-                            (char *)cstring_get_str(dir_path), crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_transfer_handle_np: transfer dir %s handle in np %u done\n",
-                        (char *)cstring_get_str(dir_path), crfsnp_id);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsnp_mgr_transfer_post_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn)
-{
-    CRFSNP  *crfsnp;
-
-    crfsnp = __crfsnp_mgr_get_np_of_id(crfsnp_mgr, crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_post_np: get np %u failed\n", crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsnp_transfer_post(crfsnp, dir_path, crfsdt_pnode, crfsnp_trans_dn))
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_transfer_post_np: transfer dir %s post clean in np %u failed\n",
-                            (char *)cstring_get_str(dir_path), crfsnp_id);
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_transfer_post_np: transfer dir %s post clean in np %u done\n",
-                        (char *)cstring_get_str(dir_path), crfsnp_id);
 
     return (EC_TRUE);
 }

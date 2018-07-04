@@ -193,12 +193,6 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_mdsmf_post_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL crfshttp_is_http_post_mdbgf(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_mdbgf_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_mdbgf_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_mdbgf_post_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_mdbgf_post_response(CHTTP_NODE *chttp_node);
-
 EC_BOOL crfshttp_is_http_post_mddir(const CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_mddir_post_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node);

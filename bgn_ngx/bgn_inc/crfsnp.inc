@@ -63,7 +63,6 @@ extern "C"{
 #define CRFSNP_ITEM_FILE_IS_BLK         ((uint32_t) 0x0040)  /*block device*/
 #define CRFSNP_ITEM_FILE_IS_ANY         ((uint32_t) 0x0080)  /*any file    */
 #define CRFSNP_ITEM_FILE_IS_ERR         ((uint32_t) 0x0000)  /*4 bits      */
-#define CRFSNP_ITEM_FILE_IS_BIG         (CRFSNP_ITEM_FILE_IS_DIR | CRFSNP_ITEM_FILE_IS_REG)
 
 #define CRFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0001)  /*2 bits*/
 #define CRFSNP_ITEM_IS_USED             ((uint32_t) 0x0002)
@@ -172,21 +171,6 @@ typedef struct
 #define CRFSNP_DNODE_FILE_NUM(crfsnp_dnode)      ((crfsnp_dnode)->file_num)
 #define CRFSNP_DNODE_ROOT_POS(crfsnp_dnode)      ((crfsnp_dnode)->root_pos)
 
-#define CRFSNP_BNODE_PAD_SIZE                        (184)
-typedef struct
-{
-    uint64_t       file_size;
-    uint64_t       store_size;  /*store_size <= file_size, [0, store_size) have been stored*/
-    uint32_t       file_path_hash;
-    uint32_t       root_pos;    /*seg root pos*/
-    uint8_t        pad[ CRFSNP_BNODE_PAD_SIZE ]; /*184B*/
-}CRFSNP_BNODE;/*208B*/
-
-#define CRFSNP_BNODE_FILESZ(crfsnp_bnode)           ((crfsnp_bnode)->file_size)
-#define CRFSNP_BNODE_STORESZ(crfsnp_bnode)          ((crfsnp_bnode)->store_size)
-#define CRFSNP_BNODE_HASH(crfsnp_bnode)             ((crfsnp_bnode)->file_path_hash)
-#define CRFSNP_BNODE_ROOT_POS(crfsnp_bnode)         ((crfsnp_bnode)->root_pos)
-
 typedef struct
 {
     CRFSNPRB_NODE   rb_node;/*16B*/
@@ -226,7 +210,6 @@ typedef struct
     {
         CRFSNP_FNODE fnode;/*208B*/
         CRFSNP_DNODE dnode;/*208B*/
-        CRFSNP_BNODE bnode;/*208B*/
     }u;/*208B*/
 } CRFSNP_ITEM;/*512B*/
 
@@ -239,7 +222,6 @@ typedef struct
 #define CRFSNP_ITEM_PARENT_POS(crfsnp_item)       ((crfsnp_item)->parent_pos)
 #define CRFSNP_ITEM_FNODE(crfsnp_item)            (&((crfsnp_item)->u.fnode))
 #define CRFSNP_ITEM_DNODE(crfsnp_item)            (&((crfsnp_item)->u.dnode))
-#define CRFSNP_ITEM_BNODE(crfsnp_item)            (&((crfsnp_item)->u.bnode))
 #define CRFSNP_ITEM_CREATE_TIME(crfsnp_item)      ((crfsnp_item)->create_time)
 #define CRFSNP_ITEM_SECOND_HASH(crfsnp_item)      ((crfsnp_item)->second_hash)
 
@@ -250,11 +232,9 @@ typedef struct
 
 #define CRFSNP_ITEM_IS_REG(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_REG == (CRFSNP_ITEM_FILE_IS_REG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 #define CRFSNP_ITEM_IS_DIR(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_DIR == (CRFSNP_ITEM_FILE_IS_DIR & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
-#define CRFSNP_ITEM_IS_BIG(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_BIG == (CRFSNP_ITEM_FILE_IS_BIG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 
 #define CRFSNP_ITEM_IS_NOT_REG(crfsnp_item)        (CRFSNP_ITEM_FILE_IS_REG != (CRFSNP_ITEM_FILE_IS_REG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 #define CRFSNP_ITEM_IS_NOT_DIR(crfsnp_item)        (CRFSNP_ITEM_FILE_IS_DIR != (CRFSNP_ITEM_FILE_IS_DIR & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
-#define CRFSNP_ITEM_IS_NOT_BIG(crfsnp_item)        (CRFSNP_ITEM_FILE_IS_BIG != (CRFSNP_ITEM_FILE_IS_BIG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 
 #define CRFSNP_ITEM_IS_INVALID(crfsnp_item)        ((CRFSNP_ITEM_FILE_IS_REG | CRFSNP_ITEM_FILE_IS_DIR) & CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
 #define CRFSNP_ITEM_IS_NOT_INVALID(crfsnp_item)    (0 == ((CRFSNP_ITEM_FILE_IS_REG | CRFSNP_ITEM_FILE_IS_DIR) & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)) )
@@ -517,46 +497,6 @@ typedef struct
 
 #define CRFSNP_RECYCLE_NP_ARG1(crfsnp_recycle_np)      ((crfsnp_recycle_np)->arg1)
 #define CRFSNP_RECYCLE_NP_FUNC(crfsnp_recycle_np)      ((crfsnp_recycle_np)->recycle_np)
-
-
-typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes);
-typedef EC_BOOL (*CRFSNP_TRANS_CRFS_READ_FILE_B_FUNC)(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
-
-typedef EC_BOOL (* CRFSNP_TRANS_CRFSC_DEL_FILE_FUNC)(const UINT32 crfsc_md_id, const CSTRING *file_path);
-typedef EC_BOOL (* CRFSNP_TRANS_CRFSC_DEL_FILE_B_FUNC)(const UINT32 crfsc_md_id, const CSTRING *file_path);
-
-typedef struct
-{
-    UINT32  crfs_md_id;
-    UINT32  crfsc_md_id;
-    CRFSNP_TRANS_CRFS_READ_FILE_FUNC    crfs_read_file;
-    CRFSNP_TRANS_CRFS_READ_FILE_B_FUNC  crfs_read_file_b;
-
-    CRFSNP_TRANS_CRFSC_DEL_FILE_FUNC    crfsc_delete_file;
-    CRFSNP_TRANS_CRFSC_DEL_FILE_B_FUNC  crfsc_delete_file_b;
-}CRFSNP_TRANS_DN;
-
-#define CRFSNP_TRANS_CRFS_MODI(crfsnp_trans_dn)            ((crfsnp_trans_dn)->crfs_md_id)
-#define CRFSNP_TRANS_CRFSC_MODI(crfsnp_trans_dn)           ((crfsnp_trans_dn)->crfsc_md_id)
-#define CRFSNP_TRANS_CRFS_READ_FILE(crfsnp_trans_dn)       ((crfsnp_trans_dn)->crfs_read_file)
-#define CRFSNP_TRANS_CRFS_READ_FILE_B(crfsnp_trans_dn)     ((crfsnp_trans_dn)->crfs_read_file_b)
-#define CRFSNP_TRANS_CRFSC_DELETE_FILE(crfsnp_trans_dn)    ((crfsnp_trans_dn)->crfsc_delete_file)
-#define CRFSNP_TRANS_CRFSC_DELETE_FILE_B(crfsnp_trans_dn)  ((crfsnp_trans_dn)->crfsc_delete_file_b)
-
-typedef struct
-{
-    CSTRING     fname;
-    CBYTES      cbytes;
-    UINT32      ret;
-    uint32_t    node_pos;
-    uint32_t    rsvd;
-}CRFSNP_TRANS_NODE;
-
-#define CRFSNP_TRANS_NODE_FNAME(crfsnp_trans_node)          (&((crfsnp_trans_node)->fname))
-#define CRFSNP_TRANS_NODE_FNAME_STR(crfsnp_trans_node)      ((char *)cstring_get_str(CRFSNP_TRANS_NODE_FNAME(crfsnp_trans_node) ))
-#define CRFSNP_TRANS_NODE_CBYTES(crfsnp_trans_node)         (&((crfsnp_trans_node)->cbytes))
-#define CRFSNP_TRANS_NODE_RET(crfsnp_trans_node)            ((crfsnp_trans_node)->ret)
-#define CRFSNP_TRANS_NODE_POS(crfsnp_trans_node)            ((crfsnp_trans_node)->node_pos)
 
 /*np iterator when walkthrough directory*/
 #define CRFSNP_DIT_ARGS_MAX_NUM  ((UINT32)4)

@@ -43,15 +43,12 @@ extern "C"{
 
 #define CRFSOP_ERR_OP            ((uint16_t) 0x0000)
 #define CRFSOP_WR_REG_OP         ((uint16_t) 0x0001)
-#define CRFSOP_WR_BIG_OP         ((uint16_t) 0x0002)
 #define CRFSOP_RM_REG_OP         ((uint16_t) 0x0004)
-#define CRFSOP_RM_BIG_OP         ((uint16_t) 0x0008)
 #define CRFSOP_RM_DIR_OP         ((uint16_t) 0x0010)
 
 #define CRFSOP_PATH_IS_ERR       ((uint16_t) 0x0000)
 #define CRFSOP_PATH_IS_DIR       ((uint16_t) 0x0002)
 #define CRFSOP_PATH_IS_REG       ((uint16_t) 0x0008)
-#define CRFSOP_PATH_IS_BIG       (CRFSOP_PATH_IS_REG | CRFSOP_PATH_IS_DIR)
 
 typedef struct
 {

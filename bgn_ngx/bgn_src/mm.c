@@ -371,7 +371,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CRFSNP_ITEM                  ,"MM_CRFSNP_ITEM                  ",1        , sizeof(CRFSNP_ITEM)                 , LOC_MM_0135);
     MM_MGR_DEF(MM_CRFSNP                       ,"MM_CRFSNP                       ",1        , sizeof(CRFSNP)                      , LOC_MM_0136);
     MM_MGR_DEF(MM_CRFSNP_MGR                   ,"MM_CRFSNP_MGR                   ",1        , sizeof(CRFSNP_MGR)                  , LOC_MM_0137);
-    MM_MGR_DEF(MM_CRFSNP_BNODE                 ,"MM_CRFSNP_BNODE                 ",1        , sizeof(CRFSNP_BNODE)                , LOC_MM_0138);
     MM_MGR_DEF(MM_CRFSDN_CACHE_NODE            ,"MM_CRFSDN_CACHE_NODE            ",1        , sizeof(CRFSDN_CACHE_NODE)           , LOC_MM_0139);
 
     MM_MGR_DEF(MM_CHFSNP_FNODE                 ,"MM_CHFSNP_FNODE                 ",1        , sizeof(CHFSNP_FNODE)                , LOC_MM_0140);
@@ -402,7 +401,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CRFSCONHASH_RNODE            ,"MM_CRFSCONHASH_RNODE            ",32        , sizeof(CRFSCONHASH_RNODE)          , LOC_MM_0158);
     MM_MGR_DEF(MM_CRFSCONHASH_VNODE            ,"MM_CRFSCONHASH_VNODE            ",32        , sizeof(CRFSCONHASH_VNODE)          , LOC_MM_0159);
 
-    MM_MGR_DEF(MM_CRFSNP_TRANS_NODE            ,"MM_CRFSNP_TRANS_NODE            ",32        , sizeof(CRFSNP_TRANS_NODE)          , LOC_MM_0160);
     MM_MGR_DEF(MM_CRFSCHTTP_NODE               ,"MM_CRFSCHTTP_NODE               ",32        , sizeof(CRFSCHTTP_NODE)             , LOC_MM_0161);
 
     MM_MGR_DEF(MM_CEXPAT_ATTR                  ,"MM_CEXPAT_ATTR                  ",256       , sizeof(CEXPAT_ATTR)                , LOC_MM_0162);

@@ -719,11 +719,6 @@ STATIC_CAST static EC_BOOL __crfsmc_recycle_np_no_lock(CRFSMC *crfsmc, const uin
         return (EC_FALSE);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        return (EC_FALSE);
-    }
-
     return (EC_FALSE);
 }
 

@@ -94,8 +94,6 @@ EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBY
 
 EC_BOOL crfsbk_read_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode);
 
-EC_BOOL crfsbk_read_np_b_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode);
-
 EC_BOOL crfsbk_read_dn_no_lock(CRFSBK *crfsbk, const CRFSNP_FNODE *crfsnp_fnode, CBYTES *cbytes);
 
 EC_BOOL crfsbk_read_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes);
@@ -113,15 +111,11 @@ EC_BOOL crfsbk_read(CRFSBK *crfsbk, const CSTRING *file_path, CBYTES *cbytes);
 /*remove: not record operation*/
 EC_BOOL crfsbk_remove_file(CRFSBK *crfsbk, const CSTRING *path);
 
-EC_BOOL crfsbk_remove_file_b(CRFSBK *crfsbk, const CSTRING *path);
-
 EC_BOOL crfsbk_remove_dir(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_remove(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
 
 EC_BOOL crfsbk_remove_file_wildcard(CRFSBK *crfsbk, const CSTRING *path);
-
-EC_BOOL crfsbk_remove_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_remove_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path);
 
@@ -130,15 +124,11 @@ EC_BOOL crfsbk_remove_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
 /*delete: record operation*/
 EC_BOOL crfsbk_delete_file(CRFSBK *crfsbk, const CSTRING *path);
 
-EC_BOOL crfsbk_delete_file_b(CRFSBK *crfsbk, const CSTRING *path);
-
 EC_BOOL crfsbk_delete_dir(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_delete(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag);
 
 EC_BOOL crfsbk_delete_file_wildcard(CRFSBK *crfsbk, const CSTRING *path);
-
-EC_BOOL crfsbk_delete_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path);
 
 EC_BOOL crfsbk_delete_dir_wildcard(CRFSBK *crfsbk, const CSTRING *path);
 
@@ -154,17 +144,9 @@ void crfsbk_print(LOG *log, const CRFSBK *crfsbk);
 
 EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path);
 
-EC_BOOL crfsbk_replay_file_b(CRFSBK *crfsbk, const CSTRING *path);
-
 EC_BOOL crfsbk_replay_rm_dir_op(CRFSBK *crfsbk, CRFSOP *crfsop);
 
-EC_BOOL crfsbk_replay_rm_big_op(CRFSBK *crfsbk, CRFSOP *crfsop);
-
-EC_BOOL crfsbk_replay_rm_reg_op(CRFSBK *crfsbk, CRFSOP *crfsop);
-
 EC_BOOL crfsbk_replay_wr_reg_op(CRFSBK *crfsbk, CRFSOP *crfsop);
-
-EC_BOOL crfsbk_replay_wr_big_op(CRFSBK *crfsbk, CRFSOP *crfsop);
 
 EC_BOOL crfsbk_replay_one(CRFSBK *crfsbk, CRFSOP *crfsop);
 

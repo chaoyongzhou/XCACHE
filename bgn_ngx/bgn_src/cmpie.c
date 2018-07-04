@@ -3652,73 +3652,6 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_crfsnp_bnode(const UINT32 comm, const CRFSNP_BNODE *crfsnp_bnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == crfsnp_bnode )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsnp_bnode: crfsnp_bnode is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == out_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsnp_bnode: out_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsnp_bnode: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_encode_uint64(comm, CRFSNP_BNODE_FILESZ(crfsnp_bnode), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CRFSNP_BNODE_STORESZ(crfsnp_bnode), out_buff, out_buff_max_len, position);
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_crfsnp_bnode_size(const UINT32 comm, const CRFSNP_BNODE *crfsnp_bnode, UINT32 *size)
-{
-    cmpi_encode_uint64_size(comm, CRFSNP_BNODE_FILESZ(crfsnp_bnode), size);
-    cmpi_encode_uint64_size(comm, CRFSNP_BNODE_STORESZ(crfsnp_bnode), size);
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_crfsnp_bnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSNP_BNODE *crfsnp_bnode)
-{
-    uint64_t file_size;
-    uint64_t store_size;
-
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == in_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsnp_bnode: in_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsnp_bnode: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == crfsnp_bnode )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsnp_bnode: crfsnp_bnode is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &(file_size));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &(store_size));
-
-
-    CRFSNP_BNODE_FILESZ(crfsnp_bnode)  = (uint32_t)(file_size);
-    CRFSNP_BNODE_STORESZ(crfsnp_bnode) = (uint32_t)(store_size);
-
-    return ((UINT32)0);
-}
-
 UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     UINT32   num;
@@ -3764,11 +3697,6 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
         cmpi_encode_crfsnp_fnode(comm, CRFSNP_ITEM_FNODE(crfsnp_item), out_buff, out_buff_max_len, position);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        cmpi_encode_crfsnp_bnode(comm, CRFSNP_ITEM_BNODE(crfsnp_item), out_buff, out_buff_max_len, position);
-    }
-
     return ((UINT32)0);
 }
 
@@ -3799,10 +3727,6 @@ UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp
         cmpi_encode_crfsnp_fnode_size(comm, CRFSNP_ITEM_FNODE(crfsnp_item), size);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        cmpi_encode_crfsnp_bnode_size(comm, CRFSNP_ITEM_BNODE(crfsnp_item), size);
-    }
     return ((UINT32)0);
 }
 
@@ -3869,11 +3793,6 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
         cmpi_decode_crfsnp_fnode(comm, in_buff, in_buff_max_len, position, CRFSNP_ITEM_FNODE(crfsnp_item));
-    }
-
-    if(CRFSNP_ITEM_FILE_IS_BIG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        cmpi_decode_crfsnp_bnode(comm, in_buff, in_buff_max_len, position, CRFSNP_ITEM_BNODE(crfsnp_item));
     }
 
     return ((UINT32)0);

@@ -137,15 +137,6 @@ EC_BOOL crfsc_find_file(const UINT32 crfsc_md_id, const CSTRING *file_path);
 
 /**
 *
-*  check existing of a big file
-*
-**/
-EC_BOOL crfsc_find_file_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path);
-
-EC_BOOL crfsc_find_file_b(const UINT32 crfsc_md_id, const CSTRING *file_path);
-
-/**
-*
 *  check existing of a file
 *
 **/
@@ -197,37 +188,6 @@ EC_BOOL crfsc_read_e_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT
 
 EC_BOOL crfsc_read_e(const UINT32 crfsc_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
 
-/*----------------------------------- BIG FILE interface -----------------------------------*/
-
-/**
-*
-*  create a big file at offset
-*
-**/
-EC_BOOL crfsc_create_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t *file_size);
-
-EC_BOOL crfsc_create_b(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t *file_size);
-
-/**
-*
-*  write a big file at offset
-*
-**/
-EC_BOOL crfsc_write_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const CBYTES *cbytes);
-
-EC_BOOL crfsc_write_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const CBYTES *cbytes);
-
-/**
-*
-*  read a file from offset
-*
-**/
-EC_BOOL crfsc_read_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
-
-EC_BOOL crfsc_read_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
-
-EC_BOOL crfsc_fetch_block_fd_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const uint64_t offset, uint32_t *block_size, int *block_fd);
-
 /**
 *
 *  renew a fnode to name node
@@ -245,15 +205,6 @@ EC_BOOL crfsc_renew(const UINT32 crfsc_md_id, const CSTRING *file_path);
 EC_BOOL crfsc_delete_file_ep(const UINT32 crfsc_md_id, const CSTRING *file_path);
 
 EC_BOOL crfsc_delete_file(const UINT32 crfsc_md_id, const CSTRING *file_path);
-
-/**
-*
-*  delete a big file
-*
-**/
-EC_BOOL crfsc_delete_file_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path);
-
-EC_BOOL crfsc_delete_file_b(const UINT32 crfsc_md_id, const CSTRING *file_path);
 
 /**
 *
@@ -301,31 +252,12 @@ EC_BOOL crfsc_file_size(const UINT32 crfsc_md_id, const CSTRING *file_path, uint
 
 /**
 *
-*  get bigfile store size of specific file given full path name
-*
-**/
-EC_BOOL crfsc_store_size_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size);
-
-EC_BOOL crfsc_store_size_b(const UINT32 crfsc_md_id, const CSTRING *file_path, uint64_t *store_size);
-
-/**
-*
 *  get file md5sum of specific file given full path name
 *
 **/
 EC_BOOL crfsc_file_md5sum_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CMD5_DIGEST *md5sum);
 
 EC_BOOL crfsc_file_md5sum(const UINT32 crfsc_md_id, const CSTRING *file_path, CMD5_DIGEST *md5sum);
-
-/**
-*
-*  get a seg md5sum of specific bigfile given full path name
-*
-**/
-
-EC_BOOL crfsc_file_md5sum_b_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 seg_no, CMD5_DIGEST *md5sum);
-
-EC_BOOL crfsc_file_md5sum_b(const UINT32 crfsc_md_id, const CSTRING *file_path, const UINT32 seg_no, CMD5_DIGEST *md5sum);
 
 EC_BOOL crfsc_file_mod_node(const UINT32 crfsc_md_id, const CSTRING *file_path, MOD_NODE *mod_node);
 
@@ -353,47 +285,6 @@ EC_BOOL crfsc_rollback_dt(const UINT32 crfsc_md_id);
 EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id);
 EC_BOOL crfsc_load_dt(const UINT32 crfsc_md_id);
 void    crfsc_print_dt(const UINT32 crfsc_md_id, LOG *log);
-
-/**
-*
-*  transfer dir prepare based on consistency hash table
-*
-**/
-EC_BOOL crfsc_trans_dir_pre_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfsc_trans_dir_pre(const UINT32 crfsc_md_id, const CSTRING *dir_path);
-
-/**
-*
-*  transfer dir handle based on consistency hash table
-*
-**/
-EC_BOOL crfsc_trans_dir_handle_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfsc_trans_dir_handle(const UINT32 crfsc_md_id, const CSTRING *dir_path);
-
-/**
-*
-*  transfer dir post clean based on consistency hash table
-*
-**/
-EC_BOOL crfsc_trans_dir_post_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfsc_trans_dir_post(const UINT32 crfsc_md_id, const CSTRING *dir_path);
-
-/**
-*
-*  transfer dir recycle based on consistency hash table
-*
-**/
-EC_BOOL crfsc_trans_dir_recycle_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfsc_trans_dir_recycle(const UINT32 crfsc_md_id, const CSTRING *dir_path);
-
-
-/**
-*
-*  transfer dir based on consistency hash table
-*
-**/
-EC_BOOL crfsc_trans_dir_whole_ep(const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfsc_trans_dir_whole(const UINT32 crfsc_md_id, const CSTRING *dir_path);
 
 EC_BOOL crfsc_rdlock(const UINT32 crfsc_md_id, const UINT32 location);
 EC_BOOL crfsc_wrlock(const UINT32 crfsc_md_id, const UINT32 location);

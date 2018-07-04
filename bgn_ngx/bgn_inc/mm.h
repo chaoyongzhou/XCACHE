@@ -198,7 +198,7 @@ extern "C"{
 #define                   MM_CRFSNP_ITEM    ((UINT32)134)
 #define                        MM_CRFSNP    ((UINT32)135)
 #define                    MM_CRFSNP_MGR    ((UINT32)136)
-#define                  MM_CRFSNP_BNODE    ((UINT32)137)
+#define                     MM_XXXXXX_01    ((UINT32)137)
 #define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
 
 #define                  MM_CHFSNP_FNODE    ((UINT32)139)
@@ -225,7 +225,7 @@ extern "C"{
 #define                   MM_CRFSCONHASH    ((UINT32)157)
 #define             MM_CRFSCONHASH_RNODE    ((UINT32)158)
 #define             MM_CRFSCONHASH_VNODE    ((UINT32)159)
-#define             MM_CRFSNP_TRANS_NODE    ((UINT32)160)
+#define                     MM_XXXXXX_02    ((UINT32)160)
 #define                MM_CRFSCHTTP_NODE    ((UINT32)161)
 #define                   MM_CEXPAT_ATTR    ((UINT32)162)
 #define                   MM_CEXPAT_NODE    ((UINT32)163)

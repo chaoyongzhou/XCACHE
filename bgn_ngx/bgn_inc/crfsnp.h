@@ -88,20 +88,6 @@ EC_BOOL crfsnp_dnode_free(CRFSNP_DNODE *crfsnp_dnode);
 
 EC_BOOL crfsnp_dnode_clone(const CRFSNP_DNODE *crfsnp_dnode_src, CRFSNP_DNODE *crfsnp_dnode_des);
 
-CRFSNP_BNODE *crfsnp_bnode_new();
-
-EC_BOOL crfsnp_bnode_init(CRFSNP_BNODE *crfsnp_bnode);
-
-EC_BOOL crfsnp_bnode_clean(CRFSNP_BNODE *crfsnp_bnode);
-
-EC_BOOL crfsnp_bnode_free(CRFSNP_BNODE *crfsnp_bnode);
-
-EC_BOOL crfsnp_bnode_clone(const CRFSNP_BNODE *crfsnp_bnode_src, CRFSNP_BNODE *crfsnp_bnode_des);
-
-void crfsnp_bnode_print_all(LOG *log, const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode);
-
-void crfsnp_bnode_print(LOG *log, const CRFSNP_BNODE *crfsnp_bnode);
-
 CRFSNP_ITEM *crfsnp_item_new();
 
 EC_BOOL crfsnp_item_init(CRFSNP_ITEM *crfsnp_item);
@@ -177,17 +163,6 @@ EC_BOOL crfsnp_dnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_d
 
 EC_BOOL crfsnp_dnode_delete_dir_single_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item_del);
 
-CRFSNP_ITEM *crfsnp_bnode_find(const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
-
-uint32_t crfsnp_bnode_search(const CRFSNP *crfsnp, const CRFSNP_BNODE *crfsnp_bnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
-
-uint32_t crfsnp_bnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const uint32_t path_seg_second_hash, const uint32_t path_seg_len, const uint8_t *path_seg, const uint32_t dir_flag);
-
-/*delete one dir son, not including crfsnp_bnode itself*/
-EC_BOOL crfsnp_bnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
-
-EC_BOOL crfsnp_bnode_delete_single_son(const CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item_del);
-
 uint32_t crfsnp_match_no_lock(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 uint32_t crfsnp_match(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
@@ -218,10 +193,6 @@ EC_BOOL crfsnp_dnode_update(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-EC_BOOL crfsnp_bnode_update(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode,
-                                   const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
-                                   const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
-
 EC_BOOL crfsnp_item_update(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
@@ -234,13 +205,9 @@ EC_BOOL crfsnp_bucket_expire(CRFSNP *crfsnp, const uint32_t node_pos);
 
 EC_BOOL crfsnp_dnode_expire(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode);
 
-EC_BOOL crfsnp_bnode_expire(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode);
-
 EC_BOOL crfsnp_item_expire(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item);
 
 EC_BOOL crfsnp_bucket_walk(CRFSNP *crfsnp, const uint32_t node_pos, CRFSNP_DIT_NODE *crfsnp_dit_node);
-
-EC_BOOL crfsnp_bnode_walk(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_DIT_NODE *crfsnp_dit_node);
 
 EC_BOOL crfsnp_dnode_walk(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_DIT_NODE *crfsnp_dit_node);
 
@@ -276,20 +243,10 @@ EC_BOOL crfsnp_recycle_dnode(CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, const u
 
 EC_BOOL crfsnp_recycle_item_dir(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
 
-EC_BOOL crfsnp_recycle_item_file_b(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
-
-EC_BOOL crfsnp_recycle_bnode_item(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
-
-EC_BOOL crfsnp_recycle_bnode(CRFSNP *crfsnp, CRFSNP_BNODE *crfsnp_bnode, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
-
-EC_BOOL crfsnp_recycle_item_b(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
-
 /*note: this interface is for that crfsnp_item had umounted from parent, not need to update parent info*/
 EC_BOOL crfsnp_recycle_item(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
 
 EC_BOOL crfsnp_recycle(CRFSNP *crfsnp, const UINT32 max_num, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn, UINT32 *complete_num);
-
-void crfsnp_make_b_seg_key(const uint32_t seg_no, uint8_t *key, const uint32_t key_max_len, uint32_t *klen);
 
 EC_BOOL crfsnp_path_name(const CRFSNP *crfsnp, const uint32_t node_pos, const uint32_t path_max_len, uint32_t *path_len, uint8_t *path);
 
@@ -307,13 +264,9 @@ EC_BOOL crfsnp_file_num(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *
 
 EC_BOOL crfsnp_file_size(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, uint64_t *file_size);
 
-EC_BOOL crfsnp_store_size_b(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, uint64_t *store_size);
-
 EC_BOOL crfsnp_mkdirs(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path);
 
 EC_BOOL crfsnp_file_md5sum(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, CMD5_DIGEST *md5sum);
-
-EC_BOOL crfsnp_file_md5sum_b(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t seg_no, CMD5_DIGEST *md5sum);
 
 CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id);
 
@@ -352,59 +305,6 @@ CRFSNP *crfsnp_mem_create(const uint32_t np_id, const uint8_t np_model, const ui
 EC_BOOL crfsnp_mem_clean(CRFSNP *crfsnp);
 
 EC_BOOL crfsnp_mem_free(CRFSNP *crfsnp);
-
-/*------------------------------------------------ transfer node -----------------------------------------*/
-CRFSNP_TRANS_NODE *crfsnp_trans_node_new();
-
-EC_BOOL crfsnp_trans_node_init(CRFSNP_TRANS_NODE *crfsnp_trans_node);
-
-EC_BOOL crfsnp_trans_node_clean(CRFSNP_TRANS_NODE *crfsnp_trans_node);
-
-EC_BOOL crfsnp_trans_node_free(CRFSNP_TRANS_NODE *crfsnp_trans_node);
-
-void crfsnp_trans_node_print(LOG *log, const CRFSNP_TRANS_NODE *crfsnp_trans_node);
-
-CRFSNP_TRANS_NODE *crfsnp_trans_node_make(const uint32_t node_pos, const UINT32 len);
-
-/*------------------------------------------------ transfer prepare -----------------------------------------*/
-EC_BOOL crfsnp_transfer_pre_item_file(CRFSNP *crfsnp, const uint32_t node_pos, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_transfer_pre_item_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_transfer_pre_item_dir(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_transfer_pre_dnode_item(CRFSNP *crfsnp, const uint32_t node_pos, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_transfer_pre_dnode(CRFSNP *crfsnp, const uint32_t node_pos, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_transfer_pre(CRFSNP *crfsnp, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-/*------------------------------------------------ transfer handle -----------------------------------------*/
-EC_BOOL crfsnp_transfer_handle_file(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec);
-
-EC_BOOL crfsnp_transfer_handle_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_handle_item_dir(CRFSNP *crfsnp, const uint32_t node_pos, const uint32_t dflag, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec);
-
-EC_BOOL crfsnp_transfer_handle_dnode_item(CRFSNP *crfsnp, const uint32_t node_pos, const uint32_t dflag, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec);
-
-EC_BOOL crfsnp_transfer_handle_dnode(CRFSNP *crfsnp, const uint32_t node_pos, const uint32_t dflag, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn, TASK_MGR *task_mgr, CVECTOR *crfsnp_trans_node_vec);
-
-EC_BOOL crfsnp_transfer_handle(CRFSNP *crfsnp, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-/*------------------------------------------------ transfer post clean -----------------------------------------*/
-EC_BOOL crfsnp_transfer_post_file(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_post_file_b(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_post_item_dir(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_post_dnode_item(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_post_dnode(CRFSNP *crfsnp, const uint32_t node_pos, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_transfer_post(CRFSNP *crfsnp, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
 
 #endif/* _CRFSNP_H */
 

@@ -272,8 +272,6 @@ EC_BOOL crfschttp_make_getrgf_response(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_make_getsmf_response(CRFSCHTTP_NODE *crfschttp_node);
 
-EC_BOOL crfschttp_make_getbgf_response(CRFSCHTTP_NODE *crfschttp_node);
-
 EC_BOOL crfschttp_make_dsmf_response(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_make_ddir_response(CRFSCHTTP_NODE *crfschttp_node);
@@ -298,8 +296,6 @@ EC_BOOL crfschttp_handle_getrgf_request(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_handle_getsmf_request(CRFSCHTTP_NODE *crfschttp_node);
 
-EC_BOOL crfschttp_handle_getbgf_request(CRFSCHTTP_NODE *crfschttp_node);
-
 EC_BOOL crfschttp_handle_dsmf_request(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_handle_ddir_request(CRFSCHTTP_NODE *crfschttp_node);
@@ -313,8 +309,6 @@ EC_BOOL crfschttp_commit_post_response(CRFSCHTTP_NODE *crfschttp_node);
 EC_BOOL crfschttp_commit_getrgf_response(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_commit_getsmf_response(CRFSCHTTP_NODE *crfschttp_node);
-
-EC_BOOL crfschttp_commit_getbgf_response(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_commit_dsmf_response(CRFSCHTTP_NODE *crfschttp_node);
 
@@ -336,8 +330,6 @@ EC_BOOL crfschttp_commit_getrgf_request(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_commit_getsmf_request(CRFSCHTTP_NODE *crfschttp_node);
 
-EC_BOOL crfschttp_commit_getbgf_request(CRFSCHTTP_NODE *crfschttp_node);
-
 EC_BOOL crfschttp_commit_dsmf_request(CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_commit_ddir_request(CRFSCHTTP_NODE *crfschttp_node);
@@ -351,8 +343,6 @@ EC_BOOL crfschttp_is_http_get(const CRFSCHTTP_NODE *crfschttp_node);
 EC_BOOL crfschttp_is_http_getrgf(const CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_is_http_getsmf(const CRFSCHTTP_NODE *crfschttp_node);
-
-EC_BOOL crfschttp_is_http_getbgf(const CRFSCHTTP_NODE *crfschttp_node);
 
 EC_BOOL crfschttp_is_http_dsmf(const CRFSCHTTP_NODE *crfschttp_node);
 

@@ -144,8 +144,6 @@ EC_BOOL crfsnp_mgr_find_dir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *dir_path);
 
 EC_BOOL crfsnp_mgr_find_file(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
 
-EC_BOOL crfsnp_mgr_find_file_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
-
 EC_BOOL crfsnp_mgr_find(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
 CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
@@ -159,10 +157,6 @@ EC_BOOL crfsnp_mgr_write(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const
 EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode);
 
 EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const CRFSNP_FNODE *crfsnp_fnode);
-
-EC_BOOL crfsnp_mgr_write_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const uint64_t *file_size, UINT32 (*hash_func)(const UINT32, const UINT8 *));
-
-EC_BOOL crfsnp_mgr_read_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, uint32_t *crfsnp_id, uint32_t *parent_pos);
 
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
@@ -202,11 +196,7 @@ EC_BOOL crfsnp_mgr_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const 
 
 EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *path_cstr, const uint32_t dflag, CRFSNP_DIT_NODE *crfsnp_dit_node);
 
-EC_BOOL crfsnp_mgr_store_size_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *store_size);
-
 EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CMD5_DIGEST *md5sum);
-
-EC_BOOL crfsnp_mgr_file_md5sum_b(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const uint32_t seg_no, CMD5_DIGEST *md5sum);
 
 EC_BOOL crfsnp_mgr_show_cached_np(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
 
@@ -217,12 +207,6 @@ EC_BOOL crfsnp_mgr_show_path(LOG *log, CRFSNP_MGR *crfsnp_mgr, const CSTRING *pa
 EC_BOOL crfsnp_mgr_get_first_fname_of_path(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *path, CSTRING *fname, uint32_t *dflag);
 
 EC_BOOL crfsnp_mgr_recycle_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const UINT32 max_num, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn, UINT32 *complete_num);
-
-EC_BOOL crfsnp_mgr_transfer_pre_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-
-EC_BOOL crfsnp_mgr_transfer_handle_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
-
-EC_BOOL crfsnp_mgr_transfer_post_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode, const CRFSNP_TRANS_DN *crfsnp_trans_dn);
 
 EC_BOOL crfsnp_mgr_rdlock(CRFSNP_MGR *crfsnp_mgr, const UINT32 location);
 

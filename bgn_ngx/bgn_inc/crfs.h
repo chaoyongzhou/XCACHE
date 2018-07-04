@@ -378,13 +378,6 @@ EC_BOOL crfs_find_file(const UINT32 crfs_md_id, const CSTRING *file_path);
 
 /**
 *
-*  check existing of a big file
-*
-**/
-EC_BOOL crfs_find_file_b(const UINT32 crfs_md_id, const CSTRING *file_path);
-
-/**
-*
 *  check existing of a file or a dir
 *
 **/
@@ -512,34 +505,6 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
 *
 **/
 EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
-
-/**
-*
-*  create a big file at offset
-*
-**/
-EC_BOOL crfs_create_b(const UINT32 crfs_md_id, const CSTRING *file_path, const uint64_t *file_size);
-
-/**
-*
-*  write a big file at offset
-*
-**/
-EC_BOOL crfs_write_b(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const CBYTES *cbytes);
-
-/**
-*
-*  read a file from offset
-*
-**/
-EC_BOOL crfs_read_b(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const UINT32 max_len, CBYTES *cbytes);
-
-/**
-*
-*  fetch block description from offset
-*
-**/
-EC_BOOL crfs_fetch_block_fd_b(const UINT32 crfs_md_id, const CSTRING *file_path, const uint64_t offset, uint32_t *block_size, int *block_fd);
 
 /**
 *
@@ -697,15 +662,6 @@ EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path);
 
 /**
 *
-*  delete a big file
-*
-**/
-EC_BOOL crfs_delete_file_b(const UINT32 crfs_md_id, const CSTRING *path);
-EC_BOOL crfs_delete_file_b_no_lock(const UINT32 crfs_md_id, const CSTRING *path);
-EC_BOOL crfs_delete_file_b_wildcard(const UINT32 crfs_md_id, const CSTRING *path);
-
-/**
-*
 *  delete a dir from all npp and all dn
 *
 **/
@@ -836,24 +792,10 @@ EC_BOOL crfs_dir_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr);
 
 /**
 *
-*  get big file store size of specific file given full path name
-*
-**/
-EC_BOOL crfs_store_size_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, uint64_t *store_size);
-
-/**
-*
 *  get file md5sum of specific file given full path name
 *
 **/
 EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5_DIGEST *md5sum);
-
-/**
-*
-*  get a seg md5sum of specific bigfile given full path name
-*
-**/
-EC_BOOL crfs_file_md5sum_b(const UINT32 crfs_md_id, const CSTRING *path_cstr, const UINT32 seg_no, CMD5_DIGEST *md5sum);
 
 /**
 *
@@ -1010,8 +952,6 @@ EC_BOOL crfs_retire(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 exp
 
 EC_BOOL crfs_retire_file(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
 
-EC_BOOL crfs_retire_file_b(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
-
 EC_BOOL crfs_retire_dir(const UINT32 crfs_md_id, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
 
 EC_BOOL crfs_write_r(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 replica_num);
@@ -1022,38 +962,7 @@ EC_BOOL crfs_delete_r(const UINT32 crfs_md_id, const CSTRING *path, const UINT32
 
 EC_BOOL crfs_renew_r(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 replica_num);
 
-EC_BOOL crfs_write_b_r(const UINT32 crfs_md_id, const CSTRING *file_path, uint64_t *offset, const CBYTES *cbytes, const UINT32 replica_num);
-
-EC_BOOL crfs_np_snapshot(const UINT32 crfs_md_id, const UINT32 crfsnp_id, const CSTRING *des_path);
-
-EC_BOOL crfs_npp_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path);
-
-EC_BOOL crfs_disk_snapshot(const UINT32 crfs_md_id, const UINT32 disk_no, const CSTRING *des_path);
-
-EC_BOOL crfs_dn_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path);
-
-EC_BOOL crfs_vol_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path);
-
-EC_BOOL crfs_all_snapshot(const UINT32 crfs_md_id, const CSTRING *des_path);
-
-EC_BOOL crfs_start_sync(const UINT32 crfs_md_id);
-
-EC_BOOL crfs_end_sync(const UINT32 crfs_md_id);
-
 EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log);
-
-EC_BOOL crfs_replay(const UINT32 crfs_md_id);
-
-/**
-*
-*  transfer files from one RFS to another RFS based on file name hash value in consistency hash table
-*
-**/
-EC_BOOL crfs_transfer(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfs_transfer_pre(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfs_transfer_handle(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfs_transfer_post(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
-EC_BOOL crfs_transfer_recycle(const UINT32 crfs_md_id, const UINT32 crfsc_md_id, const CSTRING *dir_path, const CRFSDT_PNODE *crfsdt_pnode);
 
 EC_BOOL crfs_rdlock(const UINT32 crfs_md_id, const UINT32 location);
 EC_BOOL crfs_wrlock(const UINT32 crfs_md_id, const UINT32 location);

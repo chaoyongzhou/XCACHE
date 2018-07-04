@@ -156,14 +156,8 @@ STATIC_CAST static const char *__crfsop_op_type(const uint16_t crfs_op)
         case CRFSOP_WR_REG_OP:
             return (const char *)"WR_REG";
 
-        case CRFSOP_WR_BIG_OP:
-            return (const char *)"WR_BIG";
-
         case CRFSOP_RM_REG_OP:
             return (const char *)"RM_REG";
-
-        case CRFSOP_RM_BIG_OP:
-            return (const char *)"RM_BIG";
 
         case CRFSOP_RM_DIR_OP:
             return (const char *)"RM_DIR";
@@ -191,9 +185,6 @@ STATIC_CAST static const char *__crfsop_path_type(const uint16_t path_type)
     {
         case CRFSOP_PATH_IS_REG:
             return (const char *)"REG";
-
-        case CRFSOP_PATH_IS_BIG:
-            return (const char *)"BIG";
 
         case CRFSOP_PATH_IS_DIR:
             return (const char *)"DIR";
@@ -967,27 +958,6 @@ EC_BOOL crfsbk_read_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_
     return (EC_FALSE);
 }
 
-EC_BOOL crfsbk_read_np_b_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, CRFSNP_FNODE *crfsnp_fnode)
-{
-    CRFSNP *crfsnp;
-
-    uint32_t node_pos;
-
-    crfsnp = CRFSBK_NP(crfsbk);
-
-    node_pos = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_BIG);
-    if(CRFSNPRB_ERR_POS != node_pos)
-    {
-        CRFSNP_ITEM *crfsnp_item;
-
-        crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
-        crfsnp_fnode_import(CRFSNP_ITEM_FNODE(crfsnp_item), crfsnp_fnode);
-
-        return (EC_TRUE);
-    }
-    return (EC_FALSE);
-}
-
 EC_BOOL crfsbk_read_dn_no_lock(CRFSBK *crfsbk, const CRFSNP_FNODE *crfsnp_fnode, CBYTES *cbytes)
 {
     const CRFSNP_INODE *crfsnp_inode;
@@ -1146,36 +1116,6 @@ EC_BOOL crfsbk_remove_file_wildcard(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_remove_file_b(CRFSBK *crfsbk, const CSTRING *path)
-{
-    if(EC_FALSE == crfsnp_umount(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_BIG))
-    {
-        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_file_b: umount %.*s failed\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_file_b: umount %.*s done\n",
-                        (uint32_t)cstring_get_len(path), cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsbk_remove_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path)
-{
-    if(EC_FALSE == crfsnp_umount_wildcard(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_BIG))
-    {
-        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_remove_file_b_wildcard: umount %.*s failed\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_remove_file_b_wildcard: umount %.*s done\n",
-                        (uint32_t)cstring_get_len(path), cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfsbk_remove_dir(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsnp_umount(CRFSBK_NP(crfsbk), (uint32_t)cstring_get_len(path), cstring_get_str(path), CRFSNP_ITEM_FILE_IS_DIR))
@@ -1213,11 +1153,6 @@ EC_BOOL crfsbk_remove(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
         return crfsbk_remove_file(crfsbk, path);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
-    {
-        return crfsbk_remove_file_b(crfsbk, path);
-    }
-
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
         return crfsbk_remove_dir(crfsbk, path);
@@ -1226,11 +1161,6 @@ EC_BOOL crfsbk_remove(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
     if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
     {
         if(EC_TRUE == crfsbk_remove_file(crfsbk, path))
-        {
-            return (EC_TRUE);
-        }
-
-        if(EC_TRUE == crfsbk_remove_file_b(crfsbk, path))
         {
             return (EC_TRUE);
         }
@@ -1255,11 +1185,6 @@ EC_BOOL crfsbk_remove_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
         return crfsbk_remove_file_wildcard(crfsbk, path);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
-    {
-        return crfsbk_remove_file_b_wildcard(crfsbk, path);
-    }
-
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
         return crfsbk_remove_dir_wildcard(crfsbk, path);
@@ -1268,11 +1193,6 @@ EC_BOOL crfsbk_remove_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
     if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
     {
         if(EC_TRUE == crfsbk_remove_file_wildcard(crfsbk, path))
-        {
-            return (EC_TRUE);
-        }
-
-        if(EC_TRUE == crfsbk_remove_file_b_wildcard(crfsbk, path))
         {
             return (EC_TRUE);
         }
@@ -1324,40 +1244,6 @@ EC_BOOL crfsbk_delete_file_wildcard(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_delete_file_b(CRFSBK *crfsbk, const CSTRING *path)
-{
-    if(EC_FALSE == crfsbk_remove_file_b(crfsbk, path))
-    {
-        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_file_b: delete %.*s failed\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_BIG_OP, CRFSOP_PATH_IS_BIG, path);
-
-    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_file_b: delete %.*s done\n",
-                        (uint32_t)cstring_get_len(path), cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsbk_delete_file_b_wildcard(CRFSBK *crfsbk, const CSTRING *path)
-{
-    if(EC_FALSE == crfsbk_remove_file_b_wildcard(crfsbk, path))
-    {
-        dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_delete_file_b_wildcard: delete %.*s failed\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    crfsoprec_push(CRFSBK_OP_REC(crfsbk), CRFSOP_RM_BIG_OP, CRFSOP_PATH_IS_BIG, path);
-
-    dbg_log(SEC_0141_CRFSBK, 9)(LOGSTDOUT, "[DEBUG] crfsbk_delete_file_b_wildcard: delete %.*s done\n",
-                        (uint32_t)cstring_get_len(path), cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfsbk_delete_dir(CRFSBK *crfsbk, const CSTRING *path)
 {
     if(EC_FALSE == crfsbk_remove_dir(crfsbk, path))
@@ -1399,11 +1285,6 @@ EC_BOOL crfsbk_delete(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
         return crfsbk_delete_file(crfsbk, path);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
-    {
-        return crfsbk_delete_file_b(crfsbk, path);
-    }
-
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
         return crfsbk_delete_dir(crfsbk, path);
@@ -1412,11 +1293,6 @@ EC_BOOL crfsbk_delete(CRFSBK *crfsbk, const CSTRING *path, const UINT32 dflag)
     if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
     {
         if(EC_TRUE == crfsbk_delete_file(crfsbk, path))
-        {
-            return (EC_TRUE);
-        }
-
-        if(EC_TRUE == crfsbk_delete_file_b(crfsbk, path))
         {
             return (EC_TRUE);
         }
@@ -1441,11 +1317,6 @@ EC_BOOL crfsbk_delete_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
         return crfsbk_delete_file_wildcard(crfsbk, path);
     }
 
-    if(CRFSNP_ITEM_FILE_IS_BIG == dflag)
-    {
-        return crfsbk_delete_file_b_wildcard(crfsbk, path);
-    }
-
     if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
     {
         return crfsbk_delete_dir_wildcard(crfsbk, path);
@@ -1454,11 +1325,6 @@ EC_BOOL crfsbk_delete_wildcard(CRFSBK *crfsbk, const CSTRING *path, const UINT32
     if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
     {
         if(EC_TRUE == crfsbk_delete_file_wildcard(crfsbk, path))
-        {
-            return (EC_TRUE);
-        }
-
-        if(EC_TRUE == crfsbk_delete_file_b_wildcard(crfsbk, path))
         {
             return (EC_TRUE);
         }
@@ -1694,12 +1560,6 @@ EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL crfsbk_replay_file_b(CRFSBK *crfsbk, const CSTRING *path)
-{
-    dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_replay_file_b: not support replay big file yet\n");
-    return (EC_FALSE);
-}
-
 EC_BOOL crfsbk_replay_rm_dir_op(CRFSBK *crfsbk, CRFSOP *crfsop)
 {
     CSTRING *path;
@@ -1764,22 +1624,6 @@ EC_BOOL crfsbk_replay_rm_dir_op(CRFSBK *crfsbk, CRFSOP *crfsop)
         return (EC_TRUE);
     }
 
-    if(CRFSOP_WR_BIG_OP & CRFSOP_OP_TYPE(crfsop))
-    {
-        uint32_t  node_pos;
-
-        node_pos = crfsnp_search(CRFSBK_NP(crfsbk),
-                                 cstring_get_len(path),
-                                 cstring_get_str(path),
-                                 CRFSNP_ITEM_FILE_IS_BIG);
-
-        if(CRFSNPRB_ERR_POS != node_pos)
-        {
-            return crfsbk_replay_file_b(crfsbk, path);
-        }
-        /*fall through*/
-    }
-
     if(CRFSOP_WR_REG_OP & CRFSOP_OP_TYPE(crfsop))
     {
         uint32_t  node_pos;
@@ -1797,14 +1641,6 @@ EC_BOOL crfsbk_replay_rm_dir_op(CRFSBK *crfsbk, CRFSOP *crfsop)
     }
 
     return (EC_TRUE);
-}
-
-EC_BOOL crfsbk_replay_rm_big_op(CRFSBK *crfsbk, CRFSOP *crfsop)
-{
-    /*when reach here, no RM_DIR op*/
-
-    dbg_log(SEC_0141_CRFSBK, 0)(LOGSTDOUT, "error:crfsbk_replay_rm_big_op: not support replay RM_BIG op yet\n");
-    return (EC_FALSE);
 }
 
 EC_BOOL crfsbk_replay_rm_reg_op(CRFSBK *crfsbk, CRFSOP *crfsop)
@@ -1851,17 +1687,6 @@ EC_BOOL crfsbk_replay_wr_reg_op(CRFSBK *crfsbk, CRFSOP *crfsop)
     return crfsbk_replay_file(crfsbk, path);
 }
 
-EC_BOOL crfsbk_replay_wr_big_op(CRFSBK *crfsbk, CRFSOP *crfsop)
-{
-    CSTRING *path;
-
-    /*when reach here, no RM_DIR/RM_BIG op*/
-
-    path = CRFSOP_PATH_NAME(crfsop);
-
-    return crfsbk_replay_file_b(crfsbk, path);
-}
-
 EC_BOOL crfsbk_replay_one(CRFSBK *crfsbk, CRFSOP *crfsop)
 {
     /*WARNING: DO NOT CHANGE BELOW "IF" ORDER!!!*/
@@ -1871,19 +1696,9 @@ EC_BOOL crfsbk_replay_one(CRFSBK *crfsbk, CRFSOP *crfsop)
         return crfsbk_replay_rm_dir_op(crfsbk, crfsop);
     }
 
-    if(CRFSOP_RM_BIG_OP & CRFSOP_OP_TYPE(crfsop))
-    {
-        return crfsbk_replay_rm_big_op(crfsbk, crfsop);
-    }
-
     if(CRFSOP_RM_REG_OP & CRFSOP_OP_TYPE(crfsop))
     {
         return crfsbk_replay_rm_reg_op(crfsbk, crfsop);
-    }
-
-    if(CRFSOP_WR_BIG_OP & CRFSOP_OP_TYPE(crfsop))
-    {
-        return crfsbk_replay_wr_big_op(crfsbk, crfsop);
     }
 
     if(CRFSOP_WR_REG_OP & CRFSOP_OP_TYPE(crfsop))
