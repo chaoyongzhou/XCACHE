@@ -3523,7 +3523,8 @@ EC_BOOL cflv_content_direct_header_out_length_filter(const UINT32 cflv_md_id)
     }
 
     if(BIT_TRUE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md)
-    && BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
+    && BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md)
+    && EC_TRUE == crange_mgr_is_empty(CFLV_MD_CNGX_RANGE_MGR(cflv_md)))
     {
         if(EC_FALSE == cflv_get_rsp_length_segs(cflv_md_id, CFLV_MD_CACHE_SEG_SIZE(cflv_md)))
         {
@@ -5186,7 +5187,8 @@ EC_BOOL cflv_content_repair_header_out_length_filter(const UINT32 cflv_md_id)
     }
 
     if(BIT_TRUE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md)
-    && BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
+    && BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md)
+    && EC_TRUE == crange_mgr_is_empty(CFLV_MD_CNGX_RANGE_MGR(cflv_md)))
     {
         if(EC_FALSE == cflv_get_rsp_length_segs(cflv_md_id, CFLV_MD_CACHE_SEG_SIZE(cflv_md)))
         {

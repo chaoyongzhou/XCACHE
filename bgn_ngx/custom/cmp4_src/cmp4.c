@@ -3859,7 +3859,8 @@ EC_BOOL cmp4_content_direct_header_out_length_filter(const UINT32 cmp4_md_id)
     }
 
     if(BIT_TRUE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md)
-    && BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md))
+    && BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md)
+    && EC_TRUE == crange_mgr_is_empty(CMP4_MD_CNGX_RANGE_MGR(cmp4_md)))
     {
         if(EC_FALSE == cmp4_get_rsp_length_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
         {
@@ -5491,7 +5492,8 @@ EC_BOOL cmp4_content_repair2_header_out_length_filter(const UINT32 cmp4_md_id)
     }
 
     if(BIT_TRUE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md)
-    && BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md))
+    && BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md)
+    && EC_TRUE == crange_mgr_is_empty(CMP4_MD_CNGX_RANGE_MGR(cmp4_md)))
     {
         if(EC_FALSE == cmp4_get_rsp_length_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
         {

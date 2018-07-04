@@ -5597,8 +5597,8 @@ EC_BOOL chttp_rsp_is_aged(const CHTTP_RSP *chttp_rsp, const uint32_t max_age)
     if(curtime < datetime)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_rsp_is_aged: "
-                                              "curtime '%d' < date '%d'\n",
-                                              (uint32_t)curtime, (uint32_t)datetime);
+                                              "curtime '%d' < date '%d' (%s)\n",
+                                              (uint32_t)curtime, (uint32_t)datetime, v);
         return (EC_FALSE);
     }
 

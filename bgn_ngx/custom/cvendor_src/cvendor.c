@@ -3435,7 +3435,8 @@ EC_BOOL cvendor_content_direct_header_out_length_filter(const UINT32 cvendor_md_
     }
 
     if(BIT_TRUE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)
-    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)
+    && EC_TRUE == crange_mgr_is_empty(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
     {
         if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
         {
@@ -5067,7 +5068,8 @@ EC_BOOL cvendor_content_repair_header_out_length_filter(const UINT32 cvendor_md_
     }
 
     if(BIT_TRUE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md)
-    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
+    && BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md)
+    && EC_TRUE == crange_mgr_is_empty(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)))
     {
         if(EC_FALSE == cvendor_get_rsp_length_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
         {

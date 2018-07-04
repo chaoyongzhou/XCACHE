@@ -134,6 +134,7 @@ typedef UINT8 UUID[16];
 #define ASSERT(condition) do{\
     if(!(condition)) {\
         sys_log(LOGSTDOUT, "error: assert failed at %s:%d\n", __FILE__, __LINE__);\
+        c_backtrace_dump(LOGSTDOUT);\
         exit(EXIT_FAILURE);\
     }\
 }while(0)
