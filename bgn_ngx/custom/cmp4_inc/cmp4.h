@@ -231,8 +231,6 @@ EC_BOOL cmp4_content_head_header_out_connection_filter(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_head_header_out_filter(const UINT32 cmp4_md_id);
 
-EC_BOOL cmp4_content_head_body_out_filter(const UINT32 cmp4_md_id);
-
 EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_head_send_response(const UINT32 cmp4_md_id);

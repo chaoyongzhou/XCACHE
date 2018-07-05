@@ -1975,12 +1975,20 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
         chttp_req_clean(&chttp_req_t);
     }
 
+    /*parse 'Range' in cngx http req header*/
+    if(EC_FALSE == cvendor_get_req_range_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_handler: "
+                                                "get Range from cngx req failed\n");
+        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0008);
+        return (EC_FALSE);
+    }
+    
     if(EC_TRUE == cngx_is_direct_orig_switch_on(r))
     {
         /*direct procedure to orig server*/
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
                                                 "direct orig switch on => direct procedure\n");
-
 
         if(EC_TRUE == cvendor_content_direct_procedure(cvendor_md_id))
         {
@@ -2036,15 +2044,6 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
     }
 
     /*else fall through*/
-
-    /*parse 'Range' in cngx http req header*/
-    if(EC_FALSE == cvendor_get_req_range_segs(cvendor_md_id, CVENDOR_MD_CACHE_SEG_SIZE(cvendor_md)))
-    {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_handler: "
-                                                "get Range from cngx req failed\n");
-        cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0008);
-        return (EC_FALSE);
-    }
 
     /*check gzip header*/
     if(EC_TRUE == cngx_has_header_in(r, (const char *)"Accept-Encoding", (const char *)"gzip"))
@@ -2694,29 +2693,6 @@ EC_BOOL cvendor_content_head_header_out_filter(const UINT32 cvendor_md_id)
                                             "connection filter done\n");
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_out_filter: done\n");
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cvendor_content_head_body_out_filter(const UINT32 cvendor_md_id)
-{
-    //CVENDOR_MD                  *cvendor_md;
-
-    //ngx_http_request_t          *r;
-
-#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
-    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cvendor_content_head_body_out_filter: cvendor module #0x%lx not started.\n",
-                cvendor_md_id);
-        dbg_exit(MD_CVENDOR, cvendor_md_id);
-    }
-#endif/*CVENDOR_DEBUG_SWITCH*/
-
-    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
-
-    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     return (EC_TRUE);
 }
@@ -3532,6 +3508,9 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
         return(EC_FALSE);
     }
 
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                            "filter length done\n");
+
     if(BIT_FALSE == CVENDOR_MD_CNGX_RANGE_EXIST_FLAG(cvendor_md))
     {
         const char                  *k;
@@ -3709,9 +3688,19 @@ EC_BOOL cvendor_content_direct_header_out_filter(const UINT32 cvendor_md_id)
 
     k = (const char *)"direct";
     cvendor_filter_header_out_common(cvendor_md_id, k);
-
+   
     if(BIT_FALSE == CVENDOR_MD_CNGX_DIRECT_IMS_FLAG(cvendor_md))
     {
+        if(EC_FALSE == cvendor_filter_rsp_range(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_out_filter: "
+                                                    "chttp rsp header_in range filter failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CVENDOR_0070);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_filter: "
+                                                "chttp rsp header_in range filter done\n"); 
+                                            
         /*Content-Length and Content-Range*/
         if(EC_FALSE == cvendor_content_direct_header_out_range_filter(cvendor_md_id))
         {
@@ -3827,7 +3816,8 @@ EC_BOOL cvendor_content_direct_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_TRUE;
     }
 
-    if(BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
+    /*note: disable data sending in orig procedure*/
+    if(0 && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
     {
         CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = cvendor_md_id;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = (UINT32)cvendor_content_direct_import_header;

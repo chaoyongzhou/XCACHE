@@ -2396,6 +2396,15 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         chttp_req_clean(&chttp_req_t);
     }
 
+    /*parse 'Range' in cngx http req header*/
+    if(EC_FALSE == cmp4_get_req_range_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: "
+                                             "get Range from cngx req failed\n");
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0011);
+        return (EC_FALSE);
+    }
+    
     if(EC_TRUE == cngx_is_direct_orig_switch_on(r))
     {
         /*direct procedure to orig server*/
@@ -2456,16 +2465,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     }
     /*else fall through*/
 
-    /*parse 'Range' in cngx http req header*/
-    if(EC_FALSE == cmp4_get_req_range_segs(cmp4_md_id, CMP4_MD_CACHE_SEG_SIZE(cmp4_md)))
-    {
-        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: "
-                                             "get Range from cngx req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0011);
-        return (EC_FALSE);
-    }
-
-    /*ppriority: Range > start arg*/
+    /*priority: Range > start arg*/
     if(BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md))
     {
         if(EC_TRUE == cngx_get_mp4_start_length(r, &(CMP4_MD_MP4_START(cmp4_md)),
@@ -3116,29 +3116,6 @@ EC_BOOL cmp4_content_head_header_out_filter(const UINT32 cmp4_md_id)
                                          "connection filter done\n");
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_filter: done\n");
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cmp4_content_head_body_out_filter(const UINT32 cmp4_md_id)
-{
-    //CMP4_MD                     *cmp4_md;
-
-    //ngx_http_request_t          *r;
-
-#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
-    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cmp4_content_head_body_out_filter: cmp4 module #0x%lx not started.\n",
-                cmp4_md_id);
-        dbg_exit(MD_CMP4, cmp4_md_id);
-    }
-#endif/*CMP4_DEBUG_SWITCH*/
-
-    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
-
-    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     return (EC_TRUE);
 }
@@ -3956,6 +3933,9 @@ EC_BOOL cmp4_content_direct_header_out_range_filter(const UINT32 cmp4_md_id)
         return(EC_FALSE);
     }
 
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_range_filter: "
+                                         "filter length done\n");
+
     if(BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md))
     {
         const char                  *k;
@@ -4136,6 +4116,16 @@ EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
 
     if(BIT_FALSE == CMP4_MD_CNGX_DIRECT_IMS_FLAG(cmp4_md))
     {
+        if(EC_FALSE == cmp4_filter_rsp_range(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
+                                                 "chttp rsp header_in range filter failed\n");
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0073);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
+                                             "chttp rsp header_in range filter done\n");
+                                         
         /*Content-Length and Content-Range*/
         if(EC_FALSE == cmp4_content_direct_header_out_range_filter(cmp4_md_id))
         {
@@ -4251,7 +4241,8 @@ EC_BOOL cmp4_content_direct_set_store(const UINT32 cmp4_md_id)
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_TRUE;
     }
 
-    if(BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
+    /*note: disable data sending in orig procedure*/
+    if(0 && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
     {
         CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = cmp4_md_id;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = (UINT32)cmp4_content_direct_import_header;

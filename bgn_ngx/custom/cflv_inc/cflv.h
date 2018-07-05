@@ -217,8 +217,6 @@ EC_BOOL cflv_content_head_header_out_connection_filter(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_head_header_out_filter(const UINT32 cflv_md_id);
 
-EC_BOOL cflv_content_head_body_out_filter(const UINT32 cflv_md_id);
-
 EC_BOOL cflv_content_head_send_request(const UINT32 cflv_md_id);
 
 EC_BOOL cflv_content_head_send_response(const UINT32 cflv_md_id);

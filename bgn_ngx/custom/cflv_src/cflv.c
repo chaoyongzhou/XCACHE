@@ -2063,6 +2063,15 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         chttp_req_clean(&chttp_req_t);
     }
 
+    /*parse 'Range' in cngx http req header*/
+    if(EC_FALSE == cflv_get_req_range_segs(cflv_md_id, CFLV_MD_CACHE_SEG_SIZE(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: "
+                                             "get Range from cngx req failed\n");
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0006);
+        return (EC_FALSE);
+    }
+    
     if(EC_TRUE == cngx_is_direct_orig_switch_on(r))
     {
         /*direct procedure to orig server*/
@@ -2122,15 +2131,6 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         }
     }
     /*else fall through*/
-
-    /*parse 'Range' in cngx http req header*/
-    if(EC_FALSE == cflv_get_req_range_segs(cflv_md_id, CFLV_MD_CACHE_SEG_SIZE(cflv_md)))
-    {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: "
-                                             "get Range from cngx req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0006);
-        return (EC_FALSE);
-    }
 
     /*proority: Range > start arg*/
     if(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
@@ -2780,29 +2780,6 @@ EC_BOOL cflv_content_head_header_out_filter(const UINT32 cflv_md_id)
                                          "connection filter done\n");
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_filter: done\n");
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cflv_content_head_body_out_filter(const UINT32 cflv_md_id)
-{
-    //CFLV_MD                  *cflv_md;
-
-    //ngx_http_request_t          *r;
-
-#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
-    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cflv_content_head_body_out_filter: cflv module #0x%lx not started.\n",
-                cflv_md_id);
-        dbg_exit(MD_CFLV, cflv_md_id);
-    }
-#endif/*CFLV_DEBUG_SWITCH*/
-
-    //cflv_md = CFLV_MD_GET(cflv_md_id);
-
-    //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     return (EC_TRUE);
 }
@@ -3620,6 +3597,9 @@ EC_BOOL cflv_content_direct_header_out_range_filter(const UINT32 cflv_md_id)
         return(EC_FALSE);
     }
 
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_range_filter: "
+                                         "filter length done\n");
+                                         
     if(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md))
     {
         const char                  *k;
@@ -3800,6 +3780,16 @@ EC_BOOL cflv_content_direct_header_out_filter(const UINT32 cflv_md_id)
 
     if(BIT_FALSE == CFLV_MD_CNGX_DIRECT_IMS_FLAG(cflv_md))
     {
+        if(EC_FALSE == cflv_filter_rsp_range(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_out_filter: "
+                                                 "chttp rsp header_in range filter failed\n");
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0068);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: "
+                                             "chttp rsp header_in range filter done\n");
+                                         
         /*Content-Length and Content-Range*/
         if(EC_FALSE == cflv_content_direct_header_out_range_filter(cflv_md_id))
         {
@@ -3915,7 +3905,8 @@ EC_BOOL cflv_content_direct_set_store(const UINT32 cflv_md_id)
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_TRUE;
     }
 
-    if(BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
+    /*note: disable data sending in orig procedure*/
+    if(0 && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
     {
         CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = cflv_md_id;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = (UINT32)cflv_content_direct_import_header;

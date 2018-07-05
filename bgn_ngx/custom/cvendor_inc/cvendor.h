@@ -226,8 +226,6 @@ EC_BOOL cvendor_content_head_header_out_connection_filter(const UINT32 cvendor_m
 
 EC_BOOL cvendor_content_head_header_out_filter(const UINT32 cvendor_md_id);
 
-EC_BOOL cvendor_content_head_body_out_filter(const UINT32 cvendor_md_id);
-
 EC_BOOL cvendor_content_head_send_request(const UINT32 cvendor_md_id);
 
 EC_BOOL cvendor_content_head_send_response(const UINT32 cvendor_md_id);
