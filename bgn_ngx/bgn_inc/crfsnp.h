@@ -142,9 +142,17 @@ EC_BOOL crfsnp_free(CRFSNP *crfsnp);
 
 EC_BOOL crfsnp_is_full(const CRFSNP *crfsnp);
 
+EC_BOOL crfsnp_lru_list_is_empty(const CRFSNP *crfsnp);
+
+EC_BOOL crfsnp_del_list_is_empty(const CRFSNP *crfsnp);
+
 void crfsnp_header_print(LOG *log, const CRFSNP *crfsnp);
 
 void crfsnp_print(LOG *log, const CRFSNP *crfsnp);
+
+void crfsnp_print_lru_list(LOG *log, const CRFSNP *crfsnp);
+
+void crfsnp_print_del_list(LOG *log, const CRFSNP *crfsnp);
 
 CRFSNP_ITEM *crfsnp_dnode_find(const CRFSNP *crfsnp, const CRFSNP_DNODE *crfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 
@@ -221,7 +229,7 @@ EC_BOOL crfsnp_delete(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *pa
 
 EC_BOOL crfsnp_expire(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
-EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const uint32_t dflag, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step, UINT32 *ret_retire_num);
+EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
 EC_BOOL crfsnp_walk(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, CRFSNP_DIT_NODE *crfsnp_dit_node);
 

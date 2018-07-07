@@ -115,11 +115,19 @@ EC_BOOL crfsnp_mgr_flush_db(CRFSNP_MGR *crfsnp_mgr);
 
 void crfsnp_mgr_print_db(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
 
+void crfsnp_mgr_print_lru_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
+
+void crfsnp_mgr_print_del_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
+
 void crfsnp_mgr_print(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
 
 EC_BOOL crfsnp_mgr_load(CRFSNP_MGR *crfsnp_mgr, const CSTRING *crfsnp_db_root_dir);
 
 EC_BOOL crfsnp_mgr_flush(CRFSNP_MGR *crfsnp_mgr);
+
+EC_BOOL crfsnp_mgr_show_np_lru_list(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id);
+
+EC_BOOL crfsnp_mgr_show_np_del_list(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id);
 
 EC_BOOL crfsnp_mgr_show_np(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id);
 
@@ -150,7 +158,7 @@ CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_pat
 
 EC_BOOL crfsnp_mgr_release(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path);
 
-EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const uint32_t dflag, const UINT32 nsec, const UINT32 expect_num, const UINT32 max_step, UINT32 *complete_num);
+EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const UINT32 expect_num, UINT32 *complete_num);
 
 EC_BOOL crfsnp_mgr_write(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const CRFSNP_FNODE *crfsnp_fnode);
 
@@ -199,6 +207,10 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
 EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CMD5_DIGEST *md5sum);
 
 EC_BOOL crfsnp_mgr_show_cached_np(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
+
+EC_BOOL crfsnp_mgr_show_cached_np_lru_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
+
+EC_BOOL crfsnp_mgr_show_cached_np_del_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr);
 
 EC_BOOL crfsnp_mgr_show_path_depth(LOG *log, CRFSNP_MGR *crfsnp_mgr, const CSTRING *path);
 

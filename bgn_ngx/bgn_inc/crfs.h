@@ -46,7 +46,6 @@ extern "C"{
 #define CRFS_BIGFILE_MAX_SIZE               ((uint64_t)(((uint64_t)1) << 46))/*64TB*/
 
 #define CRFS_RECYCLE_MAX_NUM                ((UINT32)~0)
-#define CRFS_RETIRE_MAX_NUM                 ((UINT32)~0)
 
 #define CRFS_ERR_STATE                      ((UINT32)  0)
 #define CRFS_WORK_STATE                     ((UINT32)  1)
@@ -922,6 +921,22 @@ EC_BOOL crfs_show_npp(const UINT32 crfs_md_id, LOG *log);
 
 /**
 *
+*  show name node lru list if it is npp
+*
+*
+**/
+EC_BOOL crfs_show_npp_lru_list(const UINT32 crfs_md_id, LOG *log);
+
+/**
+*
+*  show name node del list if it is npp
+*
+*
+**/
+EC_BOOL crfs_show_npp_del_list(const UINT32 crfs_md_id, LOG *log);
+
+/**
+*
 *  show crfsdn info if it is dn
 *
 *
@@ -940,7 +955,15 @@ void crfs_locked_files_print(const UINT32 crfs_md_id, LOG *log);
 /*debug*/
 EC_BOOL crfs_show_cached_np(const UINT32 crfs_md_id, LOG *log);
 
+EC_BOOL crfs_show_cached_np_lru_list(const UINT32 crfs_md_id, LOG *log);
+
+EC_BOOL crfs_show_cached_np_del_list(const UINT32 crfs_md_id, LOG *log);
+
 EC_BOOL crfs_show_specific_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, LOG *log);
+
+EC_BOOL crfs_show_specific_np_lru_list(const UINT32 crfs_md_id, const UINT32 crfsnp_id, LOG *log);
+
+EC_BOOL crfs_show_specific_np_del_list(const UINT32 crfs_md_id, const UINT32 crfsnp_id, LOG *log); 
 
 EC_BOOL crfs_show_path_depth(const UINT32 crfs_md_id, const CSTRING *path, LOG *log);
 
@@ -948,11 +971,7 @@ EC_BOOL crfs_show_path(const UINT32 crfs_md_id, const CSTRING *path, LOG *log);
 
 EC_BOOL crfs_expire_dn(const UINT32 crfs_md_id);
 
-EC_BOOL crfs_retire(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
-
-EC_BOOL crfs_retire_file(const UINT32 crfs_md_id, const UINT32 nsec, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
-
-EC_BOOL crfs_retire_dir(const UINT32 crfs_md_id, const UINT32 expect_retire_num, const UINT32 max_step_per_loop, UINT32 *complete_retire_num);
+EC_BOOL crfs_retire(const UINT32 crfs_md_id, const UINT32 expect_retire_num, UINT32 *complete_retire_num);
 
 EC_BOOL crfs_write_r(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes, const UINT32 replica_num);
 

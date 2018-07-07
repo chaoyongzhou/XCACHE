@@ -67,6 +67,8 @@ typedef struct
 
     UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
 
+    UINT32    crfsnp_try_retire_max_num     ; /* CRFSNP_TRY_RETIRE_MAX_NUM */
+    UINT32    crfsnp_try_recycle_max_num    ; /* CRFSNP_TRY_RECYCLE_MAX_NUM */
     UINT32    crfs_memc_switch              ; /* CRFS_MEMC_SWITCH */
     uint8_t   rsvd02;
     uint8_t   crfs_memc_np_model;           ;
@@ -163,6 +165,8 @@ typedef struct
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
 #define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)                 ((cparacfg)->ngx_bgn_over_http_switch)
 
+#define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->crfsnp_try_retire_max_num)
+#define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->crfsnp_try_recycle_max_num)
 #define CPARACFG_CRFS_MEMC_SWITCH(cparacfg)                         ((cparacfg)->crfs_memc_switch)
 #define CPARACFG_CRFS_MEMC_NP_MODEL(cparacfg)                       ((cparacfg)->crfs_memc_np_model)
 #define CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM(cparacfg)                 ((cparacfg)->crfs_memc_cpgd_block_num)
@@ -326,6 +330,8 @@ typedef struct
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_DEF                    SWITCH_OFF
 
+#define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
+#define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
 #define CPARACFG_CRFS_MEMC_SWITCH_DEF                            SWITCH_OFF
 #define CPARACFG_CRFS_MEMC_NP_MODEL_DEF                          CRFSNP_512M_MODEL
 #define CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM_DEF                    CPGD_001GB_BLOCK_NUM
@@ -412,6 +418,8 @@ typedef struct
 
 #define    NGX_BGN_OVER_HTTP_SWITCH                      CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH)
 
+#define    CRFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM)
+#define    CRFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM)
 #define    CRFS_MEMC_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_CRFS_MEMC_SWITCH)
 #define    CRFS_MEMC_NP_MODEL                            CPARACFG_DEFAULT_MAP(CPARACFG_CRFS_MEMC_NP_MODEL)
 #define    CRFS_MEMC_CPGD_BLOCK_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM)

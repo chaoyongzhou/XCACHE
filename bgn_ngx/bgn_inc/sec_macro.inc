@@ -78,12 +78,12 @@
 #define SEC_0068_CP2PHTTP                   ((UINT32)(     68)) /*cp2phttp                        */
 #define SEC_0069_CFILE                      ((UINT32)(     69)) /*cfile                           */
 #define SEC_0070_CDETECTN                   ((UINT32)(     70)) /*cdetectn                        */
-#define SEC_0071_XXXXE                      ((UINT32)(     71)) /*xxxxxxxxxxxxxxxxxxxxx           */
+#define SEC_0071_CRFSNPLRU                  ((UINT32)(     71)) /*crfsnplru                       */
 #define SEC_0072_CEPOLL                     ((UINT32)(     72)) /*cepoll                          */
 #define SEC_0073_CHFSNPRB                   ((UINT32)(     73)) /*chfsnprb                        */
 #define SEC_0074_CPGV                       ((UINT32)(     74)) /*cpgv                            */
 #define SEC_0075_CTIMER                     ((UINT32)(     75)) /*ctimer                          */
-#define SEC_0076_XXXXX                      ((UINT32)(     76)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxx    */
+#define SEC_0076_CRFSNPDEL                  ((UINT32)(     76)) /*crfsnpdel                       */
 #define SEC_0077_CSYS                       ((UINT32)(     77)) /*csys                            */
 #define SEC_0078_PRINT                      ((UINT32)(     78)) /*print                           */
 #define SEC_0079_TBD                        ((UINT32)(     79)) /*tbd                             */

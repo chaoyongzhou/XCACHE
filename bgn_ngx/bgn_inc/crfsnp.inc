@@ -35,6 +35,8 @@ extern "C"{
 #include "cstack.h"
 
 #include "crfsnprb.h"
+#include "crfsnplru.inc"
+#include "crfsnpdel.inc"
 
 #define CRFSNP_KEY_MAX_SIZE             ( 255)  /*max len of file or dir seg name*/
 #define CRFSNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
@@ -133,19 +135,25 @@ typedef struct
 
 #define CRFSNP_FNODE_NO_MEM_CACHE_FLAG               ((uint32_t) 0)
 #define CRFSNP_FNODE_HAS_MEM_CACHE_FLAG              ((uint32_t) 1)
-#define CRFSNP_FNODE_PAD_SIZE                        (172)
+#define CRFSNP_FNODE_PAD_SIZE                        (160)
 
 typedef struct
 {
+    /*16B*/
     uint32_t      file_size;    /*data/value length <= 64M = 2^26B*/
     uint32_t      file_replica_num;
     uint32_t      file_path_hash;
+    uint32_t      rsvd;
 
-    CRFSNP_INODE  inodes[ CRFSNP_FILE_REPLICA_MAX_NUM ]; /*8B*/
+    /*8B*/  
+    CRFSNP_INODE  inodes[ CRFSNP_FILE_REPLICA_MAX_NUM ]; 
 
-    uint8_t       md5sum[ CMD5_DIGEST_LEN ];/*16B*/
-    uint8_t       pad[ CRFSNP_FNODE_PAD_SIZE ]; /*172*/
-}CRFSNP_FNODE;/*208B*/
+    /*16B*/
+    uint8_t       md5sum[ CMD5_DIGEST_LEN ];
+
+    /*160B*/
+    uint8_t       pad[ CRFSNP_FNODE_PAD_SIZE ];
+}CRFSNP_FNODE;/*200B*/
 
 #define CRFSNP_FNODE_FILESZ(crfsnp_fnode)        ((crfsnp_fnode)->file_size)
 #define CRFSNP_FNODE_REPNUM(crfsnp_fnode)        ((crfsnp_fnode)->file_replica_num)
@@ -159,23 +167,24 @@ typedef struct
 #define CRFSNP_FNODE_INODE_BLOCK_NO(crfsnp_fnode, idx)   CRFSNP_INODE_BLOCK_NO(CRFSNP_FNODE_INODE(crfsnp_fnode, idx))
 #define CRFSNP_FNODE_INODE_PAGE_NO(crfsnp_fnode, idx)    CRFSNP_INODE_PAGE_NO(CRFSNP_FNODE_INODE(crfsnp_fnode, idx))
 
-#define CRFSNP_DNODE_PAD_SIZE                        (200)
+#define CRFSNP_DNODE_PAD_SIZE                        (192)
 
 typedef struct
 {
     uint32_t       file_num;   /*number of files under this directory*/
     uint32_t       root_pos;   /*dir root pos*/
-    uint8_t        pad[ CRFSNP_DNODE_PAD_SIZE ];/*200B*/
-}CRFSNP_DNODE;/*208B*/
+    uint8_t        pad[ CRFSNP_DNODE_PAD_SIZE ];/*192B*/
+}CRFSNP_DNODE;/*200B*/
 
 #define CRFSNP_DNODE_FILE_NUM(crfsnp_dnode)      ((crfsnp_dnode)->file_num)
 #define CRFSNP_DNODE_ROOT_POS(crfsnp_dnode)      ((crfsnp_dnode)->root_pos)
 
 typedef struct
 {
-    CRFSNPRB_NODE   rb_node;/*16B*/
+    /*16B*/
+    CRFSNPRB_NODE   rb_node;
 
-    /*bitmap: 32bits*/
+    /*4B*/
     uint32_t      used_flag:4;  /* item status: not used, used */
     uint32_t      key_len  :8;  /* key lenght, range [0..CRFSNP_KEY_MAX_SIZE] */
     uint32_t      dir_flag :8;  /* directory or regular file */
@@ -186,31 +195,35 @@ typedef struct
     uint32_t      group_per:3;  /* group permission*/
     uint32_t      other_per:3;  /* other permission*/
 
-    /*32 bits*/
+    /*4B*/
     uint16_t      gid;
     uint16_t      uid;
 
-    /*64 bits*/
+    /*8B*/
     ctime_t       create_time; /*file created or modified time. 32 bits for 32bit OS, 64 bits for 64bit OS*/
 #if (32 == WORDSIZE)
     uint32_t      rsvd1;
 #endif/*(32 == WORDSIZE)*/
 
-    /*64 bits*/
+    /*8B*/
     uint32_t      parent_pos;/*parent directory*/
-    uint32_t      rsvd2;/*item will be expired in nseconds. 0 means never expired*/
+    uint32_t      second_hash;
 
+    /*8B*/
+    CRFSNPLRU_NODE lru_node;
+
+    /*8B*/
+    CRFSNPDEL_NODE del_node;
+
+    /*256B*/
     uint8_t       rsvd3;
     uint8_t       key[ CRFSNP_KEY_MAX_SIZE ];  /* dir name or file name */
 
-    uint32_t      second_hash; /*4B*/
-    uint32_t      rsvd4;/*4B*/
-
     union
     {
-        CRFSNP_FNODE fnode;/*208B*/
-        CRFSNP_DNODE dnode;/*208B*/
-    }u;/*208B*/
+        CRFSNP_FNODE fnode;/*200B*/
+        CRFSNP_DNODE dnode;/*200B*/
+    }u;/*200B*/
 } CRFSNP_ITEM;/*512B*/
 
 #define CRFSNP_ITEM_RB_NODE(crfsnp_item)          (&((crfsnp_item)->rb_node))
@@ -224,12 +237,21 @@ typedef struct
 #define CRFSNP_ITEM_DNODE(crfsnp_item)            (&((crfsnp_item)->u.dnode))
 #define CRFSNP_ITEM_CREATE_TIME(crfsnp_item)      ((crfsnp_item)->create_time)
 #define CRFSNP_ITEM_SECOND_HASH(crfsnp_item)      ((crfsnp_item)->second_hash)
+#define CRFSNP_ITEM_LRU_NODE(crfsnp_item)         (&((crfsnp_item)->lru_node))
+#define CRFSNP_ITEM_DEL_NODE(crfsnp_item)         (&((crfsnp_item)->del_node))
 
 /*get CRFSNP_ITEM from CRFSNPRB_NODE*/
 #define CRFSNP_RB_NODE_ITEM(crfsnprb_node)        ((NULL_PTR == (crfsnprb_node)) ? NULL_PTR : \
     ((CRFSNP_ITEM *)((char *)(crfsnprb_node)-(unsigned long)(&((CRFSNP_ITEM *)0)->rb_node))))
 
+/*get CRFSNP_ITEM from CRFSNPLRU_NODE*/
+#define CRFSNP_LRU_NODE_ITEM(crfsnplru_node)        ((NULL_PTR == (crfsnplru_node)) ? NULL_PTR : \
+    ((CRFSNP_ITEM *)((char *)(crfsnplru_node)-(unsigned long)(&((CRFSNP_ITEM *)0)->lru_node))))
 
+/*get CRFSNP_ITEM from CRFSNPDEL_NODE*/
+#define CRFSNP_DEL_NODE_ITEM(crfsnpdel_node)        ((NULL_PTR == (crfsnpdel_node)) ? NULL_PTR : \
+    ((CRFSNP_ITEM *)((char *)(crfsnpdel_node)-(unsigned long)(&((CRFSNP_ITEM *)0)->del_node))))
+    
 #define CRFSNP_ITEM_IS_REG(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_REG == (CRFSNP_ITEM_FILE_IS_REG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 #define CRFSNP_ITEM_IS_DIR(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_DIR == (CRFSNP_ITEM_FILE_IS_DIR & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 
@@ -325,34 +347,6 @@ typedef struct
 
 #define CRFSNP_ERR_ID                     ((uint32_t)0xFFFFFFFF)
 
-/*upper limit of bitmap size: (1MB - 512B)*/
-/*note: CRFSNP_XXXX_CFG_ITEM_MAX_NUM < CRFSNP_DEL_ITEMS_BITMAP_UPPER_LIMIT * 8*/
-#define CRFSNP_DEL_ITEMS_BITMAP_U8_TAB_SIZE            ((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE))        /*1048064*/
-#define CRFSNP_DEL_ITEMS_BITMAP_U32_TAB_SIZE           (((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE)) >> 2)/* 262016*/
-
-#define CRFSNP_TRANS_PRE_ITEMS_BITMAP_U8_TAB_SIZE      ((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE))        /*1048064*/
-#define CRFSNP_TRANS_PRE_ITEMS_BITMAP_U32_TAB_SIZE     (((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE)) >> 2)/* 262016*/
-
-#define CRFSNP_TRANS_MID_ITEMS_BITMAP_U8_TAB_SIZE      ((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE))        /*1048064*/
-#define CRFSNP_TRANS_MID_ITEMS_BITMAP_U32_TAB_SIZE     (((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE)) >> 2)/* 262016*/
-
-#define CRFSNP_TRANS_POST_ITEMS_BITMAP_U8_TAB_SIZE      ((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE))        /*1048064*/
-#define CRFSNP_TRANS_POST_ITEMS_BITMAP_U32_TAB_SIZE     (((1 << 20) - (1 << CRFSNP_ITEM_BIT_SIZE)) >> 2)/* 262016*/
-
-#define CRFSNP_U32_BIT_POS_TO_U32_OFFSET(bit_pos)      ((bit_pos) >>  5)
-#define CRFSNP_U32_BIT_POS_TO_BIT_OFFSET(bit_pos)      ((bit_pos)  & 31)
-
-#define CRFSNP_DEL_ITEMS_BIT_NOT_SET                   ((uint8_t) 0)
-#define CRFSNP_DEL_ITEMS_BIT_WAS_SET                   ((uint8_t) 1)
-
-#define CRFSNP_TRANS_PRE_ITEMS_BIT_NOT_SET             ((uint8_t) 0)
-#define CRFSNP_TRANS_PRE_ITEMS_BIT_WAS_SET             ((uint8_t) 1)
-
-#define CRFSNP_TRANS_MID_ITEMS_BIT_NOT_SET             ((uint8_t) 0)
-#define CRFSNP_TRANS_MID_ITEMS_BIT_WAS_SET             ((uint8_t) 1)
-
-#define CRFSNP_TRANS_POST_ITEMS_BIT_NOT_SET            ((uint8_t) 0)
-#define CRFSNP_TRANS_POST_ITEMS_BIT_WAS_SET            ((uint8_t) 1)
 
 /**********************************************************************************************************************************************************************
 *
@@ -364,59 +358,22 @@ typedef struct
 /*each np own one header*/
 typedef struct
 {
-    uint32_t       np_id;               /*crfsnp id              */
-    uint8_t        model;               /*crfsnp model           */
-    uint8_t        rsvd1;
-    uint8_t        rsvd2 ;
-    uint8_t        chash_algo_2nd_id;   /*second hash algo func id: used to compute crfsnprb_node hash data*/
+    /*8B*/
+    uint32_t            np_id;               /*crfsnp id              */
+    uint8_t             model;               /*crfsnp model           */
+    uint8_t             rsvd1;
+    uint8_t             rsvd2 ;
+    uint8_t             chash_algo_2nd_id;   /*second hash algo func id: used to compute crfsnprb_node hash data*/
 
-    uint32_t       del_items_max_num;   /*format: CFG_ITEM_MAX_NUM < CRFSNP_DEL_ITEM_BITMAP_UPPER_LIMIT * 8*/
-    uint32_t       del_items_cur_num;
-    uint32_t       del_items_bitmap[ CRFSNP_DEL_ITEMS_BITMAP_U32_TAB_SIZE ];
+    uint8_t             pad_a[ (1 << CRFSNP_ITEM_BIT_SIZE) - 8 - 16 ]; /*pad the first part to 1 MB*/
 
-    uint8_t        pad_a[ (1 << CRFSNP_ITEM_BIT_SIZE) -  16 ]; /*pad the first part to 1 MB*/
-
-    uint32_t       trans_pre_items_max_num;
-    uint32_t       trans_pre_items_cur_num;
-    uint32_t       trans_pre_items_bitmap[ CRFSNP_TRANS_PRE_ITEMS_BITMAP_U32_TAB_SIZE ];
-
-    uint8_t        pad_b[ (1 << 20) - CRFSNP_TRANS_PRE_ITEMS_BITMAP_U8_TAB_SIZE - 8 ];/*pad the second part to 1 MB before CRFSNP_ITEM table */
-
-    uint32_t       trans_mid_items_max_num;
-    uint32_t       trans_mid_items_cur_num;
-    uint32_t       trans_mid_items_bitmap[ CRFSNP_TRANS_MID_ITEMS_BITMAP_U32_TAB_SIZE ];
-
-    uint8_t        pad_c[ (1 << 20) - CRFSNP_TRANS_MID_ITEMS_BITMAP_U8_TAB_SIZE - 8 ];/*pad the second part to 1 MB before CRFSNP_ITEM table */
-
-    uint32_t       trans_post_items_max_num;
-    uint32_t       trans_post_items_cur_num;
-    uint32_t       trans_post_items_bitmap[ CRFSNP_TRANS_POST_ITEMS_BITMAP_U32_TAB_SIZE ];
-
-    uint8_t        pad_d[ (1 << 20) - 16 - CRFSNP_TRANS_POST_ITEMS_BITMAP_U8_TAB_SIZE - 8 ];/*pad the second part to 1 MB before CRFSNP_ITEM table */
-
-    CRFSNPRB_POOL  pool;                /*pool of CRFSNP_ITEM, CRFSNP_ITEM head must be CRFSNPRB_NODE*/
+    CRFSNPRB_POOL       pool;                /*pool of CRFSNP_ITEM, CRFSNP_ITEM head must be CRFSNPRB_NODE*/
 } CRFSNP_HEADER;
 
 #define CRFSNP_HEADER_NP_ID(crfsnp_header)                      ((crfsnp_header)->np_id)
 #define CRFSNP_HEADER_MODEL(crfsnp_header)                      ((crfsnp_header)->model)
 
 #define CRFSNP_HEADER_2ND_CHASH_ALGO_ID(crfsnp_header)          ((crfsnp_header)->chash_algo_2nd_id)
-
-#define CRFSNP_HEADER_DEL_ITEMS_MAX_NUM(crfsnp_header)          ((crfsnp_header)->del_items_max_num)
-#define CRFSNP_HEADER_DEL_ITEMS_CUR_NUM(crfsnp_header)          ((crfsnp_header)->del_items_cur_num)
-#define CRFSNP_HEADER_DEL_ITEMS_BITMAP(crfsnp_header)           ((crfsnp_header)->del_items_bitmap)
-
-#define CRFSNP_HEADER_TRANS_PRE_ITEMS_MAX_NUM(crfsnp_header)    ((crfsnp_header)->trans_pre_items_max_num)
-#define CRFSNP_HEADER_TRANS_PRE_ITEMS_CUR_NUM(crfsnp_header)    ((crfsnp_header)->trans_pre_items_cur_num)
-#define CRFSNP_HEADER_TRANS_PRE_ITEMS_BITMAP(crfsnp_header)     ((crfsnp_header)->trans_pre_items_bitmap)
-
-#define CRFSNP_HEADER_TRANS_MID_ITEMS_MAX_NUM(crfsnp_header)    ((crfsnp_header)->trans_mid_items_max_num)
-#define CRFSNP_HEADER_TRANS_MID_ITEMS_CUR_NUM(crfsnp_header)    ((crfsnp_header)->trans_mid_items_cur_num)
-#define CRFSNP_HEADER_TRANS_MID_ITEMS_BITMAP(crfsnp_header)     ((crfsnp_header)->trans_mid_items_bitmap)
-
-#define CRFSNP_HEADER_TRANS_POST_ITEMS_MAX_NUM(crfsnp_header)   ((crfsnp_header)->trans_post_items_max_num)
-#define CRFSNP_HEADER_TRANS_POST_ITEMS_CUR_NUM(crfsnp_header)   ((crfsnp_header)->trans_post_items_cur_num)
-#define CRFSNP_HEADER_TRANS_POST_ITEMS_BITMAP(crfsnp_header)    ((crfsnp_header)->trans_post_items_bitmap)
 
 #define CRFSNP_HEADER_ITEMS_POOL(crfsnp_header)         (&((crfsnp_header)->pool))
 #define CRFSNP_HEADER_ITEMS_MAX_NUM(crfsnp_header)      (CRFSNPRB_POOL_NODE_MAX_NUM(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header)))
@@ -425,7 +382,7 @@ typedef struct
 typedef struct
 {
     int              fd;         /* rfs namespace fd  */
-    uint32_t         retire_node_pos; /*retire node_pos*/
+    uint32_t         rsvd;
 
     UINT32           fsize;
 
@@ -434,41 +391,34 @@ typedef struct
     uint64_t         del_size;     /* deleted but not recycled bytes*/
     uint64_t         recycle_size; /* recycled bytes*/
 
-    CRWLOCK          crwlock;    /* bucket crwlock*/
-    CRFSNP_HEADER   *header;     /* hashdb header */
+    CRFSNP_HEADER   *header;       /* hashdb header */
+
+    /*shortcut of lru list which point to root rb node */
+    CRFSNPLRU_NODE  *lru_list; /*the lastest access node is at head covering fnode only*/
+
+    /*shortcut of del list which point to root rb node */
+    CRFSNPDEL_NODE  *del_list; /*the deleted but not recycled nodes are in covering fnode and dnode*/
 
     CHASH_ALGO       chash_algo_2nd;       /* hash algo for rbtree in the hash bucket: used to compute crfsnprb_node hash data*/
 
 } CRFSNP;
 
 #define CRFSNP_FD(crfsnp)                     ((crfsnp)->fd)
-#define CRFSNP_RETIRE_NODE_POS(crfsnp)        ((crfsnp)->retire_node_pos)
 #define CRFSNP_FSIZE(crfsnp)                  ((crfsnp)->fsize)
 #define CRFSNP_FNAME(crfsnp)                  ((crfsnp)->fname)
 #define CRFSNP_DEL_SIZE(crfsnp)               ((crfsnp)->del_size)
 #define CRFSNP_RECYCLE_SIZE(crfsnp)           ((crfsnp)->recycle_size)
-#define CRFSNP_CRWLOCK(crfsnp)                (&((crfsnp)->crwlock))
 #define CRFSNP_HDR(crfsnp)                    ((crfsnp)->header)
 
+#define CRFSNP_LRU_LIST(crfsnp)               ((crfsnp)->lru_list)
+#define CRFSNP_DEL_LIST(crfsnp)               ((crfsnp)->del_list)
+
 #define CRFSNP_2ND_CHASH_ALGO(crfsnp)         ((crfsnp)->chash_algo_2nd)
-
-#define CRFSNP_INIT_LOCK(crfsnp, location)    (crwlock_init(CRFSNP_CRWLOCK(crfsnp), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSNP_CLEAN_LOCK(crfsnp, location)   (crwlock_clean(CRFSNP_CRWLOCK(crfsnp), location))
-#if 0
-#define CRFSNP_RDLOCK(crfsnp, location)       (crwlock_rdlock(CRFSNP_CRWLOCK(crfsnp), location))
-#define CRFSNP_WRLOCK(crfsnp, location)       (crwlock_wrlock(CRFSNP_CRWLOCK(crfsnp), location))
-#define CRFSNP_UNLOCK(crfsnp, location)       (crwlock_unlock(CRFSNP_CRWLOCK(crfsnp), location))
-#endif
-
-#if 1/*note: lock/unlock happen in crfs.c*/
-#define CRFSNP_RDLOCK(crfsnp, location)       do{}while(0)
-#define CRFSNP_WRLOCK(crfsnp, location)       do{}while(0)
-#define CRFSNP_UNLOCK(crfsnp, location)       do{}while(0)
-#endif
 
 #define CRFSNP_ID(crfsnp)                     (CRFSNP_HEADER_NP_ID(CRFSNP_HDR(crfsnp)))
 #define CRFSNP_MODEL(crfsnp)                  (CRFSNP_HEADER_MODEL(CRFSNP_HDR(crfsnp)))
 #define CRFSNP_SECOND_CHASH_ALGO_ID(crfsnp)   (CRFSNP_HEADER_2ND_CHASH_ALGO_ID(CRFSNP_HDR(crfsnp)))
+
 #define CRFSNP_ITEMS_POOL(crfsnp)             (CRFSNP_HEADER_ITEMS_POOL(CRFSNP_HDR(crfsnp)))
 #define CRFSNP_ITEMS_MAX_NUM(crfsnp)          (CRFSNPRB_POOL_NODE_MAX_NUM(CRFSNP_ITEMS_POOL(crfsnp)))
 #define CRFSNP_ITEMS_USED_NUM(crfsnp)         (CRFSNPRB_POOL_NODE_USED_NUM(CRFSNP_ITEMS_POOL(crfsnp)))

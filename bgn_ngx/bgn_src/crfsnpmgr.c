@@ -35,6 +35,8 @@ extern "C"{
 
 #include "crfsnp.h"
 #include "crfsnprb.h"
+#include "crfsnplru.h"
+#include "crfsnpdel.h"
 #include "crfsnpmgr.h"
 #include "chashalgo.h"
 #include "cmd5.h"
@@ -478,6 +480,52 @@ void crfsnp_mgr_print_db(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
     return;
 }
 
+void crfsnp_mgr_print_lru_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
+{
+    uint32_t crfsnp_num;
+    uint32_t crfsnp_id;
+
+    crfsnp_num = (uint32_t)cvector_size(CRFSNP_MGR_NP_VEC(crfsnp_mgr));
+    for(crfsnp_id = 0; crfsnp_id < crfsnp_num; crfsnp_id ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            sys_log(log, "np %u #: (null)\n", crfsnp_id);
+        }
+        else
+        {
+            crfsnp_print_lru_list(log, crfsnp);
+        }
+    }
+    return;
+}
+
+void crfsnp_mgr_print_del_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
+{
+    uint32_t crfsnp_num;
+    uint32_t crfsnp_id;
+
+    crfsnp_num = (uint32_t)cvector_size(CRFSNP_MGR_NP_VEC(crfsnp_mgr));
+    for(crfsnp_id = 0; crfsnp_id < crfsnp_num; crfsnp_id ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            sys_log(log, "np %u #: (null)\n", crfsnp_id);
+        }
+        else
+        {
+            crfsnp_print_del_list(log, crfsnp);
+        }
+    }
+    return;
+}
+
 void crfsnp_mgr_print(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
 {
     sys_log(log, "crfsnp mgr:\n");
@@ -531,6 +579,60 @@ EC_BOOL crfsnp_mgr_flush(CRFSNP_MGR *crfsnp_mgr)
         crfsnp_mgr_sync_np(crfsnp_mgr, crfsnp_id);
     }
     return (ret);
+}
+
+EC_BOOL crfsnp_mgr_show_np_lru_list(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id)
+{
+    CRFSNP *crfsnp;
+
+    crfsnp = (CRFSNP *)cvector_get_no_lock(CRFSNP_MGR_NP_VEC(crfsnp_mgr), crfsnp_id);
+    if(NULL_PTR == crfsnp)
+    {
+        /*try to open the np and print it*/
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_show_np_lru_list: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+
+        crfsnp_print_lru_list(log, crfsnp);
+
+        crfsnp_mgr_close_np(crfsnp_mgr, crfsnp_id);
+    }
+    else
+    {
+        crfsnp_print_lru_list(log, crfsnp);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsnp_mgr_show_np_del_list(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id)
+{
+    CRFSNP *crfsnp;
+
+    crfsnp = (CRFSNP *)cvector_get_no_lock(CRFSNP_MGR_NP_VEC(crfsnp_mgr), crfsnp_id);
+    if(NULL_PTR == crfsnp)
+    {
+        /*try to open the np and print it*/
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_show_np_del_list: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+
+        crfsnp_print_del_list(log, crfsnp);
+
+        crfsnp_mgr_close_np(crfsnp_mgr, crfsnp_id);
+    }
+    else
+    {
+        crfsnp_print_del_list(log, crfsnp);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL crfsnp_mgr_show_np(LOG *log, CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id)
@@ -988,7 +1090,7 @@ EC_BOOL crfsnp_mgr_release(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path)
 *   and return the actual complete num of retired files
 *
 **/
-EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const uint32_t dflag, const UINT32 nsec, const UINT32 expect_num, const UINT32 max_step, UINT32 *complete_num)
+EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const UINT32 expect_num, UINT32 *complete_num)
 {
     CRFSNP  *crfsnp;
 
@@ -999,14 +1101,15 @@ EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, c
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfsnp_retire(crfsnp, dflag, nsec, expect_num, max_step, complete_num))
+    if(EC_FALSE == crfsnp_retire(crfsnp, expect_num, complete_num))
     {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_retire_np: retire np %u failed where dflag 0x%x, nsec %ld, expect num %ld, max step %ld\n",
-                    crfsnp_id, dflag, nsec, expect_num, max_step);
+        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_retire_np: retire np %u failed where expect num %ld\n",
+                    crfsnp_id, expect_num);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u where dflag 0x%x, nsec %ld done\n", crfsnp_id, dflag, nsec);
+    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u done where expect num %ld and complete_num %ld\n", 
+                    crfsnp_id, expect_num, (*complete_num));
 
     return (EC_TRUE);
 }
@@ -1070,13 +1173,15 @@ EC_BOOL crfsnp_mgr_read(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, CRFSNP
     node_pos = crfsnp_search_no_lock(crfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CRFSNP_ITEM_FILE_IS_REG);
     if(CRFSNPRB_ERR_POS != node_pos)
     {
-        CRFSNP_ITEM *crfsnp_item;
+        CRFSNP_ITEM    *crfsnp_item;
 
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
         if(NULL_PTR != crfsnp_fnode)
         {
             crfsnp_fnode_import(CRFSNP_ITEM_FNODE(crfsnp_item), crfsnp_fnode);
         }
+
+        crfsnplru_node_move_head(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
 
         return (EC_TRUE);
     }
@@ -1102,6 +1207,7 @@ EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, cons
         CRFSNP_ITEM *crfsnp_item;
 
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
+        crfsnplru_node_move_head(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
         return crfsnp_fnode_import(crfsnp_fnode, CRFSNP_ITEM_FNODE(crfsnp_item));
     }
     return (EC_FALSE);
@@ -1915,6 +2021,44 @@ EC_BOOL crfsnp_mgr_show_cached_np(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
         if(NULL_PTR != crfsnp)
         {
             crfsnp_print(log, crfsnp);
+        }
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsnp_mgr_show_cached_np_lru_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
+{
+    uint32_t crfsnp_num;
+    uint32_t crfsnp_pos;
+
+    crfsnp_num = cvector_size(CRFSNP_MGR_NP_VEC(crfsnp_mgr));
+    for(crfsnp_pos = 0; crfsnp_pos < crfsnp_num; crfsnp_pos ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_pos);
+        if(NULL_PTR != crfsnp)
+        {
+            crfsnp_print_lru_list(log, crfsnp);
+        }
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL crfsnp_mgr_show_cached_np_del_list(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
+{
+    uint32_t crfsnp_num;
+    uint32_t crfsnp_pos;
+
+    crfsnp_num = cvector_size(CRFSNP_MGR_NP_VEC(crfsnp_mgr));
+    for(crfsnp_pos = 0; crfsnp_pos < crfsnp_num; crfsnp_pos ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = CRFSNP_MGR_NP(crfsnp_mgr, crfsnp_pos);
+        if(NULL_PTR != crfsnp)
+        {
+            crfsnp_print_del_list(log, crfsnp);
         }
     }
     return (EC_TRUE);

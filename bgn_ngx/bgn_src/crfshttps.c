@@ -2125,9 +2125,7 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    char          *retire_seconds_str;
     char          *retire_files_str;
-    char          *retire_max_step_per_loop_str;
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_retire_get_request\n");
 
@@ -2158,19 +2156,6 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
     content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
     cbytes_clean(content_cbytes);
 
-    retire_seconds_str = chttps_node_get_header(chttps_node, (const char *)"retire-seconds");
-    if(NULL_PTR == retire_seconds_str) /*invalid retire request*/
-    {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_retire_get_request: http header 'retire-seconds' absence\n");
-
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_retire_get_request: http header 'retire-seconds' absence");
-
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
-        return (EC_TRUE);
-    }
-
     retire_files_str   = chttps_node_get_header(chttps_node, (const char *)"retire-files");
     if(NULL_PTR == retire_files_str) /*invalid retire request*/
     {
@@ -2184,35 +2169,30 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
         return (EC_TRUE);
     }
 
-    retire_max_step_per_loop_str   = chttps_node_get_header(chttps_node, (const char *)"retire-max-step-per-loop");
-
-    if(NULL_PTR != retire_seconds_str && NULL_PTR != retire_files_str)
+    if(NULL_PTR != retire_files_str)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        UINT32   retire_seconds;
         UINT32   retire_files;
-        UINT32   retire_max_step_per_loop;
         UINT32   complete_num;
 
         uint8_t  retire_result[ 32 ];
         uint32_t retire_result_len;
 
-        retire_seconds = c_str_to_word(retire_seconds_str);
         retire_files   = c_str_to_word(retire_files_str);
 
-        retire_max_step_per_loop = c_str_to_word(retire_max_step_per_loop_str);
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
 
-        if(EC_FALSE == crfs_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_seconds, retire_files, retire_max_step_per_loop, &complete_num))
+        if(EC_FALSE == crfs_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_files, &complete_num))
         {
-            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_retire_get_request: crfs retire with nsec %ld, expect retire num %ld failed\n",
-                                retire_seconds, retire_files);
+            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_retire_get_request: crfs retire with expect retire num %ld failed\n",
+                                retire_files);
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_retire_get_request: crfs retire with nsec %ld, expect retire num %ld failed", retire_seconds, retire_files);
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_retire_get_request: crfs retire with expect retire num %ld failed", 
+                                retire_files);
 
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
@@ -2222,12 +2202,13 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
         retire_result_len = snprintf((char *)retire_result, sizeof(retire_result), "retire-completion:%ld\r\n", complete_num);
         cbytes_set(content_cbytes, retire_result, retire_result_len);
 
-        dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with nsec %ld, expect retire %ld, complete %ld done\n",
-                            retire_seconds, retire_files, complete_num);
+        dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done\n",
+                            retire_files, complete_num);
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with nsec %ld, expect retire %ld, complete %ld done", retire_seconds, retire_files, complete_num);
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done", 
+                            retire_files, complete_num);
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
     }

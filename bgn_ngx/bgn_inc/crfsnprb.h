@@ -60,10 +60,12 @@ typedef struct
 
 typedef struct
 {
+    /*16B*/
     uint32_t        node_max_num; /*max node number in the pool*/
     uint32_t        node_used_num;/*used node number           */
     uint32_t        node_sizeof;  /*actual size of each node   */
     uint32_t        free_head;    /*unused CRFSNPRB_TREE head  */
+    
     CRFSNPRB_NODE   rb_nodes[0];  /*rb_nodes table             */
 }CRFSNPRB_POOL;
 

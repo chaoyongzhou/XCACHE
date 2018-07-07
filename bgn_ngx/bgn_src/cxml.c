@@ -1139,6 +1139,9 @@ EC_BOOL cxml_parse_cparacfg_log_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
 EC_BOOL cxml_parse_cparacfg_rfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
+    __cxml_parse_tag_uint32(node, (const char *)"rfsNpRetireMaxNum" , &(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"rfsNpRecycleMaxNum", &(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
+
     __cxml_parse_tag_switch(node, (const char *)"memcacheSwitch", &(CPARACFG_CRFS_MEMC_SWITCH(cparacfg)));
 
     __cxml_parse_tag_np_model(node, (const char *)"memcacheNpModel", &(CPARACFG_CRFS_MEMC_NP_MODEL(cparacfg)));

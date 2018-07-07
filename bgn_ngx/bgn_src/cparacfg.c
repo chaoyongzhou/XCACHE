@@ -106,6 +106,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_HIGH_PRECISION_TIME_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_HTTP_SWITCH);
 
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFS_MEMC_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFS_MEMC_NP_MODEL);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM);
@@ -229,6 +231,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_HIGH_PRECISION_TIME_SWITCH        = %s\n" ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_NGX_BGN_OVER_HTTP_SWITCH          = %s\n" ,  CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
 
+    sys_log(log, "CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM         = %ld\n",  CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
+    sys_log(log, "CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM        = %s\n" ,  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
     sys_log(log, "CPARACFG_CRFS_MEMC_SWITCH                  = %s\n" ,  CPARACFG_CRFS_MEMC_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CRFS_MEMC_NP_MODEL                = %s\n" ,  crfsnp_model_str(CPARACFG_CRFS_MEMC_NP_MODEL(cparacfg)));
     sys_log(log, "CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM          = %s\n" ,  cpgd_model_str(CPARACFG_CRFS_MEMC_CPGD_BLOCK_NUM(cparacfg)));
