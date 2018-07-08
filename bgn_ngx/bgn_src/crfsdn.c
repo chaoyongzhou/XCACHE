@@ -303,13 +303,11 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     CRB_NODE    *crb_node;
     char path[ CRFSDN_NODE_NAME_MAX_SIZE ];
 
-    CRFSDN_CMUTEX_LOCK(crfsdn, LOC_CRFSDN_0005);
     crfsdn_node = CRFSDN_OPEN_NODE(crfsdn, node_id);
     if(NULL_PTR != crfsdn_node)
     {
         /*update last access time*/
         CRFSDN_NODE_ATIME(crfsdn_node) = task_brd_get_time(task_brd_default_get());
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0006);
         return (crfsdn_node);
     }
 
@@ -330,12 +328,10 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
             crfsdn_node = crfsdn_node_create(crfsdn, node_id);
             if(NULL_PTR != crfsdn_node)
             {
-                CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0007);
                 return (crfsdn_node);
             }
         }
 
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0008);
         dbg_log(SEC_0024_CRFSDN, 1)(LOGSTDOUT, "warn:crfsdn_node_open: node file %s not exist\n", path);
         return (NULL_PTR);
     }
@@ -343,7 +339,6 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     crfsdn_node = crfsdn_node_new();
     if(NULL_PTR == crfsdn_node)
     {
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0009);
         dbg_log(SEC_0024_CRFSDN, 1)(LOGSTDOUT, "warn:crfsdn_node_open: new crfsdn_node failed\n");
         return (NULL_PTR);
     }
@@ -356,7 +351,6 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR, 0666);
     if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
     {
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0010);
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: open node file %s failed\n", path);
         crfsdn_node_free(crfsdn_node);
         return (NULL_PTR);
@@ -366,7 +360,6 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     crb_node = crb_tree_insert_data(CRFSDN_OPEN_NODES(crfsdn), (void *)crfsdn_node);
     if(NULL_PTR == crb_node)
     {
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0011);
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: insert new crfsdn_node into open nodes failed\n");
         crfsdn_node_free(crfsdn_node);
         return (NULL_PTR);
@@ -374,12 +367,10 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
 
     if(CRB_NODE_DATA(crb_node) != (void *)crfsdn_node)
     {
-        CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0012);
         dbg_log(SEC_0024_CRFSDN, 1)(LOGSTDOUT, "warn:crfsdn_node_open: inserted but crfsdn_node is not the newest one\n");
         crfsdn_node_free(crfsdn_node);
         return ((CRFSDN_NODE *)CRB_NODE_DATA(crb_node));
     }
-    CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0013);
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_node_open: insert node %ld with path %s to open nodes(rbtree) done\n", node_id, path);
 
@@ -644,8 +635,6 @@ EC_BOOL crfsdn_expire_open_nodes(CRFSDN *crfsdn)
         return (EC_FALSE);
     }
 
-    CRFSDN_CMUTEX_LOCK(crfsdn, LOC_CRFSDN_0026);
-
     /*collect open expired nodes*/
     crb_inorder_walk(CRFSDN_OPEN_NODES(crfsdn), (CRB_DATA_HANDLE)__crfsdn_collect_expired_node, expired_node_list);
 
@@ -671,8 +660,6 @@ EC_BOOL crfsdn_expire_open_nodes(CRFSDN *crfsdn)
             crb_tree_delete_data(CRFSDN_OPEN_NODES(crfsdn), (void *)crfsdn_node);
         }
     }
-
-    CRFSDN_CMUTEX_UNLOCK(crfsdn, LOC_CRFSDN_0027);
 
     clist_free_no_lock(expired_node_list, LOC_CRFSDN_0028);
 
@@ -876,9 +863,6 @@ CRFSDN *crfsdn_new()
 
 EC_BOOL crfsdn_init(CRFSDN *crfsdn)
 {
-    CRFSDN_CRWLOCK_INIT(crfsdn, LOC_CRFSDN_0032);
-    CRFSDN_CMUTEX_INIT(crfsdn, LOC_CRFSDN_0033);
-
     crb_tree_init(CRFSDN_OPEN_NODES(crfsdn),
                   (CRB_DATA_CMP  )crfsdn_node_cmp,
                   (CRB_DATA_FREE )crfsdn_node_free,
@@ -893,9 +877,6 @@ EC_BOOL crfsdn_init(CRFSDN *crfsdn)
 
 EC_BOOL crfsdn_clean(CRFSDN *crfsdn)
 {
-    CRFSDN_CRWLOCK_CLEAN(crfsdn, LOC_CRFSDN_0035);
-    CRFSDN_CMUTEX_CLEAN(crfsdn, LOC_CRFSDN_0036);
-
     crb_tree_clean(CRFSDN_OPEN_NODES(crfsdn));
 
     if(NULL_PTR != CRFSDN_ROOT_DNAME(crfsdn))
@@ -1065,9 +1046,7 @@ EC_BOOL crfsdn_close(CRFSDN *crfsdn)
 {
     if(NULL_PTR != crfsdn)
     {
-        CRFSDN_CRWLOCK_WRLOCK(crfsdn, LOC_CRFSDN_0043);
         crfsdn_flush(crfsdn);
-        CRFSDN_CRWLOCK_UNLOCK(crfsdn, LOC_CRFSDN_0044);
         crfsdn_free(crfsdn);
     }
     return (EC_TRUE);
@@ -1412,14 +1391,11 @@ EC_BOOL crfsdn_write_p_cache(CRFSDN *crfsdn, const UINT32 data_max_len, const UI
 
     size = (uint32_t)(data_max_len);
 
-    crfsdn_wrlock(crfsdn, LOC_CRFSDN_0045);
     if(EC_FALSE == cpgv_new_space(CRFSDN_CPGV(crfsdn), size, disk_no, block_no,  page_no))
     {
-        crfsdn_unlock(crfsdn, LOC_CRFSDN_0046);
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_write_p_cache: new %ld bytes space from vol failed\n", data_max_len);
         return (EC_FALSE);
     }
-    crfsdn_unlock(crfsdn, LOC_CRFSDN_0047);
 
     crfsdn_cache_node = crfsdn_cache_node_new();
     if(NULL_PTR == crfsdn_cache_node)/*try all best*/
@@ -1555,24 +1531,6 @@ EC_BOOL crfsdn_show(LOG *log, const char *root_dir)
 
     crfsdn_close(crfsdn);
 
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsdn_rdlock(CRFSDN *crfsdn, const UINT32 location)
-{
-    CRFSDN_CRWLOCK_RDLOCK(crfsdn, location);
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsdn_wrlock(CRFSDN *crfsdn, const UINT32 location)
-{
-    CRFSDN_CRWLOCK_WRLOCK(crfsdn, location);
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsdn_unlock(CRFSDN *crfsdn, const UINT32 location)
-{
-    CRFSDN_CRWLOCK_UNLOCK(crfsdn, location);
     return (EC_TRUE);
 }
 

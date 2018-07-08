@@ -75,8 +75,6 @@ typedef struct
     CRFSBK              *crfsbk;   /*backup RFS    */
 
     CVECTOR              crfs_neighbor_vec;/*item is MOD_NODE*/
-
-    CROUTINE_RWLOCK      crwlock;
 }CRFS_MD;
 
 #define CRFS_MD_TERMINATE_FLAG(crfs_md)    ((crfs_md)->terminate_flag)
@@ -91,52 +89,11 @@ typedef struct
 #define CRFS_MD_MCACHE(crfs_md)            ((crfs_md)->crfsmc)
 #define CRFS_MD_BACKUP(crfs_md)            ((crfs_md)->crfsbk)
 #define CRFS_MD_NEIGHBOR_VEC(crfs_md)      (&((crfs_md)->crfs_neighbor_vec))
-#define CRFS_CRWLOCK(crfs_md)              (&((crfs_md)->crwlock))
 #define CRFS_LOCKED_FILES_CRWLOCK(crfs_md) (&((crfs_md)->locked_files_crwlock))
 
-#if 1
-#define CRFS_INIT_LOCK(crfs_md, location)  (croutine_rwlock_init(CRFS_CRWLOCK(crfs_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFS_CLEAN_LOCK(crfs_md, location) (croutine_rwlock_clean(CRFS_CRWLOCK(crfs_md), location))
-#if 0
-#define CRFS_RDLOCK(crfs_md, location)     (croutine_rwlock_rdlock(CRFS_CRWLOCK(crfs_md), location))
-#define CRFS_WRLOCK(crfs_md, location)     (croutine_rwlock_wrlock(CRFS_CRWLOCK(crfs_md), location))
-#define CRFS_UNLOCK(crfs_md, location)     (croutine_rwlock_unlock(CRFS_CRWLOCK(crfs_md), location))
-#endif
-#if 1
-#define CRFS_RDLOCK(crfs_md, location)     do{}while(0)
-#define CRFS_WRLOCK(crfs_md, location)     do{}while(0)
-#define CRFS_UNLOCK(crfs_md, location)     do{}while(0)
-#endif
 
 #endif
 
-#if 0
-#define CRFS_INIT_LOCK(crfs_md, location)  do{\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_INIT_LOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_init(CRFS_CRWLOCK(crfs_md), CMUTEX_PROCESS_PRIVATE, location);\
-}while(0)
-
-#define CRFS_CLEAN_LOCK(crfs_md, location) do{\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_CLEAN_LOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_clean(CRFS_CRWLOCK(crfs_md), location);\
-}while(0)
-
-#define CRFS_RDLOCK(crfs_md, location)     do{\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_RDLOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_rdlock(CRFS_CRWLOCK(crfs_md), location);\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_RDLOCK: CRFS_CRWLOCK %p, at %s:%ld done\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-
-#define CRFS_WRLOCK(crfs_md, location)     do{\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_WRLOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_wrlock(CRFS_CRWLOCK(crfs_md), location);\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_WRLOCK: CRFS_CRWLOCK %p, at %s:%ld done\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-#define CRFS_UNLOCK(crfs_md, location)     do{\
-    sys_log(LOGSTDNULL, "[DEBUG] CRFS_UNLOCK: CRFS_CRWLOCK %p, at %s:%ld\n", CRFS_CRWLOCK(crfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_unlock(CRFS_CRWLOCK(crfs_md), location);\
-}while(0)
-#endif
 
 #if 1
 #define CRFS_LOCKED_FILES_INIT_LOCK(crfs_md, location)  (croutine_rwlock_init(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), CMUTEX_PROCESS_PRIVATE, location))
@@ -982,10 +939,6 @@ EC_BOOL crfs_delete_r(const UINT32 crfs_md_id, const CSTRING *path, const UINT32
 EC_BOOL crfs_renew_r(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 replica_num);
 
 EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log);
-
-EC_BOOL crfs_rdlock(const UINT32 crfs_md_id, const UINT32 location);
-EC_BOOL crfs_wrlock(const UINT32 crfs_md_id, const UINT32 location);
-EC_BOOL crfs_unlock(const UINT32 crfs_md_id, const UINT32 location);
 
 #endif /*_CRFS_H*/
 

@@ -354,7 +354,6 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%ld\n", crfs_md_id);
 
-    CRFS_INIT_LOCK(crfs_md, LOC_CRFS_0002);
     CRFS_LOCKED_FILES_INIT_LOCK(crfs_md, LOC_CRFS_0003);
 
     if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
@@ -519,7 +518,6 @@ void crfs_end(const UINT32 crfs_md_id)
     //crfs_free_module_static_mem(crfs_md_id);
 
     crfs_md->usedcounter = 0;
-    CRFS_CLEAN_LOCK(crfs_md, LOC_CRFS_0005);
     CRFS_LOCKED_FILES_CLEAN_LOCK(crfs_md, LOC_CRFS_0006);
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "crfs_end: stop CRFS module #%ld\n", crfs_md_id);
@@ -1404,9 +1402,7 @@ EC_BOOL crfs_find_dir(const UINT32 crfs_md_id, const CSTRING *dir_path)
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0009);
     ret = crfsnp_mgr_find_dir(CRFS_MD_NPP(crfs_md), dir_path);
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0010);
 
     return (ret);
 }
@@ -1439,9 +1435,7 @@ EC_BOOL crfs_find_file(const UINT32 crfs_md_id, const CSTRING *file_path)
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0011);
     ret = crfsnp_mgr_find_file(CRFS_MD_NPP(crfs_md), file_path);
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0012);
     return (ret);
 }
 
@@ -1473,9 +1467,7 @@ EC_BOOL crfs_find(const UINT32 crfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0015);
     ret = crfsnp_mgr_find(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_ANY/*xxx*/);
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0016);
 
     return (ret);
 }
@@ -1606,21 +1598,16 @@ STATIC_CAST static EC_BOOL __crfs_reserve_hash_dn(const UINT32 crfs_md_id, const
         size    = (uint32_t)(data_len);
         disk_no = (uint16_t)(path_hash % CPGV_PAGE_DISK_NUM(cpgv));
 
-        crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0017);
         if(EC_TRUE == cpgv_new_space_from_disk(cpgv, size, disk_no, &block_no, &page_no))
         {
-            crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0019);
             break;/*fall through*/
         }
         
         /*try again*/
         if(EC_TRUE == cpgv_new_space(cpgv, size, &disk_no, &block_no, &page_no))
         {
-            crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0019);
             break;/*fall through*/
         }
-
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0018);
 
         fail_tries ++;
         
@@ -1694,14 +1681,11 @@ EC_BOOL crfs_reserve_dn(const UINT32 crfs_md_id, const UINT32 data_len, CRFSNP_F
 
     size = (uint32_t)(data_len);
 
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0020);
     if(EC_FALSE == cpgv_new_space(CRFSDN_CPGV(CRFS_MD_DN(crfs_md)), size, &disk_no, &block_no, &page_no))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0021);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0022);
 
     crfsnp_fnode_init(crfsnp_fnode);
     CRFSNP_FNODE_FILESZ(crfsnp_fnode) = size;
@@ -1769,15 +1753,12 @@ EC_BOOL crfs_release_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnod
     block_no = CRFSNP_INODE_BLOCK_NO(crfsnp_inode);
     page_no  = CRFSNP_INODE_PAGE_NO(crfsnp_inode) ;
 
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0023);
     if(EC_FALSE == cpgv_free_space(CRFSDN_CPGV(CRFS_MD_DN(crfs_md)), disk_no, block_no, page_no, file_size))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0024);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_release_dn: free %u bytes to vol failed where disk %u, block %u, page %u\n",
                             file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0025);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_release_dn: remove file fsize %u, disk %u, block %u, page %u done\n",
                        file_size, disk_no, block_no, page_no);
@@ -1799,18 +1780,15 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0033);
     crfsnp_fnode = __crfs_reserve_npp(crfs_md_id, file_path);
     if(NULL_PTR == crfsnp_fnode)
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0034);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write: file %s reserve npp failed\n", (char *)cstring_get_str(file_path));
 
         /*notify all waiters*/
         crfs_file_notify(crfs_md_id, file_path); /*patch*/
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0035);
 
     /*calculate hash value of file_path*/
     path_hash = (uint32_t)MD5_hash(cstring_get_len(file_path), cstring_get_str(file_path));
@@ -1838,9 +1816,7 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write: reserve dn %u bytes for file %s failed\n",
                             (uint32_t)CBYTES_LEN(cbytes), (char *)cstring_get_str(file_path));
 
-        CRFS_WRLOCK(crfs_md, LOC_CRFS_0036);
         __crfs_release_npp(crfs_md_id, file_path);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0037);
 
         /*notify all waiters*/
         crfs_file_notify(crfs_md_id, file_path); /*patch*/
@@ -1852,9 +1828,7 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
     {
         crfs_release_dn(crfs_md_id, crfsnp_fnode);
 
-        CRFS_WRLOCK(crfs_md, LOC_CRFS_0038);
         __crfs_release_npp(crfs_md_id, file_path);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0039);
 
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write: export file %s content to dn failed\n", (char *)cstring_get_str(file_path));
 
@@ -1980,11 +1954,8 @@ STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CST
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0040);
-
     if(EC_FALSE == crfs_write_dn_cache(crfs_md_id, cbytes, &crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0041);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_cache: write file %s content to dn failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1999,12 +1970,10 @@ STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CST
     if(EC_FALSE == crfs_write_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
         __crfs_delete_dn(crfs_md_id, &crfsnp_fnode);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0042);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_write_cache: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0043);
     return (EC_TRUE);
 }
 
@@ -2176,10 +2145,8 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0044);
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0045);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_safe: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -2197,21 +2164,18 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
     /*exception*/
     if(0 == CRFSNP_FNODE_FILESZ(&crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0046);
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_read_safe: read file %s with zero len from npp and fnode %p is \n", (char *)cstring_get_str(file_path), &crfsnp_fnode);
         return (EC_TRUE);
     }
 
     if(EC_FALSE == crfs_read_dn(crfs_md_id, &crfsnp_fnode, cbytes))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0047);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_safe: read file %s from dn failed where fnode is \n", (char *)cstring_get_str(file_path));
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
         return (EC_FALSE);
     }
 
     //dbg_log(SEC_0031_CRFS, 9)(LOGSTDNULL, "[DEBUG] crfs_read_safe: read file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0048);
     return (EC_TRUE);
 }
 
@@ -2590,14 +2554,11 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
                                (char *)cstring_get_str(file_path));
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0049);
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0050);
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_read: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0051);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read: read file %s from npp done\n", (char *)cstring_get_str(file_path));
 
@@ -2673,11 +2634,8 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0052);
-
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0053);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -2686,7 +2644,6 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
 
     if(EC_FALSE == crfs_write_e_dn(crfs_md_id, &crfsnp_fnode, offset, max_len, cbytes))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0054);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e: offset write to dn failed\n");
         return (EC_FALSE);
     }
@@ -2695,12 +2652,11 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
     {
         if(EC_FALSE == crfs_update_npp(crfs_md_id, file_path, &crfsnp_fnode))
         {
-            CRFS_UNLOCK(crfs_md, LOC_CRFS_0055);
             dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e: offset write file %s to npp failed\n", (char *)cstring_get_str(file_path));
             return (EC_FALSE);
         }
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0056);
+
     return (EC_TRUE);
 }
 
@@ -2743,11 +2699,8 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
         }
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0057);
-
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0058);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -2763,7 +2716,6 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
     /*exception*/
     if(0 == CRFSNP_FNODE_FILESZ(&crfsnp_fnode))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0059);
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_read_e: read file %s with zero len from npp and fnode %p is \n", (char *)cstring_get_str(file_path), &crfsnp_fnode);
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
         return (EC_TRUE);
@@ -2771,13 +2723,11 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
 
     if(EC_FALSE == crfs_read_e_dn(crfs_md_id, &crfsnp_fnode, offset, max_len, cbytes))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0060);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e: offset read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
         return (EC_FALSE);
     }
 
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0061);
     return (EC_TRUE);
 }
 
@@ -2856,14 +2806,12 @@ EC_BOOL crfs_add_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0091);
     if(EC_FALSE == crfsdn_add_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0092);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_add_disk: add disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0093);
+
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_add_disk: add disk %u to dn done\n", (uint16_t)disk_no);
     return (EC_TRUE);
 }
@@ -2900,14 +2848,12 @@ EC_BOOL crfs_del_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0094);
     if(EC_FALSE == crfsdn_del_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0095);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_del_disk: del disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0096);
+
     return (EC_TRUE);
 }
 
@@ -2943,14 +2889,12 @@ EC_BOOL crfs_mount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0097);
     if(EC_FALSE == crfsdn_mount_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0098);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mount_disk: mount disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0099);
+
     return (EC_TRUE);
 }
 
@@ -2986,14 +2930,12 @@ EC_BOOL crfs_umount_disk(const UINT32 crfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0100);
     if(EC_FALSE == crfsdn_umount_disk(CRFS_MD_DN(crfs_md), (uint16_t)disk_no))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0101);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_umount_disk: umount disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0102);
+
     return (EC_TRUE);
 }
 
@@ -3175,15 +3117,11 @@ EC_BOOL crfs_write_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, CRFSNP_FNOD
     crfsnp_fnode_init(crfsnp_fnode);
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
 
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0103);
     if(EC_FALSE == crfsdn_write_p(CRFS_MD_DN(crfs_md), cbytes_len(cbytes), cbytes_buf(cbytes), &disk_no, &block_no, &page_no))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0104);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0105);
 
     CRFSNP_INODE_CACHE_FLAG(crfsnp_inode) = CRFSDN_DATA_NOT_IN_CACHE;
     CRFSNP_INODE_DISK_NO(crfsnp_inode)    = disk_no;
@@ -3312,16 +3250,13 @@ EC_BOOL crfs_read_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode, 
         CBYTES_LEN(cbytes) = 0;
     }
 
-    crfsdn_rdlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0108);
     if(EC_FALSE == crfsdn_read_p(CRFS_MD_DN(crfs_md), disk_no, block_no, page_no, file_size, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0109);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_dn: read %u bytes from disk %u, block %u, page %u failed\n",
                            file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0110);
+
     return (EC_TRUE);
 }
 
@@ -3387,15 +3322,11 @@ EC_BOOL crfs_write_e_dn(const UINT32 crfs_md_id, CRFSNP_FNODE *crfsnp_fnode, UIN
     offset_t  = (uint32_t)(*offset);
     max_len_t = DMIN(DMIN(max_len, file_max_size - offset_t), cbytes_len(cbytes));
 
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0111);
     if(EC_FALSE == crfsdn_write_e(CRFS_MD_DN(crfs_md), max_len_t, cbytes_buf(cbytes), disk_no, block_no, page_no, offset_t))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0112);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_e_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0113);
 
     (*offset) += max_len_t;
     if((*offset) > file_size)
@@ -3484,16 +3415,12 @@ EC_BOOL crfs_read_e_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnode
         CBYTES_LEN(cbytes) = 0;
     }
 
-    crfsdn_rdlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0116);
     if(EC_FALSE == crfsdn_read_e(CRFS_MD_DN(crfs_md), disk_no, block_no, page_no, offset_t, max_len_t, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0117);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read_e_dn: read %ld bytes from disk %u, block %u, offset %u failed\n",
                            max_len_t, disk_no, block_no, offset_t);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0118);
 
     (*offset) += CBYTES_LEN(cbytes);
     return (EC_TRUE);
@@ -3527,7 +3454,6 @@ STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, co
         return (NULL_PTR);
     }
 
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0127);
     crfsnp_fnode = crfsnp_mgr_reserve(CRFS_MD_NPP(crfs_md), file_path);
     if(NULL_PTR == crfsnp_fnode)
     {
@@ -3541,14 +3467,12 @@ STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, co
         crfsnp_fnode = crfsnp_mgr_reserve(CRFS_MD_NPP(crfs_md), file_path);
         if(NULL_PTR == crfsnp_fnode)/*Oops!*/
         {
-            crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0128);
-
             dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_reserve_npp: no name node accept file %s\n",
                                 (char *)cstring_get_str(file_path));
             return (NULL_PTR);        
         }
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0129);
+
     return (crfsnp_fnode);
 }
 
@@ -3580,16 +3504,12 @@ STATIC_CAST static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CST
         return (NULL_PTR);
     }
 
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0130);
     if(EC_FALSE == crfsnp_mgr_release(CRFS_MD_NPP(crfs_md), file_path))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0131);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_release_npp: release file %s from npp failed\n",
                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0132);
     return (EC_TRUE);
 }
 
@@ -3626,16 +3546,13 @@ EC_BOOL crfs_write_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const 
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0133);
     if(EC_FALSE == crfsnp_mgr_write(CRFS_MD_NPP(crfs_md), file_path, crfsnp_fnode))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0134);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_write_npp: no name node accept file %s with %u replicas writting\n",
                             (char *)cstring_get_str(file_path), CRFSNP_FNODE_REPNUM(crfsnp_fnode));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0135);
+
     return (EC_TRUE);
 }
 
@@ -3666,15 +3583,11 @@ EC_BOOL crfs_read_npp(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0136);
     if(EC_FALSE == crfsnp_mgr_read(CRFS_MD_NPP(crfs_md), file_path, crfsnp_fnode))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0137);
-
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_read_npp: crfsnp mgr read %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0138);
 
     return (EC_TRUE);
 }
@@ -3706,16 +3619,13 @@ EC_BOOL crfs_update_npp(const UINT32 crfs_md_id, const CSTRING *file_path, const
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0142);
     if(EC_FALSE == crfsnp_mgr_update(CRFS_MD_NPP(crfs_md), file_path, crfsnp_fnode))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0143);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_update_npp: no name node accept file %s with %u replicas updating\n",
                             (char *)cstring_get_str(file_path), CRFSNP_FNODE_REPNUM(crfsnp_fnode));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0144);
+
     return (EC_TRUE);
 }
 
@@ -4163,14 +4073,11 @@ STATIC_CAST static EC_BOOL __crfs_delete_dn(const UINT32 crfs_md_id, const CRFSN
     block_no = CRFSNP_INODE_BLOCK_NO(crfsnp_inode);
     page_no  = CRFSNP_INODE_PAGE_NO(crfsnp_inode) ;
 
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0145);
     if(EC_FALSE == crfsdn_remove(CRFS_MD_DN(crfs_md), disk_no, block_no, page_no, file_size))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0146);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u failed\n", file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0147);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u done\n", file_size, disk_no, block_no, page_no);
 
@@ -4439,15 +4346,12 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0151);
     if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0152);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0153);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
@@ -4562,15 +4466,13 @@ EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0154);
     if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_delete_file_wildcard: umount %.*s failed or terminated\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0155);
+
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0156);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: crfs_md_id %ld, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
@@ -4652,15 +4554,12 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0163);
     if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0164);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0165);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %ld, path %s done\n",
                         crfs_md_id, (char *)cstring_get_str(path));
@@ -4774,15 +4673,12 @@ EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0166);
     if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: umount %.*s failed or terminated\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0167);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0168);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %ld, path %s succ\n",
                         crfs_md_id, (char *)cstring_get_str(path));
@@ -4909,14 +4805,12 @@ EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBY
         }
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0169);
     if(EC_FALSE == crfs_update_no_lock(crfs_md_id, file_path, cbytes))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0170);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_update: update file %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0171);
+
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_update: update file %s done\n", (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
@@ -5025,18 +4919,12 @@ EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITE
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0172);
-
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0173);
     crfsnp_item_src = crfsnp_mgr_search_item(CRFS_MD_NPP(crfs_md),
                                              (uint32_t)cstring_get_len(file_path),
                                              cstring_get_str(file_path),
                                              CRFSNP_ITEM_FILE_IS_REG);
     if(NULL_PTR == crfsnp_item_src)
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0174);
-
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0175);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qfile: query file %s from npp failed\n",
                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
@@ -5044,9 +4932,6 @@ EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITE
 
     /*clone*/
     crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
-
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0176);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0177);
 
     return (EC_TRUE);
 }
@@ -5079,27 +4964,19 @@ EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM 
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0178);
-
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0179);
     crfsnp_item_src = crfsnp_mgr_search_item(CRFS_MD_NPP(crfs_md),
                                              (uint32_t)cstring_get_len(dir_path),
                                              cstring_get_str(dir_path),
                                              CRFSNP_ITEM_FILE_IS_DIR);
     if(NULL_PTR == crfsnp_item_src)
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0180);
-
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0181);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qdir: query dir %s from npp failed\n",
                             (char *)cstring_get_str(dir_path));
         return (EC_FALSE);
     }
+    
     /*clone*/
     crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
-
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0182);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0183);
 
     return (EC_TRUE);
 }
@@ -5131,18 +5008,11 @@ EC_BOOL crfs_qlist_path(const UINT32 crfs_md_id, const CSTRING *file_path, CVECT
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0184);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0185);
     if(EC_FALSE == crfsnp_mgr_list_path(CRFS_MD_NPP(crfs_md), file_path, path_cstr_vec))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0186);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0187);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_path: list path '%s' failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0188);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0189);
 
     return (EC_TRUE);
 }
@@ -5177,19 +5047,12 @@ EC_BOOL crfs_qlist_path_of_np(const UINT32 crfs_md_id, const CSTRING *file_path,
 
     crfsnp_id_t = (uint32_t)crfsnp_id;
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0190);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0191);
     if(EC_FALSE == crfsnp_mgr_list_path_of_np(CRFS_MD_NPP(crfs_md), file_path, crfsnp_id_t, path_cstr_vec))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0192);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0193);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_path_of_np: list path '%s' of np %u failed\n",
                             (char *)cstring_get_str(file_path), crfsnp_id_t);
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0194);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0195);
 
     return (EC_TRUE);
 }
@@ -5221,18 +5084,12 @@ EC_BOOL crfs_qlist_seg(const UINT32 crfs_md_id, const CSTRING *file_path, CVECTO
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0196);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0197);
     if(EC_FALSE == crfsnp_mgr_list_seg(CRFS_MD_NPP(crfs_md), file_path, seg_cstr_vec))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0198);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0199);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_seg: list seg of path '%s' failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0200);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0201);
+
     return (EC_TRUE);
 }
 
@@ -5266,18 +5123,12 @@ EC_BOOL crfs_qlist_seg_of_np(const UINT32 crfs_md_id, const CSTRING *file_path, 
 
     crfsnp_id_t = (uint32_t)crfsnp_id;
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0202);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0203);
     if(EC_FALSE == crfsnp_mgr_list_seg_of_np(CRFS_MD_NPP(crfs_md), file_path, crfsnp_id_t, seg_cstr_vec))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0204);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0205);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_seg_of_np: list seg of path '%s' failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0206);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0207);
+
     return (EC_TRUE);
 }
 
@@ -5383,21 +5234,15 @@ EC_BOOL crfs_qlist_tree(const UINT32 crfs_md_id, const CSTRING *file_path, CVECT
     CRFSNP_DIT_NODE_ARG(&crfsnp_dit_node, 1)  = (void *)base_dir;
     CRFSNP_DIT_NODE_ARG(&crfsnp_dit_node, 2)  = (void *)path_cstr_vec;
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0212);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0213);
     if(EC_FALSE == crfsnp_mgr_walk(CRFS_MD_NPP(crfs_md), file_path, CRFSNP_ITEM_FILE_IS_ANY, &crfsnp_dit_node))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0214);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0215);
-
         cstring_free(base_dir);
         crfsnp_dit_node_clean(&crfsnp_dit_node);
 
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_path: list path '%s' failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0216);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0217);
+
     if(do_log(SEC_0031_CRFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] crfs_qlist_path: after walk, stack is:\n");
@@ -5460,21 +5305,14 @@ EC_BOOL crfs_qlist_tree_of_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, c
     CRFSNP_DIT_NODE_ARG(&crfsnp_dit_node, 1)  = (void *)file_path;
     CRFSNP_DIT_NODE_ARG(&crfsnp_dit_node, 2)  = (void *)path_cstr_vec;
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0219);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0220);
     if(EC_FALSE == crfsnp_mgr_walk_of_np(CRFS_MD_NPP(crfs_md), crfsnp_id_t, file_path, CRFSNP_ITEM_FILE_IS_ANY, &crfsnp_dit_node))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0221);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0222);
-
         cstring_free(base_dir);
         crfsnp_dit_node_clean(&crfsnp_dit_node);
 
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_qlist_tree_of_np: list tree of path '%s' failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0223);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0224);
 
     if(do_log(SEC_0031_CRFS, 9))
     {
@@ -5514,18 +5352,11 @@ EC_BOOL crfs_flush_npp(const UINT32 crfs_md_id)
         return (EC_TRUE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0225);
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0226);
     if(EC_FALSE == crfsnp_mgr_flush(CRFS_MD_NPP(crfs_md)))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0227);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0228);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_flush_npp: flush failed\n");
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0229);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0230);
 
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_flush_npp: flush done\n");
     return (EC_TRUE);
@@ -5559,18 +5390,11 @@ EC_BOOL crfs_flush_dn(const UINT32 crfs_md_id)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0231);
-    crfsdn_wrlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0232);
     if(EC_FALSE == crfsdn_flush(CRFS_MD_DN(crfs_md)))
     {
-        crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0233);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0234);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_flush_dn: flush dn failed\n");
         return (EC_FALSE);
     }
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0235);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0236);
 
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_flush_dn: flush dn done\n");
     return (EC_TRUE);
@@ -5605,18 +5429,11 @@ EC_BOOL crfs_file_num(const UINT32 crfs_md_id, const CSTRING *path_cstr, UINT32 
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0237);
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0238);
     if(EC_FALSE == crfsnp_mgr_file_num(CRFS_MD_NPP(crfs_md), path_cstr, file_num))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0239);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0240);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_num: get file num of path '%s' failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0241);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0242);
 
     return (EC_TRUE);
 }
@@ -5648,15 +5465,12 @@ EC_BOOL crfs_file_size(const UINT32 crfs_md_id, const CSTRING *path_cstr, uint64
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0243);
     if(EC_FALSE == crfsnp_mgr_file_size(CRFS_MD_NPP(crfs_md), path_cstr, file_size))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0244);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_size: crfsnp mgr get size of %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0245);
+
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_size: file %s, size %ld\n",
                              (char *)cstring_get_str(path_cstr),
                              (*file_size));
@@ -5737,19 +5551,6 @@ EC_BOOL crfs_dir_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
     }
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_dir_expire: obsolete interface\n");
     return (EC_FALSE);
-
- #if 0
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0246);
-    if(EC_FALSE == crfsnp_mgr_dir_expire(CRFS_MD_NPP(crfs_md), path_cstr))
-    {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0247);
-
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_dir_expire: crfsnp mgr expire %s failed\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0248);
-#endif
-    return (EC_TRUE);
 }
 
 /**
@@ -5779,15 +5580,12 @@ EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5
         return (EC_FALSE);
     }
 
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0252);
     if(EC_FALSE == crfsnp_mgr_file_md5sum(CRFS_MD_NPP(crfs_md), path_cstr, md5sum))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0253);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_md5sum: crfsnp mgr get md5sum of %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0254);
+
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_md5sum: file %s, md5 %s\n",
                              (char *)cstring_get_str(path_cstr),
                              cmd5_digest_hex_str(md5sum));
@@ -5821,17 +5619,11 @@ EC_BOOL crfs_mkdir(const UINT32 crfs_md_id, const CSTRING *path_cstr)
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0258);
-    crfsnp_mgr_wrlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0259);
     if(EC_FALSE == crfsnp_mgr_mkdir(CRFS_MD_NPP(crfs_md), path_cstr))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0260);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0261);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_mkdir: mkdir '%s' failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0262);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0263);
 
     return (EC_TRUE);
 }
@@ -5866,18 +5658,11 @@ EC_BOOL crfs_search(const UINT32 crfs_md_id, const CSTRING *path_cstr, const UIN
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0264);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0265);
     if(EC_FALSE == crfsnp_mgr_search(CRFS_MD_NPP(crfs_md), (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, &crfsnp_id))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0266);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0267);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_search: search '%s' with dflag %lx failed\n", (char *)cstring_get_str(path_cstr), dflag);
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0268);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0269);
 
     return (EC_TRUE);
 }
@@ -5897,19 +5682,16 @@ STATIC_CAST static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const u
 
     CRFSNP_RECYCLE_DN_ARG1(&crfsnp_recycle_dn)   = crfs_md_id;
     CRFSNP_RECYCLE_DN_FUNC(&crfsnp_recycle_dn)   = crfs_release_dn;
-    //CRFSNP_RECYCLE_DN_WRLOCK(&crfsnp_recycle_dn) = crfs_wrlock;
-    //CRFSNP_RECYCLE_DN_UNLOCK(&crfsnp_recycle_dn) = crfs_unlock;
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0270);
     if(EC_FALSE == crfsnp_mgr_recycle_np(CRFS_MD_NPP(crfs_md), crfsnp_id, max_num, NULL_PTR, &crfsnp_recycle_dn, complete_num))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0271);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_recycle_of_np: recycle np %u failed\n", crfsnp_id);
         return (EC_FALSE);
     }
+
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_recycle_of_np: recycle np %u done where complete %ld\n", 
                     crfsnp_id, (*complete_num));
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0272);
+
     return (EC_TRUE);
 }
 
@@ -6010,11 +5792,9 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0273);
     if(EC_FALSE == crfsdn_read_p(CRFS_MD_DN(crfs_md), (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no, file_size,
                                   CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0274);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %ld bytes from disk %u, block %u, page %u failed\n",
                             file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no);
         cbytes_free(cbytes);
@@ -6023,7 +5803,6 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
 
     if(CBYTES_LEN(cbytes) < cstring_get_len(file_content_cstr))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0275);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: read %ld bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
                             file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no,
                             (uint32_t)CBYTES_LEN(cbytes), (uint32_t)cstring_get_len(file_content_cstr));
@@ -6040,7 +5819,6 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
     {
         if(buff[ pos ] != str[ pos ])
         {
-            CRFS_UNLOCK(crfs_md, LOC_CRFS_0276);
             dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_check_file_content: char at pos %ld not matched\n", pos);
             sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
             sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
@@ -6049,7 +5827,6 @@ EC_BOOL crfs_check_file_content(const UINT32 crfs_md_id, const UINT32 disk_no, c
             return (EC_FALSE);
         }
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0277);
 
     cbytes_free(cbytes);
     return (EC_TRUE);
@@ -6163,13 +5940,7 @@ EC_BOOL crfs_show_npp_lru_list(const UINT32 crfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0278);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0279);
-
     crfsnp_mgr_print_lru_list(log, CRFS_MD_NPP(crfs_md));
-
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0280);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0281);
 
     return (EC_TRUE);
 }
@@ -6202,13 +5973,7 @@ EC_BOOL crfs_show_npp_del_list(const UINT32 crfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0278);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0279);
-
     crfsnp_mgr_print_del_list(log, CRFS_MD_NPP(crfs_md));
-
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0280);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0281);
 
     return (EC_TRUE);
 }
@@ -6241,13 +6006,7 @@ EC_BOOL crfs_show_npp(const UINT32 crfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0278);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0279);
-
     crfsnp_mgr_print(log, CRFS_MD_NPP(crfs_md));
-
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0280);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0281);
 
     return (EC_TRUE);
 }
@@ -6275,11 +6034,7 @@ EC_BOOL crfs_show_dn_no_lock(const UINT32 crfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    //CRFS_RDLOCK(crfs_md, LOC_CRFS_0282);
-    //crfsdn_rdlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0283);
     crfsdn_print(log, CRFS_MD_DN(crfs_md));
-    //crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0284);
-    //CRFS_UNLOCK(crfs_md, LOC_CRFS_0285);
 
     return (EC_TRUE);
 }
@@ -6312,11 +6067,7 @@ EC_BOOL crfs_show_dn(const UINT32 crfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0286);
-    crfsdn_rdlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0287);
     crfsdn_print(log, CRFS_MD_DN(crfs_md));
-    crfsdn_unlock(CRFS_MD_DN(crfs_md), LOC_CRFS_0288);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0289);
 
     return (EC_TRUE);
 }
@@ -6344,18 +6095,11 @@ EC_BOOL crfs_show_cached_np(const UINT32 crfs_md_id, LOG *log)
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0290);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0291);
     if(EC_FALSE == crfsnp_mgr_show_cached_np(log, CRFS_MD_NPP(crfs_md)))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0292);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0293);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_cached_np: show cached np but failed\n");
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0294);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0295);
 
     return (EC_TRUE);
 }
@@ -6382,18 +6126,11 @@ EC_BOOL crfs_show_cached_np_lru_list(const UINT32 crfs_md_id, LOG *log)
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0290);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0291);
     if(EC_FALSE == crfsnp_mgr_show_cached_np_lru_list(log, CRFS_MD_NPP(crfs_md)))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0292);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0293);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_cached_np_lru_list: show cached np but failed\n");
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0294);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0295);
 
     return (EC_TRUE);
 }
@@ -6420,18 +6157,11 @@ EC_BOOL crfs_show_cached_np_del_list(const UINT32 crfs_md_id, LOG *log)
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0290);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0291);
     if(EC_FALSE == crfsnp_mgr_show_cached_np_del_list(log, CRFS_MD_NPP(crfs_md)))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0292);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0293);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_cached_np_del_list: show cached np but failed\n");
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0294);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0295);
 
     return (EC_TRUE);
 }
@@ -6464,18 +6194,11 @@ EC_BOOL crfs_show_specific_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, L
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0296);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0297);
     if(EC_FALSE == crfsnp_mgr_show_np(log, CRFS_MD_NPP(crfs_md), (uint32_t)crfsnp_id))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0298);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0299);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_specific_np: show np %ld but failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0300);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0301);
 
     return (EC_TRUE);
 }
@@ -6508,19 +6231,12 @@ EC_BOOL crfs_show_specific_np_lru_list(const UINT32 crfs_md_id, const UINT32 crf
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0296);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0297);
     if(EC_FALSE == crfsnp_mgr_show_np_lru_list(log, CRFS_MD_NPP(crfs_md), (uint32_t)crfsnp_id))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0298);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0299);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_specific_np_lru_list: show np %ld but failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0300);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0301);
-
+   
     return (EC_TRUE);
 }
 
@@ -6552,18 +6268,11 @@ EC_BOOL crfs_show_specific_np_del_list(const UINT32 crfs_md_id, const UINT32 crf
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0296);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0297);
     if(EC_FALSE == crfsnp_mgr_show_np_del_list(log, CRFS_MD_NPP(crfs_md), (uint32_t)crfsnp_id))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0298);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0299);
-
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_specific_np_del_list: show np %ld but failed\n", crfsnp_id);
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0300);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0301);
 
     return (EC_TRUE);
 }
@@ -6590,18 +6299,11 @@ EC_BOOL crfs_show_path_depth(const UINT32 crfs_md_id, const CSTRING *path, LOG *
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0302);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0303);
     if(EC_FALSE == crfsnp_mgr_show_path_depth(log, CRFS_MD_NPP(crfs_md), path))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0304);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0305);
-
         sys_log(log, "error:crfs_show_path_depth: show path %s in depth failed\n", (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0306);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0307);
 
     return (EC_TRUE);
 }
@@ -6628,37 +6330,12 @@ EC_BOOL crfs_show_path(const UINT32 crfs_md_id, const CSTRING *path, LOG *log)
         return (EC_FALSE);
     }
 
-    CRFS_RDLOCK(crfs_md, LOC_CRFS_0308);
-    crfsnp_mgr_rdlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0309);
     if(EC_FALSE == crfsnp_mgr_show_path(log, CRFS_MD_NPP(crfs_md), path))
     {
-        crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0310);
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0311);
         sys_log(log, "error:crfs_show_path: show path %s failed\n", (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
-    crfsnp_mgr_unlock(CRFS_MD_NPP(crfs_md), LOC_CRFS_0312);
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0313);
 
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_rdlock(const UINT32 crfs_md_id, const UINT32 location)
-{
-    CRFS_MD *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_rdlock: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    CRFS_RDLOCK(crfs_md, location);
     return (EC_TRUE);
 }
 
@@ -6705,15 +6382,13 @@ STATIC_CAST static EC_BOOL __crfs_retire_of_np(const UINT32 crfs_md_id, const ui
         return (EC_FALSE);
     }
 
-    CRFS_WRLOCK(crfs_md, LOC_CRFS_0314);
     if(EC_FALSE == crfsnp_mgr_retire_np(CRFS_MD_NPP(crfs_md), crfsnp_id, expect_retire_num, complete_retire_num))
     {
-        CRFS_UNLOCK(crfs_md, LOC_CRFS_0315);
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_retire_of_np: retire np %u failed where expect retire num %ld\n",
                                             crfsnp_id, expect_retire_num);
         return (EC_FALSE);
     }
-    CRFS_UNLOCK(crfs_md, LOC_CRFS_0316);
+
     return (EC_TRUE);
 }
 
@@ -6772,43 +6447,6 @@ EC_BOOL crfs_retire(const UINT32 crfs_md_id, const UINT32 expect_retire_num, UIN
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_wrlock(const UINT32 crfs_md_id, const UINT32 location)
-{
-    CRFS_MD *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_wrlock: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    CRFS_WRLOCK(crfs_md, location);
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_unlock(const UINT32 crfs_md_id, const UINT32 location)
-{
-    CRFS_MD *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_unlock: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    CRFS_UNLOCK(crfs_md, location);
-    return (EC_TRUE);
-}
 /*------------------------------------------------ interface for file wait ------------------------------------------------*/
 CRFS_WAIT_FILE *crfs_wait_file_new()
 {

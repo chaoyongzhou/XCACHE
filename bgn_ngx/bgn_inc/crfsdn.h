@@ -145,75 +145,19 @@ typedef struct
 
 typedef struct
 {
-    CRWLOCK            rwlock;
     CRB_TREE           open_nodes;  /*open nodes to read or write, item is CRFSDN_NODE*/
-    CMUTEX             cmutex;      /*cmutex for open nodes which was accessed by do_slave thread and task_brd_cbtimer_do thread*/
     CLIST              cached_nodes;/*cached nodes to read or write, item is CRFSDN_NODE*/
 
     uint8_t           *root_dname;
     CPGV              *cpgv;
 }CRFSDN;
 
-#define CRFSDN_CRWLOCK(crfsdn)                             (&((crfsdn)->rwlock))
-#define CRFSDN_CMUTEX(crfsdn)                              (&((crfsdn)->cmutex))
 #define CRFSDN_OPEN_NODES(crfsdn)                          (&((crfsdn)->open_nodes))
 #define CRFSDN_CACHED_NODES(crfsdn)                        (&((crfsdn)->cached_nodes))
 #define CRFSDN_ROOT_DNAME(crfsdn)                          ((crfsdn)->root_dname)
 #define CRFSDN_CPGV(crfsdn)                                ((crfsdn)->cpgv)
 
 #define CRFSDN_OPEN_NODE(_crfsdn, node_id)                 (crfsdn_node_fetch((_crfsdn), (node_id)))
-
-#if 1
-#define CRFSDN_CRWLOCK_INIT(crfsdn, location)       (crwlock_init(CRFSDN_CRWLOCK(crfsdn), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSDN_CRWLOCK_CLEAN(crfsdn, location)      (crwlock_clean(CRFSDN_CRWLOCK(crfsdn), location))
-
-#define CRFSDN_CRWLOCK_RDLOCK(crfsdn, location)     (crwlock_rdlock(CRFSDN_CRWLOCK(crfsdn), location))
-#define CRFSDN_CRWLOCK_WRLOCK(crfsdn, location)     (crwlock_wrlock(CRFSDN_CRWLOCK(crfsdn), location))
-#define CRFSDN_CRWLOCK_UNLOCK(crfsdn, location)     (crwlock_unlock(CRFSDN_CRWLOCK(crfsdn), location))
-#endif
-
-#if 0
-#define CRFSDN_CRWLOCK_INIT(crfsdn, location)  do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_INIT: CRFSDN_CRWLOCK %p, at %s:%ld\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_init(CRFSDN_CRWLOCK(crfsdn), CMUTEX_PROCESS_PRIVATE, location);\
-}while(0)
-
-#define CRFSDN_CRWLOCK_CLEAN(crfsdn, location) do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_CLEAN: CRFSDN_CRWLOCK %p, at %s:%ld\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_clean(CRFSDN_CRWLOCK(crfsdn), location);\
-}while(0)
-
-#define CRFSDN_CRWLOCK_RDLOCK(crfsdn, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_RDLOCK: CRFSDN_CRWLOCK %p, at %s:%ld\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_rdlock(CRFSDN_CRWLOCK(crfsdn), location);\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_RDLOCK: CRFSDN_CRWLOCK %p, at %s:%ld done\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-
-#define CRFSDN_CRWLOCK_WRLOCK(crfsdn, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_WRLOCK: CRFSDN_CRWLOCK %p, at %s:%ld\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_wrlock(CRFSDN_CRWLOCK(crfsdn), location);\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_WRLOCK: CRFSDN_CRWLOCK %p, at %s:%ld done\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-#define CRFSDN_CRWLOCK_UNLOCK(crfsdn, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CRFSDN_CRWLOCK_UNLOCK: CRFSDN_CRWLOCK %p, at %s:%ld\n", CRFSDN_CRWLOCK(crfsdn), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_unlock(CRFSDN_CRWLOCK(crfsdn), location);\
-}while(0)
-#endif
-
-#if 0
-#define CRFSDN_CMUTEX_INIT(crfsdn, location)         (croutine_mutex_init(CRFSDN_CMUTEX(crfsdn), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSDN_CMUTEX_CLEAN(crfsdn, location)        (croutine_mutex_clean(CRFSDN_CMUTEX(crfsdn), location))
-#define CRFSDN_CMUTEX_LOCK(crfsdn, location)         (croutine_mutex_lock(CRFSDN_CMUTEX(crfsdn), location))
-#define CRFSDN_CMUTEX_UNLOCK(crfsdn, location)       (croutine_mutex_unlock(CRFSDN_CMUTEX(crfsdn), location))
-#endif
-
-#if 1
-#define CRFSDN_CMUTEX_INIT(crfsdn, location)         (cmutex_init(CRFSDN_CMUTEX(crfsdn), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSDN_CMUTEX_CLEAN(crfsdn, location)        (cmutex_clean(CRFSDN_CMUTEX(crfsdn), location))
-#define CRFSDN_CMUTEX_LOCK(crfsdn, location)         (cmutex_lock(CRFSDN_CMUTEX(crfsdn), location))
-#define CRFSDN_CMUTEX_UNLOCK(crfsdn, location)       (cmutex_unlock(CRFSDN_CMUTEX(crfsdn), location))
-#endif
-
 
 CRFSDN_NODE *crfsdn_node_new();
 
@@ -326,12 +270,6 @@ EC_BOOL crfsdn_write_e(CRFSDN *crfsdn, const UINT32 data_max_len, const UINT8 *d
 EC_BOOL crfsdn_remove(CRFSDN *crfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const UINT32 data_max_len);
 
 EC_BOOL crfsdn_show(LOG *log, const char *root_dir);
-
-EC_BOOL crfsdn_rdlock(CRFSDN *crfsdn, const UINT32 location);
-
-EC_BOOL crfsdn_wrlock(CRFSDN *crfsdn, const UINT32 location);
-
-EC_BOOL crfsdn_unlock(CRFSDN *crfsdn, const UINT32 location);
 
 #endif/* _CRFSDN_H */
 

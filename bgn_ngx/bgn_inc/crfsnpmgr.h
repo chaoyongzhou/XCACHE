@@ -38,8 +38,6 @@ extern "C"{
 typedef struct
 {
     CSTRING          crfsnp_db_root_dir;           /*crfsnp database root dir*/
-    CRWLOCK          crwlock;                      /*xxx unused yet xxx*/
-    CMUTEX           cmutex;                       /*lock for whole crfsnp_mgr*/
 
     uint8_t          crfsnp_model;                  /*crfsnp model, e.g, CRFSNP_001G_MODEL*/
     uint8_t          crfsnp_2nd_chash_algo_id;
@@ -66,30 +64,6 @@ typedef struct
 
 #define CRFSNP_MGR_NP_SET_NO_LOCK(crfsnp_mgr, crfsnp_id, __crfsnp, location) \
         (cvector_set_no_lock(CRFSNP_MGR_NP_VEC(crfsnp_mgr), (crfsnp_id), (__crfsnp)))
-
-#define CRFSNP_MGR_CRWLOCK(crfsnp_mgr)                          (&((crfsnp_mgr)->crwlock))
-#define CRFSNP_MGR_CRWLOCK_INIT(crfsnp_mgr, location)           (crwlock_init(CRFSNP_MGR_CRWLOCK(crfsnp_mgr), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSNP_MGR_CRWLOCK_CLEAN(crfsnp_mgr, location)          (crwlock_clean(CRFSNP_MGR_CRWLOCK(crfsnp_mgr), location))
-#if 0
-#define CRFSNP_MGR_CRWLOCK_RDLOCK(crfsnp_mgr, location)         (crwlock_rdlock(CRFSNP_MGR_CRWLOCK(crfsnp_mgr), location))
-#define CRFSNP_MGR_CRWLOCK_WRLOCK(crfsnp_mgr, location)         (crwlock_wrlock(CRFSNP_MGR_CRWLOCK(crfsnp_mgr), location))
-#define CRFSNP_MGR_CRWLOCK_UNLOCK(crfsnp_mgr, location)         (crwlock_unlock(CRFSNP_MGR_CRWLOCK(crfsnp_mgr), location))
-#endif
-#if 1
-#define CRFSNP_MGR_CRWLOCK_RDLOCK(crfsnp_mgr, location)         (EC_TRUE)
-#define CRFSNP_MGR_CRWLOCK_WRLOCK(crfsnp_mgr, location)         (EC_TRUE)
-#define CRFSNP_MGR_CRWLOCK_UNLOCK(crfsnp_mgr, location)         (EC_TRUE)
-#endif
-
-#define CRFSNP_MGR_CMUTEX(crfsnp_mgr)                          (&((crfsnp_mgr)->cmutex))
-#define CRFSNP_MGR_CMUTEX_INIT(crfsnp_mgr, location)           (cmutex_init(CRFSNP_MGR_CMUTEX(crfsnp_mgr), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSNP_MGR_CMUTEX_CLEAN(crfsnp_mgr, location)          (cmutex_clean(CRFSNP_MGR_CMUTEX(crfsnp_mgr), location))
-
-#if 1
-#define CRFSNP_MGR_CMUTEX_LOCK(crfsnp_mgr, location)           (cmutex_lock(CRFSNP_MGR_CMUTEX(crfsnp_mgr), location))
-#define CRFSNP_MGR_CMUTEX_UNLOCK(crfsnp_mgr, location)         (cmutex_unlock(CRFSNP_MGR_CMUTEX(crfsnp_mgr), location))
-#endif
-
 
 CRFSNP_MGR *crfsnp_mgr_new();
 
@@ -219,12 +193,6 @@ EC_BOOL crfsnp_mgr_show_path(LOG *log, CRFSNP_MGR *crfsnp_mgr, const CSTRING *pa
 EC_BOOL crfsnp_mgr_get_first_fname_of_path(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const CSTRING *path, CSTRING *fname, uint32_t *dflag);
 
 EC_BOOL crfsnp_mgr_recycle_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, const UINT32 max_num, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn, UINT32 *complete_num);
-
-EC_BOOL crfsnp_mgr_rdlock(CRFSNP_MGR *crfsnp_mgr, const UINT32 location);
-
-EC_BOOL crfsnp_mgr_wrlock(CRFSNP_MGR *crfsnp_mgr, const UINT32 location);
-
-EC_BOOL crfsnp_mgr_unlock(CRFSNP_MGR *crfsnp_mgr, const UINT32 location);
 
 #endif/* _CRFSNPMGR_H */
 

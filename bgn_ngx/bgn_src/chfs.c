@@ -1127,18 +1127,15 @@ STATIC_CAST static EC_BOOL __chfs_reserve_hash_dn(const UINT32 chfs_md_id, const
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] __chfs_reserve_hash_dn: disk num %u, path_hash %u => disk_no %u\n",
                 CPGV_PAGE_DISK_NUM(cpgv), path_hash, disk_no);
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0007);
     if(EC_FALSE == cpgv_new_space_from_disk(cpgv, size, disk_no, &block_no, &page_no))
     {
         /*try again*/
         if(EC_FALSE == cpgv_new_space(cpgv, size, &disk_no, &block_no, &page_no))
         {
-            crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0008);
             dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_reserve_hash_dn: new %ld bytes space from vol failed\n", data_len);
             return (EC_FALSE);
         }
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0009);
 
     chfsnp_fnode_init(chfsnp_fnode);
     CHFSNP_FNODE_FILESZ(chfsnp_fnode) = size;
@@ -1194,14 +1191,11 @@ EC_BOOL chfs_reserve_dn(const UINT32 chfs_md_id, const UINT32 data_len, CHFSNP_F
 
     size = (uint32_t)(data_len);
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0010);
     if(EC_FALSE == cpgv_new_space(CRFSDN_CPGV(CHFS_MD_DN(chfs_md)), size, &disk_no, &block_no, &page_no))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0011);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0012);
 
     chfsnp_fnode_init(chfsnp_fnode);
     CHFSNP_FNODE_FILESZ(chfsnp_fnode) = size;
@@ -1260,15 +1254,12 @@ EC_BOOL chfs_release_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnod
     block_no = CHFSNP_INODE_BLOCK_NO(chfsnp_inode);
     page_no  = CHFSNP_INODE_PAGE_NO(chfsnp_inode) ;
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0013);
     if(EC_FALSE == cpgv_free_space(CRFSDN_CPGV(CHFS_MD_DN(chfs_md)), disk_no, block_no, page_no, file_size))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0014);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_release_dn: free %u bytes to vol failed where disk %u, block %u, page %u\n",
                             file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0015);
 
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_release_dn: remove file fsize %u, disk %u, block %u, page %u done\n",
                        file_size, disk_no, block_no, page_no);
@@ -3445,15 +3436,11 @@ EC_BOOL chfs_write_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, CHFSNP_FNOD
         return (EC_FALSE);
     }
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0063);
     if(EC_FALSE == crfsdn_write_p(CHFS_MD_DN(chfs_md), cbytes_len(cbytes), cbytes_buf(cbytes), &disk_no, &block_no, &page_no))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0064);
-
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_dn: write %u bytes to dn failed\n", (uint32_t)CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0065);
 
     chfsnp_fnode_init(chfsnp_fnode);
     chfsnp_inode = CHFSNP_FNODE_INODE(chfsnp_fnode, 0);
@@ -3581,16 +3568,12 @@ EC_BOOL chfs_read_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode, 
         CBYTES_LEN(cbytes) = 0;
     }
 
-    crfsdn_rdlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0068);
     if(EC_FALSE == crfsdn_read_p(CHFS_MD_DN(chfs_md), disk_no, block_no, page_no, file_size, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0069);
-
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_dn: read %u bytes from disk %u, block %u, page %u failed\n",
                            file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0070);
     return (EC_TRUE);
 }
 
@@ -3671,18 +3654,14 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
         CBYTES_LEN(cbytes) = 0;
     }
 
-    crfsdn_rdlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0073);
     if(EC_FALSE == crfsdn_read_e(CHFS_MD_DN(chfs_md), disk_no, block_no, page_no, offset_t, max_len_t, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0074);
-
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_e_dn: read %ld bytes from disk %u, block %u, page %u failed\n",
                            max_len_t, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0075);
 
-     (*offset) += CBYTES_LEN(cbytes);
+    (*offset) += CBYTES_LEN(cbytes);
     return (EC_TRUE);
 }
 
@@ -3857,14 +3836,11 @@ STATIC_CAST static EC_BOOL __chfs_delete_dn(const UINT32 chfs_md_id, const CHFSN
     block_no = CHFSNP_INODE_BLOCK_NO(chfsnp_inode);
     page_no  = CHFSNP_INODE_PAGE_NO(chfsnp_inode) ;
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0085);
     if(EC_FALSE == crfsdn_remove(CHFS_MD_DN(chfs_md), disk_no, block_no, page_no, file_size))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0086);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u failed\n", file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0087);
 
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] __chfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u done\n", file_size, disk_no, block_no, page_no);
 
@@ -3916,14 +3892,11 @@ EC_BOOL chfs_delete_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
     block_no = CHFSNP_INODE_BLOCK_NO(chfsnp_inode);
     page_no  = CHFSNP_INODE_PAGE_NO(chfsnp_inode) ;
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0088);
     if(EC_FALSE == crfsdn_remove(CHFS_MD_DN(chfs_md), disk_no, block_no, page_no, file_size))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0089);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u failed\n", file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0090);
 
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u done\n", file_size, disk_no, block_no, page_no);
 
@@ -4155,14 +4128,11 @@ EC_BOOL chfs_flush_dn(const UINT32 chfs_md_id)
         return (EC_FALSE);
     }
 
-    crfsdn_wrlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0097);
     if(EC_FALSE == crfsdn_flush(CHFS_MD_DN(chfs_md)))
     {
-        crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0098);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_flush_dn: flush dn failed\n");
         return (EC_FALSE);
     }
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0099);
 
     return (EC_TRUE);
 }
@@ -4517,9 +4487,7 @@ EC_BOOL chfs_show_dn(const UINT32 chfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    crfsdn_rdlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0111);
     crfsdn_print(log, CHFS_MD_DN(chfs_md));
-    crfsdn_unlock(CHFS_MD_DN(chfs_md), LOC_CHFS_0112);
 
     return (EC_TRUE);
 }
