@@ -917,6 +917,55 @@ uint64_t c_str_to_uint64_t(const char *str)
     return (total * negs);
 }
 
+char *c_uint64_t_to_space_size_str(const uint64_t num)
+{
+    char *str_cache;
+    double units;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0021);
+    str_cache = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0022);
+
+    units = num;
+    if(1024 > units)
+    {
+        snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""B", units);
+        return (str_cache);
+    }
+
+    units /= 1024;
+    if(1024 > units)
+    {
+        snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""KB", units);
+        return (str_cache);
+    }    
+
+    units /= 1024;
+    if(1024 > units)
+    {
+        snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""MB", units);
+        return (str_cache);
+    } 
+
+    units /= 1024;
+    if(1024 > units)
+    {
+        snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""GB", units);
+        return (str_cache);
+    }   
+
+    units /= 1024;
+    if(1024 > units)
+    {
+        snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""TB", units);
+        return (str_cache);
+    }
+
+    snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""PB", units);
+    return (str_cache);
+}
+
 /*long to string*/
 int c_long_to_str_buf(const long num, char *buf)
 {

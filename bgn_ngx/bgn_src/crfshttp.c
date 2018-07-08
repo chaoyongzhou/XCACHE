@@ -5917,8 +5917,8 @@ EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
             json_object_add_kv(crfsnp_obj, "np_id", c_uint32_t_to_str(crfsnp_id));
 
             json_object_add_kv(crfsnp_obj, "file_size"    , c_word_to_str(CRFSNP_FSIZE(crfsnp)));
-            json_object_add_kv(crfsnp_obj, "del_size"     , c_uint64_t_to_str(CRFSNP_DEL_SIZE(crfsnp)));
-            json_object_add_kv(crfsnp_obj, "recycle_size" , c_uint64_t_to_str(CRFSNP_RECYCLE_SIZE(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "del_size"     , c_uint64_t_to_space_size_str(CRFSNP_DEL_SIZE(crfsnp)));
+            json_object_add_kv(crfsnp_obj, "recycle_size" , c_uint64_t_to_space_size_str(CRFSNP_RECYCLE_SIZE(crfsnp)));
             json_object_add_kv(crfsnp_obj, "item_max_num" , c_uint32_t_to_str(CRFSNP_HEADER_ITEMS_MAX_NUM(crfsnp_header)));
             json_object_add_kv(crfsnp_obj, "item_used_num", c_uint32_t_to_str(CRFSNP_HEADER_ITEMS_USED_NUM(crfsnp_header)));
          }
