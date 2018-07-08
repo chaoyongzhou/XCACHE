@@ -432,7 +432,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item); -- */
+/* -- EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crfsnp_key); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_qfile,
 /*func beg addr   */     0,
@@ -441,9 +441,9 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func name       */     "crfs_qfile",
 /*func index      */     FI_crfs_qfile,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,e_dbg_CRFSNP_KEY_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -822,7 +822,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item); -- */
+/* -- EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crfsnp_key); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_qdir,
 /*func beg addr   */     0,
@@ -831,9 +831,9 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func name       */     "crfs_qdir",
 /*func index      */     FI_crfs_qdir,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,e_dbg_CRFSNP_KEY_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

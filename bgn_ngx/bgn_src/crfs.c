@@ -3950,7 +3950,7 @@ EC_BOOL crfs_update_with_token(const UINT32 crfs_md_id, const CSTRING *file_path
 *  query a file
 *
 **/
-EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item)
+EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crfsnp_key)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_ITEM  *crfsnp_item_src;
@@ -3985,7 +3985,15 @@ EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITE
     }
 
     /*clone*/
-    crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
+    if(NULL_PTR != crfsnp_item)
+    {
+        crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
+    }
+
+    if(NULL_PTR != crfsnp_key)
+    {
+        crfsnp_key_clone(CRFSNP_ITEM_KEY(crfsnp_item_src), crfsnp_key);
+    }
 
     return (EC_TRUE);
 }
@@ -3995,7 +4003,7 @@ EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITE
 *  query a dir
 *
 **/
-EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item)
+EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crfsnp_key)
 {
     CRFS_MD      *crfs_md;
     CRFSNP_ITEM  *crfsnp_item_src;
@@ -4030,8 +4038,16 @@ EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM 
     }
     
     /*clone*/
-    crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
+    if(NULL_PTR != crfsnp_item)
+    {
+        crfsnp_item_clone(crfsnp_item_src, crfsnp_item);
+    }
 
+    if(NULL_PTR != crfsnp_key)
+    {
+        crfsnp_key_clone(CRFSNP_ITEM_KEY(crfsnp_item_src), crfsnp_key);
+    }
+    
     return (EC_TRUE);
 }
 
@@ -4190,7 +4206,7 @@ STATIC_CAST static EC_BOOL __crfs_cat_path(const CRFSNP_ITEM *crfsnp_item, CSTRI
 {
     cstring_rtrim(des_path, (UINT8)'/');
     cstring_append_chars(des_path, (UINT32)1, (const UINT8 *)"/", LOC_CRFS_0208);
-    cstring_append_chars(des_path, CRFSNP_ITEM_KLEN(crfsnp_item), CRFSNP_ITEM_KEY(crfsnp_item), LOC_CRFS_0209);
+    cstring_append_chars(des_path, CRFSNP_ITEM_KLEN(crfsnp_item), CRFSNP_ITEM_KNAME(crfsnp_item), LOC_CRFS_0209);
 
     return (EC_TRUE);
 }
@@ -4300,7 +4316,7 @@ EC_BOOL crfs_qlist_tree(const UINT32 crfs_md_id, const CSTRING *file_path, CVECT
     if(do_log(SEC_0031_CRFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] crfs_qlist_path: after walk, stack is:\n");
-        cstack_print(LOGSTDOUT, CRFSNP_DIT_NODE_STACK(&crfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)crfsnp_item_print);
+        cstack_print(LOGSTDOUT, CRFSNP_DIT_NODE_STACK(&crfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)crfsnp_item_and_key_print);
     }
 
     cstring_free(base_dir);

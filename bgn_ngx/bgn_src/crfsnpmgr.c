@@ -953,29 +953,6 @@ EC_BOOL crfsnp_mgr_close(CRFSNP_MGR *crfsnp_mgr)
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_collect_items(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag, CVECTOR *crfsnp_item_vec)
-{
-    uint32_t crfsnp_num;
-    uint32_t crfsnp_id;
-
-    crfsnp_num = CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr);
-    for(crfsnp_id = 0; crfsnp_id < crfsnp_num; crfsnp_id ++)
-    {
-        CRFSNP   *crfsnp;
-
-        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
-        if(NULL_PTR == crfsnp)
-        {
-            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_collect_items: open np %u failed\n", crfsnp_id);
-            continue;
-        }
-
-        crfsnp_collect_items_no_lock(crfsnp, path, dflag, crfsnp_item_vec);
-    }
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfsnp_mgr_find_dir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *dir_path)
 {
     return __crfsnp_mgr_search_dir(crfsnp_mgr,
@@ -1036,7 +1013,7 @@ CRFSNP_FNODE *crfsnp_mgr_reserve(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_pat
         return (NULL_PTR);
     }
 
-    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = task_brd_default_get_time();
+    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = (uint32_t)task_brd_default_get_time();
 
     /*not import yet*/
     return CRFSNP_ITEM_FNODE(crfsnp_item);
@@ -1338,96 +1315,6 @@ EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
 
     dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard: found invalid dflag 0x%lx before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
-    return (EC_FALSE);
-}
-
-
-/*note: only support move in same np!*/
-STATIC_CAST static EC_BOOL __crfsnp_mgr_move_file(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag)
-{
-    CRFSNP  *crfsnp;
-    uint32_t crfsnp_id;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_file: no np for path %.*s\n",
-                           (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_move_file: crfsnp %p, header %p, %s -> %s\n", crfsnp, CRFSNP_HDR(crfsnp), (char *)cstring_get_str(path_src), (char *)cstring_get_str(path_des));
-
-    if(EC_FALSE == crfsnp_move(crfsnp, crfsnp,
-                               (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
-                               (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des),
-                               dflag))
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_file: np %u move %.*s to %.*s failed\n",
-                            crfsnp_id,
-                            (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
-                            (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_move_file: np %u move %.*s to %.*s done\n",
-                        crfsnp_id,
-                        (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
-                        (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
-
-    return (EC_TRUE);
-}
-
-/*note: only support move in same np!*/
-STATIC_CAST static EC_BOOL __crfsnp_mgr_move_dir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag)
-{
-    uint32_t crfsnp_id;
-
-    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
-    {
-        CRFSNP *crfsnp;
-
-        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
-        if(NULL_PTR == crfsnp)
-        {
-            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_move_dir: open np %u failed\n", crfsnp_id);
-            return (EC_FALSE);
-        }
-
-        if(EC_FALSE == crfsnp_move(crfsnp,  crfsnp,
-                                   (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
-                                   (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des),
-                                   dflag))
-        {
-            dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:__crfsnp_mgr_move_dir: np %u move %.*s to %.*s failed\n",
-                                crfsnp_id,
-                                (uint32_t)cstring_get_len(path_src), cstring_get_str(path_src),
-                                (uint32_t)cstring_get_len(path_des), cstring_get_str(path_des));
-            //return (EC_FALSE);
-        }
-    }
-
-    return (EC_TRUE);
-}
-
-
-/*note: here path_des MUST be in /recycle directory !!!*/
-EC_BOOL crfsnp_mgr_move(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_src, const CSTRING *path_des, const UINT32 dflag)
-{
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
-    {
-        return __crfsnp_mgr_move_file(crfsnp_mgr, path_src, path_des, dflag);
-    }
-
-    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
-    {
-        return __crfsnp_mgr_move_dir(crfsnp_mgr, path_src, path_des, dflag);
-    }
-
-    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_move: found invalid dflag 0x%lx before move %.*s to %.*s\n",
-                        dflag,
-                        (uint32_t)cstring_get_len(path_src), (char *)cstring_get_str(path_src),
-                        (uint32_t)cstring_get_len(path_des), (char *)cstring_get_str(path_des));
     return (EC_FALSE);
 }
 

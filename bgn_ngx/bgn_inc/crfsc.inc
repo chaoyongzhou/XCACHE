@@ -417,7 +417,7 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item); -- */
+/* -- EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM *crfsnp_item, CRFSNP_KEY *crfsnp_key); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_qfile_ep,
 /*func beg addr   */     0,
@@ -426,13 +426,13 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_qfile_ep",
 /*func index      */     FI_crfsc_qfile_ep,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,e_dbg_CRFSNP_KEY_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item); -- */
+/* -- EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM *crfsnp_item, CRFSNP_KEY *crfsnp_key); -- */
 /*func module     */     MD_CRFSC,
 /*func logic addr */     (UINT32)crfsc_qfile,
 /*func beg addr   */     0,
@@ -441,9 +441,9 @@ FUNC_ADDR_NODE g_crfsc_func_addr_list[ ] = {
 /*func name       */     "crfsc_qfile",
 /*func index      */     FI_crfsc_qfile,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,},
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CRFSNP_ITEM_ptr,e_dbg_CRFSNP_KEY_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

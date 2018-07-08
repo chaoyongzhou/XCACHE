@@ -35,6 +35,13 @@ void crfsnplru_node_clean(CRFSNPLRU_NODE *node, const uint32_t node_pos)
     return;
 }
 
+EC_BOOL crfsnplru_node_clone(const CRFSNPLRU_NODE *node_src, CRFSNPLRU_NODE *node_des)
+{
+    CRFSNPLRU_NODE_PREV_POS(node_des) = CRFSNPLRU_NODE_PREV_POS(node_src);
+    CRFSNPLRU_NODE_NEXT_POS(node_des) = CRFSNPLRU_NODE_NEXT_POS(node_src);
+    return (EC_TRUE);
+}
+
 void crfsnplru_node_print(LOG *log, const CRFSNPLRU_NODE *node, const uint32_t node_pos)
 {
     sys_log(log, "crfsnplru_node_print: [%u] %p: prev %u, next %u\n", node_pos, node,

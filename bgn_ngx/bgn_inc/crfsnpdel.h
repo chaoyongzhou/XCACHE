@@ -24,6 +24,8 @@ void crfsnpdel_node_init(CRFSNPDEL_NODE *node, const uint32_t node_pos);
 
 void crfsnpdel_node_clean(CRFSNPDEL_NODE *node, const uint32_t node_pos);
 
+EC_BOOL crfsnpdel_node_clone(const CRFSNPDEL_NODE *node_src, CRFSNPDEL_NODE *node_des);
+
 void crfsnpdel_node_print(LOG *log, const CRFSNPDEL_NODE *node, const uint32_t node_pos);
 
 EC_BOOL crfsnpdel_node_is_empty(const CRFSNPDEL_NODE *node, const uint32_t node_pos);

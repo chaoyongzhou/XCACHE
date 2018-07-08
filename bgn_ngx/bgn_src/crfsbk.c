@@ -741,7 +741,7 @@ CRFSNP_FNODE *crfsbk_reserve_np_no_lock(CRFSBK *crfsbk, const CSTRING *file_path
         return (NULL_PTR);
     }
 
-    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = task_brd_default_get_time();
+    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = (uint32_t)task_brd_default_get_time();
 
     if(do_log(SEC_0141_CRFSBK, 9))
     {
@@ -1481,7 +1481,7 @@ EC_BOOL crfsbk_replay_file(CRFSBK *crfsbk, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    if(EC_TRUE == crfs_qfile(CRFSBK_CRFS_MD_ID(crfsbk), path, crfsnp_item_master))
+    if(EC_TRUE == crfs_qfile(CRFSBK_CRFS_MD_ID(crfsbk), path, crfsnp_item_master, NULL_PTR))
     {
         CRFSNP_ITEM *crfsnp_item_backup;
 
@@ -1571,7 +1571,7 @@ EC_BOOL crfsbk_replay_rm_dir_op(CRFSBK *crfsbk, CRFSOP *crfsop)
         return (EC_FALSE);
     }
 
-    if(EC_TRUE == crfs_qdir(CRFSBK_CRFS_MD_ID(crfsbk), path, crfsnp_item_master))
+    if(EC_TRUE == crfs_qdir(CRFSBK_CRFS_MD_ID(crfsbk), path, crfsnp_item_master, NULL_PTR))
     {
         CRFSNP_ITEM *crfsnp_item_backup;
 

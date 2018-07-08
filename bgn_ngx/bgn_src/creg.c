@@ -684,6 +684,18 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_clist_size
     );
     creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CRFSNP_KEY_ptr,
+        /* type_sizeof            */sizeof(CRFSNP_KEY),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CRFSNP_KEY,
+        /* init_type_func         */(UINT32)crfsnp_key_init,
+        /* clean_type_func        */(UINT32)crfsnp_key_clean,
+        /* free_type_func         */(UINT32)crfsnp_key_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_crfsnp_key,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_crfsnp_key,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_crfsnp_key_size
+    );    
+    creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CRFSNP_ITEM_ptr,
         /* type_sizeof            */sizeof(CRFSNP_ITEM),
         /* pointer_flag           */EC_TRUE,

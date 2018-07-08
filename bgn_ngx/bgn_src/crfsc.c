@@ -1457,7 +1457,7 @@ EC_BOOL crfsc_update(const UINT32 crfsc_md_id, const CSTRING *file_path, const C
 *  query a file
 *
 **/
-EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item)
+EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM *crfsnp_item, CRFSNP_KEY *crfsnp_key)
 {
     UINT32  crfs_md_id;
 
@@ -1479,10 +1479,10 @@ EC_BOOL crfsc_qfile_ep(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSN
         return (EC_FALSE);
     }
 
-    return crfs_qfile(crfs_md_id, file_path, crfsnp_item);
+    return crfs_qfile(crfs_md_id, file_path, crfsnp_item, crfsnp_key);
 }
 
-EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item)
+EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_ITEM *crfsnp_item, CRFSNP_KEY *crfsnp_key)
 {
     CRFSC_MD          *crfsc_md;
 
@@ -1511,7 +1511,7 @@ EC_BOOL crfsc_qfile(const UINT32 crfsc_md_id, const CSTRING *file_path, CRFSNP_I
     result = EC_FALSE;
     task_p2p(crfsc_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &result, FI_crfsc_qfile_ep, CMPI_ERROR_MODI, file_path, crfsnp_item);
+             &result, FI_crfsc_qfile_ep, CMPI_ERROR_MODI, file_path, crfsnp_item, crfsnp_key);
 
     return (result);
 }

@@ -15535,6 +15535,7 @@ EC_BOOL api_cmd_ui_crfs_qfile(CMD_PARA_VEC * param)
     MOD_MGR     *mod_mgr;
     TASK_MGR    *task_mgr;
     CRFSNP_ITEM *crfsnp_item;
+    CRFSNP_KEY  *crfsnp_key;
     LOG         *des_log;
 
     EC_BOOL   ret;
@@ -15565,8 +15566,11 @@ EC_BOOL api_cmd_ui_crfs_qfile(CMD_PARA_VEC * param)
     crfsnp_item = crfsnp_item_new();
     ASSERT(NULL_PTR != crfsnp_item);
 
+    crfsnp_key = crfsnp_key_new();
+    ASSERT(NULL_PTR != crfsnp_key);
+
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qfile, CMPI_ERROR_MODI, file_name, crfsnp_item);
+    task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qfile, CMPI_ERROR_MODI, file_name, crfsnp_item, crfsnp_key);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     des_log = api_cmd_ui_get_log(where);
@@ -15574,6 +15578,7 @@ EC_BOOL api_cmd_ui_crfs_qfile(CMD_PARA_VEC * param)
     if(EC_TRUE == ret)
     {
         crfsnp_item_print(des_log, crfsnp_item);
+        crfsnp_key_print(des_log, crfsnp_key);
     }
     else
     {
@@ -15581,6 +15586,7 @@ EC_BOOL api_cmd_ui_crfs_qfile(CMD_PARA_VEC * param)
     }
 
     crfsnp_item_free(crfsnp_item);
+    crfsnp_key_free(crfsnp_key);
 
     mod_mgr_free(mod_mgr);
 
@@ -15597,6 +15603,7 @@ EC_BOOL api_cmd_ui_crfs_qdir(CMD_PARA_VEC * param)
     MOD_MGR     *mod_mgr;
     TASK_MGR    *task_mgr;
     CRFSNP_ITEM *crfsnp_item;
+    CRFSNP_KEY  *crfsnp_key;
     LOG         *des_log;
 
     EC_BOOL   ret;
@@ -15626,10 +15633,13 @@ EC_BOOL api_cmd_ui_crfs_qdir(CMD_PARA_VEC * param)
     crfsnp_item = crfsnp_item_new();
     ASSERT(NULL_PTR != crfsnp_item);
 
+    crfsnp_key = crfsnp_key_new();
+    ASSERT(NULL_PTR != crfsnp_key);
+    
     ret = EC_FALSE;
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qdir, CMPI_ERROR_MODI, dir_name, crfsnp_item);
+    task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qdir, CMPI_ERROR_MODI, dir_name, crfsnp_item, crfsnp_key);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     des_log = api_cmd_ui_get_log(where);
@@ -15638,14 +15648,15 @@ EC_BOOL api_cmd_ui_crfs_qdir(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[SUCC]\n");
         crfsnp_item_print(des_log, crfsnp_item);
+        crfsnp_key_print(des_log, crfsnp_key);
     }
     else
     {
         sys_log(des_log, "[FAIL]\n");
-        crfsnp_item_print(des_log, crfsnp_item);
     }
 
     crfsnp_item_free(crfsnp_item);
+    crfsnp_key_free(crfsnp_key);
     mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
@@ -17977,6 +17988,7 @@ EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param)
     MOD_MGR     *mod_mgr;
     TASK_MGR    *task_mgr;
     CRFSNP_ITEM *crfscnp_item;
+    CRFSNP_KEY  *crfscnp_key;
     LOG         *des_log;
 
     EC_BOOL   ret;
@@ -18005,8 +18017,11 @@ EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param)
     crfscnp_item = crfsnp_item_new();
     ASSERT(NULL_PTR != crfscnp_item);
 
+    crfscnp_key = crfsnp_key_new();
+    ASSERT(NULL_PTR != crfscnp_key);
+    
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    task_tcid_inc(task_mgr, crfscnp_tcid, &ret, FI_crfsc_qfile, CMPI_ERROR_MODI, file_name, crfscnp_item);
+    task_tcid_inc(task_mgr, crfscnp_tcid, &ret, FI_crfsc_qfile, CMPI_ERROR_MODI, file_name, crfscnp_item, crfscnp_key);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     des_log = api_cmd_ui_get_log(where);
@@ -18014,6 +18029,7 @@ EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param)
     if(EC_TRUE == ret)
     {
         crfsnp_item_print(des_log, crfscnp_item);
+        crfsnp_key_print(des_log, crfscnp_key);
     }
     else
     {
@@ -18021,6 +18037,7 @@ EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param)
     }
 
     crfsnp_item_free(crfscnp_item);
+    crfsnp_key_free(crfscnp_key);
 
     mod_mgr_free(mod_mgr);
 

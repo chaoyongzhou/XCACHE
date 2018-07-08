@@ -24,6 +24,8 @@ void crfsnplru_node_init(CRFSNPLRU_NODE *node, const uint32_t node_pos);
 
 void crfsnplru_node_clean(CRFSNPLRU_NODE *node, const uint32_t node_pos);
 
+EC_BOOL crfsnplru_node_clone(const CRFSNPLRU_NODE *node_src, CRFSNPLRU_NODE *node_des);
+
 void crfsnplru_node_print(LOG *log, const CRFSNPLRU_NODE *node, const uint32_t node_pos);
 
 EC_BOOL crfsnplru_node_is_empty(const CRFSNPLRU_NODE *node, const uint32_t node_pos);

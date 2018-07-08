@@ -873,7 +873,6 @@ void crfsnprb_tree_replace_node(CRFSNPRB_POOL *pool, const uint32_t victim_pos, 
 *   return  0 if node == (data, key)
 *
 **/
-#if 1
 STATIC_CAST static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
 {
     const CRFSNP_ITEM *item;
@@ -899,49 +898,8 @@ STATIC_CAST static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const
         return (1);
     }
 
-    return BCMP(CRFSNP_ITEM_KEY(item), key, klen);
+    return BCMP(CRFSNP_ITEM_KNAME(item), key, klen);
 }
-#endif
-
-#if 0/*Oops! this version was delivered online :(*/
-STATIC_CAST static int __crfsnprb_node_data_cmp(const CRFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
-{
-    const CRFSNP_ITEM *item;
-    uint32_t min_len;
-    int cmp_ret;
-
-    if (CRFSNPRB_NODE_DATA(node) < data)
-    {
-        return (-1);
-    }
-
-    if (CRFSNPRB_NODE_DATA(node) > data)
-    {
-        return (1);
-    }
-
-    item = (const CRFSNP_ITEM *)CRFSNP_RB_NODE_ITEM(node);
-
-    min_len = DMIN(CRFSNP_ITEM_KLEN(item), klen);
-    cmp_ret = BCMP(CRFSNP_ITEM_KEY(item), key, min_len);
-    if(0 != cmp_ret)
-    {
-        return (cmp_ret);
-    }
-
-    if(CRFSNP_ITEM_KLEN(item) < klen)
-    {
-        return (-1);
-    }
-
-    if(CRFSNP_ITEM_KLEN(item) > klen)
-    {
-        return (1);
-    }
-
-    return (0);
-}
-#endif
 
 /*return the searched pos*/
 uint32_t crfsnprb_tree_search_data(const CRFSNPRB_POOL *pool, const uint32_t root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key)

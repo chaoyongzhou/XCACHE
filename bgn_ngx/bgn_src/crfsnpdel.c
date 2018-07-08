@@ -35,6 +35,13 @@ void crfsnpdel_node_clean(CRFSNPDEL_NODE *node, const uint32_t node_pos)
     return;
 }
 
+EC_BOOL crfsnpdel_node_clone(const CRFSNPDEL_NODE *node_src, CRFSNPDEL_NODE *node_des)
+{
+    CRFSNPDEL_NODE_PREV_POS(node_des) = CRFSNPDEL_NODE_PREV_POS(node_src);
+    CRFSNPDEL_NODE_NEXT_POS(node_des) = CRFSNPDEL_NODE_NEXT_POS(node_src);
+    return (EC_TRUE);
+}
+
 void crfsnpdel_node_print(LOG *log, const CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
     sys_log(log, "crfsnpdel_node_print: [%u] %p: prev %u, next %u\n", node_pos, node,

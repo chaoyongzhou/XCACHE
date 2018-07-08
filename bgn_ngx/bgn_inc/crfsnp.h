@@ -86,6 +86,20 @@ EC_BOOL crfsnp_dnode_free(CRFSNP_DNODE *crfsnp_dnode);
 
 EC_BOOL crfsnp_dnode_clone(const CRFSNP_DNODE *crfsnp_dnode_src, CRFSNP_DNODE *crfsnp_dnode_des);
 
+CRFSNP_KEY *crfsnp_key_new();
+
+EC_BOOL crfsnp_key_init(CRFSNP_KEY *crfsnp_key);
+
+EC_BOOL crfsnp_key_clean(CRFSNP_KEY *crfsnp_key);
+
+EC_BOOL crfsnp_key_clone(const CRFSNP_KEY *crfsnp_key_src, CRFSNP_KEY *crfsnp_key_des);
+
+EC_BOOL crfsnp_key_free(CRFSNP_KEY *crfsnp_key);
+
+EC_BOOL crfsnp_key_set(CRFSNP_KEY *crfsnp_key, const uint32_t klen, const uint8_t *key);
+
+void    crfsnp_key_print(LOG *log, const CRFSNP_KEY *crfsnp_key);
+
 CRFSNP_ITEM *crfsnp_item_new();
 
 EC_BOOL crfsnp_item_init(CRFSNP_ITEM *crfsnp_item);
@@ -99,6 +113,8 @@ EC_BOOL crfsnp_item_free(CRFSNP_ITEM *crfsnp_item);
 EC_BOOL crfsnp_item_set_key(CRFSNP_ITEM *crfsnp_item, const uint32_t klen, const uint8_t *key);
 
 void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item);
+
+void crfsnp_item_and_key_print(LOG *log, const CRFSNP_ITEM *crfsnp_item);
 
 EC_BOOL crfsnp_item_load(CRFSNP *crfsnp, uint32_t *offset, CRFSNP_ITEM *crfsnp_item);
 
@@ -167,8 +183,6 @@ uint32_t crfsnp_dnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos, const ui
 uint32_t crfsnp_dnode_umount_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, const uint32_t son_node_pos, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
 EC_BOOL crfsnp_dnode_delete_dir_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode);
 
-EC_BOOL crfsnp_dnode_delete_dir_single_son(const CRFSNP *crfsnp, CRFSNP_DNODE *crfsnp_dnode, CRFSNP_ITEM *crfsnp_item_del);
-
 uint32_t crfsnp_match_no_lock(CRFSNP *crfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 uint32_t crfsnp_match(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
@@ -230,8 +244,6 @@ EC_BOOL crfsnp_expire(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *pa
 EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
 EC_BOOL crfsnp_walk(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, CRFSNP_DIT_NODE *crfsnp_dit_node);
-
-EC_BOOL crfsnp_move(CRFSNP *src_crfsnp, CRFSNP *des_crfsnp, const uint32_t src_path_len, const uint8_t *src_path, const uint32_t des_path_len, const uint8_t *des_path, const uint32_t dflag);
 
 EC_BOOL crfsnp_umount_item(CRFSNP *crfsnp, const uint32_t node_pos);
 
@@ -301,8 +313,6 @@ EC_BOOL crfsnp_show_path_depth(LOG *log, CRFSNP *crfsnp, const uint32_t path_len
 EC_BOOL crfsnp_get_first_fname_of_dir(const CRFSNP *crfsnp, const CRFSNP_ITEM  *crfsnp_item, uint8_t **fname, uint32_t *dflag);
 
 EC_BOOL crfsnp_get_first_fname_of_path(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, uint8_t **fname, uint32_t *dflag);
-
-EC_BOOL crfsnp_collect_items_no_lock(CRFSNP *crfsnp, const CSTRING *path, const UINT32 dflag, CVECTOR *crfsnp_item_vec);
 
 CRFSNP *crfsnp_mem_create(const uint32_t np_id, const uint8_t np_model, const uint8_t hash_2nd_algo_id);
 

@@ -569,14 +569,14 @@ EC_BOOL crfs_update_with_token(const UINT32 crfs_md_id, const CSTRING *file_path
 *  query a file
 *
 **/
-EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item);
+EC_BOOL crfs_qfile(const UINT32 crfs_md_id, const CSTRING *file_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crsnp_key);
 
 /**
 *
 *  query a dir
 *
 **/
-EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item);
+EC_BOOL crfs_qdir(const UINT32 crfs_md_id, const CSTRING *dir_path, CRFSNP_ITEM  *crfsnp_item, CRFSNP_KEY *crsnp_key);
 
 
 /**

@@ -198,7 +198,7 @@ extern "C"{
 #define                   MM_CRFSNP_ITEM    ((UINT32)134)
 #define                        MM_CRFSNP    ((UINT32)135)
 #define                    MM_CRFSNP_MGR    ((UINT32)136)
-#define                     MM_XXXXXX_01    ((UINT32)137)
+#define                    MM_CRFSNP_KEY    ((UINT32)137)
 #define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
 
 #define                  MM_CHFSNP_FNODE    ((UINT32)139)
