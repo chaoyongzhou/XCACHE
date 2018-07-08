@@ -1571,7 +1571,6 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
     uint32_t      path_hash;
-    uint8_t       md5sum[ CMD5_DIGEST_LEN ];
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
@@ -1634,12 +1633,6 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
 
     CRFSNP_FNODE_HASH(crfsnp_fnode) = path_hash;
 
-    if(SWITCH_ON == CRFS_MD5_SWITCH)
-    {
-        cmd5_sum((uint32_t)CBYTES_LEN(cbytes), CBYTES_BUF(cbytes), md5sum);
-        BCOPY(md5sum, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN);
-    }
-
     if(do_log(SEC_0031_CRFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] __crfs_write: write file %s to dn where fnode is \n", (char *)cstring_get_str(file_path));
@@ -1658,7 +1651,6 @@ STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const C
     CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
     uint32_t      path_hash;
-    uint8_t       md5sum[ CMD5_DIGEST_LEN ];
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
@@ -1721,12 +1713,6 @@ STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const C
     }
 
     CRFSNP_FNODE_HASH(crfsnp_fnode) = path_hash;
-
-    if(SWITCH_ON == CRFS_MD5_SWITCH)
-    {
-        cmd5_sum((uint32_t)CBYTES_LEN(cbytes), CBYTES_BUF(cbytes), md5sum);
-        BCOPY(md5sum, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN);
-    }
 
     if(do_log(SEC_0031_CRFS, 9))
     {
@@ -4599,6 +4585,7 @@ EC_BOOL crfs_file_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
 EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5_DIGEST *md5sum)
 {
     CRFS_MD      *crfs_md;
+    CBYTES        cbytes;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -4618,11 +4605,17 @@ EC_BOOL crfs_file_md5sum(const UINT32 crfs_md_id, const CSTRING *path_cstr, CMD5
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfsnp_mgr_file_md5sum(CRFS_MD_NPP(crfs_md), path_cstr, md5sum))
+    cbytes_init(&cbytes);
+
+    if(EC_FALSE == crfs_read(crfs_md_id, path_cstr, &cbytes))
     {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_md5sum: crfsnp mgr get md5sum of %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_md5sum: read %s failed\n", (char *)cstring_get_str(path_cstr));
+        cbytes_clean(&cbytes);
         return (EC_FALSE);
     }
+
+    cmd5_sum((uint32_t)CBYTES_LEN(&cbytes), CBYTES_BUF(&cbytes), CMD5_DIGEST_SUM(md5sum));
+    cbytes_clean(&cbytes);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_file_md5sum: file %s, md5 %s\n",
                              (char *)cstring_get_str(path_cstr),

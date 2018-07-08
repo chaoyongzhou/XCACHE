@@ -70,8 +70,6 @@ EC_BOOL crfsnp_fnode_cmp(const CRFSNP_FNODE *crfsnp_fnode_1st, const CRFSNP_FNOD
 
 EC_BOOL crfsnp_fnode_import(const CRFSNP_FNODE *crfsnp_fnode_src, CRFSNP_FNODE *crfsnp_fnode_des);
 
-char *crfsnp_fnode_md5sum_str(const CRFSNP_FNODE *crfsnp_fnode);
-
 uint32_t crfsnp_fnode_count_replica(const CRFSNP_FNODE *crfsnp_fnode);
 
 void crfsnp_fnode_print(LOG *log, const CRFSNP_FNODE *crfsnp_fnode);
@@ -273,8 +271,6 @@ EC_BOOL crfsnp_file_num(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *
 EC_BOOL crfsnp_file_size(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, uint64_t *file_size);
 
 EC_BOOL crfsnp_mkdirs(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path);
-
-EC_BOOL crfsnp_file_md5sum(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, CMD5_DIGEST *md5sum);
 
 CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id);
 

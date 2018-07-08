@@ -908,11 +908,6 @@ EC_BOOL crfsbk_write_no_lock(CRFSBK *crfsbk, const CSTRING *file_path, const CBY
     CRFSNP_FNODE_FILESZ(crfsnp_fnode) = size;
     CRFSNP_FNODE_REPNUM(crfsnp_fnode) = 1;
 
-    if(SWITCH_ON == CRFS_MD5_SWITCH)
-    {
-        BCOPY(md5sum, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN);
-    }
-
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     CRFSNP_INODE_CACHE_FLAG(crfsnp_inode) = CRFSDN_DATA_NOT_IN_CACHE;
     CRFSNP_INODE_DISK_NO(crfsnp_inode)    = disk_no;

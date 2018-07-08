@@ -262,7 +262,6 @@ EC_BOOL crfsnp_fnode_init(CRFSNP_FNODE *crfsnp_fnode)
     {
         crfsnp_inode_init(CRFSNP_FNODE_INODE(crfsnp_fnode, pos));
     }
-    BSET(CRFSNP_FNODE_MD5SUM(crfsnp_fnode), 0, CMD5_DIGEST_LEN);
     return (EC_TRUE);
 }
 
@@ -278,7 +277,6 @@ EC_BOOL crfsnp_fnode_clean(CRFSNP_FNODE *crfsnp_fnode)
     {
         crfsnp_inode_clean(CRFSNP_FNODE_INODE(crfsnp_fnode, pos));
     }
-    BSET(CRFSNP_FNODE_MD5SUM(crfsnp_fnode), 0, CMD5_DIGEST_LEN);
     return (EC_TRUE);
 }
 
@@ -304,7 +302,7 @@ EC_BOOL crfsnp_fnode_clone(const CRFSNP_FNODE *crfsnp_fnode_src, CRFSNP_FNODE *c
     {
         crfsnp_inode_clone(CRFSNP_FNODE_INODE(crfsnp_fnode_src, pos), CRFSNP_FNODE_INODE(crfsnp_fnode_des, pos));
     }
-    BCOPY(CRFSNP_FNODE_MD5SUM(crfsnp_fnode_src), CRFSNP_FNODE_MD5SUM(crfsnp_fnode_des), CMD5_DIGEST_LEN);
+
     return (EC_TRUE);
 }
 
@@ -364,11 +362,6 @@ EC_BOOL crfsnp_fnode_cmp(const CRFSNP_FNODE *crfsnp_fnode_1st, const CRFSNP_FNOD
         }
     }
 
-    if(0 != BCMP(CRFSNP_FNODE_MD5SUM(crfsnp_fnode_1st), CRFSNP_FNODE_MD5SUM(crfsnp_fnode_2nd), CMD5_DIGEST_LEN))
-    {
-        return (EC_FALSE);
-    }
-
     return (EC_TRUE);
 }
 
@@ -399,22 +392,10 @@ EC_BOOL crfsnp_fnode_import(const CRFSNP_FNODE *crfsnp_fnode_src, CRFSNP_FNODE *
         }
     }
 
-    BCOPY(CRFSNP_FNODE_MD5SUM(crfsnp_fnode_src), CRFSNP_FNODE_MD5SUM(crfsnp_fnode_des), CMD5_DIGEST_LEN);
-
     CRFSNP_FNODE_FILESZ(crfsnp_fnode_des) = CRFSNP_FNODE_FILESZ(crfsnp_fnode_src);
     CRFSNP_FNODE_REPNUM(crfsnp_fnode_des) = des_pos;
     CRFSNP_FNODE_HASH(crfsnp_fnode_des)   = CRFSNP_FNODE_HASH(crfsnp_fnode_src);
     return (EC_TRUE);
-}
-
-char *crfsnp_fnode_md5sum_str(const CRFSNP_FNODE *crfsnp_fnode)
-{
-    if(SWITCH_ON == CRFS_MD5_SWITCH)
-    {
-        return c_md5_to_hex_str(CRFSNP_FNODE_MD5SUM(crfsnp_fnode));
-    }
-    /*else*/
-    return (NULL_PTR);
 }
 
 uint32_t crfsnp_fnode_count_replica(const CRFSNP_FNODE *crfsnp_fnode)
@@ -442,12 +423,11 @@ void crfsnp_fnode_print(LOG *log, const CRFSNP_FNODE *crfsnp_fnode)
 {
     uint32_t pos;
 
-    sys_log(log, "crfsnp_fnode %p: file size %u, replica num %u, hash %x, md5 %s\n",
+    sys_log(log, "crfsnp_fnode %p: file size %u, replica num %u, hash %x\n",
                     crfsnp_fnode,
                     CRFSNP_FNODE_FILESZ(crfsnp_fnode),
                     CRFSNP_FNODE_REPNUM(crfsnp_fnode),
-                    CRFSNP_FNODE_HASH(crfsnp_fnode),
-                    crfsnp_fnode_md5sum_str(crfsnp_fnode)
+                    CRFSNP_FNODE_HASH(crfsnp_fnode)
                     );
 
     for(pos = 0; pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && pos < CRFSNP_FILE_REPLICA_MAX_NUM; pos ++)
@@ -461,11 +441,10 @@ void crfsnp_fnode_log_no_lock(LOG *log, const CRFSNP_FNODE *crfsnp_fnode)
 {
     uint32_t pos;
 
-    sys_print_no_lock(log, "size %u, replica %u, hash %x, md5 %s",
+    sys_print_no_lock(log, "size %u, replica %u, hash %x",
                     CRFSNP_FNODE_FILESZ(crfsnp_fnode),
                     CRFSNP_FNODE_REPNUM(crfsnp_fnode),
-                    CRFSNP_FNODE_HASH(crfsnp_fnode),
-                    crfsnp_fnode_md5sum_str(crfsnp_fnode)
+                    CRFSNP_FNODE_HASH(crfsnp_fnode)
                     );
 
     for(pos = 0; pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && pos < CRFSNP_FILE_REPLICA_MAX_NUM; pos ++)
@@ -711,11 +690,10 @@ void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
         CRFSNP_FNODE *crfsnp_fnode;
 
         crfsnp_fnode = (CRFSNP_FNODE *)CRFSNP_ITEM_FNODE(crfsnp_item);
-        sys_log(log, "file size %u, replica num %u, hash %x, md5 %s\n",
+        sys_log(log, "file size %u, replica num %u, hash %x\n",
                         CRFSNP_FNODE_FILESZ(crfsnp_fnode),
                         CRFSNP_FNODE_REPNUM(crfsnp_fnode),
-                        CRFSNP_FNODE_HASH(crfsnp_fnode),
-                        crfsnp_fnode_md5sum_str(crfsnp_fnode)
+                        CRFSNP_FNODE_HASH(crfsnp_fnode)
                         );
         for(pos = 0; pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && pos < CRFSNP_FILE_REPLICA_MAX_NUM; pos ++)
         {
@@ -3581,35 +3559,6 @@ EC_BOOL crfsnp_file_size(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t 
     }
 
     dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_file_size: np %u, invalid dflg %x\n", CRFSNP_ID(crfsnp), CRFSNP_ITEM_DIR_FLAG(crfsnp_item));
-    return (EC_FALSE);
-}
-
-EC_BOOL crfsnp_file_md5sum(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, CMD5_DIGEST *md5sum)
-{
-    CRFSNP_ITEM *crfsnp_item;
-
-    crfsnp_item = crfsnp_get(crfsnp, path_len, path, CRFSNP_ITEM_FILE_IS_ANY);
-    if(NULL_PTR == crfsnp_item)
-    {
-        return (EC_FALSE);
-    }
-
-    if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {
-        CRFSNP_FNODE *crfsnp_fnode;
-        crfsnp_fnode = CRFSNP_ITEM_FNODE(crfsnp_item);
-
-        if(do_log(SEC_0081_CRFSNP, 9))
-        {
-            dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_file_md5sum: file '%.*s' => fnode\n", path_len, path);
-            crfsnp_fnode_print(LOGSTDOUT, crfsnp_fnode);
-        }
-
-        BCOPY(CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_SUM(md5sum), CMD5_DIGEST_LEN);
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_file_md5sum: np %u, invalid dflg %x\n", CRFSNP_ID(crfsnp), CRFSNP_ITEM_DIR_FLAG(crfsnp_item));
     return (EC_FALSE);
 }
 

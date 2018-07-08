@@ -1925,29 +1925,6 @@ EC_BOOL crfsnp_mgr_walk_of_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, 
     return (EC_TRUE);
 }
 
-EC_BOOL crfsnp_mgr_file_md5sum(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, CMD5_DIGEST *md5sum)
-{
-    CRFSNP  *crfsnp;
-    uint32_t crfsnp_id;
-    uint32_t node_pos;
-
-    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
-    if(NULL_PTR == crfsnp)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum: no np for path %s\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    node_pos = crfsnp_file_md5sum(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), md5sum);
-    if(CRFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_md5sum: get md5sum of file %s failed\n", (char *)cstring_get_str(path_cstr));
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfsnp_mgr_show_cached_np(LOG *log, const CRFSNP_MGR *crfsnp_mgr)
 {
     uint32_t crfsnp_num;

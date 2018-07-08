@@ -3564,8 +3564,7 @@ UINT32 cmpi_encode_crfsnp_fnode(const UINT32 comm, const CRFSNP_FNODE *crfsnp_fn
 
     cmpi_encode_uint32(comm, CRFSNP_FNODE_FILESZ(crfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRFSNP_FNODE_REPNUM(crfsnp_fnode), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint8_array(comm, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN, out_buff, out_buff_max_len, position);
-
+   
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < (CRFSNP_FNODE_REPNUM(crfsnp_fnode)) && crfsnp_inode_pos < CRFSNP_FILE_REPLICA_MAX_NUM; crfsnp_inode_pos ++)
     {
         CRFSNP_INODE *crfsnp_inode;
@@ -3583,7 +3582,6 @@ UINT32 cmpi_encode_crfsnp_fnode_size(const UINT32 comm, const CRFSNP_FNODE *crfs
 
     cmpi_encode_uint32_size(comm, CRFSNP_FNODE_FILESZ(crfsnp_fnode), size);
     cmpi_encode_uint32_size(comm, CRFSNP_FNODE_REPNUM(crfsnp_fnode), size);
-    cmpi_encode_uint8_array_size(comm, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN, size);
 
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && crfsnp_inode_pos < CRFSNP_FILE_REPLICA_MAX_NUM; crfsnp_inode_pos ++)
     {
@@ -3600,7 +3598,6 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 {
     UINT32 file_size;
     UINT32 replica_num;
-    UINT32 md5sum_len;
 
     uint32_t crfsnp_inode_pos;
 
@@ -3633,13 +3630,6 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 
     CRFSNP_FNODE_FILESZ(crfsnp_fnode) = (uint32_t)(file_size);
     CRFSNP_FNODE_REPNUM(crfsnp_fnode) = (uint32_t)(replica_num);
-
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), &md5sum_len);
-    if(CMD5_DIGEST_LEN != md5sum_len)
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsnp_fnode: invalid md5sum len %ld\n", md5sum_len);
-        return ((UINT32)-1);
-    }
 
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode); crfsnp_inode_pos ++)
     {

@@ -135,7 +135,7 @@ typedef struct
 
 #define CRFSNP_FNODE_NO_MEM_CACHE_FLAG               ((uint32_t) 0)
 #define CRFSNP_FNODE_HAS_MEM_CACHE_FLAG              ((uint32_t) 1)
-#define CRFSNP_FNODE_PAD_SIZE                        (160)
+#define CRFSNP_FNODE_PAD_SIZE                        (176)
 
 typedef struct
 {
@@ -148,10 +148,7 @@ typedef struct
     /*8B*/  
     CRFSNP_INODE  inodes[ CRFSNP_FILE_REPLICA_MAX_NUM ]; 
 
-    /*16B*/
-    uint8_t       md5sum[ CMD5_DIGEST_LEN ];
-
-    /*160B*/
+    /*176B*/
     uint8_t       pad[ CRFSNP_FNODE_PAD_SIZE ];
 }CRFSNP_FNODE;/*200B*/
 
@@ -160,7 +157,6 @@ typedef struct
 #define CRFSNP_FNODE_HASH(crfsnp_fnode)          ((crfsnp_fnode)->file_path_hash)
 #define CRFSNP_FNODE_INODES(crfsnp_fnode)        ((crfsnp_fnode)->inodes)
 #define CRFSNP_FNODE_INODE(crfsnp_fnode, idx)    (&((crfsnp_fnode)->inodes[ (idx) ]))
-#define CRFSNP_FNODE_MD5SUM(crfsnp_fnode)        ((crfsnp_fnode)->md5sum)
 
 #define CRFSNP_FNODE_CACHE_FLAG(crfsnp_fnode, idx)       CRFSNP_INODE_CACHE_FLAG(CRFSNP_FNODE_INODE(crfsnp_fnode, idx))
 #define CRFSNP_FNODE_INODE_DISK_NO(crfsnp_fnode, idx)    CRFSNP_INODE_DISK_NO(CRFSNP_FNODE_INODE(crfsnp_fnode, idx))
@@ -188,12 +184,7 @@ typedef struct
     uint32_t      used_flag:4;  /* item status: not used, used */
     uint32_t      key_len  :8;  /* key lenght, range [0..CRFSNP_KEY_MAX_SIZE] */
     uint32_t      dir_flag :8;  /* directory or regular file */
-    uint32_t      set_uid  :1;  /* set uid bit*/
-    uint32_t      set_gid  :1;  /* set gid bit*/
-    uint32_t      sticky   :1;  /* sticky bit*/
-    uint32_t      owner_per:3;  /* owner permission*/
-    uint32_t      group_per:3;  /* group permission*/
-    uint32_t      other_per:3;  /* other permission*/
+    uint32_t      rsvd1    :12;
 
     /*4B*/
     uint16_t      gid;
@@ -202,7 +193,7 @@ typedef struct
     /*8B*/
     ctime_t       create_time; /*file created or modified time. 32 bits for 32bit OS, 64 bits for 64bit OS*/
 #if (32 == WORDSIZE)
-    uint32_t      rsvd1;
+    uint32_t      rsvd2;
 #endif/*(32 == WORDSIZE)*/
 
     /*8B*/
@@ -229,7 +220,6 @@ typedef struct
 #define CRFSNP_ITEM_RB_NODE(crfsnp_item)          (&((crfsnp_item)->rb_node))
 #define CRFSNP_ITEM_DIR_FLAG(crfsnp_item)         ((crfsnp_item)->dir_flag)
 #define CRFSNP_ITEM_USED_FLAG(crfsnp_item)        ((crfsnp_item)->used_flag)
-//#define CRFSNP_ITEM_ACC_FLAG(crfsnp_item)         ((crfsnp_item)->acc_flag)
 #define CRFSNP_ITEM_KLEN(crfsnp_item)             ((crfsnp_item)->key_len)
 #define CRFSNP_ITEM_KEY(crfsnp_item)              ((crfsnp_item)->key)
 #define CRFSNP_ITEM_PARENT_POS(crfsnp_item)       ((crfsnp_item)->parent_pos)
@@ -350,10 +340,9 @@ typedef struct
 
 /**********************************************************************************************************************************************************************
 *
-* np_id | model | rsvd1 | algo_1st | algo_2nd | del max_num | del cur_num | del bitmap | pad_a | pad_b | node_max_num | node_used_num | node_sizeof | free_head | items
-* |<----------------- 16 B <----------------------------------------------|
-* |<---------------------------------1 MB ---------------------------------------------------->|
-*                                                                                              |<-------------------------------1 MB -------------------------->|
+* np_id | model | rsvd1 | algo_1st | algo_2nd | pad_a | node_max_num | node_used_num | node_sizeof | free_head | items
+* |<---------------------------------512 KB------------------------------------------------------------------->|
+*
 ***********************************************************************************************************************************************************************/
 /*each np own one header*/
 typedef struct

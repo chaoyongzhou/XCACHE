@@ -347,11 +347,6 @@ EC_BOOL crfsmc_write_dn_no_lock(CRFSMC *crfsmc, CRFSNP_FNODE *crfsnp_fnode, cons
     CRFSNP_FNODE_FILESZ(crfsnp_fnode) = size;
     CRFSNP_FNODE_REPNUM(crfsnp_fnode) = 1;
 
-    if(SWITCH_ON == CRFS_MD5_SWITCH && NULL_PTR != md5sum)
-    {
-        BCOPY(md5sum, CRFSNP_FNODE_MD5SUM(crfsnp_fnode), CMD5_DIGEST_LEN);
-    }
-
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     CRFSNP_INODE_CACHE_FLAG(crfsnp_inode) = CRFSDN_DATA_NOT_IN_CACHE;
     CRFSNP_INODE_DISK_NO(crfsnp_inode)    = CRFSMC_DISK_NO;
