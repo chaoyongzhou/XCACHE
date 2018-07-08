@@ -62,7 +62,6 @@ typedef struct
     CBTIMER_NODE        *cbtimer_node;
 
     CRB_TREE             locked_files; /*item is CRFS_LOCKED_FILE*/
-    CROUTINE_RWLOCK      locked_files_crwlock;/*RW lock for locked_files tree*/
 
     CRB_TREE             wait_files;   /*item is CRFS_WAITING_FILE*/
 
@@ -71,8 +70,6 @@ typedef struct
 
     CRFSDN              *crfsdn;
     CRFSNP_MGR          *crfsnpmgr;/*namespace pool*/
-    CRFSMC              *crfsmc;   /*memcache RFS  */
-    CRFSBK              *crfsbk;   /*backup RFS    */
 
     CVECTOR              crfs_neighbor_vec;/*item is MOD_NODE*/
 }CRFS_MD;
@@ -86,31 +83,8 @@ typedef struct
 #define CRFS_MD_NPP_MOD_MGR(crfs_md)       ((crfs_md)->crfsnpp_mod_mgr)
 #define CRFS_MD_DN(crfs_md)                ((crfs_md)->crfsdn)
 #define CRFS_MD_NPP(crfs_md)               ((crfs_md)->crfsnpmgr)
-#define CRFS_MD_MCACHE(crfs_md)            ((crfs_md)->crfsmc)
-#define CRFS_MD_BACKUP(crfs_md)            ((crfs_md)->crfsbk)
 #define CRFS_MD_NEIGHBOR_VEC(crfs_md)      (&((crfs_md)->crfs_neighbor_vec))
-#define CRFS_LOCKED_FILES_CRWLOCK(crfs_md) (&((crfs_md)->locked_files_crwlock))
 
-
-#endif
-
-
-#if 1
-#define CRFS_LOCKED_FILES_INIT_LOCK(crfs_md, location)  (croutine_rwlock_init(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFS_LOCKED_FILES_CLEAN_LOCK(crfs_md, location) (croutine_rwlock_clean(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), location))
-
-#if 0
-#define CRFS_LOCKED_FILES_RDLOCK(crfs_md, location)     (croutine_rwlock_rdlock(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), location))
-#define CRFS_LOCKED_FILES_WRLOCK(crfs_md, location)     (croutine_rwlock_wrlock(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), location))
-#define CRFS_LOCKED_FILES_UNLOCK(crfs_md, location)     (croutine_rwlock_unlock(CRFS_LOCKED_FILES_CRWLOCK(crfs_md), location))
-#endif
-#if 1
-#define CRFS_LOCKED_FILES_RDLOCK(crfs_md, location)     do{}while(0)
-#define CRFS_LOCKED_FILES_WRLOCK(crfs_md, location)     do{}while(0)
-#define CRFS_LOCKED_FILES_UNLOCK(crfs_md, location)     do{}while(0)
-#endif
-
-#endif
 
 typedef struct
 {
@@ -251,9 +225,6 @@ EC_BOOL crfs_set_state(const UINT32 crfs_md_id, const UINT32 crfs_state);
 UINT32  crfs_get_state(const UINT32 crfs_md_id);
 EC_BOOL crfs_is_state(const UINT32 crfs_md_id, const UINT32 crfs_state);
 
-EC_BOOL crfs_create_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_dir_bk, const CSTRING *crfsdn_root_dir_bk, const CSTRING *crfs_op_fname);
-EC_BOOL crfs_open_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_dir_bk, const CSTRING *crfsdn_root_dir_bk, const CSTRING *crfs_op_fname);
-EC_BOOL crfs_close_backup(const UINT32 crfs_md_id);
 
 /**
 *
@@ -390,55 +361,6 @@ EC_BOOL crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, co
 **/
 EC_BOOL crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes);
 #endif
-
-/**
-*
-*  write memory cache only but Not rfs
-*
-**/
-EC_BOOL crfs_write_memc(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes);
-
-/**
-*
-*  check whether a file is in memory cache
-*
-**/
-EC_BOOL crfs_check_memc(const UINT32 crfs_md_id, const CSTRING *file_path);
-
-/**
-*
-*  read file from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_read_memc(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes);
-
-/**
-*
-*  update file in memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_update_memc(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes);
-
-/**
-*
-*  delete from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_memc(const UINT32 crfs_md_id, const CSTRING *path, const UINT32 dflag);
-
-/**
-*
-*  delete dir from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_dir_memc(const UINT32 crfs_md_id, const CSTRING *path);
-
-/**
-*
-*  delete file from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_file_memc(const UINT32 crfs_md_id, const CSTRING *path);
 
 
 /**
@@ -741,13 +663,6 @@ EC_BOOL crfs_file_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr);
 
 /**
 *
-*  set all files of dir expired time to current time
-*
-**/
-EC_BOOL crfs_dir_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr);
-
-/**
-*
 *  get file md5sum of specific file given full path name
 *
 **/
@@ -825,13 +740,6 @@ EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store
 *
 **/
 EC_BOOL crfs_file_unlock_notify(const UINT32 crfs_md_id, const CSTRING *file_path);
-
-/**
-*
-*   load file from RFS to memcache
-*
-**/
-EC_BOOL crfs_cache_file(const UINT32 crfs_md_id, const CSTRING *path);
 
 /**
 *
@@ -937,8 +845,6 @@ EC_BOOL crfs_update_r(const UINT32 crfs_md_id, const CSTRING *file_path, const C
 EC_BOOL crfs_delete_r(const UINT32 crfs_md_id, const CSTRING *path, const UINT32 dflag, const UINT32 replica_num);
 
 EC_BOOL crfs_renew_r(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 replica_num);
-
-EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log);
 
 #endif /*_CRFS_H*/
 

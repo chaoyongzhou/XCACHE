@@ -55,48 +55,6 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node);
 EC_BOOL crfshttps_make_setsmf_post_response(CHTTPS_NODE *chttps_node);
 EC_BOOL crfshttps_commit_setsmf_post_response(CHTTPS_NODE *chttps_node);
 
-/* only write memory cache but NOT rfs */
-EC_BOOL crfshttps_is_http_post_setsmf_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_setsmf_memc_post_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_setsmf_memc_post_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_setsmf_memc_post_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_setsmf_memc_post_response(CHTTPS_NODE *chttps_node);
-
-/* check whether a file is in memory cache */
-EC_BOOL crfshttps_is_http_get_check_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_check_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_check_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_check_memc_get_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_check_memc_get_response(CHTTPS_NODE *chttps_node);
-
-/* read from memory cache only but NOT rfs */
-EC_BOOL crfshttps_is_http_get_getsmf_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_getsmf_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_getsmf_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_getsmf_memc_get_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_getsmf_memc_get_response(CHTTPS_NODE *chttps_node);
-
-/* update file in memory cache only but NOT rfs */
-EC_BOOL crfshttps_is_http_post_update_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_update_memc_post_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_update_memc_post_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_update_memc_post_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_update_memc_post_response(CHTTPS_NODE *chttps_node);
-
-/* delete file from memory cache only but NOT rfs */
-EC_BOOL crfshttps_is_http_get_dsmf_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_dsmf_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_dsmf_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_dsmf_memc_get_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_dsmf_memc_get_response(CHTTPS_NODE *chttps_node);
-
-/* delete dir from memory cache only but NOT rfs */
-EC_BOOL crfshttps_is_http_get_ddir_memc(const CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_ddir_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_handle_ddir_memc_get_request(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_make_ddir_memc_get_response(CHTTPS_NODE *chttps_node);
-EC_BOOL crfshttps_commit_ddir_memc_get_response(CHTTPS_NODE *chttps_node);
-
 EC_BOOL crfshttps_is_http_head_getsmf(const CHTTPS_NODE *chttps_node);
 EC_BOOL crfshttps_commit_getsmf_head_request(CHTTPS_NODE *chttps_node);
 EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node);

@@ -50,7 +50,6 @@ typedef struct
 
     uint8_t           *mcache; /*mem cache*/
 
-    CROUTINE_RWLOCK    crwlock;
 }CRFSMC;
 
 #define CRFSMC_CRFS_MD_ID(crfsmc)  ((crfsmc)->crfs_md_id)
@@ -58,14 +57,6 @@ typedef struct
 #define CRFSMC_PGD(crfsmc)         ((crfsmc)->cpgd)
 #define CRFSMC_LIST(crfsmc)        ((crfsmc)->mclist)
 #define CRFSMC_MCACHE(crfsmc)      ((crfsmc)->mcache)
-#define CRFSMC_CRWLOCK(crfsmc)     (&((crfsmc)->crwlock))
-
-#define CRFSMC_INIT_LOCK(crfsmc, location)  (croutine_rwlock_init(CRFSMC_CRWLOCK(crfsmc), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSMC_CLEAN_LOCK(crfsmc, location) (croutine_rwlock_clean(CRFSMC_CRWLOCK(crfsmc), location))
-
-#define CRFSMC_RDLOCK(crfsmc, location)     (croutine_rwlock_rdlock(CRFSMC_CRWLOCK(crfsmc), location))
-#define CRFSMC_WRLOCK(crfsmc, location)     (croutine_rwlock_wrlock(CRFSMC_CRWLOCK(crfsmc), location))
-#define CRFSMC_UNLOCK(crfsmc, location)     (croutine_rwlock_unlock(CRFSMC_CRWLOCK(crfsmc), location))
 
 #endif/* _CRFSMC_INC */
 

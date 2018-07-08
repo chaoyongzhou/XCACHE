@@ -276,39 +276,8 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
     cstring_free(crfsnp_root_dir);
     cstring_free(crfsdn_root_dir);
 
-    if(SWITCH_ON == CRFS_MEMC_SWITCH && EC_TRUE == ret)
-    {
-        CRFS_MD_MCACHE(crfs_md) = crfsmc_new(crfs_md_id,
-                                             CRFSMC_NP_ID, CRFS_MEMC_NP_MODEL,
-                                             CHASH_JS_ALGO_ID,
-                                             CRFS_MEMC_CPGD_BLOCK_NUM);
-        if(NULL_PTR == CRFS_MD_MCACHE(crfs_md))
-        {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_start: new memcache failed\n");
-            ret = EC_FALSE;
-        }
-    }
-    else
-    {
-        CRFS_MD_MCACHE(crfs_md) = NULL_PTR;
-    }
-
-    CRFS_MD_BACKUP(crfs_md) = NULL_PTR;
-
     if(EC_FALSE == ret)
     {
-        if(NULL_PTR != CRFS_MD_MCACHE(crfs_md))
-        {
-            crfsmc_free(CRFS_MD_MCACHE(crfs_md));
-            CRFS_MD_MCACHE(crfs_md) = NULL_PTR;
-        }
-
-        if(NULL_PTR != CRFS_MD_BACKUP(crfs_md))
-        {
-            crfsbk_free(CRFS_MD_BACKUP(crfs_md));
-            CRFS_MD_BACKUP(crfs_md) = NULL_PTR;
-        }
-
         if(NULL_PTR != CRFS_MD_DN(crfs_md))
         {
             crfsdn_close(CRFS_MD_DN(crfs_md));
@@ -353,8 +322,6 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
     __crfs_collect_neighbors(crfs_md_id);
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%ld\n", crfs_md_id);
-
-    CRFS_LOCKED_FILES_INIT_LOCK(crfs_md, LOC_CRFS_0003);
 
     if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
     {
@@ -471,19 +438,6 @@ void crfs_end(const UINT32 crfs_md_id)
 
     CRFS_MD_STATE(crfs_md) = CRFS_ERR_STATE;
 
-    /* if nobody else occupied the module,then free its resource */
-    if(NULL_PTR != CRFS_MD_MCACHE(crfs_md))
-    {
-        crfsmc_free(CRFS_MD_MCACHE(crfs_md));
-        CRFS_MD_MCACHE(crfs_md) = NULL_PTR;
-    }
-
-    if(NULL_PTR != CRFS_MD_BACKUP(crfs_md))
-    {
-        crfsbk_free(CRFS_MD_BACKUP(crfs_md));
-        CRFS_MD_BACKUP(crfs_md) = NULL_PTR;
-    }
-
     if(NULL_PTR != CRFS_MD_DN(crfs_md))
     {
         crfsdn_close(CRFS_MD_DN(crfs_md));
@@ -518,7 +472,6 @@ void crfs_end(const UINT32 crfs_md_id)
     //crfs_free_module_static_mem(crfs_md_id);
 
     crfs_md->usedcounter = 0;
-    CRFS_LOCKED_FILES_CLEAN_LOCK(crfs_md, LOC_CRFS_0006);
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "crfs_end: stop CRFS module #%ld\n", crfs_md_id);
     cbc_md_free(MD_CRFS, crfs_md_id);
@@ -556,164 +509,6 @@ EC_BOOL crfs_flush(const UINT32 crfs_md_id)
     }
 
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_flush: flush done\n");
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_create_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_dir_bk, const CSTRING *crfsdn_root_dir_bk, const CSTRING *crfs_op_fname)
-{
-    CRFS_MD  *crfs_md;
-    CRFSBK   *crfsbk;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_create_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        crfs_print_module_status(crfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR != CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_backup: give up due to backup RFS already exist!\n");
-        return (EC_FALSE);
-    }
-
-    /*create np and dn of backup RFS*/
-    crfsbk = crfsbk_new(crfs_md_id,
-                        (char *)cstring_get_str(crfsnp_root_dir_bk),
-                        (char *)cstring_get_str(crfsdn_root_dir_bk),
-                        CRFSBK_NP_ID, CRFSBK_NP_MODEL, CRFSBK_HASH_ALGO_ID, /*to simplify, fix parameters here*/
-                        (char *)cstring_get_str(crfs_op_fname));
-    if(NULL_PTR == crfsbk)
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_backup: create backup RFS of np dir %s, dn dir %s, op file %s failed\n",
-                            (char *)cstring_get_str(crfsnp_root_dir_bk),
-                            (char *)cstring_get_str(crfsdn_root_dir_bk),
-                            (char *)cstring_get_str(crfs_op_fname));
-        return (EC_FALSE);
-    }
-
-    /*add 1TB disk to dn of backup RFS*/
-    if(EC_FALSE == crfsbk_add_disk(crfsbk, CRFSBK_DISK_NO))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_create_backup: add disk to backup RFS of np dir %s and dn dir %s failed\n",
-                            (char *)cstring_get_str(crfsnp_root_dir_bk), (char *)cstring_get_str(crfsdn_root_dir_bk));
-        crfsbk_free(crfsbk);
-        return (EC_FALSE);
-    }
-
-    CRFS_MD_BACKUP(crfs_md) = crfsbk;
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_create_backup: create backup RFS of np dir %s and dn dir %s done\n",
-                        (char *)cstring_get_str(crfsnp_root_dir_bk), (char *)cstring_get_str(crfsdn_root_dir_bk));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_open_backup(const UINT32 crfs_md_id, const CSTRING *crfsnp_root_dir_bk, const CSTRING *crfsdn_root_dir_bk, const CSTRING *crfs_op_fname)
-{
-    CRFS_MD  *crfs_md;
-    CRFSBK   *crfsbk;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_open_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        crfs_print_module_status(crfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR != CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_open_backup: backup RFS is already open\n");
-        return (EC_TRUE);
-    }
-
-    /*create np and dn of backup RFS*/
-    crfsbk = crfsbk_open(crfs_md_id,
-                        (char *)cstring_get_str(crfsnp_root_dir_bk),
-                        (char *)cstring_get_str(crfsdn_root_dir_bk),
-                        CRFSBK_NP_ID, /*to simplify, fix parameters here*/
-                        (char *)cstring_get_str(crfs_op_fname));
-    if(NULL_PTR == crfsbk)
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_open_backup: open backup RFS of np dir %s and dn dir %s failed\n",
-                            (char *)cstring_get_str(crfsnp_root_dir_bk), (char *)cstring_get_str(crfsdn_root_dir_bk));
-        return (EC_FALSE);
-    }
-
-    CRFS_MD_BACKUP(crfs_md) = crfsbk;
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_open_backup: open backup RFS of np dir %s and dn dir %s done\n",
-                        (char *)cstring_get_str(crfsnp_root_dir_bk), (char *)cstring_get_str(crfsdn_root_dir_bk));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_close_backup(const UINT32 crfs_md_id)
-{
-    CRFS_MD  *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_close_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        crfs_print_module_status(crfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_close_backup: no backup RFS exist\n");
-        return (EC_TRUE);
-    }
-
-    crfsbk_free(CRFS_MD_BACKUP(crfs_md));
-    CRFS_MD_BACKUP(crfs_md) = NULL_PTR;
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_close_backup: backup RFS was closed\n");
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_show_backup(const UINT32 crfs_md_id, LOG *log)
-{
-    CRFS_MD  *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_show_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        crfs_print_module_status(crfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_show_backup: backup RFS not open yet\n");
-        return (EC_FALSE);
-    }
-
-    crfsbk_print(log, CRFS_MD_BACKUP(crfs_md));
-
     return (EC_TRUE);
 }
 
@@ -2009,48 +1804,6 @@ STATIC_CAST static EC_BOOL __crfs_write_cache_no_lock(const UINT32 crfs_md_id, c
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_write_backup(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
-{
-    CRFS_MD      *crfs_md;
-
-    uint8_t       md5sum[ CMD5_DIGEST_LEN ];
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_write_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_write_backup: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CRFS_MD5_SWITCH)
-    {
-        cmd5_sum((uint32_t)CBYTES_LEN(cbytes), CBYTES_BUF(cbytes), md5sum);
-    }
-
-    if(EC_FALSE == crfsbk_write(CRFS_MD_BACKUP(crfs_md), file_path, cbytes, md5sum))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_write_backup: write file %s with size %ld to backup RFS failed\n",
-                           (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write_backup: write file %s with size %ld to backup RFS done\n",
-                           (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-
-    return (EC_TRUE);
-}
-
 EC_BOOL crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
@@ -2062,21 +1815,6 @@ EC_BOOL crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYT
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
-
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_write_backup(crfs_md_id, file_path, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write: write file %s with size %ld to backup RFS done\n",
-                                   (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "warn:crfs_write: write file %s with size %ld to backup RFS failed, try to write to RFS\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-    }
 
     if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH)
     {
@@ -2097,21 +1835,6 @@ EC_BOOL crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, co
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
-
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_write_backup(crfs_md_id, file_path, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write_no_lock: write file %s with size %ld to backup RFS done\n",
-                                   (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "warn:crfs_write_no_lock: write file %s with size %ld to backup RFS failed, try to write to RFS\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-    }
 
     if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH)
     {
@@ -2179,335 +1902,6 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_read_backup(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_read_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_read_backup: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsbk_read(CRFS_MD_BACKUP(crfs_md), file_path, cbytes))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_backup: read file %s with size %ld from backup RFS failed\n",
-                           (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_backup: read file %s with size %ld from backup RFS done\n",
-                       (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-
-    return (EC_TRUE);
-}
-
-/* write memory cache only but Not rfs */
-EC_BOOL crfs_write_memc(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
-{
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_write_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    CRFS_MD      *crfs_md;
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    /* ensure CRFS_MEMC_SWITCH is on */
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_write(CRFS_MD_MCACHE(crfs_md), file_path, cbytes, NULL_PTR))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write_memc: write file %s with size %ld to memcache done\n",
-                (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write_memc: write file %s with size %ld to memcache failed\n",
-                (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_write_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // write to memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-
-/* check whether a file is in memory cache */
-EC_BOOL crfs_check_memc(const UINT32 crfs_md_id, const CSTRING *file_path)
-{
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_check_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    CRFS_MD      *crfs_md;
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    /* ensure CRFS_MEMC_SWITCH is on */
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_check_np(CRFS_MD_MCACHE(crfs_md), file_path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_check_memc: file %s is in memcache\n",
-                               (char *)cstring_get_str(file_path));
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_check_memc: file %s is NOT in memcache\n",
-                               (char *)cstring_get_str(file_path));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_check_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // check path from memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-/**
-*
-*  read file from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_read_memc(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
-{
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_read_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    CRFS_MD      *crfs_md;
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_read(CRFS_MD_MCACHE(crfs_md), file_path, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_memc: read file %s with size %ld from memcache done\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_memc: read file %s from memcache failed\n",
-                               (char *)cstring_get_str(file_path));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // read from memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-/**
-*
-*  update file in memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_update_memc(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_update_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_update(CRFS_MD_MCACHE(crfs_md), file_path, cbytes, NULL_PTR))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_update_memc: update file %s with size %ld to memcache done\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_update_memc: update file %s with size %ld to memcache failed\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_update_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // update to memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-/**
-*
-*  delete from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_memc(const UINT32 crfs_md_id, const CSTRING *path, const UINT32 dflag)
-{
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
-    {
-        return crfs_delete_file_memc(crfs_md_id, path);
-    }
-
-    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
-    {
-        return crfs_delete_dir_memc(crfs_md_id, path);
-    }
-    if(CRFSNP_ITEM_FILE_IS_ANY == dflag)
-    {
-        crfs_delete_file_memc(crfs_md_id, path);
-        crfs_delete_dir_memc(crfs_md_id, path);
-
-        return (EC_TRUE);
-    }
-    dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_memc: crfs_md_id %ld, path [invalid 0x%lx] %s\n",
-                        crfs_md_id, dflag, (char *)cstring_get_str(path));
-
-    return (EC_FALSE);
-}
-/**
-*
-*  delete dir from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_dir_memc(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_memc: delete dir %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_memc: delete dir %s from memcache failed\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // delete dir from memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-/**
-*
-*  delete file from memory cache only but NOT rfs
-*
-**/
-EC_BOOL crfs_delete_file_memc(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_memc: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_memc: delete file %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-
-            return (EC_TRUE);
-        }
-        else
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_memc: delete file %s from memcache failed\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_memc: there is no memcache because CRFS_MEMC_SWITCH is off\n");
-    }
-
-    return (EC_FALSE); // delete file from memcache failed, or CRFS_MEMC_SWITCH is off
-}
-
-
-
 EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
     CRFS_MD      *crfs_md;
@@ -2528,31 +1922,6 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read: read file %s start\n", (char *)cstring_get_str(file_path));
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_read(CRFS_MD_MCACHE(crfs_md), file_path, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read: read file %s with size %ld from memcache done\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-            return (EC_TRUE);
-        }
-    }
-
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_read_backup(crfs_md_id, file_path, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read: read file %s from backup RFS done\n",
-                                   (char *)cstring_get_str(file_path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 5)(LOGSTDOUT, "warn:crfs_read: read file %s from backup RFS failed, try to read from RFS\n",
-                               (char *)cstring_get_str(file_path));
-    }
 
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -2584,12 +1953,6 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_read: read file %s from dn failed where fnode is \n", (char *)cstring_get_str(file_path));
         crfsnp_fnode_print(LOGSTDOUT, &crfsnp_fnode);
         return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        crfsmc_ensure_room_safe_level(CRFS_MD_MCACHE(crfs_md));/*LRU retire & recycle*/
-        crfsmc_write(CRFS_MD_MCACHE(crfs_md), file_path, cbytes, CRFSNP_FNODE_MD5SUM(&crfsnp_fnode));
     }
 
     if(do_log(SEC_0031_CRFS, 9))
@@ -2685,19 +2048,6 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode_init(&crfsnp_fnode);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        UINT32 offset_t;
-
-        offset_t = (*offset);
-        if(EC_TRUE == crfsmc_read_e(CRFS_MD_MCACHE(crfs_md), file_path, offset, max_len, cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read_e: read file %s at offset %ld and max len %ld with size %ld from memcache done\n",
-                               (char *)cstring_get_str(file_path), offset_t, max_len, cbytes_len(cbytes));
-            return (EC_TRUE);
-        }
-    }
 
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -4146,146 +3496,6 @@ STATIC_CAST static EC_BOOL __crfs_check_path_has_wildcard(const CSTRING *path)
     return (EC_FALSE);
 }
 
-EC_BOOL crfs_delete_file_backup(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_file_backup: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsbk_delete_file(CRFS_MD_BACKUP(crfs_md), path))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup: delete file %s from backup RFS failed\n",
-                           (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup: delete file %s from backup RFS done\n",
-                       (char *)cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_delete_file_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_file_backup_wildcard: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_file_backup_wildcard: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsbk_delete_file_wildcard(CRFS_MD_BACKUP(crfs_md), path))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s from backup RFS failed\n",
-                           (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_backup_wildcard: delete file %s from backup RFS done\n",
-                       (char *)cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_delete_dir_backup(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_backup: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_dir_backup: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsbk_delete_dir(CRFS_MD_BACKUP(crfs_md), path))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup: delete file %s from backup RFS failed\n",
-                           (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup: delete file %s from backup RFS done\n",
-                       (char *)cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
-EC_BOOL crfs_delete_dir_backup_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_delete_dir_backup_wildcard: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_BACKUP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error: crfs_delete_dir_backup_wildcard: RFS in SYNC but backup RFS is null\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == crfsbk_delete_dir(CRFS_MD_BACKUP(crfs_md), path))
-    {
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s from backup RFS failed\n",
-                           (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_backup_wildcard: delete file %s from backup RFS done\n",
-                       (char *)cstring_get_str(path));
-
-    return (EC_TRUE);
-}
-
 /**
 *
 *  delete a file
@@ -4310,32 +3520,7 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
         return crfs_delete_file_wildcard(crfs_md_id, path);
     }
 
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_file_backup(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: delete file %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file: delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
-
     crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: delete file %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
 
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
@@ -4374,22 +3559,6 @@ EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
-
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_file_backup(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: delete file %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_no_lock: delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
@@ -4430,32 +3599,7 @@ EC_BOOL crfs_delete_file_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_file_backup_wildcard(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: delete file %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_wildcard: delete file %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
-
     crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete_wildcard(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_wildcard: delete file %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
 
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
@@ -4518,32 +3662,7 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
         return crfs_delete_dir_wildcard(crfs_md_id, path);
     }
 
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_dir_backup(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: delete dir %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir: delete dir %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
-
     crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: delete dir %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
 
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
@@ -4580,22 +3699,6 @@ EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
-
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_dir_backup(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: delete dir %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_no_lock: delete dir %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
 
@@ -4636,33 +3739,7 @@ EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    /*in SYNC state*/
-    if(EC_TRUE == crfs_is_state(crfs_md_id, CRFS_SYNC_STATE))
-    {
-        if(EC_TRUE == crfs_delete_dir_backup_wildcard(crfs_md_id, path))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: delete dir %s from backup RFS done\n",
-                                   (char *)cstring_get_str(path));
-            return (EC_TRUE);
-        }
-
-        /*fall through to RFS*/
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_wildcard: delete dir %s from backup RFS failed\n",
-                               (char *)cstring_get_str(path));
-
-        return (EC_FALSE);/*terminate, not change RFS*/
-    }
-
     crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_delete_wildcard(CRFS_MD_MCACHE(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))/*xxx*/
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: delete dir %s from memcache done\n",
-                               (char *)cstring_get_str(path));
-        }
-    }
 
     if(NULL_PTR == CRFS_MD_NPP(crfs_md))
     {
@@ -4795,15 +3872,6 @@ EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBY
 #endif/*CRFS_DEBUG_SWITCH*/
 
     crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        if(EC_TRUE == crfsmc_update(CRFS_MD_MCACHE(crfs_md), file_path, cbytes, NULL_PTR))
-        {
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_update: update file %s with size %ld to memcache done\n",
-                               (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        }
-    }
 
     if(EC_FALSE == crfs_update_no_lock(crfs_md_id, file_path, cbytes))
     {
@@ -5521,36 +4589,6 @@ EC_BOOL crfs_file_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
     cstring_clean(&key);
     cstring_clean(&val);
     return (EC_TRUE);
-}
-
-/**
-*
-*  set all files of dir expired time to current time
-*
-**/
-EC_BOOL crfs_dir_expire(const UINT32 crfs_md_id, const CSTRING *path_cstr)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_dir_expire: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(NULL_PTR == CRFS_MD_NPP(crfs_md))
-    {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_dir_expire: npp was not open\n");
-        return (EC_FALSE);
-    }
-    dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:crfs_dir_expire: obsolete interface\n");
-    return (EC_FALSE);
 }
 
 /**
@@ -7522,14 +6560,10 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
 
     cbytes_init(&token_cbyte);
 
-    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0322);
     if(EC_FALSE == __crfs_file_lock(crfs_md_id, tcid, file_path, expire_nsec, &token_cbyte, locked_already))
     {
-        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0323);
         return (EC_FALSE);
     }
-
-    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0324);
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
     cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CRFS_0325);
@@ -7645,15 +6679,11 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
         crfs_locked_files_print(crfs_md_id, LOGSTDOUT);
     }
 #endif
-    CRFS_LOCKED_FILES_WRLOCK(crfs_md, LOC_CRFS_0326);
     if(EC_FALSE == __crfs_file_unlock(crfs_md_id, file_path, &token_cbyte))
     {
         cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
-        CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0327);
         return (EC_FALSE);
     }
-
-    CRFS_LOCKED_FILES_UNLOCK(crfs_md, LOC_CRFS_0328);
 
     cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
@@ -7685,59 +6715,6 @@ EC_BOOL crfs_file_unlock_notify(const UINT32 crfs_md_id, const CSTRING *file_pat
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_unlock_notify: obsolete interface!!!!\n");
 
     return (EC_FALSE);
-}
-
-/**
-*
-*   load file from RFS to memcache
-*
-**/
-EC_BOOL crfs_cache_file(const UINT32 crfs_md_id, const CSTRING *path)
-{
-    CRFS_MD      *crfs_md;
-
-#if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
-    if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfs_cache_file: crfs module #%ld not started.\n",
-                crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-#endif/*CRFS_DEBUG_SWITCH*/
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-
-    if(SWITCH_ON == CRFS_MEMC_SWITCH)
-    {
-        CBYTES cbytes;
-
-        cbytes_init(&cbytes);
-
-        if(EC_FALSE == crfs_read(crfs_md_id, path, &cbytes))
-        {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_cache_file: read file %s from rfs failed\n",
-                                   (char *)cstring_get_str(path));
-            cbytes_clean(&cbytes);
-            return (EC_FALSE);
-        }
-
-        if(EC_FALSE == crfsmc_update(CRFS_MD_MCACHE(crfs_md), path, &cbytes, NULL_PTR))
-        {
-            dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_cache_file: update file %s to memcache failed\n",
-                                   (char *)cstring_get_str(path));
-            cbytes_clean(&cbytes);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_cache_file: cache file %s done\n",
-                                   (char *)cstring_get_str(path));
-        cbytes_clean(&cbytes);
-
-        return (EC_TRUE);
-    }
-
-    return (EC_TRUE);
 }
 
 /*------------------------------------------------ interface for replica ------------------------------------------------*/

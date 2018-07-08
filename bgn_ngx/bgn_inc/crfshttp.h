@@ -55,48 +55,6 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_setsmf_post_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_setsmf_post_response(CHTTP_NODE *chttp_node);
 
-/* only write memory cache but NOT rfs */
-EC_BOOL crfshttp_is_http_post_setsmf_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_setsmf_memc_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_setsmf_memc_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_setsmf_memc_post_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_setsmf_memc_post_response(CHTTP_NODE *chttp_node);
-
-/* check whether a file is in memory cache */
-EC_BOOL crfshttp_is_http_get_check_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_check_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_check_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_check_memc_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_check_memc_get_response(CHTTP_NODE *chttp_node);
-
-/* read from memory cache only but NOT rfs */
-EC_BOOL crfshttp_is_http_get_getsmf_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_getsmf_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_getsmf_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_getsmf_memc_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_getsmf_memc_get_response(CHTTP_NODE *chttp_node);
-
-/* update file in memory cache only but NOT rfs */
-EC_BOOL crfshttp_is_http_post_update_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_update_memc_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_update_memc_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_update_memc_post_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_update_memc_post_response(CHTTP_NODE *chttp_node);
-
-/* delete file from memory cache only but NOT rfs */
-EC_BOOL crfshttp_is_http_get_dsmf_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_dsmf_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_dsmf_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_dsmf_memc_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_dsmf_memc_get_response(CHTTP_NODE *chttp_node);
-
-/* delete dir from memory cache only but NOT rfs */
-EC_BOOL crfshttp_is_http_get_ddir_memc(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_ddir_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_ddir_memc_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_ddir_memc_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_ddir_memc_get_response(CHTTP_NODE *chttp_node);
-
 EC_BOOL crfshttp_is_http_head_getsmf(const CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_getsmf_head_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node);

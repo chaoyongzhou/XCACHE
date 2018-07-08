@@ -363,24 +363,6 @@ EC_BOOL api_cmd_ui_crfs_delete_dir(CMD_PARA_VEC * param);
 
 /* for deleting root dir / only! */
 EC_BOOL api_cmd_ui_crfs_delete_root_dir(CMD_PARA_VEC * param);
-/* check whether file is in memory cache */
-EC_BOOL api_cmd_ui_crfs_check_memc(CMD_PARA_VEC * param);
-/* only write data to memory cache but NOT rfs */
-EC_BOOL api_cmd_ui_crfs_write_memc(CMD_PARA_VEC * param);
-/* read file from memory cache only */
-EC_BOOL api_cmd_ui_crfs_read_memc(CMD_PARA_VEC * param);
-/* update in memory cache only */
-EC_BOOL api_cmd_ui_crfs_update_memc(CMD_PARA_VEC * param);
-/* delete dir from memory cache only */
-EC_BOOL api_cmd_ui_crfs_delete_dir_memc(CMD_PARA_VEC * param);
-
-/* for deleting root dir / from memory cache only! */
-EC_BOOL api_cmd_ui_crfs_delete_root_dir_memc(CMD_PARA_VEC * param);
-
-/* delete file from memory cache only */
-EC_BOOL api_cmd_ui_crfs_delete_file_memc(CMD_PARA_VEC * param);
-/* delete path from memory cache only */
-EC_BOOL api_cmd_ui_crfs_delete_path_memc(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_crfs_delete_path(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_recycle(CMD_PARA_VEC * param);
@@ -400,11 +382,7 @@ EC_BOOL api_cmd_ui_crfs_show_specific_np_del_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_show_locked_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_disk_snapshot(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_create_backup(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_open_backup(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_close_backup(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_backup(CMD_PARA_VEC * param);
+
 
 EC_BOOL api_cmd_ui_crfsc_open(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfsc_close(CMD_PARA_VEC * param);
