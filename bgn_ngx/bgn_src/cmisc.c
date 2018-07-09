@@ -5541,6 +5541,82 @@ EC_BOOL c_save_environ()
     return (EC_TRUE);
 }
 
+void *c_mmap_aligned(const UINT32 size, const UINT32 align, const int protect, const int flags)
+{
+    void          *address;
+
+    address = mmap(NULL_PTR, size + align, protect, flags, -1, 0);
+    if(MAP_FAILED == address)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mmap_aligned: "
+                           "mmap size %ld, align %ld, protect %d, flags %d failed, errno = %d, errstr = %s\n",
+                           size, align, protect, flags, errno, strerror(errno));
+        return (NULL_PTR);
+    }
+
+    if(0 < align)
+    {
+        UINT32         head_space;
+        UINT32         tail_space;
+        
+        tail_space = (((UINT32)address) % align);
+        head_space = align - tail_space;
+        
+        if(0 != tail_space)
+        {
+            /*discard tail space*/
+            munmap(address + size + align - tail_space, (size_t)tail_space); 
+
+            /*discard head space*/
+            munmap(address, (size_t)head_space);
+
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_mmap_aligned: "
+                               "mmap size %ld, align %ld, align address %p => %p\n",
+                               size, align, address, address + head_space);        
+            /*move to final address*/
+            address += head_space;
+        }
+    }
+
+    return (address);
+}
+
+EC_BOOL c_munmap_aligned(void *address, const UINT32 size)
+{
+    if(0 != munmap(address, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_munmap_aligned: "
+                           "munmap address %p size %ld failed, errno = %d, errstr = %s\n",
+                           address, size, errno, strerror(errno));
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align)
+{
+    void *address;
+
+    address = c_mmap_aligned(size, align, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE);
+    if(NULL_PTR == address)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mmap_aligned_addr: "
+                           "mmap size %ld align %ld failed\n",
+                           size, align);    
+        return (NULL_PTR);
+    }
+
+    if(EC_FALSE == c_munmap_aligned(address, size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mmap_aligned_addr: "
+                           "munmap address %p size %ld failed\n",
+                           address, size);    
+        return (NULL_PTR);
+    }
+
+    return (address);
+}
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

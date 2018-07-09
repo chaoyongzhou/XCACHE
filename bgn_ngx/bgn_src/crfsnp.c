@@ -1044,71 +1044,73 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_free(CRFSNP_HEADER *crfsnp_hea
 
 STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
 {
-    void          *address;
-    UINT32         head_space;
-    UINT32         tail_space;
-
+    void *address;
+    UINT32 align;
+    
     CRFSNP_HEADER *crfsnp_header;
 
-    /*align address to 256B*/
-    address = mmap(NULL_PTR, fsize + 256, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if(MAP_FAILED == address)
+    /*align address to 1MB*/
+    align = ((UINT32)(UINT32_ONE << 20));
+    
+    address = c_mmap_aligned_addr(fsize, align);
+    if(NULL_PTR == address)
     {
-        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_open: mmap np %u with fd %d failed, errno = %d, errstr = %s\n",
-                           np_id, fd, errno, strerror(errno));
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_open: "
+                           "fetch mmap aligned addr of np %u, fd %d fsize %ld align %ld failed\n",
+                           np_id, fd, fsize, align);
         return (NULL_PTR);
     }
-
-    tail_space = (((UINT32)address) % 256);
-    if(0 != tail_space)
+    
+    crfsnp_header = (CRFSNP_HEADER *)mmap(address, fsize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
+    if(MAP_FAILED == crfsnp_header)
     {
-        /*discard tail space*/
-        munmap(address + fsize + 256 - tail_space, (size_t )tail_space); 
-
-        /*discard head space*/
-        head_space = 256 - tail_space;
-        munmap(address, (size_t )head_space);
-
-        /*move to final address*/
-        address += head_space;
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_open: "
+                           "mmap np %u with fd %d fsize %ld failed, errno = %d, errstr = %s\n",
+                           np_id, fd, fsize, errno, strerror(errno));
+        return (NULL_PTR);
     }
-    crfsnp_header = (CRFSNP_HEADER *)address;
+    
+    dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] __crfsnp_header_open: address %p, crfsnp_header %p\n",
+                        address, crfsnp_header);
 
+    ASSERT((void *)address == (void *)crfsnp_header);
+    
     return (crfsnp_header);
 }
 
 STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
-    void          *address;
-    UINT32         head_space;
-    UINT32         tail_space;    
-
+    void *address;
+    UINT32 align;
+    
     CRFSNP_HEADER *des_crfsnp_header;
 
-    /*align address to 256B*/
-    address = (CRFSNP_HEADER *)mmap(NULL_PTR, fsize + 256, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if(MAP_FAILED == address)
+    /*align address to 1MB*/
+    align = ((UINT32)(UINT32_ONE << 20));
+    
+    address = c_mmap_aligned_addr(fsize, align);
+    if(NULL_PTR == address)
     {
-        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_clone: mmap np %u with fd %d failed, errno = %d, errstr = %s\n",
-                           des_np_id, fd, errno, strerror(errno));
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_clone: "
+                           "fetch mmap aligned addr of np %u, fd %d fsize %ld align %ld failed\n",
+                           des_np_id, fd, fsize, align);
+        return (NULL_PTR);
+    }
+    
+    des_crfsnp_header = (CRFSNP_HEADER *)mmap(address, fsize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
+    if(MAP_FAILED == des_crfsnp_header)
+    {
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_clone: "
+                           "mmap np %u with fd %d fsize %ld failed, errno = %d, errstr = %s\n",
+                           des_np_id, fd, fsize, errno, strerror(errno));
         return (NULL_PTR);
     }
 
-    tail_space = (((UINT32)address) % 256);
-    if(0 != tail_space)
-    {
-        /*discard tail space*/
-        munmap(address + fsize + 256 - tail_space, (size_t )tail_space); 
+    dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] __crfsnp_header_clone: address %p, crfsnp_header %p\n",
+                        address, des_crfsnp_header);
 
-        /*discard head space*/
-        head_space = 256 - tail_space;
-        munmap(address, (size_t )head_space);
-
-        /*move to final address*/
-        address += head_space;
-    }
-    des_crfsnp_header = (CRFSNP_HEADER *)address;    
-
+    ASSERT((void *)address == (void *)des_crfsnp_header);
+   
     BCOPY(src_crfsnp_header, des_crfsnp_header, fsize);
 
     CRFSNP_HEADER_NP_ID(des_crfsnp_header)  = des_np_id;
@@ -1118,38 +1120,39 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src
 
 STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
 {
-    void          *address;
-    UINT32         head_space;
-    UINT32         tail_space;
+    void *address;
+    UINT32 align;
     
     CRFSNP_HEADER *crfsnp_header;
     uint32_t node_max_num;
     uint32_t node_sizeof;
 
-    /*align address to 256B*/
-    address = (CRFSNP_HEADER *)mmap(NULL_PTR, fsize + 256, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if(MAP_FAILED == address)
+    /*align address to 1MB*/
+    align = ((UINT32)(UINT32_ONE << 20));
+    
+    address = c_mmap_aligned_addr(fsize, align);
+    if(NULL_PTR == address)
     {
-        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_create: mmap np %u with fd %d failed, errno = %d, errstr = %s\n",
-                           np_id, fd, errno, strerror(errno));
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_create: "
+                           "fetch mmap aligned addr of np %u, fd %d fsize %ld align %ld failed\n",
+                           np_id, fd, fsize, align);
         return (NULL_PTR);
     }
 
-    tail_space = (((UINT32)address) % 256);
-    if(0 != tail_space)
+    crfsnp_header = (CRFSNP_HEADER *)mmap(address, fsize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
+    if(MAP_FAILED == crfsnp_header)
     {
-        /*discard tail space*/
-        munmap(address + fsize + 256 - tail_space, (size_t )tail_space); 
-
-        /*discard head space*/
-        head_space = 256 - tail_space;
-        munmap(address, (size_t )head_space);
-
-        /*move to final address*/
-        address += head_space;
+        dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_header_create: "
+                           "mmap np %u with fd %d fsize %ld failed, errno = %d, errstr = %s\n",
+                           np_id, fd, fsize, errno, strerror(errno));
+        return (NULL_PTR);
     }
-    crfsnp_header = (CRFSNP_HEADER *)address;    
 
+    dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] __crfsnp_header_create: address %p, crfsnp_header %p\n",
+                        address, crfsnp_header);
+
+    ASSERT((void *)address == (void *)crfsnp_header);
+    
     CRFSNP_HEADER_NP_ID(crfsnp_header)  = np_id;
     CRFSNP_HEADER_MODEL(crfsnp_header)  = np_model;
 
@@ -3842,7 +3845,7 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
         return (NULL_PTR);
     }
     CRFSNP_HDR(crfsnp) = crfsnp_header;
-
+   
     /*shortcut*/
     CRFSNP_LRU_LIST(crfsnp) = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, CRFSNPLRU_ROOT_POS));
     CRFSNP_DEL_LIST(crfsnp) = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, CRFSNPDEL_ROOT_POS));

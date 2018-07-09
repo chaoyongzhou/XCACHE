@@ -412,6 +412,12 @@ EC_BOOL c_save_args(const int argc, const char **argv);
 
 EC_BOOL c_save_environ();
 
+void *c_mmap_aligned(const UINT32 size, const UINT32 align, const int protect, const int flags);
+
+EC_BOOL c_munmap_aligned(void *address, const UINT32 size);
+
+void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align);
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus
