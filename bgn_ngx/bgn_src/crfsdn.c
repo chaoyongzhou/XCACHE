@@ -132,13 +132,13 @@ void crfsdn_node_print(LOG *log, const CRFSDN_NODE *crfsdn_node)
 /*for debug only*/
 void crfsdn_node_fname_print(LOG *log, const CRFSDN *crfsdn, const UINT32 node_id)
 {
-    UINT32       disk_no;
-    UINT32       path_no;
+    uint16_t       disk_no;
+    uint16_t       path_no;
 
     disk_no = CRFSDN_NODE_ID_GET_DISK_NO(node_id);
     path_no = CRFSDN_NODE_ID_GET_PATH_NO(node_id);
 
-    sys_log(log, "${ROOT}/dsk%ld/%08ld\n",
+    sys_log(log, "${ROOT}/dsk%03X/%08ld\n",
                 disk_no,
                 path_no);
     return;
@@ -146,8 +146,8 @@ void crfsdn_node_fname_print(LOG *log, const CRFSDN *crfsdn, const UINT32 node_i
 
 STATIC_CAST static EC_BOOL __crfsdn_node_fname_gen(const CRFSDN *crfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
-    UINT32       disk_no;
-    UINT32       path_no;
+    uint16_t       disk_no;
+    uint16_t       path_no;
 
     disk_no = CRFSDN_NODE_ID_GET_DISK_NO(node_id);
     path_no = CRFSDN_NODE_ID_GET_PATH_NO(node_id);
@@ -158,7 +158,7 @@ STATIC_CAST static EC_BOOL __crfsdn_node_fname_gen(const CRFSDN *crfsdn, const U
         return (EC_FALSE);
     }
 
-    snprintf(path, max_len, "%s/dsk%ld/%08ld",
+    snprintf(path, max_len, "%s/dsk%03X/%08u",
                 (char *)CRFSDN_ROOT_DNAME(crfsdn),
                 disk_no,
                 path_no);
@@ -168,8 +168,8 @@ STATIC_CAST static EC_BOOL __crfsdn_node_fname_gen(const CRFSDN *crfsdn, const U
 
 STATIC_CAST static EC_BOOL __crfsdn_node_dname_gen(const CRFSDN *crfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
-    UINT32       disk_no;
-    UINT32       block_no;
+    uint16_t       disk_no;
+    uint16_t       block_no;
 
     disk_no  = CRFSDN_NODE_ID_GET_DISK_NO(node_id);
     block_no = CRFSDN_NODE_ID_GET_BLOCK_NO(node_id);
@@ -180,7 +180,7 @@ STATIC_CAST static EC_BOOL __crfsdn_node_dname_gen(const CRFSDN *crfsdn, const U
         return (EC_FALSE);
     }
 
-    snprintf(path, max_len, "%s/dsk%ld",
+    snprintf(path, max_len, "%s/dsk%03X",
                 (char *)CRFSDN_ROOT_DNAME(crfsdn),
                 disk_no
                 );
@@ -682,54 +682,6 @@ STATIC_CAST static char * __crfsdn_vol_fname_gen(const char *root_dname)
     }
 
     return (vol_fname);
-}
-
-uint16_t crfsdn_count_disk_num_from_disk_space(const uint16_t max_gb_num_of_disk_space)
-{
-#if (CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)
-    uint16_t max_tb_num_of_disk_space;
-    uint16_t disk_num;
-
-    max_tb_num_of_disk_space = (max_gb_num_of_disk_space + 1024 - 1) / 1024;
-    disk_num = max_tb_num_of_disk_space; /*one disk = 1 TB*/
-#endif/*(CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)*/
-
-#if (CPGD_TEST_SCENARIO_256M_DISK == CPGD_DEBUG_CHOICE)
-    uint16_t max_mb_num_of_disk_space;
-    uint16_t disk_num;
-
-    dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u MB for debug purpose \n", CPGD_DEBUG_MB_PER_DISK);
-    max_mb_num_of_disk_space = (max_gb_num_of_disk_space) * (1024 / CPGD_DEBUG_MB_PER_DISK);
-    disk_num = max_mb_num_of_disk_space;
-
-#endif/*(CPGD_TEST_SCENARIO_256M_DISK == CPGD_DEBUG_CHOICE)*/
-
-#if (CPGD_TEST_SCENARIO_512M_DISK == CPGD_DEBUG_CHOICE)
-    uint16_t max_mb_num_of_disk_space;
-    uint16_t disk_num;
-
-    dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u MB for debug purpose \n", CPGD_DEBUG_MB_PER_DISK);
-    max_mb_num_of_disk_space = (max_gb_num_of_disk_space) * (1024 / CPGD_DEBUG_MB_PER_DISK);
-    disk_num = max_mb_num_of_disk_space;
-
-#endif/*(CPGD_TEST_SCENARIO_512M_DISK == CPGD_DEBUG_CHOICE)*/
-
-#if (CPGD_TEST_SCENARIO_032G_DISK == CPGD_DEBUG_CHOICE)
-    uint16_t disk_num;
-
-    dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u GB for debug purpose \n", CPGD_DEBUG_GB_PER_DISK);
-    disk_num = (max_gb_num_of_disk_space + CPGD_DEBUG_GB_PER_DISK - 1) / CPGD_DEBUG_GB_PER_DISK;
-
-#endif/*(CPGD_TEST_SCENARIO_032G_DISK == CPGD_DEBUG_CHOICE)*/
-
-#if (CPGD_TEST_SCENARIO_512G_DISK == CPGD_DEBUG_CHOICE)
-    uint16_t disk_num;
-
-    dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_count_disk_num_from_disk_space: ### set 1 disk = %u GB for debug purpose \n", CPGD_DEBUG_GB_PER_DISK);
-    disk_num = (max_gb_num_of_disk_space + CPGD_DEBUG_GB_PER_DISK - 1) / CPGD_DEBUG_GB_PER_DISK;
-
-#endif/*(CPGD_TEST_SCENARIO_032G_DISK == CPGD_DEBUG_CHOICE)*/
-    return (disk_num);
 }
 
 CRFSDN *crfsdn_create(const char *root_dname)

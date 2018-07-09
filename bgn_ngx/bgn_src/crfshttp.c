@@ -6140,8 +6140,8 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
             json_object_add_kv(cpgd_obj, "disk_no", c_uint16_t_to_str(disk_no));
 
             json_object_add_kv(cpgd_obj, "block_num"       , c_uint16_t_to_str(CPGD_PAGE_BLOCK_MAX_NUM(cpgd)));
-            json_object_add_kv(cpgd_obj, "page_max_num"    , c_uint16_t_to_str(CPGD_PAGE_MAX_NUM(cpgd)));
-            json_object_add_kv(cpgd_obj, "page_used_num"   , c_uint16_t_to_str(CPGD_PAGE_USED_NUM(cpgd)));
+            json_object_add_kv(cpgd_obj, "page_max_num"    , c_uint32_t_to_str(CPGD_PAGE_MAX_NUM(cpgd)));
+            json_object_add_kv(cpgd_obj, "page_used_num"   , c_uint32_t_to_str(CPGD_PAGE_USED_NUM(cpgd)));
             json_object_add_kv(cpgd_obj, "actual_used_size", c_uint64_t_to_str(CPGD_PAGE_ACTUAL_USED_SIZE(cpgd)));
 
             json_object_add_kv(cpgd_obj, "assign_bitmap"   , c_uint16_t_to_bin_str(CPGD_PAGE_MODEL_ASSIGN_BITMAP(cpgd)));
