@@ -8272,7 +8272,7 @@ LOG * task_brd_default_init(int argc, char **argv)
                 CTIMET      cur_time;
 
                 cur_time = task_brd_default_get_time();
-                if(cur_time >= prev_time + 1 * 1000) /*1s*/
+                if(cur_time >= prev_time + 1) /*1s*/
                 {
                     prev_time = cur_time;
                     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
