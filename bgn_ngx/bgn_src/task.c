@@ -8261,13 +8261,29 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
-        while(CMPI_ERROR_IPADDR != TASKS_CFG_SRVIPADDR(tasks_cfg)
-           && CMPI_ERROR_SRVPORT != TASKS_CFG_SRVPORT(tasks_cfg)
-           && EC_FALSE == tasks_srv_start(tasks_cfg))
+        if(CMPI_ERROR_IPADDR != TASKS_CFG_SRVIPADDR(tasks_cfg) 
+        && CMPI_ERROR_SRVPORT != TASKS_CFG_SRVPORT(tasks_cfg))
         {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
-            c_usleep(1, LOC_TASK_0137);
+            CTIMET      prev_time;
+            
+            prev_time = task_brd_default_get_time();
+            while(EC_FALSE == tasks_srv_start(tasks_cfg))
+            {
+                CTIMET      cur_time;
+
+                cur_time = task_brd_default_get_time();
+                if(cur_time >= prev_time + 1 * 1000) /*1s*/
+                {
+                    prev_time = cur_time;
+                    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
+                }
+                c_usleep(1, LOC_TASK_0137);
+
+                /*update task_brd time*/
+                task_brd_update_time_default();
+            }        
         }
+
         TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start server done\n");
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
