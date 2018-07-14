@@ -108,7 +108,7 @@ STATIC_CAST static uint8_t *__cpgv_new_disk_fname(const CPGV *cpgv, const uint16
     }
 
     /*disk fname format: ${CPGV_DIR}/dsk${disk_no}.dat*/
-    snprintf(disk_fname, sizeof(disk_fname)/sizeof(disk_fname[ 0 ]), "/dsk%04X.dat", disk_no);
+    snprintf(disk_fname, sizeof(disk_fname)/sizeof(disk_fname[ 0 ]), "/dsk%03X.dat", disk_no);
 
     cpgd_fname = c_str_cat(cpgd_dname, disk_fname);
     if(NULL_PTR == cpgd_fname)
