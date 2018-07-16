@@ -8277,7 +8277,7 @@ LOG * task_brd_default_init(int argc, char **argv)
                     prev_time = cur_time;
                     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: start server failed, retry again\n");
                 }
-                c_usleep(1, LOC_TASK_0137);
+                c_usleep(1000, LOC_TASK_0137);
 
                 /*update task_brd time*/
                 task_brd_update_time_default();
