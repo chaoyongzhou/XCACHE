@@ -38,7 +38,10 @@ extern "C"{
 #include "crfsnplru.inc"
 #include "crfsnpdel.inc"
 
-#define CRFSNP_KEY_MAX_SIZE             ( 255)  /*max len of file or dir seg name*/
+#define CRFSNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
+#define CRFSNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
+
+#define CRFSNP_KEY_MAX_SIZE             (CRFSNP_KEY_SIZE_063B)  
 #define CRFSNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 
 #define CRFSNP_008M_MODEL   ((uint8_t) 0)
@@ -62,8 +65,8 @@ extern "C"{
 #define CRFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/
 #define CRFSNP_ITEM_IS_USED             ((uint32_t) 0x0001)
 
-#define CRFSDN_DATA_NOT_IN_CACHE        ((uint16_t)0x0000)
-#define CRFSDN_DATA_IS_IN_CACHE         ((uint16_t)0x0001)
+#define CRFSDN_DATA_NOT_IN_CACHE        ((uint16_t) 0x0000)
+#define CRFSDN_DATA_IS_IN_CACHE         ((uint16_t) 0x0001)
 
 typedef struct
 {
@@ -199,6 +202,7 @@ typedef struct
 #define CRFSNP_ITEM_IS_INVALID(crfsnp_item)        ((CRFSNP_ITEM_FILE_IS_REG | CRFSNP_ITEM_FILE_IS_DIR) & CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
 #define CRFSNP_ITEM_IS_NOT_INVALID(crfsnp_item)    (0 == ((CRFSNP_ITEM_FILE_IS_REG | CRFSNP_ITEM_FILE_IS_DIR) & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)) )
 
+#if (CRFSNP_KEY_SIZE_255B == CRFSNP_KEY_MAX_SIZE)
 /*item max num = [file size / 1280] * 4*/
 /*item table start from offset 256B. */
 /*file name table start from offset 256 + 64 * item max num which is aligned to 256 ( mod 256 = 0)*/
@@ -240,6 +244,53 @@ typedef struct
 
 /*due to offset is defined as 32bit integer, here cannot support more than 4G file*/
 #endif/*(64 == WORDSIZE)*/
+
+#endif/*(CRFSNP_KEY_SIZE_255B == CRFSNP_KEY_MAX_SIZE)*/
+
+#if (CRFSNP_KEY_SIZE_063B == CRFSNP_KEY_MAX_SIZE)
+/*item max num = [file size / 128] - 2*/
+/*item table start from offset 256B. */
+/*128 = 64 (sizeof item) + 64 (sizeof key)*/
+
+#define CRFSNP_ITEM_BIT_SIZE             (6)
+#define CRFSNP_ITEM_SIZEOF               (1 << CRFSNP_ITEM_BIT_SIZE) /*it must be 64B*/
+
+#define CRFSNP_008M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 23))
+#define CRFSNP_008M_CFG_ITEM_MAX_NUM     (((CRFSNP_008M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_016M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 24))
+#define CRFSNP_016M_CFG_ITEM_MAX_NUM     (((CRFSNP_016M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_032M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 25))
+#define CRFSNP_032M_CFG_ITEM_MAX_NUM     (((CRFSNP_032M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_064M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 26))
+#define CRFSNP_064M_CFG_ITEM_MAX_NUM     (((CRFSNP_064M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_128M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 27))
+#define CRFSNP_128M_CFG_ITEM_MAX_NUM     (((CRFSNP_128M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_256M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 28))
+#define CRFSNP_256M_CFG_ITEM_MAX_NUM     (((CRFSNP_256M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_512M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 29))
+#define CRFSNP_512M_CFG_ITEM_MAX_NUM     (((CRFSNP_512M_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_001G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 30))
+#define CRFSNP_001G_CFG_ITEM_MAX_NUM     (((CRFSNP_001G_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#define CRFSNP_002G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 31))
+#define CRFSNP_002G_CFG_ITEM_MAX_NUM     (((CRFSNP_002G_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+#if (64 == WORDSIZE)
+#define CRFSNP_004G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 32))
+#define CRFSNP_004G_CFG_ITEM_MAX_NUM     (((CRFSNP_004G_CFG_FILE_SIZE >> CRFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+
+/*due to offset is defined as 32bit integer, here cannot support more than 4G file*/
+#endif/*(64 == WORDSIZE)*/
+
+#endif/*(CRFSNP_KEY_SIZE_063B == CRFSNP_KEY_MAX_SIZE)*/
+
 
 typedef struct
 {
