@@ -1246,14 +1246,6 @@ EC_BOOL cpgv_new_space_from_disk(CPGV *cpgv, const uint32_t size, const uint16_t
         return (EC_FALSE);
     }
 
-    for(page_model_t = page_model, page_model = 0;  page_model < page_model_t; page_model ++)
-    {
-        if(0 != (pgd_assign_bitmap_old & (uint16_t)(1 << page_model)))
-        {
-            break;
-        }
-    }
-
     pgd_assign_bitmap_new = CPGD_PAGE_MODEL_ASSIGN_BITMAP(cpgd);
 
     //dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_new_space_from_disk: disk_no_t %u: pgd bitmap %x => %x\n", disk_no_t, pgd_assign_bitmap_old, pgd_assign_bitmap_new);
@@ -1265,6 +1257,14 @@ EC_BOOL cpgv_new_space_from_disk(CPGV *cpgv, const uint32_t size, const uint16_t
                             disk_no_t,
                             c_uint16_t_to_bin_str(CPGD_PAGE_MODEL_ASSIGN_BITMAP(cpgd)),
                             c_uint16_t_to_bin_str(CPGV_PAGE_MODEL_ASSIGN_BITMAP(cpgv)));
+
+        for(page_model_t = page_model, page_model = 0;  page_model < page_model_t; page_model ++)
+        {
+            if(0 != (pgd_assign_bitmap_old & (uint16_t)(1 << page_model)))
+            {
+                break;
+            }
+        }
 
         /*delete the disk from pool*/
         __cpgv_del_disk(cpgv, disk_no_t, page_model);
@@ -1279,7 +1279,7 @@ EC_BOOL cpgv_new_space_from_disk(CPGV *cpgv, const uint32_t size, const uint16_t
 
         if(EC_FALSE == cpgd_is_full(cpgd))
         {
-            uint16_t page_model_t;
+            //uint16_t page_model_t;
 
             page_model_t = page_model;
             while(CPGB_MODEL_NUM > page_model_t

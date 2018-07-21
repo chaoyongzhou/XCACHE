@@ -18,35 +18,35 @@ extern "C"{
 #include "cpgrb.h"
 #include "cpgd.h"
 
-#if (CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)
-#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  0))
-#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  1))
-#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  2))
-#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  3))
-#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  4))
-#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  5))
-#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  6))
-#endif/*(CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)*/
+#if (CPGD_TEST_SCENARIO_004G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  9))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 << 10))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 << 11))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 << 12))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 13))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 14))
+#endif/*(CPGD_TEST_SCENARIO_004G_DISK == CPGD_DEBUG_CHOICE)*/
 
-#if (CPGD_TEST_SCENARIO_256M_DISK == CPGD_DEBUG_CHOICE)
-#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 << 12))
-#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 << 13))
-#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 << 14))
-#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 << 15))
-#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 << 16))
-#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 17))
-#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 18))
-#endif/*(CPGD_TEST_SCENARIO_256M_DISK == CPGD_DEBUG_CHOICE)*/
+#if (CPGD_TEST_SCENARIO_008G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  9))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 << 10))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 << 11))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 12))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 13))
+#endif/*(CPGD_TEST_SCENARIO_008G_DISK == CPGD_DEBUG_CHOICE)*/
 
-#if (CPGD_TEST_SCENARIO_512G_DISK == CPGD_DEBUG_CHOICE)
-#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 << 11))
-#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 << 12))
-#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 << 13))
-#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 << 14))
-#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 << 15))
-#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 16))
-#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 17))
-#endif/*(CPGD_TEST_SCENARIO_512G_DISK == CPGD_DEBUG_CHOICE)*/
+#if (CPGD_TEST_SCENARIO_016G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  9))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 << 10))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 11))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 12))
+#endif/*(CPGD_TEST_SCENARIO_016G_DISK == CPGD_DEBUG_CHOICE)*/
 
 #if (CPGD_TEST_SCENARIO_032G_DISK == CPGD_DEBUG_CHOICE)
 #define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  5))
@@ -57,6 +57,56 @@ extern "C"{
 #define CPGV_032TB_DISK_NUM  ((uint16_t)(1 << 10))
 #define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 11))
 #endif/*(CPGD_TEST_SCENARIO_032G_DISK == CPGD_DEBUG_CHOICE)*/
+
+#if (CPGD_TEST_SCENARIO_064G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  4))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  5))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  9))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 << 10))
+#endif/*(CPGD_TEST_SCENARIO_064G_DISK == CPGD_DEBUG_CHOICE)*/
+
+#if (CPGD_TEST_SCENARIO_128G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  3))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  4))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  5))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  9))
+#endif/*(CPGD_TEST_SCENARIO_128G_DISK == CPGD_DEBUG_CHOICE)*/
+
+#if (CPGD_TEST_SCENARIO_256G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  2))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  3))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  4))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  5))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  8))
+#endif/*(CPGD_TEST_SCENARIO_256G_DISK == CPGD_DEBUG_CHOICE)*/
+
+#if (CPGD_TEST_SCENARIO_512G_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  1))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  2))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  3))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  4))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  5))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  7))
+#endif/*(CPGD_TEST_SCENARIO_512G_DISK == CPGD_DEBUG_CHOICE)*/
+
+#if (CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)
+#define CPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  0))
+#define CPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  1))
+#define CPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  2))
+#define CPGV_008TB_DISK_NUM  ((uint16_t)(1 <<  3))
+#define CPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  4))
+#define CPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  5))
+#define CPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  6))
+#endif/*(CPGD_TEST_SCENARIO_001T_DISK == CPGD_DEBUG_CHOICE)*/
 
 #define CPGV_MAX_DISK_NUM               (CPGV_064TB_DISK_NUM)
 
