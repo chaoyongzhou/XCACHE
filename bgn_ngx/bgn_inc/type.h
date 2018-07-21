@@ -427,6 +427,7 @@ extern long int lrint(double x);
 
 #include "cmpic.inc"
 #include "loc_macro.inc"
+#include "deny_reason.inc"
 #include "sec_macro.inc"
 
 #endif /*_TYPE_H*/

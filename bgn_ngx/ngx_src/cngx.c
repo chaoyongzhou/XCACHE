@@ -1941,13 +1941,13 @@ EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status)
     return (EC_TRUE);
 }
 
-EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const char *deny_reason)
+EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const UINT32 deny_reason)
 {
     const char                  *k;
-    const char                  *v;
+    char                         v[16];
 
     k = (const char *)CNGX_VAR_DENY_REASON;
-    v = (const char *)deny_reason;
+    snprintf((char *)v, 16, "%08ld", deny_reason);
 
     if(EC_FALSE == cngx_set_var_str(r, k, v))
     {
