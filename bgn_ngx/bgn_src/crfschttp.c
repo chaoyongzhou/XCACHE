@@ -1963,7 +1963,7 @@ EC_BOOL crfschttp_handle_dsmf_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0018);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0015);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_dsmf_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -2014,7 +2014,7 @@ EC_BOOL crfschttp_handle_ddir_request(CRFSCHTTP_NODE *crfschttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0019);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0016);
 
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_handle_ddir_request: node %p, path %s\n",
                         crfschttp_node, (char *)cstring_get_str(&path_cstr));
@@ -2899,7 +2899,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_FALSE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0020);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0017);
 
         return (EC_TRUE);
     }
@@ -2935,7 +2935,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_TRUE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0021);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0018);
 
         return (EC_TRUE);
     }
@@ -2971,7 +2971,7 @@ EC_BOOL crfschttp_commit_request(CRFSCHTTP_NODE *crfschttp_node)
             return (EC_FALSE);
         }
         CSOCKET_CNODE_RETRIES(csocket_cnode) = 0;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0022);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0019);
 
 
         return (EC_TRUE);
@@ -3004,7 +3004,7 @@ CRFSCHTTP_NODE *crfschttp_node_new(const uint32_t size)
     CRFSCHTTP_NODE *crfschttp_node;
 
     //dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_node_new: size = %d\n", size);
-    alloc_static_mem(MM_CRFSCHTTP_NODE, &crfschttp_node, LOC_CRFSCHTTP_0023);
+    alloc_static_mem(MM_CRFSCHTTP_NODE, &crfschttp_node, LOC_CRFSCHTTP_0020);
     if(NULL_PTR == crfschttp_node)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_node_new: new crfschttp_node failed\n");
@@ -3014,7 +3014,7 @@ CRFSCHTTP_NODE *crfschttp_node_new(const uint32_t size)
     if(EC_FALSE == crfschttp_node_init(crfschttp_node, size))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_node_new: init crfschttp_node failed\n");
-        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0024);
+        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0021);
         return (NULL_PTR);
     }
     dbg_log(SEC_0145_CRFSCHTTP, 9)(LOGSTDOUT, "[DEBUG] crfschttp_node_new: node %p, size = %d\n", crfschttp_node, size);
@@ -3145,7 +3145,7 @@ EC_BOOL crfschttp_node_clean(CRFSCHTTP_NODE *crfschttp_node)
     CRFSCHTTP_NODE_SEND_DATA_MORE(crfschttp_node) = NULL_PTR;
     if(NULL_PTR != CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node))
     {
-        safe_free(CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node), LOC_CRFSCHTTP_0025);
+        safe_free(CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node), LOC_CRFSCHTTP_0022);
         CRFSCHTTP_NODE_SEND_DATA_BUFF(crfschttp_node) = NULL_PTR;
     }
     CRFSCHTTP_NODE_SEND_DATA_TOTAL_LEN(crfschttp_node) = 0;
@@ -3176,7 +3176,7 @@ EC_BOOL crfschttp_node_free(CRFSCHTTP_NODE *crfschttp_node)
     {
         dbg_log(SEC_0145_CRFSCHTTP, 1)(LOGSTDOUT, "[DEBUG] crfschttp_node_free: node %p\n", crfschttp_node);
         crfschttp_node_clean(crfschttp_node);
-        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0026);
+        free_static_mem(MM_CRFSCHTTP_NODE, crfschttp_node, LOC_CRFSCHTTP_0023);
     }
 
     return (EC_TRUE);
@@ -3314,7 +3314,7 @@ STATIC_CAST static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *c
             cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
 
             cstring_init(&path_cstr, NULL_PTR);
-            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0027);
+            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0024);
 
             if(EC_TRUE == crfsc_is_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
@@ -3342,7 +3342,7 @@ STATIC_CAST static EC_BOOL __crfschttp_node_pre_handle_header(CRFSCHTTP_NODE  *c
             cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
 
             cstring_init(&path_cstr, NULL_PTR);
-            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0028);
+            cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CRFSCHTTP_0025);
 
             if(EC_TRUE == crfsc_is_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
@@ -3646,7 +3646,7 @@ EC_BOOL crfschttp_recv_on_csocket_cnode_thread(CSOCKET_CNODE *csocket_cnode)
     cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
     CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
 
-    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0029);
+    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0026);
 
     return (EC_TRUE);
 }
@@ -3678,7 +3678,7 @@ EC_BOOL crfschttp_send_on_csocket_cnode_thread(CSOCKET_CNODE *csocket_cnode)
     cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT);
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
-    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0030);
+    CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSCHTTP_0027);
 
     return (EC_TRUE);
 }

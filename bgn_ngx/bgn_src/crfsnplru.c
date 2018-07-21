@@ -72,11 +72,11 @@ EC_BOOL crfsnplru_is_empty(const CRFSNPLRU_NODE *head)
 }
 
 /*--------------------------------------------- LRU list operations ---------------------------------------------*/
-STATIC_CAST inline void __crfsnplru_node_add( 
-                                CRFSNPLRU_NODE *new_node , const uint32_t new_pos, 
-                                CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos, 
+STATIC_CAST inline void __crfsnplru_node_add(
+                                CRFSNPLRU_NODE *new_node , const uint32_t new_pos,
+                                CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos,
                                 CRFSNPLRU_NODE *next_node, const uint32_t next_pos)
-{ 
+{
     CRFSNPLRU_NODE_PREV_POS(next_node) = new_pos;
     CRFSNPLRU_NODE_NEXT_POS(new_node)  = next_pos;
     CRFSNPLRU_NODE_PREV_POS(new_node)  = prev_pos;
@@ -90,7 +90,7 @@ void crfsnplru_node_add_head(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
     {
         CRFSNPLRU_NODE *head;
         CRFSNPLRU_NODE *next;
-        
+
         uint32_t        head_pos;
         uint32_t        next_pos;
 
@@ -99,9 +99,9 @@ void crfsnplru_node_add_head(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
 
         next_pos = CRFSNPLRU_NODE_NEXT_POS(head);
         next     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, next_pos));
-        
+
         __crfsnplru_node_add(node, node_pos, head, head_pos, next, next_pos);
-        
+
         dbg_log(SEC_0071_CRFSNPLRU, 9)(LOGSTDOUT, "[DEBUG] crfsnplru_node_add_head: node %p, pos %u\n", node, node_pos);
     }
     return;
@@ -113,7 +113,7 @@ void crfsnplru_node_add_tail(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
     {
         CRFSNPLRU_NODE *head;
         CRFSNPLRU_NODE *prev;
-        
+
         uint32_t        head_pos;
         uint32_t        prev_pos;
 
@@ -122,7 +122,7 @@ void crfsnplru_node_add_tail(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
 
         prev_pos = CRFSNPLRU_NODE_PREV_POS(head);
         prev     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, prev_pos));
-        
+
         __crfsnplru_node_add(node, node_pos, prev, prev_pos, head, head_pos);
 
         dbg_log(SEC_0071_CRFSNPLRU, 9)(LOGSTDOUT, "[DEBUG] crfsnplru_node_add_tail: node %p, pos %u\n", node, node_pos);
@@ -131,9 +131,9 @@ void crfsnplru_node_add_tail(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
 }
 
 STATIC_CAST inline void __crfsnplru_node_rmv(
-                        CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos, 
+                        CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos,
                         CRFSNPLRU_NODE *next_node, const uint32_t next_pos)
-{   
+{
     CRFSNPLRU_NODE_PREV_POS(next_node) = prev_pos;
     CRFSNPLRU_NODE_NEXT_POS(prev_node) = next_pos;
     return;
@@ -145,16 +145,16 @@ void crfsnplru_node_move_head(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32
     {
         CRFSNPLRU_NODE *prev;
         CRFSNPLRU_NODE *next;
-        
+
         uint32_t        prev_pos;
         uint32_t        next_pos;
-        
+
         prev_pos = CRFSNPLRU_NODE_PREV_POS(node);
         prev     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, prev_pos));
 
         next_pos = CRFSNPLRU_NODE_NEXT_POS(node);
         next     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, next_pos));
-        
+
         __crfsnplru_node_rmv(prev, prev_pos, next, next_pos);
         crfsnplru_node_add_head(crfsnp, node, node_pos);
 
@@ -169,16 +169,16 @@ void crfsnplru_node_move_tail(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32
     {
         CRFSNPLRU_NODE *prev;
         CRFSNPLRU_NODE *next;
-        
+
         uint32_t        prev_pos;
         uint32_t        next_pos;
-        
+
         prev_pos = CRFSNPLRU_NODE_PREV_POS(node);
         prev     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, prev_pos));
 
         next_pos = CRFSNPLRU_NODE_NEXT_POS(node);
         next     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, next_pos));
-        
+
         __crfsnplru_node_rmv(prev, prev_pos, next, next_pos);
         crfsnplru_node_add_tail(crfsnp, node, node_pos);
 
@@ -193,16 +193,16 @@ void crfsnplru_node_rmv(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_t nod
     {
         CRFSNPLRU_NODE *prev;
         CRFSNPLRU_NODE *next;
-        
+
         uint32_t        prev_pos;
         uint32_t        next_pos;
-        
+
         prev_pos = CRFSNPLRU_NODE_PREV_POS(node);
         prev     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, prev_pos));
 
         next_pos = CRFSNPLRU_NODE_NEXT_POS(node);
         next     = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, next_pos));
-        
+
         __crfsnplru_node_rmv(prev, prev_pos, next, next_pos);
         crfsnplru_node_init(node, node_pos);
 
@@ -228,7 +228,7 @@ EC_BOOL crfsnplru_pool_init(CRFSNPRB_POOL *pool, const uint32_t node_max_num, co
 
         crfsnprb_node  = CRFSNPRB_POOL_NODE(pool, node_pos);
         crfsnp_item    = (CRFSNP_ITEM *)crfsnprb_node;
-        
+
         CRFSNPLRU_ASSERT((void *)crfsnp_item == (void *)crfsnprb_node); /*address must be aligned*/
 
         crfsnplru_node_init(CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
@@ -257,7 +257,7 @@ void crfsnplru_list_print(LOG *log, const CRFSNP *crfsnp)
         crfsnplru_node_print(log, node, node_pos);
 
         node_pos = CRFSNPLRU_NODE_NEXT_POS(node);
-        
+
     }while(CRFSNPLRU_ROOT_POS != node_pos);
     return;
 }

@@ -81,7 +81,7 @@ EC_BOOL crfsnp_mgr_init(CRFSNP_MGR *crfsnp_mgr)
     CRFSNP_MGR_NP_ITEM_MAX_NUM(crfsnp_mgr)      = 0;
     CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr)           = 0;
 
-    cvector_init(CRFSNP_MGR_NP_VEC(crfsnp_mgr), 0, MM_CRFSNP, CVECTOR_LOCK_ENABLE, LOC_CRFSNPMGR_0004);
+    cvector_init(CRFSNP_MGR_NP_VEC(crfsnp_mgr), 0, MM_CRFSNP, CVECTOR_LOCK_ENABLE, LOC_CRFSNPMGR_0002);
 
     return (EC_TRUE);
 }
@@ -95,7 +95,7 @@ EC_BOOL crfsnp_mgr_clean(CRFSNP_MGR *crfsnp_mgr)
     CRFSNP_MGR_NP_ITEM_MAX_NUM(crfsnp_mgr)      = 0;
     CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr)           = 0;
 
-    cvector_clean(CRFSNP_MGR_NP_VEC(crfsnp_mgr), (CVECTOR_DATA_CLEANER)crfsnp_free, LOC_CRFSNPMGR_0007);
+    cvector_clean(CRFSNP_MGR_NP_VEC(crfsnp_mgr), (CVECTOR_DATA_CLEANER)crfsnp_free, LOC_CRFSNPMGR_0003);
 
     return (EC_TRUE);
 }
@@ -105,7 +105,7 @@ EC_BOOL crfsnp_mgr_free(CRFSNP_MGR *crfsnp_mgr)
     if(NULL_PTR != crfsnp_mgr)
     {
         crfsnp_mgr_clean(crfsnp_mgr);
-        free_static_mem(MM_CRFSNP_MGR, crfsnp_mgr, LOC_CRFSNPMGR_0008);
+        free_static_mem(MM_CRFSNP_MGR, crfsnp_mgr, LOC_CRFSNPMGR_0004);
     }
     return (EC_TRUE);
 }
@@ -322,7 +322,7 @@ EC_BOOL crfsnp_mgr_load_db(CRFSNP_MGR *crfsnp_mgr)
     if(EC_FALSE == c_file_access(crfsnp_mgr_db_name, F_OK))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_load_db: crfsnp mgr db %s not exist\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0009);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0005);
         return (EC_FALSE);
     }
 
@@ -330,7 +330,7 @@ EC_BOOL crfsnp_mgr_load_db(CRFSNP_MGR *crfsnp_mgr)
     if(ERR_FD == crfsnp_mgr_fd)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_load_db: open crfsnp mgr db %s failed\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0010);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0006);
         return (EC_FALSE);
     }
 
@@ -340,14 +340,14 @@ EC_BOOL crfsnp_mgr_load_db(CRFSNP_MGR *crfsnp_mgr)
         c_file_close(crfsnp_mgr_fd);
         crfsnp_mgr_fd = ERR_FD;
 
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0011);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0007);
         return (EC_FALSE);
     }
 
     c_file_close(crfsnp_mgr_fd);
     crfsnp_mgr_fd = ERR_FD;
 
-    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0012);
+    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0008);
     return (EC_TRUE);
 }
 
@@ -367,7 +367,7 @@ EC_BOOL crfsnp_mgr_create_db(CRFSNP_MGR *crfsnp_mgr, const CSTRING *crfsnp_db_ro
     if(EC_TRUE == c_file_access(crfsnp_mgr_db_name, F_OK))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_create_db: crfsnp mgr db %s already exist\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0013);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0009);
         return (EC_FALSE);
     }
 
@@ -375,7 +375,7 @@ EC_BOOL crfsnp_mgr_create_db(CRFSNP_MGR *crfsnp_mgr, const CSTRING *crfsnp_db_ro
     if(ERR_FD == crfsnp_mgr_fd)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_create_db: open crfsnp mgr db %s failed\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0014);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0010);
         return (EC_FALSE);
     }
 
@@ -385,7 +385,7 @@ EC_BOOL crfsnp_mgr_create_db(CRFSNP_MGR *crfsnp_mgr, const CSTRING *crfsnp_db_ro
         c_file_close(crfsnp_mgr_fd);
         crfsnp_mgr_fd = ERR_FD;
 
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0015);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0011);
         return (EC_FALSE);
     }
 
@@ -394,7 +394,7 @@ EC_BOOL crfsnp_mgr_create_db(CRFSNP_MGR *crfsnp_mgr, const CSTRING *crfsnp_db_ro
 
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_create_db: flush db to crfsnp mgr db %s done\n", crfsnp_mgr_db_name);
 
-    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0016);
+    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0012);
     return (EC_TRUE);
 }
 
@@ -414,7 +414,7 @@ EC_BOOL crfsnp_mgr_flush_db(CRFSNP_MGR *crfsnp_mgr)
     if(EC_FALSE == c_file_access(crfsnp_mgr_db_name, F_OK))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_flush_db: crfsnp mgr db %s not exist\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0017);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0013);
         return (EC_FALSE);
     }
 
@@ -422,7 +422,7 @@ EC_BOOL crfsnp_mgr_flush_db(CRFSNP_MGR *crfsnp_mgr)
     if(ERR_FD == crfsnp_mgr_fd)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_flush_db: open crfsnp mgr db %s failed\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0018);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0014);
         return (EC_FALSE);
     }
 
@@ -432,7 +432,7 @@ EC_BOOL crfsnp_mgr_flush_db(CRFSNP_MGR *crfsnp_mgr)
         c_file_close(crfsnp_mgr_fd);
         crfsnp_mgr_fd = ERR_FD;
 
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0019);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0015);
         return (EC_FALSE);
     }
 
@@ -441,7 +441,7 @@ EC_BOOL crfsnp_mgr_flush_db(CRFSNP_MGR *crfsnp_mgr)
 
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_flush_db: flush db to crfsnp mgr db %s done\n", crfsnp_mgr_db_name);
 
-    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0020);
+    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0016);
     return (EC_TRUE);
 }
 
@@ -915,10 +915,10 @@ EC_BOOL crfsnp_mgr_exist(const CSTRING *crfsnp_db_root_dir)
     if(EC_FALSE == c_file_access(crfsnp_mgr_db_name, F_OK))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 7)(LOGSTDOUT, "error:crfsnp_mgr_exist: crfsnp mgr db %s not exist\n", crfsnp_mgr_db_name);
-        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0030);
+        safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0017);
         return (EC_FALSE);
     }
-    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0031);
+    safe_free(crfsnp_mgr_db_name, LOC_CRFSNPMGR_0018);
     return (EC_TRUE);
 }
 
@@ -1065,7 +1065,7 @@ EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, c
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u done where expect num %ld and complete_num %ld\n", 
+    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u done where expect num %ld and complete_num %ld\n",
                     crfsnp_id, expect_num, (*complete_num));
 
     return (EC_TRUE);
@@ -1367,7 +1367,7 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
         return (EC_TRUE);
     }
 
-    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0052);
+    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0019);
     if(NULL_PTR == cur_path_cstr_vec)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_path_of_np: new cur_path_cstr_vec failed\n");
@@ -1376,8 +1376,8 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
 
     if(EC_FALSE == crfsnp_list_path_vec(crfsnp, node_pos, cur_path_cstr_vec))
     {
-        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0053);
-        cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0054);
+        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0020);
+        cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0021);
 
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_path_of_np: list path %s in np %u failed\n",
                            (char *)cstring_get_str(path), crfsnp_id);
@@ -1389,7 +1389,7 @@ EC_BOOL crfsnp_mgr_list_path_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
         /*merge*/
         cvector_merge_direct_no_lock(cur_path_cstr_vec, path_cstr_vec);
     }
-    cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0055);
+    cvector_free(cur_path_cstr_vec, LOC_CRFSNPMGR_0022);
 
     return (EC_TRUE);
 }
@@ -1432,7 +1432,7 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
         return (EC_TRUE);
     }
 
-    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0059);
+    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CRFSNPMGR_0023);
     if(NULL_PTR == cur_seg_cstr_vec)
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_seg_of_np: new cur_seg_cstr_vec failed\n");
@@ -1441,8 +1441,8 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
 
     if(EC_FALSE == crfsnp_list_seg_vec(crfsnp, node_pos, cur_seg_cstr_vec))
     {
-        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0060);
-        cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0061);
+        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CRFSNPMGR_0024);
+        cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0025);
 
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_list_seg_of_np: list seg of path %s in np %u failed\n",
                            (char *)cstring_get_str(path), crfsnp_id);
@@ -1454,7 +1454,7 @@ EC_BOOL crfsnp_mgr_list_seg_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, c
         /*merge*/
         cvector_merge_direct_no_lock(cur_seg_cstr_vec, seg_cstr_vec);
     }
-    cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0062);
+    cvector_free(cur_seg_cstr_vec, LOC_CRFSNPMGR_0026);
 
     return (EC_TRUE);
 }

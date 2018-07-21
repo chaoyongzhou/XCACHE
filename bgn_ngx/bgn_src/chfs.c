@@ -1302,17 +1302,17 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
             chfsnp_fnode_print(LOGSTDOUT, &chfsnp_fnode);
         }
 
-        CHFS_WRLOCK(chfs_md, LOC_CHFS_0016);
+        CHFS_WRLOCK(chfs_md, LOC_CHFS_0007);
         if(EC_FALSE == chfs_write_npp(chfs_md_id, file_path, &chfsnp_fnode))
         {
-            CHFS_UNLOCK(chfs_md, LOC_CHFS_0017);
+            CHFS_UNLOCK(chfs_md, LOC_CHFS_0008);
             dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_write: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
 
             /*notify all waiters*/
             chfs_file_notify(chfs_md_id, file_path); /*patch*/
             return (EC_FALSE);
         }
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0018);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0009);
 
         /*notify all waiters*/
         chfs_file_notify(chfs_md_id, file_path); /*patch*/
@@ -1349,10 +1349,10 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDNULL, "[DEBUG] __chfs_write: write file %s is %.*s\n",
                         (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0019);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0010);
     if(EC_FALSE == chfs_write_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0020);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0011);
         chfs_release_dn(chfs_md_id, &chfsnp_fnode);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_write: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
 
@@ -1360,7 +1360,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
         chfs_file_notify(chfs_md_id, file_path); /*patch*/
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0021);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0012);
 
     /*notify all waiters*/
     chfs_file_notify(chfs_md_id, file_path); /*patch*/
@@ -1387,11 +1387,11 @@ STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CST
 
     chfsnp_fnode_init(&chfsnp_fnode);
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0022);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0013);
 
     if(EC_FALSE == chfs_write_dn_cache(chfs_md_id, cbytes, &chfsnp_fnode))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0023);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0014);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_write_cache: write file %s content to dn failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1404,12 +1404,12 @@ STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CST
     if(EC_FALSE == chfs_write_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
         __chfs_delete_dn(chfs_md_id, &chfsnp_fnode);
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0024);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0015);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_write_cache: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0025);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0016);
     return (EC_TRUE);
 }
 
@@ -1446,10 +1446,10 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     chfs_md = CHFS_MD_GET(chfs_md_id);
 
-    CHFS_RDLOCK(chfs_md, LOC_CHFS_0026);
+    CHFS_RDLOCK(chfs_md, LOC_CHFS_0017);
     if(EC_FALSE == chfs_read_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0027);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0018);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1462,12 +1462,12 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     if(EC_FALSE == chfs_read_dn(chfs_md_id, &chfsnp_fnode, cbytes))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0028);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0019);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read: read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
         chfsnp_fnode_print(LOGSTDOUT, &chfsnp_fnode);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0029);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0020);
 
     return (EC_TRUE);
 }
@@ -1512,11 +1512,11 @@ EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *o
         }
     }
 #endif
-    CHFS_RDLOCK(chfs_md, LOC_CHFS_0030);
+    CHFS_RDLOCK(chfs_md, LOC_CHFS_0021);
 
     if(EC_FALSE == chfs_read_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0031);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0022);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1539,13 +1539,13 @@ EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *o
 
     if(EC_FALSE == chfs_read_e_dn(chfs_md_id, &chfsnp_fnode, offset, max_len, cbytes))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0032);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0023);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_e: offset read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
         chfsnp_fnode_print(LOGSTDOUT, &chfsnp_fnode);
         return (EC_FALSE);
     }
 
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0033);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0024);
     return (EC_TRUE);
 }
 
@@ -1580,14 +1580,14 @@ EC_BOOL chfs_update(const UINT32 chfs_md_id, const CSTRING *file_path, const CBY
         }
     }
 #endif
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0034);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0025);
     if(EC_FALSE == chfs_update_no_lock(chfs_md_id, file_path, cbytes))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0035);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0026);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_update: update file %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0036);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0027);
     dbg_log(SEC_0023_CHFS, 9)(LOGSTDOUT, "[DEBUG] chfs_update: update file %s done\n", (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
@@ -1987,7 +1987,7 @@ EC_BOOL chfs_wait_http_headers(const UINT32 chfs_md_id, const UINT32 tcid, const
 CHFS_WAIT_FILE *chfs_wait_file_new()
 {
     CHFS_WAIT_FILE *chfs_wait_file;
-    alloc_static_mem(MM_CHFS_WAIT_FILE, &chfs_wait_file, LOC_CHFS_0037);
+    alloc_static_mem(MM_CHFS_WAIT_FILE, &chfs_wait_file, LOC_CHFS_0028);
     if(NULL_PTR != chfs_wait_file)
     {
         chfs_wait_file_init(chfs_wait_file);
@@ -1999,7 +1999,7 @@ EC_BOOL chfs_wait_file_init(CHFS_WAIT_FILE *chfs_wait_file)
 {
     cstring_init(CHFS_WAIT_FILE_NAME(chfs_wait_file), NULL_PTR);
 
-    clist_init(CHFS_WAIT_FILE_OWNER_LIST(chfs_wait_file), MM_MOD_NODE, LOC_CHFS_0038);
+    clist_init(CHFS_WAIT_FILE_OWNER_LIST(chfs_wait_file), MM_MOD_NODE, LOC_CHFS_0029);
 
     return (EC_TRUE);
 }
@@ -2016,7 +2016,7 @@ EC_BOOL chfs_wait_file_free(CHFS_WAIT_FILE *chfs_wait_file)
     if(NULL_PTR != chfs_wait_file)
     {
         chfs_wait_file_clean(chfs_wait_file);
-        free_static_mem(MM_CHFS_WAIT_FILE, chfs_wait_file, LOC_CHFS_0039);
+        free_static_mem(MM_CHFS_WAIT_FILE, chfs_wait_file, LOC_CHFS_0030);
     }
     return (EC_TRUE);
 }
@@ -2036,7 +2036,7 @@ EC_BOOL chfs_wait_file_free_0(const UINT32 md_id, CHFS_WAIT_FILE *chfs_wait_file
     if(NULL_PTR != chfs_wait_file)
     {
         chfs_wait_file_clean(chfs_wait_file);
-        free_static_mem(MM_CHFS_WAIT_FILE, chfs_wait_file, LOC_CHFS_0040);
+        free_static_mem(MM_CHFS_WAIT_FILE, chfs_wait_file, LOC_CHFS_0031);
     }
     return (EC_TRUE);
 }
@@ -2501,7 +2501,7 @@ EC_BOOL chfs_file_notify(const UINT32 chfs_md_id, const CSTRING *file_path)
 CHFS_LOCKED_FILE *chfs_locked_file_new()
 {
     CHFS_LOCKED_FILE *chfs_locked_file;
-    alloc_static_mem(MM_CHFS_LOCKED_FILE, &chfs_locked_file, LOC_CHFS_0041);
+    alloc_static_mem(MM_CHFS_LOCKED_FILE, &chfs_locked_file, LOC_CHFS_0032);
     if(NULL_PTR != chfs_locked_file)
     {
         chfs_locked_file_init(chfs_locked_file);
@@ -2534,7 +2534,7 @@ EC_BOOL chfs_locked_file_free(CHFS_LOCKED_FILE *chfs_locked_file)
     if(NULL_PTR != chfs_locked_file)
     {
         chfs_locked_file_clean(chfs_locked_file);
-        free_static_mem(MM_CHFS_LOCKED_FILE, chfs_locked_file, LOC_CHFS_0042);
+        free_static_mem(MM_CHFS_LOCKED_FILE, chfs_locked_file, LOC_CHFS_0033);
     }
     return (EC_TRUE);
 }
@@ -2554,7 +2554,7 @@ EC_BOOL chfs_locked_file_free_0(const UINT32 md_id, CHFS_LOCKED_FILE *chfs_locke
     if(NULL_PTR != chfs_locked_file)
     {
         chfs_locked_file_clean(chfs_locked_file);
-        free_static_mem(MM_CHFS_LOCKED_FILE, chfs_locked_file, LOC_CHFS_0043);
+        free_static_mem(MM_CHFS_LOCKED_FILE, chfs_locked_file, LOC_CHFS_0034);
     }
     return (EC_TRUE);
 }
@@ -2839,17 +2839,17 @@ EC_BOOL chfs_file_lock(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRING
 
     cbytes_init(&token_cbyte);
 
-    CHFS_LOCKED_FILES_WRLOCK(chfs_md, LOC_CHFS_0044);
+    CHFS_LOCKED_FILES_WRLOCK(chfs_md, LOC_CHFS_0035);
     if(EC_FALSE == __chfs_file_lock(chfs_md_id, tcid, file_path, expire_nsec, &token_cbyte, locked_already))
     {
-        CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0045);
+        CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0036);
         return (EC_FALSE);
     }
 
-    CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0046);
+    CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0037);
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
-    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CHFS_0047);
+    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CHFS_0038);
     cbytes_clean(&token_cbyte);
     return (EC_TRUE);
 }
@@ -2962,15 +2962,15 @@ EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, cons
         chfs_locked_files_print(chfs_md_id, LOGSTDOUT);
     }
 #endif
-    CHFS_LOCKED_FILES_WRLOCK(chfs_md, LOC_CHFS_0048);
+    CHFS_LOCKED_FILES_WRLOCK(chfs_md, LOC_CHFS_0039);
     if(EC_FALSE == __chfs_file_unlock(chfs_md_id, file_path, &token_cbyte))
     {
         cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
-        CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0049);
+        CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0040);
         return (EC_FALSE);
     }
 
-    CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0050);
+    CHFS_LOCKED_FILES_UNLOCK(chfs_md, LOC_CHFS_0041);
 
     cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
@@ -3126,14 +3126,14 @@ EC_BOOL chfs_add_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0051);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0042);
     if(EC_FALSE == crfsdn_add_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0052);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0043);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_add_disk: add disk %ld to dn failed\n", disk_no);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0053);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0044);
     return (EC_TRUE);
 }
 
@@ -3169,14 +3169,14 @@ EC_BOOL chfs_del_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0054);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0045);
     if(EC_FALSE == crfsdn_del_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0055);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0046);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_del_disk: del disk %ld from dn failed\n", disk_no);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0056);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0047);
     return (EC_TRUE);
 }
 
@@ -3212,14 +3212,14 @@ EC_BOOL chfs_mount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0057);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0048);
     if(EC_FALSE == crfsdn_mount_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0058);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0049);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_mount_disk: mount disk %ld to dn failed\n", disk_no);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0059);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0050);
     return (EC_TRUE);
 }
 
@@ -3255,14 +3255,14 @@ EC_BOOL chfs_umount_disk(const UINT32 chfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0060);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0051);
     if(EC_FALSE == crfsdn_umount_disk(CHFS_MD_DN(chfs_md), (uint16_t)disk_no))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0061);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0052);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_umount_disk: umount disk %ld from dn failed\n", disk_no);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0062);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0053);
     return (EC_TRUE);
 }
 
@@ -3562,9 +3562,9 @@ EC_BOOL chfs_read_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode, 
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CHFS_0066);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CHFS_0054);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CHFS_0067);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CHFS_0055);
         CBYTES_LEN(cbytes) = 0;
     }
 
@@ -3648,9 +3648,9 @@ EC_BOOL chfs_read_e_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnode
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CHFS_0071);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CHFS_0056);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CHFS_0072);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CHFS_0057);
         CBYTES_LEN(cbytes) = 0;
     }
 
@@ -3698,16 +3698,16 @@ EC_BOOL chfs_write_npp(const UINT32 chfs_md_id, const CSTRING *file_path, const 
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0076);
+    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0058);
     if(EC_FALSE == chfsnp_mgr_write(CHFS_MD_NPP(chfs_md), file_path, chfsnp_fnode))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0077);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0059);
 
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_write_npp: no name node accept file %s with %u replicas\n",
                             (char *)cstring_get_str(file_path), CHFSNP_FNODE_REPNUM(chfsnp_fnode));
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0078);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0060);
     return (EC_TRUE);
 }
 
@@ -3738,15 +3738,15 @@ EC_BOOL chfs_read_npp(const UINT32 chfs_md_id, const CSTRING *file_path, CHFSNP_
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0079);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0061);
     if(EC_FALSE == chfsnp_mgr_read(CHFS_MD_NPP(chfs_md), file_path, chfsnp_fnode))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0080);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0062);
 
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_read_npp: chfsnp mgr read %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0081);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0063);
 
     return (EC_TRUE);
 }
@@ -3778,15 +3778,15 @@ EC_BOOL chfs_delete_npp(const UINT32 chfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0082);
+    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0064);
     if(EC_FALSE == chfsnp_mgr_delete(CHFS_MD_NPP(chfs_md), path))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0083);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0065);
 
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_delete_npp: delete '%s' failed\n", (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0084);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0066);
 
     return (EC_TRUE);
 }
@@ -4044,17 +4044,17 @@ EC_BOOL chfs_qfile(const UINT32 chfs_md_id, const CSTRING *file_path, CHFSNP_ITE
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0091);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0067);
     chfsnp_item_src = chfsnp_mgr_search_item(CHFS_MD_NPP(chfs_md),
                                              (uint32_t)cstring_get_len(file_path),
                                              cstring_get_str(file_path));
     if(NULL_PTR == chfsnp_item_src)
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0092);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0068);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_qfile: query file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0093);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0069);
 
     chfsnp_item_clone(chfsnp_item_src, chfsnp_item);
 
@@ -4088,15 +4088,15 @@ EC_BOOL chfs_flush_npp(const UINT32 chfs_md_id)
         return (EC_TRUE);
     }
 
-    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0094);
+    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0070);
     if(EC_FALSE == chfsnp_mgr_flush(CHFS_MD_NPP(chfs_md)))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0095);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0071);
 
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_flush_npp: flush failed\n");
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0096);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0072);
     return (EC_TRUE);
 }
 
@@ -4166,14 +4166,14 @@ EC_BOOL chfs_file_num(const UINT32 chfs_md_id, UINT32 *file_num)
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0100);
+    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0073);
     if(EC_FALSE == chfsnp_mgr_file_num(CHFS_MD_NPP(chfs_md), file_num))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0101);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0074);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_file_num: count total file num failed\n");
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0102);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0075);
 
     return (EC_TRUE);
 }
@@ -4205,14 +4205,14 @@ EC_BOOL chfs_file_size(const UINT32 chfs_md_id, const CSTRING *path_cstr, UINT32
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0103);
+    chfsnp_mgr_wrlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0076);
     if(EC_FALSE == chfsnp_mgr_file_size(CHFS_MD_NPP(chfs_md), path_cstr, file_size))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0104);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0077);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_file_size: count total file size failed\n");
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0105);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0078);
     return (EC_TRUE);
 }
 
@@ -4244,14 +4244,14 @@ EC_BOOL chfs_search(const UINT32 chfs_md_id, const CSTRING *path_cstr)
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0106);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0079);
     if(EC_FALSE == chfsnp_mgr_search(CHFS_MD_NPP(chfs_md), (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &chfsnp_id))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0107);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0080);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_search: search '%s' failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0108);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0081);
 
     return (EC_TRUE);
 }
@@ -4450,11 +4450,11 @@ EC_BOOL chfs_show_npp(const UINT32 chfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0109);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0082);
 
     chfsnp_mgr_print(log, CHFS_MD_NPP(chfs_md));
 
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0110);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0083);
 
     return (EC_TRUE);
 }
@@ -4515,14 +4515,14 @@ EC_BOOL chfs_show_cached_np(const UINT32 chfs_md_id, LOG *log)
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0113);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0084);
     if(EC_FALSE == chfsnp_mgr_show_cached_np(log, CHFS_MD_NPP(chfs_md)))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0114);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0085);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_cached_np: show cached np but failed\n");
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0115);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0086);
 
     return (EC_TRUE);
 }
@@ -4555,14 +4555,14 @@ EC_BOOL chfs_show_specific_np(const UINT32 chfs_md_id, const UINT32 chfsnp_id, L
         return (EC_FALSE);
     }
 
-    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0116);
+    chfsnp_mgr_rdlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0087);
     if(EC_FALSE == chfsnp_mgr_show_np(log, CHFS_MD_NPP(chfs_md), (uint32_t)chfsnp_id))
     {
-        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0117);
+        chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0088);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_show_cached_np: show np %ld but failed\n", chfsnp_id);
         return (EC_FALSE);
     }
-    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0118);
+    chfsnp_mgr_unlock(CHFS_MD_NPP(chfs_md), LOC_CHFS_0089);
 
     return (EC_TRUE);
 }
@@ -4809,15 +4809,15 @@ STATIC_CAST static EC_BOOL __chfs_retire_of_np(const UINT32 chfs_md_id, const ui
         return (EC_FALSE);
     }
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0119);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0090);
     if(EC_FALSE == chfsnp_mgr_retire_np(CHFS_MD_NPP(chfs_md), chfsnp_id, nsec, expect_retire_num, max_step, complete_retire_num))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0120);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0091);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_retire_of_np: retire np %u failed where nsec %ld, expect retire num %ld\n",
                                             chfsnp_id, nsec, expect_retire_num);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0121);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0092);
     return (EC_TRUE);
 }
 
@@ -4892,14 +4892,14 @@ STATIC_CAST static EC_BOOL __chfs_recycle_of_np(const UINT32 chfs_md_id, const u
     CHFSNP_RECYCLE_DN_ARG1(&chfsnp_recycle_dn)   = chfs_md_id;
     CHFSNP_RECYCLE_DN_FUNC(&chfsnp_recycle_dn)   = chfs_release_dn;
 
-    CHFS_WRLOCK(chfs_md, LOC_CHFS_0122);
+    CHFS_WRLOCK(chfs_md, LOC_CHFS_0093);
     if(EC_FALSE == chfsnp_mgr_recycle_np(CHFS_MD_NPP(chfs_md), chfsnp_id, max_num, NULL_PTR, &chfsnp_recycle_dn, complete_num))
     {
-        CHFS_UNLOCK(chfs_md, LOC_CHFS_0123);
+        CHFS_UNLOCK(chfs_md, LOC_CHFS_0094);
         dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:__chfs_recycle_of_np: recycle np %u failed\n", chfsnp_id);
         return (EC_FALSE);
     }
-    CHFS_UNLOCK(chfs_md, LOC_CHFS_0124);
+    CHFS_UNLOCK(chfs_md, LOC_CHFS_0095);
     return (EC_TRUE);
 }
 

@@ -3565,7 +3565,7 @@ UINT32 cmpi_encode_crfsnp_fnode(const UINT32 comm, const CRFSNP_FNODE *crfsnp_fn
     cmpi_encode_uint32_t(comm, CRFSNP_FNODE_FILESZ(crfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CRFSNP_FNODE_REPNUM(crfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CRFSNP_FNODE_HASH(crfsnp_fnode), out_buff, out_buff_max_len, position);
-   
+
     for(crfsnp_inode_pos = 0; crfsnp_inode_pos < (CRFSNP_FNODE_REPNUM(crfsnp_fnode)) && crfsnp_inode_pos < CRFSNP_FILE_REPLICA_MAX_NUM; crfsnp_inode_pos ++)
     {
         CRFSNP_INODE *crfsnp_inode;
@@ -3698,7 +3698,7 @@ UINT32 cmpi_decode_crfsnp_key(const UINT32 comm, const UINT8 *in_buff, const UIN
         dbg_exit(MD_TBD, 0);
     }
 #endif /* ENCODE_DEBUG_SWITCH */
-                            
+
     cmpi_decode_uint8(comm, in_buff, in_buff_max_len, position, &CRFSNP_KEY_LEN(crfsnp_key));
     cmpi_unpack(in_buff, in_buff_max_len, position, CRFSNP_KEY_NAME(crfsnp_key), CRFSNP_KEY_LEN(crfsnp_key), CMPI_UCHAR, comm);
     return ((UINT32)0);
@@ -3739,7 +3739,7 @@ UINT32 cmpi_encode_crfsnplru_node_size(const UINT32 comm, const CRFSNPLRU_NODE *
 UINT32 cmpi_decode_crfsnplru_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSNPLRU_NODE *crfsnplru_node)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -3760,10 +3760,10 @@ UINT32 cmpi_decode_crfsnplru_node(const UINT32 comm, const UINT8 *in_buff, const
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNPLRU_NODE_PREV_POS(crfsnplru_node) = num;
-    
+
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNPLRU_NODE_NEXT_POS(crfsnplru_node)  = num;
-    
+
     return ((UINT32)0);
 }
 
@@ -3802,7 +3802,7 @@ UINT32 cmpi_encode_crfsnpdel_node_size(const UINT32 comm, const CRFSNPDEL_NODE *
 UINT32 cmpi_decode_crfsnpdel_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSNPDEL_NODE *crfsnpdel_node)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -3823,10 +3823,10 @@ UINT32 cmpi_decode_crfsnpdel_node(const UINT32 comm, const UINT8 *in_buff, const
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNPDEL_NODE_PREV_POS(crfsnpdel_node) = num;
-    
+
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNPDEL_NODE_NEXT_POS(crfsnpdel_node)  = num;
-    
+
     return ((UINT32)0);
 }
 
@@ -3856,7 +3856,7 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
     cmpi_encode_uint32_t(comm, CRFSNP_ITEM_KEY_OFFSET(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CRFSNP_ITEM_PARENT_POS(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CRFSNP_ITEM_SECOND_HASH(crfsnp_item), out_buff, out_buff_max_len, position);
-    
+
     cmpi_encode_crfsnplru_node(comm, CRFSNP_ITEM_LRU_NODE(crfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_crfsnpdel_node(comm, CRFSNP_ITEM_DEL_NODE(crfsnp_item), out_buff, out_buff_max_len, position);
 
@@ -3884,7 +3884,7 @@ UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp
 
     cmpi_encode_crfsnplru_node_size(comm, CRFSNP_ITEM_LRU_NODE(crfsnp_item), size);
     cmpi_encode_crfsnpdel_node_size(comm, CRFSNP_ITEM_DEL_NODE(crfsnp_item), size);
- 
+
     if(CRFSNP_ITEM_FILE_IS_DIR == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
         cmpi_encode_uint32_t_size(comm, CRFSNP_DNODE_FILE_NUM(CRFSNP_ITEM_DNODE(crfsnp_item)), size);
@@ -3901,7 +3901,7 @@ UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp
 UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSNP_ITEM *crfsnp_item)
 {
     uint32_t num;
- 
+
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
     {
@@ -3925,9 +3925,9 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNP_ITEM_DIR_FLAG(crfsnp_item)  = num;
-    
+
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
-    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = num;  
+    CRFSNP_ITEM_CREATE_TIME(crfsnp_item) = num;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CRFSNP_ITEM_KEY_OFFSET(crfsnp_item) = num;
@@ -3940,7 +3940,7 @@ UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_crfsnplru_node(comm, in_buff, in_buff_max_len, position, CRFSNP_ITEM_LRU_NODE(crfsnp_item));
     cmpi_decode_crfsnpdel_node(comm, in_buff, in_buff_max_len, position, CRFSNP_ITEM_DEL_NODE(crfsnp_item));
-    
+
     if(CRFSNP_ITEM_FILE_IS_DIR == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
     {
         cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));

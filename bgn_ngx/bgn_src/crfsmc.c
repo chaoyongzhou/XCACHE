@@ -143,7 +143,7 @@ EC_BOOL crfsmc_clean(CRFSMC *crfsmc)
 
     if(NULL_PTR != CRFSMC_MCACHE(crfsmc))
     {
-        safe_free(CRFSMC_MCACHE(crfsmc), LOC_CRFSMC_0005);
+        safe_free(CRFSMC_MCACHE(crfsmc), LOC_CRFSMC_0004);
         CRFSMC_MCACHE(crfsmc) = NULL_PTR;
     }
 
@@ -155,7 +155,7 @@ EC_BOOL crfsmc_free(CRFSMC *crfsmc)
     if(NULL_PTR != crfsmc)
     {
         crfsmc_clean(crfsmc);
-        safe_free(crfsmc, LOC_CRFSMC_0007);
+        safe_free(crfsmc, LOC_CRFSMC_0005);
     }
 
     return (EC_TRUE);
@@ -493,9 +493,9 @@ EC_BOOL crfsmc_read_e_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnod
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CRFSMC_0011);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CRFSMC_0006);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len, LOC_CRFSMC_0012);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len, LOC_CRFSMC_0007);
         ASSERT(NULL_PTR != CBYTES_BUF(cbytes));
         CBYTES_LEN(cbytes) = 0;
     }
@@ -531,9 +531,9 @@ EC_BOOL crfsmc_read_dn_no_lock(CRFSMC *crfsmc, const CRFSNP_FNODE *crfsnp_fnode,
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CRFSMC_0013);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CRFSMC_0008);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CRFSMC_0014);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CRFSMC_0009);
         ASSERT(NULL_PTR != CBYTES_BUF(cbytes));
         CBYTES_LEN(cbytes) = 0;
     }

@@ -647,7 +647,7 @@ CPGV *cpgv_open(const uint8_t *cpgv_fname)
         return (NULL_PTR);
     }
 
-    alloc_static_mem(MM_CPGV, &cpgv, LOC_CPGV_0014);
+    alloc_static_mem(MM_CPGV, &cpgv, LOC_CPGV_0013);
     if(NULL_PTR == cpgv)
     {
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_open:malloc cpgv failed\n");
@@ -752,11 +752,11 @@ EC_BOOL cpgv_close(CPGV *cpgv)
 
         if(NULL_PTR != CPGV_FNAME(cpgv))
         {
-            safe_free(CPGV_FNAME(cpgv), LOC_CPGV_0015);
+            safe_free(CPGV_FNAME(cpgv), LOC_CPGV_0014);
             CPGV_FNAME(cpgv) = NULL_PTR;
         }
 
-        free_static_mem(MM_CPGV, cpgv, LOC_CPGV_0016);
+        free_static_mem(MM_CPGV, cpgv, LOC_CPGV_0015);
     }
     return (EC_TRUE);
 }
@@ -812,7 +812,7 @@ void cpgv_clean(CPGV *cpgv)
 
     if(NULL_PTR != CPGV_FNAME(cpgv))
     {
-        safe_free(CPGV_FNAME(cpgv), LOC_CPGV_0017);
+        safe_free(CPGV_FNAME(cpgv), LOC_CPGV_0016);
         CPGV_FNAME(cpgv) = NULL_PTR;
     }
 
@@ -832,7 +832,7 @@ void cpgv_clean(CPGV *cpgv)
     {
         if(NULL_PTR != CPGV_DISK_CPGD(cpgv, disk_no))
         {
-            safe_free(CPGV_DISK_CPGD(cpgv, disk_no), LOC_CPGV_0018);
+            safe_free(CPGV_DISK_CPGD(cpgv, disk_no), LOC_CPGV_0017);
             CPGV_DISK_CPGD(cpgv, disk_no) = NULL_PTR;
         }
     }
@@ -843,7 +843,7 @@ void cpgv_clean(CPGV *cpgv)
     CPGV_PAGE_USED_NUM(cpgv)                = 0;
     CPGV_PAGE_ACTUAL_USED_SIZE(cpgv)        = 0;
 
-    safe_free(CPGV_HEADER(cpgv), LOC_CPGV_0019);
+    safe_free(CPGV_HEADER(cpgv), LOC_CPGV_0018);
     CPGV_HEADER(cpgv) = NULL_PTR;
 
     return;
@@ -1606,7 +1606,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
 
     if(NULL_PTR == CPGV_HEADER(cpgv))
     {
-        CPGV_HEADER(cpgv) = safe_malloc(sizeof(CPGV_HDR), LOC_CPGV_0020);
+        CPGV_HEADER(cpgv) = safe_malloc(sizeof(CPGV_HDR), LOC_CPGV_0019);
         if(NULL_PTR == CPGV_HEADER(cpgv))
         {
             dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: malloc CPGV_HDR failed\n");
@@ -1650,7 +1650,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
             return (EC_FALSE);
         }
 
-        CPGV_DISK_CPGD(cpgv, disk_no) = safe_malloc(sizeof(CPGD), LOC_CPGV_0021);
+        CPGV_DISK_CPGD(cpgv, disk_no) = safe_malloc(sizeof(CPGD), LOC_CPGV_0020);
         if(NULL_PTR == CPGV_DISK_CPGD(cpgv, disk_no))
         {
             dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: malloc block %u failed\n", disk_no);

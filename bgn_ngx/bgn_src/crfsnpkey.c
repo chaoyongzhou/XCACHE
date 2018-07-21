@@ -43,7 +43,7 @@ EC_BOOL crfsnpkey_pool_init(CRFSNPRB_POOL *pool, const uint32_t node_max_num, co
 
         crfsnprb_node  = CRFSNPRB_POOL_NODE(pool, node_pos);
         crfsnp_item    = (CRFSNP_ITEM *)crfsnprb_node;
-        
+
         CRFSNPKEY_ASSERT((void *)crfsnp_item == (void *)crfsnprb_node); /*address must be aligned*/
 
         CRFSNP_ITEM_KEY_OFFSET(crfsnp_item) = key_offset;
@@ -52,7 +52,7 @@ EC_BOOL crfsnpkey_pool_init(CRFSNPRB_POOL *pool, const uint32_t node_max_num, co
 
         /*move to next key offset*/
         key_offset = (key_offset + CRFSNP_KEY_MAX_SIZE + 1) - node_sizeof;
-        
+
         if(0 == ((node_pos + 1) % 100000))
         {
             dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "info:crfsnpkey_pool_init: init node %u - %u of max %u done\n",

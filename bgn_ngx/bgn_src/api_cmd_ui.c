@@ -95,7 +95,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     CMD_ELEM *on_off   = NULL_PTR;
     CMD_ELEM *cmd      = NULL_PTR;
     CMD_ELEM *oid      = NULL_PTR;
-    
+
     where  = api_cmd_elem_create_cstring("<console|log>");
     api_cmd_elem_vec_add(cmd_elem_vec, where);
 
@@ -254,7 +254,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs write"   , "hsrfs <id> write file <name> with content <string> and expire <num> seconds on tcid <tcid> at <console|log>");
 
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs write"   , "hsrfs <id> write file <name> with content <string> on tcid <tcid> at <console|log>");
-   
+
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs create"  , "hsrfs <id> create bigfile <name> with size <file size> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs read"    , "hsrfs <id> read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs download", "hsrfs <id> download bigfile <name> to file <name> on tcid <tcid> at <console|log>");
@@ -262,7 +262,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs write"   , "hsrfs <id> write bigfile <name> with content <string> at offset <offset> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs delete"  , "hsrfs <id> delete bigfile <name> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfs delete"  , "hsrfs <id> delete {file|dir|path} <name> on tcid <tcid> at <console|log>");
-    
+
     /* for deleting root dir / only! */
     /* but do not exposure at api cmd ui */
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs delete root dir"  , "hsrfs <id> delete root dir / on tcid <tcid> at <console|log>");
@@ -307,7 +307,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc md5sum"  , "hsrfsc md5sum bigfile <name> seg <no> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc dir"     , "hsrfsc {add|del|has} dir <name> <tcid> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc dt"      , "hsrfsc {flush|load|clone|rollback|show} dt on tcid <tcid> at <console|log>");
-    
+
 #endif
 #if 0
     api_cmd_help_vec_create(cmd_help_vec, "hshfs create"  , "hshfs create np model <model> max num <np mum> with root <root dir> on tcid <tcid> at <console|log>");
@@ -743,7 +743,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_flush_dt        , "hsrfsc flush dt on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_load_dt         , "hsrfsc load dt on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_show_dt         , "hsrfsc show dt on tcid %t at %s", tcid, where);
-    
+
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_create_npp       , "hshfs create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_create_dn        , "hshfs create dn with root %s on tcid %t at %s", where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_chfs_add_disk         , "hshfs add disk %n on tcid %t at %s", rank, tcid, where);
@@ -15635,7 +15635,7 @@ EC_BOOL api_cmd_ui_crfs_qdir(CMD_PARA_VEC * param)
 
     crfsnp_key = crfsnp_key_new();
     ASSERT(NULL_PTR != crfsnp_key);
-    
+
     ret = EC_FALSE;
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
@@ -15703,7 +15703,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_path_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0426);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0424);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_path_of_np, CMPI_ERROR_MODI, path, crfsnp_id, path_cstr_vec);
@@ -15748,8 +15748,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_path_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0427);
-    cvector_free(path_cstr_vec, LOC_API_0428);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0425);
+    cvector_free(path_cstr_vec, LOC_API_0426);
 
     mod_mgr_free(mod_mgr);
 
@@ -15797,7 +15797,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0429);
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0427);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_seg_of_np, CMPI_ERROR_MODI, path, crfsnp_id, seg_cstr_vec);
@@ -15842,8 +15842,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0430);
-    cvector_free(seg_cstr_vec, LOC_API_0431);
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0428);
+    cvector_free(seg_cstr_vec, LOC_API_0429);
 
     mod_mgr_free(mod_mgr);
 
@@ -15888,7 +15888,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_path(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0432);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0430);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -15933,8 +15933,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_path(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0433);
-    cvector_free(path_cstr_vec, LOC_API_0434);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0431);
+    cvector_free(path_cstr_vec, LOC_API_0432);
 
     mod_mgr_free(mod_mgr);
 
@@ -15979,7 +15979,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0435);
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0433);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_seg, CMPI_ERROR_MODI, path, seg_cstr_vec);
@@ -16024,8 +16024,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_seg(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0436);
-    cvector_free(seg_cstr_vec, LOC_API_0437);
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0434);
+    cvector_free(seg_cstr_vec, LOC_API_0435);
 
     mod_mgr_free(mod_mgr);
 
@@ -16073,7 +16073,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree_of_np(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    tree_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0438);
+    tree_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0436);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_tree_of_np, CMPI_ERROR_MODI, crfsnp_id, path, tree_cstr_vec);
@@ -16118,8 +16118,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree_of_np(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(tree_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0439);
-    cvector_free(tree_cstr_vec, LOC_API_0440);
+    cvector_clean(tree_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0437);
+    cvector_free(tree_cstr_vec, LOC_API_0438);
 
     mod_mgr_free(mod_mgr);
 
@@ -16164,7 +16164,7 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree(CMD_PARA_VEC * param)
 
     ret = EC_FALSE;
 
-    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0441);
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0439);
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfsnp_tcid, &ret, FI_crfs_qlist_tree, CMPI_ERROR_MODI, path, path_cstr_vec);
@@ -16209,8 +16209,8 @@ EC_BOOL api_cmd_ui_crfs_qlist_tree(CMD_PARA_VEC * param)
         }
     }
 
-    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0442);
-    cvector_free(path_cstr_vec, LOC_API_0443);
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0440);
+    cvector_free(path_cstr_vec, LOC_API_0441);
 
     mod_mgr_free(mod_mgr);
 
@@ -18019,7 +18019,7 @@ EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param)
 
     crfscnp_key = crfsnp_key_new();
     ASSERT(NULL_PTR != crfscnp_key);
-    
+
     task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     task_tcid_inc(task_mgr, crfscnp_tcid, &ret, FI_crfsc_qfile, CMPI_ERROR_MODI, file_name, crfscnp_item, crfscnp_key);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);

@@ -8697,7 +8697,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
     }
 
     /*shortcut: send rsp header at once*/
-    if(0 == CHTTP_STORE_SEG_ID(chttp_store) 
+    if(0 == CHTTP_STORE_SEG_ID(chttp_store)
     && BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)
     && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)/*ms procedure*/
     && 0 != CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store))
@@ -8719,8 +8719,8 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
             CHTTP_STORE_SEG_ID(chttp_store) ++; /*prepare for body store*/
         }
     }
-    
-    if(0 == CHTTP_STORE_SEG_ID(chttp_store) 
+
+    if(0 == CHTTP_STORE_SEG_ID(chttp_store)
     && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) /*direct procedure*/
     && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)
     && 0 != CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store))

@@ -702,7 +702,7 @@ STATIC_CAST static int sys_print_to_cstring(CSTRING *cstring, const char * forma
 {
     if(NULL_PTR != cstring && LOG_NODE_BUF_SIZE <= CSTRING_LEN(cstring))
     {
-        //sys_log(LOGSTDOUT, "error:sys_print_to_cstring: length %ld >= limit %ld\n", 
+        //sys_log(LOGSTDOUT, "error:sys_print_to_cstring: length %ld >= limit %ld\n",
         //                   CSTRING_LEN(cstring), (UINT32)LOG_NODE_BUF_SIZE);
         return (-1);
     }

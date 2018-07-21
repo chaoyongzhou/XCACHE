@@ -922,10 +922,10 @@ char *c_uint64_t_to_space_size_str(const uint64_t num)
     char *str_cache;
     double units;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0021);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0023);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0022);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0024);
 
     units = num;
     if(1024 > units)
@@ -939,21 +939,21 @@ char *c_uint64_t_to_space_size_str(const uint64_t num)
     {
         snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""KB", units);
         return (str_cache);
-    }    
+    }
 
     units /= 1024;
     if(1024 > units)
     {
         snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""MB", units);
         return (str_cache);
-    } 
+    }
 
     units /= 1024;
     if(1024 > units)
     {
         snprintf(str_cache, CMISC_BUFF_LEN, "%.1f""GB", units);
         return (str_cache);
-    }   
+    }
 
     units /= 1024;
     if(1024 > units)
@@ -1087,10 +1087,10 @@ char *c_inet_ntos(const struct in_addr *in)
 {
     char *ipv4_str_cache;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0023);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0025);
     ipv4_str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0024);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0026);
 
     inet_ntop(AF_INET, in, ipv4_str_cache, CMISC_BUFF_LEN);
     return (ipv4_str_cache);
@@ -1150,10 +1150,10 @@ char *c_word_to_port(const UINT32 port_num)
 {
     char *port_str_cache;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0025);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0027);
     port_str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0026);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0028);
 
     snprintf(port_str_cache, CMISC_BUFF_LEN, "%ld", port_num);
 
@@ -1241,10 +1241,10 @@ char *mac_addr_to_str(const UINT8 *mac)
 {
     char *mac_str_cache;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0027);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0029);
     mac_str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0028);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0030);
 
     snprintf(mac_str_cache, CMISC_BUFF_LEN, "%02x:%02x:%02x:%02x:%02x:%02x",
                             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -1305,7 +1305,7 @@ EC_BOOL c_str_split_to_cstr_list(const char *str, const int len, const char *del
     char    *saveptr;
     char    *field;
 
-    string = safe_malloc(len + 1, LOC_CMISC_0029);
+    string = safe_malloc(len + 1, LOC_CMISC_0031);
     if(NULL_PTR == string)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_split_to_cstr_list: malloc %d bytes failed\n", len);
@@ -1320,13 +1320,13 @@ EC_BOOL c_str_split_to_cstr_list(const char *str, const int len, const char *del
     {
         CSTRING *cstr;
 
-        cstr = cstring_new((UINT8 *)field, LOC_CMISC_0030);
+        cstr = cstring_new((UINT8 *)field, LOC_CMISC_0032);
         if(NULL_PTR == cstr)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_split_to_cstr_list: new cstring '%s' failed\n",
                         field);
 
-            safe_free(string, LOC_CMISC_0031);
+            safe_free(string, LOC_CMISC_0033);
             return (EC_FALSE);
         }
 
@@ -1336,12 +1336,12 @@ EC_BOOL c_str_split_to_cstr_list(const char *str, const int len, const char *del
                         field);
 
             cstring_free(cstr);
-            safe_free(string, LOC_CMISC_0032);
+            safe_free(string, LOC_CMISC_0034);
             return (EC_FALSE);
         }
     }
 
-    safe_free(string, LOC_CMISC_0033);
+    safe_free(string, LOC_CMISC_0035);
     return (EC_TRUE);
 }
 
@@ -1458,7 +1458,7 @@ char *c_str_join(const char *delim, const char **fields, const UINT32 size)
     total_len += delim_len * (size - 1);
     total_len ++; /*string terminate char*/
 
-    str = (char *)safe_malloc(total_len, LOC_CMISC_0034);
+    str = (char *)safe_malloc(total_len, LOC_CMISC_0036);
     if(NULL_PTR == str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_join: malloc str with len %ld failed\n", total_len);
@@ -1498,7 +1498,7 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd)
     char *des;
 
     des_str_len = strlen(src_str_1st) + strlen(src_str_2nd) + 1;
-    des_str = safe_malloc(des_str_len, LOC_CMISC_0035);
+    des_str = safe_malloc(des_str_len, LOC_CMISC_0037);
     if(NULL_PTR == des_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_cat: malloc %ld bytes failed\n", des_str_len);
@@ -1528,7 +1528,7 @@ char *c_str_dup(const char *str)
 {
     char *dup_str;
 
-    dup_str = (char *)safe_malloc(strlen(str) + 1, LOC_CMISC_0036);
+    dup_str = (char *)safe_malloc(strlen(str) + 1, LOC_CMISC_0038);
     if(NULL_PTR == dup_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_dup: dup str %s failed\n", str);
@@ -1542,7 +1542,7 @@ char *c_str_n_dup(const char *str, const uint32_t n)
 {
     char *dup_str;
 
-    dup_str = (char *)safe_malloc(n + 1, LOC_CMISC_0037);
+    dup_str = (char *)safe_malloc(n + 1, LOC_CMISC_0039);
     if(NULL_PTR == dup_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_n_dup: dup str failed\n");
@@ -1557,7 +1557,7 @@ EC_BOOL c_str_free(char *str)
 {
     if(NULL_PTR != str)
     {
-        safe_free(str, LOC_CMISC_0038);
+        safe_free(str, LOC_CMISC_0040);
         return (EC_TRUE);
     }
     return (EC_TRUE);
@@ -1592,11 +1592,11 @@ EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str)
     {
         if(0 == strcasecmp(string, tag[ tag_idx ]))
         {
-            safe_free(str_tmp, LOC_CMISC_0039);
+            safe_free(str_tmp, LOC_CMISC_0041);
             return (EC_TRUE);
         }
     }
-    safe_free(str_tmp, LOC_CMISC_0040);
+    safe_free(str_tmp, LOC_CMISC_0042);
     return (EC_FALSE);
 }
 
@@ -2001,7 +2001,7 @@ char *c_chars_dup(const char *str_chars, const uint32_t len)
 {
     char *dup_str;
 
-    dup_str = (char *)safe_malloc(len + 1, LOC_CMISC_0041);
+    dup_str = (char *)safe_malloc(len + 1, LOC_CMISC_0043);
     if(NULL_PTR == dup_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_chars_dup: dup chars %.*s failed\n", len, str_chars);
@@ -2138,7 +2138,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
     }
 
     len = 1 * 1024;
-    buff = (char *)safe_malloc(len, LOC_CMISC_0042);
+    buff = (char *)safe_malloc(len, LOC_CMISC_0044);
     if(NULL_PTR == buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:uint32_vec_to_str: malloc %ld bytes failed\n", len);
@@ -2147,7 +2147,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
 
     char_pos = 0;
 
-    CVECTOR_LOCK(uint32_vec, LOC_CMISC_0043);
+    CVECTOR_LOCK(uint32_vec, LOC_CMISC_0045);
 
     cvec_size = cvector_size(uint32_vec);
 
@@ -2197,7 +2197,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
         /*move forward*/
         beg_pos = cur_pos;
     }
-    CVECTOR_UNLOCK(uint32_vec, LOC_CMISC_0044);
+    CVECTOR_UNLOCK(uint32_vec, LOC_CMISC_0046);
 
     return (buff);
 }
@@ -2208,7 +2208,7 @@ char *c_bytes_to_hex_str(const UINT8 *bytes, const UINT32 len)
     UINT32 byte_pos;
     UINT32 char_pos;
 
-    str = (char *)safe_malloc(2 * len + 1, LOC_CMISC_0045);
+    str = (char *)safe_malloc(2 * len + 1, LOC_CMISC_0047);
     if(NULL_PTR == str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_bytes_to_hex_str: malloc %ld bytes failed\n", 2 * len + 1);
@@ -2243,7 +2243,7 @@ EC_BOOL c_hex_str_to_bytes(const char *str, UINT8 **bytes, UINT32 *len)
     }
 
     bytes_len = (str_len >> 1);
-    buff = (UINT8 *)safe_malloc(bytes_len, LOC_CMISC_0046);
+    buff = (UINT8 *)safe_malloc(bytes_len, LOC_CMISC_0048);
     if(NULL_PTR == buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_hex_str_to_bytes: malloc %ld bytes failed\n", bytes_len);
@@ -2280,10 +2280,10 @@ char *c_md5_to_hex_str(const uint8_t *md5)
 
     char *str;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0047);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0049);
     str = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0048);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0050);
 
     end_pos  = CMISC_BUFF_LEN - 3;
     char_pos = 0;
@@ -2364,7 +2364,7 @@ char *c_dirname(const char *path_name)
     }
 
     len = strlen(path_name);
-    dir_name = safe_malloc(len + 1, LOC_CMISC_0049);
+    dir_name = safe_malloc(len + 1, LOC_CMISC_0051);
 
     end = path_name + len - 1;
     while(end > path_name && '/' == (*end)) { end --; }
@@ -2400,7 +2400,7 @@ char *c_dirname(const char *path_name)
         if(2 < count)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dirname: invalid path '%s'\n", path_name);
-            safe_free(dir_name, LOC_CMISC_0050);
+            safe_free(dir_name, LOC_CMISC_0052);
             return (NULL_PTR);
         }
 
@@ -2416,7 +2416,7 @@ char *c_dirname(const char *path_name)
 
     if(des == dir_name)
     {
-        safe_free(dir_name, LOC_CMISC_0051);
+        safe_free(dir_name, LOC_CMISC_0053);
         return (NULL_PTR);
     }
 
@@ -2498,7 +2498,7 @@ EC_BOOL c_basedir_create(const char *file_name)
         return (EC_FALSE);
     }
     ret      = c_dir_create(dir_name);
-    safe_free(dir_name, LOC_CMISC_0052);
+    safe_free(dir_name, LOC_CMISC_0054);
     return (ret);
 }
 
@@ -2566,7 +2566,7 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
     if(NULL_PTR == cmd_output)
     {
         cmd_osize   = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
-        cmd_ostream = (char *)SAFE_MALLOC(cmd_osize, LOC_CMISC_0053);
+        cmd_ostream = (char *)SAFE_MALLOC(cmd_osize, LOC_CMISC_0055);
     }
     else
     {
@@ -2590,7 +2590,7 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
 
     if(cmd_ostream != cmd_output)
     {
-        SAFE_FREE(cmd_ostream, LOC_CMISC_0054);
+        SAFE_FREE(cmd_ostream, LOC_CMISC_0056);
     }
     //dbg_log(SEC_0013_CMISC, 5)(LOGSTDNULL, "exec_shell end: %s\n", cmd_output);
     return (EC_TRUE);
@@ -3227,7 +3227,7 @@ void c_history_push(char **history, const int max, int *size, const char *str)
 
     if(NULL_PTR != history[ 0 ])
     {
-        safe_free(history[ 0 ], LOC_CMISC_0055);
+        safe_free(history[ 0 ], LOC_CMISC_0057);
         history[ 0 ] = NULL_PTR;
     }
 
@@ -3246,7 +3246,7 @@ void c_history_clean(char **history, const int max, const int size)
 
     for(pos = 0; pos < DMIN(max, size); pos ++)
     {
-        safe_free(history[ pos ], LOC_CMISC_0056);
+        safe_free(history[ pos ], LOC_CMISC_0058);
     }
     return;
 }
@@ -3425,7 +3425,7 @@ int c_file_open(const char *pathname, const int flags, const mode_t mode)
     fd = open(pathname, flags, mode);
     if(-1 == fd)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT,"error:c_file_open: open %s failed, errno = %d, errstr = %s\n", 
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT,"error:c_file_open: open %s failed, errno = %d, errstr = %s\n",
                              pathname, errno, strerror(errno));
         return (-1);
     }
@@ -3455,10 +3455,10 @@ int c_file_close(int fd)
 CTM *c_localtime_r(const time_t *timestamp)
 {
     CTM *ptime;
-    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0057);
+    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0059);
     ptime = &(g_tm_tbl[g_tm_idx]);
     g_tm_idx = ((g_tm_idx + 1) % (CMISC_TM_NUM));
-    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0058);
+    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0060);
 
     if(NULL_PTR != timestamp)
     {
@@ -4043,7 +4043,7 @@ CCOND *c_cond_new(const UINT32 location)
 {
     CCOND      *ccond;
 
-    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0059);
+    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0061);
     if(NULL_PTR == ccond)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to alloc CCOND, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
@@ -4053,7 +4053,7 @@ CCOND *c_cond_new(const UINT32 location)
     if(EC_FALSE == c_cond_init(ccond, location))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        SAFE_FREE(ccond, LOC_CMISC_0060);
+        SAFE_FREE(ccond, LOC_CMISC_0062);
         return (NULL_PTR);
     }
 
@@ -4158,9 +4158,9 @@ EC_BOOL c_cond_init(CCOND *ccond, const UINT32 location)
 void c_cond_free(CCOND *ccond, const UINT32 location)
 {
     CCOND_SET_LOCATION(ccond, CCOND_OP_FREE, location);
-    c_cond_clean(ccond, LOC_CMISC_0061);
+    c_cond_clean(ccond, LOC_CMISC_0063);
 
-    SAFE_FREE(ccond, LOC_CMISC_0062);
+    SAFE_FREE(ccond, LOC_CMISC_0064);
 }
 
 EC_BOOL c_cond_clean(CCOND *ccond, const UINT32 location)
@@ -4919,10 +4919,10 @@ char *c_http_time(time_t t)
     char *str_cache;
     CTM  ctm;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0063);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0065);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0064);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0066);
 
     c_gmtime(t, &ctm);
 
@@ -5439,7 +5439,7 @@ CSET * c_collect_netcards()
 {
     CSET *cnetcard_set;
 
-    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0065);
+    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0067);
     if(NULL_PTR == cnetcard_set)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: new cset failed\n");
@@ -5449,7 +5449,7 @@ CSET * c_collect_netcards()
     if(0 != cnetcard_collect(cnetcard_set, CDEVICE_NETCARD_MAX_NUM))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: collect netcards info failed\n");
-        cset_free(cnetcard_set, LOC_CMISC_0066);
+        cset_free(cnetcard_set, LOC_CMISC_0068);
         return (NULL_PTR);
     }
 
@@ -5471,7 +5471,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
     TASK_BRD_SAVED_ARGC(task_brd) = argc;
 
-    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0067);
+    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0069);
     if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd))
     {
         return (EC_FALSE);
@@ -5483,7 +5483,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
         len = strlen(argv[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0068);
+        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0070);
         if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -5515,7 +5515,7 @@ EC_BOOL c_save_environ()
         /*do nothing*/
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0069);
+    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0071);
     if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd))
     {
         return (EC_FALSE);
@@ -5527,7 +5527,7 @@ EC_BOOL c_save_environ()
 
         len = strlen(environ[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0070);
+        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0072);
         if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -5558,21 +5558,21 @@ void *c_mmap_aligned(const UINT32 size, const UINT32 align, const int protect, c
     {
         UINT32         head_space;
         UINT32         tail_space;
-        
+
         tail_space = (((UINT32)address) % align);
         head_space = align - tail_space;
-        
+
         if(0 != tail_space)
         {
             /*discard tail space*/
-            munmap(address + size + align - tail_space, (size_t)tail_space); 
+            munmap(address + size + align - tail_space, (size_t)tail_space);
 
             /*discard head space*/
             munmap(address, (size_t)head_space);
 
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_mmap_aligned: "
                                "mmap size %ld, align %ld, align address %p => %p\n",
-                               size, align, address, address + head_space);        
+                               size, align, address, address + head_space);
             /*move to final address*/
             address += head_space;
         }
@@ -5602,7 +5602,7 @@ void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mmap_aligned_addr: "
                            "mmap size %ld align %ld failed\n",
-                           size, align);    
+                           size, align);
         return (NULL_PTR);
     }
 
@@ -5610,7 +5610,7 @@ void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mmap_aligned_addr: "
                            "munmap address %p size %ld failed\n",
-                           address, size);    
+                           address, size);
         return (NULL_PTR);
     }
 

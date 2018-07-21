@@ -506,7 +506,7 @@ CRFSNP_KEY *crfsnp_key_new()
 {
     CRFSNP_KEY *crfsnp_key;
 
-    alloc_static_mem(MM_CRFSNP_KEY, &crfsnp_key, LOC_CRFSNP_0009);
+    alloc_static_mem(MM_CRFSNP_KEY, &crfsnp_key, LOC_CRFSNP_0007);
     if(NULL_PTR != crfsnp_key)
     {
         crfsnp_key_init(crfsnp_key);
@@ -556,7 +556,7 @@ EC_BOOL crfsnp_key_free(CRFSNP_KEY *crfsnp_key)
     if(NULL_PTR != crfsnp_key)
     {
         crfsnp_key_clean(crfsnp_key);
-        free_static_mem(MM_CRFSNP_KEY, crfsnp_key, LOC_CRFSNP_0010);
+        free_static_mem(MM_CRFSNP_KEY, crfsnp_key, LOC_CRFSNP_0008);
     }
     return (EC_TRUE);
 }
@@ -570,11 +570,11 @@ EC_BOOL crfsnp_key_set(CRFSNP_KEY *crfsnp_key, const uint32_t klen, const uint8_
 }
 
 void crfsnp_key_print(LOG *log, const CRFSNP_KEY *crfsnp_key)
-{   
-    sys_log(log, "klen: %u, key: %.*s\n", 
-                 CRFSNP_KEY_LEN(crfsnp_key), 
+{
+    sys_log(log, "klen: %u, key: %.*s\n",
+                 CRFSNP_KEY_LEN(crfsnp_key),
                  CRFSNP_KEY_LEN(crfsnp_key), CRFSNP_KEY_NAME(crfsnp_key));
-    
+
     return;
 }
 
@@ -698,9 +698,9 @@ void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
                     CRFSNP_ITEM_SECOND_HASH(crfsnp_item),
                     CRFSNP_ITEM_KEY_OFFSET(crfsnp_item),
                     CRFSNP_ITEM_PARENT_POS(crfsnp_item),
-                    CRFSNPLRU_NODE_PREV_POS(CRFSNP_ITEM_LRU_NODE(crfsnp_item)), 
+                    CRFSNPLRU_NODE_PREV_POS(CRFSNP_ITEM_LRU_NODE(crfsnp_item)),
                     CRFSNPLRU_NODE_NEXT_POS(CRFSNP_ITEM_LRU_NODE(crfsnp_item)),
-                    CRFSNPDEL_NODE_PREV_POS(CRFSNP_ITEM_DEL_NODE(crfsnp_item)), 
+                    CRFSNPDEL_NODE_PREV_POS(CRFSNP_ITEM_DEL_NODE(crfsnp_item)),
                     CRFSNPDEL_NODE_NEXT_POS(CRFSNP_ITEM_DEL_NODE(crfsnp_item))
                     );
 
@@ -714,7 +714,7 @@ void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
                         CRFSNP_FNODE_REPNUM(crfsnp_fnode),
                         CRFSNP_FNODE_HASH(crfsnp_fnode)
                         );
-        sys_log(log, "inode:\n");                
+        sys_log(log, "inode:\n");
         for(pos = 0; pos < CRFSNP_FNODE_REPNUM(crfsnp_fnode) && pos < CRFSNP_FILE_REPLICA_MAX_NUM; pos ++)
         {
             CRFSNP_INODE *crfsnp_inode;
@@ -987,7 +987,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, cons
 
     crfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CRFSNP_ITEM);
-    
+
     /*init RB Nodes*/
     crfsnprb_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
 
@@ -995,11 +995,11 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, cons
     crfsnplru_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
-    crfsnpdel_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof); 
+    crfsnpdel_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
 
     /*init key table*/
     crfsnpkey_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
-    
+
     return (crfsnp_header);
 }
 
@@ -1046,12 +1046,12 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, con
 {
     void *address;
     UINT32 align;
-    
+
     CRFSNP_HEADER *crfsnp_header;
 
     /*align address to 1MB*/
     align = ((UINT32)(UINT32_ONE << 20));
-    
+
     address = c_mmap_aligned_addr(fsize, align);
     if(NULL_PTR == address)
     {
@@ -1060,7 +1060,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, con
                            np_id, fd, fsize, align);
         return (NULL_PTR);
     }
-    
+
     crfsnp_header = (CRFSNP_HEADER *)mmap(address, fsize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
     if(MAP_FAILED == crfsnp_header)
     {
@@ -1069,12 +1069,12 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_open(const uint32_t np_id, con
                            np_id, fd, fsize, errno, strerror(errno));
         return (NULL_PTR);
     }
-    
+
     dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] __crfsnp_header_open: address %p, crfsnp_header %p\n",
                         address, crfsnp_header);
 
     ASSERT((void *)address == (void *)crfsnp_header);
-    
+
     return (crfsnp_header);
 }
 
@@ -1082,12 +1082,12 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src
 {
     void *address;
     UINT32 align;
-    
+
     CRFSNP_HEADER *des_crfsnp_header;
 
     /*align address to 1MB*/
     align = ((UINT32)(UINT32_ONE << 20));
-    
+
     address = c_mmap_aligned_addr(fsize, align);
     if(NULL_PTR == address)
     {
@@ -1096,7 +1096,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src
                            des_np_id, fd, fsize, align);
         return (NULL_PTR);
     }
-    
+
     des_crfsnp_header = (CRFSNP_HEADER *)mmap(address, fsize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
     if(MAP_FAILED == des_crfsnp_header)
     {
@@ -1110,7 +1110,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_clone(const CRFSNP_HEADER *src
                         address, des_crfsnp_header);
 
     ASSERT((void *)address == (void *)des_crfsnp_header);
-   
+
     BCOPY(src_crfsnp_header, des_crfsnp_header, fsize);
 
     CRFSNP_HEADER_NP_ID(des_crfsnp_header)  = des_np_id;
@@ -1122,14 +1122,14 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, c
 {
     void *address;
     UINT32 align;
-    
+
     CRFSNP_HEADER *crfsnp_header;
     uint32_t node_max_num;
     uint32_t node_sizeof;
 
     /*align address to 1MB*/
     align = ((UINT32)(UINT32_ONE << 20));
-    
+
     address = c_mmap_aligned_addr(fsize, align);
     if(NULL_PTR == address)
     {
@@ -1152,7 +1152,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, c
                         address, crfsnp_header);
 
     ASSERT((void *)address == (void *)crfsnp_header);
-    
+
     CRFSNP_HEADER_NP_ID(crfsnp_header)  = np_id;
     CRFSNP_HEADER_MODEL(crfsnp_header)  = np_model;
 
@@ -1166,10 +1166,10 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_create(const uint32_t np_id, c
     crfsnplru_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
-    crfsnpdel_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof); 
+    crfsnpdel_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
 
     /*init key table*/
-    crfsnpkey_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);     
+    crfsnpkey_pool_init(CRFSNP_HEADER_ITEMS_POOL(crfsnp_header), node_max_num, node_sizeof);
     return (crfsnp_header);
 }
 
@@ -1322,7 +1322,7 @@ EC_BOOL crfsnp_init(CRFSNP *crfsnp)
     CRFSNP_DEL_SIZE(crfsnp)        = 0;
     CRFSNP_RECYCLE_SIZE(crfsnp)    = 0;
     CRFSNP_LRU_LIST(crfsnp)        = NULL_PTR;
-    CRFSNP_DEL_LIST(crfsnp)        = NULL_PTR;    
+    CRFSNP_DEL_LIST(crfsnp)        = NULL_PTR;
     CRFSNP_HDR(crfsnp)             = NULL_PTR;
 
     CRFSNP_2ND_CHASH_ALGO(crfsnp)  = NULL_PTR;
@@ -1348,7 +1348,7 @@ EC_BOOL crfsnp_clean(CRFSNP *crfsnp)
 
     if(NULL_PTR != CRFSNP_FNAME(crfsnp))
     {
-        safe_free(CRFSNP_FNAME(crfsnp), LOC_CRFSNP_0019);
+        safe_free(CRFSNP_FNAME(crfsnp), LOC_CRFSNP_0018);
         CRFSNP_FNAME(crfsnp) = NULL_PTR;
     }
 
@@ -1369,7 +1369,7 @@ EC_BOOL crfsnp_free(CRFSNP *crfsnp)
     if(NULL_PTR != crfsnp)
     {
         crfsnp_clean(crfsnp);
-        free_static_mem(MM_CRFSNP, crfsnp, LOC_CRFSNP_0021);
+        free_static_mem(MM_CRFSNP, crfsnp, LOC_CRFSNP_0019);
     }
     return (EC_TRUE);
 }
@@ -1635,7 +1635,7 @@ uint32_t crfsnp_dnode_insert(CRFSNP *crfsnp, const uint32_t parent_pos,
         crfsnp_dnode_init(CRFSNP_ITEM_DNODE(crfsnp_item_insert));
         CRFSNP_ITEM_DIR_FLAG(crfsnp_item_insert) = CRFSNP_ITEM_FILE_IS_DIR;
     }
-    
+
     CRFSNP_ITEM_USED_FLAG(crfsnp_item_insert) = CRFSNP_ITEM_IS_USED;
 
     CRFSNP_DNODE_ROOT_POS(crfsnp_dnode_parent) = root_pos;
@@ -2466,7 +2466,7 @@ EC_BOOL crfsnp_delete(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *pa
     }
 
     if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
-    {        
+    {
         if(CRFSNPRB_ERR_POS != CRFSNP_ITEM_PARENT_POS(crfsnp_item))
         {
             CRFSNP_ITEM *crfsnp_item_parent;
@@ -2582,7 +2582,7 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
     for(retire_num = 0; retire_num < expect_retire_num && EC_FALSE == crfsnp_lru_list_is_empty(crfsnp);)
     {
         uint32_t node_pos;
-        
+
         CRFSNP_ITEM *crfsnp_item;
 
         node_pos = CRFSNPLRU_NODE_PREV_POS(crfsnplru_node_head);
@@ -2596,13 +2596,13 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
             crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             continue;
         }
-        
+
         if(CRFSNP_ITEM_IS_NOT_USED == CRFSNP_ITEM_USED_FLAG(crfsnp_item))
         {
             /*not used item*/
             crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             continue;
-        }        
+        }
 
         if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))
         {
@@ -2610,7 +2610,7 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
             if(EC_FALSE == crfsnp_umount_item(crfsnp, node_pos))
             {
                 dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_retire: np %u node_pos %d [REG] failed\n",
-                                CRFSNP_ID(crfsnp), node_pos);            
+                                CRFSNP_ID(crfsnp), node_pos);
                 return (EC_FALSE);
             }
 
@@ -2626,7 +2626,7 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
             if(EC_FALSE == crfsnp_umount_item(crfsnp, node_pos))
             {
                 dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_retire: np %u node_pos %d [DIR] failed\n",
-                                CRFSNP_ID(crfsnp), node_pos);            
+                                CRFSNP_ID(crfsnp), node_pos);
                 return (EC_FALSE);
             }
 
@@ -2635,7 +2635,7 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
             retire_num ++;
             continue;
         }
-    }    
+    }
 
     if(NULL_PTR != complete_retire_num)
     {
@@ -2812,7 +2812,7 @@ EC_BOOL crfsnp_umount_item(CRFSNP *crfsnp, const uint32_t node_pos)
         }
 
         crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
-        crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);        
+        crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
 
         return (EC_TRUE);
     }
@@ -2927,7 +2927,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item_first) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item_first), first_node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item_first), first_node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item_first), first_node_pos);
             }
             else
             {
@@ -2938,7 +2938,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item_first) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item_first), first_node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item_first), first_node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item_first), first_node_pos);
 
                 break; /*terminate loop*/
             }
@@ -2985,7 +2985,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
             }
             else
             {
@@ -2996,7 +2996,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
             }
 
             if(0 == CRFSNP_DNODE_FILE_NUM(parent_dnode))
@@ -3038,7 +3038,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
             }
             else
             {
@@ -3049,7 +3049,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
                 CRFSNP_ITEM_PARENT_POS(crfsnp_item) = CRFSNPRB_ERR_POS; /*fix*/
 
                 crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
-                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);                
+                crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
             }
 
             if(0 == CRFSNP_DNODE_FILE_NUM(parent_dnode))
@@ -3141,7 +3141,7 @@ EC_BOOL crfsnp_path_name(const CRFSNP *crfsnp, const uint32_t node_pos, const ui
     uint32_t  cur_node_pos;
     uint32_t  cur_path_len;
 
-    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0061);
+    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0020);
 
     cur_node_pos = node_pos;
     while(CRFSNPRB_ERR_POS != cur_node_pos)
@@ -3189,7 +3189,7 @@ EC_BOOL crfsnp_path_name(const CRFSNP *crfsnp, const uint32_t node_pos, const ui
     path[ cur_path_len ] = '\0';
 
     cstack_clean(cstack, NULL_PTR);/*cleanup for safe reason*/
-    cstack_free(cstack, LOC_CRFSNP_0062);
+    cstack_free(cstack, LOC_CRFSNP_0021);
     return (EC_TRUE);
 }
 
@@ -3198,7 +3198,7 @@ EC_BOOL crfsnp_path_name_cstr(const CRFSNP *crfsnp, const uint32_t node_pos, CST
     CSTACK *cstack;
     uint32_t  cur_node_pos;
 
-    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0063);
+    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0022);
 
     cur_node_pos = node_pos;
     while(CRFSNPRB_ERR_POS != cur_node_pos)
@@ -3238,7 +3238,7 @@ EC_BOOL crfsnp_path_name_cstr(const CRFSNP *crfsnp, const uint32_t node_pos, CST
     }
 
     cstack_clean(cstack, NULL_PTR);/*cleanup for safe reason*/
-    cstack_free(cstack, LOC_CRFSNP_0064);
+    cstack_free(cstack, LOC_CRFSNP_0023);
     return (EC_TRUE);
 }
 
@@ -3260,7 +3260,7 @@ EC_BOOL crfsnp_seg_name(const CRFSNP *crfsnp, const uint32_t offset, const uint3
                                 CRFSNP_ITEM_KLEN(crfsnp_item), (char *)CRFSNP_ITEM_KNAME(crfsnp_item));
         return (EC_TRUE);
     }
-    
+
     dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_seg_name: np %u, invalid dir flag %u at offset %u\n",
                         CRFSNP_ID(crfsnp), CRFSNP_ITEM_DIR_FLAG(crfsnp_item), offset);
     return (EC_FALSE);
@@ -3312,7 +3312,7 @@ STATIC_CAST static EC_BOOL __crfsnp_list_path_vec(const CRFSNP *crfsnp, const ui
         __crfsnp_list_path_vec(crfsnp, CRFSNPRB_NODE_LEFT_POS(node), prev_path_str, path_cstr_vec);
     }
 
-    full_path_cstr = cstring_new(prev_path_str, LOC_CRFSNP_0065);
+    full_path_cstr = cstring_new(prev_path_str, LOC_CRFSNP_0024);
     if(NULL_PTR == full_path_cstr)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_list_path_vec: np %u, new cstring from %s failed\n",
@@ -3362,7 +3362,7 @@ EC_BOOL crfsnp_list_path_vec(const CRFSNP *crfsnp, const uint32_t node_pos, CVEC
         return (EC_FALSE);
     }
 
-    path_cstr = cstring_new(NULL_PTR, LOC_CRFSNP_0066);
+    path_cstr = cstring_new(NULL_PTR, LOC_CRFSNP_0025);
     if(NULL_PTR == path_cstr)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_list_path_vec: np %u, new path cstr failed\n", CRFSNP_ID(crfsnp));
@@ -3430,7 +3430,7 @@ EC_BOOL crfsnp_list_seg_vec(const CRFSNP *crfsnp, const uint32_t node_pos, CVECT
     {
         CSTRING *seg_name_cstr;
 
-        seg_name_cstr = cstring_new(NULL_PTR, LOC_CRFSNP_0067);
+        seg_name_cstr = cstring_new(NULL_PTR, LOC_CRFSNP_0026);
         if(NULL_PTR == seg_name_cstr)
         {
             dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_list_seg_vec: np %u, new seg str failed\n", CRFSNP_ID(crfsnp));
@@ -3549,7 +3549,7 @@ CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id)
     if(EC_FALSE == c_file_access(np_fname, F_OK))
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_open: np %s not exist, try to create it\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0069);
+        safe_free(np_fname, LOC_CRFSNP_0027);
         return (NULL_PTR);
     }
 
@@ -3557,14 +3557,14 @@ CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id)
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_open: open crfsnp file %s failed\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0070);
+        safe_free(np_fname, LOC_CRFSNP_0028);
         return (NULL_PTR);
     }
 
     if(EC_FALSE == c_file_size(fd, &fsize))
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_open: get size of %s failed\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0071);
+        safe_free(np_fname, LOC_CRFSNP_0029);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3574,7 +3574,7 @@ CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id)
     if(NULL_PTR == crfsnp_header)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_open: open crfsnp file %s failed\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0072);
+        safe_free(np_fname, LOC_CRFSNP_0030);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3583,7 +3583,7 @@ CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id)
     if(NULL_PTR == crfsnp)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_open: new crfsnp %u failed\n", np_id);
-        safe_free(np_fname, LOC_CRFSNP_0073);
+        safe_free(np_fname, LOC_CRFSNP_0031);
         c_file_close(fd);
         crfsnp_header_close(crfsnp_header, np_id, fsize, fd);
         return (NULL_PTR);
@@ -3594,7 +3594,7 @@ CRFSNP *crfsnp_open(const char *np_root_dir, const uint32_t np_id)
     /*shortcut*/
     CRFSNP_LRU_LIST(crfsnp) = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, CRFSNPLRU_ROOT_POS));
     CRFSNP_DEL_LIST(crfsnp) = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, CRFSNPDEL_ROOT_POS));
-    
+
     CRFSNP_2ND_CHASH_ALGO(crfsnp) = chash_algo_fetch(CRFSNP_HEADER_2ND_CHASH_ALGO_ID(crfsnp_header));
 
     CRFSNP_FD(crfsnp)    = fd;
@@ -3713,7 +3713,7 @@ CRFSNP *crfsnp_clone(CRFSNP *src_crfsnp, const char *np_root_dir, const uint32_t
     if(EC_TRUE == c_file_access(des_np_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_clone: np %u exist already\n", des_np_id);
-        safe_free(des_np_fname, LOC_CRFSNP_0074);
+        safe_free(des_np_fname, LOC_CRFSNP_0032);
         return (NULL_PTR);
     }
 
@@ -3721,14 +3721,14 @@ CRFSNP *crfsnp_clone(CRFSNP *src_crfsnp, const char *np_root_dir, const uint32_t
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_clone: cannot create np %s\n", des_np_fname);
-        safe_free(des_np_fname, LOC_CRFSNP_0075);
+        safe_free(des_np_fname, LOC_CRFSNP_0033);
         return (NULL_PTR);
     }
 
     if(EC_FALSE == c_file_truncate(fd, fsize))
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_clone: truncate np %s to size %ld failed\n", des_np_fname, fsize);
-        safe_free(des_np_fname, LOC_CRFSNP_0076);
+        safe_free(des_np_fname, LOC_CRFSNP_0034);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3738,7 +3738,7 @@ CRFSNP *crfsnp_clone(CRFSNP *src_crfsnp, const char *np_root_dir, const uint32_t
     if(NULL_PTR == des_crfsnp_header)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_clone: open crfsnp file %s failed\n", des_np_fname);
-        safe_free(des_np_fname, LOC_CRFSNP_0077);
+        safe_free(des_np_fname, LOC_CRFSNP_0035);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3747,7 +3747,7 @@ CRFSNP *crfsnp_clone(CRFSNP *src_crfsnp, const char *np_root_dir, const uint32_t
     if(NULL_PTR == des_crfsnp)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_clone: new crfsnp %u failed\n", des_np_id);
-        safe_free(des_np_fname, LOC_CRFSNP_0078);
+        safe_free(des_np_fname, LOC_CRFSNP_0036);
         crfsnp_header_close(des_crfsnp_header, des_np_id, fsize, fd);
         c_file_close(fd);
         return (NULL_PTR);
@@ -3757,7 +3757,7 @@ CRFSNP *crfsnp_clone(CRFSNP *src_crfsnp, const char *np_root_dir, const uint32_t
     /*shortcut*/
     CRFSNP_LRU_LIST(des_crfsnp) = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(des_crfsnp, CRFSNPLRU_ROOT_POS));
     CRFSNP_DEL_LIST(des_crfsnp) = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(des_crfsnp, CRFSNPDEL_ROOT_POS));
-    
+
     CRFSNP_2ND_CHASH_ALGO(des_crfsnp) = chash_algo_fetch(CRFSNP_HEADER_2ND_CHASH_ALGO_ID(des_crfsnp_header));
 
     CRFSNP_FD(des_crfsnp)    = fd;
@@ -3805,7 +3805,7 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     if(EC_TRUE == c_file_access(np_fname, F_OK))/*exist*/
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_create: np %u '%s' exist already\n", np_id, np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0079);
+        safe_free(np_fname, LOC_CRFSNP_0037);
         return (NULL_PTR);
     }
 
@@ -3813,14 +3813,14 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     if(ERR_FD == fd)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_create: cannot create np %s\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0080);
+        safe_free(np_fname, LOC_CRFSNP_0038);
         return (NULL_PTR);
     }
 
     if(EC_FALSE == c_file_truncate(fd, fsize))
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_create: truncate np %s to size %ld failed\n", np_fname, fsize);
-        safe_free(np_fname, LOC_CRFSNP_0081);
+        safe_free(np_fname, LOC_CRFSNP_0039);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3829,7 +3829,7 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     if(NULL_PTR == crfsnp_header)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_create: open crfsnp file %s failed\n", np_fname);
-        safe_free(np_fname, LOC_CRFSNP_0082);
+        safe_free(np_fname, LOC_CRFSNP_0040);
         c_file_close(fd);
         return (NULL_PTR);
     }
@@ -3839,13 +3839,13 @@ CRFSNP *crfsnp_create(const char *np_root_dir, const uint32_t np_id, const uint8
     if(NULL_PTR == crfsnp)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_create: new crfsnp %u failed\n", np_id);
-        safe_free(np_fname, LOC_CRFSNP_0083);
+        safe_free(np_fname, LOC_CRFSNP_0041);
         c_file_close(fd);
         crfsnp_header_close(crfsnp_header, np_id, fsize, fd);
         return (NULL_PTR);
     }
     CRFSNP_HDR(crfsnp) = crfsnp_header;
-   
+
     /*shortcut*/
     CRFSNP_LRU_LIST(crfsnp) = CRFSNP_ITEM_LRU_NODE(crfsnp_fetch(crfsnp, CRFSNPLRU_ROOT_POS));
     CRFSNP_DEL_LIST(crfsnp) = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, CRFSNPDEL_ROOT_POS));
@@ -3881,18 +3881,18 @@ STATIC_CAST static EC_BOOL __crfsnp_get_item_full_path(const CRFSNP *crfsnp, con
         return (EC_FALSE);
     }
 
-    path = safe_malloc(CRFSNP_PATH_MAX_LEN, LOC_CRFSNP_0084);
+    path = safe_malloc(CRFSNP_PATH_MAX_LEN, LOC_CRFSNP_0042);
     if(NULL_PTR == path)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_get_item_full_path: malloc %u bytes failed\n", CRFSNP_PATH_MAX_LEN);
         return (EC_FALSE);
     }
 
-    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0085);
+    cstack = cstack_new(MM_IGNORE, LOC_CRFSNP_0043);
     if(NULL_PTR == cstack)
     {
         dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:__crfsnp_get_item_full_path: new cstack failed\n");
-        safe_free(path, LOC_CRFSNP_0086);
+        safe_free(path, LOC_CRFSNP_0044);
         return (EC_FALSE);
     }
     cur_node_pos = node_pos;
@@ -3937,7 +3937,7 @@ STATIC_CAST static EC_BOOL __crfsnp_get_item_full_path(const CRFSNP *crfsnp, con
         //sys_print(log, "%s [klen %u, node_pos %u]\n", (char *)path, CRFSNP_ITEM_KLEN(crfsnp_item), node_pos);
     }
 
-    cstack_free(cstack, LOC_CRFSNP_0087);
+    cstack_free(cstack, LOC_CRFSNP_0045);
 
     if(path_len >= path_max_len)
     {
@@ -3987,7 +3987,7 @@ EC_BOOL crfsnp_show_item_full_path(LOG *log, const CRFSNP *crfsnp, const uint32_
         sys_log(log, "err: %s\n", path);
     }
 
-    safe_free(path, LOC_CRFSNP_0088);
+    safe_free(path, LOC_CRFSNP_0046);
     return (EC_TRUE);
 }
 
@@ -4520,7 +4520,7 @@ EC_BOOL crfsnp_mem_free(CRFSNP *crfsnp)
     if(NULL_PTR != crfsnp)
     {
         crfsnp_mem_clean(crfsnp);
-        free_static_mem(MM_CRFSNP, crfsnp, LOC_CRFSNP_0100);
+        free_static_mem(MM_CRFSNP, crfsnp, LOC_CRFSNP_0047);
     }
     return (EC_TRUE);
 }

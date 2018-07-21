@@ -7454,7 +7454,7 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
 
         dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
                                              "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
-                                             limit.rlim_cur, limit.rlim_max);        
+                                             limit.rlim_cur, limit.rlim_max);
 
         limit.rlim_cur = 819200; /*Soft limit*/
         limit.rlim_max = 819200; /*Hard limit (ceiling for rlim_cur)*/
@@ -7471,7 +7471,7 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
 
         /*clean*/
         limit.rlim_cur = 0;
-        limit.rlim_max = 0;       
+        limit.rlim_max = 0;
 
         if(0 != getrlimit(resource, &limit))
         {
@@ -7483,8 +7483,8 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
 
         dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
                                              "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
-                                             limit.rlim_cur, limit.rlim_max); 
-        
+                                             limit.rlim_cur, limit.rlim_max);
+
     }
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
@@ -7517,12 +7517,12 @@ EC_BOOL task_brd_os_setting_print(LOG *log)
                      "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
                      limit.rlim_cur, limit.rlim_max);
     }
-   
+
     if(0 == getrlimit(RLIMIT_CORE, &limit))
     {
         sys_log(log, "task_brd_os_setting_print: "
                      "[RLIMIT_CORE] resource soft limit: %d, hard limit: %d\n",
-                     limit.rlim_cur, limit.rlim_max); 
+                     limit.rlim_cur, limit.rlim_max);
     }
     return (EC_TRUE);
 }
@@ -8261,11 +8261,11 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
-        if(CMPI_ERROR_IPADDR != TASKS_CFG_SRVIPADDR(tasks_cfg) 
+        if(CMPI_ERROR_IPADDR != TASKS_CFG_SRVIPADDR(tasks_cfg)
         && CMPI_ERROR_SRVPORT != TASKS_CFG_SRVPORT(tasks_cfg))
         {
             CTIMET      prev_time;
-            
+
             prev_time = task_brd_default_get_time();
             while(EC_FALSE == tasks_srv_start(tasks_cfg))
             {
@@ -8281,7 +8281,7 @@ LOG * task_brd_default_init(int argc, char **argv)
 
                 /*update task_brd time*/
                 task_brd_update_time_default();
-            }        
+            }
         }
 
         TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
