@@ -49,17 +49,6 @@ extern "C"{
 #define CPGV_ASSERT(cond)   do{}while(0)
 #endif/*(SWITCH_OFF == CRFS_ASSERT_SWITCH)*/
 
-#define DEBUG_COUNT_CPGV_HDR_PAD_SIZE() \
-                                (sizeof(CPGV_HDR) \
-                                 - sizeof(CPGRB_POOL) \
-                                 - CPGB_MODEL_NUM *sizeof(uint16_t) \
-                                 - 3 * sizeof(uint16_t) \
-                                 - 1 * sizeof(uint32_t) \
-                                 - 3 * sizeof(uint64_t))
-
-#define ASSERT_CPGV_HDR_PAD_SIZE() \
-    CPGV_ASSERT( CPGV_HDR_PAD_SIZE == DEBUG_COUNT_CPGV_HDR_PAD_SIZE())
-
 STATIC_CAST static uint16_t __cpgv_page_model_first_disk(const CPGV *cpgv, const uint16_t page_model)
 {
     uint16_t node_pos;
@@ -131,23 +120,6 @@ STATIC_CAST static EC_BOOL __cpgv_free_disk_fname(const CPGV *cpgv, uint8_t *cpg
     return (EC_TRUE);
 }
 
-STATIC_CAST static void __cpgv_hdr_size_info_print()
-{
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR)   = %ld\n", sizeof(CPGV_HDR));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGRB_POOL) = %ld\n", sizeof(CPGRB_POOL));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGB_MODEL_NUM     = %ld\n", (UINT32)CPGB_MODEL_NUM);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(uint64_t)   = %ld\n", sizeof(uint64_t));
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: CPGV_HDR_PAD_SIZE  = %ld\n", (UINT32)CPGV_HDR_PAD_SIZE);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_size_info_print: sizeof(CPGV_HDR) "
-                                         "- sizeof(CPGRB_POOL) "
-                                         "- CPGB_MODEL_NUM *sizeof(uint16_t) "
-                                         "- 3 * sizeof(uint16_t) "
-                                         "- 1 * sizeof(uint32_t) "
-                                         "- 3 * sizeof(uint64_t) = %ld\n",
-                                         DEBUG_COUNT_CPGV_HDR_PAD_SIZE());
-    return;
-}
-
 STATIC_CAST static CPGV_HDR *__cpgv_hdr_load(CPGV *cpgv)
 {
     uint8_t *buff;
@@ -217,8 +189,6 @@ STATIC_CAST static CPGV_HDR *__cpgv_hdr_new(CPGV *cpgv)
 {
     CPGV_HDR *cpgv_hdr;
 
-    ASSERT_CPGV_HDR_PAD_SIZE();
-
     cpgv_hdr = (CPGV_HDR *)safe_malloc(CPGV_FSIZE(cpgv), LOC_CPGV_0008);
     if(NULL_PTR == cpgv_hdr)
     {
@@ -245,8 +215,6 @@ STATIC_CAST static CPGV_HDR *__cpgv_hdr_new(CPGV *cpgv)
 CPGV_HDR *cpgv_hdr_create(CPGV *cpgv)
 {
     CPGV_HDR *cpgv_hdr;
-
-    ASSERT_CPGV_HDR_PAD_SIZE();
 
     cpgv_hdr = (CPGV_HDR *)mmap(NULL_PTR, CPGV_FSIZE(cpgv), PROT_READ | PROT_WRITE, MAP_SHARED, CPGV_FD(cpgv), 0);
     if(MAP_FAILED == cpgv_hdr)
@@ -280,7 +248,7 @@ EC_BOOL cpgv_hdr_init(CPGV *cpgv)
         return (EC_FALSE);
     }
 
-    for(page_model = 0; CPGB_MODEL_NUM > page_model; page_model ++)
+    for(page_model = 0; CPGB_MODEL_MAX_NUM > page_model; page_model ++)
     {
         CPGV_HDR_DISK_CPGRB_ROOT_POS(cpgv_hdr, page_model) = CPGRB_ERR_POS;
     }
@@ -300,9 +268,6 @@ EC_BOOL cpgv_hdr_init(CPGV *cpgv)
 STATIC_CAST static CPGV_HDR *__cpgv_hdr_open(CPGV *cpgv)
 {
     CPGV_HDR *cpgv_hdr;
-
-     __cpgv_hdr_size_info_print();
-    ASSERT_CPGV_HDR_PAD_SIZE();
 
     dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] __cpgv_hdr_open: fsize %u\n", CPGV_FSIZE(cpgv));
 
@@ -385,39 +350,13 @@ EC_BOOL cpgv_hdr_sync(CPGV *cpgv)
 
 EC_BOOL cpgv_hdr_flush_size(const CPGV_HDR *cpgv_hdr, UINT32 *size)
 {
-    (*size) += sizeof(CPGV_HDR);
+    (*size) += CPGV_HDR_SIZE;
     return (EC_TRUE);
 }
 
 EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
 {
     UINT32 osize;/*flush once size*/
-
-    DEBUG(UINT32 offset_saved = *offset;);
-
-    /*flush rbtree pool*/
-    if(EC_FALSE == cpgrb_flush(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
-    {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
-        return (EC_FALSE);
-    }
-
-    /*flush CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS_TBL*/
-    osize = CPGB_MODEL_NUM * sizeof(uint16_t);
-    if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
-    {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n",
-                            (*offset), fd);
-        return (EC_FALSE);
-    }
-
-    /*skip rsvd1*/
-    osize = sizeof(uint16_t);
-    if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
-    {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
-        return (EC_FALSE);
-    }
 
     /*flush CPGV_HDR_ASSIGN_BITMAP*/
     osize = sizeof(uint16_t);
@@ -434,6 +373,14 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAGE_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
+
+    /*skip rsvd1*/
+    osize = sizeof(uint32_t);
+    if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
+    {
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
+        return (EC_FALSE);
+    }    
 
     /*flush CPGV_HDR_PAGE_MAX_NUM*/
     osize = sizeof(uint64_t);
@@ -459,39 +406,35 @@ EC_BOOL cpgv_hdr_flush(const CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
         return (EC_FALSE);
     }
 
-    /*skip rsvd2*/
-    if(EC_FALSE == c_file_pad(fd, offset, CPGV_HDR_PAD_SIZE, FILE_PAD_CHAR))
+    /*flush CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS_TBL*/
+    osize = CPGB_MODEL_MAX_NUM * sizeof(uint16_t);
+    if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
     {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_PAD at offset %ld of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n",
+                            (*offset), fd);
         return (EC_FALSE);
     }
 
-    DEBUG(CPGV_ASSERT(sizeof(CPGV_HDR) == (*offset) - offset_saved));
+    /*skip rsvd2*/
+    osize = sizeof(uint16_t);
+    if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
+    {
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: pad %ld bytes at offset %ld of fd %d failed\n", osize, (*offset), fd);
+        return (EC_FALSE);
+    }
 
+    /*flush rbtree pool*/
+    if(EC_FALSE == cpgrb_flush(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
+    {
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_flush: flush CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
+        return (EC_FALSE);
+    }    
     return (EC_TRUE);
 }
 
 EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
 {
     UINT32 osize;/*load once size*/
-
-    /*load rbtree pool*/
-    if(EC_FALSE == cpgrb_load(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
-    {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
-        return (EC_FALSE);
-    }
-
-    /*load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL*/
-    osize = CPGB_MODEL_NUM * sizeof(uint16_t);
-    if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
-    {
-        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
-        return (EC_FALSE);
-    }
-
-    /*skip rsvd1*/
-    (*offset) += sizeof(uint16_t);
 
     /*load CPGV_HDR_ASSIGN_BITMAP*/
     osize = sizeof(uint16_t);
@@ -508,6 +451,9 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_PAGE_DISK_NUM at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
+
+    /*skip rsvd1*/
+    (*offset) += sizeof(uint32_t);    
 
     /*load CPGV_HDR_PAGE_MAX_NUM*/
     osize = sizeof(uint64_t);
@@ -533,9 +479,24 @@ EC_BOOL cpgv_hdr_load(CPGV_HDR *cpgv_hdr, int fd, UINT32 *offset)
         return (EC_FALSE);
     }
 
-    /*skip rsvd2*/
-    (*offset) += CPGV_HDR_PAD_SIZE;
+    /*load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL*/
+    osize = CPGB_MODEL_MAX_NUM * sizeof(uint16_t);
+    if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)))
+    {
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
+        return (EC_FALSE);
+    }
 
+    /*skip rsvd2*/
+    (*offset) += sizeof(uint16_t);
+
+    /*load rbtree pool*/
+    if(EC_FALSE == cpgrb_load(CPGV_HDR_CPGRB_POOL(cpgv_hdr), fd, offset))
+    {
+        dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_hdr_load: load CPGV_HDR_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
+        return (EC_FALSE);
+    }
+    
     return (EC_TRUE);
 }
 
@@ -574,8 +535,8 @@ CPGV *cpgv_new(const uint8_t *cpgv_fname)
         return (NULL_PTR);
     }
 
-    CPGV_FSIZE(cpgv) = sizeof(CPGV_HDR);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] sizeof(CPGV_HDR) = %ld\n", sizeof(CPGV_HDR));
+    CPGV_FSIZE(cpgv) = CPGV_HDR_SIZE;
+    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] CPGV_HDR_SIZE = %ld\n", CPGV_HDR_SIZE);
     if(EC_FALSE == c_file_truncate(CPGV_FD(cpgv), CPGV_FSIZE(cpgv)))
     {
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_new: truncate %s to %u bytes failed\n", cpgv_fname, CPGV_FSIZE(cpgv));
@@ -823,7 +784,7 @@ void cpgv_clean(CPGV *cpgv)
 
     cpgrb_pool_clean(CPGV_PAGE_DISK_CPGRB_POOL(cpgv));
 
-    for(page_model = 0; CPGB_MODEL_NUM > page_model; page_model ++)
+    for(page_model = 0; CPGB_MODEL_MAX_NUM > page_model; page_model ++)
     {
         CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS(cpgv, page_model) = CPGRB_ERR_POS;
     }
@@ -991,8 +952,7 @@ EC_BOOL cpgv_add_disk(CPGV *cpgv, const uint16_t disk_no)
     }
 
     dbg_log(SEC_0074_CPGV, 3)(LOGSTDOUT, "info:cpgv_add_disk: try to create disk %s ...\n", cpgd_fname);
-    dbg_log(SEC_0074_CPGV, 9)(LOGSTDOUT, "[DEBUG] cpgv_add_disk: ### set to CPGD_MAX_BLOCK_NUM %d for debug purpose \n", CPGD_MAX_BLOCK_NUM);
-
+    
     cpgd = cpgd_new(cpgd_fname, CPGD_MAX_BLOCK_NUM);
     if(NULL_PTR == cpgd)
     {
@@ -1557,16 +1517,12 @@ EC_BOOL cpgv_flush(const CPGV *cpgv, int fd, UINT32 *offset)
     UINT32   osize;
     uint16_t disk_no;
 
-    DEBUG(UINT32 offset_saved = *offset;);
-
     /*flush CPGV_HEADER*/
     if(EC_FALSE == cpgv_hdr_flush(CPGV_HEADER(cpgv), fd, offset))
     {
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_flush: flush CPGV_HEADER at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-
-    DEBUG(CPGV_ASSERT(sizeof(CPGV_HDR) == (*offset) - offset_saved));
 
     /*flush CPGV_DISK_NODE table*/
     for(disk_no = 0; disk_no < CPGV_MAX_DISK_NUM; disk_no ++)
@@ -1606,7 +1562,7 @@ EC_BOOL cpgv_load(CPGV *cpgv, int fd, UINT32 *offset)
 
     if(NULL_PTR == CPGV_HEADER(cpgv))
     {
-        CPGV_HEADER(cpgv) = safe_malloc(sizeof(CPGV_HDR), LOC_CPGV_0019);
+        CPGV_HEADER(cpgv) = safe_malloc(CPGV_HDR_SIZE, LOC_CPGV_0019);
         if(NULL_PTR == CPGV_HEADER(cpgv))
         {
             dbg_log(SEC_0074_CPGV, 0)(LOGSTDOUT, "error:cpgv_load: malloc CPGV_HDR failed\n");
@@ -1797,14 +1753,24 @@ void cpgv_print(LOG *log, const CPGV *cpgv)
 
     if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_4K_BIT_SIZE)
     {
-        page_desc = "4k-page";
+        page_desc = "4K-page";
     }
 
     if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_8K_BIT_SIZE)
     {
-        page_desc = "8k-page";
+        page_desc = "8K-page";
     }
 
+    if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_16M_BIT_SIZE)
+    {
+        page_desc = "16M-page";
+    }   
+
+    if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_32M_BIT_SIZE)
+    {
+        page_desc = "32M-page";
+    }
+    
     sys_log(log, "cpgv_print: cpgv %p, disk num %u, %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, used size %"PRId64", size ratio %.2f\n",
                  cpgv,
                  CPGV_PAGE_DISK_NUM(cpgv),

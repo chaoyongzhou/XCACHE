@@ -359,7 +359,7 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CRFSDN_NODE                  ,"MM_CRFSDN_NODE                  ",4        , sizeof(CRFSDN_NODE)                 , LOC_MM_0126);
     MM_MGR_DEF(MM_CRFSDN                       ,"MM_CRFSDN                       ",1        , sizeof(CRFSDN)                      , LOC_MM_0127);
 
-    MM_MGR_DEF(MM_CPGB                         ,"MM_CPGB                         ",256      , sizeof(CPGB)                        , LOC_MM_0128);
+    MM_MGR_DEF(MM_CPGB                         ,"MM_CPGB                         ",1        , CPGB_SIZE                           , LOC_MM_0128);
     MM_MGR_DEF(MM_CPGD                         ,"MM_CPGD                         ",256      , sizeof(CPGD)                        , LOC_MM_0129);
     MM_MGR_DEF(MM_CPGV                         ,"MM_CPGV                         ",64       , sizeof(CPGV)                        , LOC_MM_0130);
 

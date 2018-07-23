@@ -46,15 +46,6 @@ extern "C"{
 #define CPGB_ASSERT(cond)   do{}while(0)
 #endif/*(SWITCH_OFF == CRFS_ASSERT_SWITCH)*/
 
-#define ASSERT_CPGB_PAD_SIZE() \
-    CPGB_ASSERT( CPGB_PAD_SIZE == (sizeof(CPGB) \
-                            - sizeof(CPGRB_POOL) \
-                            - CPGB_RB_BITMAP_SIZE \
-                            - CPGB_RB_BITMAP_PAD_SIZE \
-                            - CPGB_MODEL_NUM *sizeof(uint16_t) \
-                            - 3 * sizeof(uint16_t) \
-                            - sizeof(uint32_t)) )
-
 static const CPGB_CONF g_cpgb_conf[] = {
     {"CPGB_064MB_MODEL", CPGB_064MB_MODEL,  CPGB_064MB_BITMAP_SIZE, CPGB_064MB_PAGE_NUM, 0,},
     {"CPGB_032MB_MODEL", CPGB_032MB_MODEL,  CPGB_032MB_BITMAP_SIZE, CPGB_032MB_PAGE_NUM, 0,},
@@ -470,8 +461,6 @@ EC_BOOL cpgb_init(CPGB *cpgb, const uint16_t page_model_target)
 
     const CPGB_CONF *cpgb_conf;
 
-    ASSERT_CPGB_PAD_SIZE();
-
     if(CPGB_MODEL_NUM <= page_model_target)
     {
         dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_init: page_model_target %u overflow\n", page_model_target);
@@ -490,7 +479,7 @@ EC_BOOL cpgb_init(CPGB *cpgb, const uint16_t page_model_target)
 
     BSET(CPGB_PAGE_MODEL_CPGRB_BITMAP_BUFF(cpgb), CPGB_PAGE_IS_NOT_FREE, CPGB_RB_BITMAP_SIZE); /*mark as non-free page*/
 
-    for(page_model = 0; CPGB_MODEL_NUM > page_model; page_model ++)
+    for(page_model = 0; CPGB_MODEL_MAX_NUM > page_model; page_model ++)
     {
         CPGB_PAGE_MODEL_CPGRB_ROOT_POS(cpgb, page_model) = CPGRB_ERR_POS;
     }
@@ -514,7 +503,7 @@ void cpgb_clean(CPGB *cpgb)
 
     cpgrb_pool_clean(CPGB_CPGRB_POOL(cpgb));
 
-    for(page_model = 0; CPGB_MODEL_NUM > page_model; page_model ++)
+    for(page_model = 0; CPGB_MODEL_MAX_NUM > page_model; page_model ++)
     {
         CPGB_PAGE_MODEL_CPGRB_ROOT_POS(cpgb, page_model) = CPGRB_ERR_POS;
         //CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model)   = NULL_PTR;
@@ -980,21 +969,13 @@ EC_BOOL cpgb_check(const CPGB *cpgb)
 
 EC_BOOL cpgb_flush_size(const CPGB *cpgb, UINT32 *size)
 {
-    (*size) += sizeof(CPGB);
+    (*size) += CPGB_SIZE;
     return (EC_TRUE);
 }
 
 EC_BOOL cpgb_flush(const CPGB *cpgb, int fd, UINT32 *offset)
 {
     UINT32 osize;/*flush once size*/
-    DEBUG(UINT32 offset_saved = *offset;);
-
-    /*flush rbtree pool*/
-    if(EC_FALSE == cpgrb_flush(CPGB_CPGRB_POOL(cpgb), fd, offset))
-    {
-        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_flush: flush CPGB_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
-        return (EC_FALSE);
-    }
 
     /*flush bitmap buff*/
     osize = CPGB_RB_BITMAP_SIZE;
@@ -1012,7 +993,7 @@ EC_BOOL cpgb_flush(const CPGB *cpgb, int fd, UINT32 *offset)
     }
 
     /*flush rbtree root pos table*/
-    osize = CPGB_MODEL_NUM * sizeof(uint16_t);
+    osize = CPGB_MODEL_MAX_NUM * sizeof(uint16_t);
     if(EC_FALSE == c_file_flush(fd, offset, osize, (uint8_t *)CPGB_PAGE_MODEL_CPGRB_ROOT_POS_TBL(cpgb)))
     {
         dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_flush: flush CPGB_PAGE_MODEL_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
@@ -1051,27 +1032,19 @@ EC_BOOL cpgb_flush(const CPGB *cpgb, int fd, UINT32 *offset)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_file_pad(fd, offset, CPGB_PAD_SIZE, FILE_PAD_CHAR))
+    /*flush rbtree pool*/
+    if(EC_FALSE == cpgrb_flush(CPGB_CPGRB_POOL(cpgb), fd, offset))
     {
-        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_flush: flush CPGB_PAD at offset %ld of fd %d failed\n", (*offset), fd);
+        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_flush: flush CPGB_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-
-    DEBUG(CPGB_ASSERT(sizeof(CPGB) == (*offset) - offset_saved));
-
+    
     return (EC_TRUE);
 }
 
 EC_BOOL cpgb_load(CPGB *cpgb, int fd, UINT32 *offset)
 {
     UINT32 osize;/*load once size*/
-
-    /*load rbtree pool*/
-    if(EC_FALSE == cpgrb_load(CPGB_CPGRB_POOL(cpgb), fd, offset))
-    {
-        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_load: load CPGB_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
-        return (EC_FALSE);
-    }
 
     /*load bitmap buff*/
     osize = CPGB_RB_BITMAP_SIZE;
@@ -1085,7 +1058,7 @@ EC_BOOL cpgb_load(CPGB *cpgb, int fd, UINT32 *offset)
     (*offset) += CPGB_RB_BITMAP_PAD_SIZE;
 
     /*load rbtree root pos table*/
-    osize = CPGB_MODEL_NUM * sizeof(uint16_t);
+    osize = CPGB_MODEL_MAX_NUM * sizeof(uint16_t);
     if(EC_FALSE == c_file_load(fd, offset, osize, (uint8_t *)CPGB_PAGE_MODEL_CPGRB_ROOT_POS_TBL(cpgb)))
     {
         dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_load: load CPGB_PAGE_MODEL_CPGRB_ROOT_POS_TBL at offset %ld of fd %d failed\n", (*offset), fd);
@@ -1124,7 +1097,12 @@ EC_BOOL cpgb_load(CPGB *cpgb, int fd, UINT32 *offset)
         return (EC_FALSE);
     }
 
-    (*offset) += CPGB_PAD_SIZE;
+    /*load rbtree pool*/
+    if(EC_FALSE == cpgrb_load(CPGB_CPGRB_POOL(cpgb), fd, offset))
+    {
+        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_load: load CPGB_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
+        return (EC_FALSE);
+    }
 
     return (EC_TRUE);
 }

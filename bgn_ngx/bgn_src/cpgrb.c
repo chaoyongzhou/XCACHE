@@ -981,11 +981,7 @@ EC_BOOL cpgrb_pool_init(CPGRB_POOL *pool, const uint16_t node_num)
 {
     uint16_t node_pos;
 
-    if(CPGRB_POOL_MAX_SIZE < node_num)
-    {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDERR, "error:cpgrb_pool_init: node_num %u overflow!\n", node_num);
-        return (EC_FALSE);
-    }
+    ASSERT(CPGRB_POOL_MAX_SIZE >= node_num);
 
     CPGRB_POOL_NODE_NUM(pool) = node_num;
 
@@ -1142,14 +1138,13 @@ void cpgrb_preorder_print_level(LOG *log, const CPGRB_POOL *pool, const uint16_t
 
 EC_BOOL cpgrb_flush_size(const CPGRB_POOL *pool, UINT32 *size)
 {
-    (*size) += sizeof(CPGRB_POOL);
+    (*size) += sizeof(CPGRB_POOL) + CPGRB_POOL_NODE_NUM(pool) * sizeof(CPGRB_NODE);
     return (EC_TRUE);
 }
 
 EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
 {
     UINT32 osize;/*write once size*/
-    DEBUG(UINT32 offset_saved = *offset;);
 
     /*skip rsvd*/
     osize = sizeof(uint32_t);
@@ -1183,15 +1178,6 @@ EC_BOOL cpgrb_flush(const CPGRB_POOL *pool, int fd, UINT32 *offset)
                             (*offset), fd, CPGRB_POOL_NODE_NUM(pool));
         return (EC_FALSE);
     }
-
-    osize = (CPGRB_POOL_MAX_SIZE - CPGRB_POOL_NODE_NUM(pool)) * sizeof(CPGRB_NODE);
-    if(EC_FALSE == c_file_pad(fd, offset, osize, FILE_PAD_CHAR))
-    {
-        dbg_log(SEC_0000_CPGRB, 0)(LOGSTDOUT, "error:cpgrb_flush: pad %ld at offset %ld of fd %d failed\n", osize, (*offset), fd);
-        return (EC_FALSE);
-    }
-
-    DEBUG(ASSERT(sizeof(CPGRB_POOL) == (*offset) - offset_saved));
 
     return (EC_TRUE);
 }
@@ -1230,8 +1216,6 @@ EC_BOOL cpgrb_load(CPGRB_POOL *pool, int fd, UINT32 *offset)
                             (*offset), fd, CPGRB_POOL_NODE_NUM(pool));
         return (EC_FALSE);
     }
-
-    (*offset) += (CPGRB_POOL_MAX_SIZE - CPGRB_POOL_NODE_NUM(pool)) * sizeof(CPGRB_NODE);
 
     return (EC_TRUE);
 }
