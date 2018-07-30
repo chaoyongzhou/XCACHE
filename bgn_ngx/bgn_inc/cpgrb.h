@@ -22,7 +22,7 @@ extern "C"{
 
 #define CPGRB_ERR_POS        ((uint16_t)0x7FFF)/*15 bits*/
 
-#define CPGRB_POOL_MAX_SIZE  ((uint16_t)0x4000)/* < 2^14( 1TB = 2^14 64M-block, 64M = 2^14 4k-page = 2^13 8k-page)*/
+#define CPGRB_POOL_MAX_SIZE  ((uint16_t)0x4000)/* < 2^14( 1TB = 2^14 64M-block, 64M = 2^14 4K-page = 2^13 8K-page)*/
 
 typedef struct
 {
@@ -62,7 +62,7 @@ typedef struct
     uint32_t    rsvd2;
     uint16_t    free_head;/*unused CPGRB_TREE head*/
     uint16_t    node_num;
-    CPGRB_NODE  rb_node[ CPGRB_POOL_MAX_SIZE ];  /*128KB,rb_nodes table*/
+    CPGRB_NODE  rb_node[ 0 ];  /*128KB,rb_nodes table*/
 }CPGRB_POOL;
 
 #define CPGRB_POOL_FREE_HEAD(pool)         ((pool)->free_head)

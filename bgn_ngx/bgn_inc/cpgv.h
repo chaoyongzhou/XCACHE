@@ -110,25 +110,21 @@ extern "C"{
 
 #define CPGV_MAX_DISK_NUM               (CPGV_064TB_DISK_NUM)
 
-#define CPGV_HDR_PAD_SIZE                (4040)
-
 typedef struct
 {
-    CPGRB_POOL   pgv_disk_rb_pool; /*waste many rb nodes ...*/
-
-    uint16_t     pgv_disk_rb_root_pos[ CPGB_MODEL_NUM ];/*root pos of rbtree*/
-    uint16_t     rsvd1;
-
     uint16_t     pgv_assign_bitmap; /*when some page model can provide pages or can borrow from upper, set bit to 1*/
     uint16_t     pgv_disk_num;      /*current disk number support up to*/
-    uint32_t     rsvd2;
+    uint32_t     rsvd1;
 
     uint64_t     pgv_page_max_num; /*max pages number */
     uint64_t     pgv_page_used_num;/*used pages number*/
     uint64_t     pgv_actual_used_size;/*actual used bytes*/
 
-    uint8_t      rsvd3[CPGV_HDR_PAD_SIZE];
-}CPGV_HDR;/*4k-alignment*/
+    uint16_t     pgv_disk_rb_root_pos[ CPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
+    uint16_t     rsvd2;
+    
+    CPGRB_POOL   pgv_disk_rb_pool;
+}CPGV_HDR;
 
 #define CPGV_HDR_CPGRB_POOL(cpgv_hdr)                           (&((cpgv_hdr)->pgv_disk_rb_pool))
 #define CPGV_HDR_DISK_CPGRB_ROOT_POS_TBL(cpgv_hdr)              ((cpgv_hdr)->pgv_disk_rb_root_pos)
@@ -139,6 +135,7 @@ typedef struct
 #define CPGV_HDR_PAGE_USED_NUM(cpgv_hdr)                        ((cpgv_hdr)->pgv_page_used_num)
 #define CPGV_HDR_PAGE_ACTUAL_USED_SIZE(cpgv_hdr)                ((cpgv_hdr)->pgv_actual_used_size)
 
+#define CPGV_HDR_SIZE     (sizeof(CPGV_HDR) + sizeof(CPGRB_NODE) * CPGV_MAX_DISK_NUM)
 
 typedef struct
 {

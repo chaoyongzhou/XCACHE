@@ -271,8 +271,6 @@ UINT32 csfs_start(const CSTRING *csfsnp_root_basedir, const CSTRING *csfsdn_root
 
     dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "csfs_start: start CSFS module #%ld\n", csfs_md_id);
 
-    CSFS_INIT_LOCK(csfs_md, LOC_CSFS_0001);
-
     if(SWITCH_ON == CSFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CSFS module is allowed to launch sfs http server*/
@@ -391,7 +389,6 @@ void csfs_end(const UINT32 csfs_md_id)
     //csfs_free_module_static_mem(csfs_md_id);
 
     csfs_md->usedcounter = 0;
-    CSFS_CLEAN_LOCK(csfs_md, LOC_CSFS_0002);
 
     dbg_log(SEC_0167_CSFS, 5)(LOGSTDOUT, "csfs_end: stop CSFS module #%ld\n", csfs_md_id);
     cbc_md_free(MD_CSFS, csfs_md_id);
@@ -1129,17 +1126,14 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
             csfsnp_fnode_print(LOGSTDOUT, &csfsnp_fnode);
         }
 
-        CSFS_WRLOCK(csfs_md, LOC_CSFS_0010);
         if(EC_FALSE == __csfs_write_npp(csfs_md_id, file_path, &csfsnp_fnode, NULL_PTR, NULL_PTR))
         {
-            CSFS_UNLOCK(csfs_md, LOC_CSFS_0011);
             dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
 
             /*notify all waiters*/
             csfs_file_notify(csfs_md_id, file_path); /*patch*/
             return (EC_FALSE);
         }
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0012);
 
         /*notify all waiters*/
         csfs_file_notify(csfs_md_id, file_path); /*patch*/
@@ -1175,10 +1169,8 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
     dbg_log(SEC_0167_CSFS, 9)(LOGSTDNULL, "[DEBUG] __csfs_write: write file %s is %.*s\n",
                         (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
 
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0013);
     if(EC_FALSE == __csfs_write_npp(csfs_md_id, file_path, &csfsnp_fnode, &crfsnp_id, &node_pos))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0014);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write: write file %s to npp failed\n", (char *)cstring_get_str(file_path));
 
         /*notify all waiters*/
@@ -1194,7 +1186,6 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
                                CSFSNP_INODE_PAGE_NO(csfsnp_inode),
                                crfsnp_id, node_pos))
    {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0015);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write: file %s bind dn and npp failed\n", (char *)cstring_get_str(file_path));
 
         csfs_delete_npp(csfs_md_id, file_path);
@@ -1203,8 +1194,6 @@ STATIC_CAST static EC_BOOL __csfs_write(const UINT32 csfs_md_id, const CSTRING *
         csfs_file_notify(csfs_md_id, file_path); /*patch*/
         return (EC_FALSE);
     }
-
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0016);
 
     /*notify all waiters*/
     csfs_file_notify(csfs_md_id, file_path); /*patch*/
@@ -1241,10 +1230,8 @@ EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     csfs_md = CSFS_MD_GET(csfs_md_id);
 
-    CSFS_RDLOCK(csfs_md, LOC_CSFS_0017);
     if(EC_FALSE == csfs_read_npp(csfs_md_id, file_path, &csfsnp_fnode))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0018);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1257,12 +1244,10 @@ EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     if(EC_FALSE == csfs_read_dn(csfs_md_id, &csfsnp_fnode, cbytes))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0019);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read: read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
         csfsnp_fnode_print(LOGSTDOUT, &csfsnp_fnode);
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0020);
 
     return (EC_TRUE);
 }
@@ -1307,11 +1292,8 @@ EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *o
         }
     }
 #endif
-    CSFS_RDLOCK(csfs_md, LOC_CSFS_0021);
-
     if(EC_FALSE == csfs_read_npp(csfs_md_id, file_path, &csfsnp_fnode))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0022);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -1334,13 +1316,11 @@ EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *o
 
     if(EC_FALSE == csfs_read_e_dn(csfs_md_id, &csfsnp_fnode, offset, max_len, cbytes))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0023);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_e: offset read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
         csfsnp_fnode_print(LOGSTDOUT, &csfsnp_fnode);
         return (EC_FALSE);
     }
 
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0024);
     return (EC_TRUE);
 }
 
@@ -1375,14 +1355,11 @@ EC_BOOL csfs_update(const UINT32 csfs_md_id, const CSTRING *file_path, const CBY
         }
     }
 #endif
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0025);
     if(EC_FALSE == csfs_update_no_lock(csfs_md_id, file_path, cbytes))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0026);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_update: update file %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0027);
     dbg_log(SEC_0167_CSFS, 9)(LOGSTDOUT, "[DEBUG] csfs_update: update file %s done\n", (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
@@ -2634,14 +2611,10 @@ EC_BOOL csfs_file_lock(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING
 
     cbytes_init(&token_cbyte);
 
-    CSFS_LOCKED_FILES_WRLOCK(csfs_md, LOC_CSFS_0035);
     if(EC_FALSE == __csfs_file_lock(csfs_md_id, tcid, file_path, expire_nsec, &token_cbyte, locked_already))
     {
-        CSFS_LOCKED_FILES_UNLOCK(csfs_md, LOC_CSFS_0036);
         return (EC_FALSE);
     }
-
-    CSFS_LOCKED_FILES_UNLOCK(csfs_md, LOC_CSFS_0037);
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
     cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CSFS_0038);
@@ -2757,15 +2730,11 @@ EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, cons
         csfs_locked_files_print(csfs_md_id, LOGSTDOUT);
     }
 #endif
-    CSFS_LOCKED_FILES_WRLOCK(csfs_md, LOC_CSFS_0039);
     if(EC_FALSE == __csfs_file_unlock(csfs_md_id, file_path, &token_cbyte))
     {
         cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
-        CSFS_LOCKED_FILES_UNLOCK(csfs_md, LOC_CSFS_0040);
         return (EC_FALSE);
     }
-
-    CSFS_LOCKED_FILES_UNLOCK(csfs_md, LOC_CSFS_0041);
 
     cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
@@ -2924,14 +2893,11 @@ EC_BOOL csfs_add_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0042);
     if(EC_FALSE == csfsdn_add_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0043);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_add_disk: add disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0044);
     return (EC_TRUE);
 }
 
@@ -2967,14 +2933,11 @@ EC_BOOL csfs_del_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0045);
     if(EC_FALSE == csfsdn_del_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0046);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_del_disk: del disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0047);
     return (EC_TRUE);
 }
 
@@ -3010,14 +2973,11 @@ EC_BOOL csfs_mount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0048);
     if(EC_FALSE == csfsdn_mount_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0049);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_mount_disk: mount disk %u to dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0050);
     return (EC_TRUE);
 }
 
@@ -3053,14 +3013,11 @@ EC_BOOL csfs_umount_disk(const UINT32 csfs_md_id, const UINT32 disk_no)
         return (EC_FALSE);
     }
 
-    CSFS_WRLOCK(csfs_md, LOC_CSFS_0051);
     if(EC_FALSE == csfsdn_umount_disk(CSFS_MD_DN(csfs_md), (uint16_t)disk_no))
     {
-        CSFS_UNLOCK(csfs_md, LOC_CSFS_0052);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_umount_disk: umount disk %u from dn failed\n", (uint16_t)disk_no);
         return (EC_FALSE);
     }
-    CSFS_UNLOCK(csfs_md, LOC_CSFS_0053);
     return (EC_TRUE);
 }
 

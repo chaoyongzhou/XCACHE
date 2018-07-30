@@ -113,8 +113,6 @@ extern "C"{
 #define CPGD_PAGE_BLOCK_IS_FREE          ((uint8_t) 1)
 #define CPGD_PAGE_BLOCK_IS_NOT_FREE      ((uint8_t) 0)
 
-#define CPGD_HDR_PAD_SIZE                (4040)
-
 typedef struct
 {
     const char    *model_str;
@@ -131,21 +129,19 @@ typedef struct
 
 typedef struct
 {
-    CPGRB_POOL   pgd_block_rb_pool;
-
-    uint16_t     pgd_block_rb_root_pos[ CPGB_MODEL_NUM ];/*root pos of rbtree*/
-    uint16_t     rsvd1;
-
     uint16_t     pgd_assign_bitmap; /*when some page model can provide pages or can borrow from upper, set bit to 1*/
     uint16_t     pgd_block_max_num; /*max block number */
-    uint32_t     rsvd2;
+    uint32_t     rsvd1;
 
     uint32_t     pgd_page_max_num; /*max pages number */
     uint32_t     pgd_page_used_num;/*used pages number*/
     uint64_t     pgd_actual_used_size;/*actual used bytes*/
 
-    uint8_t      rsvd3[CPGD_HDR_PAD_SIZE];
-}CPGD_HDR;/*4k-alignment*/
+    uint16_t     pgd_block_rb_root_pos[ CPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
+    uint16_t     rsvd2;    
+
+    CPGRB_POOL   pgd_block_rb_pool;
+}CPGD_HDR;
 
 #define CPGD_HDR_CPGRB_POOL(cpgd_hdr)                           (&((cpgd_hdr)->pgd_block_rb_pool))
 #define CPGD_HDR_BLOCK_CPGRB_ROOT_POS_TBL(cpgd_hdr)             ((cpgd_hdr)->pgd_block_rb_root_pos)
@@ -156,6 +152,7 @@ typedef struct
 #define CPGD_HDR_PAGE_USED_NUM(cpgd_hdr)                        ((cpgd_hdr)->pgd_page_used_num)
 #define CPGD_HDR_PAGE_ACTUAL_USED_SIZE(cpgd_hdr)                ((cpgd_hdr)->pgd_actual_used_size)
 
+#define CPGD_HDR_SIZE       (sizeof(CPGD_HDR) + sizeof(CPGRB_NODE) * CPGD_MAX_BLOCK_NUM)
 
 typedef struct
 {

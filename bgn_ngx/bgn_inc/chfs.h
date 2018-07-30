@@ -54,7 +54,6 @@ typedef struct
     MOD_MGR             *chfsnpp_mod_mgr;
 
     CRB_TREE             locked_files; /*item is CHFS_LOCKED_FILE*/
-    CROUTINE_RWLOCK      locked_files_crwlock;/*RW lock for locked_files tree*/
 
     CRB_TREE             wait_files;   /*item is CHFS_WAITING_FILE*/
 
@@ -62,8 +61,6 @@ typedef struct
     CHFSNP_MGR          *chfsnpmgr;/*namespace pool*/
 
     CHFSMC              *chfsmc;   /*memcache HFS  */
-
-    CROUTINE_RWLOCK      crwlock;
 }CHFS_MD;
 
 #define CHFS_MD_TERMINATE_FLAG(chfs_md)    ((chfs_md)->terminate_flag)
@@ -74,72 +71,6 @@ typedef struct
 #define CHFS_MD_DN(chfs_md)                ((chfs_md)->crfsdn)
 #define CHFS_MD_NPP(chfs_md)               ((chfs_md)->chfsnpmgr)
 #define CHFS_MD_MCACHE(chfs_md)            ((chfs_md)->chfsmc)
-#define CHFS_CRWLOCK(chfs_md)              (&((chfs_md)->crwlock))
-
-#if 0
-#define CHFS_INIT_LOCK(chfs_md, location)  (croutine_rwlock_init(CHFS_CRWLOCK(chfs_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CHFS_CLEAN_LOCK(chfs_md, location) (croutine_rwlock_clean(CHFS_CRWLOCK(chfs_md), location))
-
-#define CHFS_RDLOCK(chfs_md, location)     (croutine_rwlock_rdlock(CHFS_CRWLOCK(chfs_md), location))
-#define CHFS_WRLOCK(chfs_md, location)     (croutine_rwlock_wrlock(CHFS_CRWLOCK(chfs_md), location))
-#define CHFS_UNLOCK(chfs_md, location)     (croutine_rwlock_unlock(CHFS_CRWLOCK(chfs_md), location))
-#endif
-
-#if 0
-#define CHFS_INIT_LOCK(chfs_md, location)  do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_INIT_LOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_init(CHFS_CRWLOCK(chfs_md), CMUTEX_PROCESS_PRIVATE, location);\
-}while(0)
-
-#define CHFS_CLEAN_LOCK(chfs_md, location) do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_CLEAN_LOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_clean(CHFS_CRWLOCK(chfs_md), location);\
-}while(0)
-
-#define CHFS_RDLOCK(chfs_md, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_RDLOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_rdlock(CHFS_CRWLOCK(chfs_md), location);\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_RDLOCK: CHFS_CRWLOCK %p, at %s:%ld done\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-
-#define CHFS_WRLOCK(chfs_md, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_WRLOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_wrlock(CHFS_CRWLOCK(chfs_md), location);\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_WRLOCK: CHFS_CRWLOCK %p, at %s:%ld done\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-}while(0)
-#define CHFS_UNLOCK(chfs_md, location)     do{\
-    sys_log(LOGSTDOUT, "[DEBUG] CHFS_UNLOCK: CHFS_CRWLOCK %p, at %s:%ld\n", CHFS_CRWLOCK(chfs_md), MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));\
-    croutine_rwlock_unlock(CHFS_CRWLOCK(chfs_md), location);\
-}while(0)
-#endif
-
-#if 1
-#define CHFS_INIT_LOCK(chfs_md, location)  (croutine_rwlock_init(CHFS_CRWLOCK(chfs_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CHFS_CLEAN_LOCK(chfs_md, location) (croutine_rwlock_clean(CHFS_CRWLOCK(chfs_md), location))
-
-#define CHFS_RDLOCK(chfs_md, location)     do{}while(0)
-#define CHFS_WRLOCK(chfs_md, location)     do{}while(0)
-#define CHFS_UNLOCK(chfs_md, location)     do{}while(0)
-#endif
-
-
-#if 1
-#define CHFS_LOCKED_FILES_INIT_LOCK(chfs_md, location)  (croutine_rwlock_init(CHFS_LOCKED_FILES_CRWLOCK(chfs_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CHFS_LOCKED_FILES_CLEAN_LOCK(chfs_md, location) (croutine_rwlock_clean(CHFS_LOCKED_FILES_CRWLOCK(chfs_md), location))
-
-#if 0
-#define CHFS_LOCKED_FILES_RDLOCK(chfs_md, location)     (croutine_rwlock_rdlock(CHFS_LOCKED_FILES_CRWLOCK(chfs_md), location))
-#define CHFS_LOCKED_FILES_WRLOCK(chfs_md, location)     (croutine_rwlock_wrlock(CHFS_LOCKED_FILES_CRWLOCK(chfs_md), location))
-#define CHFS_LOCKED_FILES_UNLOCK(chfs_md, location)     (croutine_rwlock_unlock(CHFS_LOCKED_FILES_CRWLOCK(chfs_md), location))
-#endif
-#if 1
-#define CHFS_LOCKED_FILES_RDLOCK(chfs_md, location)     do{}while(0)
-#define CHFS_LOCKED_FILES_WRLOCK(chfs_md, location)     do{}while(0)
-#define CHFS_LOCKED_FILES_UNLOCK(chfs_md, location)     do{}while(0)
-#endif
-
-#endif
-
 
 typedef struct
 {
