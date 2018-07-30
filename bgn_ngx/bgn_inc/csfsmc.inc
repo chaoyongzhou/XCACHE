@@ -50,8 +50,6 @@ typedef struct
     CSFSMCLIST        *mclist; /*mem NP item list: LRU */
 
     uint8_t           *mcache; /*mem cache*/
-
-    CROUTINE_RWLOCK    crwlock;
 }CSFSMC;
 
 #define CSFSMC_CSFS_MD_ID(csfsmc)  ((csfsmc)->csfs_md_id)
@@ -59,23 +57,6 @@ typedef struct
 #define CSFSMC_PGD(csfsmc)         ((csfsmc)->cpgd)
 #define CSFSMC_LIST(csfsmc)        ((csfsmc)->mclist)
 #define CSFSMC_MCACHE(csfsmc)      ((csfsmc)->mcache)
-#define CSFSMC_CRWLOCK(csfsmc)     (&((csfsmc)->crwlock))
-
-#define CSFSMC_INIT_LOCK(csfsmc, location)  (croutine_rwlock_init(CSFSMC_CRWLOCK(csfsmc), CMUTEX_PROCESS_PRIVATE, location))
-#define CSFSMC_CLEAN_LOCK(csfsmc, location) (croutine_rwlock_clean(CSFSMC_CRWLOCK(csfsmc), location))
-
-#if 0
-#define CSFSMC_RDLOCK(csfsmc, location)     (croutine_rwlock_rdlock(CSFSMC_CRWLOCK(csfsmc), location))
-#define CSFSMC_WRLOCK(csfsmc, location)     (croutine_rwlock_wrlock(CSFSMC_CRWLOCK(csfsmc), location))
-#define CSFSMC_UNLOCK(csfsmc, location)     (croutine_rwlock_unlock(CSFSMC_CRWLOCK(csfsmc), location))
-#endif
-
-#if 1
-#define CSFSMC_RDLOCK(csfsmc, location)     do{}while(0)
-#define CSFSMC_WRLOCK(csfsmc, location)     do{}while(0)
-#define CSFSMC_UNLOCK(csfsmc, location)     do{}while(0)
-#endif
-
 
 #endif/* _CSFSMC_INC */
 
