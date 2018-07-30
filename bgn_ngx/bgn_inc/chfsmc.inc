@@ -50,8 +50,6 @@ typedef struct
     CHFSMCLIST        *mclist; /*mem NP item list: LRU */
 
     uint8_t           *mcache; /*mem cache*/
-
-    CROUTINE_RWLOCK    crwlock;
 }CHFSMC;
 
 #define CHFSMC_CHFS_MD_ID(chfsmc)  ((chfsmc)->chfs_md_id)
@@ -59,22 +57,6 @@ typedef struct
 #define CHFSMC_PGD(chfsmc)         ((chfsmc)->cpgd)
 #define CHFSMC_LIST(chfsmc)        ((chfsmc)->mclist)
 #define CHFSMC_MCACHE(chfsmc)      ((chfsmc)->mcache)
-#define CHFSMC_CRWLOCK(chfsmc)     (&((chfsmc)->crwlock))
-
-#define CHFSMC_INIT_LOCK(chfsmc, location)  (croutine_rwlock_init(CHFSMC_CRWLOCK(chfsmc), CMUTEX_PROCESS_PRIVATE, location))
-#define CHFSMC_CLEAN_LOCK(chfsmc, location) (croutine_rwlock_clean(CHFSMC_CRWLOCK(chfsmc), location))
-
-#if 0
-#define CHFSMC_RDLOCK(chfsmc, location)     (croutine_rwlock_rdlock(CHFSMC_CRWLOCK(chfsmc), location))
-#define CHFSMC_WRLOCK(chfsmc, location)     (croutine_rwlock_wrlock(CHFSMC_CRWLOCK(chfsmc), location))
-#define CHFSMC_UNLOCK(chfsmc, location)     (croutine_rwlock_unlock(CHFSMC_CRWLOCK(chfsmc), location))
-#endif
-
-#if 1
-#define CHFSMC_RDLOCK(chfsmc, location)     do{}while(0)
-#define CHFSMC_WRLOCK(chfsmc, location)     do{}while(0)
-#define CHFSMC_UNLOCK(chfsmc, location)     do{}while(0)
-#endif
 
 
 #endif/* _CHFSMC_INC */

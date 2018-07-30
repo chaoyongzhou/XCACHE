@@ -115,8 +115,6 @@ EC_BOOL chfsmc_init(CHFSMC *chfsmc, const UINT32 chfs_md_id, const uint32_t np_i
     CHFSMC_PGD(chfsmc)        = cpgd;
     CHFSMC_LIST(chfsmc)       = mclist;
 
-    CHFSMC_INIT_LOCK(chfsmc, LOC_CHFSMC_0004);
-
     return (EC_TRUE);
 }
 
@@ -147,8 +145,6 @@ EC_BOOL chfsmc_clean(CHFSMC *chfsmc)
         safe_free(CHFSMC_MCACHE(chfsmc), LOC_CHFSMC_0005);
         CHFSMC_MCACHE(chfsmc) = NULL_PTR;
     }
-
-    CHFSMC_CLEAN_LOCK(chfsmc, LOC_CHFSMC_0006);
 
     return (EC_TRUE);
 }
@@ -418,18 +414,14 @@ EC_BOOL chfsmc_check_np(CHFSMC *chfsmc, const CSTRING *file_path)
     CHFSNP *chfsnp;
     uint32_t node_pos_t;
 
-    CHFSMC_RDLOCK(chfsmc, LOC_CHFSMC_0008);
-
     chfsnp = CHFSMC_NP(chfsmc);
     node_pos_t = chfsnp_search_no_lock(chfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path));
 
     if(CHFSNPRB_ERR_POS != node_pos_t) /* file is in memcache */
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0009);
         return (EC_TRUE);
     }
     /* file is NOT in memcache */
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0010);
     return (EC_FALSE);
 }
 
@@ -766,15 +758,12 @@ EC_BOOL chfsmc_recycle_no_lock(CHFSMC *chfsmc, const UINT32 max_num, UINT32 *com
 
 EC_BOOL chfsmc_write(CHFSMC *chfsmc, const CSTRING *file_path, const CBYTES *cbytes )
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0015);
     if(EC_FALSE == chfsmc_write_no_lock(chfsmc, file_path, cbytes ))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0016);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_write: write %s with %ld bytes failed\n",
                            (char *)cstring_get_str(file_path), cbytes_len(cbytes));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0017);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_write: write %s with %ld bytes done\n",
                        (char *)cstring_get_str(file_path), cbytes_len(cbytes));
@@ -784,15 +773,12 @@ EC_BOOL chfsmc_write(CHFSMC *chfsmc, const CSTRING *file_path, const CBYTES *cby
 
 EC_BOOL chfsmc_read(CHFSMC *chfsmc, const CSTRING *file_path, CBYTES *cbytes)
 {
-    CHFSMC_RDLOCK(chfsmc, LOC_CHFSMC_0018);
     if(EC_FALSE == chfsmc_read_no_lock(chfsmc, file_path, cbytes))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0019);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_read: read %s failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0020);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_read: read %s with %ld bytes done\n",
                        (char *)cstring_get_str(file_path), cbytes_len(cbytes));
@@ -802,15 +788,12 @@ EC_BOOL chfsmc_read(CHFSMC *chfsmc, const CSTRING *file_path, CBYTES *cbytes)
 
 EC_BOOL chfsmc_read_e(CHFSMC *chfsmc, const CSTRING *file_path, UINT32 *store_offset, const UINT32 store_size, CBYTES *cbytes)
 {
-    CHFSMC_RDLOCK(chfsmc, LOC_CHFSMC_0021);
     if(EC_FALSE == chfsmc_read_e_no_lock(chfsmc, file_path, store_offset, store_size, cbytes))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0022);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_read_e: read %s failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0023);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_read_e: read %s with %ld bytes done\n",
                        (char *)cstring_get_str(file_path), cbytes_len(cbytes));
@@ -820,15 +803,12 @@ EC_BOOL chfsmc_read_e(CHFSMC *chfsmc, const CSTRING *file_path, UINT32 *store_of
 
 EC_BOOL chfsmc_file_size(CHFSMC *chfsmc, const CSTRING *file_path, uint64_t *file_size)
 {
-    CHFSMC_RDLOCK(chfsmc, LOC_CHFSMC_0024);
     if(EC_FALSE == chfsmc_file_size_no_lock(chfsmc, file_path, file_size))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0025);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_file_size: get size of file %s failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0026);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_file_size: get size of file %s done, file size = %"PRId64"\n",
                        (char *)cstring_get_str(file_path), (*file_size));
@@ -838,15 +818,12 @@ EC_BOOL chfsmc_file_size(CHFSMC *chfsmc, const CSTRING *file_path, uint64_t *fil
 
 EC_BOOL chfsmc_update(CHFSMC *chfsmc, const CSTRING *file_path, const CBYTES *cbytes )
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0027);
     if(EC_FALSE == chfsmc_update_no_lock(chfsmc, file_path, cbytes ))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0028);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_update: update %s failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0029);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_update: update %s done\n",
                        (char *)cstring_get_str(file_path));
@@ -856,15 +833,12 @@ EC_BOOL chfsmc_update(CHFSMC *chfsmc, const CSTRING *file_path, const CBYTES *cb
 
 EC_BOOL chfsmc_delete(CHFSMC *chfsmc, const CSTRING *file_path)
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0030);
     if(EC_FALSE == chfsmc_delete_no_lock(chfsmc, file_path))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0031);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_delete: delete %s failed\n",
                            (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0032);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_delete: delete %s done\n",
                        (char *)cstring_get_str(file_path));
@@ -874,14 +848,11 @@ EC_BOOL chfsmc_delete(CHFSMC *chfsmc, const CSTRING *file_path)
 
 EC_BOOL chfsmc_retire(CHFSMC *chfsmc)
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0033);
     if(EC_FALSE == chfsmc_retire_no_lock(chfsmc))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0034);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_retire: retire failed\n");
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0035);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_retire: retire done\n");
     return (EC_TRUE);
@@ -889,14 +860,11 @@ EC_BOOL chfsmc_retire(CHFSMC *chfsmc)
 
 EC_BOOL chfsmc_recycle(CHFSMC *chfsmc, const UINT32 max_num, UINT32 *complete_num)
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0036);
     if(EC_FALSE == chfsmc_recycle_no_lock(chfsmc, max_num, complete_num))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0037);
         dbg_log(SEC_0160_CHFSMC, 1)(LOGSTDOUT, "error:chfsmc_recycle: recycle failed\n");
         return (EC_FALSE);
     }
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0038);
 
     dbg_log(SEC_0160_CHFSMC, 9)(LOGSTDOUT, "[DEBUG] chfsmc_recycle: recycle done\n");
     return (EC_TRUE);
@@ -921,14 +889,11 @@ void chfsmc_print(LOG *log, const CHFSMC *chfsmc)
 
 EC_BOOL chfsmc_ensure_room_safe_level(CHFSMC *chfsmc)
 {
-    CHFSMC_WRLOCK(chfsmc, LOC_CHFSMC_0039);
     if(EC_FALSE == chfsmc_ensure_room_safe_level_no_lock(chfsmc))
     {
-        CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0040);
         return (EC_FALSE);
     }
 
-    CHFSMC_UNLOCK(chfsmc, LOC_CHFSMC_0041);
     return (EC_TRUE);
 }
 
