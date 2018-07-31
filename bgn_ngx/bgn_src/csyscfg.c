@@ -974,6 +974,8 @@ void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, "<rfsConfig");
         sys_print(log, " rfsNpRetireMaxNum=\"%ld\""      , CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
         sys_print(log, " rfsNpRecycleMaxNum=\"%ld\""     , CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
+        sys_print(log, " rfsNpCacheInMemSwitch=\"%s\""   , CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
+        sys_print(log, " rfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
     }

@@ -69,6 +69,8 @@ typedef struct
 
     UINT32    crfsnp_try_retire_max_num     ; /* CRFSNP_TRY_RETIRE_MAX_NUM */
     UINT32    crfsnp_try_recycle_max_num    ; /* CRFSNP_TRY_RECYCLE_MAX_NUM */
+    UINT32    crfsnp_cache_in_mem_switch    ; /* CRFSNP_CACHE_IN_MEM_SWITCH */
+    UINT32    crfsdn_cache_in_mem_switch    ; /* CRFSDN_CACHE_IN_MEM_SWITCH */
     
     uint16_t  rsvd03;
     uint16_t  crfsmon_conhash_replicas      ; /* CRFSMON_CONHASH_REPLICAS */
@@ -163,6 +165,8 @@ typedef struct
 
 #define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->crfsnp_try_retire_max_num)
 #define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->crfsnp_try_recycle_max_num)
+#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsnp_cache_in_mem_switch)
+#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsdn_cache_in_mem_switch)
 #define CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->crfsmon_conhash_switch)
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
@@ -207,6 +211,9 @@ typedef struct
 #define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)))
 
 #define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)))
+
+#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
@@ -324,6 +331,8 @@ typedef struct
 
 #define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
 #define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
+#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
+#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
@@ -409,6 +418,8 @@ typedef struct
 
 #define    CRFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM)
 #define    CRFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM)
+#define    CRFSNP_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH)
+#define    CRFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH)
 #define    CRFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_SWITCH)
 #define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
 #define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)

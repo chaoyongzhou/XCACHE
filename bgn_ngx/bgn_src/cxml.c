@@ -1142,6 +1142,9 @@ EC_BOOL cxml_parse_cparacfg_rfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"rfsNpRetireMaxNum" , &(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"rfsNpRecycleMaxNum", &(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
 
+    __cxml_parse_tag_switch(node, (const char *)"rfsNpCacheInMemSwitch", &(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"rfsDnCacheInMemSwitch", &(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)));
+    
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
     return (EC_TRUE);

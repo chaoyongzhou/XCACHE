@@ -1253,7 +1253,7 @@ EC_BOOL crfsnp_header_clean(CRFSNP_HEADER *crfsnp_header)
 
 CRFSNP_HEADER *crfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int fd)
 {
-    if(SWITCH_ON == CRFS_NP_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSNP_CACHE_IN_MEM_SWITCH)
     {
         return __crfsnp_header_load(np_id, fsize, fd);
     }
@@ -1263,7 +1263,7 @@ CRFSNP_HEADER *crfsnp_header_open(const uint32_t np_id, const UINT32 fsize, int 
 
 CRFSNP_HEADER *crfsnp_header_clone(CRFSNP_HEADER *src_crfsnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
 {
-    if(SWITCH_ON == CRFS_NP_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSNP_CACHE_IN_MEM_SWITCH)
     {
         return __crfsnp_header_dup(src_crfsnp_header, des_np_id, fsize, fd);
     }
@@ -1274,7 +1274,7 @@ CRFSNP_HEADER *crfsnp_header_clone(CRFSNP_HEADER *src_crfsnp_header, const uint3
 
 CRFSNP_HEADER *crfsnp_header_create(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
 {
-    if(SWITCH_ON == CRFS_NP_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSNP_CACHE_IN_MEM_SWITCH)
     {
         return __crfsnp_header_new(np_id, fsize, fd, np_model);
     }
@@ -1284,7 +1284,7 @@ CRFSNP_HEADER *crfsnp_header_create(const uint32_t np_id, const UINT32 fsize, in
 
 CRFSNP_HEADER *crfsnp_header_sync(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
-    if(SWITCH_ON == CRFS_NP_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSNP_CACHE_IN_MEM_SWITCH)
     {
         return __crfsnp_header_flush(crfsnp_header, np_id, fsize, fd);
     }
@@ -1294,7 +1294,7 @@ CRFSNP_HEADER *crfsnp_header_sync(CRFSNP_HEADER *crfsnp_header, const uint32_t n
 
 CRFSNP_HEADER *crfsnp_header_close(CRFSNP_HEADER *crfsnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
-    if(SWITCH_ON == CRFS_NP_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSNP_CACHE_IN_MEM_SWITCH)
     {
         return __crfsnp_header_free(crfsnp_header, np_id, fsize, fd);
     }

@@ -22,6 +22,8 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 
+#include "task.h"
+
 #include "cmisc.h"
 #include "real.h"
 
@@ -284,7 +286,7 @@ STATIC_CAST static CPGV_HDR *__cpgv_hdr_open(CPGV *cpgv)
 
 CPGV_HDR *cpgv_hdr_open(CPGV *cpgv)
 {
-    if(SWITCH_ON == CRFS_DN_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSDN_CACHE_IN_MEM_SWITCH)
     {
         return __cpgv_hdr_load(cpgv);
     }
@@ -316,7 +318,7 @@ STATIC_CAST static EC_BOOL __cpgv_hdr_close(CPGV *cpgv)
 
 EC_BOOL cpgv_hdr_close(CPGV *cpgv)
 {
-    if(SWITCH_ON == CRFS_DN_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSDN_CACHE_IN_MEM_SWITCH)
     {
         return __cpgv_hdr_free(cpgv);
     }
@@ -340,7 +342,7 @@ STATIC_CAST static EC_BOOL __cpgv_hdr_sync(CPGV *cpgv)
 
 EC_BOOL cpgv_hdr_sync(CPGV *cpgv)
 {
-    if(SWITCH_ON == CRFS_DN_CACHE_IN_MEM)
+    if(SWITCH_ON == CRFSDN_CACHE_IN_MEM_SWITCH)
     {
         return __cpgv_hdr_flush(cpgv);
     }
