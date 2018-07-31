@@ -81,7 +81,7 @@ void cdfs_print_module_status(const UINT32 cdfs_md_id, LOG *log)
 **/
 UINT32 cdfs_free_module_static_mem(const UINT32 cdfs_md_id)
 {
-    CDFS_MD  *cdfs_md;
+    //CDFS_MD  *cdfs_md;
 
 #if ( SWITCH_ON == CDFS_DEBUG_SWITCH )
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
@@ -94,7 +94,7 @@ UINT32 cdfs_free_module_static_mem(const UINT32 cdfs_md_id)
     }
 #endif/*CDFS_DEBUG_SWITCH*/
 
-    cdfs_md = CDFS_MD_GET(cdfs_md_id);
+    //cdfs_md = CDFS_MD_GET(cdfs_md_id);
 
     free_module_static_mem(MD_CDFS, cdfs_md_id);
 
@@ -779,7 +779,7 @@ EC_BOOL cdfs_collect_all_tcid_vec(const UINT32 cdfs_md_id, CVECTOR *cdfs_all_tci
 **/
 EC_BOOL cdfs_create_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnp_mode, const UINT32 cdfsnp_disk_max_num, const UINT32 cdfsnp_support_max_num, const UINT32 cdfsnp_first_chash_algo_id, const UINT32 cdfsnp_second_chash_algo_id, const CSTRING *cdfsnp_db_root_dir)
 {
-    CDFS_MD *cdfs_md;
+    //CDFS_MD *cdfs_md;
 
 #if ( SWITCH_ON == CDFS_DEBUG_SWITCH )
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
@@ -791,7 +791,7 @@ EC_BOOL cdfs_create_npp(const UINT32 cdfs_md_id, const UINT32 cdfsnp_mode, const
     }
 #endif/*CDFS_DEBUG_SWITCH*/
 
-    cdfs_md = CDFS_MD_GET(cdfs_md_id);
+    //cdfs_md = CDFS_MD_GET(cdfs_md_id);
 
     return cdfsnp_mgr_create(cdfsnp_mode, cdfsnp_disk_max_num, cdfsnp_support_max_num, cdfsnp_first_chash_algo_id, cdfsnp_second_chash_algo_id, cdfsnp_db_root_dir);
 }
@@ -1609,7 +1609,7 @@ void cdfs_lost_replica_log(const UINT32 cdfs_md_id, const CSTRING *file_path, co
 **/
 EC_BOOL cdfs_create_dn(const UINT32 cdfs_md_id, const CSTRING *root_dir, const UINT32 disk_num, const UINT32 max_gb_num_of_disk_space)
 {
-    CDFS_MD   *cdfs_md;
+    //CDFS_MD   *cdfs_md;
 
 #if ( SWITCH_ON == CDFS_DEBUG_SWITCH )
     if ( CDFS_MD_ID_CHECK_INVALID(cdfs_md_id) )
@@ -1621,7 +1621,7 @@ EC_BOOL cdfs_create_dn(const UINT32 cdfs_md_id, const CSTRING *root_dir, const U
     }
 #endif/*CDFS_DEBUG_SWITCH*/
 
-    cdfs_md = CDFS_MD_GET(cdfs_md_id);
+    //cdfs_md = CDFS_MD_GET(cdfs_md_id);
 
     return cdfsdn_create((char *)cstring_get_str(root_dir), disk_num, max_gb_num_of_disk_space);
 }
@@ -2592,7 +2592,7 @@ EC_BOOL cdfs_read_dn_p_with_tcid_filter(const UINT32 cdfs_md_id, const CVECTOR *
 **/
 EC_BOOL cdfs_read_dn_p(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode, CBYTES *cbytes)
 {
-    CDFS_MD *cdfs_md;
+    //CDFS_MD *cdfs_md;
 
     CVECTOR  *cdfsdn_tcid_vec;
 
@@ -2608,7 +2608,7 @@ EC_BOOL cdfs_read_dn_p(const UINT32 cdfs_md_id, const CDFSNP_FNODE *cdfsnp_fnode
     }
 #endif/*CDFS_DEBUG_SWITCH*/
 
-    cdfs_md = CDFS_MD_GET(cdfs_md_id);
+    //cdfs_md = CDFS_MD_GET(cdfs_md_id);
 
     cdfsdn_tcid_vec = cvector_new(0, MM_UINT32, LOC_CDFS_0032);
 

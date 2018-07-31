@@ -680,8 +680,6 @@ void clist_print_plain(LOG *log, const CLIST *clist, void (*print)(LOG *, const 
     CLIST_DATA *clist_data;
     void *data;
 
-    UINT32 pos;
-
     CLIST_LOCK(clist, LOC_CLIST_0068);
     if(EC_TRUE == CLIST_IS_EMPTY(clist))
     {
@@ -689,7 +687,6 @@ void clist_print_plain(LOG *log, const CLIST *clist, void (*print)(LOG *, const 
         return;
     }
 
-    pos = 0;
     CLIST_LOOP_NEXT(clist, clist_data)
     {
         data = CLIST_DATA_DATA(clist_data);
@@ -708,8 +705,6 @@ void clist_print_plain_level(LOG *log, const CLIST *clist, const UINT32 level, v
     CLIST_DATA *clist_data;
     void *data;
 
-    UINT32 pos;
-
     CLIST_LOCK(clist, LOC_CLIST_0071);
     if(EC_TRUE == CLIST_IS_EMPTY(clist))
     {
@@ -717,7 +712,6 @@ void clist_print_plain_level(LOG *log, const CLIST *clist, const UINT32 level, v
         return;
     }
 
-    pos = 0;
     CLIST_LOOP_NEXT(clist, clist_data)
     {
         data = CLIST_DATA_DATA(clist_data);

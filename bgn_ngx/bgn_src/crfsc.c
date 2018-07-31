@@ -118,7 +118,7 @@ void crfsc_print_module_status(const UINT32 crfsc_md_id, LOG *log)
 **/
 UINT32 crfsc_free_module_static_mem(const UINT32 crfsc_md_id)
 {
-    CRFSC_MD  *crfsc_md;
+    //CRFSC_MD  *crfsc_md;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
     if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
@@ -131,7 +131,7 @@ UINT32 crfsc_free_module_static_mem(const UINT32 crfsc_md_id)
     }
 #endif/*CRFSC_DEBUG_SWITCH*/
 
-    crfsc_md = CRFSC_MD_GET(crfsc_md_id);
+    //crfsc_md = CRFSC_MD_GET(crfsc_md_id);
 
     free_module_static_mem(MD_CRFSC, crfsc_md_id);
 
@@ -206,9 +206,9 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
     CRFSC_MD *crfsc_md;
     UINT32   crfsc_md_id;
 
-    TASK_BRD *task_brd;
+    //TASK_BRD *task_brd;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     crfsc_md_id = cbc_md_new(MD_CRFSC, sizeof(CRFSC_MD));
     if(CMPI_ERROR_MODI == crfsc_md_id)
@@ -224,7 +224,7 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
     init_static_mem();
 
     cstring_init(CRFSC_MD_ROOT_DIR(crfsc_md), cstring_get_str(crfs_root_dir));
-    cvector_init(CRFSC_MD_CRFS_VEC(crfsc_md), 0, MM_MOD_NODE, CVECTOR_LOCK_ENABLE, LOC_CRFSC_0001);
+    cvector_init(CRFSC_MD_CRFS_VEC(crfsc_md), 0, MM_MOD_NODE, CVECTOR_LOCK_DISABLE, LOC_CRFSC_0001);
 
     CRFSC_MD_DT_ACTIVE_FLAG(crfsc_md) = 0;
     crfsdt_init(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md));
@@ -266,8 +266,6 @@ UINT32 crfsc_start(const CSTRING *crfs_root_dir)
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsc_end, crfsc_md_id);
 
     dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_start: start CRFSC module #%ld\n", crfsc_md_id);
-
-    CRFSC_INIT_LOCK(crfsc_md, LOC_CRFSC_0004);
 
     if(SWITCH_ON == CRFSCHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
@@ -350,7 +348,6 @@ void crfsc_end(const UINT32 crfsc_md_id)
     //crfsc_free_module_static_mem(crfsc_md_id);
 
     crfsc_md->usedcounter = 0;
-    CRFSC_CLEAN_LOCK(crfsc_md, LOC_CRFSC_0006);
 
     dbg_log(SEC_0143_CRFSC, 5)(LOGSTDOUT, "crfsc_end: stop CRFSC module #%ld\n", crfsc_md_id);
     cbc_md_free(MD_CRFSC, crfsc_md_id);
@@ -385,7 +382,6 @@ STATIC_CAST static MOD_MGR *crfsc_make_mod_mgr_by_rnode_vec(const UINT32 crfsc_m
         return (NULL_PTR);
     }
 
-    CVECTOR_LOCK(crfsconhash_rnode_vec, LOC_CRFSC_0007);
     crfsconhash_rnode_num = cvector_size(crfsconhash_rnode_vec);
     for(crfsconhash_rnode_pos = 0; crfsconhash_rnode_pos < crfsconhash_rnode_num; crfsconhash_rnode_pos ++)
     {
@@ -399,7 +395,6 @@ STATIC_CAST static MOD_MGR *crfsc_make_mod_mgr_by_rnode_vec(const UINT32 crfsc_m
 
         mod_mgr_incl(CRFSCONHASH_RNODE_TCID(crfsconhash_rnode), CMPI_ANY_COMM, CMPI_CRFS_RANK, crfsc_md_id, mod_mgr);
     }
-    CVECTOR_UNLOCK(crfsconhash_rnode_vec, LOC_CRFSC_0008);
 
     return (mod_mgr);
 }
@@ -705,7 +700,7 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 **/
 EC_BOOL crfsc_find_file_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
 {
-    CRFSC_MD     *crfsc_md;
+    //CRFSC_MD     *crfsc_md;
     UINT32        crfs_md_id;
 
 #if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
@@ -718,7 +713,7 @@ EC_BOOL crfsc_find_file_ep(const UINT32 crfsc_md_id, const CSTRING *file_path)
     }
 #endif/*CRFSC_DEBUG_SWITCH*/
 
-    crfsc_md = CRFSC_MD_GET(crfsc_md_id);
+    //crfsc_md = CRFSC_MD_GET(crfsc_md_id);
 
     crfs_md_id = __crfsc_get_rfs_modi_of_file_path(crfsc_md_id, file_path);
     if(CMPI_ERROR_MODI == crfs_md_id)
@@ -2174,63 +2169,6 @@ EC_BOOL crfsc_write_r(const UINT32 crfsc_md_id, const CSTRING *file_path, const 
     return (result);
 }
 #endif
-EC_BOOL crfsc_rdlock(const UINT32 crfsc_md_id, const UINT32 location)
-{
-    CRFSC_MD *crfsc_md;
-
-#if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
-    if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfsc_rdlock: crfs module #0x%lx not started.\n",
-                crfsc_md_id);
-        dbg_exit(MD_CRFSC, crfsc_md_id);
-    }
-#endif/*CRFSC_DEBUG_SWITCH*/
-
-    crfsc_md = CRFSC_MD_GET(crfsc_md_id);
-    CRFSC_RDLOCK(crfsc_md, location);
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsc_wrlock(const UINT32 crfsc_md_id, const UINT32 location)
-{
-    CRFSC_MD *crfsc_md;
-
-#if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
-    if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfsc_wrlock: crfs module #0x%lx not started.\n",
-                crfsc_md_id);
-        dbg_exit(MD_CRFSC, crfsc_md_id);
-    }
-#endif/*CRFSC_DEBUG_SWITCH*/
-
-    crfsc_md = CRFSC_MD_GET(crfsc_md_id);
-    CRFSC_WRLOCK(crfsc_md, location);
-    return (EC_TRUE);
-}
-
-EC_BOOL crfsc_unlock(const UINT32 crfsc_md_id, const UINT32 location)
-{
-    CRFSC_MD *crfsc_md;
-
-#if ( SWITCH_ON == CRFSC_DEBUG_SWITCH )
-    if ( CRFSC_MD_ID_CHECK_INVALID(crfsc_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:crfsc_unlock: crfs module #0x%lx not started.\n",
-                crfsc_md_id);
-        dbg_exit(MD_CRFSC, crfsc_md_id);
-    }
-#endif/*CRFSC_DEBUG_SWITCH*/
-
-    crfsc_md = CRFSC_MD_GET(crfsc_md_id);
-    CRFSC_UNLOCK(crfsc_md, location);
-    return (EC_TRUE);
-}
-
 
 #ifdef __cplusplus
 }

@@ -86,7 +86,7 @@ void ctdns_print_module_status(const UINT32 ctdns_md_id, LOG *log)
 **/
 UINT32 ctdns_free_module_static_mem(const UINT32 ctdns_md_id)
 {
-    CTDNS_MD  *ctdns_md;
+    //CTDNS_MD  *ctdns_md;
 
 #if ( SWITCH_ON == CTDNS_DEBUG_SWITCH )
     if ( CTDNS_MD_ID_CHECK_INVALID(ctdns_md_id) )
@@ -99,7 +99,7 @@ UINT32 ctdns_free_module_static_mem(const UINT32 ctdns_md_id)
     }
 #endif/*CTDNS_DEBUG_SWITCH*/
 
-    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
 
     free_module_static_mem(MD_CTDNS, ctdns_md_id);
 
@@ -305,9 +305,9 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
     //ctdns_detect_loop(ctdns_md_id);
     if(1)
     {
-        CBTIMER_NODE *cbtimer_node;
+        //CBTIMER_NODE *cbtimer_node;
 
-        cbtimer_node = cbtimer_add(TASK_BRD_CBTIMER_LIST(task_brd_default_get()),
+        /*cbtimer_node = */cbtimer_add(TASK_BRD_CBTIMER_LIST(task_brd_default_get()),
                                    (UINT8 *)"CTDNS_DETECT_TASK",
                                    CBTIMER_NEVER_EXPIRE,
                                    CTDNS_NODE_DETECT_NSEC,
@@ -2406,7 +2406,7 @@ EC_BOOL ctdns_offline(const UINT32 ctdns_md_id, const UINT32 network, const UINT
 **/
 EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
 {
-    CTDNS_MD          *ctdns_md;
+    //CTDNS_MD          *ctdns_md;
 
     CHTTP_REQ         chttp_req;
     CHTTP_RSP         chttp_rsp;
@@ -2424,7 +2424,7 @@ EC_BOOL ctdns_refresh_local_cache(const UINT32 ctdns_md_id, const CSTRING *path)
     }
 #endif/*CTDNS_DEBUG_SWITCH*/
 
-    ctdns_md = CTDNS_MD_GET(ctdns_md_id);
+    //ctdns_md = CTDNS_MD_GET(ctdns_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -2550,7 +2550,7 @@ EC_BOOL ctdns_refresh_cache(const UINT32 ctdns_md_id, const UINT32 network, cons
 
 STATIC_CAST static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, const CSTRING *service_name, CTDNSSV_NODE_MGR *ctdnssv_node_mgr)
 {
-    UINT32            max_num;
+    //UINT32            max_num;
 
     TASK_BRD         *task_brd;
     TASK_MGR         *task_mgr;
@@ -2563,7 +2563,7 @@ STATIC_CAST static EC_BOOL __ctdns_detect_service(const UINT32 ctdns_md_id, cons
     CVECTOR          *ret_vec;
     UINT32            ret_pos;
 
-    max_num  = (UINT32)(~(UINT32)0);
+    //max_num  = (UINT32)(~(UINT32)0);
 
     ret_vec = cvector_new(0, MM_UINT32, LOC_CTDNS_0006);
     if(NULL_PTR == ret_vec)

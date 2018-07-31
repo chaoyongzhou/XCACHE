@@ -85,7 +85,7 @@ void csfs_print_module_status(const UINT32 csfs_md_id, LOG *log)
 **/
 UINT32 csfs_free_module_static_mem(const UINT32 csfs_md_id)
 {
-    CSFS_MD  *csfs_md;
+    //CSFS_MD  *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -98,7 +98,7 @@ UINT32 csfs_free_module_static_mem(const UINT32 csfs_md_id)
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     free_module_static_mem(MD_CSFS, csfs_md_id);
 
@@ -115,10 +115,10 @@ UINT32 csfs_start(const CSTRING *csfsnp_root_basedir, const CSTRING *csfsdn_root
     CSFS_MD *csfs_md;
     UINT32   csfs_md_id;
 
-    TASK_BRD *task_brd;
+    //TASK_BRD *task_brd;
     EC_BOOL   ret;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CSFS    , 32);
 
@@ -398,7 +398,7 @@ void csfs_end(const UINT32 csfs_md_id)
 
 EC_BOOL csfs_flush(const UINT32 csfs_md_id)
 {
-    CSFS_MD  *csfs_md;
+    //CSFS_MD  *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -411,7 +411,7 @@ EC_BOOL csfs_flush(const UINT32 csfs_md_id)
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     if(EC_FALSE == csfs_flush_npp(csfs_md_id))
     {
@@ -1213,7 +1213,7 @@ EC_BOOL csfs_write(const UINT32 csfs_md_id, const CSTRING *file_path, const CBYT
 **/
 EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
     CSFSNP_FNODE  csfsnp_fnode;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
@@ -1228,7 +1228,7 @@ EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     csfsnp_fnode_init(&csfsnp_fnode);
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     if(EC_FALSE == csfs_read_npp(csfs_md_id, file_path, &csfsnp_fnode))
     {
@@ -1262,7 +1262,7 @@ EC_BOOL csfs_read(const UINT32 csfs_md_id, const CSTRING *file_path, CBYTES *cby
 **/
 EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
     CSFSNP_FNODE  csfsnp_fnode;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
@@ -1275,7 +1275,7 @@ EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *o
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     csfsnp_fnode_init(&csfsnp_fnode);
 #if 0
@@ -1332,7 +1332,7 @@ EC_BOOL csfs_read_e(const UINT32 csfs_md_id, const CSTRING *file_path, UINT32 *o
 **/
 EC_BOOL csfs_update(const UINT32 csfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -1344,7 +1344,7 @@ EC_BOOL csfs_update(const UINT32 csfs_md_id, const CSTRING *file_path, const CBY
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 #if 0
     if(SWITCH_ON == CSFS_MEMC_SWITCH)
     {
@@ -1367,7 +1367,7 @@ EC_BOOL csfs_update(const UINT32 csfs_md_id, const CSTRING *file_path, const CBY
 
 EC_BOOL csfs_update_no_lock(const UINT32 csfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -1379,7 +1379,7 @@ EC_BOOL csfs_update_no_lock(const UINT32 csfs_md_id, const CSTRING *file_path, c
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     if(EC_FALSE == csfs_read_npp(csfs_md_id, file_path, NULL_PTR))
     {
@@ -1910,7 +1910,7 @@ EC_BOOL csfs_wait_file_owner_push(CSFS_WAIT_FILE *csfs_wait_file, const UINT32 t
 **/
 EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
 {
-    CSFS_MD     *csfs_md;
+    //CSFS_MD     *csfs_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -1926,7 +1926,7 @@ EC_BOOL csfs_wait_file_owner_wakeup (const UINT32 csfs_md_id, const UINT32 store
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -2591,7 +2591,7 @@ STATIC_CAST static EC_BOOL __csfs_file_lock(const UINT32 csfs_md_id, const UINT3
 
 EC_BOOL csfs_file_lock(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -2607,7 +2607,7 @@ EC_BOOL csfs_file_lock(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     cbytes_init(&token_cbyte);
 
@@ -2699,7 +2699,7 @@ STATIC_CAST static EC_BOOL __csfs_file_unlock(const UINT32 csfs_md_id, const CST
 
 EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, const CSTRING *token_str)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -2715,7 +2715,7 @@ EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, cons
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
     cbytes_mount(&token_cbyte, auth_token_len, auth_token);
@@ -2749,7 +2749,7 @@ EC_BOOL csfs_file_unlock(const UINT32 csfs_md_id, const CSTRING *file_path, cons
 **/
 EC_BOOL csfs_file_unlock_notify(const UINT32 csfs_md_id, const CSTRING *file_path)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -2761,7 +2761,7 @@ EC_BOOL csfs_file_unlock_notify(const UINT32 csfs_md_id, const CSTRING *file_pat
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_file_unlock_notify: obsolete interface!!!!\n");
 
@@ -2775,7 +2775,7 @@ EC_BOOL csfs_file_unlock_notify(const UINT32 csfs_md_id, const CSTRING *file_pat
 **/
 EC_BOOL csfs_cache_file(const UINT32 csfs_md_id, const CSTRING *path)
 {
-    CSFS_MD      *csfs_md;
+    //CSFS_MD      *csfs_md;
 
 #if ( SWITCH_ON == CSFS_DEBUG_SWITCH )
     if ( CSFS_MD_ID_CHECK_INVALID(csfs_md_id) )
@@ -2787,7 +2787,7 @@ EC_BOOL csfs_cache_file(const UINT32 csfs_md_id, const CSTRING *path)
     }
 #endif/*CSFS_DEBUG_SWITCH*/
 
-    csfs_md = CSFS_MD_GET(csfs_md_id);
+    //csfs_md = CSFS_MD_GET(csfs_md_id);
 
     if(SWITCH_ON == CSFS_MEMC_SWITCH)
     {
@@ -3109,7 +3109,7 @@ EC_BOOL csfs_export_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, const CSFS
 
     UINT32   offset;
     UINT32   data_len;
-    uint32_t size;
+    //uint32_t size;
 
     uint16_t disk_no;
     uint16_t block_no;
@@ -3142,7 +3142,7 @@ EC_BOOL csfs_export_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, const CSFS
         return (EC_FALSE);
     }
 
-    size = (uint32_t)data_len;
+    //size = (uint32_t)data_len;
 
     csfsnp_inode = CSFSNP_FNODE_INODE(csfsnp_fnode, 0);
     disk_no  = CSFSNP_INODE_DISK_NO(csfsnp_inode) ;

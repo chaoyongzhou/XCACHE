@@ -803,7 +803,7 @@ EC_BOOL chttps_node_wait_resume(CHTTPS_NODE *chttps_node)
     if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
     {
         CSOCKET_CNODE *csocket_cnode;
-        CSRV          *csrv;
+        //CSRV          *csrv;
 
         csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
         if(NULL_PTR == csocket_cnode)
@@ -816,7 +816,7 @@ EC_BOOL chttps_node_wait_resume(CHTTPS_NODE *chttps_node)
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
         CSOCKET_CNODE_PENDING(csocket_cnode) = BIT_TRUE;
 
-        csrv = (CSRV *)CHTTPS_NODE_CSRV(chttps_node);
+        //csrv = (CSRV *)CHTTPS_NODE_CSRV(chttps_node);
 
         cepoll_set_event(task_brd_default_get_cepoll(),
                           CSOCKET_CNODE_SOCKFD(csocket_cnode),

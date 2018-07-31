@@ -116,11 +116,11 @@ UINT32 crefresh_start(ngx_http_request_t *r)
     CREFRESH_MD *crefresh_md;
     UINT32      crefresh_md_id;
 
-    TASK_BRD   *task_brd;
+    //TASK_BRD   *task_brd;
 
     uint32_t    cache_seg_size;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     crefresh_md_id = cbc_md_new(MD_CREFRESH, sizeof(CREFRESH_MD));
     if(CMPI_ERROR_MODI == crefresh_md_id)
@@ -328,7 +328,7 @@ EC_BOOL crefresh_parse_cache_path_list(const UINT32 crefresh_md_id, CBYTES *cbyt
 {
     CREFRESH_MD                  *crefresh_md;
 
-    ngx_http_request_t           *r;
+    //ngx_http_request_t           *r;
     CJSON_OBJ                    *body_obj;
 
     CJSON_OBJ                    *path_objs;
@@ -348,7 +348,7 @@ EC_BOOL crefresh_parse_cache_path_list(const UINT32 crefresh_md_id, CBYTES *cbyt
 
     crefresh_md = CREFRESH_MD_GET(crefresh_md_id);
 
-    r = CREFRESH_MD_NGX_HTTP_REQ(crefresh_md);
+    //r = CREFRESH_MD_NGX_HTTP_REQ(crefresh_md);
 
     body_obj = json_tokener_parse((const char *)CBYTES_BUF(cbytes));
     if(NULL_PTR == body_obj)

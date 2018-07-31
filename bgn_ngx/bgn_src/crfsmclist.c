@@ -373,8 +373,8 @@ EC_BOOL crfsmclist_init(CRFSMCLIST *crfsmclist, const uint32_t max_num)
 
     for(node_pos = 0; node_pos < max_num; node_pos ++)
     {
-        CRFSMCLIST_NODE *node;
-        node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
+        //CRFSMCLIST_NODE *node;
+        //node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
 
         crfsmclist_node_init(crfsmclist, node_pos);
     }
@@ -402,8 +402,8 @@ EC_BOOL crfsmclist_clean(CRFSMCLIST *crfsmclist)
 
     for(node_pos = 0; node_pos < CRFSMCLIST_NODE_MAX_NUM(crfsmclist); node_pos ++)
     {
-        CRFSMCLIST_NODE *node;
-        node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
+        //CRFSMCLIST_NODE *node;
+        //node = CRFSMCLIST_FETCH_NODE(crfsmclist, node_pos);
 
         crfsmclist_node_clean(crfsmclist, node_pos);
     }

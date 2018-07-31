@@ -530,12 +530,12 @@ EC_BOOL cpgb_free(CPGB *cpgb)
 /*add one free page into pool and set page model bitmap*/
 EC_BOOL cpgb_add_page(CPGB *cpgb, const uint16_t page_model, const uint16_t page_no)
 {
-    uint8_t *pgc_cpgrb_bitmap;
+    //uint8_t *pgc_cpgrb_bitmap;
     uint16_t page_no_max;
 
     CPGB_ASSERT(CPGB_MODEL_NUM > page_model);
 
-    pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
+    //pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
 
     page_no_max = (uint16_t)(1 << page_model);
     if(page_no >= page_no_max)
@@ -569,12 +569,12 @@ EC_BOOL cpgb_add_page(CPGB *cpgb, const uint16_t page_model, const uint16_t page
 /*del one free page from pool and clear page model bitmap, i.e., del one page from pool and used it later*/
 EC_BOOL cpgb_del_page(CPGB *cpgb, const uint16_t page_model, const uint16_t page_no)
 {
-    uint8_t *pgc_cpgrb_bitmap;
+    //uint8_t *pgc_cpgrb_bitmap;
     uint16_t page_no_max;
 
     CPGB_ASSERT(CPGB_MODEL_NUM > page_model);
 
-    pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
+    //pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
 
     page_no_max = (uint16_t)(1 << page_model);
 
@@ -695,14 +695,14 @@ uint16_t cpgb_assign_page(CPGB *cpgb, const uint16_t page_model)
 
 EC_BOOL cpgb_recycle_page(CPGB *cpgb, const uint16_t page_model, const uint16_t page_no)
 {
-    uint8_t *pgc_cpgrb_bitmap;
+    //uint8_t *pgc_cpgrb_bitmap;
     uint16_t page_no_max;
     uint16_t page_no_t;
     uint16_t page_model_t;
 
     CPGB_ASSERT(CPGB_MODEL_NUM > page_model);
 
-    pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
+    //pgc_cpgrb_bitmap = CPGB_PAGE_MODEL_CPGRB_BITMAP(cpgb, page_model);
 
     page_no_max = (uint16_t)(1 << page_model);
     if(page_no >= page_no_max)

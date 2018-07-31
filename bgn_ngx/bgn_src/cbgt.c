@@ -450,7 +450,7 @@ STATIC_CAST static int __cbgt_make_open_flags(const UINT32 open_flags)
 
 STATIC_CAST static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key)
 {
-    uint16_t klen;
+    //uint16_t klen;
     uint16_t rlen;
     uint16_t cqlen;
     uint8_t  cflen;
@@ -461,7 +461,7 @@ STATIC_CAST static void __cbgt_print_user_table_key(LOG *log, const uint8_t *key
     const uint8_t *colq;
     ctime_t  ts;
 
-    klen  = keyGetkLenHs(key);
+    //klen  = keyGetkLenHs(key);
     rlen  = keyGetrLenHs(key);
     cflen = keyGetcfLenHs(key);
     cqlen = keyGetcqLenHs(key);
@@ -523,8 +523,8 @@ STATIC_CAST static void __cbgt_print_user_table_kv(LOG *log, const CBTREE *cbtre
 
 STATIC_CAST static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key)
 {
-    uint16_t klen;
-    uint16_t rlen;
+    //uint16_t klen;
+    //uint16_t rlen;
     uint16_t cqlen;
     uint8_t  cflen;
     uint8_t  type;
@@ -537,8 +537,8 @@ STATIC_CAST static void __cbgt_print_colf_table_key(LOG *log, const uint8_t *key
     uint8_t *start_user_rowkey;
     uint8_t *end_user_rowkey;
 
-    klen  = keyGetkLenHs(key);
-    rlen  = keyGetrLenHs(key);
+    //klen  = keyGetkLenHs(key);
+    //rlen  = keyGetrLenHs(key);
     cflen = keyGetcfLenHs(key);
     cqlen = keyGetcqLenHs(key);
 
@@ -1709,7 +1709,7 @@ void cbgt_print_module_status(const UINT32 cbgt_md_id, LOG *log)
 **/
 UINT32 cbgt_free_module_static_mem(const UINT32 cbgt_md_id)
 {
-    CBGT_MD  *cbgt_md;
+    //CBGT_MD  *cbgt_md;
 
 #if ( SWITCH_ON == CBGT_DEBUG_SWITCH )
     if ( CBGT_MD_ID_CHECK_INVALID(cbgt_md_id) )
@@ -1722,7 +1722,7 @@ UINT32 cbgt_free_module_static_mem(const UINT32 cbgt_md_id)
     }
 #endif/*CBGT_DEBUG_SWITCH*/
 
-    cbgt_md = CBGT_MD_GET(cbgt_md_id);
+    //cbgt_md = CBGT_MD_GET(cbgt_md_id);
 
     free_module_static_mem(MD_CBGT, cbgt_md_id);
 
@@ -5442,7 +5442,6 @@ STATIC_CAST static EC_BOOL __cbgt_get_table_and_key_no_lock(const UINT32 cbgt_md
     const uint8_t *_kv;
     const uint8_t *_key;
     const uint8_t *value;
-    uint32_t vlen;
 
     uint32_t counter;
 
@@ -5471,19 +5470,13 @@ STATIC_CAST static EC_BOOL __cbgt_get_table_and_key_no_lock(const UINT32 cbgt_md
     _key = _kv;
 
     value = kvGetValueHs(_kv);
-    vlen  = kvGetvLenHs(_kv);
     cbytes_set(key_bytes, _key, keyGettLenHs(_key));
 
     counter = 0;
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     (*table_id) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_TCID(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_COMM(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_RANK(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_MODI(mod_node) = gdbGetWord(value, &counter);
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_table_and_key_no_lock: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
@@ -5501,7 +5494,6 @@ STATIC_CAST static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTE
 
     const uint8_t *kv;
     const uint8_t *value;
-    uint32_t vlen;
 
     uint32_t counter;
 
@@ -5542,19 +5534,13 @@ STATIC_CAST static EC_BOOL __cbgt_get_table(const UINT32 cbgt_md_id, const CBYTE
     kv = CBTREE_KEY_LATEST(cbtree_key);
 
     value = kvGetValueHs(kv);
-    vlen  = kvGetvLenHs(kv);
     CBGT_MD_CRWLOCK_TABLE_UNLOCK(cbgt_md, LOC_CBGT_0176);
 
     counter = 0;
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     (*table_id) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_TCID(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_COMM(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_RANK(mod_node) = gdbGetWord(value, &counter);
-    CBGT_ASSERT(counter + sizeof(word_t) <= vlen);
     MOD_NODE_MODI(mod_node) = gdbGetWord(value, &counter);
 #if 0
     dbg_log(SEC_0054_CBGT, 9)(LOGSTDOUT, "[DEBUG] __cbgt_get_table: tabel %ld (tcid %s, comm %ld, rank %ld, modi %ld)\n",
@@ -5746,7 +5732,7 @@ STATIC_CAST static EC_BOOL __cbgt_get_user_table(const UINT32 cbgt_md_id, const 
 EC_BOOL cbgt_get_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *colf, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
-    MOD_NODE   *parent;
+    //MOD_NODE   *parent;
 
     UINT32      meta_table_id;
     MOD_NODE    meta_mod_node;
@@ -5765,7 +5751,7 @@ EC_BOOL cbgt_get_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    parent  = CBGT_MD_PARENT_MOD(cbgt_md);
+    //parent  = CBGT_MD_PARENT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0181);
 
 #if 0
@@ -5838,7 +5824,7 @@ EC_BOOL cbgt_get_colf_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
 EC_BOOL cbgt_get_colf_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *colf, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
-    MOD_NODE   *parent;
+    //MOD_NODE   *parent;
 
     UINT32      colf_table_id;
     MOD_NODE    meta_mod_node;
@@ -5856,7 +5842,7 @@ EC_BOOL cbgt_get_colf_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *col
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    parent  = CBGT_MD_PARENT_MOD(cbgt_md);
+    //parent  = CBGT_MD_PARENT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0182);
 
     if(EC_FALSE == cbgt_is_meta_server(cbgt_md_id))
@@ -5898,7 +5884,7 @@ EC_BOOL cbgt_get_colf_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *col
 EC_BOOL cbgt_get_user_table_from_root(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
-    MOD_NODE   *parent;
+    //MOD_NODE   *parent;
 
     UINT32      meta_table_id;
     MOD_NODE    meta_mod_node;
@@ -5917,7 +5903,7 @@ EC_BOOL cbgt_get_user_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    parent  = CBGT_MD_PARENT_MOD(cbgt_md);
+    //parent  = CBGT_MD_PARENT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0183);
 #if 0
     if(EC_FALSE == cbgt_is_root_server(cbgt_md_id))
@@ -5999,7 +5985,7 @@ EC_BOOL cbgt_get_user_table_from_root(const UINT32 cbgt_md_id, const CBYTES *tab
 EC_BOOL cbgt_get_user_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
-    MOD_NODE   *parent;
+    //MOD_NODE   *parent;
 
     UINT32      colf_table_id;
     MOD_NODE    colf_mod_node;
@@ -6018,7 +6004,7 @@ EC_BOOL cbgt_get_user_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *row
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    parent  = CBGT_MD_PARENT_MOD(cbgt_md);
+    //parent  = CBGT_MD_PARENT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0184);
 
     if(EC_FALSE == cbgt_is_meta_server(cbgt_md_id))
@@ -6075,7 +6061,7 @@ EC_BOOL cbgt_get_user_table_from_meta(const UINT32 cbgt_md_id, const CBYTES *row
 EC_BOOL cbgt_get_user_table_from_colf(const UINT32 cbgt_md_id, const CBYTES *row, const CBYTES *colf, const CBYTES *colq, UINT32 *table_id, MOD_NODE *mod_node)
 {
     CBGT_MD    *cbgt_md;
-    MOD_NODE   *parent;
+    //MOD_NODE   *parent;
 
     UINT32      user_table_id;
     MOD_NODE    user_mod_node;
@@ -6094,7 +6080,7 @@ EC_BOOL cbgt_get_user_table_from_colf(const UINT32 cbgt_md_id, const CBYTES *row
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    parent  = CBGT_MD_PARENT_MOD(cbgt_md);
+    //parent  = CBGT_MD_PARENT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0185);
 
     if(EC_FALSE == cbgt_is_colf_server(cbgt_md_id))
@@ -7058,7 +7044,7 @@ EC_BOOL cbgt_report_closing(const UINT32 cbgt_md_id)
 {
     CBGT_MD    *cbgt_md;
     MOD_NODE   *parent;
-    CSTRING    *root_path;
+    //CSTRING    *root_path;
 
     UINT32      table_id;
     CBYTES     *table_name;
@@ -7078,7 +7064,7 @@ EC_BOOL cbgt_report_closing(const UINT32 cbgt_md_id)
 
     cbgt_md    = CBGT_MD_GET(cbgt_md_id);
     parent     = CBGT_MD_PARENT_MOD(cbgt_md);
-    root_path  = CBGT_MD_ROOT_PATH(cbgt_md);
+    //root_path  = CBGT_MD_ROOT_PATH(cbgt_md);
     table_id   = CBGT_MD_TABLE_ID(cbgt_md);
     table_name = CBGT_MD_TABLE_NAME(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0218);
@@ -8649,7 +8635,7 @@ EC_BOOL cbgt_insert(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 {
     CBGT_MD    *cbgt_md;
 
-    MOD_NODE   *root_mod_node;
+    //MOD_NODE   *root_mod_node;
     MOD_NODE    colf_mod_node;
 
     UINT32      colf_table_id;
@@ -8668,7 +8654,7 @@ EC_BOOL cbgt_insert(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
+    //root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0280);
 
     /*open colf table*/
@@ -8890,7 +8876,7 @@ EC_BOOL cbgt_search(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 {
     CBGT_MD    *cbgt_md;
 
-    MOD_NODE   *root_mod_node;
+    //MOD_NODE   *root_mod_node;
     MOD_NODE    user_mod_node;
 
     UINT32      user_table_id;
@@ -8910,7 +8896,7 @@ EC_BOOL cbgt_search(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
+    //root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0290);
 
     /*get user table*/
@@ -9034,7 +9020,7 @@ EC_BOOL cbgt_fetch0(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 {
     CBGT_MD    *cbgt_md;
 
-    MOD_NODE   *root_mod_node;
+    //MOD_NODE   *root_mod_node;
     //MOD_NODE    colf_mod_node;
     MOD_NODE    user_mod_node;
 
@@ -9057,7 +9043,7 @@ EC_BOOL cbgt_fetch0(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
+    //root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0296);
 
 #if 0
@@ -9131,7 +9117,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
 {
     CBGT_MD    *cbgt_md;
 
-    MOD_NODE   *root_mod_node;
+    //MOD_NODE   *root_mod_node;
     MOD_NODE    colf_mod_node;
     MOD_NODE    user_mod_node;
 
@@ -9154,7 +9140,7 @@ EC_BOOL __cbgt_fetch(const UINT32 cbgt_md_id, const CBYTES *table_name, const CB
 #endif/*CBGT_DEBUG_SWITCH*/
 
     cbgt_md = CBGT_MD_GET(cbgt_md_id);
-    root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
+    //root_mod_node = CBGT_MD_ROOT_MOD(cbgt_md);
     CBGT_MD_WAS_ACCESS(cbgt_md, LOC_CBGT_0297);
 
 #if 0
@@ -9539,7 +9525,7 @@ EC_BOOL cbgt_delete(const UINT32 cbgt_md_id, const CBYTES *table_name, const CBY
 
 STATIC_CAST static EC_BOOL __cbgt_cleanup_colf_table_one_kv(const UINT32 cbgt_md_id, const UINT8 *kv)
 {
-    CBGT_MD    *cbgt_md;
+    //CBGT_MD    *cbgt_md;
 
     MOD_NODE    user_mod_node;
     UINT32      user_table_id;
@@ -9547,7 +9533,7 @@ STATIC_CAST static EC_BOOL __cbgt_cleanup_colf_table_one_kv(const UINT32 cbgt_md
     const uint8_t    *value;
     uint32_t    counter;
 
-    cbgt_md = CBGT_MD_GET(cbgt_md_id);
+    //cbgt_md = CBGT_MD_GET(cbgt_md_id);
 
     value = kvGetValueHs(kv);
 

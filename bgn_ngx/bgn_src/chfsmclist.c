@@ -373,8 +373,8 @@ EC_BOOL chfsmclist_init(CHFSMCLIST *chfsmclist, const uint32_t max_num)
 
     for(node_pos = 0; node_pos < max_num; node_pos ++)
     {
-        CHFSMCLIST_NODE *node;
-        node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
+        //CHFSMCLIST_NODE *node;
+        //node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
 
         chfsmclist_node_init(chfsmclist, node_pos);
     }
@@ -402,8 +402,8 @@ EC_BOOL chfsmclist_clean(CHFSMCLIST *chfsmclist)
 
     for(node_pos = 0; node_pos < CHFSMCLIST_NODE_MAX_NUM(chfsmclist); node_pos ++)
     {
-        CHFSMCLIST_NODE *node;
-        node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
+        //CHFSMCLIST_NODE *node;
+        //node = CHFSMCLIST_FETCH_NODE(chfsmclist, node_pos);
 
         chfsmclist_node_clean(chfsmclist, node_pos);
     }

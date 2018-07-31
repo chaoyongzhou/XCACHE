@@ -1069,7 +1069,7 @@ EC_BOOL cvendor_filter_rsp_range(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     UINT32                       content_length;
 
@@ -1085,7 +1085,7 @@ EC_BOOL cvendor_filter_rsp_range(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     content_length = CVENDOR_MD_CONTENT_LENGTH(cvendor_md);
 
@@ -1796,7 +1796,7 @@ EC_BOOL cvendor_filter_header_out_range(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, const char *v)
 {
-    CVENDOR_MD                  *cvendor_md;
+    //CVENDOR_MD                  *cvendor_md;
 
     //ngx_http_request_t          *r;
 
@@ -1819,7 +1819,7 @@ EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, co
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     seg_no = 0;
 
@@ -3628,7 +3628,6 @@ EC_BOOL cvendor_content_direct_header_out_connection_filter(const UINT32 cvendor
     CVENDOR_MD                  *cvendor_md;
 
     const char                  *k;
-    uint32_t                     status;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -3641,8 +3640,6 @@ EC_BOOL cvendor_content_direct_header_out_connection_filter(const UINT32 cvendor
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
-
-    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
 
     k = (const char *)"Connection";
     chttp_rsp_del_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
@@ -7458,7 +7455,7 @@ EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -7474,7 +7471,7 @@ EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     k = (const char *)"orig";
     cvendor_filter_header_out_common(cvendor_md_id, k);
@@ -7539,7 +7536,7 @@ EC_BOOL cvendor_content_orig_header_out_filter(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_content_orig_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CVENDOR_MD                  *cvendor_md;
+    //CVENDOR_MD                  *cvendor_md;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -7551,7 +7548,7 @@ EC_BOOL cvendor_content_orig_body_out_filter(const UINT32 cvendor_md_id, const U
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     return (EC_TRUE);
 }
@@ -9304,7 +9301,7 @@ EC_BOOL cvendor_content_ms_header_out_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -9320,7 +9317,7 @@ EC_BOOL cvendor_content_ms_header_out_filter(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     k = (const char *)"orig";
     cvendor_filter_header_out_common(cvendor_md_id, k);
@@ -9396,7 +9393,7 @@ EC_BOOL cvendor_content_ms_header_out_filter(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_content_ms_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CVENDOR_MD                  *cvendor_md;
+    //CVENDOR_MD                  *cvendor_md;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -9408,7 +9405,7 @@ EC_BOOL cvendor_content_ms_body_out_filter(const UINT32 cvendor_md_id, const UIN
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     return (EC_TRUE);
 }
@@ -10610,7 +10607,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
 
 EC_BOOL cvendor_content_preload_header_out_filter(const UINT32 cvendor_md_id)
 {
-    CVENDOR_MD                  *cvendor_md;
+    //CVENDOR_MD                  *cvendor_md;
 
     //ngx_http_request_t          *r;
     const char                  *k;
@@ -10625,7 +10622,7 @@ EC_BOOL cvendor_content_preload_header_out_filter(const UINT32 cvendor_md_id)
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
@@ -13800,7 +13797,7 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
 {
     CVENDOR_MD                  *cvendor_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -13819,7 +13816,7 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
-    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+    //r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     k = (const char *)"Expires";
     v = chttp_rsp_get_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k);
@@ -14409,7 +14406,7 @@ EC_BOOL cvendor_content_cache_header_out_filter(const UINT32 cvendor_md_id)
 
 EC_BOOL cvendor_content_cache_body_out_filter(const UINT32 cvendor_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CVENDOR_MD                  *cvendor_md;
+    //CVENDOR_MD                  *cvendor_md;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -14421,7 +14418,7 @@ EC_BOOL cvendor_content_cache_body_out_filter(const UINT32 cvendor_md_id, const 
     }
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+    //cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
     return (EC_TRUE);
 }
 

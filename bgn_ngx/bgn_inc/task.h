@@ -200,6 +200,12 @@ EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid);
 
 EC_BOOL task_brd_register_cluster(TASK_BRD *task_brd);
 
+EC_BOOL task_brd_enable_coredump();
+
+EC_BOOL task_brd_os_setting(TASK_BRD *task_brd);
+
+EC_BOOL task_brd_os_setting_print(LOG *log);
+
 TASK_BRD * task_brd_default_get();
 
 UINT8 *task_brd_default_sys_cfg_xml();

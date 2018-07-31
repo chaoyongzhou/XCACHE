@@ -87,7 +87,7 @@ void crfsmon_print_module_status(const UINT32 crfsmon_md_id, LOG *log)
 **/
 UINT32 crfsmon_free_module_static_mem(const UINT32 crfsmon_md_id)
 {
-    CRFSMON_MD  *crfsmon_md;
+    //CRFSMON_MD  *crfsmon_md;
 
 #if ( SWITCH_ON == CRFSMON_DEBUG_SWITCH )
     if ( CRFSMON_MD_ID_CHECK_INVALID(crfsmon_md_id) )
@@ -100,7 +100,7 @@ UINT32 crfsmon_free_module_static_mem(const UINT32 crfsmon_md_id)
     }
 #endif/*CRFSMON_DEBUG_SWITCH*/
 
-    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    //crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     free_module_static_mem(MD_CRFSMON, crfsmon_md_id);
 
@@ -1174,7 +1174,7 @@ EC_BOOL crfsmon_crfs_node_search_up(const UINT32 crfsmon_md_id, CRFS_NODE *crfs_
 
 EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
-    CRFSMON_MD *crfsmon_md;
+    //CRFSMON_MD *crfsmon_md;
 
     CRFS_NODE   crfs_node;
 
@@ -1195,7 +1195,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    //crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     /*hot cache path*/
     dirname = c_dirname((char *)cstring_get_str(path));
@@ -1258,7 +1258,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get_hot(const UINT32 crfsmon_md_id, const CS
 
 EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
-    CRFSMON_MD *crfsmon_md;
+    //CRFSMON_MD *crfsmon_md;
 
     CRFS_NODE   crfs_node;
     UINT32      hash;
@@ -1276,7 +1276,7 @@ EC_BOOL crfsmon_crfs_store_http_srv_get(const UINT32 crfsmon_md_id, const CSTRIN
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    //crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     /*hot cache path*/
     if(CRFSMON_HOT_PATH_SWITCH == SWITCH_ON
@@ -1721,12 +1721,12 @@ void crfsmon_crfs_hot_path_print(const UINT32 crfsmon_md_id, LOG *log)
 /*format: /<domain>/path */
 STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_line(const UINT32 crfsmon_md_id, char *crfsmon_host_path_start, char *crfsmon_host_path_end)
 {
-    CRFSMON_MD          *crfsmon_md;
+    //CRFSMON_MD          *crfsmon_md;
 
     char                *p;
     CSTRING              path;
 
-    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    //crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     /*locate the first char which is not space*/
 
@@ -1832,7 +1832,7 @@ STATIC_CAST static EC_BOOL __crfsmon_parse_hot_path_file(const UINT32 crfsmon_md
 
 EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *path)
 {
-    CRFSMON_MD  *crfsmon_md;
+    //CRFSMON_MD  *crfsmon_md;
 
     const char  *fname;
     UINT32       fsize;
@@ -1850,7 +1850,7 @@ EC_BOOL crfsmon_crfs_hot_path_load(const UINT32 crfsmon_md_id, const CSTRING *pa
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
+    //crfsmon_md = CRFSMON_MD_GET(crfsmon_md_id);
 
     if(EC_TRUE == cstring_is_empty(path))
     {

@@ -85,7 +85,7 @@ void chfsmon_print_module_status(const UINT32 chfsmon_md_id, LOG *log)
 **/
 UINT32 chfsmon_free_module_static_mem(const UINT32 chfsmon_md_id)
 {
-    CHFSMON_MD  *chfsmon_md;
+    //CHFSMON_MD  *chfsmon_md;
 
 #if ( SWITCH_ON == CHFSMON_DEBUG_SWITCH )
     if ( CHFSMON_MD_ID_CHECK_INVALID(chfsmon_md_id) )
@@ -98,7 +98,7 @@ UINT32 chfsmon_free_module_static_mem(const UINT32 chfsmon_md_id)
     }
 #endif/*CHFSMON_DEBUG_SWITCH*/
 
-    chfsmon_md = CHFSMON_MD_GET(chfsmon_md_id);
+    //chfsmon_md = CHFSMON_MD_GET(chfsmon_md_id);
 
     free_module_static_mem(MD_CHFSMON, chfsmon_md_id);
 
@@ -115,9 +115,9 @@ UINT32 chfsmon_start()
     CHFSMON_MD *chfsmon_md;
     UINT32      chfsmon_md_id;
 
-    TASK_BRD   *task_brd;
+    //TASK_BRD   *task_brd;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CHFSMON , 32);
 

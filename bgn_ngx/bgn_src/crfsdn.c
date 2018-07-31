@@ -169,10 +169,10 @@ STATIC_CAST static EC_BOOL __crfsdn_node_fname_gen(const CRFSDN *crfsdn, const U
 STATIC_CAST static EC_BOOL __crfsdn_node_dname_gen(const CRFSDN *crfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
     uint16_t       disk_no;
-    uint16_t       block_no;
+    //uint16_t       block_no;
 
     disk_no  = CRFSDN_NODE_ID_GET_DISK_NO(node_id);
-    block_no = CRFSDN_NODE_ID_GET_BLOCK_NO(node_id);
+    //block_no = CRFSDN_NODE_ID_GET_BLOCK_NO(node_id);
 
     if(NULL_PTR == CRFSDN_ROOT_DNAME(crfsdn))
     {

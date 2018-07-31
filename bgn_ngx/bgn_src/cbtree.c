@@ -207,9 +207,6 @@ STATIC_CAST static EC_BOOL __cbtree_x_key_encode_size(const uint8_t *key, uint32
 STATIC_CAST static EC_BOOL __cbtree_x_key_encode(const uint8_t *key, uint8_t *buff, const uint32_t size, uint32_t *pos)
 {
     uint32_t len;
-    uint32_t beg_pos;
-
-    beg_pos = (*pos);
 
     len = strlen((const char *)key) + 1;
     if(sizeof(uint32_t) + len > size - (*pos))
@@ -220,9 +217,7 @@ STATIC_CAST static EC_BOOL __cbtree_x_key_encode(const uint8_t *key, uint8_t *bu
     }
 
     gdbPut32(buff, pos, len);
-    //PRINT_BUFF("[DEBUG] __cbtree_x_key_encode:[1] ", buff, beg_pos, (*pos));
     gdbPut8s(buff, pos, key, len);
-    //PRINT_BUFF("[DEBUG] __cbtree_x_key_encode:[2] ", buff, beg_pos, (*pos));
     return (EC_TRUE);
 }
 
@@ -4004,9 +3999,9 @@ EC_BOOL cbtree_node_encode_size(CBTREE *cbtree, CBTREE_NODE *root_node, uint32_t
 
     if(CBTREE_NODE_IS_LEAF(root_node))
     {
-        CBTREE_NODE *next_node;/*next leaf node*/
+        //CBTREE_NODE *next_node;/*next leaf node*/
 
-         next_node = CBTREE_NODE_CHILD(root_node, CBTREE_ORDER(cbtree) - 1);
+        //next_node = CBTREE_NODE_CHILD(root_node, CBTREE_ORDER(cbtree) - 1);
 
         (*pos) += 1 /*count*/
                 + 1 /*flag*/

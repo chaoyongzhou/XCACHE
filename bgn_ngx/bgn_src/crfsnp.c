@@ -3993,18 +3993,18 @@ EC_BOOL crfsnp_show_item_full_path(LOG *log, const CRFSNP *crfsnp, const uint32_
 
 STATIC_CAST static EC_BOOL __crfsnp_show_item(LOG *log, const CRFSNP *crfsnp, const uint32_t node_pos)
 {
-    const CRFSNPRB_POOL *pool;
+    //const CRFSNPRB_POOL *pool;
     const CRFSNP_ITEM   *crfsnp_item;
-    const CRFSNPRB_NODE *node;
+    //const CRFSNPRB_NODE *node;
 
     if(CRFSNPRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
     }
 
-    pool = CRFSNP_ITEMS_POOL(crfsnp);
+    //pool = CRFSNP_ITEMS_POOL(crfsnp);
 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
+    //node  = CRFSNPRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
@@ -4029,18 +4029,18 @@ STATIC_CAST static EC_BOOL __crfsnp_show_item(LOG *log, const CRFSNP *crfsnp, co
 
 EC_BOOL crfsnp_show_item(LOG *log, const CRFSNP *crfsnp, const uint32_t node_pos)
 {
-    const CRFSNPRB_POOL *pool;
+    //const CRFSNPRB_POOL *pool;
     const CRFSNP_ITEM   *crfsnp_item;
-    const CRFSNPRB_NODE *node;
+    //const CRFSNPRB_NODE *node;
 
     if(CRFSNPRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
     }
 
-    pool = CRFSNP_ITEMS_POOL(crfsnp);
+    //pool = CRFSNP_ITEMS_POOL(crfsnp);
 
-    node  = CRFSNPRB_POOL_NODE(pool, node_pos);
+    //node  = CRFSNPRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
@@ -4172,18 +4172,18 @@ EC_BOOL crfsnp_show_path(LOG *log, CRFSNP *crfsnp, const uint32_t path_len, cons
 
 STATIC_CAST static EC_BOOL __crfsnp_get_first_fname_of_item(const CRFSNP *crfsnp, const uint32_t node_pos, uint8_t **fname, uint32_t *dflag)
 {
-    const CRFSNPRB_POOL *pool;
+    //const CRFSNPRB_POOL *pool;
     const CRFSNP_ITEM   *crfsnp_item;
-    const CRFSNPRB_NODE *node;
+    //const CRFSNPRB_NODE *node;
 
     if(CRFSNPRB_ERR_POS == node_pos)
     {
         return (EC_FALSE);
     }
 
-    pool = CRFSNP_ITEMS_POOL(crfsnp);
+    //pool = CRFSNP_ITEMS_POOL(crfsnp);
 
-    node = CRFSNPRB_POOL_NODE(pool, node_pos);
+    //node = CRFSNPRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
@@ -4392,13 +4392,13 @@ EC_BOOL crfsnp_recycle_item(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint
 EC_BOOL crfsnp_recycle(CRFSNP *crfsnp, const UINT32 max_num, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn, UINT32 *complete_num)
 {
     CRFSNPDEL_NODE  *crfsnpdel_node_head;
-    CRFSNP_HEADER   *crfsnp_header;
+    //CRFSNP_HEADER   *crfsnp_header;
 
     uint32_t         left_num;
 
     crfsnpdel_node_head = CRFSNP_DEL_LIST(crfsnp);
 
-    crfsnp_header = CRFSNP_HDR(crfsnp);
+    //crfsnp_header = CRFSNP_HDR(crfsnp);
     left_num = UINT32_TO_INT32(max_num);
 
     if(0 == left_num)

@@ -144,7 +144,7 @@ void cmd5_final(uint8_t digest[16], CMD5_CTX *ctx)
 
     cmd5_byteswap(ctx->buf, 4);
     BCOPY(ctx->buf, digest, 16);
-    BSET(ctx, 0, sizeof(ctx));    /* In case it's sensitive */
+    BSET(ctx, 0, sizeof(CMD5_CTX));    /* In case it's sensitive */
 }
 
 /* The four core functions - F1 is optimized somewhat */

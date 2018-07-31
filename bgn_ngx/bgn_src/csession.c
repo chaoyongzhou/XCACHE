@@ -85,7 +85,7 @@ void csession_print_module_status(const UINT32 csession_md_id, LOG *log)
 **/
 UINT32 csession_free_module_static_mem(const UINT32 csession_md_id)
 {
-    CSESSION_MD  *csession_md;
+    //CSESSION_MD  *csession_md;
 
 #if ( SWITCH_ON == CSESSION_DEBUG_SWITCH )
     if ( CSESSION_MD_ID_CHECK_INVALID(csession_md_id) )
@@ -98,7 +98,7 @@ UINT32 csession_free_module_static_mem(const UINT32 csession_md_id)
     }
 #endif/*CSESSION_DEBUG_SWITCH*/
 
-    csession_md = CSESSION_MD_GET(csession_md_id);
+    //csession_md = CSESSION_MD_GET(csession_md_id);
 
     free_module_static_mem(MD_CSESSION, csession_md_id);
 
@@ -115,7 +115,7 @@ UINT32 csession_start()
     CSESSION_MD *csession_md;
     UINT32 csession_md_id;
 
-    TASK_BRD *task_brd;
+    //TASK_BRD *task_brd;
 
     csession_md_id = cbc_md_new(MD_CSESSION, sizeof(CSESSION_MD));
     if(CMPI_ERROR_MODI == csession_md_id)
@@ -130,7 +130,7 @@ UINT32 csession_start()
     /* create a new module node */
     init_static_mem();
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     CSESSION_MD_MOD_MGR(csession_md) = mod_mgr_new(csession_md_id, LOAD_BALANCING_LOOP);
 

@@ -1084,18 +1084,18 @@ CTDNSNP *ctdnsnp_create(const char *np_root_dir, const uint32_t np_id, const uin
 
 EC_BOOL ctdnsnp_show_item(LOG *log, const CTDNSNP *ctdnsnp, const uint32_t node_pos)
 {
-    const CTDNSNPRB_POOL *pool;
+    //const CTDNSNPRB_POOL *pool;
     const CTDNSNP_ITEM   *ctdnsnp_item;
-    const CTDNSNPRB_NODE *node;
+    //const CTDNSNPRB_NODE *node;
 
     if(CTDNSNPRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
     }
 
-    pool = CTDNSNP_ITEMS_POOL(ctdnsnp);
+    //pool = CTDNSNP_ITEMS_POOL(ctdnsnp);
 
-    node  = CTDNSNPRB_POOL_NODE(pool, node_pos);
+    //node  = CTDNSNPRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     ctdnsnp_item = ctdnsnp_fetch(ctdnsnp, node_pos);

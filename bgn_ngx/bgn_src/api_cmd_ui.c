@@ -5983,14 +5983,12 @@ EC_BOOL api_cmd_ui_cdfs_close_npp_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        MOD_NODE  *mod_node;
         UINT32    *ret;
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0168);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        mod_node  = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_cdfs_close_npp, CMPI_ERROR_MODI);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -6060,14 +6058,12 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        MOD_NODE  *mod_node;
         UINT32    *ret;
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0172);
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        mod_node  = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_cdfs_close_with_flush_npp, CMPI_ERROR_MODI);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -6362,14 +6358,12 @@ EC_BOOL api_cmd_ui_cdfs_close_dn_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        MOD_NODE  *mod_node;
         UINT32    *ret;
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0176);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        mod_node  = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_cdfs_close_dn, CMPI_ERROR_MODI);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -6439,14 +6433,12 @@ EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        MOD_NODE  *mod_node;
         UINT32    *ret;
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0180);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        mod_node  = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_cdfs_close_with_flush_dn, CMPI_ERROR_MODI);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -6817,14 +6809,12 @@ EC_BOOL api_cmd_ui_cdfs_mkdir_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        MOD_NODE  *mod_node;
         UINT32    *ret;
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0184);
         cvector_push(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        mod_node  = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_cdfs_mkdir, CMPI_ERROR_MODI, path);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);

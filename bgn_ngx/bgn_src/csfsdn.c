@@ -166,10 +166,8 @@ STATIC_CAST static EC_BOOL __csfsdn_node_fname_gen(const CSFSDN *csfsdn, const U
 STATIC_CAST static EC_BOOL __csfsdn_node_dname_gen(const CSFSDN *csfsdn, const UINT32 node_id, char *path, const UINT32 max_len)
 {
     UINT32       disk_no;
-    UINT32       block_no;
 
     disk_no  = CSFSDN_NODE_ID_GET_DISK_NO(node_id);
-    block_no = CSFSDN_NODE_ID_GET_BLOCK_NO(node_id);
 
     if(NULL_PTR == CSFSDN_ROOT_DNAME(csfsdn))
     {

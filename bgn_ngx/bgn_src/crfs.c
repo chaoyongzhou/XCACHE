@@ -110,7 +110,7 @@ void crfs_print_module_status(const UINT32 crfs_md_id, LOG *log)
 **/
 UINT32 crfs_free_module_static_mem(const UINT32 crfs_md_id)
 {
-    CRFS_MD  *crfs_md;
+    //CRFS_MD  *crfs_md;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -123,7 +123,7 @@ UINT32 crfs_free_module_static_mem(const UINT32 crfs_md_id)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     free_module_static_mem(MD_CRFS, crfs_md_id);
 
@@ -481,7 +481,7 @@ void crfs_end(const UINT32 crfs_md_id)
 
 EC_BOOL crfs_flush(const UINT32 crfs_md_id)
 {
-    CRFS_MD  *crfs_md;
+    //CRFS_MD  *crfs_md;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -494,7 +494,7 @@ EC_BOOL crfs_flush(const UINT32 crfs_md_id)
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     if(EC_FALSE == crfs_flush_npp(crfs_md_id))
     {
@@ -1568,11 +1568,11 @@ EC_BOOL crfs_release_dn(const UINT32 crfs_md_id, const CRFSNP_FNODE *crfsnp_fnod
 **/
 STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
     uint32_t      path_hash;
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode = __crfs_reserve_npp(crfs_md_id, file_path);
     if(NULL_PTR == crfsnp_fnode)
@@ -1648,11 +1648,11 @@ STATIC_CAST static EC_BOOL __crfs_write(const UINT32 crfs_md_id, const CSTRING *
 /*Jan 16, 2017*/
 STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE *crfsnp_fnode;
     uint32_t      path_hash;
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode = __crfs_reserve_npp(crfs_md_id, file_path);
     if(NULL_PTR == crfsnp_fnode)
@@ -1728,10 +1728,10 @@ STATIC_CAST static EC_BOOL __crfs_write_no_lock(const UINT32 crfs_md_id, const C
 
 STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
@@ -1760,10 +1760,10 @@ STATIC_CAST static EC_BOOL __crfs_write_cache(const UINT32 crfs_md_id, const CST
 
 STATIC_CAST static EC_BOOL __crfs_write_cache_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
@@ -1837,7 +1837,7 @@ EC_BOOL crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, co
 **/
 EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
@@ -1852,7 +1852,7 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -1890,7 +1890,7 @@ EC_BOOL crfs_read_safe(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES
 
 EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
@@ -1905,7 +1905,7 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_read: read file %s start\n", (char *)cstring_get_str(file_path));
 
@@ -1965,7 +1965,7 @@ EC_BOOL crfs_read(const UINT32 crfs_md_id, const CSTRING *file_path, CBYTES *cby
 **/
 EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
     uint32_t      file_old_size;
 
@@ -1981,7 +1981,7 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
     {
@@ -2018,7 +2018,7 @@ EC_BOOL crfs_write_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *
 **/
 EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
     CRFSNP_FNODE  crfsnp_fnode;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
@@ -2031,7 +2031,7 @@ EC_BOOL crfs_read_e(const UINT32 crfs_md_id, const CSTRING *file_path, UINT32 *o
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     crfsnp_fnode_init(&crfsnp_fnode);
 
@@ -2359,7 +2359,7 @@ EC_BOOL crfs_export_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, const CRFS
 
     UINT32   offset;
     UINT32   data_len;
-    uint32_t size;
+    //uint32_t size;
 
     uint16_t disk_no;
     uint16_t block_no;
@@ -2392,7 +2392,7 @@ EC_BOOL crfs_export_dn(const UINT32 crfs_md_id, const CBYTES *cbytes, const CRFS
         return (EC_FALSE);
     }
 
-    size = (uint32_t)data_len;
+    //size = (uint32_t)data_len;
 
     crfsnp_inode = CRFSNP_FNODE_INODE(crfsnp_fnode, 0);
     disk_no  = CRFSNP_INODE_DISK_NO(crfsnp_inode) ;
@@ -3845,7 +3845,7 @@ EC_BOOL crfs_delete_no_lock(const UINT32 crfs_md_id, const CSTRING *path, const 
 **/
 EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -3857,7 +3857,7 @@ EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBY
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     if(EC_FALSE == crfs_update_no_lock(crfs_md_id, file_path, cbytes))
     {
@@ -3872,7 +3872,7 @@ EC_BOOL crfs_update(const UINT32 crfs_md_id, const CSTRING *file_path, const CBY
 
 EC_BOOL crfs_update_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -3884,7 +3884,7 @@ EC_BOOL crfs_update_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, c
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     if(EC_FALSE == crfs_read_npp(crfs_md_id, file_path, NULL_PTR))
     {
@@ -5629,7 +5629,7 @@ EC_BOOL crfs_wait_file_owner_push(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 t
 **/
 EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
 {
-    CRFS_MD     *crfs_md;
+    //CRFS_MD     *crfs_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -5645,7 +5645,7 @@ EC_BOOL crfs_wait_file_owner_wakeup (const UINT32 crfs_md_id, const UINT32 store
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -5813,7 +5813,7 @@ EC_BOOL crfs_wait_file_owner_notify(CRFS_WAIT_FILE *crfs_wait_file, const UINT32
 **/
 EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
 {
-    CRFS_MD     *crfs_md;
+    //CRFS_MD     *crfs_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -5829,7 +5829,7 @@ EC_BOOL crfs_wait_file_owner_cancel (const UINT32 crfs_md_id, const UINT32 store
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -6549,7 +6549,7 @@ STATIC_CAST static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const UINT3
 
 EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -6565,7 +6565,7 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     cbytes_init(&token_cbyte);
 
@@ -6657,7 +6657,7 @@ STATIC_CAST static EC_BOOL __crfs_file_unlock(const UINT32 crfs_md_id, const CST
 
 EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, const CSTRING *token_str)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -6673,7 +6673,7 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
     cbytes_mount(&token_cbyte, auth_token_len, auth_token);
@@ -6707,7 +6707,7 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
 **/
 EC_BOOL crfs_file_unlock_notify(const UINT32 crfs_md_id, const CSTRING *file_path)
 {
-    CRFS_MD      *crfs_md;
+    //CRFS_MD      *crfs_md;
 
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -6719,7 +6719,7 @@ EC_BOOL crfs_file_unlock_notify(const UINT32 crfs_md_id, const CSTRING *file_pat
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    crfs_md = CRFS_MD_GET(crfs_md_id);
+    //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_file_unlock_notify: obsolete interface!!!!\n");
 

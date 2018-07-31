@@ -104,7 +104,7 @@ void super_print_module_status(const UINT32 super_md_id, LOG *log)
 **/
 UINT32 super_free_module_static_mem(const UINT32 super_md_id)
 {
-    SUPER_MD  *super_md;
+    //SUPER_MD  *super_md;
 
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
@@ -117,7 +117,7 @@ UINT32 super_free_module_static_mem(const UINT32 super_md_id)
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     free_module_static_mem(MD_SUPER, super_md_id);
 
@@ -1979,7 +1979,7 @@ EC_BOOL super_ping_taskcomm(const UINT32 super_md_id)
 
 EC_BOOL super_ping_ipaddr_cstr(const UINT32 super_md_id, const CSTRING *ipaddr_cstr)
 {
-    TASK_BRD *task_brd;
+    //TASK_BRD *task_brd;
     UINT32    ipaddr;
 
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
@@ -1998,7 +1998,7 @@ EC_BOOL super_ping_ipaddr_cstr(const UINT32 super_md_id, const CSTRING *ipaddr_c
         return (EC_FALSE);
     }
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
     ipaddr   = c_ipv4_to_word((char *)cstring_get_str(ipaddr_cstr));
 
     return super_check_ipaddr_connected(super_md_id, ipaddr);
@@ -7520,7 +7520,7 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
 **/
 EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -7536,7 +7536,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -7585,7 +7585,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
 **/
 STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -7601,7 +7601,7 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -7704,13 +7704,13 @@ EC_BOOL super_unlock(const UINT32 super_md_id, const UINT32 tcid, const UINT32 s
 **/
 STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes, UINT32 *data_ready)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
     char        *v;
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -7866,7 +7866,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
 
 EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const UINT32 store_offset, const UINT32 store_size, CBYTES *cbytes)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     UINT32       data_ready;
 
@@ -7883,7 +7883,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     data_ready = EC_FALSE;
 
@@ -7950,13 +7950,13 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
 **/
 STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes, UINT32 *data_ready)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
     char        *v;
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -8108,7 +8108,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
 
 EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, CBYTES *cbytes)
 {
-    SUPER_MD    *super_md;
+    //SUPER_MD    *super_md;
 
     UINT32       data_ready;
 
@@ -8125,7 +8125,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    super_md = SUPER_MD_GET(super_md_id);
+    //super_md = SUPER_MD_GET(super_md_id);
 
     data_ready = EC_FALSE;
 

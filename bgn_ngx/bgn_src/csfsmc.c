@@ -293,7 +293,7 @@ STATIC_CAST static REAL __csfsmc_room_ratio(CSFSMC *csfsmc)
 
 EC_BOOL csfsmc_room_is_ok_no_lock(CSFSMC *csfsmc, const REAL level)
 {
-    CSFSNP   *csfsnp;
+    //CSFSNP   *csfsnp;
     CPGD     *cpgd;
 
     uint64_t  used_page;
@@ -301,7 +301,7 @@ EC_BOOL csfsmc_room_is_ok_no_lock(CSFSMC *csfsmc, const REAL level)
     double    ratio;
 
     cpgd   = CSFSMC_PGD(csfsmc);
-    csfsnp = CSFSMC_NP(csfsmc);
+    //csfsnp = CSFSMC_NP(csfsmc);
 
     used_page = (uint64_t)CPGD_PAGE_USED_NUM(cpgd);
     max_page  = (uint64_t)CPGD_PAGE_MAX_NUM(cpgd);

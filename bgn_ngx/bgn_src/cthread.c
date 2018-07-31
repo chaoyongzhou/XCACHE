@@ -417,7 +417,7 @@ CTHREAD_ID cthread_new(const UINT32 flag, const char *name, const UINT32 start_r
 {
     CTHREAD_ID cthread_id;
 
-    TASK_BRD *task_brd;
+    //TASK_BRD *task_brd;
 
     va_list para_list;
 
@@ -425,7 +425,7 @@ CTHREAD_ID cthread_new(const UINT32 flag, const char *name, const UINT32 start_r
 
     cthread_check_tcid_offset();/*assert!*/
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     va_start(para_list, para_num);
     cthread_id = cthread_create(flag, start_routine_addr, core_id, para_num, para_list);

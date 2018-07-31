@@ -1116,18 +1116,18 @@ EC_BOOL ctdnssv_pop(CTDNSSV *ctdnssv, UINT32 *tcid, UINT32 *ipaddr, UINT32 *port
 
 EC_BOOL ctdnssv_show_item(LOG *log, const CTDNSSV *ctdnssv, const uint32_t node_pos)
 {
-    const CTDNSSVRB_POOL *pool;
+    //const CTDNSSVRB_POOL *pool;
     const CTDNSSV_ITEM   *ctdnssv_item;
-    const CTDNSSVRB_NODE *node;
+    //const CTDNSSVRB_NODE *node;
 
     if(CTDNSSVRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
     }
 
-    pool = CTDNSSV_NODES_POOL(ctdnssv);
+    //pool = CTDNSSV_NODES_POOL(ctdnssv);
 
-    node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
+    //node  = CTDNSSVRB_POOL_NODE(pool, node_pos);
 
     /*itself*/
     ctdnssv_item = ctdnssv_fetch(ctdnssv, node_pos);

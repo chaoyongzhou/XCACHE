@@ -7881,7 +7881,9 @@ LOG * task_brd_default_init(int argc, char **argv)
     UINT32 this_port;
     UINT32 reg_type;
 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
     UINT32 core_max_num;
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
     LOG     *log;
     CSTRING *log_file_name;
@@ -8318,7 +8320,9 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
     core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
 #if 0
@@ -12174,7 +12178,7 @@ EC_BOOL task_brd_need_slow_down(TASK_BRD *task_brd, LOG *log, UINT32 level)
     UINT32 is_recv_num;
     UINT32 to_send_num;
     UINT32 sending_num;
-    UINT32 recv_task_mgr_num;
+    //UINT32 recv_task_mgr_num;
     UINT32 aging_task_mgr_num;
     UINT32 req_croutine_num;
     UINT32 rsp_croutine_num;
@@ -12186,7 +12190,7 @@ EC_BOOL task_brd_need_slow_down(TASK_BRD *task_brd, LOG *log, UINT32 level)
     to_send_num = 0;
     sending_num = 0;
 
-    recv_task_mgr_num  = 0;
+    //recv_task_mgr_num  = 0;
     aging_task_mgr_num = 0;
 
     req_croutine_num = 0;

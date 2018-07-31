@@ -3575,7 +3575,7 @@ EC_BOOL ctdnshttp_commit_refresh_get_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
 {
-    CSOCKET_CNODE      * csocket_cnode;
+    //CSOCKET_CNODE      * csocket_cnode;
 
     char               * service_str;
     char               * path_str;
@@ -3734,7 +3734,7 @@ EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         on_tcid = CMPI_LOCAL_TCID;
     }
 
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     /*refresh cache*/
     if(1)

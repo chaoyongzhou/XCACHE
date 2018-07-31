@@ -114,9 +114,9 @@ UINT32 crfsgw_start(ngx_http_request_t *r)
     CRFSGW_MD *crfsgw_md;
     UINT32      crfsgw_md_id;
 
-    TASK_BRD   *task_brd;
+    //TASK_BRD   *task_brd;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     crfsgw_md_id = cbc_md_new(MD_CRFSGW, sizeof(CRFSGW_MD));
     if(CMPI_ERROR_MODI == crfsgw_md_id)
@@ -524,7 +524,7 @@ EC_BOOL crfsgw_content_handler(const UINT32 crfsgw_md_id)
 
 EC_BOOL crfsgw_content_dispatch(const UINT32 crfsgw_md_id, const char *method_str, const char *uri_str)
 {
-    CRFSGW_MD                   *crfsgw_md;
+    //CRFSGW_MD                   *crfsgw_md;
 
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
     if ( CRFSGW_MD_ID_CHECK_INVALID(crfsgw_md_id) )
@@ -536,7 +536,7 @@ EC_BOOL crfsgw_content_dispatch(const UINT32 crfsgw_md_id, const char *method_st
     }
 #endif/*CRFSGW_DEBUG_SWITCH*/
 
-    crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
+    //crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
     if(0 == STRCASECMP(method_str, (const char *)"GET"))
     {
@@ -556,7 +556,7 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
 {
     CRFSGW_MD                   *crfsgw_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     uint32_t                     uri_len;
 
 #if ( SWITCH_ON == CRFSGW_DEBUG_SWITCH )
@@ -571,7 +571,7 @@ EC_BOOL crfsgw_content_dispatch_get_request(const UINT32 crfsgw_md_id, const cha
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
+    //r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
 
     uri_len = (uint32_t)strlen(uri_str);
 
@@ -632,7 +632,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
 {
     CRFSGW_MD                   *crfsgw_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     CBYTES                       seg_cbytes;
 
@@ -653,7 +653,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_getsmf(const UINT32 crfsgw_md_id, co
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
+    //r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_getsmf: "
                                            "path = '%s'\n",
@@ -728,7 +728,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, cons
 {
     CRFSGW_MD                   *crfsgw_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     CSTRING                      cache_uri_cstr;
     UINT32                       cache_srv_tcid;
@@ -747,7 +747,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_dsmf(const UINT32 crfsgw_md_id, cons
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
+    //r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_dsmf: "
                                            "path = '%s'\n",
@@ -811,7 +811,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, cons
 {
     CRFSGW_MD                   *crfsgw_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     CSTRING                      cache_uri_cstr;
 
@@ -827,7 +827,7 @@ EC_BOOL crfsgw_content_dispatch_get_request_ddir(const UINT32 crfsgw_md_id, cons
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
+    //r = CRFSGW_MD_NGX_HTTP_REQ(crfsgw_md);
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_content_dispatch_get_request_ddir: "
                                            "path = '%s'\n",

@@ -484,7 +484,7 @@ gdbWriteBlock(GdbBlock *block)
     uint8_t      *buffer;
     offset_t     *oldChain;
     uint8_t       typeIndex;
-    uint32_t      oldChainCount, oldDataSize;
+    uint32_t      oldChainCount;
     uint32_t      i, pos;
     uint32_t      dataSize;
     offset_t      __offset;
@@ -498,7 +498,6 @@ gdbWriteBlock(GdbBlock *block)
     typeIndex = block->type - 1;
 
     /* Save the old data. */
-    oldDataSize   = block->dataSize;
     oldChainCount = block->chainCount;
     oldChain      = block->chain;
 
@@ -795,7 +794,6 @@ gdbFreeBlockChain(GDatabase *db, offset_t *chain, uint16_t count,
     uint16_t       blockSize;
     uint32_t       blockCount;
     uint32_t       i, j;
-    uint8_t        result;
 
     if (db == NULL || chain == NULL || count == 0 || !GDB_VALID_BLOCK_TYPE(blockType))
     {
@@ -809,7 +807,7 @@ gdbFreeBlockChain(GDatabase *db, offset_t *chain, uint16_t count,
     gdbLockFreeBlockList(db, DB_WRITE_LOCK, LOC_DB_0099);
 
     /* Get the free block list. */
-    result = gdbGetFreeBlockList(db, &freeBlocks, &blockCount);
+    gdbGetFreeBlockList(db, &freeBlocks, &blockCount);
 
     if (blockCount == 0)
     {

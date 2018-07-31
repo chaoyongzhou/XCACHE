@@ -239,10 +239,10 @@ STATIC_CAST static void __cluster_node_cfg_extras_print_xml(LOG *log, const CMAP
 void cluster_node_cfg_print_xml(LOG *log, const CLUSTER_NODE_CFG *cluster_node_cfg, const UINT32 level)
 {
     char *rank_str;
-    char *group_str;
+    //char *group_str;
 
     rank_str  = uint32_vec_to_str(CLUSTER_NODE_CFG_RANK_VEC(cluster_node_cfg));
-    group_str = (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg);
+    //group_str = (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg);
 
     if(NULL_PTR != rank_str)
     {

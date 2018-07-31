@@ -907,11 +907,7 @@ EC_BOOL cdns_parse_query(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t 
 
 EC_BOOL cdns_make_query(CDNS_NODE *cdns_node, const CSTRING *host, const uint16_t qt, const uint16_t qc)
 {
-    uint8_t        data[2];
-    uint16_t      *p;
     UINT32         used;
-
-    p = (uint16_t *)data;
 
     used = CHUNK_USED(CDNS_NODE_SEND_BUF(cdns_node));
 
@@ -1171,7 +1167,6 @@ EC_BOOL cdns_parse_rsp(CDNS_NODE *cdns_node, CDNS_RSP *cdns_rsp)
 
 STATIC_CAST static uint16_t __cdns_gen_id()
 {
-    CTM   *cur_time;
     CTMV  *cur_timev;
     CTMV   ctmv;
 
@@ -1181,7 +1176,7 @@ STATIC_CAST static uint16_t __cdns_gen_id()
     cur_timev = &ctmv;
     gettimeofday(cur_timev, NULL_PTR);
 
-    cur_time = c_localtime_r(&(cur_timev->tv_sec));
+    c_localtime_r(&(cur_timev->tv_sec));
     tv_msec = (int)(cur_timev->tv_usec / 1000);
     tv_usec = (int)(cur_timev->tv_usec % 1000);
 

@@ -6480,12 +6480,12 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __crfshttps_uri_is_cond_wakeup_get_op(uri_cbuffer))
     {
-        CSOCKET_CNODE * csocket_cnode;
+        //CSOCKET_CNODE * csocket_cnode;
         UINT32 tag;
 
         tag = MD_CRFS;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        //csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
         if(EC_FALSE == super_cond_wakeup(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_cond_wakeup_get_request: cond wakeup %s failed\n",

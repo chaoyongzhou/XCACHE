@@ -282,7 +282,7 @@ EC_BOOL chfsmc_import_dn_no_lock(CHFSMC *chfsmc, const CBYTES *cbytes, const CHF
 
 EC_BOOL chfsmc_room_is_ok_no_lock(CHFSMC *chfsmc, const REAL level)
 {
-    CHFSNP   *chfsnp;
+    //CHFSNP   *chfsnp;
     CPGD     *cpgd;
 
     uint64_t  used_page;
@@ -290,7 +290,7 @@ EC_BOOL chfsmc_room_is_ok_no_lock(CHFSMC *chfsmc, const REAL level)
     double    ratio;
 
     cpgd   = CHFSMC_PGD(chfsmc);
-    chfsnp = CHFSMC_NP(chfsmc);
+    //chfsnp = CHFSMC_NP(chfsmc);
 
     used_page = (uint64_t)CPGD_PAGE_USED_NUM(cpgd);
     max_page  = (uint64_t)CPGD_PAGE_MAX_NUM(cpgd);

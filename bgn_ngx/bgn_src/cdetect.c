@@ -74,7 +74,7 @@ void cdetect_print_module_status(const UINT32 cdetect_md_id, LOG *log)
 **/
 UINT32 cdetect_free_module_static_mem(const UINT32 cdetect_md_id)
 {
-    CDETECT_MD  *cdetect_md;
+    //CDETECT_MD  *cdetect_md;
 
 #if ( SWITCH_ON == CDETECT_DEBUG_SWITCH )
     if ( CDETECT_MD_ID_CHECK_INVALID(cdetect_md_id) )
@@ -87,7 +87,7 @@ UINT32 cdetect_free_module_static_mem(const UINT32 cdetect_md_id)
     }
 #endif/*CDETECT_DEBUG_SWITCH*/
 
-    cdetect_md = CDETECT_MD_GET(cdetect_md_id);
+    //cdetect_md = CDETECT_MD_GET(cdetect_md_id);
 
     free_module_static_mem(MD_CDETECT, cdetect_md_id);
 

@@ -303,7 +303,7 @@ REAL crfsmc_room_ratio(CRFSMC *crfsmc)
 
 EC_BOOL crfsmc_room_is_ok_no_lock(CRFSMC *crfsmc, const REAL level)
 {
-    CRFSNP   *crfsnp;
+    //CRFSNP   *crfsnp;
     CPGD     *cpgd;
 
     uint64_t  used_page;
@@ -311,7 +311,7 @@ EC_BOOL crfsmc_room_is_ok_no_lock(CRFSMC *crfsmc, const REAL level)
     double    ratio;
 
     cpgd   = CRFSMC_PGD(crfsmc);
-    crfsnp = CRFSMC_NP(crfsmc);
+    //crfsnp = CRFSMC_NP(crfsmc);
 
     used_page = (uint64_t)CPGD_PAGE_USED_NUM(cpgd);
     max_page  = (uint64_t)CPGD_PAGE_MAX_NUM(cpgd);

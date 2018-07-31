@@ -582,12 +582,12 @@ EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 st
 
 EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CBYTES *cbytes, const CSTRING *auth_token)
 {
-    TASK_BRD      *task_brd;
+    //TASK_BRD      *task_brd;
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
     /*make receiver*/
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -694,12 +694,12 @@ EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32
 
 EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, const CSTRING *auth_token)
 {
-    TASK_BRD      *task_brd;
+    //TASK_BRD      *task_brd;
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
     /*make receiver*/
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -780,11 +780,11 @@ EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 s
 
 EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
 {
-    TASK_BRD      *task_brd;
+    //TASK_BRD      *task_brd;
     MOD_NODE       recv_mod_node;
 
     /*make receiver*/
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -855,12 +855,12 @@ EC_BOOL ccache_file_terminate_over_http(const UINT32 store_srv_tcid, const UINT3
 
 EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path)
 {
-    TASK_BRD      *task_brd;
+    //TASK_BRD      *task_brd;
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
     /*make receiver*/
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;

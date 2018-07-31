@@ -1378,7 +1378,7 @@ EC_BOOL cmp4_filter_rsp_range(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     UINT32                       content_length;
 
@@ -1394,7 +1394,7 @@ EC_BOOL cmp4_filter_rsp_range(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     content_length = CMP4_MD_CONTENT_LENGTH(cmp4_md);
 
@@ -1731,7 +1731,7 @@ EC_BOOL cmp4_filter_header_out_no_range(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    CRANGE_MGR                  *crange_mgr;
+    //CRANGE_MGR                  *crange_mgr;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -1745,7 +1745,7 @@ EC_BOOL cmp4_filter_header_out_no_range(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    crange_mgr = CMP4_MD_CNGX_RANGE_MGR(cmp4_md);
+    //crange_mgr = CMP4_MD_CNGX_RANGE_MGR(cmp4_md);
 
     ASSERT(BIT_FALSE == CMP4_MD_CNGX_RANGE_EXIST_FLAG(cmp4_md));
 
@@ -2218,7 +2218,7 @@ EC_BOOL cmp4_filter_header_out_range(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_renew_header_cache(const UINT32 cmp4_md_id, const char *k, const char *v)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
     //ngx_http_request_t          *r;
 
@@ -2241,7 +2241,7 @@ EC_BOOL cmp4_renew_header_cache(const UINT32 cmp4_md_id, const char *k, const ch
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     seg_no = 0;
 
@@ -4053,7 +4053,6 @@ EC_BOOL cmp4_content_direct_header_out_connection_filter(const UINT32 cmp4_md_id
     CMP4_MD                     *cmp4_md;
 
     const char                  *k;
-    uint32_t                     status;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -4066,8 +4065,6 @@ EC_BOOL cmp4_content_direct_header_out_connection_filter(const UINT32 cmp4_md_id
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
-
-    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
 
     k = (const char *)"Connection";
     chttp_rsp_del_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
@@ -7467,7 +7464,7 @@ EC_BOOL cmp4_content_orig_header_out_filter(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_orig_body_out_filter(const UINT32 cmp4_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -7479,7 +7476,7 @@ EC_BOOL cmp4_content_orig_body_out_filter(const UINT32 cmp4_md_id, const UINT32 
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     return (EC_TRUE);
 }
@@ -7819,7 +7816,7 @@ EC_BOOL cmp4_content_orig_add_mp4_range(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     cngx_mp4_file_t             *mp4;
     ngx_chain_t                 *out;
 
@@ -7839,7 +7836,7 @@ EC_BOOL cmp4_content_orig_add_mp4_range(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
     mp4 = CMP4_MD_MP4(cmp4_md);
     out = mp4->out;
 
@@ -7887,9 +7884,9 @@ EC_BOOL cmp4_content_orig_add_mp4_range(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_orig_send_ahead_body(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -7901,9 +7898,9 @@ EC_BOOL cmp4_content_orig_send_ahead_body(const UINT32 cmp4_md_id)
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     ASSERT(EC_TRUE == cmp4_has_mp4_out(cmp4_md_id));
 
@@ -7915,7 +7912,7 @@ EC_BOOL cmp4_content_orig_send_ahead_body(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_ahead_body: "
                                          "send meta => OK\n");
-    if(EC_FALSE == cmp4_content_orig_add_mp4_range(cmp4_md_id))
+    if(EC_FALSE == cmp4_content_orig_add_mp4_range(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_ahead_body: "
                                              "add range failed\n");
@@ -9399,7 +9396,7 @@ EC_BOOL cmp4_content_ms_header_out_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -9415,7 +9412,7 @@ EC_BOOL cmp4_content_ms_header_out_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     k = (const char *)"orig";
     cmp4_filter_header_out_common(cmp4_md_id, k);
@@ -9481,7 +9478,7 @@ EC_BOOL cmp4_content_ms_header_out_filter(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_ms_body_out_filter(const UINT32 cmp4_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CMP4_MD                  *cmp4_md;
+    //CMP4_MD                  *cmp4_md;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -9493,7 +9490,7 @@ EC_BOOL cmp4_content_ms_body_out_filter(const UINT32 cmp4_md_id, const UINT32 se
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     return (EC_TRUE);
 }
@@ -10604,7 +10601,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
 EC_BOOL cmp4_content_preload_header_out_mp4_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -10618,7 +10615,7 @@ EC_BOOL cmp4_content_preload_header_out_mp4_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     /*parse mp4 meta*/
     if(BIT_FALSE == CMP4_MD_ORIG_FORCE_FLAG(cmp4_md)
@@ -10662,7 +10659,7 @@ EC_BOOL cmp4_content_preload_header_out_mp4_filter(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_preload_header_out_filter(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
     //ngx_http_request_t          *r;
     const char                  *k;
@@ -10677,7 +10674,7 @@ EC_BOOL cmp4_content_preload_header_out_filter(const UINT32 cmp4_md_id)
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
@@ -14696,7 +14693,7 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -14715,7 +14712,7 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     k = (const char *)"Expires";
     v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
@@ -15185,7 +15182,7 @@ EC_BOOL cmp4_content_cache_header_out_cache_status_filter(const UINT32 cmp4_md_i
 EC_BOOL cmp4_content_cache_header_out_mp4_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -15199,7 +15196,7 @@ EC_BOOL cmp4_content_cache_header_out_mp4_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     /*parse mp4 meta*/
     if(BIT_FALSE == CMP4_MD_ORIG_FORCE_FLAG(cmp4_md)
@@ -15354,7 +15351,7 @@ EC_BOOL cmp4_content_cache_header_out_filter(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_cache_body_out_filter(const UINT32 cmp4_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -15366,7 +15363,7 @@ EC_BOOL cmp4_content_cache_body_out_filter(const UINT32 cmp4_md_id, const UINT32
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
     return (EC_TRUE);
 }
 
@@ -15698,7 +15695,7 @@ EC_BOOL cmp4_content_cache_add_mp4_range(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     cngx_mp4_file_t             *mp4;
     ngx_chain_t                 *out;
 
@@ -15718,7 +15715,7 @@ EC_BOOL cmp4_content_cache_add_mp4_range(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
     mp4 = CMP4_MD_MP4(cmp4_md);
     out = mp4->out;
 
@@ -15799,9 +15796,9 @@ EC_BOOL cmp4_content_cache_send_mp4_meta_end(const UINT32 cmp4_md_id)
 
 EC_BOOL cmp4_content_cache_send_ahead_body(const UINT32 cmp4_md_id)
 {
-    CMP4_MD                     *cmp4_md;
+    //CMP4_MD                     *cmp4_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -15813,9 +15810,9 @@ EC_BOOL cmp4_content_cache_send_ahead_body(const UINT32 cmp4_md_id)
     }
 #endif/*CMP4_DEBUG_SWITCH*/
 
-    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+    //cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
-    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+    //r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     ASSERT(EC_TRUE == cmp4_has_mp4_out(cmp4_md_id));
 
@@ -15827,7 +15824,7 @@ EC_BOOL cmp4_content_cache_send_ahead_body(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_ahead_body: "
                                          "send meta => OK\n");
-    if(EC_FALSE == cmp4_content_cache_add_mp4_range(cmp4_md_id))
+    if(EC_FALSE == cmp4_content_cache_add_mp4_range(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_ahead_body: "
                                              "add range failed\n");

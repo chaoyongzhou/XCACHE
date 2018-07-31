@@ -329,8 +329,6 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
     uint8_t  success, split;
     uint8_t *newKey;
 
-    offset_t root;
-
     if (tree == NULL || key == NULL || filePos == 0 ||
         tree->block->db->mode == PM_MODE_READ_ONLY)
     {
@@ -356,8 +354,6 @@ btreeInsert(BTree *tree, const uint8_t *key, offset_t filePos, uint8_t replaceDu
     tree->root     = btreeGetRootNode(tree);
     tree->leftLeaf = btreeGetLeftLeaf(tree);
     tree->size     = btreeGetTreeSize(tree);
-
-    root = tree->root;
 
     if (tree->root != 0)
     {

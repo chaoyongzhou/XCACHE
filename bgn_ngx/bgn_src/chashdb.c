@@ -941,11 +941,11 @@ EC_BOOL chashdb_cbloom_set_and_flush(CHASHDB *chashdb, const UINT32 first_hash, 
     UINT32 old;
 
     UINT32 row_idx;
-    UINT32 col_idx;
+    //UINT32 col_idx;
     UINT32 bit_pos;
 
     row_idx = CHASHDB_BLOOM_ROW_IDX(chashdb, first_hash);
-    col_idx = CHASHDB_BLOOM_COL_IDX(chashdb, second_hash);
+    //col_idx = CHASHDB_BLOOM_COL_IDX(chashdb, second_hash);
 
     bit_pos = (row_idx * CHASHDB_BMROW(chashdb) + CHASHDB_BMCOL(chashdb));
 

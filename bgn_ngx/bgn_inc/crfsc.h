@@ -48,8 +48,6 @@ typedef struct
     uint32_t    rsvd1:31;
     uint32_t    rsvd2;
     CRFSDT      crfsdts[2];   /*CRFS dir tables*/
-
-    CROUTINE_RWLOCK     crwlock;
 }CRFSC_MD;
 
 #define CRFSC_MD_CRFS_VEC(crfsc_md)        (&((crfsc_md)->crfs_vec))
@@ -57,25 +55,6 @@ typedef struct
 #define CRFSC_MD_DT_ACTIVE_FLAG(crfsc_md)  ((crfsc_md)->crfsdt_active_flag)
 #define CRFSC_MD_ACTIVE_DIRTAB(crfsc_md)   (&((crfsc_md)->crfsdts[ CRFSC_MD_DT_ACTIVE_FLAG(crfsc_md) ]))
 #define CRFSC_MD_STANDBY_DIRTAB(crfsc_md)  (&((crfsc_md)->crfsdts[ 1 ^ CRFSC_MD_DT_ACTIVE_FLAG(crfsc_md) ]))
-#define CRFSC_CRWLOCK(crfsc_md)            (&((crfsc_md)->crwlock))
-
-#if 0
-#define CRFSC_INIT_LOCK(crfsc_md, location)  (croutine_rwlock_init(CRFSC_CRWLOCK(crfsc_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSC_CLEAN_LOCK(crfsc_md, location) (croutine_rwlock_clean(CRFSC_CRWLOCK(crfsc_md), location))
-
-#define CRFSC_RDLOCK(crfsc_md, location)     (croutine_rwlock_rdlock(CRFSC_CRWLOCK(crfsc_md), location))
-#define CRFSC_WRLOCK(crfsc_md, location)     (croutine_rwlock_wrlock(CRFSC_CRWLOCK(crfsc_md), location))
-#define CRFSC_UNLOCK(crfsc_md, location)     (croutine_rwlock_unlock(CRFSC_CRWLOCK(crfsc_md), location))
-#endif
-
-#if 1
-#define CRFSC_INIT_LOCK(crfsc_md, location)  (croutine_rwlock_init(CRFSC_CRWLOCK(crfsc_md), CMUTEX_PROCESS_PRIVATE, location))
-#define CRFSC_CLEAN_LOCK(crfsc_md, location) (croutine_rwlock_clean(CRFSC_CRWLOCK(crfsc_md), location))
-#define CRFSC_RDLOCK(crfsc_md, location)     (croutine_rwlock_rdlock(CRFSC_CRWLOCK(crfsc_md), location))
-#define CRFSC_WRLOCK(crfsc_md, location)     (croutine_rwlock_wrlock(CRFSC_CRWLOCK(crfsc_md), location))
-#define CRFSC_UNLOCK(crfsc_md, location)     (croutine_rwlock_unlock(CRFSC_CRWLOCK(crfsc_md), location))
-#endif
-
 
 typedef struct
 {
@@ -285,11 +264,6 @@ EC_BOOL crfsc_rollback_dt(const UINT32 crfsc_md_id);
 EC_BOOL crfsc_flush_dt(const UINT32 crfsc_md_id);
 EC_BOOL crfsc_load_dt(const UINT32 crfsc_md_id);
 void    crfsc_print_dt(const UINT32 crfsc_md_id, LOG *log);
-
-EC_BOOL crfsc_rdlock(const UINT32 crfsc_md_id, const UINT32 location);
-EC_BOOL crfsc_wrlock(const UINT32 crfsc_md_id, const UINT32 location);
-EC_BOOL crfsc_unlock(const UINT32 crfsc_md_id, const UINT32 location);
-
 
 #endif /*_CRFSC_H*/
 

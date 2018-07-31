@@ -93,10 +93,10 @@ UINT32 rank_set_init(CSET *rank_set, const UINT32 comm_size)
 
 UINT32 rank_set_default_init(CSET *rank_set)
 {
-    UINT32 this_comm;
+    //UINT32 this_comm;
     UINT32 comm_size;
 
-    this_comm = CMPI_LOCAL_COMM;
+    //this_comm = CMPI_LOCAL_COMM;
     comm_size = CMPI_LOCAL_SIZE;
 
     return rank_set_init(rank_set, comm_size);

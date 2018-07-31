@@ -1015,7 +1015,7 @@ EC_BOOL cflv_filter_rsp_range(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
     UINT32                       content_length;
 
@@ -1031,7 +1031,7 @@ EC_BOOL cflv_filter_rsp_range(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     content_length = CFLV_MD_CONTENT_LENGTH(cflv_md);
 
@@ -1392,7 +1392,7 @@ EC_BOOL cflv_filter_header_out_no_range(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
 
-    CRANGE_MGR                  *crange_mgr;
+    //CRANGE_MGR                  *crange_mgr;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -1406,7 +1406,7 @@ EC_BOOL cflv_filter_header_out_no_range(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    crange_mgr = CFLV_MD_CNGX_RANGE_MGR(cflv_md);
+    //crange_mgr = CFLV_MD_CNGX_RANGE_MGR(cflv_md);
 
     ASSERT(BIT_FALSE == CFLV_MD_CNGX_RANGE_EXIST_FLAG(cflv_md));
 
@@ -1885,7 +1885,7 @@ EC_BOOL cflv_filter_header_out_range(const UINT32 cflv_md_id)
 
 EC_BOOL cflv_renew_header_cache(const UINT32 cflv_md_id, const char *k, const char *v)
 {
-    CFLV_MD                     *cflv_md;
+    //CFLV_MD                     *cflv_md;
 
     //ngx_http_request_t          *r;
 
@@ -1908,7 +1908,7 @@ EC_BOOL cflv_renew_header_cache(const UINT32 cflv_md_id, const char *k, const ch
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+    //cflv_md = CFLV_MD_GET(cflv_md_id);
 
     seg_no = 0;
 
@@ -3717,7 +3717,6 @@ EC_BOOL cflv_content_direct_header_out_connection_filter(const UINT32 cflv_md_id
     CFLV_MD                     *cflv_md;
 
     const char                  *k;
-    uint32_t                     status;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -3730,8 +3729,6 @@ EC_BOOL cflv_content_direct_header_out_connection_filter(const UINT32 cflv_md_id
 #endif/*CFLV_DEBUG_SWITCH*/
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
-
-    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
 
     k = (const char *)"Connection";
     chttp_rsp_del_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
@@ -7094,7 +7091,7 @@ EC_BOOL cflv_content_orig_header_out_flv_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -7108,7 +7105,7 @@ EC_BOOL cflv_content_orig_header_out_flv_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     /*not start at the first seg => need to send flv header ahead body*/
     if(CFLV_MD_CACHE_SEG_SIZE(cflv_md) <= CFLV_MD_FLV_START(cflv_md))
@@ -7212,7 +7209,7 @@ EC_BOOL cflv_content_orig_header_out_filter(const UINT32 cflv_md_id)
 
 EC_BOOL cflv_content_orig_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t **data, uint32_t *len)
 {
-    CFLV_MD                     *cflv_md;
+    //CFLV_MD                     *cflv_md;
 
     //ngx_http_request_t          *r;
 
@@ -7226,7 +7223,7 @@ EC_BOOL cflv_content_orig_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t *
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+    //cflv_md = CFLV_MD_GET(cflv_md_id);
 
     //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
@@ -7259,7 +7256,7 @@ EC_BOOL cflv_content_orig_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t *
 
 EC_BOOL cflv_content_orig_body_out_filter(const UINT32 cflv_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CFLV_MD                     *cflv_md;
+    //CFLV_MD                     *cflv_md;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -7271,7 +7268,7 @@ EC_BOOL cflv_content_orig_body_out_filter(const UINT32 cflv_md_id, const UINT32 
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+    //cflv_md = CFLV_MD_GET(cflv_md_id);
 
     return (EC_TRUE);
 }
@@ -9023,7 +9020,7 @@ EC_BOOL cflv_content_ms_header_out_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -9039,7 +9036,7 @@ EC_BOOL cflv_content_ms_header_out_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     k = (const char *)"orig";
     cflv_filter_header_out_common(cflv_md_id, k);
@@ -9105,7 +9102,7 @@ EC_BOOL cflv_content_ms_header_out_filter(const UINT32 cflv_md_id)
 
 EC_BOOL cflv_content_ms_body_out_filter(const UINT32 cflv_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CFLV_MD                  *cflv_md;
+    //CFLV_MD                  *cflv_md;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -9117,7 +9114,7 @@ EC_BOOL cflv_content_ms_body_out_filter(const UINT32 cflv_md_id, const UINT32 se
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+    //cflv_md = CFLV_MD_GET(cflv_md_id);
 
     return (EC_TRUE);
 }
@@ -10239,7 +10236,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
 
 EC_BOOL cflv_content_preload_header_out_filter(const UINT32 cflv_md_id)
 {
-    CFLV_MD                     *cflv_md;
+    //CFLV_MD                     *cflv_md;
 
     //ngx_http_request_t          *r;
     const char                  *k;
@@ -10254,7 +10251,7 @@ EC_BOOL cflv_content_preload_header_out_filter(const UINT32 cflv_md_id)
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+    //cflv_md = CFLV_MD_GET(cflv_md_id);
 
     //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
@@ -13530,7 +13527,7 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
 
-    ngx_http_request_t          *r;
+    //ngx_http_request_t          *r;
     const char                  *k;
     const char                  *v;
 
@@ -13549,7 +13546,7 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
-    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+    //r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     k = (const char *)"Expires";
     v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
@@ -14121,7 +14118,7 @@ EC_BOOL cflv_content_cache_header_out_filter(const UINT32 cflv_md_id)
 
 EC_BOOL cflv_content_cache_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t **data, uint32_t *len)
 {
-    CFLV_MD                     *cflv_md;
+//    CFLV_MD                     *cflv_md;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -14133,7 +14130,7 @@ EC_BOOL cflv_content_cache_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t 
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+//    cflv_md = CFLV_MD_GET(cflv_md_id);
 
     if(0 != STRNCASECMP((const char *)(*data), (const char *)"FLV", 3))/*ignore case*/
     {
@@ -14164,7 +14161,7 @@ EC_BOOL cflv_content_cache_body_out_flv_filter(const UINT32 cflv_md_id, uint8_t 
 
 EC_BOOL cflv_content_cache_body_out_filter(const UINT32 cflv_md_id, const UINT32 seg_no, uint8_t **data, uint32_t *len)
 {
-    CFLV_MD                     *cflv_md;
+//    CFLV_MD                     *cflv_md;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -14176,7 +14173,7 @@ EC_BOOL cflv_content_cache_body_out_filter(const UINT32 cflv_md_id, const UINT32
     }
 #endif/*CFLV_DEBUG_SWITCH*/
 
-    cflv_md = CFLV_MD_GET(cflv_md_id);
+//    cflv_md = CFLV_MD_GET(cflv_md_id);
     return (EC_TRUE);
 }
 

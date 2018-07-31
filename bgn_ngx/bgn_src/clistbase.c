@@ -339,14 +339,11 @@ void clistbase_print_plain(LOG *log, const CLISTBASE *clistbase, void (*print)(L
     CLISTBASE_NODE *clistbase_node;
     void *data;
 
-    UINT32 pos;
-
     if(EC_TRUE == CLISTBASE_IS_EMPTY(clistbase))
     {
         return;
     }
 
-    pos = 0;
     CLISTBASE_LOOP_NEXT(clistbase, clistbase_node)
     {
         data = CLISTBASE_NODE_DATA(clistbase_node);
@@ -364,14 +361,11 @@ void clistbase_print_plain_level(LOG *log, const CLISTBASE *clistbase, const UIN
     CLISTBASE_NODE *clistbase_node;
     void *data;
 
-    UINT32 pos;
-
     if(EC_TRUE == CLISTBASE_IS_EMPTY(clistbase))
     {
         return;
     }
 
-    pos = 0;
     CLISTBASE_LOOP_NEXT(clistbase, clistbase_node)
     {
         data = CLISTBASE_NODE_DATA(clistbase_node);

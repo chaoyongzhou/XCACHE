@@ -445,7 +445,7 @@ gdbAddTree(GDatabase *db, BTree *tree, const uint8_t *key, BTree **newTree)
 {
     GdbStatus   status;
     offset_t    offset;
-    uint16_t    blockSize;
+    //uint16_t    blockSize;
     uint8_t     type;
 
     if (db == NULL || tree == NULL || db->idxRawFile == NULL || key == NULL ||
@@ -457,7 +457,7 @@ gdbAddTree(GDatabase *db, BTree *tree, const uint8_t *key, BTree **newTree)
     *newTree = btreeCreate(db, BTREE_ORDER);
 
     offset = (*newTree)->block->offset;
-    blockSize = (*newTree)->block->multiple;
+    //blockSize = (*newTree)->block->multiple;
     type = (*newTree)->block->type;
 
     if (*newTree == NULL)

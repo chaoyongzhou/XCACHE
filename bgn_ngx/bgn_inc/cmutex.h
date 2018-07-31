@@ -361,6 +361,8 @@ EC_BOOL ccond_release(CCOND *ccond, const UINT32 location);
 
 EC_BOOL ccond_release_all(CCOND *ccond, const UINT32 location);
 
+EC_BOOL ccond_terminate(CCOND *ccond, const UINT32 location);
+
 /*spy on the current times*/
 UINT32  ccond_spy(CCOND *ccond, const UINT32 location);
 

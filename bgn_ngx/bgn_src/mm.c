@@ -1523,11 +1523,11 @@ EC_BOOL safe_assert(void *pvoid, const UINT32 location)
 void *safe_fetch_pmem_of_mm_comm(void *pvoid)
 {
     MM_AUX  *pAux;
-    void    *pmem;
+    //void    *pmem;
     MM_COMM *mm_comm;
 
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
-    pmem = (void *)pAux;
+    //pmem = (void *)pAux;
 
     mm_comm = pAux->u.mm_comm;
     return (mm_comm->pmem);

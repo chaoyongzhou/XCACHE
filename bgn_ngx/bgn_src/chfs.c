@@ -91,7 +91,7 @@ void chfs_print_module_status(const UINT32 chfs_md_id, LOG *log)
 **/
 UINT32 chfs_free_module_static_mem(const UINT32 chfs_md_id)
 {
-    CHFS_MD  *chfs_md;
+    //CHFS_MD  *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -104,7 +104,7 @@ UINT32 chfs_free_module_static_mem(const UINT32 chfs_md_id)
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     free_module_static_mem(MD_CHFS, chfs_md_id);
 
@@ -430,7 +430,7 @@ void chfs_end(const UINT32 chfs_md_id)
 
 EC_BOOL chfs_flush(const UINT32 chfs_md_id)
 {
-    CHFS_MD  *chfs_md;
+    //CHFS_MD  *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -443,7 +443,7 @@ EC_BOOL chfs_flush(const UINT32 chfs_md_id)
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     if(EC_FALSE == chfs_flush_npp(chfs_md_id))
     {
@@ -1271,7 +1271,7 @@ EC_BOOL chfs_release_dn(const UINT32 chfs_md_id, const CHFSNP_FNODE *chfsnp_fnod
 **/
 STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
     CHFSNP_FNODE  chfsnp_fnode;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
@@ -1284,7 +1284,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     chfsnp_fnode_init(&chfsnp_fnode);
 
@@ -1361,7 +1361,7 @@ STATIC_CAST static EC_BOOL __chfs_write(const UINT32 chfs_md_id, const CSTRING *
 
 STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
     CHFSNP_FNODE  chfsnp_fnode;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
@@ -1374,7 +1374,7 @@ STATIC_CAST static EC_BOOL __chfs_write_cache(const UINT32 chfs_md_id, const CST
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     chfsnp_fnode_init(&chfsnp_fnode);
 
@@ -1416,7 +1416,7 @@ EC_BOOL chfs_write(const UINT32 chfs_md_id, const CSTRING *file_path, const CBYT
 **/
 EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
     CHFSNP_FNODE  chfsnp_fnode;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
@@ -1431,7 +1431,7 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     chfsnp_fnode_init(&chfsnp_fnode);
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     if(EC_FALSE == chfs_read_npp(chfs_md_id, file_path, &chfsnp_fnode))
     {
@@ -1465,7 +1465,7 @@ EC_BOOL chfs_read(const UINT32 chfs_md_id, const CSTRING *file_path, CBYTES *cby
 **/
 EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
     CHFSNP_FNODE  chfsnp_fnode;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
@@ -1478,7 +1478,7 @@ EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *o
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     chfsnp_fnode_init(&chfsnp_fnode);
 #if 0
@@ -1536,7 +1536,7 @@ EC_BOOL chfs_read_e(const UINT32 chfs_md_id, const CSTRING *file_path, UINT32 *o
 **/
 EC_BOOL chfs_update(const UINT32 chfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -1548,7 +1548,7 @@ EC_BOOL chfs_update(const UINT32 chfs_md_id, const CSTRING *file_path, const CBY
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 #if 0
     if(SWITCH_ON == CHFS_MEMC_SWITCH)
     {
@@ -1571,7 +1571,7 @@ EC_BOOL chfs_update(const UINT32 chfs_md_id, const CSTRING *file_path, const CBY
 
 EC_BOOL chfs_update_no_lock(const UINT32 chfs_md_id, const CSTRING *file_path, const CBYTES *cbytes)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -1583,7 +1583,7 @@ EC_BOOL chfs_update_no_lock(const UINT32 chfs_md_id, const CSTRING *file_path, c
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     if(EC_FALSE == chfs_read_npp(chfs_md_id, file_path, NULL_PTR))
     {
@@ -2114,7 +2114,7 @@ EC_BOOL chfs_wait_file_owner_push(CHFS_WAIT_FILE *chfs_wait_file, const UINT32 t
 **/
 EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path)
 {
-    CHFS_MD     *chfs_md;
+    //CHFS_MD     *chfs_md;
 
     CHTTP_REQ    chttp_req;
     CHTTP_RSP    chttp_rsp;
@@ -2130,7 +2130,7 @@ EC_BOOL chfs_wait_file_owner_wakeup (const UINT32 chfs_md_id, const UINT32 store
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -2795,7 +2795,7 @@ STATIC_CAST static EC_BOOL __chfs_file_lock(const UINT32 chfs_md_id, const UINT3
 
 EC_BOOL chfs_file_lock(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -2811,7 +2811,7 @@ EC_BOOL chfs_file_lock(const UINT32 chfs_md_id, const UINT32 tcid, const CSTRING
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     cbytes_init(&token_cbyte);
 
@@ -2903,7 +2903,7 @@ STATIC_CAST static EC_BOOL __chfs_file_unlock(const UINT32 chfs_md_id, const CST
 
 EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, const CSTRING *token_str)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
     CBYTES        token_cbyte;
     UINT8         auth_token[CMD5_DIGEST_LEN * 8];
@@ -2919,7 +2919,7 @@ EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, cons
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
     cbytes_mount(&token_cbyte, auth_token_len, auth_token);
@@ -2953,7 +2953,7 @@ EC_BOOL chfs_file_unlock(const UINT32 chfs_md_id, const CSTRING *file_path, cons
 **/
 EC_BOOL chfs_file_unlock_notify(const UINT32 chfs_md_id, const CSTRING *file_path)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -2965,7 +2965,7 @@ EC_BOOL chfs_file_unlock_notify(const UINT32 chfs_md_id, const CSTRING *file_pat
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     dbg_log(SEC_0023_CHFS, 0)(LOGSTDOUT, "error:chfs_file_unlock_notify: obsolete interface!!!!\n");
 
@@ -2979,7 +2979,7 @@ EC_BOOL chfs_file_unlock_notify(const UINT32 chfs_md_id, const CSTRING *file_pat
 **/
 EC_BOOL chfs_cache_file(const UINT32 chfs_md_id, const CSTRING *path)
 {
-    CHFS_MD      *chfs_md;
+    //CHFS_MD      *chfs_md;
 
 #if ( SWITCH_ON == CHFS_DEBUG_SWITCH )
     if ( CHFS_MD_ID_CHECK_INVALID(chfs_md_id) )
@@ -2991,7 +2991,7 @@ EC_BOOL chfs_cache_file(const UINT32 chfs_md_id, const CSTRING *path)
     }
 #endif/*CHFS_DEBUG_SWITCH*/
 
-    chfs_md = CHFS_MD_GET(chfs_md_id);
+    //chfs_md = CHFS_MD_GET(chfs_md_id);
 
     if(SWITCH_ON == CHFS_MEMC_SWITCH)
     {
@@ -3307,7 +3307,7 @@ EC_BOOL chfs_export_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, const CHFS
 
     UINT32   offset;
     UINT32   data_len;
-    uint32_t size;
+    //uint32_t size;
 
     uint16_t disk_no;
     uint16_t block_no;
@@ -3340,7 +3340,7 @@ EC_BOOL chfs_export_dn(const UINT32 chfs_md_id, const CBYTES *cbytes, const CHFS
         return (EC_FALSE);
     }
 
-    size = (uint32_t)data_len;
+    //size = (uint32_t)data_len;
 
     chfsnp_inode = CHFSNP_FNODE_INODE(chfsnp_fnode, 0);
     disk_no  = CHFSNP_INODE_DISK_NO(chfsnp_inode) ;

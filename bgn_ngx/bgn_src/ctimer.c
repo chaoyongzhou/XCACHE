@@ -439,7 +439,7 @@ void ctimer_print(LOG *log, const CTIMER_MD *ctimer_md)
     ctimer_expire_burn  = ctimer_md->ctimer_expire_burn;
 
     sys_log(log, "ctimer_node_list:\n");
-    clist_print(log, ctimer_md->ctimer_node_list, (CLIST_DATA_DATA_PRINT)ctimer_node_print);
+    clist_print(log, ctimer_node_list, (CLIST_DATA_DATA_PRINT)ctimer_node_print);
 
     sys_log(log, "phy_citimer: it_value = {%ld, %ld}, it_interval = {%ld, %ld}\n",
                 CITIMER_VALUE_SEC(phy_citimer), CITIMER_VALUE_USEC(phy_citimer),

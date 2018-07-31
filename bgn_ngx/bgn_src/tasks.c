@@ -687,7 +687,7 @@ EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     TASK_BRD        *task_brd;
     TASKS_CFG       *tasks_cfg;
     TASKS_WORKER    *tasks_worker;
-    UINT32           broken_tcid;
+    //UINT32           broken_tcid;
 
     TASK_NODE       *task_node;
 
@@ -699,7 +699,7 @@ EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode)
     task_brd        = task_brd_default_get();
     tasks_cfg       = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker    = TASKS_CFG_WORKER(tasks_cfg);
-    broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
+    //broken_tcid     = CSOCKET_CNODE_TCID(csocket_cnode);
 
     dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "[DEBUG] tasks_node_iclose: close sockfd %d on tcid %s, vec size %ld\n",
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
@@ -1484,11 +1484,11 @@ CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(con
 
 CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 des_tcid)
 {
-    const CVECTOR       *tasks_nodes;
+    //const CVECTOR       *tasks_nodes;
     TASKS_CFG           *tasks_cfg;
     UINT32               pos;
 
-    tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
+    //tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
     tasks_cfg   = TASKS_WORK_BASE_TASKS_CFG_ENTRY(tasks_worker);
 

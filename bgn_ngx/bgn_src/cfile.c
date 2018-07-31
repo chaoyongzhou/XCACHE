@@ -72,7 +72,7 @@ void cfile_print_module_status(const UINT32 cfile_md_id, LOG *log)
 **/
 UINT32 cfile_free_module_static_mem(const UINT32 cfile_md_id)
 {
-    CFILE_MD  *cfile_md;
+    //CFILE_MD  *cfile_md;
 
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
     if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
@@ -85,7 +85,7 @@ UINT32 cfile_free_module_static_mem(const UINT32 cfile_md_id)
     }
 #endif/*CFILE_DEBUG_SWITCH*/
 
-    cfile_md = CFILE_MD_GET(cfile_md_id);
+    //cfile_md = CFILE_MD_GET(cfile_md_id);
 
     free_module_static_mem(MD_CFILE, cfile_md_id);
 
@@ -102,9 +102,9 @@ UINT32 cfile_start()
     CFILE_MD    *cfile_md;
     UINT32       cfile_md_id;
 
-    TASK_BRD    *task_brd;
+    //TASK_BRD    *task_brd;
 
-    task_brd = task_brd_default_get();
+    //task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CFILE , 1);
 

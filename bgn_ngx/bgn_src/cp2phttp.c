@@ -1235,7 +1235,7 @@ EC_BOOL cp2phttp_commit_push_get_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
 {
-    CSOCKET_CNODE      * csocket_cnode;
+    //CSOCKET_CNODE      * csocket_cnode;
 
     char               * service_str;
     char               * src_fname_str;
@@ -1399,7 +1399,7 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     des_network = c_str_to_word(des_network_str);
     on_tcid     = c_ipv4_to_word(on_tcid_str);
@@ -1672,7 +1672,7 @@ EC_BOOL cp2phttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 {
-    CSOCKET_CNODE      * csocket_cnode;
+    //CSOCKET_CNODE      * csocket_cnode;
 
     char               * service_str;
     char               * src_fname_str;
@@ -1870,7 +1870,7 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     des_network = c_str_to_word(des_network_str);
     on_tcid     = c_ipv4_to_word(on_tcid_str);
@@ -3286,7 +3286,7 @@ EC_BOOL cp2phttp_commit_refresh_get_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
 {
-    CSOCKET_CNODE      * csocket_cnode;
+    //CSOCKET_CNODE      * csocket_cnode;
 
     char               * service_str;
     char               * path_str;
@@ -3454,7 +3454,7 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     des_network = c_str_to_word(des_network_str);
     on_tcid     = c_ipv4_to_word(on_tcid_str);

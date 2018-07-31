@@ -6841,12 +6841,12 @@ EC_BOOL chfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __chfshttp_uri_is_cond_wakeup_get_op(uri_cbuffer))
     {
-        CSOCKET_CNODE * csocket_cnode;
+        //CSOCKET_CNODE * csocket_cnode;
         UINT32 tag;
 
         tag = MD_CHFS;
 
-        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == super_cond_wakeup(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
         {
             dbg_log(SEC_0159_CHFSHTTP, 0)(LOGSTDOUT, "error:chfshttp_handle_cond_wakeup_get_request: cond wakeup %s failed\n",

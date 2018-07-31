@@ -78,7 +78,7 @@ void cp2p_print_module_status(const UINT32 cp2p_md_id, LOG *log)
 **/
 UINT32 cp2p_free_module_static_mem(const UINT32 cp2p_md_id)
 {
-    CP2P_MD  *cp2p_md;
+    //CP2P_MD  *cp2p_md;
 
 #if ( SWITCH_ON == CP2P_DEBUG_SWITCH )
     if ( CP2P_MD_ID_CHECK_INVALID(cp2p_md_id) )
@@ -91,7 +91,7 @@ UINT32 cp2p_free_module_static_mem(const UINT32 cp2p_md_id)
     }
 #endif/*CP2P_DEBUG_SWITCH*/
 
-    cp2p_md = CP2P_MD_GET(cp2p_md_id);
+    //cp2p_md = CP2P_MD_GET(cp2p_md_id);
 
     free_module_static_mem(MD_CP2P, cp2p_md_id);
 
@@ -518,7 +518,7 @@ STATIC_CAST static CSTRING * __cp2p_file_name_gen(const CSTRING *service_name, c
 **/
 EC_BOOL cp2p_file_exists_local(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
 {
-    CP2P_MD          *cp2p_md;
+    //CP2P_MD          *cp2p_md;
 
     const char       *file_path_str;
     UINT32            fsize;
@@ -536,7 +536,7 @@ EC_BOOL cp2p_file_exists_local(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_fi
     }
 #endif/*CP2P_DEBUG_SWITCH*/
 
-    cp2p_md = CP2P_MD_GET(cp2p_md_id);
+    //cp2p_md = CP2P_MD_GET(cp2p_md_id);
 
     file_path_str = (const char *)CP2P_FILE_DES_NAME_STR(cp2p_file);
     if(EC_FALSE == c_file_access(file_path_str, F_OK))
@@ -1971,7 +1971,7 @@ void cp2p_cmd_print(LOG *log, const CP2P_CMD *cp2p_cmd)
 **/
 EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
 {
-    CP2P_MD          *cp2p_md;
+    //CP2P_MD          *cp2p_md;
 
     UINT32            super_md_id;
     CBYTES            result_cbytes;
@@ -1987,7 +1987,7 @@ EC_BOOL cp2p_cmd_execute(const UINT32 cp2p_md_id, const CP2P_CMD *cp2p_cmd)
     }
 #endif/*CP2P_DEBUG_SWITCH*/
 
-    cp2p_md = CP2P_MD_GET(cp2p_md_id);
+    //cp2p_md = CP2P_MD_GET(cp2p_md_id);
 
     super_md_id = 0;
 
@@ -2336,7 +2336,7 @@ EC_BOOL cp2p_refresh_cache_notify(const UINT32 cp2p_md_id, const UINT32 des_netw
 **/
 EC_BOOL cp2p_refresh_local_cache(const UINT32 cp2p_md_id, const CSTRING *path)
 {
-    CP2P_MD          *cp2p_md;
+    //CP2P_MD          *cp2p_md;
 
     CHTTP_REQ         chttp_req;
     CHTTP_RSP         chttp_rsp;
@@ -2352,7 +2352,7 @@ EC_BOOL cp2p_refresh_local_cache(const UINT32 cp2p_md_id, const CSTRING *path)
     }
 #endif/*CP2P_DEBUG_SWITCH*/
 
-    cp2p_md = CP2P_MD_GET(cp2p_md_id);
+    //cp2p_md = CP2P_MD_GET(cp2p_md_id);
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);

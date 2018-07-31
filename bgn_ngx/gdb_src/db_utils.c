@@ -234,7 +234,7 @@ gdbCompressString(const uint8_t *base, uint16_t baseLen,
                   const uint8_t *key, uint16_t keyLen,
                   uint8_t **outKey, uint16_t *outLen)
 {
-    uint16_t preLen, sufLen;
+    uint16_t preLen;
     uint16_t maxLen, minLen;
     uint16_t newLen;
     const uint8_t *c1, *c2;
@@ -245,8 +245,6 @@ gdbCompressString(const uint8_t *base, uint16_t baseLen,
     {
         return;
     }
-
-    sufLen = 0;
 
     maxLen = (baseLen > keyLen ? baseLen : keyLen);
     minLen = (baseLen < keyLen ? baseLen : keyLen);

@@ -1712,7 +1712,7 @@ STATIC_CAST static EC_BOOL __crfschttp_handle_getrgf_request_fetch_path(CRFSCHTT
 
 EC_BOOL crfschttp_handle_getrgf_request(CRFSCHTTP_NODE *crfschttp_node)
 {
-    CSOCKET_CNODE *csocket_cnode;
+    //CSOCKET_CNODE *csocket_cnode;
 
     CSTRING       *store_path;
 
@@ -1725,7 +1725,7 @@ EC_BOOL crfschttp_handle_getrgf_request(CRFSCHTTP_NODE *crfschttp_node)
 
     int            fd;
 
-    csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
+    //csocket_cnode = CRFSCHTTP_NODE_CSOCKET_CNODE(crfschttp_node);
     if(EC_FALSE == __crfschttp_handle_getrgf_request_fetch_path(crfschttp_node))
     {
         dbg_log(SEC_0145_CRFSCHTTP, 0)(LOGSTDOUT, "error:crfschttp_handle_getrgf_request: node %p, fetch store path failed\n",

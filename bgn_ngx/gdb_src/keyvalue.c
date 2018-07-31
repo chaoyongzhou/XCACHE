@@ -681,7 +681,7 @@ void keyPrintHs(LOG *log, const uint8_t *key)
 {
     uint16_t klen;
     uint16_t rlen;
-    uint32_t vlen;
+    //uint32_t vlen;
     uint16_t cqlen;
     uint8_t  cflen;
     uint8_t  type;
@@ -700,7 +700,7 @@ void keyPrintHs(LOG *log, const uint8_t *key)
     klen = gdbGet16(key, &counter);
     //sys_print(log,"klen %d,", klen);
 
-    vlen = gdbGet32(key, &counter);
+    //vlen = gdbGet32(key, &counter);
     //sys_print(log,"vlen %d,",vlen);
 
     cxGotoUnless(klen >= KV_FORMAT_RLEN, __last);

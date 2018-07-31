@@ -73,7 +73,7 @@ void cdetectn_print_module_status(const UINT32 cdetectn_md_id, LOG *log)
 **/
 UINT32 cdetectn_free_module_static_mem(const UINT32 cdetectn_md_id)
 {
-    CDETECTN_MD  *cdetectn_md;
+    //CDETECTN_MD  *cdetectn_md;
 
 #if ( SWITCH_ON == CDETECTN_DEBUG_SWITCH )
     if ( CDETECTN_MD_ID_CHECK_INVALID(cdetectn_md_id) )
@@ -86,7 +86,7 @@ UINT32 cdetectn_free_module_static_mem(const UINT32 cdetectn_md_id)
     }
 #endif/*CDETECTN_DEBUG_SWITCH*/
 
-    cdetectn_md = CDETECTN_MD_GET(cdetectn_md_id);
+    //cdetectn_md = CDETECTN_MD_GET(cdetectn_md_id);
 
     free_module_static_mem(MD_CDETECTN, cdetectn_md_id);
 
@@ -746,7 +746,7 @@ STATIC_CAST CDETECTN_ORIG_NODE *__cdetectn_search_orig_node(const UINT32 cdetect
 **/
 EC_BOOL cdetectn_show_orig_node(const UINT32 cdetectn_md_id, const CSTRING *domain, LOG *log)
 {
-    CDETECTN_MD *cdetectn_md;
+    //CDETECTN_MD *cdetectn_md;
 
     CDETECTN_ORIG_NODE *cdetectn_orig_node;
 
@@ -760,7 +760,7 @@ EC_BOOL cdetectn_show_orig_node(const UINT32 cdetectn_md_id, const CSTRING *doma
     }
 #endif/*CDETECTN_DEBUG_SWITCH*/
 
-    cdetectn_md = CDETECTN_MD_GET(cdetectn_md_id);
+    //cdetectn_md = CDETECTN_MD_GET(cdetectn_md_id);
 
     cdetectn_orig_node = __cdetectn_search_orig_node(cdetectn_md_id, domain);
     if(NULL_PTR == cdetectn_orig_node)
