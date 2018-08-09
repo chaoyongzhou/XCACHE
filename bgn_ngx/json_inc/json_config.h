@@ -126,9 +126,6 @@
 /* Define to 1 if you have the `vsyslog' function. */
 #define HAVE_VSYSLOG 1
 
-/* Define to 1 if you have the <xlocale.h> header file. */
-#define HAVE_XLOCALE_H 1
-
 /* Public define for json_inttypes.h */
 #define JSON_C_HAVE_INTTYPES_H 1
 

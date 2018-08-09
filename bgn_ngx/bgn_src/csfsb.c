@@ -37,7 +37,7 @@ extern "C"{
                             - sizeof(uint16_t)                         \
                             - (CSFSB_PAGE_NUM >> 5) * sizeof(uint32_t) \
                             - CSFSB_PAGE_NUM * sizeof(uint32_t)) )
-
+#if 0
 static const CSFSB_CONF g_csfsb_conf[] = {
     {"CSFSB_064MB_MODEL", CSFSB_064MB_PAGE_NUM, 0, 0, 0},
     {"CSFSB_032MB_MODEL", CSFSB_032MB_PAGE_NUM, 0, 0, 0},
@@ -55,7 +55,7 @@ static const CSFSB_CONF g_csfsb_conf[] = {
     {"CSFSB_008KB_MODEL", CSFSB_008KB_PAGE_NUM, 0, 0, 0},
     {"CSFSB_004KB_MODEL", CSFSB_004KB_PAGE_NUM, 0, 0, 0},
 };
-
+#endif
 static const uint8_t g_nbits_per_byte[] = {
     /*   0 -   31*/ 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
     /*  32 -   63*/ 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,

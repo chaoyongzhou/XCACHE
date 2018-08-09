@@ -145,6 +145,7 @@ TASK_BRD *g_task_brd = NULL_PTR;
 UINT32 g_task_node_buff_type_tbl[MM_END];
 UINT32 g_task_node_buff_type_tbl_flag = EC_FALSE;
 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
 const static FUNC_ADDR_NODE g_task_brd_heartbeat_once_func_addr_node = {
 /* -- EC_BOOL task_brd_heartbeat_once(TASK_BRD *task_brd); -- */
 /*func module     */     MD_TASK,
@@ -160,7 +161,9 @@ const static FUNC_ADDR_NODE g_task_brd_heartbeat_once_func_addr_node = {
 /*func para type  */     {e_dbg_void_ptr,},/*trick*/
 /*func para val   */     0, 0, {0},
 };
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
+#if (SWITCH_ON == LOAD_UPDATE_SWITCH)
 const static FUNC_ADDR_NODE g_task_brd_cload_stat_update_once_func_addr_node = {
 /* -- EC_BOOL task_brd_cload_stat_update_once(TASK_BRD *task_brd); -- */
 /*func module     */     MD_TASK,
@@ -192,6 +195,7 @@ const static FUNC_ADDR_NODE g_task_brd_cpu_avg_stat_update_once_func_addr_node =
 /*func para type  */     {e_dbg_void_ptr,},/*trick*/
 /*func para val   */     0, 0, {0},
 };
+#endif/*(SWITCH_ON == LOAD_UPDATE_SWITCH)*/
 
 const static FUNC_ADDR_NODE g_task_brd_mcast_config_func_addr_node = {
 /* -- EC_BOOL task_brd_mcast_config(TASK_BRD *task_brd); -- */

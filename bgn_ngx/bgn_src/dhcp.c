@@ -1866,7 +1866,8 @@ EC_BOOL dhcp_server_do(const char *netcard, const UINT32 mcast_addr, const UINT3
 
     dhcp_set_local_port(DHCP_SERVER_PORT);
 
-    assert(send_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX));
+    send_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX);
+    assert(NULL_PTR != send_inet_info);
     if(EC_FALSE == dhcp_if_register_send(send_inet_info))
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_server_do: register dhcp send failed\n");
@@ -1874,7 +1875,8 @@ EC_BOOL dhcp_server_do(const char *netcard, const UINT32 mcast_addr, const UINT3
         return (EC_FALSE);
     }
 
-    assert(recv_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX));
+    recv_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX);
+    assert(NULL_PTR != recv_inet_info);
     if(EC_FALSE == dhcp_if_register_recv(recv_inet_info))
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_server_do: register dhcp recv failed\n");
@@ -1949,7 +1951,8 @@ EC_BOOL dhcp_client_do(const char *netcard, UINT32 *mcast_addr, UINT32 *mcast_po
 
     dhcp_set_local_port(DHCP_CLIENT_PORT);
 
-    assert(send_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX));
+    send_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX);
+    assert(NULL_PTR != send_inet_info);
     if(EC_FALSE == dhcp_if_register_send(send_inet_info))
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_client_do: register dhcp send failed\n");
@@ -1957,7 +1960,8 @@ EC_BOOL dhcp_client_do(const char *netcard, UINT32 *mcast_addr, UINT32 *mcast_po
         return (EC_FALSE);
     }
 
-    assert(recv_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX));
+    recv_inet_info = dhcp_if_new(netcard, DHCP_PACKET_BUFF_MAX);
+    assert(NULL_PTR != recv_inet_info);
     if(EC_FALSE == dhcp_if_register_recv(recv_inet_info))
     {
         dbg_log(SEC_0084_DHCP, 0)(LOGSTDOUT, "error:dhcp_client_do: register dhcp recv failed\n");

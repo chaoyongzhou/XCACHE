@@ -72,7 +72,7 @@ EC_BOOL crfsnpdel_is_empty(const CRFSNPDEL_NODE *head)
 }
 
 /*--------------------------------------------- DEL list operations ---------------------------------------------*/
-STATIC_CAST inline void __crfsnpdel_node_add(
+STATIC_CAST void __crfsnpdel_node_add(
                                 CRFSNPDEL_NODE *new_node , const uint32_t new_pos,
                                 CRFSNPDEL_NODE *prev_node, const uint32_t prev_pos,
                                 CRFSNPDEL_NODE *next_node, const uint32_t next_pos)
@@ -130,7 +130,7 @@ void crfsnpdel_node_add_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_
     return;
 }
 
-STATIC_CAST inline void __crfsnpdel_node_rmv(
+STATIC_CAST void __crfsnpdel_node_rmv(
                         CRFSNPDEL_NODE *prev_node, const uint32_t prev_pos,
                         CRFSNPDEL_NODE *next_node, const uint32_t next_pos)
 {

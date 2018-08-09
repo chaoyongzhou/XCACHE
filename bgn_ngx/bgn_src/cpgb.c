@@ -1201,7 +1201,7 @@ EC_BOOL cpgb_debug_cmp(const CPGB *cpgb_1st, const CPGB *cpgb_2nd)
 
         for(cpgrb_bitmap_pos = 0; cpgrb_bitmap_pos < cpgrb_bitmap_size; cpgrb_bitmap_pos ++)
         {
-            if(pgc_cpgrb_bitmap_1st[ cpgrb_bitmap_pos ] != pgc_cpgrb_bitmap_1st[ cpgrb_bitmap_pos ])
+            if(pgc_cpgrb_bitmap_1st[ cpgrb_bitmap_pos ] != pgc_cpgrb_bitmap_2nd[ cpgrb_bitmap_pos ])
             {
                 dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_debug_cmp: inconsistent bitmap at pos %u: %u != %u where page_model %u\n",
                                     cpgrb_bitmap_pos,

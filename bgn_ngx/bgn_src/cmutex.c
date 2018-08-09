@@ -651,6 +651,7 @@ EC_BOOL cmutex_unlock(CMUTEX *cmutex, const UINT32 location)
 
 STATIC_CAST static void ccond_print_var(const char *info, const CCOND *ccond)
 {
+#if 0
     const pthread_cond_t  *var;
     var = CCOND_VAR(ccond);
     cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "[tid %ld] %s: ccond %p counter %ld, var: __lock = %d, __futex = %d, __total_seq = %d, __wakeup_seq = %d, __woken_seq = %d, __nwaiters =%d\n",
@@ -662,6 +663,7 @@ STATIC_CAST static void ccond_print_var(const char *info, const CCOND *ccond)
                         var->__data.__woken_seq,
                         var->__data.__nwaiters
             );
+#endif
     return;
 }
 
@@ -1527,14 +1529,6 @@ void crwlock_clean(CRWLOCK *crwlock, const UINT32 location)
     int ret_val;
 
     CRWLOCK_CHECK_LOCK_VALIDITY(crwlock, CRWLOCK_OP_CLEAN, location);
-
-    /*when clean, must __m_reserved = 0*/
-    if(0 != CRWLOCK_NR_READER(crwlock) || 0 != CRWLOCK_NR_READER_QUEUED(crwlock) || 0 != CRWLOCK_NR_WRITER_QUEUED(crwlock))
-    {
-        cmutex_dbg_log(SEC_0083_CMUTEX, 0)(LOGSTDOUT, "error:crwlock_clean: crwlock %p:invalid status found at %s:%ld\n", crwlock, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        CRWLOCK_PRINT_LOCK_INFO(LOGSTDOUT, CRWLOCK_OP_CLEAN, crwlock);
-        return;
-    }
 
     CRWLOCK_SET_LOCATION(crwlock, CRWLOCK_OP_CLEAN, location);
 

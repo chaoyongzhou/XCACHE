@@ -72,7 +72,7 @@ EC_BOOL crfsnplru_is_empty(const CRFSNPLRU_NODE *head)
 }
 
 /*--------------------------------------------- LRU list operations ---------------------------------------------*/
-STATIC_CAST inline void __crfsnplru_node_add(
+STATIC_CAST void __crfsnplru_node_add(
                                 CRFSNPLRU_NODE *new_node , const uint32_t new_pos,
                                 CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos,
                                 CRFSNPLRU_NODE *next_node, const uint32_t next_pos)
@@ -130,7 +130,7 @@ void crfsnplru_node_add_tail(CRFSNP *crfsnp, CRFSNPLRU_NODE *node, const uint32_
     return;
 }
 
-STATIC_CAST inline void __crfsnplru_node_rmv(
+STATIC_CAST void __crfsnplru_node_rmv(
                         CRFSNPLRU_NODE *prev_node, const uint32_t prev_pos,
                         CRFSNPLRU_NODE *next_node, const uint32_t next_pos)
 {

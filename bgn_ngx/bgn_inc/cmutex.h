@@ -304,18 +304,6 @@ typedef struct
     }\
 }while(0)
 
-#define CRWLOCK_NR_READER(crwlock)            ((crwlock)->rwlock.__data.__nr_readers)
-#define CRWLOCK_NR_READER_QUEUED(crwlock)     ((crwlock)->rwlock.__data.__nr_readers_queued)
-#define CRWLOCK_NR_WRITER_QUEUED(crwlock)     ((crwlock)->rwlock.__data.__nr_writers_queued)
-
-#define CRWLOCK_PRINT_LOCK_INFO(fp, __op__, crwlock) do{\
-    sys_log(fp, "crwlock %lx : op = %ld, __nr_readers = %d, __nr_readers_queued = %d, __nr_writers_queued = %d\n", crwlock,__op__,\
-        CRWLOCK_NR_READER(crwlock),\
-        CRWLOCK_NR_READER_QUEUED(crwlock),\
-        CRWLOCK_NR_WRITER_QUEUED(crwlock) \
-        );\
-}while(0)
-
 #define CRWLOCK_RESET(this_crwlock, flag)    do{\
     crwlock_init(this_crwlock, flag, CRWLOCK_GET_LOCATION(this_crwlock, CRWLOCK_OP_INIT));\
 }while(0)
