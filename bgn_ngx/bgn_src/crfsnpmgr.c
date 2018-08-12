@@ -1065,7 +1065,7 @@ EC_BOOL crfsnp_mgr_retire_np(CRFSNP_MGR *crfsnp_mgr, const uint32_t crfsnp_id, c
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u done where expect num %ld and complete_num %ld\n",
+    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] crfsnp_mgr_retire_np: retire np %u done where expect num %ld and complete num %ld\n",
                     crfsnp_id, expect_num, (*complete_num));
 
     return (EC_TRUE);

@@ -689,13 +689,14 @@ void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
 {
     uint32_t pos;
 
-    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, "
+    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, key '%.*s' "
                    "key offset %u, parent %u, lru node (%u, %u), del node (%u, %u)\n",
                     crfsnp_item,
                     CRFSNP_ITEM_DIR_FLAG(crfsnp_item), __crfsnp_item_dir_flag_str(CRFSNP_ITEM_DIR_FLAG(crfsnp_item)),
                     CRFSNP_ITEM_USED_FLAG(crfsnp_item),
                     CRFSNP_ITEM_CREATE_TIME(crfsnp_item),
                     CRFSNP_ITEM_SECOND_HASH(crfsnp_item),
+                    CRFSNP_ITEM_KLEN(crfsnp_item), (char *)CRFSNP_ITEM_KNAME(crfsnp_item),
                     CRFSNP_ITEM_KEY_OFFSET(crfsnp_item),
                     CRFSNP_ITEM_PARENT_POS(crfsnp_item),
                     CRFSNPLRU_NODE_PREV_POS(CRFSNP_ITEM_LRU_NODE(crfsnp_item)),
@@ -2582,6 +2583,7 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
     for(retire_num = 0; retire_num < expect_retire_num && EC_FALSE == crfsnp_lru_list_is_empty(crfsnp);)
     {
         uint32_t node_pos;
+        uint32_t parent_pos; /*for empty parent retiring*/
 
         CRFSNP_ITEM *crfsnp_item;
 
@@ -2602,6 +2604,30 @@ EC_BOOL crfsnp_retire(CRFSNP *crfsnp, const UINT32 expect_retire_num, UINT32 *co
             /*not used item*/
             crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             continue;
+        }
+
+        /*retire empty parent recursively*/
+        parent_pos = CRFSNP_ITEM_PARENT_POS(crfsnp_item);
+        while(CRFSNPRB_ERR_POS != parent_pos)
+        {
+            CRFSNP_ITEM     *parent_crfsnp_item;
+            CRFSNP_DNODE    *parent_crfsnp_dnode;
+
+            parent_crfsnp_item  = crfsnp_fetch(crfsnp, parent_pos);
+            //ASSERT(CRFSNP_ITEM_FILE_IS_DIR == CRFSNP_ITEM_DIR_FLAG(parent_crfsnp_item));
+            
+            parent_crfsnp_dnode = CRFSNP_ITEM_DNODE(parent_crfsnp_item);
+            
+            dbg_log(SEC_0081_CRFSNP, 9)(LOGSTDOUT, "[DEBUG] crfsnp_retire: node %u => parent %u and file num %ld\n",
+                            node_pos, parent_pos, CRFSNP_DNODE_FILE_NUM(parent_crfsnp_dnode));
+
+            if(1 < CRFSNP_DNODE_FILE_NUM(parent_crfsnp_dnode))
+            {
+                break;
+            }
+
+            node_pos   = parent_pos;
+            parent_pos = CRFSNP_ITEM_PARENT_POS(parent_crfsnp_item);
         }
 
         if(CRFSNP_ITEM_FILE_IS_REG == CRFSNP_ITEM_DIR_FLAG(crfsnp_item))

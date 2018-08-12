@@ -359,7 +359,7 @@ typedef struct
 #define CPGB_PAGE_ACTUAL_USED_SIZE(cpgb)                   ((cpgb)->pgb_actual_used_size)
 
 /*rb_node num = half of page num (enough!)*/
-#define CPGB_SIZE        (sizeof(CPGB) + sizeof(CPGRB_NODE) * (CPGB_064MB_PAGE_NUM))
+#define CPGB_SIZE        (sizeof(CPGB) + sizeof(CPGRB_NODE) * ((CPGB_064MB_PAGE_NUM + 1) >> 1))
 
 typedef struct
 {

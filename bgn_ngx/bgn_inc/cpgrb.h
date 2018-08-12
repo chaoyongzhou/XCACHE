@@ -30,7 +30,7 @@ typedef struct
     uint16_t rb_used      : 1; /*CPGRB_USED or CPGRB_NOT_USED*/
 
     uint16_t rb_right_pos :15;
-    uint16_t rsvd1       : 1;
+    uint16_t rsvd1        : 1;
 
     uint16_t rb_left_pos  :15;
     uint16_t rsvd2        : 1;
@@ -62,7 +62,7 @@ typedef struct
     uint32_t    rsvd2;
     uint16_t    free_head;/*unused CPGRB_TREE head*/
     uint16_t    node_num;
-    CPGRB_NODE  rb_node[ 0 ];  /*128KB,rb_nodes table*/
+    CPGRB_NODE  rb_node[ 0 ];/*rb_nodes table*/
 }CPGRB_POOL;
 
 #define CPGRB_POOL_FREE_HEAD(pool)         ((pool)->free_head)

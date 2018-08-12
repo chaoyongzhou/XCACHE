@@ -457,6 +457,7 @@ CPGB *cpgb_new(const uint16_t page_model_target)
 EC_BOOL cpgb_init(CPGB *cpgb, const uint16_t page_model_target)
 {
     uint16_t page_max_num;
+    uint16_t page_max_num_t;
     uint16_t page_model;
 
     const CPGB_CONF *cpgb_conf;
@@ -470,12 +471,14 @@ EC_BOOL cpgb_init(CPGB *cpgb, const uint16_t page_model_target)
     cpgb_conf    = &(g_cpgb_conf[ page_model_target ]);
     page_max_num = CPGB_CONF_PAGE_NUM(cpgb_conf);
 
-    if(EC_FALSE == cpgrb_pool_init(CPGB_CPGRB_POOL(cpgb), page_max_num))
+    page_max_num_t = ((page_max_num + 1) >> 1); /*optimize, use half of rb nodes to represent all pages*/
+    if(EC_FALSE == cpgrb_pool_init(CPGB_CPGRB_POOL(cpgb), page_max_num_t))
     {
-        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_init: init cpgrb pool failed where page_max_num = %u\n", page_max_num);
+        dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_init: init cpgrb pool failed where page_max_num_t = %u derived from page_max_num %u\n", page_max_num_t, page_max_num);
         cpgb_clean(cpgb);
         return (EC_FALSE);
     }
+    dbg_log(SEC_0122_CPGB, 9)(LOGSTDOUT, "[DEBUG] cpgb_init: init cpgrb pool done where page_max_num_t = %u derived from page_max_num %u\n", page_max_num_t, page_max_num);
 
     BSET(CPGB_PAGE_MODEL_CPGRB_BITMAP_BUFF(cpgb), CPGB_PAGE_IS_NOT_FREE, CPGB_RB_BITMAP_SIZE); /*mark as non-free page*/
 
