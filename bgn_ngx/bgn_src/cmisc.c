@@ -181,6 +181,10 @@ static char  *g_week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 static char  *g_months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
+
+static int    g_dev_null_fd = -1;       /*fd of device /dev/null*/
+static FILE  *g_dev_null_fp = NULL_PTR; /*fp of device /dev/null*/
+
 EC_BOOL cmisc_init(UINT32 location)
 {
     c_mutex_init(&g_cmisc_str_cmutex, CMUTEX_PROCESS_PRIVATE, location);
@@ -5615,6 +5619,123 @@ void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align)
     }
 
     return (address);
+}
+
+/*use /dev/null to compute lenght of output string with unspecific format*/
+EC_BOOL c_open_dev_null()
+{
+    int fd;
+
+    fd = open("/dev/null", O_WRONLY);
+    if(0 > fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_open_dev_null: open '/dev/null' failed\n");
+        return (EC_FALSE);
+    }
+
+    /*
+    *   note: 
+    *       also one could use mmap but not fd to reach the same target. the latter need memory copy yet.
+    *
+    *   e.g.
+    *       cache_size = 1 * 1024 * 1024;
+    *       des = mmap(NULL, cache_size, PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, fd, 0);
+    *
+    */
+
+    g_dev_null_fd = fd;
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_open_dev_null: open '/dev/null' done => fd = %d\n", fd);
+    return (EC_TRUE);
+}
+
+EC_BOOL c_close_dev_null()
+{
+    if(-1 != g_dev_null_fd)
+    {
+        close(g_dev_null_fd);
+       
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fd = %d\n", 
+                        g_dev_null_fd);
+
+        g_dev_null_fd = -1;
+    }
+
+    if(NULL_PTR != g_dev_null_fp)
+    {
+        fclose(g_dev_null_fp);
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fp = %p\n", 
+                        g_dev_null_fp);
+                        
+        g_dev_null_fp = NULL_PTR;
+    }
+
+    return (EC_TRUE);
+}
+
+/*count format length via /dev/null*/
+int c_vformat_len(const char *format, va_list ap)
+{
+#if 1 /*version 2*/
+    va_list params;
+    int len;
+
+    if(NULL_PTR == g_dev_null_fp)
+    {
+        FILE *fp;
+        
+        if(-1 == g_dev_null_fd)
+        {
+            if(EC_FALSE == c_open_dev_null())
+            {
+                dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_vformat_len: open '/dev/null' failed\n");
+                return (0);
+            }
+        }
+
+        fp = fdopen(g_dev_null_fd, "w"); /*note: only support write mode*/
+        if(NULL_PTR == fp)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_vformat_len: fdopen '/dev/null' failed\n");
+            c_close_dev_null();
+            return (0);
+        }
+
+        g_dev_null_fp = fp;
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_vformat_len: fdopen '/dev/null' where fd %d => fp %p\n",
+                            g_dev_null_fd, g_dev_null_fp);
+    }
+
+    va_copy(params, ap);
+
+    len = vfprintf(g_dev_null_fp, format, params);
+    return (len);
+#endif    
+
+#if 0 /*version 1*/
+    va_list params;
+    int len;
+
+    va_copy(params, ap);
+
+    len = vsnprintf((char *)0, 0, format, params);
+    return (len);
+#endif    
+
+}
+
+int c_format_len(const char *format, ...)
+{
+    va_list ap;
+    int len;
+
+    va_start(ap, format);
+
+    len = c_vformat_len(format, ap);
+    va_end(ap);
+
+    return (len);
 }
 
 #ifdef __cplusplus

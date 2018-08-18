@@ -418,6 +418,14 @@ EC_BOOL c_munmap_aligned(void *address, const UINT32 size);
 
 void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align);
 
+EC_BOOL c_open_dev_null();
+
+EC_BOOL c_close_dev_null();
+
+int c_vformat_len(const char *format, va_list ap);
+
+int c_format_len(const char *format, ...);
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

@@ -692,8 +692,6 @@ CSTRING *cstring_make(const char *format, ...)
     va_list ap;
     UINT32 len;
 
-    va_list params;
-
     cstring = cstring_new(NULL_PTR, LOC_CSTRING_0011);
     if(NULL_PTR == cstring)
     {
@@ -705,9 +703,7 @@ CSTRING *cstring_make(const char *format, ...)
 
     va_start(ap, format);
 
-    va_copy(params, ap);
-
-    len = (UINT32)vsnprintf((char *)0, 0, format, params);
+    len = (UINT32)c_vformat_len(format, ap);
 
     cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0012);
 
@@ -1102,15 +1098,9 @@ EC_BOOL cstring_format(CSTRING *cstring, const char *format, ...)
     va_list ap;
     UINT32 len;
 
-    va_list params;
-
-    //cstring_print(LOGSTDOUT, cstring);
-
     va_start(ap, format);
 
-    va_copy(params, ap);
-
-    len = (UINT32)vsnprintf((char *)0, 0, format, params);
+    len = (UINT32)c_vformat_len(format, ap);
 
     if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0020))
     {
@@ -1131,13 +1121,8 @@ EC_BOOL cstring_format(CSTRING *cstring, const char *format, ...)
 EC_BOOL cstring_vformat(CSTRING *cstring, const char *format, va_list ap)
 {
     UINT32 len;
-    va_list params;
 
-    //cstring_print(LOGSTDOUT, cstring);
-
-    va_copy(params, ap);
-
-    len = (UINT32)vsnprintf((char *)0, 0, format, params);
+    len = (UINT32)c_vformat_len(format, ap);
 
     if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CSTRING_0021))
     {

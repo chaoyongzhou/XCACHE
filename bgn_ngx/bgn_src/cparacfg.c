@@ -231,7 +231,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_NGX_BGN_OVER_HTTP_SWITCH          = %s\n" ,  CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
 
     sys_log(log, "CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM         = %ld\n",  CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
-    sys_log(log, "CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM        = %s\n" ,  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
+    sys_log(log, "CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM        = %ld\n",  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
     sys_log(log, "CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH        = %s\n" ,  CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH        = %s\n" ,  CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CRFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));

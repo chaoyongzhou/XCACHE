@@ -312,13 +312,9 @@ uint32_t cbuffer_append_format(CBUFFER *cbuffer, const char *format, ...)
     va_list ap;
     UINT32 len;
 
-    va_list params;
-
     va_start(ap, format);
 
-    va_copy(params, ap);
-
-    len = (UINT32)vsnprintf((char *)0, 0, format, params);/*need len*/
+    len = (UINT32)c_vformat_len(format, ap);/*need len*/
     cbuffer_expand_to(cbuffer, len + CBUFFER_USED(cbuffer) + 1);
 
     len = vsnprintf((char *)(CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer)), CBUFFER_ROOM(cbuffer), format, ap);
@@ -332,11 +328,8 @@ uint32_t cbuffer_append_format(CBUFFER *cbuffer, const char *format, ...)
 uint32_t cbuffer_append_vformat(CBUFFER *cbuffer, const char *format, va_list ap)
 {
     UINT32 len;
-    va_list params;
-
-    va_copy(params, ap);
-
-    len = (UINT32)vsnprintf((char *)0, 0, format, params);/*need len*/
+    
+    len = (UINT32)c_vformat_len(format, ap);/*need len*/
     cbuffer_expand_to(cbuffer, len + CBUFFER_USED(cbuffer) + 1);
 
     len = vsnprintf((char *)(CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer)), CBUFFER_ROOM(cbuffer), format, ap);
