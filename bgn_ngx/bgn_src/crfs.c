@@ -3517,7 +3517,7 @@ EC_BOOL crfs_delete_file(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
+    if(EC_FALSE == crfsnp_mgr_umount_deep(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
@@ -3557,7 +3557,7 @@ EC_BOOL crfs_delete_file_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_file_no_lock: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
+    if(EC_FALSE == crfsnp_mgr_umount_deep(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_file_no_lock: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
@@ -3659,7 +3659,7 @@ EC_BOOL crfs_delete_dir(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
+    if(EC_FALSE == crfsnp_mgr_umount_deep(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
@@ -3697,7 +3697,7 @@ EC_BOOL crfs_delete_dir_no_lock(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_no_lock: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    if(EC_FALSE == crfsnp_mgr_umount(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
+    if(EC_FALSE == crfsnp_mgr_umount_deep(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_delete_dir_no_lock: umount %.*s failed\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
@@ -3736,7 +3736,7 @@ EC_BOOL crfs_delete_dir_wildcard(const UINT32 crfs_md_id, const CSTRING *path)
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: crfs_md_id %ld, path %s ...\n",
                         crfs_md_id, (char *)cstring_get_str(path));
 
-    if(EC_FALSE == crfsnp_mgr_umount_wildcard(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
+    if(EC_FALSE == crfsnp_mgr_umount_wildcard_deep(CRFS_MD_NPP(crfs_md), path, CRFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_delete_dir_wildcard: umount %.*s failed or terminated\n",
                             (uint32_t)cstring_get_len(path), cstring_get_str(path));

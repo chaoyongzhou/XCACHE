@@ -140,7 +140,11 @@ EC_BOOL crfsnp_mgr_update(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, cons
 
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
+EC_BOOL crfsnp_mgr_umount_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
+
 EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
+
+EC_BOOL crfsnp_mgr_umount_wildcard_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
 EC_BOOL crfsnp_mgr_mkdir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path);
 

@@ -5640,6 +5640,7 @@ EC_BOOL c_open_dev_null()
     *   e.g.
     *       cache_size = 1 * 1024 * 1024;
     *       des = mmap(NULL, cache_size, PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, fd, 0);
+    *       close(fd);
     *
     */
 

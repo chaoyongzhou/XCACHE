@@ -1199,6 +1199,35 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file(CRFSNP_MGR *crfsnp_mgr, cons
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    CRFSNP  *crfsnp;
+    uint32_t crfsnp_id;
+
+    crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), &crfsnp_id);
+    if(NULL_PTR == crfsnp)
+    {
+        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_deep: no np for path %.*s\n",
+                           (uint32_t)cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_deep: crfsnp %p, header %p, %s ...\n",
+                        crfsnp, CRFSNP_HDR(crfsnp), (char *)cstring_get_str(path));
+
+    if(EC_FALSE == crfsnp_umount_deep(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+    {
+        dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_deep: np %u umount %.*s failed\n",
+                            crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_deep: np %u umount %.*s done\n",
+                        crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
+
+    return (EC_TRUE);
+}
+
 STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     uint32_t crfsnp_id;
@@ -1225,6 +1254,32 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir(CRFSNP_MGR *crfsnp_mgr, const
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    uint32_t crfsnp_id;
+
+    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_dir_deep: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == crfsnp_umount_deep(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 1)(LOGSTDOUT, "warn:__crfsnp_mgr_umount_dir_deep: np %u umount %.*s failed\n",
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
+            //return (EC_FALSE);
+        }
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == dflag)
@@ -1238,6 +1293,23 @@ EC_BOOL crfsnp_mgr_umount(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UIN
     }
 
     dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount: found invalid dflag 0x%lx before umount %.*s\n",
+                        dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
+    return (EC_FALSE);
+}
+
+EC_BOOL crfsnp_mgr_umount_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
+    {
+        return __crfsnp_mgr_umount_file_deep(crfsnp_mgr, path, dflag);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
+    {
+        return __crfsnp_mgr_umount_dir_deep(crfsnp_mgr, path, dflag);
+    }
+
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_deep: found invalid dflag 0x%lx before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
     return (EC_FALSE);
 }
@@ -1262,6 +1334,35 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file_wildcard(CRFSNP_MGR *crfsnp_
         if(EC_TRUE == crfsnp_umount_wildcard(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
         {
             dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wildcard: np %u umount %.*s succ\n",
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
+            ret = EC_TRUE;
+        }
+    }
+
+    /*return true if any np succ*/
+    return (ret);
+}
+
+STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_file_wildcard_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    uint32_t crfsnp_id;
+    EC_BOOL  ret;
+
+    ret = EC_FALSE;
+    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
+    {
+        CRFSNP  *crfsnp;
+
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_file_wildcard_deep: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+
+        if(EC_TRUE == crfsnp_umount_wildcard_deep(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_file_wildcard_deep: np %u umount %.*s succ\n",
                                 crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
             ret = EC_TRUE;
         }
@@ -1301,6 +1402,36 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir_wildcard(CRFSNP_MGR *crfsnp_m
     return (ret);
 }
 
+STATIC_CAST static EC_BOOL __crfsnp_mgr_umount_dir_wildcard_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    uint32_t crfsnp_id;
+
+    EC_BOOL  ret;
+
+    ret = EC_FALSE;
+    for(crfsnp_id = 0; crfsnp_id < CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr); crfsnp_id ++)
+    {
+        CRFSNP *crfsnp;
+
+        crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
+        if(NULL_PTR == crfsnp)
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:__crfsnp_mgr_umount_dir_wildcard_deep: open np %u failed\n", crfsnp_id);
+            return (EC_FALSE);
+        }
+
+        if(EC_TRUE == crfsnp_umount_wildcard_deep(crfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag))
+        {
+            dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_umount_dir_wildcard_deep: np %u umount %.*s succ\n",
+                                crfsnp_id, (uint32_t)cstring_get_len(path), cstring_get_str(path));
+            ret = EC_TRUE;
+        }
+    }
+
+    /*return true if any np succ*/
+    return (ret);
+}
+
 EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
     if(CRFSNP_ITEM_FILE_IS_REG == dflag)
@@ -1314,6 +1445,23 @@ EC_BOOL crfsnp_mgr_umount_wildcard(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, 
     }
 
     dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard: found invalid dflag 0x%lx before umount %.*s\n",
+                        dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
+    return (EC_FALSE);
+}
+
+EC_BOOL crfsnp_mgr_umount_wildcard_deep(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, const UINT32 dflag)
+{
+    if(CRFSNP_ITEM_FILE_IS_REG == dflag)
+    {
+        return __crfsnp_mgr_umount_file_wildcard_deep(crfsnp_mgr, path, dflag);
+    }
+
+    if(CRFSNP_ITEM_FILE_IS_DIR == dflag)
+    {
+        return __crfsnp_mgr_umount_dir_wildcard_deep(crfsnp_mgr, path, dflag);
+    }
+
+    dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_umount_wildcard_deep: found invalid dflag 0x%lx before umount %.*s\n",
                         dflag, (uint32_t)cstring_get_len(path), (char *)cstring_get_str(path));
     return (EC_FALSE);
 }

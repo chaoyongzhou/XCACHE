@@ -251,7 +251,11 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos);
 
 EC_BOOL crfsnp_umount(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
+EC_BOOL crfsnp_umount_deep(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
+
 EC_BOOL crfsnp_umount_wildcard(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
+
+EC_BOOL crfsnp_umount_wildcard_deep(CRFSNP *crfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 EC_BOOL crfsnp_recycle_item_file(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint32_t node_pos, CRFSNP_RECYCLE_NP *crfsnp_recycle_np, CRFSNP_RECYCLE_DN *crfsnp_recycle_dn);
 

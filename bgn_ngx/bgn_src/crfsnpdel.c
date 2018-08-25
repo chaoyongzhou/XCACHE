@@ -55,20 +55,20 @@ EC_BOOL crfsnpdel_node_is_empty(const CRFSNPDEL_NODE *node, const uint32_t node_
 {
     if(node_pos == CRFSNPDEL_NODE_NEXT_POS(node))
     {
-        return ( EC_TRUE );
+        return (EC_TRUE);
     }
 
-    return ( EC_FALSE);
+    return (EC_FALSE);
 }
 
 EC_BOOL crfsnpdel_is_empty(const CRFSNPDEL_NODE *head)
 {
     if(CRFSNPDEL_ROOT_POS == CRFSNPDEL_NODE_NEXT_POS(head))
     {
-        return ( EC_TRUE );
+        return (EC_TRUE);
     }
 
-    return ( EC_FALSE);
+    return (EC_FALSE);
 }
 
 /*--------------------------------------------- DEL list operations ---------------------------------------------*/
@@ -86,7 +86,11 @@ STATIC_CAST void __crfsnpdel_node_add(
 
 void crfsnpdel_node_add_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
-    if(CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_PREV_POS(node))
+    if(CRFSNPDEL_ROOT_POS != node_pos /*ensure not root node*/
+    && CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_PREV_POS(node) /*ensure prev node is not root node*/
+    && node_pos == CRFSNPDEL_NODE_NEXT_POS(node) /*ensure node not in list*/
+    && node_pos == CRFSNPDEL_NODE_PREV_POS(node) /*ensure node not in list*/
+    )
     {
         CRFSNPDEL_NODE *head;
         CRFSNPDEL_NODE *next;
@@ -109,7 +113,11 @@ void crfsnpdel_node_add_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_
 
 void crfsnpdel_node_add_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
-    if(CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_NEXT_POS(node))
+    if(CRFSNPDEL_ROOT_POS != node_pos /*ensure not root node*/
+    && CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_NEXT_POS(node) /*ensure next node is not root node*/
+    && node_pos == CRFSNPDEL_NODE_NEXT_POS(node) /*ensure node not in list*/
+    && node_pos == CRFSNPDEL_NODE_PREV_POS(node) /*ensure node not in list*/
+    )
     {
         CRFSNPDEL_NODE *head;
         CRFSNPDEL_NODE *prev;
@@ -141,7 +149,12 @@ STATIC_CAST void __crfsnpdel_node_rmv(
 
 void crfsnpdel_node_move_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
-    if(CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_PREV_POS(node))
+    if(CRFSNPDEL_ROOT_POS != node_pos /*ensure not root node*/
+    && CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_PREV_POS(node) /*ensure prev node is not root node*/
+    && node_pos != CRFSNPDEL_NODE_NEXT_POS(node)  /*ensure node in list*/
+    && node_pos != CRFSNPDEL_NODE_PREV_POS(node)  /*ensure node in list*/
+    && CRFSNPDEL_NODE_NEXT_POS(node) != CRFSNPDEL_NODE_PREV_POS(node) /*ensure validity*/
+    )
     {
         CRFSNPDEL_NODE *prev;
         CRFSNPDEL_NODE *next;
@@ -154,8 +167,10 @@ void crfsnpdel_node_move_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
 
         next_pos = CRFSNPDEL_NODE_NEXT_POS(node);
         next     = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, next_pos));
-
+        
         __crfsnpdel_node_rmv(prev, prev_pos, next, next_pos);
+        crfsnpdel_node_init(node, node_pos);
+        
         crfsnpdel_node_add_head(crfsnp, node, node_pos);
 
         dbg_log(SEC_0076_CRFSNPDEL, 9)(LOGSTDOUT, "[DEBUG] crfsnpdel_node_move_head: node %p, pos %u\n", node, node_pos);
@@ -165,7 +180,12 @@ void crfsnpdel_node_move_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
 
 void crfsnpdel_node_move_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
-    if(CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_NEXT_POS(node))
+    if(CRFSNPDEL_ROOT_POS != node_pos /*ensure not root node*/
+    && CRFSNPDEL_ROOT_POS != CRFSNPDEL_NODE_NEXT_POS(node) /*ensure next node is not root node*/
+    && node_pos != CRFSNPDEL_NODE_NEXT_POS(node) /*ensure node in list*/
+    && node_pos != CRFSNPDEL_NODE_PREV_POS(node) /*ensure node in list*/
+    && CRFSNPDEL_NODE_NEXT_POS(node) != CRFSNPDEL_NODE_PREV_POS(node) /*ensure validity*/
+    )
     {
         CRFSNPDEL_NODE *prev;
         CRFSNPDEL_NODE *next;
@@ -180,6 +200,8 @@ void crfsnpdel_node_move_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
         next     = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, next_pos));
 
         __crfsnpdel_node_rmv(prev, prev_pos, next, next_pos);
+        crfsnpdel_node_init(node, node_pos);
+        
         crfsnpdel_node_add_tail(crfsnp, node, node_pos);
 
         dbg_log(SEC_0076_CRFSNPDEL, 9)(LOGSTDOUT, "[DEBUG] crfsnpdel_node_move_tail: node %p, pos %u\n", node, node_pos);
@@ -189,7 +211,10 @@ void crfsnpdel_node_move_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
 
 void crfsnpdel_node_rmv(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32_t node_pos)
 {
-    if(node_pos != CRFSNPDEL_NODE_NEXT_POS(node))
+    if(CRFSNPDEL_ROOT_POS != node_pos /*ensure not root node*/
+    && node_pos != CRFSNPDEL_NODE_NEXT_POS(node) /*ensure node in list*/
+    && node_pos != CRFSNPDEL_NODE_PREV_POS(node) /*ensure node in list*/
+    )
     {
         CRFSNPDEL_NODE *prev;
         CRFSNPDEL_NODE *next;
