@@ -4387,7 +4387,7 @@ EC_BOOL crfs_qlist_tree_of_np(const UINT32 crfs_md_id, const UINT32 crfsnp_id, c
     if(do_log(SEC_0031_CRFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] crfs_qlist_tree_of_np: after walk, stack is:\n");
-        cstack_print(LOGSTDOUT, CRFSNP_DIT_NODE_STACK(&crfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)crfsnp_item_print);
+        cstack_print(LOGSTDOUT, CRFSNP_DIT_NODE_STACK(&crfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)crfsnp_item_and_key_print);
     }
 
     cstring_free(base_dir);

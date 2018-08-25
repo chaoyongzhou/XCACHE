@@ -1109,7 +1109,7 @@ EC_BOOL crfsnp_mgr_write(CRFSNP_MGR *crfsnp_mgr, const CSTRING *file_path, const
     {
         sys_log(LOGSTDOUT, "[DEBUG] crfsnp_mgr_write: import fnode to item successfully where path %s\n",
                            (char *)cstring_get_str(file_path));
-        crfsnp_item_print(LOGSTDOUT, crfsnp_item);
+        crfsnp_item_and_key_print(LOGSTDOUT, crfsnp_item);
     }
     return (EC_TRUE);
 }

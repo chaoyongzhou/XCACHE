@@ -198,7 +198,7 @@ CRFSNP_FNODE *crfsmc_reserve_np_no_lock(CRFSMC *crfsmc, const CSTRING *file_path
     if(do_log(SEC_0140_CRFSMC, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] crfsmc_reserve_np_no_lock: reserved crfsnp_item %p is\n", crfsnp_item);
-        crfsnp_item_print(LOGSTDOUT, crfsnp_item);
+        crfsnp_item_and_key_print(LOGSTDOUT, crfsnp_item);
     }
 
     (*node_pos) = node_pos_t;

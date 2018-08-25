@@ -685,18 +685,18 @@ STATIC_CAST static const char *__crfsnp_item_dir_flag_str(const uint32_t dir_fla
     return (const char *)"UFO";
 }
 
+/*without key print*/
 void crfsnp_item_print(LOG *log, const CRFSNP_ITEM *crfsnp_item)
 {
     uint32_t pos;
 
-    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, key '%.*s' "
+    sys_print(log, "crfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, "
                    "key offset %u, parent %u, lru node (%u, %u), del node (%u, %u)\n",
                     crfsnp_item,
                     CRFSNP_ITEM_DIR_FLAG(crfsnp_item), __crfsnp_item_dir_flag_str(CRFSNP_ITEM_DIR_FLAG(crfsnp_item)),
                     CRFSNP_ITEM_USED_FLAG(crfsnp_item),
                     CRFSNP_ITEM_CREATE_TIME(crfsnp_item),
                     CRFSNP_ITEM_SECOND_HASH(crfsnp_item),
-                    CRFSNP_ITEM_KLEN(crfsnp_item), (char *)CRFSNP_ITEM_KNAME(crfsnp_item),
                     CRFSNP_ITEM_KEY_OFFSET(crfsnp_item),
                     CRFSNP_ITEM_PARENT_POS(crfsnp_item),
                     CRFSNPLRU_NODE_PREV_POS(CRFSNP_ITEM_LRU_NODE(crfsnp_item)),
@@ -4410,7 +4410,7 @@ EC_BOOL crfsnp_recycle_item(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint
         if(EC_FALSE == crfsnp_recycle_item_file(crfsnp, crfsnp_item, node_pos, crfsnp_recycle_np, crfsnp_recycle_dn))
         {
             dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_recycle_item: recycle regular file failed where crfsnp_item is\n");
-            crfsnp_item_print(LOGSTDOUT, crfsnp_item);
+            crfsnp_item_and_key_print(LOGSTDOUT, crfsnp_item);
 
             /*should never reach here*/
             crfsnp_item_clean(crfsnp_item);
