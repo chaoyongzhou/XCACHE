@@ -8102,6 +8102,23 @@ LOG * task_brd_default_init(int argc, char **argv)
     sys_log_redirect_setup(LOGSTDERR, log);
     cstring_free(log_file_name);
 
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    /*open log and redirect LOGUSER07 log to it*/
+    log_file_name = cstring_new(NULL_PTR, LOC_TASK_0135);
+    cstring_format(log_file_name, "%s/orig_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
+    log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
+                        this_tcid, this_rank,
+                        LOGD_FILE_RECORD_LIMIT_ENABLED, (UINT32)FILE_LOG_NAME_WITH_DATE_SWITCH,
+                        LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_DISABLE);
+    if(NULL_PTR == log)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: open log file %s failed\n", (char *)cstring_get_str(log_file_name));
+        task_brd_default_abort();
+    }
+    sys_log_redirect_setup(LOGUSER07, log);
+    cstring_free(log_file_name);
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
     /*print os setting*/
     task_brd_os_setting_print(LOGSTDOUT);
 

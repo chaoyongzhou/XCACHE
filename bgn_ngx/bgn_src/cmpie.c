@@ -5544,6 +5544,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_uint32_t(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_NEED_LOG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_LOCKED_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_EXPIRED_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_CHUNK_FLAG(chttp_store), out_buff, out_buff_max_len, position);
@@ -5598,6 +5599,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store), size);
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_NEED_LOG_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_LOCKED_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_EXPIRED_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CHUNK_FLAG(chttp_store), size);
@@ -5680,6 +5682,9 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = flag;
 
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
+    CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = flag;
+    
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_LOCKED_FLAG(chttp_store) = flag;
 

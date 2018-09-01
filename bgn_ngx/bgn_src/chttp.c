@@ -757,6 +757,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         CHTTP_STORE_MERGE_FLAG(chttp_store)        = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)  = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)  = BIT_FALSE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)     = BIT_FALSE;
         CHTTP_STORE_LOCKED_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_EXPIRED_FLAG(chttp_store)      = BIT_FALSE;
         CHTTP_STORE_CHUNK_FLAG(chttp_store)        = BIT_FALSE;
@@ -816,6 +817,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         CHTTP_STORE_MERGE_FLAG(chttp_store)        = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)  = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)  = BIT_FALSE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)     = BIT_FALSE;
         CHTTP_STORE_LOCKED_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_EXPIRED_FLAG(chttp_store)      = BIT_FALSE;
         CHTTP_STORE_CHUNK_FLAG(chttp_store)        = BIT_FALSE;
@@ -886,6 +888,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         CHTTP_STORE_MERGE_FLAG(chttp_store_des)         = CHTTP_STORE_MERGE_FLAG(chttp_store_src);
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_des)   = CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_src);
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_des)   = CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_src);
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store_des)      = CHTTP_STORE_NEED_LOG_FLAG(chttp_store_src);
         CHTTP_STORE_LOCKED_FLAG(chttp_store_des)        = CHTTP_STORE_LOCKED_FLAG(chttp_store_src);
         CHTTP_STORE_EXPIRED_FLAG(chttp_store_des)       = CHTTP_STORE_EXPIRED_FLAG(chttp_store_src);
         CHTTP_STORE_CHUNK_FLAG(chttp_store_des)         = CHTTP_STORE_CHUNK_FLAG(chttp_store_src);
@@ -1021,6 +1024,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:merge_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:header_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:direct_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)));
+    sys_log(LOGSTDOUT, "chttp_store_print:need_log_flag            : %s\n"  , c_bit_bool_str(CHTTP_STORE_NEED_LOG_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:locked_flag              : %s\n"  , c_bit_bool_str(CHTTP_STORE_LOCKED_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:expired_flag             : %s\n"  , c_bit_bool_str(CHTTP_STORE_EXPIRED_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:chunk_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)));
@@ -9442,6 +9446,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     chttp_node_set_socket_callback(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
     chttp_node_set_socket_epoll(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
 
+    CHTTP_STAT_S_SEND_LEN(chttp_stat) += chttp_node_send_len(chttp_node);
     //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: croutine_cond %p reserved\n", croutine_cond);
 
     croutine_cond_reserve(croutine_cond, 1, LOC_CHTTP_0046);
@@ -9520,6 +9525,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     /*get and check body len/content-length*/
     /*rsp_body_len = chttp_node_recv_len(chttp_node);*/
+    CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_HEADER_PARSED_LEN(chttp_node);
+    CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
     rsp_body_len = CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
     if(0 < rsp_body_len && 0 < CHTTP_NODE_CONTENT_LENGTH(chttp_node))
     {
@@ -10684,11 +10691,76 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
 
     if(BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store))
     {
-        return chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat); /*need store or not need store (e.g. direct procedure)*/
+        uint32_t s_nsec; /*start time in second*/
+        uint32_t s_msec; /*start time in micro-second*/
+
+        uint32_t e_nsec; /*end time in second*/
+        uint32_t e_msec; /*end time in micro-second*/
+
+        uint32_t s2e_elapsed_msec;
+        uint32_t need_log_flag;
+
+        if(NULL_PTR != chttp_store && BIT_TRUE == CHTTP_STORE_NEED_LOG_FLAG(chttp_store))
+        {
+            need_log_flag = BIT_TRUE;
+        }
+        else
+        {
+            need_log_flag = BIT_FALSE;
+        }
+
+        if(BIT_TRUE == need_log_flag)
+        {
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_nsec, s_msec);
+        }
+        
+        if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
+        {
+            if(BIT_TRUE == need_log_flag)
+            {
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
+                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
+                                   CHTTP_REQ_PORT(chttp_req), 
+                                   CHTTP_RSP_STATUS(chttp_rsp), 
+                                   s2e_elapsed_msec,
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"), 
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
+                                   (uint32_t)0, 
+                                   CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                                   CHTTP_STAT_S_RECV_LEN(chttp_stat)
+                                   );        
+            }
+            
+            return (EC_FALSE);
+        }
+
+        if(BIT_TRUE == need_log_flag)
+        {
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
+            s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+            sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                               (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
+                               CHTTP_REQ_PORT(chttp_req), 
+                               CHTTP_RSP_STATUS(chttp_rsp), 
+                               s2e_elapsed_msec,
+                               (char *)chttp_req_get_header(chttp_req, (const char *)"Host"), 
+                               (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
+                               (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
+                               (uint32_t)0, 
+                               CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                               CHTTP_STAT_S_RECV_LEN(chttp_stat)
+                               );        
+        }
+        
+        return (EC_TRUE);
     }
 
     if(0 == CHTTP_STORE_SEG_ID(chttp_store))
     {
+        /*should never reach here*/
         return chttp_request_header(chttp_req, chttp_store, chttp_rsp, chttp_stat); /*need store but not merge http request*/
     }
 

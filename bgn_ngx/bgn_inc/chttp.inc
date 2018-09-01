@@ -108,7 +108,8 @@ typedef struct
     uint32_t                  redirect_control:1;       /*redirect location control from configuration*/
     uint32_t                  header_orig_flag:1;       /*set it when seg 0 orig at first time*/
     uint32_t                  direct_orig_flag:1;       /*set it if direct orig*/
-    uint32_t                  rsvd01:12;
+    uint32_t                  need_log_flag:1;          /*set it if need http log*/
+    uint32_t                  rsvd01:11;
 
     uint32_t                  orig_timeout_nsec;
 
@@ -145,6 +146,7 @@ typedef struct
 #define CHTTP_STORE_MERGE_FLAG(chttp_store)                   ((chttp_store)->merge_flag)
 #define CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)             ((chttp_store)->header_orig_flag)
 #define CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)             ((chttp_store)->direct_orig_flag)
+#define CHTTP_STORE_NEED_LOG_FLAG(chttp_store)                ((chttp_store)->need_log_flag)
 #define CHTTP_STORE_LOCKED_FLAG(chttp_store)                  ((chttp_store)->locked_flag)
 #define CHTTP_STORE_EXPIRED_FLAG(chttp_store)                 ((chttp_store)->expired_flag)
 #define CHTTP_STORE_CHUNK_FLAG(chttp_store)                   ((chttp_store)->chunk_flag)
@@ -218,6 +220,7 @@ typedef struct
             /*start time means the connection setup time or parser resumed time*/
             uint32_t                  s_nsec; /*start time in second*/
             uint32_t                  s_msec; /*start time in micro-second*/
+            
             /*recv time means the whole http request including body received or parsed time*/
             uint32_t                  r_nsec; /*received time in second*/
             uint32_t                  r_msec; /*received time in micro-second*/
@@ -229,9 +232,11 @@ typedef struct
             /*handle time means the rfs beg to handle time*/
             uint32_t                  h_nsec;
             uint32_t                  h_msec;
+
             /*done time means the rfs handle done time*/
             uint32_t                  d_nsec; /*done time in second*/
             uint32_t                  d_msec; /*done time in micro-second*/
+
             /*end time means all data sent out time*/
             uint32_t                  e_nsec; /*end time in second*/
             uint32_t                  e_msec; /*end time in micro-second*/
@@ -329,16 +334,21 @@ typedef struct
 #define CHTTP_STAT_MERGE_R_NSEC(chttp_stat)        ((chttp_stat)->u.merge.r_nsec)
 #define CHTTP_STAT_MERGE_R_MSEC(chttp_stat)        ((chttp_stat)->u.merge.r_msec)
 
-#define CHTTP_STAT_HEADER_S_NSEC(chttp_stat)        ((chttp_stat)->u.header.s_nsec)
-#define CHTTP_STAT_HEADER_S_MSEC(chttp_stat)        ((chttp_stat)->u.header.s_msec)
-#define CHTTP_STAT_HEADER_W_NSEC(chttp_stat)        ((chttp_stat)->u.header.w_nsec)
-#define CHTTP_STAT_HEADER_W_MSEC(chttp_stat)        ((chttp_stat)->u.header.w_msec)
-#define CHTTP_STAT_HEADER_O_NSEC(chttp_stat)        ((chttp_stat)->u.header.o_nsec)
-#define CHTTP_STAT_HEADER_O_MSEC(chttp_stat)        ((chttp_stat)->u.header.o_msec)
-#define CHTTP_STAT_HEADER_C_NSEC(chttp_stat)        ((chttp_stat)->u.header.c_nsec)
-#define CHTTP_STAT_HEADER_C_MSEC(chttp_stat)        ((chttp_stat)->u.header.c_msec)
-#define CHTTP_STAT_HEADER_R_NSEC(chttp_stat)        ((chttp_stat)->u.header.r_nsec)
-#define CHTTP_STAT_HEADER_R_MSEC(chttp_stat)        ((chttp_stat)->u.header.r_msec)
+#define CHTTP_STAT_HEADER_S_NSEC(chttp_stat)       ((chttp_stat)->u.header.s_nsec)
+#define CHTTP_STAT_HEADER_S_MSEC(chttp_stat)       ((chttp_stat)->u.header.s_msec)
+#define CHTTP_STAT_HEADER_W_NSEC(chttp_stat)       ((chttp_stat)->u.header.w_nsec)
+#define CHTTP_STAT_HEADER_W_MSEC(chttp_stat)       ((chttp_stat)->u.header.w_msec)
+#define CHTTP_STAT_HEADER_O_NSEC(chttp_stat)       ((chttp_stat)->u.header.o_nsec)
+#define CHTTP_STAT_HEADER_O_MSEC(chttp_stat)       ((chttp_stat)->u.header.o_msec)
+#define CHTTP_STAT_HEADER_C_NSEC(chttp_stat)       ((chttp_stat)->u.header.c_nsec)
+#define CHTTP_STAT_HEADER_C_MSEC(chttp_stat)       ((chttp_stat)->u.header.c_msec)
+#define CHTTP_STAT_HEADER_R_NSEC(chttp_stat)       ((chttp_stat)->u.header.r_nsec)
+#define CHTTP_STAT_HEADER_R_MSEC(chttp_stat)       ((chttp_stat)->u.header.r_msec)
+
+#define CHTTP_STAT_ORIG_S_NSEC(chttp_stat)         ((chttp_stat)->u.orig.s_nsec)
+#define CHTTP_STAT_ORIG_S_MSEC(chttp_stat)         ((chttp_stat)->u.orig.s_msec)
+#define CHTTP_STAT_ORIG_E_NSEC(chttp_stat)         ((chttp_stat)->u.orig.e_nsec)
+#define CHTTP_STAT_ORIG_E_MSEC(chttp_stat)         ((chttp_stat)->u.orig.e_msec)
 
 #define CHTTP_STAT_STAT_STR(chttp_stat)            ((chttp_stat)->status_str)
 #define CHTTP_STAT_DESC_STR(chttp_stat)            ((chttp_stat)->desc_str)
@@ -589,12 +599,12 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
     CHTTP_NODE_R_MSEC(chttp_node) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());     \
 }while(0)
 
-#define CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node) do{                                        \
+#define CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node) do{                                      \
     CHTTP_NODE_L_NSEC(chttp_node) = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());     \
     CHTTP_NODE_L_MSEC(chttp_node) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());     \
 }while(0)
 
-#define CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node) do{                                        \
+#define CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node) do{                                      \
     CHTTP_NODE_H_NSEC(chttp_node) = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());     \
     CHTTP_NODE_H_MSEC(chttp_node) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());     \
 }while(0)
@@ -767,7 +777,7 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
     CHTTP_STAT_HEADER_C_MSEC(chttp_stat) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());    \
 }while(0)
 
-#define CHTTP_STAT_LOG_HEADER_TIME_WHEN_READ(chttp_stat) do{                                     \
+#define CHTTP_STAT_LOG_HEADER_TIME_WHEN_READ(chttp_stat) do{                                       \
     CHTTP_STAT_HEADER_R_NSEC(chttp_stat) = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());    \
     CHTTP_STAT_HEADER_R_MSEC(chttp_stat) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());    \
 }while(0)
@@ -776,7 +786,7 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
     ((0 == (e_nsec)) ? 0 : (((e_nsec) - (s_nsec)) * 1000 + (e_msec) - (s_msec)))
 
 /*for header orig procedure owner*/
-#define CHTTP_STAT_LOG_HEADER_YES_PRINT(chttp_stat) do{                                             \
+#define CHTTP_STAT_LOG_HEADER_YES_PRINT(chttp_stat) do{                                            \
     uint32_t s2w_elapsed_msec;                                                                     \
     uint32_t s2o_elapsed_msec;                                                                     \
     uint32_t s2c_elapsed_msec;                                                                     \
@@ -785,21 +795,36 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
     s2o_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_HEADER_TIME_ELAPSED_MSEC(CHTTP_STAT_HEADER_O_NSEC(chttp_stat), CHTTP_STAT_HEADER_O_MSEC(chttp_stat), CHTTP_STAT_HEADER_S_NSEC(chttp_stat), CHTTP_STAT_HEADER_S_MSEC(chttp_stat)); \
     s2c_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_HEADER_TIME_ELAPSED_MSEC(CHTTP_STAT_HEADER_C_NSEC(chttp_stat), CHTTP_STAT_HEADER_C_MSEC(chttp_stat), CHTTP_STAT_HEADER_S_NSEC(chttp_stat), CHTTP_STAT_HEADER_S_MSEC(chttp_stat)); \
     s2r_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_HEADER_TIME_ELAPSED_MSEC(CHTTP_STAT_HEADER_R_NSEC(chttp_stat), CHTTP_STAT_HEADER_R_MSEC(chttp_stat), CHTTP_STAT_HEADER_S_NSEC(chttp_stat), CHTTP_STAT_HEADER_S_MSEC(chttp_stat)); \
-    sys_log(LOGUSER08,                                                                              \
-            "%s S:%u.%03u W:%u.%03u %u O:%u.%03u %u C:%u.%03u %u R:%u.%03u %u %s\n",   \
-            (char *)CHTTP_STAT_STAT_STR(chttp_stat),                                                \
-            CHTTP_STAT_HEADER_S_NSEC(chttp_stat), CHTTP_STAT_HEADER_S_MSEC(chttp_stat),               \
-            CHTTP_STAT_HEADER_W_NSEC(chttp_stat), CHTTP_STAT_HEADER_W_MSEC(chttp_stat),               \
-            s2w_elapsed_msec,                                                                       \
-            CHTTP_STAT_HEADER_O_NSEC(chttp_stat), CHTTP_STAT_HEADER_O_MSEC(chttp_stat),               \
-            s2o_elapsed_msec,                                                                       \
-            CHTTP_STAT_HEADER_C_NSEC(chttp_stat), CHTTP_STAT_HEADER_C_MSEC(chttp_stat),               \
-            s2c_elapsed_msec,                                                                       \
-            CHTTP_STAT_HEADER_R_NSEC(chttp_stat), CHTTP_STAT_HEADER_R_MSEC(chttp_stat),               \
-            s2r_elapsed_msec,                                                                       \
-            (char *)CHTTP_STAT_DESC_STR(chttp_stat)                                                 \
-           );                                                                                       \
+    sys_log(LOGUSER08,                                                                             \
+            "%s S:%u.%03u W:%u.%03u %u O:%u.%03u %u C:%u.%03u %u R:%u.%03u %u %s\n",               \
+            (char *)CHTTP_STAT_STAT_STR(chttp_stat),                                               \
+            CHTTP_STAT_HEADER_S_NSEC(chttp_stat), CHTTP_STAT_HEADER_S_MSEC(chttp_stat),            \
+            CHTTP_STAT_HEADER_W_NSEC(chttp_stat), CHTTP_STAT_HEADER_W_MSEC(chttp_stat),            \
+            s2w_elapsed_msec,                                                                      \
+            CHTTP_STAT_HEADER_O_NSEC(chttp_stat), CHTTP_STAT_HEADER_O_MSEC(chttp_stat),            \
+            s2o_elapsed_msec,                                                                      \
+            CHTTP_STAT_HEADER_C_NSEC(chttp_stat), CHTTP_STAT_HEADER_C_MSEC(chttp_stat),            \
+            s2c_elapsed_msec,                                                                      \
+            CHTTP_STAT_HEADER_R_NSEC(chttp_stat), CHTTP_STAT_HEADER_R_MSEC(chttp_stat),            \
+            s2r_elapsed_msec,                                                                      \
+            (char *)CHTTP_STAT_DESC_STR(chttp_stat)                                                \
+           );                                                                                      \
 }while(0)
+
+/*----------------------------- CHTTP_STAT interface for orig statistics -----------------------------*/
+
+#define CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_nsec, s_msec) do{                                    \
+    (s_nsec) = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());                                \
+    (s_msec) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());                                \
+}while(0)
+
+#define CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec) do{                                      \
+    (e_nsec) = (uint32_t)CTMV_NSEC(task_brd_default_get_daytime());                                \
+    (e_msec) = (uint32_t)CTMV_MSEC(task_brd_default_get_daytime());                                \
+}while(0)
+
+#define CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec)                      \
+    ((0 == (e_nsec)) ? 0 : (((e_nsec) - (s_nsec)) * 1000 + (e_msec) - (s_msec)))
 
 
 typedef EC_BOOL (*CHTTP_NODE_COMMIT_REQUEST)(CHTTP_NODE *);

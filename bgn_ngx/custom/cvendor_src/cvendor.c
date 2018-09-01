@@ -3805,12 +3805,14 @@ EC_BOOL cvendor_content_direct_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_TRUE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
     else
     {
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_TRUE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
 
     /*note: disable data sending in orig procedure*/
@@ -7600,12 +7602,14 @@ EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_FALSE;/*refer: ms procedure*/
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_FALSE;/*refer: direct procedure*/
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
     else
     {
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_TRUE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_FALSE;/*refer: ms procedure*/
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_FALSE;/*refer: direct procedure*/
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
 
     if(EC_FALSE == cngx_set_store(r, chttp_store))
@@ -9459,6 +9463,7 @@ EC_BOOL cvendor_content_ms_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_TRUE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
     else
     {
@@ -9466,6 +9471,7 @@ EC_BOOL cvendor_content_ms_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) = BIT_FALSE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
 
     if(BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store))
