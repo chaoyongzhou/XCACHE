@@ -402,6 +402,8 @@ EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
 /*note: host_name is domain or ipv4 string*/
 EC_BOOL c_dns_resolve(const char *host_name, UINT32 *ipv4);
 
+EC_BOOL c_dns_resolve_all(const char *host_name, UINT32 *ipv4, const UINT32 ipv4_max_num, UINT32 *ipv4_num);
+
 EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port);
 
 UINT32  c_finger_ip_from_netcards(const CSET *cnetcard_set);

@@ -309,6 +309,7 @@ extern "C"{
 
 #define                 MM_CRFS_HOT_PATH    ((UINT32)230)
 #define         MM_CDETECTN_STATUS_RANGE    ((UINT32)231)
+#define          MM_CDETECTN_DOMAIN_NODE    ((UINT32)232)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

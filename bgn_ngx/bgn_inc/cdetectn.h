@@ -22,6 +22,8 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
+#define CDETECTN_IP_MAX_NUM                  (32)
+
 
 /*CDTECT NODE MODULE*/
 
@@ -72,6 +74,7 @@ typedef struct
     CSTRING             domain;                /*orig domain*/
     CSTRING             uri;                   /*orig uri to check*/
     CLIST               ip_nodes;              /*orig ip nodes. item is CDETECTN_IP_NODE*/
+    CLIST               detect_domain_nodes;        /*domain detection. item is CDETECTN_DOMAIN_NODE*/
 
     uint32_t            detect_interval_nsec;  /*orig detect interval in seconds*/
     uint32_t            detect_stopping_nsec;  /*orig detect stopping if no access in seconds*/
@@ -92,6 +95,7 @@ typedef struct
 #define CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)                       (&((cdetectn_orig_node)->domain))
 #define CDETECTN_ORIG_NODE_URI(cdetectn_orig_node)                          (&((cdetectn_orig_node)->uri))
 #define CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node)                     (&((cdetectn_orig_node)->ip_nodes))
+#define CDETECTN_ORIG_NODE_DETECT_DOMAIN_NODES(cdetectn_orig_node)          (&((cdetectn_orig_node)->detect_domain_nodes))
 
 #define CDETECTN_ORIG_NODE_DOMAIN_STR(cdetectn_orig_node)                   (cstring_get_str(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)))
 #define CDETECTN_ORIG_NODE_URI_STR(cdetectn_orig_node)                      (cstring_get_str(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node)))
@@ -115,6 +119,7 @@ typedef struct
 
 #define CDETECTN_IP_NODE_COST_MSEC_ERR           ((uint32_t)  ~0)
 #define CDETECTN_IP_NODE_PORT_DEFAULT            (80)
+
 typedef struct
 {
     CSTRING            domain;
@@ -133,6 +138,14 @@ typedef struct
 #define CDETECTN_IP_NODE_STATUS(cdetectn_ip_node)                  ((cdetectn_ip_node)->status)
 #define CDETECTN_IP_NODE_DETECT_COST_MSEC(cdetectn_ip_node)        ((cdetectn_ip_node)->detect_cost_msec)
 
+typedef struct
+{
+    CSTRING            name; /*domain name*/
+    UINT32             port;
+}CDETECTN_DOMAIN_NODE;
+
+#define CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node)            (&((cdetectn_domain_node)->name))
+#define CDETECTN_DOMAIN_NODE_PORT(cdetectn_domain_node)            ((cdetectn_domain_node)->port)
 
 /**
 *   for test only
@@ -205,6 +218,19 @@ EC_BOOL cdetectn_ip_node_free(CDETECTN_IP_NODE *cdetectn_ip_node);
 void cdetectn_ip_node_print(LOG *log, const CDETECTN_IP_NODE *cdetectn_ip_node);
 
 void cdetectn_ip_node_print_plain(LOG *log, const CDETECTN_IP_NODE *cdetectn_ip_node);
+
+/*------------------------------------------------ interface for cdetectn domain node ------------------------------------------------*/
+CDETECTN_DOMAIN_NODE *cdetectn_domain_node_new();
+
+EC_BOOL cdetectn_domain_node_init(CDETECTN_DOMAIN_NODE *cdetectn_domain_node);
+
+EC_BOOL cdetectn_domain_node_clean(CDETECTN_DOMAIN_NODE *cdetectn_domain_node);
+
+EC_BOOL cdetectn_domain_node_free(CDETECTN_DOMAIN_NODE *cdetectn_domain_node);
+
+void cdetectn_domain_node_print(LOG *log, const CDETECTN_DOMAIN_NODE *cdetectn_domain_node);
+
+int cdetectn_domain_node_cmp_name(const CDETECTN_DOMAIN_NODE *cdetectn_domain_node_1st, const CDETECTN_DOMAIN_NODE *cdetectn_domain_node_2nd);
 
 CDETECTN_STATUS_RANGE *cdetectn_status_range_new();
 

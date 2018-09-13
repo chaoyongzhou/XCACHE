@@ -489,6 +489,7 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CDETECTN_ORIG_NODE            ,"MM_CDETECTN_ORIG_NODE           ",256      , sizeof(CDETECTN_ORIG_NODE)           , LOC_MM_0221);
     MM_MGR_DEF(MM_CDETECTN_IP_NODE              ,"MM_CDETECTN_IP_NODE             ",256      , sizeof(CDETECTN_IP_NODE)             , LOC_MM_0222);
     MM_MGR_DEF(MM_CDETECTN_STATUS_RANGE         ,"MM_CDETECTN_STATUS_RANGE        ",256      , sizeof(CDETECTN_STATUS_RANGE)        , LOC_MM_0223);
+    MM_MGR_DEF(MM_CDETECTN_DOMAIN_NODE          ,"MM_CDETECTN_DOMAIN_NODE         ",256      , sizeof(CDETECTN_DOMAIN_NODE)         , LOC_MM_0223);
 
     MM_MGR_DEF(MM_CP2P_FILE                     ,"MM_CP2P_FILE                   ",256       , sizeof(CP2P_FILE)                    , LOC_MM_0224);
     MM_MGR_DEF(MM_CP2P_CMD                      ,"MM_CP2P_CMD                    ",256       , sizeof(CP2P_CMD)                     , LOC_MM_0225);
