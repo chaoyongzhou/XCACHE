@@ -339,7 +339,7 @@ void crfsc_end(const UINT32 crfsc_md_id)
         }
     }
 
-    cvector_clean(CRFSC_MD_CRFS_VEC(crfsc_md), (CVECTOR_DATA_CLEANER)mod_node_free, LOC_CRFSC_0005);
+    cvector_clean(CRFSC_MD_CRFS_VEC(crfsc_md), (CVECTOR_DATA_CLEANER)mod_node_free, LOC_CRFSC_0004);
     crfsdt_clean(CRFSC_MD_ACTIVE_DIRTAB(crfsc_md));
     crfsdt_clean(CRFSC_MD_STANDBY_DIRTAB(crfsc_md));
     cstring_clean(CRFSC_MD_ROOT_DIR(crfsc_md));
@@ -625,7 +625,7 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         return (EC_FALSE);
     }
 
-    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0009);
+    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0005);
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_find_dir: new ret_vec failed\n");
@@ -643,7 +643,7 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0010);
+        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0006);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
 
@@ -661,14 +661,14 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
         if(EC_TRUE == result)
         {
-            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0011);
+            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0007);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
 
         if(EC_FALSE == (*ret))
         {
-            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0012);
+            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0008);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
@@ -683,11 +683,11 @@ EC_BOOL crfsc_find_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
                                 (char *)cstring_get_str(dir_path), MOD_NODE_TCID_STR(mod_node));
         }
 
-        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0013);
+        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0009);
         cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
     }
 
-    cvector_free(ret_vec, LOC_CRFSC_0014);
+    cvector_free(ret_vec, LOC_CRFSC_0010);
     mod_mgr_free(mod_mgr);
 
     return (result);
@@ -1281,7 +1281,7 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         return (EC_FALSE);
     }
 
-    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0015);
+    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0011);
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_delete_dir: new ret_vec failed\n");
@@ -1299,7 +1299,7 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0016);
+        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0012);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
 
@@ -1316,7 +1316,7 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
         ret = (UINT32  *)cvector_get_no_lock(ret_vec, crfs_mod_node_idx);
         if(EC_TRUE == (*ret))
         {
-            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0017);
+            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0013);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
@@ -1331,11 +1331,11 @@ EC_BOOL crfsc_delete_dir(const UINT32 crfsc_md_id, const CSTRING *dir_path)
                                 (char *)cstring_get_str(dir_path), MOD_NODE_TCID_STR(mod_node));
         }
 
-        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0018);
+        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0014);
         cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
     }
 
-    cvector_free(ret_vec, LOC_CRFSC_0019);
+    cvector_free(ret_vec, LOC_CRFSC_0015);
     mod_mgr_free(mod_mgr);
 
     return (result);
@@ -1750,7 +1750,7 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
         return (EC_FALSE);
     }
 
-    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0020);
+    ret_vec = cvector_new(0, MM_UINT32, LOC_CRFSC_0016);
     if(NULL_PTR == ret_vec)
     {
         dbg_log(SEC_0143_CRFSC, 0)(LOGSTDOUT, "error:crfsc_recycle: new ret_vec failed\n");
@@ -1768,7 +1768,7 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
 
         recv_mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, crfs_mod_node_idx);
 
-        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0021);
+        alloc_static_mem(MM_UINT32, &ret, LOC_CRFSC_0017);
         cvector_push(ret_vec, (void *)ret);
         (*ret) = EC_FALSE;/*init*/
 
@@ -1785,7 +1785,7 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
         ret = (UINT32  *)cvector_get_no_lock(ret_vec, crfs_mod_node_idx);
         if(EC_TRUE == (*ret))
         {
-            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0022);
+            free_static_mem(MM_UINT32, ret, LOC_CRFSC_0018);
             cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
             continue;
         }
@@ -1800,11 +1800,11 @@ EC_BOOL crfsc_recycle(const UINT32 crfsc_md_id)
                                 MOD_NODE_TCID_STR(mod_node));
         }
 
-        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0023);
+        free_static_mem(MM_UINT32, ret, LOC_CRFSC_0019);
         cvector_set(ret_vec, crfs_mod_node_idx, NULL_PTR);
     }
 
-    cvector_free(ret_vec, LOC_CRFSC_0024);
+    cvector_free(ret_vec, LOC_CRFSC_0020);
     mod_mgr_free(mod_mgr);
 
     return (result);

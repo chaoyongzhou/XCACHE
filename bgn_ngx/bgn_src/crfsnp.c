@@ -2796,7 +2796,7 @@ EC_BOOL crfsnp_umount_item(CRFSNP *crfsnp, const uint32_t node_pos)
             crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
         }
-        
+
         return (EC_TRUE);
     }
 
@@ -2840,7 +2840,7 @@ EC_BOOL crfsnp_umount_item(CRFSNP *crfsnp, const uint32_t node_pos)
             //crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
         }
-        
+
         return (EC_TRUE);
     }
 
@@ -2993,7 +2993,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
             crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
         }
-        
+
         return (EC_TRUE);
     }
 
@@ -3043,7 +3043,7 @@ EC_BOOL crfsnp_umount_item_deep(CRFSNP *crfsnp, const uint32_t node_pos)
             //crfsnplru_node_rmv(crfsnp, CRFSNP_ITEM_LRU_NODE(crfsnp_item), node_pos);
             crfsnpdel_node_add_tail(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
         }
-        
+
         return (EC_TRUE);
     }
 
@@ -4414,7 +4414,7 @@ EC_BOOL crfsnp_recycle_item(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint
 
             /*should never reach here*/
             crfsnp_item_clean(crfsnp_item);
-            
+
             return (EC_FALSE);
         }
 
@@ -4438,9 +4438,9 @@ EC_BOOL crfsnp_recycle_item(CRFSNP *crfsnp, CRFSNP_ITEM *crfsnp_item, const uint
 
     dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_recycle_item: invalid dflag 0x%x\n", CRFSNP_ITEM_DIR_FLAG(crfsnp_item));
 
-    /*should never reach here*/  
+    /*should never reach here*/
     crfsnp_item_clean(crfsnp_item);
-    
+
     return (EC_FALSE);
 }
 
@@ -4473,14 +4473,14 @@ EC_BOOL crfsnp_recycle(CRFSNP *crfsnp, const UINT32 max_num, CRFSNP_RECYCLE_NP *
         crfsnp_item = crfsnp_fetch(crfsnp, node_pos);
 
         ASSERT(CRFSNPRB_ERR_POS == CRFSNP_ITEM_PARENT_POS(crfsnp_item));
-        
+
         if(EC_FALSE == crfsnp_recycle_item(crfsnp, crfsnp_item, node_pos, crfsnp_recycle_np, crfsnp_recycle_dn))
         {
             dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "error:crfsnp_recycle: recycle item %u # failed\n", node_pos);
 
             /*should never reach here*/
             crfsnpdel_node_rmv(crfsnp, CRFSNP_ITEM_DEL_NODE(crfsnp_item), node_pos);
-            
+
             crfsnprb_node_free(CRFSNP_ITEMS_POOL(crfsnp), node_pos);/*recycle rb node(item node)*/
             return (EC_FALSE);
         }

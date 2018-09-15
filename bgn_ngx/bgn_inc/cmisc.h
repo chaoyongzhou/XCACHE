@@ -323,6 +323,10 @@ int c_file_open(const char *pathname, const int flags, const mode_t mode);
 
 int c_file_close(int fd);
 
+int c_file_direct_on(int fd);
+
+int c_file_direct_off(int fd);
+
 struct tm *c_localtime_r(const time_t *timestamp);
 
 ctime_t c_time(ctime_t *timestamp);

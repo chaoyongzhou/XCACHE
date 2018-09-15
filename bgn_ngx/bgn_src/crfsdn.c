@@ -31,7 +31,7 @@ extern "C"{
 #include "real.h"
 
 #include "clist.h"
-
+#include "caio.h"
 #include "task.h"
 
 #include "cdsk.h"
@@ -348,12 +348,32 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     CRFSDN_NODE_ATIME(crfsdn_node) = task_brd_get_time(task_brd_default_get());
 
     /*when node file exit, then open it*/
-    CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR, 0666);
-    if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
     {
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: open node file %s failed\n", path);
-        crfsdn_node_free(crfsdn_node);
-        return (NULL_PTR);
+        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR | O_NONBLOCK, 0666);
+        if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: open node file %s failed\n", path);
+            crfsdn_node_free(crfsdn_node);
+            return (NULL_PTR);
+        }
+
+        if(0 != c_file_direct_on(CRFSDN_NODE_FD(crfsdn_node)))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: direct on node file %s failed\n", path);
+            crfsdn_node_free(crfsdn_node);
+            return (NULL_PTR);
+        }
+    }
+    else
+    {
+        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR, 0666);
+        if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: open node file %s failed\n", path);
+            crfsdn_node_free(crfsdn_node);
+            return (NULL_PTR);
+        }
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_node_open: insert node %ld with path %s to open nodes(rbtree)\n", node_id, path);
@@ -427,16 +447,28 @@ EC_BOOL crfsdn_node_write(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 dat
     offset_r = offset_b + (*offset);
 
     CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0005);
-
-    if(EC_FALSE == c_file_flush(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
     {
-        CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0006);
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_write: flush %ld bytes to node %ld at offset %ld failed\n",
-                            data_max_len, node_id, offset_r);
-        return (EC_FALSE);
+        if(EC_FALSE == caio_file_flush(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        {
+            CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0006);
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_write: flush %ld bytes to node %ld at offset %ld failed\n",
+                                data_max_len, node_id, offset_r);
+            return (EC_FALSE);
+        }
+    }
+    else
+    {
+        if(EC_FALSE == c_file_flush(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        {
+            CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0007);
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_write: flush %ld bytes to node %ld at offset %ld failed\n",
+                                data_max_len, node_id, offset_r);
+            return (EC_FALSE);
+        }
     }
 
-    CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0007);
+    CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0008);
 
     (*offset) = (offset_r - offset_b);
     return (EC_TRUE);
@@ -458,17 +490,30 @@ EC_BOOL crfsdn_node_read(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 data
     offset_b = (((UINT32)CRFSDN_NODE_ID_GET_SEG_NO(node_id)) << CPGB_CACHE_BIT_SIZE);
     offset_r = offset_b + (*offset);
 
-    CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0008);
+    CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0009);
 
-    if(EC_FALSE == c_file_load(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
     {
-        CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0009);
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: load %ld bytes from node %ld at offset %ld failed\n",
-                            data_max_len, node_id, offset_r);
-        return (EC_FALSE);
+        if(EC_FALSE == caio_file_load(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        {
+            CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0010);
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: AIO load %ld bytes from node %ld at offset %ld failed\n",
+                                data_max_len, node_id, offset_r);
+            return (EC_FALSE);
+        }
+    }
+    else
+    {
+        if(EC_FALSE == c_file_load(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        {
+            CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0011);
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: load %ld bytes from node %ld at offset %ld failed\n",
+                                data_max_len, node_id, offset_r);
+            return (EC_FALSE);
+        }
     }
 
-    CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0010);
+    CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0012);
 
     (*offset) = (offset_r - offset_b);
     return (EC_TRUE);
@@ -478,7 +523,7 @@ CRFSDN_CACHE_NODE *crfsdn_cache_node_new()
 {
     CRFSDN_CACHE_NODE *crfsdn_cache_node;
 
-    alloc_static_mem(MM_CRFSDN_CACHE_NODE, &crfsdn_cache_node, LOC_CRFSDN_0011);
+    alloc_static_mem(MM_CRFSDN_CACHE_NODE, &crfsdn_cache_node, LOC_CRFSDN_0013);
     if(NULL_PTR != crfsdn_cache_node)
     {
         crfsdn_cache_node_init(crfsdn_cache_node);
@@ -505,7 +550,7 @@ EC_BOOL crfsdn_cache_node_clean(CRFSDN_CACHE_NODE *crfsdn_cache_node)
 
     if(NULL_PTR != CRFSDN_CACHE_NODE_DATA_BUFF(crfsdn_cache_node))
     {
-        safe_free(CRFSDN_CACHE_NODE_DATA_BUFF(crfsdn_cache_node), LOC_CRFSDN_0012);
+        safe_free(CRFSDN_CACHE_NODE_DATA_BUFF(crfsdn_cache_node), LOC_CRFSDN_0014);
         CRFSDN_CACHE_NODE_DATA_BUFF(crfsdn_cache_node) = NULL_PTR;
     }
     CRFSDN_CACHE_NODE_DATA_SIZE(crfsdn_cache_node) = 0;
@@ -518,7 +563,7 @@ EC_BOOL crfsdn_cache_node_free(CRFSDN_CACHE_NODE *crfsdn_cache_node)
     if(NULL_PTR != crfsdn_cache_node)
     {
         crfsdn_cache_node_clean(crfsdn_cache_node);
-        free_static_mem(MM_CRFSDN_CACHE_NODE, crfsdn_cache_node, LOC_CRFSDN_0013);
+        free_static_mem(MM_CRFSDN_CACHE_NODE, crfsdn_cache_node, LOC_CRFSDN_0015);
     }
     return (EC_TRUE);
 }
@@ -577,7 +622,7 @@ void crfsdn_flush_cache_nodes(CRFSDN **crfsdn, EC_BOOL *terminate_flag)
 {
     while(EC_FALSE == (*terminate_flag) && NULL_PTR == (*crfsdn))
     {
-        c_usleep(200, LOC_CRFSDN_0014);
+        c_usleep(200, LOC_CRFSDN_0016);
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_flush_cache_nodes: [1] terminate_flag %ld, crfsdn %p\n", (*terminate_flag), (*crfsdn));
@@ -588,7 +633,7 @@ void crfsdn_flush_cache_nodes(CRFSDN **crfsdn, EC_BOOL *terminate_flag)
 
         if(EC_TRUE == crfsdn_has_no_cache_node(*crfsdn))
         {
-            c_usleep(200, LOC_CRFSDN_0015);
+            c_usleep(200, LOC_CRFSDN_0017);
         }
 
         crfsdn_cache_node = crfsdn_pop_cache_node(*crfsdn);
@@ -628,7 +673,7 @@ EC_BOOL crfsdn_expire_open_nodes(CRFSDN *crfsdn)
 
     cur_time = task_brd_get_time(task_brd_default_get());
 
-    expired_node_list = clist_new(MM_CRFSDN_NODE, LOC_CRFSDN_0016);
+    expired_node_list = clist_new(MM_CRFSDN_NODE, LOC_CRFSDN_0018);
     if(NULL_PTR == expired_node_list)
     {
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_expire_open_nodes: new clist failed\n");
@@ -661,7 +706,7 @@ EC_BOOL crfsdn_expire_open_nodes(CRFSDN *crfsdn)
         }
     }
 
-    clist_free_no_lock(expired_node_list, LOC_CRFSDN_0017);
+    clist_free_no_lock(expired_node_list, LOC_CRFSDN_0019);
 
     return (EC_TRUE);
 }
@@ -717,12 +762,12 @@ CRFSDN *crfsdn_create(const char *root_dname)
     {
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create: new vol %s failed\n", vol_fname);
         crfsdn_free(crfsdn);
-        safe_free(vol_fname, LOC_CRFSDN_0018);
+        safe_free(vol_fname, LOC_CRFSDN_0020);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_create: vol %s was created\n", vol_fname);
-    safe_free(vol_fname, LOC_CRFSDN_0019);
+    safe_free(vol_fname, LOC_CRFSDN_0021);
 
     if(EC_FALSE == crfsdn_flush(crfsdn))/*xxx*/
     {
@@ -804,7 +849,7 @@ CRFSDN *crfsdn_new()
 {
     CRFSDN *crfsdn;
 
-    alloc_static_mem(MM_CRFSDN, &crfsdn, LOC_CRFSDN_0020);
+    alloc_static_mem(MM_CRFSDN, &crfsdn, LOC_CRFSDN_0022);
     if(NULL_PTR != crfsdn)
     {
         crfsdn_init(crfsdn);
@@ -819,7 +864,7 @@ EC_BOOL crfsdn_init(CRFSDN *crfsdn)
                   (CRB_DATA_CMP  )crfsdn_node_cmp,
                   (CRB_DATA_FREE )crfsdn_node_free,
                   (CRB_DATA_PRINT)crfsdn_node_print);
-    clist_init(CRFSDN_CACHED_NODES(crfsdn), MM_CRFSDN_CACHE_NODE, LOC_CRFSDN_0021);
+    clist_init(CRFSDN_CACHED_NODES(crfsdn), MM_CRFSDN_CACHE_NODE, LOC_CRFSDN_0023);
 
     CRFSDN_ROOT_DNAME(crfsdn)  = NULL_PTR;
     CRFSDN_CPGV(crfsdn)        = NULL_PTR;
@@ -833,7 +878,7 @@ EC_BOOL crfsdn_clean(CRFSDN *crfsdn)
 
     if(NULL_PTR != CRFSDN_ROOT_DNAME(crfsdn))
     {
-        safe_free(CRFSDN_ROOT_DNAME(crfsdn), LOC_CRFSDN_0022);
+        safe_free(CRFSDN_ROOT_DNAME(crfsdn), LOC_CRFSDN_0024);
         CRFSDN_ROOT_DNAME(crfsdn) = NULL_PTR;
     }
 
@@ -851,7 +896,7 @@ EC_BOOL crfsdn_free(CRFSDN *crfsdn)
     if(NULL_PTR != crfsdn)
     {
         crfsdn_clean(crfsdn);
-        free_static_mem(MM_CRFSDN, crfsdn, LOC_CRFSDN_0023);
+        free_static_mem(MM_CRFSDN, crfsdn, LOC_CRFSDN_0025);
     }
     return (EC_TRUE);
 }
@@ -927,12 +972,12 @@ EC_BOOL crfsdn_load(CRFSDN *crfsdn, const char *root_dname)
     if(NULL_PTR == CRFSDN_CPGV(crfsdn))
     {
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_load: load/open vol from %s failed\n", (char *)vol_fname);
-        safe_free(vol_fname, LOC_CRFSDN_0024);
+        safe_free(vol_fname, LOC_CRFSDN_0026);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_load: load/open vol from %s done\n", (char *)vol_fname);
-    safe_free(vol_fname, LOC_CRFSDN_0025);
+    safe_free(vol_fname, LOC_CRFSDN_0027);
 
     return (EC_TRUE);
 }
@@ -951,11 +996,11 @@ EC_BOOL crfsdn_exist(const char *root_dname)
     if(EC_FALSE == c_file_access(vol_fname, F_OK))
     {
         dbg_log(SEC_0024_CRFSDN, 7)(LOGSTDOUT, "error:crfsdn_exist: vol file %s not exist\n", vol_fname);
-        safe_free(vol_fname, LOC_CRFSDN_0026);
+        safe_free(vol_fname, LOC_CRFSDN_0028);
         return (EC_FALSE);
     }
 
-    safe_free(vol_fname, LOC_CRFSDN_0027);
+    safe_free(vol_fname, LOC_CRFSDN_0029);
     return (EC_TRUE);
 }
 
@@ -1369,7 +1414,7 @@ EC_BOOL crfsdn_write_p_cache(CRFSDN *crfsdn, const UINT32 data_max_len, const UI
         return (EC_TRUE);
     }
 
-    data_buff_t = safe_malloc(data_max_len, LOC_CRFSDN_0028);
+    data_buff_t = safe_malloc(data_max_len, LOC_CRFSDN_0030);
     if(NULL_PTR == data_buff_t)/*try all best*/
     {
         UINT32 offset;

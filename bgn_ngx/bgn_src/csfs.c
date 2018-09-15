@@ -942,9 +942,9 @@ EC_BOOL csfs_find_file(const UINT32 csfs_md_id, const CSTRING *file_path)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0003);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0001);
     ret = csfsnp_mgr_find(CSFS_MD_NPP(csfs_md), file_path);
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0004);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0002);
     return (ret);
 }
 
@@ -976,9 +976,9 @@ EC_BOOL csfs_find(const UINT32 csfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0005);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0003);
     ret = csfsnp_mgr_find(CSFS_MD_NPP(csfs_md), path);
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0006);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0004);
 
     return (ret);
 }
@@ -1064,14 +1064,14 @@ EC_BOOL csfs_reserve_dn(const UINT32 csfs_md_id, const UINT32 data_len, CSFSNP_F
 
     size = (uint32_t)(data_len);
 
-    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0007);
+    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0005);
     if(EC_FALSE == csfsv_new_space(CSFSDN_CSFSV(CSFS_MD_DN(csfs_md)), size, &disk_no, &block_no, &page_no))
     {
-        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0008);
+        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0006);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
         return (EC_FALSE);
     }
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0009);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0007);
 
     csfsnp_fnode_init(csfsnp_fnode);
     CSFSNP_FNODE_FILESZ(csfsnp_fnode) = size;
@@ -1759,7 +1759,7 @@ EC_BOOL csfs_wait_http_headers(const UINT32 csfs_md_id, const UINT32 tcid, const
 CSFS_WAIT_FILE *csfs_wait_file_new()
 {
     CSFS_WAIT_FILE *csfs_wait_file;
-    alloc_static_mem(MM_CSFS_WAIT_FILE, &csfs_wait_file, LOC_CSFS_0028);
+    alloc_static_mem(MM_CSFS_WAIT_FILE, &csfs_wait_file, LOC_CSFS_0008);
     if(NULL_PTR != csfs_wait_file)
     {
         csfs_wait_file_init(csfs_wait_file);
@@ -1771,7 +1771,7 @@ EC_BOOL csfs_wait_file_init(CSFS_WAIT_FILE *csfs_wait_file)
 {
     cstring_init(CSFS_WAIT_FILE_NAME(csfs_wait_file), NULL_PTR);
 
-    clist_init(CSFS_WAIT_FILE_OWNER_LIST(csfs_wait_file), MM_MOD_NODE, LOC_CSFS_0029);
+    clist_init(CSFS_WAIT_FILE_OWNER_LIST(csfs_wait_file), MM_MOD_NODE, LOC_CSFS_0009);
 
     return (EC_TRUE);
 }
@@ -1788,7 +1788,7 @@ EC_BOOL csfs_wait_file_free(CSFS_WAIT_FILE *csfs_wait_file)
     if(NULL_PTR != csfs_wait_file)
     {
         csfs_wait_file_clean(csfs_wait_file);
-        free_static_mem(MM_CSFS_WAIT_FILE, csfs_wait_file, LOC_CSFS_0030);
+        free_static_mem(MM_CSFS_WAIT_FILE, csfs_wait_file, LOC_CSFS_0010);
     }
     return (EC_TRUE);
 }
@@ -1808,7 +1808,7 @@ EC_BOOL csfs_wait_file_free_0(const UINT32 md_id, CSFS_WAIT_FILE *csfs_wait_file
     if(NULL_PTR != csfs_wait_file)
     {
         csfs_wait_file_clean(csfs_wait_file);
-        free_static_mem(MM_CSFS_WAIT_FILE, csfs_wait_file, LOC_CSFS_0031);
+        free_static_mem(MM_CSFS_WAIT_FILE, csfs_wait_file, LOC_CSFS_0011);
     }
     return (EC_TRUE);
 }
@@ -2273,7 +2273,7 @@ EC_BOOL csfs_file_notify(const UINT32 csfs_md_id, const CSTRING *file_path)
 CSFS_LOCKED_FILE *csfs_locked_file_new()
 {
     CSFS_LOCKED_FILE *csfs_locked_file;
-    alloc_static_mem(MM_CSFS_LOCKED_FILE, &csfs_locked_file, LOC_CSFS_0032);
+    alloc_static_mem(MM_CSFS_LOCKED_FILE, &csfs_locked_file, LOC_CSFS_0012);
     if(NULL_PTR != csfs_locked_file)
     {
         csfs_locked_file_init(csfs_locked_file);
@@ -2306,7 +2306,7 @@ EC_BOOL csfs_locked_file_free(CSFS_LOCKED_FILE *csfs_locked_file)
     if(NULL_PTR != csfs_locked_file)
     {
         csfs_locked_file_clean(csfs_locked_file);
-        free_static_mem(MM_CSFS_LOCKED_FILE, csfs_locked_file, LOC_CSFS_0033);
+        free_static_mem(MM_CSFS_LOCKED_FILE, csfs_locked_file, LOC_CSFS_0013);
     }
     return (EC_TRUE);
 }
@@ -2326,7 +2326,7 @@ EC_BOOL csfs_locked_file_free_0(const UINT32 md_id, CSFS_LOCKED_FILE *csfs_locke
     if(NULL_PTR != csfs_locked_file)
     {
         csfs_locked_file_clean(csfs_locked_file);
-        free_static_mem(MM_CSFS_LOCKED_FILE, csfs_locked_file, LOC_CSFS_0034);
+        free_static_mem(MM_CSFS_LOCKED_FILE, csfs_locked_file, LOC_CSFS_0014);
     }
     return (EC_TRUE);
 }
@@ -2617,7 +2617,7 @@ EC_BOOL csfs_file_lock(const UINT32 csfs_md_id, const UINT32 tcid, const CSTRING
     }
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
-    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CSFS_0038);
+    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CSFS_0015);
     cbytes_clean(&token_cbyte);
     return (EC_TRUE);
 }
@@ -3194,15 +3194,15 @@ EC_BOOL csfs_write_dn(const UINT32 csfs_md_id, const CBYTES *cbytes, CSFSNP_FNOD
         return (EC_FALSE);
     }
 
-    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0054);
+    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0016);
     if(EC_FALSE == csfsdn_write_p(CSFS_MD_DN(csfs_md), cbytes_len(cbytes), cbytes_buf(cbytes), &disk_no, &block_no, &page_no))
     {
-        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0055);
+        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0017);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_dn: write %ld bytes to dn failed\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
     }
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0056);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0018);
 
     csfsnp_fnode_init(csfsnp_fnode);
     csfsnp_inode = CSFSNP_FNODE_INODE(csfsnp_fnode, 0);
@@ -3267,22 +3267,22 @@ EC_BOOL csfs_read_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode, 
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CSFS_0057);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CSFS_0019);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CSFS_0058);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CSFS_0020);
         CBYTES_LEN(cbytes) = 0;
     }
 
-    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0059);
+    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0021);
     if(EC_FALSE == csfsdn_read_p(CSFS_MD_DN(csfs_md), disk_no, block_no, page_no, file_size, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0060);
+        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0022);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_dn: read %u bytes from disk %u, block %u, page %u failed\n",
                            file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0061);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0023);
     return (EC_TRUE);
 }
 
@@ -3357,22 +3357,22 @@ EC_BOOL csfs_read_e_dn(const UINT32 csfs_md_id, const CSFSNP_FNODE *csfsnp_fnode
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CSFS_0062);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CSFS_0024);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CSFS_0063);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CSFS_0025);
         CBYTES_LEN(cbytes) = 0;
     }
 
-    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0064);
+    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0026);
     if(EC_FALSE == csfsdn_read_e(CSFS_MD_DN(csfs_md), disk_no, block_no, page_no, offset_t, max_len_t, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0065);
+        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0027);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_e_dn: read %ld bytes from disk %u, block %u, page %u failed\n",
                            max_len_t, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0066);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0028);
 
      (*offset) += CBYTES_LEN(cbytes);
     return (EC_TRUE);
@@ -3411,16 +3411,16 @@ EC_BOOL csfs_write_npp(const UINT32 csfs_md_id, const CSTRING *file_path, const 
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0067);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0029);
     if(EC_FALSE == csfsnp_mgr_write(CSFS_MD_NPP(csfs_md), file_path, csfsnp_fnode, NULL_PTR, NULL_PTR))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0068);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0030);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_write_npp: no name node accept file %s with %u replicas\n",
                             (char *)cstring_get_str(file_path), CSFSNP_FNODE_REPNUM(csfsnp_fnode));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0069);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0031);
     return (EC_TRUE);
 }
 
@@ -3452,16 +3452,16 @@ STATIC_CAST static EC_BOOL __csfs_write_npp(const UINT32 csfs_md_id, const CSTRI
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0070);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0032);
     if(EC_FALSE == csfsnp_mgr_write(CSFS_MD_NPP(csfs_md), file_path, csfsnp_fnode, crfsnp_id, node_pos))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0071);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0033);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:__csfs_write_npp: no name node accept file %s with %u replicas\n",
                             (char *)cstring_get_str(file_path), CSFSNP_FNODE_REPNUM(csfsnp_fnode));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0072);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0034);
     return (EC_TRUE);
 }
 
@@ -3492,15 +3492,15 @@ EC_BOOL csfs_read_npp(const UINT32 csfs_md_id, const CSTRING *file_path, CSFSNP_
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0073);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0035);
     if(EC_FALSE == csfsnp_mgr_read(CSFS_MD_NPP(csfs_md), file_path, csfsnp_fnode))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0074);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0036);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_read_npp: csfsnp mgr read %s failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0075);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0037);
 
     return (EC_TRUE);
 }
@@ -3532,15 +3532,15 @@ EC_BOOL csfs_delete_npp(const UINT32 csfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0076);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0038);
     if(EC_FALSE == csfsnp_mgr_delete(CSFS_MD_NPP(csfs_md), path))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0077);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0039);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_delete_npp: delete '%s' failed\n", (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0078);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0040);
 
     return (EC_TRUE);
 }
@@ -3709,17 +3709,17 @@ EC_BOOL csfs_qfile(const UINT32 csfs_md_id, const CSTRING *file_path, CSFSNP_ITE
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0079);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0041);
     csfsnp_item_src = csfsnp_mgr_search_item(CSFS_MD_NPP(csfs_md),
                                              (uint32_t)cstring_get_len(file_path),
                                              cstring_get_str(file_path));
     if(NULL_PTR == csfsnp_item_src)
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0080);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0042);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_qfile: query file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0081);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0043);
 
     csfsnp_item_clone(csfsnp_item_src, csfsnp_item);
 
@@ -3753,15 +3753,15 @@ EC_BOOL csfs_flush_npp(const UINT32 csfs_md_id)
         return (EC_TRUE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0082);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0044);
     if(EC_FALSE == csfsnp_mgr_flush(CSFS_MD_NPP(csfs_md)))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0083);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0045);
 
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_flush_npp: flush failed\n");
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0084);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0046);
     return (EC_TRUE);
 }
 
@@ -3793,14 +3793,14 @@ EC_BOOL csfs_flush_dn(const UINT32 csfs_md_id)
         return (EC_FALSE);
     }
 
-    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0085);
+    csfsdn_wrlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0047);
     if(EC_FALSE == csfsdn_flush(CSFS_MD_DN(csfs_md)))
     {
-        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0086);
+        csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0048);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_flush_dn: flush dn failed\n");
         return (EC_FALSE);
     }
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0087);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0049);
 
     return (EC_TRUE);
 }
@@ -3834,14 +3834,14 @@ EC_BOOL csfs_file_num(const UINT32 csfs_md_id, UINT32 *file_num)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0088);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0050);
     if(EC_FALSE == csfsnp_mgr_file_num(CSFS_MD_NPP(csfs_md), file_num))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0089);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0051);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_file_num: count total file num failed\n");
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0090);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0052);
 
     return (EC_TRUE);
 }
@@ -3873,14 +3873,14 @@ EC_BOOL csfs_file_size(const UINT32 csfs_md_id, const CSTRING *path_cstr, UINT32
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0091);
+    csfsnp_mgr_wrlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0053);
     if(EC_FALSE == csfsnp_mgr_file_size(CSFS_MD_NPP(csfs_md), path_cstr, file_size))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0092);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0054);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_file_size: count total file size failed\n");
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0093);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0055);
     return (EC_TRUE);
 }
 
@@ -3912,14 +3912,14 @@ EC_BOOL csfs_search(const UINT32 csfs_md_id, const CSTRING *path_cstr)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0094);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0056);
     if(EC_FALSE == csfsnp_mgr_search(CSFS_MD_NPP(csfs_md), (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &csfsnp_id))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0095);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0057);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_search: search '%s' failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0096);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0058);
 
     return (EC_TRUE);
 }
@@ -4118,11 +4118,11 @@ EC_BOOL csfs_show_npp(const UINT32 csfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0097);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0059);
 
     csfsnp_mgr_print(log, CSFS_MD_NPP(csfs_md));
 
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0098);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0060);
 
     return (EC_TRUE);
 }
@@ -4155,9 +4155,9 @@ EC_BOOL csfs_show_dn(const UINT32 csfs_md_id, LOG *log)
         return (EC_TRUE);
     }
 
-    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0099);
+    csfsdn_rdlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0061);
     csfsdn_print(log, CSFS_MD_DN(csfs_md));
-    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0100);
+    csfsdn_unlock(CSFS_MD_DN(csfs_md), LOC_CSFS_0062);
 
     return (EC_TRUE);
 }
@@ -4185,14 +4185,14 @@ EC_BOOL csfs_show_cached_np(const UINT32 csfs_md_id, LOG *log)
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0101);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0063);
     if(EC_FALSE == csfsnp_mgr_show_cached_np(log, CSFS_MD_NPP(csfs_md)))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0102);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0064);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_cached_np: show cached np but failed\n");
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0103);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0065);
 
     return (EC_TRUE);
 }
@@ -4225,14 +4225,14 @@ EC_BOOL csfs_show_specific_np(const UINT32 csfs_md_id, const UINT32 csfsnp_id, L
         return (EC_FALSE);
     }
 
-    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0104);
+    csfsnp_mgr_rdlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0066);
     if(EC_FALSE == csfsnp_mgr_show_np(log, CSFS_MD_NPP(csfs_md), (uint32_t)csfsnp_id))
     {
-        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0105);
+        csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0067);
         dbg_log(SEC_0167_CSFS, 0)(LOGSTDOUT, "error:csfs_show_cached_np: show np %u but failed\n", (uint32_t)csfsnp_id);
         return (EC_FALSE);
     }
-    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0106);
+    csfsnp_mgr_unlock(CSFS_MD_NPP(csfs_md), LOC_CSFS_0068);
 
     return (EC_TRUE);
 }

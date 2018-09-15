@@ -328,7 +328,7 @@ uint32_t cbuffer_append_format(CBUFFER *cbuffer, const char *format, ...)
 uint32_t cbuffer_append_vformat(CBUFFER *cbuffer, const char *format, va_list ap)
 {
     UINT32 len;
-    
+
     len = (UINT32)c_vformat_len(format, ap);/*need len*/
     cbuffer_expand_to(cbuffer, len + CBUFFER_USED(cbuffer) + 1);
 

@@ -6123,12 +6123,12 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_16M_BIT_SIZE)
         {
             json_object_add_kv(cpgv_obj, "page_model"   , "16M-page");
-        }   
+        }
 
         if(CPGB_PAGE_BIT_SIZE == CPGB_PAGE_32M_BIT_SIZE)
         {
             json_object_add_kv(cpgv_obj, "page_model"   , "32M-page");
-        } 
+        }
 
         cpgd_objs = json_object_new_array();
         json_object_add_obj(cpgv_obj, "disk", cpgd_objs);

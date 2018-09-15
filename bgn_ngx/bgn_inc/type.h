@@ -166,6 +166,10 @@ typedef UINT8 UUID[16];
 #define MINOR(num64bits)    ((UINT32)(((UINT64)(num64bits)) & 0xffffffff))
 #endif
 
+#define VAL_ALIGN(value, alignment) (((value) + ((alignment) - 1)) & ~((alignment) - 1))
+
+#define VAL_IS_POWER_OF_TWO(value)  (0 < (value) && (((value) & (~(value) + 1)) == (value)))
+
 #if 0
 netinet/in.h
 ======

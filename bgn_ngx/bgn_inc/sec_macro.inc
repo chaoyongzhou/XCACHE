@@ -100,7 +100,7 @@
 #define SEC_0090_CSYSCFG                    ((UINT32)(     90)) /*csyscfg                         */
 #define SEC_0091_CBC                        ((UINT32)(     91)) /*cbc                             */
 #define SEC_0092_CMIAOPAI                   ((UINT32)(     92)) /*cmiaopai                        */
-#define SEC_0093_XXXXXX                     ((UINT32)(     93)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  */
+#define SEC_0093_CAIO                       ((UINT32)(     93)) /*caio                            */
 #define SEC_0094_KBUFF                      ((UINT32)(     94)) /*kbuff                           */
 #define SEC_0095_RANK                       ((UINT32)(     95)) /*rank                            */
 #define SEC_0096_XXXXXX                     ((UINT32)(     96)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxx   */

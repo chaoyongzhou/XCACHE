@@ -2758,7 +2758,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
 
     uint32_t s2e_elapsed_msec;
     uint32_t need_log_flag;
-    
+
     uint32_t redirect_times;
 
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
@@ -2801,20 +2801,20 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         if(BIT_TRUE == need_log_flag)
         {
             /*trick: restore need log flag*/
-            CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE; 
-        
+            CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
             s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
             sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                               (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
-                               CHTTP_REQ_PORT(chttp_req), 
-                               CHTTP_STATUS_NONE, 
+                               (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                               CHTTP_REQ_PORT(chttp_req),
+                               CHTTP_STATUS_NONE,
                                s2e_elapsed_msec,
                                (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                               (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
-                               (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
-                               (uint32_t)0, 
-                               CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                               (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                               (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                               (uint32_t)0,
+                               CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                );
 
@@ -2894,20 +2894,20 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             if(BIT_TRUE == need_log_flag)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE; 
-            
+                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
                 s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
-                                   CHTTP_REQ_PORT(chttp_req), 
-                                   CHTTP_STATUS_NONE, 
+                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                                   CHTTP_REQ_PORT(chttp_req),
+                                   CHTTP_STATUS_NONE,
                                    s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"), 
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
-                                   (uint32_t)redirect_times + 1, 
-                                   CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   (uint32_t)redirect_times + 1,
+                                   CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
             }
@@ -2939,23 +2939,23 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             if(BIT_TRUE == need_log_flag)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE; 
-            
+                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
                 s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
-                                   CHTTP_REQ_PORT(chttp_req), 
-                                   CHTTP_STATUS_NONE, 
+                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                                   CHTTP_REQ_PORT(chttp_req),
+                                   CHTTP_STATUS_NONE,
                                    s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"), 
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
-                                   (uint32_t)redirect_times + 1, 
-                                   CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   (uint32_t)redirect_times + 1,
+                                   CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
-            
+
             }
             return (EC_FALSE);
         }
@@ -2972,20 +2972,20 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     if(BIT_TRUE == need_log_flag)
     {
         /*trick: restore need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE; 
-    
+        CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+
         CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
         s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
         sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                           (char *)CHTTP_REQ_IPADDR_STR(chttp_req),  
-                           CHTTP_REQ_PORT(chttp_req), 
-                           CHTTP_RSP_STATUS(chttp_rsp), 
+                           (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                           CHTTP_REQ_PORT(chttp_req),
+                           CHTTP_RSP_STATUS(chttp_rsp),
                            s2e_elapsed_msec,
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Host"), 
-                           (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)), 
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Range"), 
-                           (uint32_t)redirect_times, 
-                           CHTTP_STAT_S_SEND_LEN(chttp_stat), 
+                           (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
+                           (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                           (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                           (uint32_t)redirect_times,
+                           CHTTP_STAT_S_SEND_LEN(chttp_stat),
                            CHTTP_STAT_S_RECV_LEN(chttp_stat)
                            );
     }

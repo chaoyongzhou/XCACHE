@@ -3456,6 +3456,48 @@ int c_file_close(int fd)
     return (0);
 }
 
+int c_file_direct_on(int fd)
+{
+    int  flags;
+
+    flags = fcntl(fd, F_GETFL);
+
+    if(-1 == flags)
+    {
+        return (-1);
+    }
+
+    if(0 > fcntl(fd, F_SETFL, flags | O_DIRECT))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_direct_on: direct on fd %d failed, errno = %d, errstr = %s\n",
+                           fd, errno, strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
+int c_file_direct_off(int fd)
+{
+    int  flags;
+
+    flags = fcntl(fd, F_GETFL);
+
+    if(-1 == flags)
+    {
+        return (-1);
+    }
+
+    if(0 > fcntl(fd, F_SETFL, flags & (~O_DIRECT)))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_direct_off: direct off fd %d failed, errno = %d, errstr = %s\n",
+                           fd, errno, strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
 CTM *c_localtime_r(const time_t *timestamp)
 {
     CTM *ptime;
@@ -5789,7 +5831,7 @@ EC_BOOL c_open_dev_null()
     }
 
     /*
-    *   note: 
+    *   note:
     *       also one could use mmap but not fd to reach the same target. the latter need memory copy yet.
     *
     *   e.g.
@@ -5810,8 +5852,8 @@ EC_BOOL c_close_dev_null()
     if(-1 != g_dev_null_fd)
     {
         close(g_dev_null_fd);
-       
-        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fd = %d\n", 
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fd = %d\n",
                         g_dev_null_fd);
 
         g_dev_null_fd = -1;
@@ -5821,9 +5863,9 @@ EC_BOOL c_close_dev_null()
     {
         fclose(g_dev_null_fp);
 
-        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fp = %p\n", 
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_close_dev_null: close '/dev/null' where fp = %p\n",
                         g_dev_null_fp);
-                        
+
         g_dev_null_fp = NULL_PTR;
     }
 
@@ -5840,7 +5882,7 @@ int c_vformat_len(const char *format, va_list ap)
     if(NULL_PTR == g_dev_null_fp)
     {
         FILE *fp;
-        
+
         if(-1 == g_dev_null_fd)
         {
             if(EC_FALSE == c_open_dev_null())
@@ -5867,7 +5909,7 @@ int c_vformat_len(const char *format, va_list ap)
 
     len = vfprintf(g_dev_null_fp, format, params);
     return (len);
-#endif    
+#endif
 
 #if 0 /*version 1*/
     va_list params;
@@ -5877,7 +5919,7 @@ int c_vformat_len(const char *format, va_list ap)
 
     len = vsnprintf((char *)0, 0, format, params);
     return (len);
-#endif    
+#endif
 
 }
 

@@ -5684,7 +5684,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = flag;
-    
+
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_LOCKED_FLAG(chttp_store) = flag;
 

@@ -167,10 +167,10 @@ void crfsnpdel_node_move_head(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
 
         next_pos = CRFSNPDEL_NODE_NEXT_POS(node);
         next     = CRFSNP_ITEM_DEL_NODE(crfsnp_fetch(crfsnp, next_pos));
-        
+
         __crfsnpdel_node_rmv(prev, prev_pos, next, next_pos);
         crfsnpdel_node_init(node, node_pos);
-        
+
         crfsnpdel_node_add_head(crfsnp, node, node_pos);
 
         dbg_log(SEC_0076_CRFSNPDEL, 9)(LOGSTDOUT, "[DEBUG] crfsnpdel_node_move_head: node %p, pos %u\n", node, node_pos);
@@ -201,7 +201,7 @@ void crfsnpdel_node_move_tail(CRFSNP *crfsnp, CRFSNPDEL_NODE *node, const uint32
 
         __crfsnpdel_node_rmv(prev, prev_pos, next, next_pos);
         crfsnpdel_node_init(node, node_pos);
-        
+
         crfsnpdel_node_add_tail(crfsnp, node, node_pos);
 
         dbg_log(SEC_0076_CRFSNPDEL, 9)(LOGSTDOUT, "[DEBUG] crfsnpdel_node_move_tail: node %p, pos %u\n", node, node_pos);

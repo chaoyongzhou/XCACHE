@@ -1041,7 +1041,7 @@ EC_BOOL cpgb_flush(const CPGB *cpgb, int fd, UINT32 *offset)
         dbg_log(SEC_0122_CPGB, 0)(LOGSTDOUT, "error:cpgb_flush: flush CPGB_CPGRB_POOL at offset %ld of fd %d failed\n", (*offset), fd);
         return (EC_FALSE);
     }
-    
+
     return (EC_TRUE);
 }
 
