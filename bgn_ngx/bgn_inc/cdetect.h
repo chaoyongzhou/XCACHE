@@ -39,6 +39,7 @@ typedef struct
     UINT32               cdetectn_modi_choice; /*0 or 1*/
 
     UINT32               cdetectn_modi[2];
+
 }CDETECT_MD;
 
 #define CDETECT_MD_TERMINATE_FLAG(cdetect_md)           ((cdetect_md)->terminate_flag)

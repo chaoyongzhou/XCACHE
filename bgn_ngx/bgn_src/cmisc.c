@@ -5936,6 +5936,78 @@ int c_format_len(const char *format, ...)
     return (len);
 }
 
+/*note: only for simple resolve configuration: nameserver <ip>*/
+EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
+{
+    const char *file_name = "/etc/resolv.conf";
+    int         fd;
+    UINT32      file_max_size;
+    UINT32      file_size;
+    char       *file_buff;
+    char       *file_lines[ 64 ];
+    UINT32      file_line_max_num;
+    UINT32      file_line_num;
+    UINT32      file_line_idx;
+
+    fd = c_file_open(file_name, O_RDONLY, 0644);
+    if(0 > fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: open %s failed\n", file_name);
+        return (EC_FALSE);
+    }
+
+    file_max_size = 2 * 1024; /*2KB*/
+
+    file_buff = safe_malloc(file_max_size, LOC_CMISC_0001);
+    if(NULL_PTR == file_buff)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: malloc %ld bytes failed\n", file_max_size);
+        close(fd);
+        return (EC_FALSE);
+    }
+
+    file_size = 0;
+    if(EC_FALSE == c_file_read(fd, &file_size, file_max_size, (UINT8 *)file_buff))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: load %s failed\n", file_name);
+        close(fd);
+        safe_free(file_buff, LOC_CMISC_0001);
+        return (EC_FALSE);
+    }
+
+    close(fd);
+
+    file_line_max_num = sizeof(file_lines)/sizeof(file_lines[ 0 ]);
+    file_line_num = c_str_split(file_buff, (const char *)"\r\n", (char **)file_lines, file_line_max_num);
+
+    for(file_line_idx = 0; file_line_idx < file_line_num; file_line_idx ++)
+    {
+        char *segs[ 2 ];
+        
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_import_resolve_conf: [%ld/%ld] %s\n",
+                           file_line_idx, file_line_num, file_lines[ file_line_idx ]);
+
+        if(2 != c_str_split(file_lines[ file_line_idx ], (const char *)" ", (char **)segs, 2))
+        {
+            continue;
+        }
+
+        if(0 == STRCASECMP("nameserver", segs[ 0 ]) && EC_TRUE == c_ipv4_is_ok(segs[ 1 ]))
+        {   
+            UINT32  ipv4;
+
+            ipv4 = c_ipv4_to_word(segs[ 1 ]);
+            cvector_push(name_servers, (void *)ipv4);
+
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_import_resolve_conf: [%ld/%ld] push nameserver %s\n",
+                               file_line_idx, file_line_num, segs[ 1 ]);            
+        }
+    }
+
+    safe_free(file_buff, LOC_CMISC_0001);
+    return (EC_TRUE);
+}
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

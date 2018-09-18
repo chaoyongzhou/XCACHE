@@ -8740,7 +8740,7 @@ STATIC_CAST static EC_BOOL __super_dns_resolve_cleanup_handle(CDNS_NODE *cdns_no
 /*for debug*/
 STATIC_CAST static EC_BOOL __super_dns_resolve_recv_handle(CDNS_NODE *cdns_node)
 {
-    if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
+    if(NULL_PTR != CDNS_NODE_RSP(cdns_node) && BIT_TRUE == CDNS_NODE_RECV_COMPLETE(cdns_node))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] __super_dns_resolve_recv_handle: cdns rsp\n");
         cdns_rsp_print(LOGSTDOUT, CDNS_NODE_RSP(cdns_node));
@@ -8799,7 +8799,7 @@ EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_serv
 
     cstring_clone(domain, CDNS_REQ_HOST(cdns_req));
    
-    if(EC_FALSE == cdns_request_basic(cdns_req, __super_dns_resolve_set_callback))
+    if(EC_FALSE == cdns_request_basic(cdns_req, __super_dns_resolve_set_callback, NULL_PTR, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_resolve_demo: request failed\n");
         cdns_req_free(cdns_req);

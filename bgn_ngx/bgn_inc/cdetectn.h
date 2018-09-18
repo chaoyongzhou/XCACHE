@@ -71,6 +71,9 @@ typedef struct
 
 typedef struct
 {
+    CVECTOR            *name_servers;          /*name servers*/
+    UINT32              name_server_pos;       /*current name server*/
+    
     CSTRING             domain;                /*orig domain*/
     CSTRING             uri;                   /*orig uri to check*/
     CLIST               ip_nodes;              /*orig ip nodes. item is CDETECTN_IP_NODE*/
@@ -91,6 +94,9 @@ typedef struct
     CLIST_DATA         *last_reachable_ip_node;/*shortcut to last reachable ip node*/
     CLIST_DATA         *detect_orig_node;      /*shortcut to [A.1] list*/
 }CDETECTN_ORIG_NODE;
+
+#define CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)                 ((cdetectn_orig_node)->name_servers)
+#define CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node)              ((cdetectn_orig_node)->name_server_pos)
 
 #define CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node)                       (&((cdetectn_orig_node)->domain))
 #define CDETECTN_ORIG_NODE_URI(cdetectn_orig_node)                          (&((cdetectn_orig_node)->uri))

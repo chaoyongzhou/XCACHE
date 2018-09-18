@@ -432,6 +432,8 @@ int c_vformat_len(const char *format, va_list ap);
 
 int c_format_len(const char *format, ...);
 
+EC_BOOL c_import_resolve_conf(CVECTOR *name_servers);
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

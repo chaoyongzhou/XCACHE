@@ -146,6 +146,8 @@ typedef struct _CDNS_NODE
 
     /*extension*/
     EC_BOOL (*set_callback)(struct _CSOCKET_CNODE *, struct _CDNS_NODE *);
+    void  *private_data0;
+    void  *private_data1;
 }CDNS_NODE;
 
 #define CDNS_NODE_CROUTINE_NODE(cdns_node)       ((cdns_node)->croutine_node)
@@ -165,6 +167,8 @@ typedef struct _CDNS_NODE
 #define CDNS_NODE_COROUTINE_RESTORE(cdns_node)   ((cdns_node)->coroutine_restore)
 
 #define CDNS_NODE_SET_CALLBACK_FUNC(cdns_node)   ((cdns_node)->set_callback)
+#define CDNS_NODE_PRIVATE_DATA0(cdns_node)       ((cdns_node)->private_data0)
+#define CDNS_NODE_PRIVATE_DATA1(cdns_node)       ((cdns_node)->private_data1)
 
 typedef EC_BOOL (*CDNS_NODE_SET_CALLBACK)(struct _CSOCKET_CNODE *, struct _CDNS_NODE *);
 

@@ -159,6 +159,8 @@ EC_BOOL cdns_node_init(CDNS_NODE *cdns_node)
 
         /*extension*/
         CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR;
+        CDNS_NODE_PRIVATE_DATA0(cdns_node)     = NULL_PTR;
+        CDNS_NODE_PRIVATE_DATA1(cdns_node)     = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -197,7 +199,9 @@ EC_BOOL cdns_node_clean(CDNS_NODE *cdns_node)
         CDNS_NODE_COROUTINE_RESTORE(cdns_node) = BIT_FALSE;
 
         /*extension*/
-        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR;   
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR; 
+        CDNS_NODE_PRIVATE_DATA0(cdns_node)     = NULL_PTR;
+        CDNS_NODE_PRIVATE_DATA1(cdns_node)     = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -1491,7 +1495,7 @@ void cdns_rsp_node_print(LOG *log, const CDNS_RSP_NODE *cdns_rsp_node)
 }
 
 /*basic request without blocking which means without condition waiting*/
-EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK handler)
+EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK handler, void *private_data0, void *private_data1)
 {
     CDNS_NODE     *cdns_node;
     CDNS_RSP      *cdns_rsp;
@@ -1516,6 +1520,17 @@ EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK hand
     {
         CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = handler;
     }
+
+    /*private datas*/
+    if(NULL_PTR != private_data0)
+    {
+        CDNS_NODE_PRIVATE_DATA0(cdns_node) = private_data0;
+    }
+
+    if(NULL_PTR != private_data1)
+    {
+        CDNS_NODE_PRIVATE_DATA1(cdns_node) = private_data1;
+    }    
 
     if(EC_FALSE == cdns_node_create(cdns_node, cdns_req))
     {

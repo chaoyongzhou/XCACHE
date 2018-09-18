@@ -27,6 +27,7 @@ extern "C"{
 #include "crb.h"
 #include "chttp.h"
 #include "chttps.h"
+#include "cdns.h"
 #include "cdetectn.h"
 
 #include "findex.inc"
@@ -38,6 +39,9 @@ extern "C"{
 
 #define CDETECTN_MD_ID_CHECK_INVALID(cdetectn_md_id)  \
     ((CMPI_ANY_MODI != (cdetectn_md_id)) && ((NULL_PTR == CDETECTN_MD_GET(cdetectn_md_id)) || (0 == (CDETECTN_MD_GET(cdetectn_md_id)->usedcounter))))
+
+
+STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain(CDETECTN_ORIG_NODE *cdetectn_orig_node, CDETECTN_DOMAIN_NODE *cdetectn_domain_node);
 
 /**
 *   for test only
@@ -204,6 +208,9 @@ CDETECTN_ORIG_NODE *cdetectn_orig_node_new()
 
 EC_BOOL cdetectn_orig_node_init(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
+    CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)           = NULL_PTR;
+    CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node)        = 0;
+    
     cstring_init(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node), NULL_PTR);
     cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), NULL_PTR);
     clist_init(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), MM_CDETECTN_IP_NODE, LOC_CDETECTN_0003);
@@ -228,6 +235,13 @@ EC_BOOL cdetectn_orig_node_init(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 
 EC_BOOL cdetectn_orig_node_clean(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
+    if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
+    {
+        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+        CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = NULL_PTR;
+        CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
+    }
+    
     cstring_clean(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node));
     cstring_clean(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node));
     clist_clean(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), (CLIST_DATA_DATA_CLEANER)cdetectn_ip_node_free);
@@ -251,6 +265,13 @@ EC_BOOL cdetectn_orig_node_clean(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 
 EC_BOOL cdetectn_orig_node_clear(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
+    if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
+    {
+        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+        CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = NULL_PTR;
+        CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
+    }
+    
     //cstring_clean(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node));
     //cstring_clean(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node));
     //clist_clean(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), (CLIST_DATA_DATA_CLEANER)cdetectn_ip_node_free);
@@ -1041,6 +1062,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_ip_node(CDETECTN_ORIG_NODE *cdetectn
             UINT32                ipv4_num;
             UINT32                ipv4_idx;
 
+            /*blocking mode*/
             if(EC_FALSE == c_dns_resolve_all(segs[ 0 ], (UINT32 *)ipv4, (UINT32)CDETECTN_IP_MAX_NUM, &ipv4_num))
             {
                 dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_ip_node: "
@@ -1121,6 +1143,7 @@ STATIC_CAST static EC_BOOL __cdetectn_parse_ip_node(CDETECTN_ORIG_NODE *cdetectn
             UINT32                ipv4_num;
             UINT32                ipv4_idx;
 
+            /*blocking mode*/
             if(EC_FALSE == c_dns_resolve_all(segs[ 0 ], (UINT32 *)ipv4, (UINT32)CDETECTN_IP_MAX_NUM, &ipv4_num))
             {
                 dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_parse_ip_node: "
@@ -1867,7 +1890,186 @@ STATIC_CAST static EC_BOOL __cdetectn_request(const CSTRING *domain, const CSTRI
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_cleanup_handle(CDNS_NODE *cdns_node)
+{
+    if(NULL_PTR != cdns_node)
+    {
+        if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
+        {
+            cdns_rsp_free(CDNS_NODE_RSP(cdns_node));
+            CDNS_NODE_RSP(cdns_node) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CDNS_NODE_REQ(cdns_node))
+        {
+            cdns_req_free(CDNS_NODE_REQ(cdns_node));
+            CDNS_NODE_REQ(cdns_node) = NULL_PTR;
+        }
+
+        cdns_node_free(cdns_node);
+    }
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_recv_handle(CDNS_NODE *cdns_node)
+{
+    CDETECTN_ORIG_NODE   *cdetectn_orig_node;
+    CDETECTN_DOMAIN_NODE *cdetectn_domain_node;
+    char                 *domain;
+
+    cdetectn_orig_node   = CDNS_NODE_PRIVATE_DATA0(cdns_node);
+    cdetectn_domain_node = CDNS_NODE_PRIVATE_DATA1(cdns_node);
+
+    domain = (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node));  
+        
+    if(NULL_PTR != CDNS_NODE_RSP(cdns_node) && BIT_TRUE == CDNS_NODE_RECV_COMPLETE(cdns_node))
+    {
+        CLIST_DATA           *clist_data;
+       
+        cdetectn_orig_node_clear_ip_nodes(cdetectn_orig_node, domain);
+
+        CLIST_LOOP_NEXT(CDNS_NODE_RSP(cdns_node), clist_data)
+        {
+            CDNS_RSP_NODE        *cdns_rsp_node;
+            CDETECTN_IP_NODE     *cdetectn_ip_node;
+
+            cdns_rsp_node = CLIST_DATA_DATA(clist_data);
+
+            cdetectn_ip_node = cdetectn_ip_node_new();
+            if(NULL_PTR == cdetectn_ip_node)
+            {
+                dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_resolve_orig_node_domain_recv_handle: "
+                                                         "new cdetectn_ip_node failed\n");
+                return (EC_FALSE);
+            }
+
+            CDETECTN_IP_NODE_IPADDR(cdetectn_ip_node) = c_ipv4_to_word((char *)CDNS_RSP_NODE_IPADDR_STR(cdns_rsp_node));
+            cstring_init(CDETECTN_IP_NODE_DOMAIN(cdetectn_ip_node), (UINT8 *)domain);
+
+            CDETECTN_IP_NODE_PORT(cdetectn_ip_node)   = CDETECTN_DOMAIN_NODE_PORT(cdetectn_domain_node);
+            CDETECTN_IP_NODE_STATUS(cdetectn_ip_node) = CDETECTN_IP_NODE_STATUS_REACHABLE; /*default*/
+
+            clist_push_back(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), (void *)cdetectn_ip_node);
+
+            dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain_recv_handle: "
+                                                     "push (domain '%s', ip '%s', port '%ld')\n",
+                                                     domain,
+                                                     CDETECTN_IP_NODE_IPADDR_STR(cdetectn_ip_node),
+                                                     CDETECTN_IP_NODE_PORT(cdetectn_ip_node));
+        }        
+
+        //__cdetectn_resolve_orig_node_domain_cleanup_handle(cdns_node);
+        return (EC_TRUE);
+    }
+
+    if(BIT_FALSE == CDNS_NODE_RECV_COMPLETE(cdns_node))
+    {
+        UINT32                name_server_num;
+        UINT32                name_server_pos;
+        UINT32                name_server_ip;
+
+        name_server_pos = CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node);
+        name_server_num = cvector_size(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node));
+        if(name_server_num <= name_server_pos)
+        {
+            return (EC_FALSE);
+        }
+
+        CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) ++;
+
+        name_server_ip = (UINT32)cvector_get(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), name_server_pos);
+
+        dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain_recv_handle: "
+                                                 "domain '%s': try name server [%ld / %ld] %s\n",
+                                                 domain, 
+                                                 name_server_pos, name_server_num, c_word_to_ipv4(name_server_ip));
+
+        __cdetectn_resolve_orig_node_domain(cdetectn_orig_node, cdetectn_domain_node);
+    
+        return (EC_FALSE);
+    }
+    
+    //__cdetectn_resolve_orig_node_domain_cleanup_handle(cdns_node);
+    return (EC_TRUE);
+}
+
+STATIC_CAST EC_BOOL __cdetectn_resolve_orig_node_domain_set_callback(CSOCKET_CNODE *csocket_cnode, CDNS_NODE *cdns_node)
+{
+    csocket_cnode_push_recv_callback(csocket_cnode,
+                                     (const char *)"__cdetectn_resolve_orig_node_domain_recv_handle",
+                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_recv_handle);
+
+    csocket_cnode_push_close_callback(csocket_cnode,
+                                     (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+
+    csocket_cnode_push_timeout_callback(csocket_cnode,
+                                     (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+
+    csocket_cnode_push_shutdown_callback(csocket_cnode,
+                                     (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain(CDETECTN_ORIG_NODE *cdetectn_orig_node, CDETECTN_DOMAIN_NODE *cdetectn_domain_node)
+{
+    UINT32                name_server_pos;
+    UINT32                name_server_ip;
+
+    CDNS_REQ             *cdns_req;
+
+    cdns_req = cdns_req_new();
+    if(NULL_PTR == cdns_req)
+    {
+        dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_resolve_orig_node_domain: new cdns_req failed\n");
+        return (EC_FALSE);
+    }    
+
+    name_server_pos = CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node);
+    name_server_ip = (UINT32)cvector_get(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), name_server_pos);
+
+    CDNS_REQ_IPADDR(cdns_req) = name_server_ip;
+    CDNS_REQ_PORT(cdns_req)   = 53; /*default port*/
+
+    cstring_clone(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node), CDNS_REQ_HOST(cdns_req));
+
+    if(EC_FALSE == cdns_request_basic(cdns_req, __cdetectn_resolve_orig_node_domain_set_callback,
+                                      cdetectn_orig_node, cdetectn_domain_node))
+    {
+        dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_resolve_orig_node_domain: request failed\n");
+        cdns_req_free(cdns_req);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain: "
+                                             "domain '%s': request to name server %s\n",
+                                             (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node)), 
+                                             c_word_to_ipv4(name_server_ip));    
+
+    return (EC_TRUE);
+}
+
 STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domains(CDETECTN_ORIG_NODE *cdetectn_orig_node)
+{
+    CLIST_DATA      *clist_data;
+
+    CLIST_LOOP_NEXT(CDETECTN_ORIG_NODE_DETECT_DOMAIN_NODES(cdetectn_orig_node), clist_data)
+    {
+        CDETECTN_DOMAIN_NODE *cdetectn_domain_node;
+
+        cdetectn_domain_node = CLIST_DATA_DATA(clist_data);
+
+        __cdetectn_resolve_orig_node_domain(cdetectn_orig_node, cdetectn_domain_node);
+    }
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domains_ok(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
     CLIST_DATA      *clist_data;
 
@@ -1889,7 +2091,7 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domains(CDETECTN_ORIG_NO
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:__cdetectn_resolve_orig_node_domains: "
                                                      "dns resolve '%s' failed\n",
                                                      domain);
-            continue;;
+            continue;
         }
 
         cdetectn_orig_node_clear_ip_nodes(cdetectn_orig_node, domain);
@@ -2292,6 +2494,8 @@ EC_BOOL cdetectn_start_domain(const UINT32 cdetectn_md_id, const CSTRING *domain
     CDETECTN_MD          *cdetectn_md;
 
     CDETECTN_ORIG_NODE   *cdetectn_orig_node;
+    
+    CVECTOR              *name_servers;
 
 #if ( SWITCH_ON == CDETECTN_DEBUG_SWITCH )
     if ( CDETECTN_MD_ID_CHECK_INVALID(cdetectn_md_id) )
@@ -2312,6 +2516,41 @@ EC_BOOL cdetectn_start_domain(const UINT32 cdetectn_md_id, const CSTRING *domain
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_start_domain: "
                                                  "domain '%s' not configured\n",
                                                  (char *)cstring_get_str(domain));
+        return (EC_FALSE);
+    }
+
+    name_servers = cvector_new(8, MM_UINT32, LOC_CDETECTN_0001);
+    if(NULL_PTR != name_servers)
+    {
+        if(EC_FALSE == c_import_resolve_conf(name_servers))
+        {
+            dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:cdetectn_start_domain: "
+                                                     "domain '%s', resolve name servers failed\n",
+                                                     (char *)cstring_get_str(domain));        
+            cvector_free(name_servers, LOC_CDETECTN_0001);
+        }
+        else
+        {
+            /*update name servers in orig node*/
+            if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
+            {
+                cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+                CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = name_servers;
+                CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
+            }
+            else
+            {
+                CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = name_servers;
+                CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
+            }
+        }
+    }
+
+    if(NULL_PTR == CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
+    {
+        dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_start_domain: "
+                                                 "domain '%s', no resolved name server\n",
+                                                 (char *)cstring_get_str(domain));        
         return (EC_FALSE);
     }
 

@@ -135,7 +135,7 @@ EC_BOOL cdns_rsp_node_free(CDNS_RSP_NODE *cdns_rsp_node);
 
 void    cdns_rsp_node_print(LOG *log, const CDNS_RSP_NODE *cdns_rsp_node);
 
-EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK handler);
+EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK handler, void *private_data0, void *private_data1);
 
 EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp);
 
