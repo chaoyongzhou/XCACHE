@@ -1194,6 +1194,7 @@ EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     //__cxml_parse_tag_switch(node, (const char *)"keepaliveSwitch", &(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"connTimeoutNsec"        , &(CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"timeoutMaxNumPerLoop"   , &(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cdnsTimeoutNsec"        , &(CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"highPrecisionTimeSwitch", &(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"tdnsResolveSwitch"      , &(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"tdnsResolveTimeoutNsec" , &(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)));

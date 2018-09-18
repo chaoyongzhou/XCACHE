@@ -156,6 +156,9 @@ EC_BOOL cdns_node_init(CDNS_NODE *cdns_node)
 
         CDNS_NODE_RECV_COMPLETE(cdns_node)     = BIT_FALSE;
         CDNS_NODE_COROUTINE_RESTORE(cdns_node) = BIT_FALSE;
+
+        /*extension*/
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -192,6 +195,9 @@ EC_BOOL cdns_node_clean(CDNS_NODE *cdns_node)
 
         CDNS_NODE_RECV_COMPLETE(cdns_node)     = BIT_FALSE;
         CDNS_NODE_COROUTINE_RESTORE(cdns_node) = BIT_FALSE;
+
+        /*extension*/
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR;   
     }
 
     return (EC_TRUE);
@@ -353,6 +359,11 @@ EC_BOOL cdns_node_recv_rsp(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
     {
         dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_recv_rsp: sockfd %d, no more data to recv or parse\n",
                 CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+        if(NULL_PTR != CDNS_NODE_SET_CALLBACK_FUNC(cdns_node))
+        {
+            return (EC_TRUE);
+        }
         return (EC_DONE);
     }
 
@@ -370,6 +381,13 @@ EC_BOOL cdns_node_recv_rsp(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
     /*note: here if return EC_DONE, one must set CDNS_NODE_RECV_COMPLETE flag to true at first*/
     __cdns_on_recv_complete(cdns_node);
 
+    if(NULL_PTR != CDNS_NODE_SET_CALLBACK_FUNC(cdns_node))
+    {
+        dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_recv_rsp: return EC_TRUE\n");
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_node_recv_rsp: return EC_DONE\n");
     return (EC_DONE);
 }
 
@@ -398,7 +416,13 @@ EC_BOOL cdns_node_disconnect(CDNS_NODE *cdns_node)
 
 EC_BOOL cdns_node_set_callback(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
 {
-    /*set callback*/
+    /*set callback to stack (FILO)*/
+    
+    if(NULL_PTR != CDNS_NODE_SET_CALLBACK_FUNC(cdns_node))
+    {
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node)(csocket_cnode, cdns_node);
+    }
+    
     csocket_cnode_push_recv_callback(csocket_cnode,
                                      (const char *)"cdns_node_recv_rsp",
                                      (UINT32)cdns_node, (UINT32)cdns_node_recv_rsp);
@@ -446,7 +470,7 @@ EC_BOOL cdns_node_set_epoll(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
 
     cepoll_set_timeout(task_brd_default_get_cepoll(),
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                    (uint32_t)CONN_TIMEOUT_NSEC,
+                    (uint32_t)CDNS_TIMEOUT_NSEC,
                     (const char *)"csocket_cnode_itimeout",
                     (CEPOLL_EVENT_HANDLER)csocket_cnode_itimeout,
                     (void *)csocket_cnode);
@@ -646,31 +670,23 @@ EC_BOOL cdns_make_header(CDNS_NODE *cdns_node, CDNS_HEADER *cdns_header)
     /*make flag beg*/
     flag = 0;
 
-    flag |= CDNS_HEADER_FLAG_QR(cdns_header);
-    flag <<= 1;
+    flag = (flag << 0) | CDNS_HEADER_FLAG_QR(cdns_header);
+    
+    flag = (flag << 4) | CDNS_HEADER_FLAG_OPCODE(cdns_header);
+    
+    flag = (flag << 1) | CDNS_HEADER_FLAG_AA(cdns_header);
+    
+    flag = (flag << 1) | CDNS_HEADER_FLAG_TC(cdns_header);
 
-    flag |= CDNS_HEADER_FLAG_OPCODE(cdns_header);
-    flag <<= 4;
+    flag = (flag << 1) | CDNS_HEADER_FLAG_RD(cdns_header);
 
-    flag |= CDNS_HEADER_FLAG_AA(cdns_header);
-    flag <<= 1;
+    flag = (flag << 1) | CDNS_HEADER_FLAG_RA(cdns_header);
 
-    flag |= CDNS_HEADER_FLAG_TC(cdns_header);
-    flag <<= 1;
+    flag = (flag << 3) | CDNS_HEADER_FLAG_ZERO(cdns_header);
 
-    flag |= CDNS_HEADER_FLAG_RD(cdns_header);
-    flag <<= 1;
+    flag = (flag << 4) | CDNS_HEADER_FLAG_RCODE(cdns_header);
 
-    flag |= CDNS_HEADER_FLAG_RA(cdns_header);
-    flag <<= 1;
-
-    flag |= CDNS_HEADER_FLAG_ZERO(cdns_header);
-    flag <<= 3;
-
-    flag |= CDNS_HEADER_FLAG_RCODE(cdns_header);
-    /*flag <<= 4;*/
-
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_make_header: flag = %0x \n", flag);
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_make_header: flag = 0x%04x\n", flag);
     (*p) = gdb_hton_uint16(flag);
     p ++;
     /*make flag end*/
@@ -1160,7 +1176,7 @@ EC_BOOL cdns_parse_rsp(CDNS_NODE *cdns_node, CDNS_RSP *cdns_rsp)
         dbg_log(SEC_0150_CDNS, 5)(LOGSTDOUT, "info:cdns_parse_rsp: ignore extra\n");
     }
 
-    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse: sockfd %d parse rsp done\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_rsp: sockfd %d parse rsp done\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     return (EC_TRUE);
 }
@@ -1186,7 +1202,6 @@ STATIC_CAST static uint16_t __cdns_gen_id()
 EC_BOOL cdns_make_req(CDNS_NODE *cdns_node, const CDNS_REQ *cdns_req)
 {
     CDNS_HEADER     cdns_header;
-
 
     cdns_header_init(&cdns_header);
 
@@ -1291,6 +1306,7 @@ EC_BOOL cdns_req_clean(CDNS_REQ *cdns_req)
     CDNS_REQ_PORT(cdns_req)   = CMPI_ERROR_SRVPORT;
 
     cstring_clean(CDNS_REQ_HOST(cdns_req));
+
     return (EC_TRUE);
 }
 
@@ -1472,6 +1488,49 @@ void cdns_rsp_node_print(LOG *log, const CDNS_RSP_NODE *cdns_rsp_node)
                 (uint32_t)CSTRING_LEN(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)), CSTRING_STR(CDNS_RSP_NODE_IPADDR(cdns_rsp_node)));
 
     return;
+}
+
+/*basic request without blocking which means without condition waiting*/
+EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK handler)
+{
+    CDNS_NODE     *cdns_node;
+    CDNS_RSP      *cdns_rsp;
+
+    cdns_rsp = cdns_rsp_new();
+    if(NULL_PTR == cdns_rsp)
+    {
+        dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_request_basic: new cdns_rsp failed\n");
+        return (EC_FALSE);
+    }
+
+    cdns_node = cdns_node_new();
+    if(NULL_PTR == cdns_node)
+    {
+        dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_request_basic: new cdns_node failed\n");
+        cdns_rsp_free(cdns_rsp);
+        return (EC_FALSE);
+    }
+
+    /*post recv handler*/
+    if(NULL_PTR != handler)
+    {
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = handler;
+    }
+
+    if(EC_FALSE == cdns_node_create(cdns_node, cdns_req))
+    {
+        dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_request_basic: connect server %s:%ld failed\n",
+                            CDNS_REQ_IPADDR_STR(cdns_req), CDNS_REQ_PORT(cdns_req));
+
+        cdns_rsp_free(cdns_rsp);
+        cdns_node_free(cdns_node);
+        return (EC_FALSE);
+    }
+
+    CDNS_NODE_REQ(cdns_node) = (CDNS_REQ *)cdns_req;
+    CDNS_NODE_RSP(cdns_node) = (CDNS_RSP *)cdns_rsp;
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp)

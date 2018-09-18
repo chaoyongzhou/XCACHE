@@ -160,6 +160,7 @@
 #define               FI_super_diag_csocket_cnode  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  141))
 #define                   FI_super_cond_terminate  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  142))
 #define                      FI_super_cond_delete  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  143))
+#define                 FI_super_dns_resolve_demo  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) +  144))
 
 #define               FI_cdfs_print_module_status  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  0))
 #define            FI_cdfs_free_module_static_mem  ((UINT32) ((MD_CDFS << (WORDSIZE/2)) +  1))

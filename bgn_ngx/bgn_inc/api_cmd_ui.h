@@ -54,6 +54,8 @@ EC_BOOL api_cmd_ui_task();
 void    api_cmd_ui_do_script(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *script_name);
 void    api_cmd_ui_do_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char *cmd_line);
 
+EC_BOOL api_cmd_ui_dns_resolve_demo(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_activate_sys_cfg(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_activate_sys_cfg_all(CMD_PARA_VEC * param);
 

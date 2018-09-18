@@ -46,7 +46,6 @@ extern "C"{
 /*DNS query classification*/
 #define CDNS_QC_INET             ((uint16_t)  1)
 
-
 struct _CSOCKET_CNODE;
 
 typedef struct
@@ -144,6 +143,9 @@ typedef struct _CDNS_NODE
     uint32_t                  recv_complete:1;/*flag*/
     uint32_t                  coroutine_restore:1;/*flag*/
     UINT32                    query_len;
+
+    /*extension*/
+    EC_BOOL (*set_callback)(struct _CSOCKET_CNODE *, struct _CDNS_NODE *);
 }CDNS_NODE;
 
 #define CDNS_NODE_CROUTINE_NODE(cdns_node)       ((cdns_node)->croutine_node)
@@ -161,6 +163,10 @@ typedef struct _CDNS_NODE
 
 #define CDNS_NODE_RECV_COMPLETE(cdns_node)       ((cdns_node)->recv_complete)
 #define CDNS_NODE_COROUTINE_RESTORE(cdns_node)   ((cdns_node)->coroutine_restore)
+
+#define CDNS_NODE_SET_CALLBACK_FUNC(cdns_node)   ((cdns_node)->set_callback)
+
+typedef EC_BOOL (*CDNS_NODE_SET_CALLBACK)(struct _CSOCKET_CNODE *, struct _CDNS_NODE *);
 
 #endif /*_CDNS_INC*/
 

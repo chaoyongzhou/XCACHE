@@ -801,6 +801,8 @@ EC_BOOL super_print_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num
 /*------------------------------------------------------ test interface for general purpose -------------------------------------------------*/
 EC_BOOL super_do_test(const UINT32 super_md_id);
 
+EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_server, const CSTRING *domain);
+
 #endif /*_SUPER_H*/
 
 #ifdef __cplusplus

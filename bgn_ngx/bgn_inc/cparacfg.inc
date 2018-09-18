@@ -62,7 +62,8 @@ typedef struct
     //UINT32    conn_keepalive_switch         ;/*internal communication keepalive by hearbeat, http connection by checking data transfering*/
     UINT32    conn_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
     UINT32    timeout_max_num_per_loop      ;/*once cepoll loop shutdown the timeout connections to the max num*/
-
+    UINT32    cdns_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
+    
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
     UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
@@ -159,6 +160,7 @@ typedef struct
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)                    ((cparacfg)->conn_keepalive_switch)
 #define CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->conn_timeout_nsec)
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)                 ((cparacfg)->timeout_max_num_per_loop)
+#define CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->cdns_timeout_nsec)
 #define CPARACFG_LOG_LEVEL_TAB(cparacfg)                            ((cparacfg)->log_level_tab)
 
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
@@ -329,6 +331,7 @@ typedef struct
 
 #define CPARACFG_CONN_TIMEOUT_NSEC_DEF                           20
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP_DEF                    1024
+#define CPARACFG_CDNS_TIMEOUT_NSEC_DEF                           3
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_DEF                    SWITCH_OFF
 
@@ -416,6 +419,7 @@ typedef struct
 
 #define    CONN_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CONN_TIMEOUT_NSEC)
 #define    CONN_TIMEOUT_MAX_NUM_PER_LOOP                 CPARACFG_DEFAULT_MAP(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP)
+#define    CDNS_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CDNS_TIMEOUT_NSEC)
 #define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
 
 #define    NGX_BGN_OVER_HTTP_SWITCH                      CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH)

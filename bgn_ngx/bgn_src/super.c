@@ -49,7 +49,7 @@ extern "C"{
 #include "crfsmon.h"
 #include "chttp.h"
 #include "crfshttp.h"
-
+#include "cdns.h"
 #include "findex.inc"
 
 
@@ -8710,6 +8710,101 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
 
     chttp_req_clean(&chttp_req_t);
     chttp_rsp_clean(&chttp_rsp_t);
+
+    return (EC_TRUE);
+}
+
+/*for debug*/
+STATIC_CAST static EC_BOOL __super_dns_resolve_cleanup_handle(CDNS_NODE *cdns_node)
+{
+    if(NULL_PTR != cdns_node)
+    {
+        if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
+        {
+            cdns_rsp_free(CDNS_NODE_RSP(cdns_node));
+            CDNS_NODE_RSP(cdns_node) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CDNS_NODE_REQ(cdns_node))
+        {
+            cdns_req_free(CDNS_NODE_REQ(cdns_node));
+            CDNS_NODE_REQ(cdns_node) = NULL_PTR;
+        }
+
+        cdns_node_free(cdns_node);
+    }
+
+    return (EC_TRUE);
+}
+
+/*for debug*/
+STATIC_CAST static EC_BOOL __super_dns_resolve_recv_handle(CDNS_NODE *cdns_node)
+{
+    if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] __super_dns_resolve_recv_handle: cdns rsp\n");
+        cdns_rsp_print(LOGSTDOUT, CDNS_NODE_RSP(cdns_node));
+    }
+
+    __super_dns_resolve_cleanup_handle(cdns_node);
+    return (EC_TRUE);
+}
+
+/*for debug*/
+STATIC_CAST EC_BOOL __super_dns_resolve_set_callback(CSOCKET_CNODE *csocket_cnode, CDNS_NODE *cdns_node)
+{
+    csocket_cnode_push_recv_callback(csocket_cnode,
+                                     (const char *)"__super_dns_resolve_recv_handle",
+                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_recv_handle);
+
+    csocket_cnode_push_close_callback(csocket_cnode,
+                                     (const char *)"__super_dns_resolve_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+
+    csocket_cnode_push_timeout_callback(csocket_cnode,
+                                     (const char *)"__super_dns_resolve_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+
+    csocket_cnode_push_shutdown_callback(csocket_cnode,
+                                     (const char *)"__super_dns_resolve_cleanup_handle",
+                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+
+    return (EC_TRUE);
+}
+
+/*for debug*/
+EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_server, const CSTRING *domain)
+{
+    CDNS_REQ    *cdns_req;
+    
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_resolve_demo: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cdns_req = cdns_req_new();
+    if(NULL_PTR == cdns_req)
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_resolve_demo: new cdns_req failed\n");
+        return (EC_FALSE);
+    }
+
+    CDNS_REQ_IPADDR(cdns_req) = c_ipv4_to_word((char *)cstring_get_str(dns_server));/*default*/
+    CDNS_REQ_PORT(cdns_req)   = 53; /*default*/
+
+    cstring_clone(domain, CDNS_REQ_HOST(cdns_req));
+   
+    if(EC_FALSE == cdns_request_basic(cdns_req, __super_dns_resolve_set_callback))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_resolve_demo: request failed\n");
+        cdns_req_free(cdns_req);
+        return (EC_FALSE);
+    }
 
     return (EC_TRUE);
 }

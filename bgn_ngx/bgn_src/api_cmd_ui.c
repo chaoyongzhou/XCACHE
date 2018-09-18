@@ -144,6 +144,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "version"      , "show version on {all | tcid <tcid>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "run script"   , "script <file name>");
 
+    api_cmd_help_vec_create(cmd_help_vec, "dns resolve"   , "dns resolve <domain> from <server> on tcid <tcid> rank <rank> at <console|log>");
+
     api_cmd_help_vec_create(cmd_help_vec, "act sysconfig" , "act sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show sysconfig", "show sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
 
@@ -440,6 +442,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_client_all             , "show client all at %s"                           , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_client                 , "show client tcid %t at %s"                       , tcid, where);
 
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_resolve_demo            , "dns resolve %s from %s on tcid %t rank %n at %s" , where, where, tcid, rank, where);
+    
     api_cmd_comm_define(cmd_tree, api_cmd_ui_activate_sys_cfg_all        , "act sysconfig on all at %s"                 , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_activate_sys_cfg            , "act sysconfig on tcid %t rank %n at %s"     , tcid, rank, where);
 
@@ -1180,6 +1184,55 @@ STATIC_CAST static UINT32 api_cmd_ui_get_cdfsnp_mode(const CSTRING *db_mode)
         return (CDFSNP_ERR_MODE);
     }
     return (cdfsnp_mode);
+}
+
+EC_BOOL api_cmd_ui_dns_resolve_demo(CMD_PARA_VEC * param)
+{
+    CSTRING *domain;
+    CSTRING *dns_server;
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_cstring(param , 0, &domain);
+    api_cmd_para_vec_get_cstring(param , 1, &dns_server);
+    api_cmd_para_vec_get_tcid(param    , 2, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 3, &rank);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns resolve %s from %s on tcid %s rank %ld at %s\n",
+                        (char *)cstring_get_str(domain),
+                        (char *)cstring_get_str(dns_server),
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_resolve_demo, CMPI_ERROR_MODI, dns_server, domain);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(LOGCONSOLE, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(LOGCONSOLE, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_ui_activate_sys_cfg(CMD_PARA_VEC * param)
