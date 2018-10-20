@@ -1512,7 +1512,6 @@ EC_BOOL crfsdn_remove(CRFSDN *crfsdn, const uint16_t disk_no, const uint16_t blo
     return (EC_TRUE);
 }
 
-
 EC_BOOL crfsdn_show(LOG *log, const char *root_dir)
 {
     CRFSDN *crfsdn;

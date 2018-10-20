@@ -35,6 +35,31 @@ extern "C"{
 #define CPGB_004KB_MODEL    ((uint16_t)14)
 #define CPGB_MODEL_MAX_NUM  ((uint16_t)15)
 
+/*---------------------------------------------------------------------------------\
+ reference table (64M-block, 4K-page)
+ ================================================================================================
+    model | size of page model | num of page model | bitmap of num in bits | bitmap of num in bytes
+    0       64M                  2^0                 2^0                     2^0
+    1       32M                  2^1                 2^1                     2^0
+    2       16M                  2^2                 2^2                     2^0    
+    3       8M                   2^3                 2^3                     2^0
+    4       4M                   2^4                 2^4                     2^1
+    5       2M                   2^5                 2^5                     2^2
+    6       1M                   2^6                 2^6                     2^3
+    7       512K                 2^7                 2^7                     2^4
+    8       256K                 2^8                 2^8                     2^5
+    9       128K                 2^9                 2^9                     2^6
+    10      64K                  2^10                2^10                    2^7
+    11      32K                  2^11                2^11                    2^8
+    12      16K                  2^12                2^12                    2^9
+    13      8K                   2^13                2^13                    2^10
+    14      4K                   2^14                2^14                    2^11
+ ================================================================================================
+
+   64M-block = (model size of page model) * (num of page model)
+ 
+\---------------------------------------------------------------------------------*/
+
 /*num of bytes represent the bitmap*/
 #define CPGB_064MB_BITMAP_SIZE  ((uint16_t)(1 <<  0))
 #define CPGB_032MB_BITMAP_SIZE  ((uint16_t)(1 <<  0))
@@ -135,7 +160,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_8K_NUM  ((uint16_t)(1 <<  6))
 #define CPGB_256KB_PAGE_8K_NUM  ((uint16_t)(1 <<  5))
 #define CPGB_128KB_PAGE_8K_NUM  ((uint16_t)(1 <<  4))
-#define CPGB_068KB_PAGE_8K_NUM  ((uint16_t)(1 <<  3))
+#define CPGB_064KB_PAGE_8K_NUM  ((uint16_t)(1 <<  3))
 #define CPGB_032KB_PAGE_8K_NUM  ((uint16_t)(1 <<  2))
 #define CPGB_016KB_PAGE_8K_NUM  ((uint16_t)(1 <<  1))
 #define CPGB_008KB_PAGE_8K_NUM  ((uint16_t)(1 <<  0))
@@ -162,7 +187,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_16M_NUM  ((uint16_t)(0))
 #define CPGB_256KB_PAGE_16M_NUM  ((uint16_t)(0))
 #define CPGB_128KB_PAGE_16M_NUM  ((uint16_t)(0))
-#define CPGB_068KB_PAGE_16M_NUM  ((uint16_t)(0))
+#define CPGB_064KB_PAGE_16M_NUM  ((uint16_t)(0))
 #define CPGB_032KB_PAGE_16M_NUM  ((uint16_t)(0))
 #define CPGB_016KB_PAGE_16M_NUM  ((uint16_t)(0))
 #define CPGB_008KB_PAGE_16M_NUM  ((uint16_t)(0))
@@ -188,7 +213,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_32M_NUM  ((uint16_t)(0))
 #define CPGB_256KB_PAGE_32M_NUM  ((uint16_t)(0))
 #define CPGB_128KB_PAGE_32M_NUM  ((uint16_t)(0))
-#define CPGB_068KB_PAGE_32M_NUM  ((uint16_t)(0))
+#define CPGB_064KB_PAGE_32M_NUM  ((uint16_t)(0))
 #define CPGB_032KB_PAGE_32M_NUM  ((uint16_t)(0))
 #define CPGB_016KB_PAGE_32M_NUM  ((uint16_t)(0))
 #define CPGB_008KB_PAGE_32M_NUM  ((uint16_t)(0))
@@ -253,7 +278,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_NUM           (CPGB_512KB_PAGE_8K_NUM)
 #define CPGB_256KB_PAGE_NUM           (CPGB_256KB_PAGE_8K_NUM)
 #define CPGB_128KB_PAGE_NUM           (CPGB_128KB_PAGE_8K_NUM)
-#define CPGB_064KB_PAGE_NUM           (CPGB_068KB_PAGE_8K_NUM)
+#define CPGB_064KB_PAGE_NUM           (CPGB_064KB_PAGE_8K_NUM)
 #define CPGB_032KB_PAGE_NUM           (CPGB_032KB_PAGE_8K_NUM)
 #define CPGB_016KB_PAGE_NUM           (CPGB_016KB_PAGE_8K_NUM)
 #define CPGB_008KB_PAGE_NUM           (CPGB_008KB_PAGE_8K_NUM)
@@ -282,7 +307,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_NUM           (CPGB_512KB_PAGE_16M_NUM)
 #define CPGB_256KB_PAGE_NUM           (CPGB_256KB_PAGE_16M_NUM)
 #define CPGB_128KB_PAGE_NUM           (CPGB_128KB_PAGE_16M_NUM)
-#define CPGB_064KB_PAGE_NUM           (CPGB_068KB_PAGE_16M_NUM)
+#define CPGB_064KB_PAGE_NUM           (CPGB_064KB_PAGE_16M_NUM)
 #define CPGB_032KB_PAGE_NUM           (CPGB_032KB_PAGE_16M_NUM)
 #define CPGB_016KB_PAGE_NUM           (CPGB_016KB_PAGE_16M_NUM)
 #define CPGB_008KB_PAGE_NUM           (CPGB_008KB_PAGE_16M_NUM)
@@ -310,7 +335,7 @@ extern "C"{
 #define CPGB_512KB_PAGE_NUM           (CPGB_512KB_PAGE_32M_NUM)
 #define CPGB_256KB_PAGE_NUM           (CPGB_256KB_PAGE_32M_NUM)
 #define CPGB_128KB_PAGE_NUM           (CPGB_128KB_PAGE_32M_NUM)
-#define CPGB_064KB_PAGE_NUM           (CPGB_068KB_PAGE_32M_NUM)
+#define CPGB_064KB_PAGE_NUM           (CPGB_064KB_PAGE_32M_NUM)
 #define CPGB_032KB_PAGE_NUM           (CPGB_032KB_PAGE_32M_NUM)
 #define CPGB_016KB_PAGE_NUM           (CPGB_016KB_PAGE_32M_NUM)
 #define CPGB_008KB_PAGE_NUM           (CPGB_008KB_PAGE_32M_NUM)
