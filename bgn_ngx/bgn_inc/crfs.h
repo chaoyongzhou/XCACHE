@@ -38,7 +38,7 @@ extern "C"{
 
 #define CRFS_CHECK_DN_EXPIRE_IN_NSEC        ((uint32_t) 300) /*check once in 5 minutes*/
 
-#define CRFS_MAX_REPLICA_NUM                ((UINT32) 2)
+#define CRFS_MAX_REPLICA_NUM                ((UINT32) 1)
 
 #define CRFS_FILE_PAD_CHAR                  (0x00)
 //#define CRFS_FILE_PAD_CHAR                  ((uint8_t)'.')
