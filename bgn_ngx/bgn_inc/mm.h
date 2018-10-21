@@ -311,6 +311,10 @@ extern "C"{
 #define         MM_CDETECTN_STATUS_RANGE    ((UINT32)231)
 #define          MM_CDETECTN_DOMAIN_NODE    ((UINT32)232)
 
+#define                         MM_CMCDN    ((UINT32)233)
+#define                        MM_CMCPGV    ((UINT32)234)
+#define                        MM_CMCPGD    ((UINT32)235)
+
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)
 

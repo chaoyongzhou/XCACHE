@@ -118,6 +118,10 @@ extern "C"{
 #include "cagent.h"
 #include "cping.h"
 
+#include "cmcpgd.h"
+#include "cmcpgv.h"
+#include "cmcdn.h"
+
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #include "cngx.h"
 #include "cngx_kssl.h"
@@ -498,6 +502,10 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CPING_NODE                    ,"MM_CPING_NODE                  ",1         , sizeof(CPING_NODE)                   , LOC_MM_0228);
 
     MM_MGR_DEF(MM_CTDNS_SUSV_NODE               ,"MM_CTDNS_SUSV_NODE             ",1         , sizeof(CTDNS_SUSV_NODE)              , LOC_MM_0229);
+
+    MM_MGR_DEF(MM_CMCDN                         ,"MM_CMCDN                       ",1         , sizeof(CMCDN)                        , LOC_MM_0224);
+    MM_MGR_DEF(MM_CMCPGV                        ,"MM_CMCPGV                      ",1         , sizeof(CMCPGV)                       , LOC_MM_0224);
+    MM_MGR_DEF(MM_CMCPGD                        ,"MM_CMCPGD                      ",256       , sizeof(CMCPGD)                       , LOC_MM_0224);
 
     return ( 0 );
 }
