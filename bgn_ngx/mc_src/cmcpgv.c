@@ -84,7 +84,7 @@ CMCPGV_HDR *cmcpgv_hdr_new(CMCPGV *cmcpgv)
     cmcpgv_hdr = (CMCPGV_HDR *)safe_malloc(CMCPGV_SIZE(cmcpgv), LOC_CMCPGV_0002);
     if(NULL_PTR == cmcpgv_hdr)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_hdr_new: new header with %u bytes failed\n", 
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_hdr_new: new header with %u bytes failed\n",
                                                CMCPGV_SIZE(cmcpgv));
         return (NULL_PTR);
     }

@@ -44,7 +44,7 @@ EC_BOOL cmcnp_inode_clone(const CMCNP_INODE *cmcnp_inode_src, CMCNP_INODE *cmcnp
 
 void cmcnp_inode_print(LOG *log, const CMCNP_INODE *cmcnp_inode);
 
-void cmcnp_inode_log_no_lock(LOG *log, const CMCNP_INODE *cmcnp_inode);
+void cmcnp_inode_log(LOG *log, const CMCNP_INODE *cmcnp_inode);
 
 CMCNP_FNODE *cmcnp_fnode_new();
 
@@ -66,7 +66,7 @@ EC_BOOL cmcnp_fnode_import(const CMCNP_FNODE *cmcnp_fnode_src, CMCNP_FNODE *cmcn
 
 void cmcnp_fnode_print(LOG *log, const CMCNP_FNODE *cmcnp_fnode);
 
-void cmcnp_fnode_log_no_lock(LOG *log, const CMCNP_FNODE *cmcnp_fnode);
+void cmcnp_fnode_log(LOG *log, const CMCNP_FNODE *cmcnp_fnode);
 
 CMCNP_DNODE *cmcnp_dnode_new();
 
@@ -86,11 +86,13 @@ EC_BOOL cmcnp_key_clean(CMCNP_KEY *cmcnp_key);
 
 EC_BOOL cmcnp_key_clone(const CMCNP_KEY *cmcnp_key_src, CMCNP_KEY *cmcnp_key_des);
 
+EC_BOOL cmcnp_key_cmp(const CMCNP_KEY *cmcnp_key_1st, const CMCNP_KEY *cmcnp_key_2nd);
+
 EC_BOOL cmcnp_key_free(CMCNP_KEY *cmcnp_key);
 
-EC_BOOL cmcnp_key_set(CMCNP_KEY *cmcnp_key, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
-
 void    cmcnp_key_print(LOG *log, const CMCNP_KEY *cmcnp_key);
+
+uint32_t cmcnp_key_hash(const CMCNP_KEY *cmcnp_key);
 
 CMCNP_ITEM *cmcnp_item_new();
 
@@ -102,13 +104,13 @@ EC_BOOL cmcnp_item_clone(const CMCNP_ITEM *cmcnp_item_src, CMCNP_ITEM *cmcnp_ite
 
 EC_BOOL cmcnp_item_free(CMCNP_ITEM *cmcnp_item);
 
-EC_BOOL cmcnp_item_set_key(CMCNP_ITEM *cmcnp_item, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+EC_BOOL cmcnp_item_set_key(CMCNP_ITEM *cmcnp_item, const CMCNP_KEY *cmcnp_key);
 
 void cmcnp_item_print(LOG *log, const CMCNP_ITEM *cmcnp_item);
 
 void cmcnp_item_and_key_print(LOG *log, const CMCNP_ITEM *cmcnp_item);
 
-EC_BOOL cmcnp_item_is(const CMCNP_ITEM *cmcnp_item, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+EC_BOOL cmcnp_item_is(const CMCNP_ITEM *cmcnp_item, const CMCNP_KEY *cmcnp_key);
 
 CMCNP_ITEM *cmcnp_item_parent(const CMCNP *cmcnp, const CMCNP_ITEM *cmcnp_item);
 
@@ -142,28 +144,30 @@ void cmcnp_print_lru_list(LOG *log, const CMCNP *cmcnp);
 
 void cmcnp_print_del_list(LOG *log, const CMCNP *cmcnp);
 
-CMCNP_ITEM *cmcnp_dnode_find(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+CMCNP_ITEM *cmcnp_dnode_find(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const CMCNP_KEY *cmcnp_key);
 
-uint32_t cmcnp_dnode_search(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+uint32_t cmcnp_dnode_search(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const CMCNP_KEY *cmcnp_key);
 
-uint32_t cmcnp_dnode_insert(CMCNP *cmcnp, const uint32_t parent_pos,
-                                    const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset,
-                                    const uint32_t dir_flag);
+uint32_t cmcnp_dnode_find_intersected(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const CMCNP_KEY *cmcnp_key);
+
+uint32_t cmcnp_dnode_find_closest(const CMCNP *cmcnp, const CMCNP_DNODE *cmcnp_dnode, const CMCNP_KEY *cmcnp_key);
+
+uint32_t cmcnp_dnode_insert(CMCNP *cmcnp, const uint32_t parent_pos, const CMCNP_KEY *cmcnp_key, const uint32_t dir_flag);
 
 /**
 * umount one son from cmcnp_dnode,  where son is regular file item or dir item without any son
 * cmcnp_dnode will be impacted on bucket and file num
 **/
-uint32_t cmcnp_dnode_umount_son(const CMCNP *cmcnp, CMCNP_DNODE *cmcnp_dnode, const uint32_t son_node_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+uint32_t cmcnp_dnode_umount_son(const CMCNP *cmcnp, CMCNP_DNODE *cmcnp_dnode, const uint32_t son_node_pos, const CMCNP_KEY *cmcnp_key);
 EC_BOOL cmcnp_dnode_delete_dir_son(const CMCNP *cmcnp, CMCNP_DNODE *cmcnp_dnode);
 
-uint32_t cmcnp_search_no_lock(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+uint32_t cmcnp_search(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-uint32_t cmcnp_search(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+uint32_t cmcnp_find_intersected(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-uint32_t cmcnp_insert_no_lock(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+uint32_t cmcnp_find_closest(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-uint32_t cmcnp_insert(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+uint32_t cmcnp_insert(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
 CMCNP_ITEM *cmcnp_fetch(const CMCNP *cmcnp, const uint32_t node_pos);
 
@@ -191,29 +195,25 @@ EC_BOOL cmcnp_update_no_lock(CMCNP *cmcnp,
                                const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-CMCNP_ITEM *cmcnp_set(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+CMCNP_ITEM *cmcnp_set(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-CMCNP_ITEM *cmcnp_get(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+CMCNP_ITEM *cmcnp_get(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-CMCNP_FNODE *cmcnp_reserve(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+CMCNP_FNODE *cmcnp_reserve(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
-EC_BOOL cmcnp_release(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+EC_BOOL cmcnp_release(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
-EC_BOOL cmcnp_read(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, CMCNP_FNODE *cmcnp_fnode);
+EC_BOOL cmcnp_read(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, CMCNP_FNODE *cmcnp_fnode);
 
-EC_BOOL cmcnp_delete(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
-EC_BOOL cmcnp_update(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const CMCNP_FNODE *cmcnp_fnode);
+EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE *cmcnp_fnode);
 
 EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
 EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos);
 
-EC_BOOL cmcnp_umount_item_deep(CMCNP *cmcnp, const uint32_t node_pos);
-
-EC_BOOL cmcnp_umount(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
-
-EC_BOOL cmcnp_umount_deep(CMCNP *cmcnp, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, const uint32_t dflag);
+EC_BOOL cmcnp_umount(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
 EC_BOOL cmcnp_recycle_item_file(CMCNP *cmcnp, CMCNP_ITEM *cmcnp_item, const uint32_t node_pos, CMCNP_RECYCLE_NP *cmcnp_recycle_np, CMCNP_RECYCLE_DN *cmcnp_recycle_dn);
 
@@ -228,9 +228,9 @@ EC_BOOL cmcnp_recycle_item(CMCNP *cmcnp, CMCNP_ITEM *cmcnp_item, const uint32_t 
 
 EC_BOOL cmcnp_recycle(CMCNP *cmcnp, const UINT32 max_num, CMCNP_RECYCLE_NP *cmcnp_recycle_np, CMCNP_RECYCLE_DN *cmcnp_recycle_dn, UINT32 *complete_num);
 
-EC_BOOL cmcnp_file_num(CMCNP *cmcnp, const uint32_t path_len, const uint8_t *path, uint32_t *file_num);
+EC_BOOL cmcnp_file_num(CMCNP *cmcnp, uint32_t *file_num);
 
-EC_BOOL cmcnp_file_size(CMCNP *cmcnp, const uint32_t path_len, const uint8_t *path, uint64_t *file_size);
+EC_BOOL cmcnp_file_size(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, UINT32 *file_size);
 
 EC_BOOL cmcnp_create_root_item(CMCNP *cmcnp);
 

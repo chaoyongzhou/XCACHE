@@ -229,7 +229,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CONN_TIMEOUT_NSEC                 = %ld\n",  CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
     sys_log(log, "CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP          = %ld\n",  CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_CDNS_TIMEOUT_NSEC                 = %ld\n",  CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg));
-    
+
     sys_log(log, "CPARACFG_HIGH_PRECISION_TIME_SWITCH        = %s\n" ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_NGX_BGN_OVER_HTTP_SWITCH          = %s\n" ,  CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
 

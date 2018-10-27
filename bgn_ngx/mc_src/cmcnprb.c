@@ -20,7 +20,7 @@ extern "C"{
 #include "cmisc.h"
 
 #include "cmcnprb.h"
-#include "cmcnp.h"
+#include "cmcnp.inc"
 
 /*new a CMCNPRB_NODE and return its position*/
 uint32_t cmcnprb_node_new(CMCNPRB_POOL *pool)
@@ -819,36 +819,80 @@ uint32_t cmcnprb_tree_prev_node(const CMCNPRB_POOL *pool, const uint32_t node_po
 }
 
 /**
-*   
-*   note:only for cmcnp item!
-*   return -1 if node < (data, key)
-*   return  1 if node > (data, key)
-*   return  0 if node == (data, key)
 *
-*   [block_s_offset, block_e_offset)
+*   note:only for cmcnp item!
+*   node key : [s1, e1)
+*   cmcnp key: [s2, e2)
+*
+*   return -1 if s2 < s1
+*   return  1 if s2 >= e1
+*   return  0 if s1 <= s2 < e1
+*
+*   note: s_page_in means s_page of cmcnp_key falls into node key
+*
 **/
-STATIC_CAST static int __cmcnprb_node_data_cmp(const CMCNPRB_NODE *node, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset)
+STATIC_CAST static int __cmcnprb_node_data_cmp__s_page_in(const CMCNPRB_NODE *node, const CMCNP_KEY *cmcnp_key)
 {
     const CMCNP_ITEM *item;
+    const CMCNP_KEY  *key;
 
     item = (const CMCNP_ITEM *)CMCNP_RB_NODE_ITEM(node);
+    key  = CMCNP_ITEM_KEY(item);
 
-    if (CMCNP_ITEM_BLOCK_NO(item) < block_no)
+    if(CMCNP_KEY_S_PAGE(cmcnp_key) < CMCNP_KEY_S_PAGE(key))
     {
+        dbg_log(SEC_0113_CMCNPRB, 0)(LOGSTDOUT, "[DEBUG] __cmcnprb_node_data_cmp__s_page_in: "
+                                                "node  key: [%u, %u), cmcnp key: [%u, %u) => -1\n",
+                                                CMCNP_KEY_S_PAGE(key), CMCNP_KEY_E_PAGE(key),
+                                                CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
+
         return (-1);
     }
 
-    if (CMCNP_ITEM_BLOCK_NO(item) > block_no)
+    if(CMCNP_KEY_S_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(key))
     {
+        dbg_log(SEC_0113_CMCNPRB, 0)(LOGSTDOUT, "[DEBUG] __cmcnprb_node_data_cmp__s_page_in: "
+                                                "node  key: [%u, %u), cmcnp key: [%u, %u) => 1\n",
+                                                CMCNP_KEY_S_PAGE(key), CMCNP_KEY_E_PAGE(key),
+                                                CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (1);
     }
-    
-    if(block_e_offset < CMCNP_ITEM_BLOCK_S_OFFSET(item))
+
+    dbg_log(SEC_0113_CMCNPRB, 0)(LOGSTDOUT, "[DEBUG] __cmcnprb_node_data_cmp__s_page_in: "
+                                            "node  key: [%u, %u), cmcnp key: [%u, %u) => 0\n",
+                                            CMCNP_KEY_S_PAGE(key), CMCNP_KEY_E_PAGE(key),
+                                            CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
+
+    return (0);
+}
+
+/**
+*
+*   note:only for cmcnp item!
+*   node key : [s1, e1)
+*   cmcnp key: [s2, e2)
+*
+*   return -1 if e2 <= s1
+*   return  1 if e2 > e1
+*   return  0 if s1 < e2 <= e1
+*
+*   note: e_page_in means e_page of cmcnp_key falls into node key
+*
+**/
+STATIC_CAST static int __cmcnprb_node_data_cmp__e_page_in(const CMCNPRB_NODE *node, const CMCNP_KEY *cmcnp_key)
+{
+    const CMCNP_ITEM *item;
+    const CMCNP_KEY  *key;
+
+    item = (const CMCNP_ITEM *)CMCNP_RB_NODE_ITEM(node);
+    key  = CMCNP_ITEM_KEY(item);
+
+    if(CMCNP_KEY_E_PAGE(cmcnp_key) <= CMCNP_KEY_S_PAGE(key))
     {
         return (-1);
     }
 
-    if(block_s_offset >= CMCNP_ITEM_BLOCK_E_OFFSET(item))
+    if(CMCNP_KEY_E_PAGE(cmcnp_key) >  CMCNP_KEY_E_PAGE(key))
     {
         return (1);
     }
@@ -856,8 +900,77 @@ STATIC_CAST static int __cmcnprb_node_data_cmp(const CMCNPRB_NODE *node, const u
     return (0);
 }
 
-/*return the searched pos*/
-uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset)
+/**
+*
+*   note:only for cmcnp item!
+*   node key : [s1, e1)
+*   cmcnp key: [s2, e2)
+*
+*   return -1 if s2 < s1
+*   return  1 if s2 >= e1
+*   return  0 if s1 <= s2 < e1
+*
+*   note: s_page_closest means s_page of cmcnp_key is the closest to which node on left side
+*
+**/
+//TODO:
+STATIC_CAST static int __cmcnprb_node_data_cmp__s_page_closest(const CMCNPRB_NODE *node, const CMCNP_KEY *cmcnp_key)
+{
+    const CMCNP_ITEM *item;
+    const CMCNP_KEY  *key;
+
+    item = (const CMCNP_ITEM *)CMCNP_RB_NODE_ITEM(node);
+    key  = CMCNP_ITEM_KEY(item);
+
+    if(CMCNP_KEY_S_PAGE(cmcnp_key) < CMCNP_KEY_S_PAGE(key))
+    {
+        return (-1);
+    }
+
+    if(CMCNP_KEY_S_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(key))
+    {
+        return (1);
+    }
+
+    return (0);
+}
+
+/**
+*
+*   note:only for cmcnp item!
+*   node key : [s1, e1)
+*   cmcnp key: [s2, e2)
+*
+*   return -1 if e2 <= s1
+*   return  1 if s2 >= e1
+*   return  0 if e2 > s1 && s2 < e1
+*
+*   note: page_intersection means cmcnp_key and node has intersection
+*
+**/
+STATIC_CAST static int __cmcnprb_node_data_cmp__page_intersection(const CMCNPRB_NODE *node, const CMCNP_KEY *cmcnp_key)
+{
+    const CMCNP_ITEM *item;
+    const CMCNP_KEY  *key;
+
+    item = (const CMCNP_ITEM *)CMCNP_RB_NODE_ITEM(node);
+    key  = CMCNP_ITEM_KEY(item);
+
+    if(CMCNP_KEY_E_PAGE(cmcnp_key) <= CMCNP_KEY_S_PAGE(key))
+    {
+        return (-1);
+    }
+
+    if(CMCNP_KEY_S_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(key))
+    {
+        return (1);
+    }
+
+    return (0);
+}
+
+/*return the intersected pos*/
+uint32_t cmcnprb_tree_find_intersected_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key)
 {
     uint32_t node_pos;
 
@@ -869,17 +982,101 @@ uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_
         int cmp_ret;
 
         node = CMCNPRB_POOL_NODE(pool, node_pos);
-        cmp_ret = __cmcnprb_node_data_cmp(node, block_no, block_s_offset, block_e_offset);
+        cmp_ret = __cmcnprb_node_data_cmp__page_intersection(node, (const CMCNP_KEY *)cmcnp_key);
 
-        if (0 < cmp_ret)/*node > (data, key)*/
+        if (0 < cmp_ret)/*node(s_page, e_page) > key(s_page, e_page)*/
         {
             node_pos = CMCNPRB_NODE_LEFT_POS(node);
         }
-        else if (0 > cmp_ret)/*node < (data, key)*/
+        else if (0 > cmp_ret)/*node(s_page, e_page) < key(s_page, e_page)*/
         {
             node_pos = CMCNPRB_NODE_RIGHT_POS(node);
         }
-        else /*node == (data, key)*/
+        else /*node(s_page, e_page) == key(s_page, e_page)*/
+        {
+            return (node_pos);
+        }
+    }
+
+    return (CMCNPRB_ERR_POS);
+}
+
+/*return the closest pos*/
+uint32_t cmcnprb_tree_find_closest_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key)
+{
+    uint32_t node_pos;
+    uint32_t diff_closest_page;
+    uint32_t node_closest_pos;
+
+    diff_closest_page = ((uint32_t)~0);
+    node_closest_pos  = CMCNPRB_ERR_POS;
+
+    node_pos = root_pos;
+
+    while (CMCNPRB_ERR_POS != node_pos)
+    {
+        const CMCNPRB_NODE *node;
+        int cmp_ret;
+
+        node = CMCNPRB_POOL_NODE(pool, node_pos);
+        cmp_ret = __cmcnprb_node_data_cmp__s_page_closest(node, (const CMCNP_KEY *)cmcnp_key);
+
+        if (0 < cmp_ret)/*node(s_page, e_page) > key(s_page, e_page)*/
+        {
+            node_pos = CMCNPRB_NODE_LEFT_POS(node);
+        }
+        else if (0 > cmp_ret)/*node(s_page, e_page) < key(s_page, e_page)*/
+        {
+            const CMCNP_ITEM *item;
+            const CMCNP_KEY  *key;
+
+            uint32_t diff_page;
+
+            item = (const CMCNP_ITEM *)CMCNP_RB_NODE_ITEM(node);
+            key  = CMCNP_ITEM_KEY(item);
+
+            diff_page = CMCNP_KEY_S_PAGE(key) - CMCNP_KEY_S_PAGE((const CMCNP_KEY *)cmcnp_key);
+            if(diff_closest_page > diff_page)
+            {
+                diff_closest_page = diff_page;
+                node_closest_pos  = node_pos;
+            }
+
+            node_pos = CMCNPRB_NODE_RIGHT_POS(node);
+        }
+        else /*node(s_page, e_page) == key(s_page, e_page)*/
+        {
+            return (node_pos);
+        }
+    }
+
+    return (node_closest_pos);
+}
+
+/*return the searched pos*/
+uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key)
+{
+    uint32_t node_pos;
+
+    node_pos = root_pos;
+
+    while (CMCNPRB_ERR_POS != node_pos)
+    {
+        const CMCNPRB_NODE *node;
+        int cmp_ret;
+
+        node = CMCNPRB_POOL_NODE(pool, node_pos);
+        cmp_ret = __cmcnprb_node_data_cmp__s_page_in(node, (const CMCNP_KEY *)cmcnp_key);
+
+        if (0 < cmp_ret)/*node(s_page, e_page) > key(s_page, e_page)*/
+        {
+            node_pos = CMCNPRB_NODE_LEFT_POS(node);
+        }
+        else if (0 > cmp_ret)/*node(s_page, e_page) < key(s_page, e_page)*/
+        {
+            node_pos = CMCNPRB_NODE_RIGHT_POS(node);
+        }
+        else /*node(s_page, e_page) == key(s_page, e_page)*/
         {
             return (node_pos);
         }
@@ -889,7 +1086,7 @@ uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_
 }
 
 /*if found duplicate node, return EC_FALSE, otherwise return EC_TRUE*/
-EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, uint32_t *insert_pos)
+EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const void *cmcnp_key, uint32_t *insert_pos)
 {
     uint32_t  node_pos_t;
     uint32_t  new_pos_t;
@@ -906,21 +1103,21 @@ EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const u
         int cmp_ret;
 
         node = CMCNPRB_POOL_NODE(pool, node_pos_t);
-        cmp_ret = __cmcnprb_node_data_cmp(node, block_no, block_s_offset, block_e_offset);
+        cmp_ret = __cmcnprb_node_data_cmp__s_page_in(node, (const CMCNP_KEY *)cmcnp_key);
 
         parent_pos_t = node_pos_t;
 
-        if (0 < cmp_ret)/*node > (data, key)*/
+        if (0 < cmp_ret)/*node(s_page, e_page) > key(s_page, e_page)*/
         {
             node_pos_t = CMCNPRB_NODE_LEFT_POS(node);
             flag = 0;
         }
-        else if (0 > cmp_ret)/*node < (data, key)*/
+        else if (0 > cmp_ret)/*node(s_page, e_page) < key(s_page, e_page)*/
         {
             node_pos_t = CMCNPRB_NODE_RIGHT_POS(node);
             flag = 1;
         }
-        else/*node == (data, key)*/
+        else/*node(s_page, e_page) == key(s_page, e_page)*/
         {
             (*insert_pos) = node_pos_t;
             return (EC_FALSE);/*found duplicate*/
@@ -940,7 +1137,7 @@ EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const u
         CMCNPRB_NODE *node;
 
         node  = CMCNPRB_POOL_NODE(pool, new_pos_t);
-        CMCNPRB_NODE_DATA(node) = block_no;
+        //CMCNPRB_NODE_DATA(node) = block_no;
 
         CMCNPRB_NODE_PARENT_POS(node) = parent_pos_t;
         CMCNPRB_NODE_COLOR(node)      = CMCNPRB_RED;
@@ -972,11 +1169,11 @@ EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const u
     return (EC_TRUE); /*it is new node*/
 }
 
-EC_BOOL cmcnprb_tree_delete_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, uint32_t *delete_pos)
+EC_BOOL cmcnprb_tree_delete_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const void *cmcnp_key, uint32_t *delete_pos)
 {
     uint32_t node_pos;
 
-    node_pos = cmcnprb_tree_search_data(pool, *root_pos, block_no, block_s_offset, block_e_offset);
+    node_pos = cmcnprb_tree_search_data(pool, *root_pos, cmcnp_key);
     if(CMCNPRB_ERR_POS == node_pos)
     {
         return (EC_FALSE);

@@ -24,8 +24,6 @@ extern "C"{
 #include "type.h"
 #include "mm.h"
 #include "log.h"
-#include "cmpic.inc"
-#include "cmutex.h"
 #include "cmisc.h"
 
 #include "real.h"
@@ -71,7 +69,7 @@ EC_BOOL cmcdn_node_write(CMCDN *cmcdn, const UINT32 node_id, const UINT32 data_m
     BCOPY(data_buff, cmcdn_node + offset_r, data_max_len);
 
     (*offset) += data_max_len;
-    
+
     return (EC_TRUE);
 }
 
@@ -115,7 +113,7 @@ CMCDN *cmcdn_create(const uint16_t disk_num)
     /*align to one node size*/
     if(0 != posix_memalign(&base, (size_t)CMCDN_NODE_BYTE_SIZE, (size_t)size))
     {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create: alloc %ld bytes with alignment %ld failed\n", 
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create: alloc %ld bytes with alignment %ld failed\n",
                                               size, CMCDN_NODE_BYTE_SIZE);
         return (NULL_PTR);
     }
@@ -149,7 +147,7 @@ CMCDN *cmcdn_create(const uint16_t disk_num)
         {
             dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create: add disk %u failed\n", disk_no);
             cmcdn_free(cmcdn);
-            return (NULL_PTR);            
+            return (NULL_PTR);
         }
     }
 
@@ -184,7 +182,7 @@ CMCDN *cmcdn_new()
 {
     CMCDN *cmcdn;
 
-    alloc_static_mem(MM_CMCDN, &cmcdn, LOC_CMCDN_0003);
+    alloc_static_mem(MM_CMCDN, &cmcdn, LOC_CMCDN_0001);
     if(NULL_PTR != cmcdn)
     {
         cmcdn_init(cmcdn);
@@ -200,7 +198,7 @@ EC_BOOL cmcdn_init(CMCDN *cmcdn)
     CMCDN_NODE_BASE_ADDR(cmcdn)  = NULL_PTR;
     CMCDN_NODE_START_ADDR(cmcdn) = NULL_PTR;
     CMCDN_NODE_END_ADDR(cmcdn)   = NULL_PTR;
-    
+
     CMCDN_CMCPGV(cmcdn)          = NULL_PTR;
 
     return (EC_TRUE);
@@ -233,7 +231,7 @@ EC_BOOL cmcdn_free(CMCDN *cmcdn)
     if(NULL_PTR != cmcdn)
     {
         cmcdn_clean(cmcdn);
-        free_static_mem(MM_CMCDN, cmcdn, LOC_CMCDN_0004);
+        free_static_mem(MM_CMCDN, cmcdn, LOC_CMCDN_0002);
     }
     return (EC_TRUE);
 }
@@ -351,53 +349,6 @@ EC_BOOL cmcdn_write_o(CMCDN *cmcdn, const UINT32 data_max_len, const UINT8 *data
 
     //dbg_log(SEC_0110_CMCDN, 9)(LOGSTDOUT, "[DEBUG] cmcdn_write_o: write %ld bytes to disk %u block %u offset %ld done\n",
     //                    data_max_len, disk_no, block_no, offset_t);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cmcdn_write_p(CMCDN *cmcdn, const UINT32 data_max_len, const UINT8 *data_buff, uint16_t *disk_no, uint16_t *block_no, uint16_t *page_no)
-{
-    UINT32   offset;
-    uint32_t size;
-
-    if(NULL_PTR == cmcdn)
-    {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_write_p: cmcdn is null\n");
-        return (EC_FALSE);
-    }
-
-    if(NULL_PTR == data_buff)
-    {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_write_p: data_buff is null\n");
-        return (EC_FALSE);
-    }
-
-    if(CMCPGB_CACHE_MAX_BYTE_SIZE < data_max_len)
-    {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_write_p: data max len %ld overflow\n", data_max_len);
-        return (EC_FALSE);
-    }
-
-    size = (uint32_t)(data_max_len);
-
-    if(EC_FALSE == cmcpgv_new_space(CMCDN_CMCPGV(cmcdn), size, disk_no, block_no,  page_no))
-    {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_write_p: new %ld bytes space from vol failed\n", data_max_len);
-        return (EC_FALSE);
-    }
-
-    offset  = (((UINT32)(*page_no)) << (CMCPGB_PAGE_BIT_SIZE));
-
-    if(EC_FALSE == cmcdn_write_o(cmcdn, data_max_len, data_buff, *disk_no, *block_no, &offset))
-    {
-        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_write_p: write %ld bytes to disk %u block %u page %u failed\n",
-                            data_max_len, (*disk_no), (*block_no), (*page_no));
-
-        cmcpgv_free_space(CMCDN_CMCPGV(cmcdn), *disk_no, *block_no, *page_no, size);
-        return (EC_FALSE);
-    }
-    dbg_log(SEC_0110_CMCDN, 9)(LOGSTDOUT, "[DEBUG] cmcdn_write_p: write %ld bytes to disk %u block %u page %u done\n",
-                        data_max_len, (*disk_no), (*block_no), (*page_no));
 
     return (EC_TRUE);
 }

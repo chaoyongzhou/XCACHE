@@ -8776,7 +8776,7 @@ STATIC_CAST EC_BOOL __super_dns_resolve_set_callback(CSOCKET_CNODE *csocket_cnod
 EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_server, const CSTRING *domain)
 {
     CDNS_REQ    *cdns_req;
-    
+
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
@@ -8798,7 +8798,7 @@ EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_serv
     CDNS_REQ_PORT(cdns_req)   = 53; /*default*/
 
     cstring_clone(domain, CDNS_REQ_HOST(cdns_req));
-   
+
     if(EC_FALSE == cdns_request_basic(cdns_req, __super_dns_resolve_set_callback, NULL_PTR, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_resolve_demo: request failed\n");

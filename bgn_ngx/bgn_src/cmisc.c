@@ -5958,7 +5958,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
 
     file_max_size = 2 * 1024; /*2KB*/
 
-    file_buff = safe_malloc(file_max_size, LOC_CMISC_0001);
+    file_buff = safe_malloc(file_max_size, LOC_CMISC_0073);
     if(NULL_PTR == file_buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: malloc %ld bytes failed\n", file_max_size);
@@ -5971,7 +5971,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: load %s failed\n", file_name);
         close(fd);
-        safe_free(file_buff, LOC_CMISC_0001);
+        safe_free(file_buff, LOC_CMISC_0074);
         return (EC_FALSE);
     }
 
@@ -5983,7 +5983,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     for(file_line_idx = 0; file_line_idx < file_line_num; file_line_idx ++)
     {
         char *segs[ 2 ];
-        
+
         dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_import_resolve_conf: [%ld/%ld] %s\n",
                            file_line_idx, file_line_num, file_lines[ file_line_idx ]);
 
@@ -5993,18 +5993,18 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
         }
 
         if(0 == STRCASECMP("nameserver", segs[ 0 ]) && EC_TRUE == c_ipv4_is_ok(segs[ 1 ]))
-        {   
+        {
             UINT32  ipv4;
 
             ipv4 = c_ipv4_to_word(segs[ 1 ]);
             cvector_push(name_servers, (void *)ipv4);
 
             dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_import_resolve_conf: [%ld/%ld] push nameserver %s\n",
-                               file_line_idx, file_line_num, segs[ 1 ]);            
+                               file_line_idx, file_line_num, segs[ 1 ]);
         }
     }
 
-    safe_free(file_buff, LOC_CMISC_0001);
+    safe_free(file_buff, LOC_CMISC_0075);
     return (EC_TRUE);
 }
 

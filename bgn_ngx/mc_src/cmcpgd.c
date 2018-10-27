@@ -22,8 +22,6 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 
-#include "task.h"
-
 #include "cmisc.h"
 #include "real.h"
 
@@ -760,13 +758,13 @@ void cmcpgd_print(LOG *log, const CMCPGD *cmcpgd)
 
     ratio_page    = ((0.0 + CMCPGD_PAGE_USED_NUM(cmcpgd)) / (0.0 + CMCPGD_PAGE_MAX_NUM(cmcpgd)));
 
-    page_desc = "UNKNOWN-page"; 
+    page_desc = "UNKNOWN-page";
 
     if(CMCPGB_PAGE_BIT_SIZE == CMCPGB_PAGE_2K_BIT_SIZE)
     {
         page_desc = "2K-page";
     }
-    
+
     if(CMCPGB_PAGE_BIT_SIZE == CMCPGB_PAGE_4K_BIT_SIZE)
     {
         page_desc = "4K-page";

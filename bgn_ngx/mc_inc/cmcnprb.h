@@ -65,7 +65,7 @@ typedef struct
     uint32_t        node_used_num;/*used node number           */
     uint32_t        node_sizeof;  /*actual size of each node   */
     uint32_t        free_head;    /*unused CMCNPRB_TREE head  */
-    
+
     CMCNPRB_NODE   rb_nodes[0];  /*rb_nodes table             */
 }CMCNPRB_POOL;
 
@@ -83,6 +83,9 @@ extern CMCNPRB_NODE *__cmcnprb_node(CMCNPRB_POOL *pool, const uint32_t node_pos)
 
 #define CMCNPRB_POOL_NODE(pool, this_pos)  __cmcnprb_node(pool, this_pos)
 #endif
+
+typedef void (*CMCNPRB_INTERSECTED_KEY_HANDLER)(const void *node_key, const void *cover_key, const void *next_key);
+
 /*new a CMCNPRB_NODE and return its position*/
 uint32_t cmcnprb_node_new(CMCNPRB_POOL *pool);
 
@@ -145,11 +148,17 @@ uint32_t cmcnprb_tree_last_node(const CMCNPRB_POOL *pool, const uint32_t root_po
 uint32_t cmcnprb_tree_next_node(const CMCNPRB_POOL *pool, const uint32_t node_pos);
 uint32_t cmcnprb_tree_prev_node(const CMCNPRB_POOL *pool, const uint32_t node_pos);
 
-uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset);
+/*return the intersected pos*/
+uint32_t cmcnprb_tree_find_intersected_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key);
 
-EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, uint32_t *insert_pos);
+/*return the closest pos*/
+uint32_t cmcnprb_tree_find_closest_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key);
 
-EC_BOOL cmcnprb_tree_delete_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const uint32_t block_no, const uint16_t block_s_offset, const uint16_t block_e_offset, uint32_t *delete_pos);
+uint32_t cmcnprb_tree_search_data(const CMCNPRB_POOL *pool, const uint32_t root_pos, const void *cmcnp_key);
+
+EC_BOOL cmcnprb_tree_insert_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const void *cmcnp_key, uint32_t *insert_pos);
+
+EC_BOOL cmcnprb_tree_delete_data(CMCNPRB_POOL *pool, uint32_t *root_pos, const void *cmcnp_key, uint32_t *delete_pos);
 
 EC_BOOL cmcnprb_tree_delete(CMCNPRB_POOL *pool, uint32_t *root_pos, const uint32_t node_pos);
 

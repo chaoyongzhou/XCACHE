@@ -13,7 +13,7 @@ extern "C"{
 #define    _CMCNPLRU_INC
 
 #include "type.h"
-#include "crfsnprb.h"
+#include "cmcnprb.h"
 
 #define CMCNPLRU_ROOT_POS          (0)/*point to the root rb node*/
 
@@ -24,7 +24,7 @@ typedef struct
 {
     uint32_t prev_pos :31; /*value range: [0, 0x7FFFFFFF)*/
     uint32_t rsvd1    : 1;
-    
+
     uint32_t next_pos :31; /*value range: [0, 0x7FFFFFFF)*/
     uint32_t rsvd2    : 1;
 }CMCNPLRU_NODE; /*8B*/

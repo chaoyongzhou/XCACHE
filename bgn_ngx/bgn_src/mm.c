@@ -121,6 +121,7 @@ extern "C"{
 #include "cmcpgd.h"
 #include "cmcpgv.h"
 #include "cmcdn.h"
+#include "cmcnp.h"
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #include "cngx.h"
@@ -506,6 +507,12 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CMCDN                         ,"MM_CMCDN                       ",1         , sizeof(CMCDN)                        , LOC_MM_0224);
     MM_MGR_DEF(MM_CMCPGV                        ,"MM_CMCPGV                      ",1         , sizeof(CMCPGV)                       , LOC_MM_0224);
     MM_MGR_DEF(MM_CMCPGD                        ,"MM_CMCPGD                      ",256       , sizeof(CMCPGD)                       , LOC_MM_0224);
+
+    MM_MGR_DEF(MM_CMCNP                        ,"MM_CMCNP                       ",1         , sizeof(CMCNP)                        , LOC_MM_0039);
+    MM_MGR_DEF(MM_CMCNP_FNODE                  ,"MM_CMCNP_FNODE                 ",256       , sizeof(CMCNP_FNODE)                  , LOC_MM_0040);
+    MM_MGR_DEF(MM_CMCNP_DNODE                  ,"MM_CMCNP_DNODE                 ",256       , sizeof(CMCNP_DNODE)                  , LOC_MM_0041);
+    MM_MGR_DEF(MM_CMCNP_KEY                    ,"MM_CMCNP_KEY                   ",256       , sizeof(CMCNP_KEY)                    , LOC_MM_0042);
+    MM_MGR_DEF(MM_CMCNP_ITEM                   ,"MM_CMCNP_ITEM                  ",256       , sizeof(CMCNP_ITEM)                   , LOC_MM_0043);
 
     return ( 0 );
 }

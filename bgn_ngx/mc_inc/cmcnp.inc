@@ -32,7 +32,7 @@ extern "C"{
 #define CMCNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
 #define CMCNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
 
-#define CMCNP_KEY_MAX_SIZE             (CMCNP_KEY_SIZE_063B)  
+#define CMCNP_KEY_MAX_SIZE             (CMCNP_KEY_SIZE_063B)
 #define CMCNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 
 #define CMCNP_008M_MODEL   ((uint8_t) 0)
@@ -50,7 +50,7 @@ extern "C"{
 
 #define CMCNP_ITEM_FILE_IS_DIR         ((uint32_t) 0x0001)  /*directory   */
 #define CMCNP_ITEM_FILE_IS_REG         ((uint32_t) 0x0002)  /*regular file*/
-#define CMCNP_ITEM_FILE_IS_ANY         ((uint32_t) 0x0004)  /*any file    */
+//#define CMCNP_ITEM_FILE_IS_ANY         ((uint32_t) 0x0004)  /*any file    */
 #define CMCNP_ITEM_FILE_IS_ERR         ((uint32_t) 0x0000)  /*4 bits      */
 
 #define CMCNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/
@@ -78,8 +78,8 @@ typedef struct
     uint32_t      file_replica_num:4;
     uint32_t      file_path_hash;
 
-    /*8B*/  
-    CMCNP_INODE  inodes[ CMCNP_FILE_REPLICA_MAX_NUM ]; 
+    /*8B*/
+    CMCNP_INODE  inodes[ CMCNP_FILE_REPLICA_MAX_NUM ];
 }CMCNP_FNODE;/*16B*/
 
 #define CMCNP_FNODE_FILESZ(cmcnp_fnode)        ((cmcnp_fnode)->file_size)
@@ -107,19 +107,23 @@ typedef struct
 #define CMCNP_DNODE_FILE_NUM(cmcnp_dnode)      ((cmcnp_dnode)->file_num)
 #define CMCNP_DNODE_ROOT_POS(cmcnp_dnode)      ((cmcnp_dnode)->root_pos)
 
-#define CMCNP_KEY_BLOCK_NO_ERR                 ((uint32_t)0xFFFFFFFF)
-#define CMCNP_KEY_BLOCK_OFFSET_ERR             ((uint16_t)0xFFFF)
+#define CMCNP_KEY_S_PAGE_ERR                   ((uint32_t)~0)
+#define CMCNP_KEY_E_PAGE_ERR                   ((uint32_t)~0)
 
+/*
+*
+*   range: [page_start * page_size, page_end *page_size)
+*   where page_size is 2K or 4K etc which depends on cmc data node
+*
+*/
 typedef struct
 {
-    uint32_t        block_no;
-    uint16_t        block_s_offset;
-    uint16_t        block_e_offset;
+    uint32_t        page_start;
+    uint32_t        page_end;
 }CMCNP_KEY;/*8B*/
 
-#define CMCNP_KEY_BLOCK_NO(cmcnp_key)          ((cmcnp_key)->block_no)
-#define CMCNP_KEY_BLOCK_S_OFFSET(cmcnp_key)    ((cmcnp_key)->block_s_offset)
-#define CMCNP_KEY_BLOCK_E_OFFSET(cmcnp_key)    ((cmcnp_key)->block_e_offset)
+#define CMCNP_KEY_S_PAGE(cmcnp_key)          ((cmcnp_key)->page_start)
+#define CMCNP_KEY_E_PAGE(cmcnp_key)          ((cmcnp_key)->page_end)
 
 typedef struct
 {
@@ -129,7 +133,7 @@ typedef struct
     /*4B*/
     uint32_t        used_flag   :3;  /* item status: not used, used */
     uint32_t        dir_flag    :2;  /* directory or regular file */
-    uint32_t        rsvd01      :27; 
+    uint32_t        rsvd01      :27;
 
     /*4B*/
     uint32_t        parent_pos;/*parent directory*/
@@ -139,7 +143,7 @@ typedef struct
 
     /*8B*/
     CMCNPDEL_NODE   del_node;
-    
+
     /*8B*/
     CMCNP_KEY       key;
 
@@ -162,9 +166,8 @@ typedef struct
 
 #define CMCNP_ITEM_KEY(cmcnp_item)              (&((cmcnp_item)->key))
 
-#define CMCNP_ITEM_BLOCK_NO(cmcnp_item)         (CMCNP_KEY_BLOCK_NO(CMCNP_ITEM_KEY(cmcnp_item)))    
-#define CMCNP_ITEM_BLOCK_S_OFFSET(cmcnp_item)   (CMCNP_KEY_BLOCK_S_OFFSET(CMCNP_ITEM_KEY(cmcnp_item)))
-#define CMCNP_ITEM_BLOCK_E_OFFSET(cmcnp_item)   (CMCNP_KEY_BLOCK_E_OFFSET(CMCNP_ITEM_KEY(cmcnp_item)))
+#define CMCNP_ITEM_S_PAGE(cmcnp_item)           (CMCNP_KEY_S_PAGE(CMCNP_ITEM_KEY(cmcnp_item)))
+#define CMCNP_ITEM_E_PAGE(cmcnp_item)           (CMCNP_KEY_E_PAGE(CMCNP_ITEM_KEY(cmcnp_item)))
 
 /*get CMCNP_ITEM from CMCNPRB_NODE*/
 #define CMCNP_RB_NODE_ITEM(cmcnprb_node)        ((NULL_PTR == (cmcnprb_node)) ? NULL_PTR : \
@@ -177,7 +180,7 @@ typedef struct
 /*get CMCNP_ITEM from CMCNPDEL_NODE*/
 #define CMCNP_DEL_NODE_ITEM(cmcnpdel_node)        ((NULL_PTR == (cmcnpdel_node)) ? NULL_PTR : \
     ((CMCNP_ITEM *)((char *)(cmcnpdel_node)-(unsigned long)(&((CMCNP_ITEM *)0)->del_node))))
-    
+
 #define CMCNP_ITEM_IS_REG(cmcnp_item)            (CMCNP_ITEM_FILE_IS_REG == (CMCNP_ITEM_FILE_IS_REG & CMCNP_ITEM_DIR_FLAG(cmcnp_item)))
 #define CMCNP_ITEM_IS_DIR(cmcnp_item)            (CMCNP_ITEM_FILE_IS_DIR == (CMCNP_ITEM_FILE_IS_DIR & CMCNP_ITEM_DIR_FLAG(cmcnp_item)))
 

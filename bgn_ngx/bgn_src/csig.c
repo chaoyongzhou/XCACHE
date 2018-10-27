@@ -333,6 +333,11 @@ EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 
     task_brd = task_brd_default_get();
     csig = TASK_BRD_CSIG(task_brd);
+    if(NULL_PTR == csig)
+    {
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_atexit_register: csig is null\n");
+        return (EC_FALSE);
+    }
 
     csig_atexit = clistbase_pop_front(&(csig->atexit_free_list));
     if(NULL_PTR == csig_atexit)

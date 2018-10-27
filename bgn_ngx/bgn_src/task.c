@@ -5677,6 +5677,18 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
 
     cstack_init(TASK_BRD_RUNNER_STACK(task_brd), MM_TASK_RUNNER_NODE, LOC_TASK_0109);
 
+    /*taskover some signals*/
+    TASK_BRD_CSIG(task_brd) = csig_new();
+    if(NULL_PTR == TASK_BRD_CSIG(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_init: new csig failed\n");
+        task_brd_default_abort();
+    }
+    csig_takeover(TASK_BRD_CSIG(task_brd));
+
+    /*set os or process limite*/
+    task_brd_os_setting(task_brd);
+    
     return (EC_TRUE);
 }
 
@@ -7972,18 +7984,6 @@ LOG * task_brd_default_init(int argc, char **argv)
                   script_fname_cstr,
                   log_path_cstr,
                   ssl_path_cstr);
-
-    /*taskover some signals*/
-    TASK_BRD_CSIG(task_brd) = csig_new();
-    if(NULL_PTR == TASK_BRD_CSIG(task_brd))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: new csig failed\n");
-        task_brd_default_abort();
-    }
-    csig_takeover(TASK_BRD_CSIG(task_brd));
-
-    /*set os or process limite*/
-    task_brd_os_setting(task_brd);
 
     if(EC_TRUE == daemon_flag)
     {

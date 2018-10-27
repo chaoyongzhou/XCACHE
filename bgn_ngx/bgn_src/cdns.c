@@ -199,7 +199,7 @@ EC_BOOL cdns_node_clean(CDNS_NODE *cdns_node)
         CDNS_NODE_COROUTINE_RESTORE(cdns_node) = BIT_FALSE;
 
         /*extension*/
-        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR; 
+        CDNS_NODE_SET_CALLBACK_FUNC(cdns_node) = NULL_PTR;
         CDNS_NODE_PRIVATE_DATA0(cdns_node)     = NULL_PTR;
         CDNS_NODE_PRIVATE_DATA1(cdns_node)     = NULL_PTR;
     }
@@ -421,12 +421,12 @@ EC_BOOL cdns_node_disconnect(CDNS_NODE *cdns_node)
 EC_BOOL cdns_node_set_callback(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode)
 {
     /*set callback to stack (FILO)*/
-    
+
     if(NULL_PTR != CDNS_NODE_SET_CALLBACK_FUNC(cdns_node))
     {
         CDNS_NODE_SET_CALLBACK_FUNC(cdns_node)(csocket_cnode, cdns_node);
     }
-    
+
     csocket_cnode_push_recv_callback(csocket_cnode,
                                      (const char *)"cdns_node_recv_rsp",
                                      (UINT32)cdns_node, (UINT32)cdns_node_recv_rsp);
@@ -675,11 +675,11 @@ EC_BOOL cdns_make_header(CDNS_NODE *cdns_node, CDNS_HEADER *cdns_header)
     flag = 0;
 
     flag = (flag << 0) | CDNS_HEADER_FLAG_QR(cdns_header);
-    
+
     flag = (flag << 4) | CDNS_HEADER_FLAG_OPCODE(cdns_header);
-    
+
     flag = (flag << 1) | CDNS_HEADER_FLAG_AA(cdns_header);
-    
+
     flag = (flag << 1) | CDNS_HEADER_FLAG_TC(cdns_header);
 
     flag = (flag << 1) | CDNS_HEADER_FLAG_RD(cdns_header);
@@ -1530,7 +1530,7 @@ EC_BOOL cdns_request_basic(const CDNS_REQ *cdns_req, CDNS_NODE_SET_CALLBACK hand
     if(NULL_PTR != private_data1)
     {
         CDNS_NODE_PRIVATE_DATA1(cdns_node) = private_data1;
-    }    
+    }
 
     if(EC_FALSE == cdns_node_create(cdns_node, cdns_req))
     {

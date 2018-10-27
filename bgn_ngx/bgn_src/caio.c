@@ -52,7 +52,9 @@ STATIC_CAST EC_BOOL __caio_setup(unsigned nr_reqs, aio_context_t *ctx)
 
     if(0 == syscall(__NR_io_setup, nr_reqs, ctx))
     {
-        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_setup: nr_reqs = %d\n", nr_reqs);
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_setup: "
+                                             "nr_reqs = %d\n",
+                                             nr_reqs);
         return (EC_TRUE);
     }
 
@@ -61,34 +63,41 @@ STATIC_CAST EC_BOOL __caio_setup(unsigned nr_reqs, aio_context_t *ctx)
     {
         case EAGAIN:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: not support EAGAIN yet\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: "
+                                                 "not support EAGAIN yet\n");
             break;
         }
         case EFAULT:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: invalid ctx %p\n", ctx);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: "
+                                                 "invalid ctx %p\n",
+                                                 ctx);
             break;
         }
         case EINVAL:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: not initialized ctx %p or nr_reqs %d overflow\n",
-                            ctx, nr_reqs);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: "
+                                                 "not initialized ctx %p or nr_reqs %d overflow\n",
+                                                 ctx, nr_reqs);
             break;
         }
         case ENOMEM:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: Insufficient kernel resources are available\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: "
+                                                 "Insufficient kernel resources are available\n");
             break;
         }
         case ENOSYS:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: io_setup() is not implemented on this architecture\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: "
+                                                 "io_setup() is not implemented on this architecture\n");
             break;
         }
         default:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup: unknown errno = %d, errstr = %s\n",
-                            err, strerror(err));
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup:"
+                                                 "unknown errno = %d, errstr = %s\n",
+                                                 err, strerror(err));
             break;
         }
     }
@@ -118,24 +127,29 @@ STATIC_CAST EC_BOOL __caio_destroy(aio_context_t ctx)
     {
         case EFAULT:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: The context %p pointed to is invalid\n", ctx);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: "
+                                                 "The context %p pointed to is invalid\n",
+                                                 ctx);
             break;
         }
         case EINVAL:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: The AIO context specified by ctx %p is invalid\n",
-                            ctx);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: "
+                                                 "The AIO context specified by ctx %p is invalid\n",
+                                                 ctx);
             break;
         }
         case ENOSYS:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: io_destroy() is not implemented on this architecture\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: "
+                                                 "io_destroy() is not implemented on this architecture\n");
             break;
         }
         default:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: unknown errno = %d, errstr = %s\n",
-                            err, strerror(err));
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: "
+                                                 "unknown errno = %d, errstr = %s\n",
+                                                 err, strerror(err));
             break;
         }
     }
@@ -168,29 +182,34 @@ STATIC_CAST EC_BOOL __caio_getevents(aio_context_t ctx, long min_nr, long nr, st
     {
         case EFAULT:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: Either events or timeout is an invalid pointer\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
+                                                 "Either events or timeout is an invalid pointer\n");
             break;
         }
         case EINTR:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: Interrupted by a signal handler\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
+                                                 "Interrupted by a signal handler\n");
             break;
         }
         case EINVAL:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: ctx %p is invalid.  min_nr %ld is out of range or nr %ld is out of range\n",
-                            ctx, min_nr, nr);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
+                                                 "ctx %p is invalid.  min_nr %ld is out of range or nr %ld is out of range\n",
+                                                 ctx, min_nr, nr);
             break;
         }
         case ENOSYS:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: __caio_getevents() is not implemented on this architecture\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
+                                                 "__NR_io_getevents is not implemented on this architecture\n");
             break;
         }
         default:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: unknown errno = %d, errstr = %s\n",
-                            err, strerror(err));
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
+                                                 "unknown errno = %d, errstr = %s\n",
+                                                 err, strerror(err));
             break;
         }
     }
@@ -218,34 +237,40 @@ STATIC_CAST EC_BOOL __caio_submit(aio_context_t ctx, long nr, struct iocb **iocb
     {
         case EAGAIN:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: Insufficient resources are available to queue any iocbs\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "Insufficient resources are available to queue any iocbs\n");
             break;
         }
         case EBADF:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: The file descriptor specified in the first iocb is invalid\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "The file descriptor specified in the first iocb is invalid\n");
             break;
         }
         case EFAULT:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: One of the data structures points to invalid data\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "One of the data structures points to invalid data\n");
             break;
         }
         case EINVAL:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: The AIO context specified by ctx %p is invalid\n",
-                            ctx);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "The AIO context specified by ctx %p is invalid\n",
+                                                 ctx);
             break;
         }
         case ENOSYS:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: io_submit() is not implemented on this architecture\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "__NR_io_submit is not implemented on this architecture\n");
             break;
         }
         default:
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: unknown errno = %d, errstr = %s\n",
-                            err, strerror(err));
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
+                                                 "unknown errno = %d, errstr = %s\n",
+                                                 err, strerror(err));
             break;
         }
     }
@@ -286,7 +311,9 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
 
     nread = read(g_caio_eventfd, &nready, sizeof(uint64_t));
 
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: nread = %d\n", nread);
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
+                                         "nread = %d\n",
+                                         nread);
 
     if(sizeof(uint64_t) != nread)
     {
@@ -297,15 +324,21 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
                 return (EC_AGAIN);
             }
 
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: read %d failed\n", g_caio_eventfd);
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
+                                                 "read %d failed\n",
+                                                 g_caio_eventfd);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: read only %d bytes\n", nread);
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
+                                             "read only %d bytes\n",
+                                             nread);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: nready = %"PRId64"\n", nready);
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
+                                         "nready = %"PRId64"\n",
+                                         nready);
 
     timeout.tv_sec = 0;
     timeout.tv_nsec = 0;
@@ -316,11 +349,14 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
 
         if(EC_FALSE == __caio_getevents(g_caio_ctx, 1, 64, event, &timeout, &nevent))
         {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: io get events failed\n");
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
+                                                 "io get events failed\n");
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: io get events %d\n", nevent);
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
+                                             "io get events %d\n",
+                                             nevent);
 
         if(0 == nevent)
         {
@@ -348,8 +384,9 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
                 int err;
 
                 err = (int)(-event[ idx ].res);
-                dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: errno = %d, errstr = %s\n",
-                                err, strerror(err));
+                dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
+                                                     "errno = %d, errstr = %s\n",
+                                                     err, strerror(err));
                 __caio_termination_handler(coroutine_cond);
             }
             else
@@ -408,6 +445,7 @@ void caio_end()
         cepoll_del_event(task_brd_default_get_cepoll(),
                          g_caio_eventfd,
                          CEPOLL_RD_EVENT);
+        close(g_caio_eventfd);
         g_caio_eventfd = ERR_FD;
     }
 
