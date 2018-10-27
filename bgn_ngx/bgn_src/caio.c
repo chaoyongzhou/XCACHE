@@ -277,6 +277,65 @@ STATIC_CAST EC_BOOL __caio_submit(aio_context_t ctx, long nr, struct iocb **iocb
     return (EC_FALSE);
 }
 
+STATIC_CAST EC_BOOL __caio_cancel(aio_context_t ctx, struct iocb *iocb, struct io_event *event)
+{
+    /*
+    *
+    * ref: http://www.man7.org/linux/man-pages/man2/io_cancel.2.html
+    * int io_cancel(aio_context_t ctx_id, struct iocb *iocb, struct io_event *result);
+    *
+    */
+
+    int err;
+
+    if(0 == syscall(__NR_io_cancel, ctx, iocb, event))
+    {
+        return (EC_TRUE);
+    }
+
+    err = errno;
+
+    switch(err)
+    {
+        case EAGAIN:
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
+                                                 "The iocb specified was not canceled\n");
+            break;
+        }    
+        case EFAULT:
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
+                                                 "One of the data structures points to invalid data\n",
+                                                 ctx);
+            break;
+        }
+        case EINVAL:
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
+                                                 "The AIO context specified by ctx %p is invalid\n",
+                                                 ctx);
+            break;
+        }
+        case ENOSYS:
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
+                                                 "io_cancel() is not implemented on this architecture\n");
+            break;
+        }
+        default:
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
+                                                 "unknown errno = %d, errstr = %s\n",
+                                                 err, strerror(err));
+            break;
+        }
+    }
+
+    return (EC_FALSE);
+}
+
+
 STATIC_CAST void __caio_termination_handler(COROUTINE_COND *coroutine_cond)
 {
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_termination_handler: coroutine_cond %p\n", coroutine_cond);
@@ -523,28 +582,40 @@ EC_BOOL caio_file_load(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     ret = coroutine_cond_wait(&coroutine_cond, LOC_CAIO_0006);
 
     __COROUTINE_IF_EXCEPTION() {/*exception*/
+        struct io_event     event;
+        
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was cancelled\n");
         coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
         free(buff_t);
+        
+        __caio_cancel(g_caio_ctx, piocb[0], &event);
 
         return (EC_FALSE);
     }
 
     if(EC_TIMEOUT == ret)
     {
+        struct io_event     event;
+        
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was timeout\n");
         coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0008);
         free(buff_t);
+
+        __caio_cancel(g_caio_ctx, piocb[0], &event);
 
         return (EC_FALSE);
     }
 
     if(EC_TERMINATE == ret)
     {
+        struct io_event     event;
+        
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was terminated\n");
         coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0009);
 
         free(buff_t);
+
+        __caio_cancel(g_caio_ctx, piocb[0], &event);
 
         return (EC_FALSE);
     }
