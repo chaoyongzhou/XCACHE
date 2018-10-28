@@ -449,7 +449,7 @@ EC_BOOL crfsdn_node_write(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 dat
     CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0005);
     if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
     {
-        if(EC_FALSE == caio_file_flush(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        if(EC_FALSE == caio_file_flush(CRFSDN_CAIO_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
         {
             CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0006);
             dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_write: flush %ld bytes to node %ld at offset %ld failed\n",
@@ -494,7 +494,7 @@ EC_BOOL crfsdn_node_read(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 data
 
     if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
     {
-        if(EC_FALSE == caio_file_load(CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        if(EC_FALSE == caio_file_load(CRFSDN_CAIO_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
         {
             CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0010);
             dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: AIO load %ld bytes from node %ld at offset %ld failed\n",
@@ -776,6 +776,13 @@ CRFSDN *crfsdn_create(const char *root_dname)
         return (NULL_PTR);
     }
 
+    CRFSDN_CAIO_MD(crfsdn) = caio_start();
+    if(NULL_PTR == CRFSDN_CAIO_MD(crfsdn))
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create:start caio failed\n");
+        crfsdn_free(crfsdn);
+        return (NULL_PTR);
+    }
     return (crfsdn);
 }
 
@@ -868,6 +875,7 @@ EC_BOOL crfsdn_init(CRFSDN *crfsdn)
 
     CRFSDN_ROOT_DNAME(crfsdn)  = NULL_PTR;
     CRFSDN_CPGV(crfsdn)        = NULL_PTR;
+    CRFSDN_CAIO_MD(crfsdn)     = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -886,6 +894,12 @@ EC_BOOL crfsdn_clean(CRFSDN *crfsdn)
     {
         cpgv_close(CRFSDN_CPGV(crfsdn));
         CRFSDN_CPGV(crfsdn) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CRFSDN_CAIO_MD(crfsdn))
+    {
+        caio_end(CRFSDN_CAIO_MD(crfsdn));
+        CRFSDN_CAIO_MD(crfsdn) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -1034,6 +1048,15 @@ CRFSDN *crfsdn_open(const char *root_dname)
         crfsdn_free(crfsdn);
         return (NULL_PTR);
     }
+
+    CRFSDN_CAIO_MD(crfsdn) = caio_start();
+    if(NULL_PTR == CRFSDN_CAIO_MD(crfsdn))
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_open:start caio failed\n");
+        crfsdn_free(crfsdn);
+        return (NULL_PTR);
+    }
+    
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_open: load crfsdn from root dir %s done\n", root_dname);
 
     return (crfsdn);

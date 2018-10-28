@@ -514,6 +514,8 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CMCNP_KEY                    ,"MM_CMCNP_KEY                   ",256       , sizeof(CMCNP_KEY)                    , LOC_MM_0042);
     MM_MGR_DEF(MM_CMCNP_ITEM                   ,"MM_CMCNP_ITEM                  ",256       , sizeof(CMCNP_ITEM)                   , LOC_MM_0043);
 
+    MM_MGR_DEF(MM_CAIO_NODE                    ,"MM_CAIO_NODE                   ",256       , sizeof(CAIO_NODE)                    , LOC_MM_0043);
+
     return ( 0 );
 }
 #undef MM_MGR_DEF

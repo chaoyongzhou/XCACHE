@@ -9,13 +9,6 @@
 extern "C"{
 #endif/*__cplusplus*/
 
-#include <sys/syscall.h>
-#include <sys/ioctl.h>
-#include <sys/eventfd.h>
-#include <linux/aio_abi.h>
-
-#include <errno.h>
-
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -27,8 +20,94 @@ extern "C"{
 #include "caio.h"
 
 
-static int g_caio_eventfd = ERR_FD;
-static aio_context_t g_caio_ctx = 0;
+CAIO_NODE *caio_node_new()
+{
+    CAIO_NODE *caio_node;
+    alloc_static_mem(MM_CAIO_NODE, &caio_node, LOC_CAIO_0001);
+    if(NULL_PTR == caio_node)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_node_new: alloc memory failed\n");
+        return (NULL_PTR);
+    }
+
+    caio_node_init(caio_node);
+    return (caio_node);
+}
+
+EC_BOOL caio_node_init(CAIO_NODE *caio_node)
+{
+    CAIO_NODE_CCOND(caio_node)   = NULL_PTR;
+    CAIO_NODE_OP(caio_node)      = CAIO_NODE_ERR_OP;
+    
+    BSET(CAIO_NODE_AIOCB(caio_node), 0, sizeof(struct iocb));
+    
+    CAIO_NODE_F_CACHE(caio_node) = NULL_PTR;
+    if(0 != posix_memalign((void **)&CAIO_NODE_F_CACHE(caio_node), CAIO_BLOCK_SIZE_NBYTE, CAIO_BLOCK_SIZE_NBYTE))
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_node_init: alloc memory failed\n");
+
+        return (EC_FALSE);
+    }
+
+    CAIO_NODE_M_CACHE(caio_node)    = NULL_PTR;
+    CAIO_NODE_F_S_OFFSET(caio_node) = 0;
+    CAIO_NODE_F_E_OFFSET(caio_node) = 0;
+    CAIO_NODE_B_S_OFFSET(caio_node) = 0;
+    CAIO_NODE_B_E_OFFSET(caio_node) = 0;
+    
+    CAIO_NODE_NTIME_TS(caio_node)   = 0;
+    
+    return (EC_TRUE);
+}
+
+EC_BOOL caio_node_clean(CAIO_NODE *caio_node)
+{
+    if(NULL_PTR != caio_node)
+    {
+        CAIO_NODE_CCOND(caio_node)   = NULL_PTR;
+        CAIO_NODE_OP(caio_node)      = CAIO_NODE_ERR_OP;
+        
+        BSET(CAIO_NODE_AIOCB(caio_node), 0, sizeof(struct iocb));
+
+        if(NULL_PTR != CAIO_NODE_F_CACHE(caio_node))
+        {
+            free(CAIO_NODE_F_CACHE(caio_node));
+            CAIO_NODE_F_CACHE(caio_node) = NULL_PTR;
+        }
+
+        CAIO_NODE_M_CACHE(caio_node)    = NULL_PTR;
+        CAIO_NODE_F_S_OFFSET(caio_node) = 0;
+        CAIO_NODE_F_E_OFFSET(caio_node) = 0;
+        CAIO_NODE_B_S_OFFSET(caio_node) = 0;
+        CAIO_NODE_B_E_OFFSET(caio_node) = 0;
+        
+        CAIO_NODE_NTIME_TS(caio_node)   = 0;
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL caio_node_free(CAIO_NODE *caio_node)
+{
+    if(NULL_PTR != caio_node)
+    {
+        caio_node_clean(caio_node);
+        free_static_mem(MM_CAIO_NODE, caio_node, LOC_CAIO_0002);
+    }
+    return (EC_TRUE);
+}
+
+void caio_node_print(LOG *log, const CAIO_NODE *caio_node)
+{
+    sys_log(log, "caio_node_print: caio_node %p: ccond %p, file cache %p, mem cache %p, "
+                 "file range [%ld, %ld), block range [%ld, %ld), "
+                 "next access time %ld\n", 
+                 caio_node, CAIO_NODE_CCOND(caio_node), 
+                 CAIO_NODE_F_CACHE(caio_node), CAIO_NODE_M_CACHE(caio_node),
+                 CAIO_NODE_F_S_OFFSET(caio_node), CAIO_NODE_F_E_OFFSET(caio_node),
+                 CAIO_NODE_B_S_OFFSET(caio_node), CAIO_NODE_B_E_OFFSET(caio_node),
+                 (UINT32)CAIO_NODE_NTIME_TS(caio_node));
+    return;
+}
 
 /*
 *
@@ -335,32 +414,71 @@ STATIC_CAST EC_BOOL __caio_cancel(aio_context_t ctx, struct iocb *iocb, struct i
     return (EC_FALSE);
 }
 
-
-STATIC_CAST void __caio_termination_handler(COROUTINE_COND *coroutine_cond)
+STATIC_CAST EC_BOOL __caio_cancel_all(aio_context_t ctx, struct iocb **piocb, const UINT32 idx_from, const UINT32 idx_to)
 {
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_termination_handler: coroutine_cond %p\n", coroutine_cond);
+    UINT32 idx;
 
-    if(NULL_PTR != coroutine_cond)
+    for(idx = idx_from; idx < idx_to; idx ++)
     {
-        coroutine_cond_terminate(coroutine_cond, LOC_CAIO_0001);
+        struct io_event     event;
+        
+        __caio_cancel(ctx, piocb[ idx ], &event);    
+    }
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST void __caio_termination_handler(CAIO_MD *caio_md, CAIO_NODE *caio_node)
+{
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_termination_handler: caio_node %p\n", caio_node);
+
+    if(NULL_PTR != caio_node)
+    {
+        if(NULL_PTR != CAIO_NODE_CCOND(caio_node))
+        {
+            coroutine_cond_terminate(CAIO_NODE_CCOND(caio_node), LOC_CAIO_0001);
+            CAIO_NODE_CCOND(caio_node) = NULL_PTR;        
+        }
+
+        caio_node_free(caio_node);
     }
 
     return;
 }
 
-STATIC_CAST void __caio_completion_handler(COROUTINE_COND *coroutine_cond)
+STATIC_CAST void __caio_completion_handler(CAIO_MD *caio_md, CAIO_NODE *caio_node)
 {
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_completion_handler: coroutine_cond %p\n", coroutine_cond);
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_completion_handler: caio_node %p\n", caio_node);
 
-    if(NULL_PTR != coroutine_cond)
+    if(NULL_PTR != caio_node)
     {
-        coroutine_cond_release(coroutine_cond, LOC_CAIO_0002);
+        if(NULL_PTR != CAIO_NODE_CCOND(caio_node))
+        {
+            coroutine_cond_release(CAIO_NODE_CCOND(caio_node), LOC_CAIO_0001);
+            CAIO_NODE_CCOND(caio_node) = NULL_PTR;
+        }
+
+        if(CAIO_NODE_READ_OP == CAIO_NODE_OP(caio_node))
+        {
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_completion_handler: "
+                            "fcache %p, mcache %p, "
+                            "file [%ld, %ld), block [%ld, %ld)\n", 
+                            CAIO_NODE_F_CACHE(caio_node), CAIO_NODE_M_CACHE(caio_node),
+                            CAIO_NODE_F_S_OFFSET(caio_node), CAIO_NODE_F_E_OFFSET(caio_node),
+                            CAIO_NODE_B_S_OFFSET(caio_node), CAIO_NODE_B_E_OFFSET(caio_node));
+                            
+            BCOPY(CAIO_NODE_F_CACHE(caio_node) + CAIO_NODE_B_S_OFFSET(caio_node), 
+                  CAIO_NODE_M_CACHE(caio_node), 
+                  CAIO_NODE_B_E_OFFSET(caio_node) - CAIO_NODE_B_S_OFFSET(caio_node));
+        }
+
+        caio_node_free(caio_node);
     }
 
     return;
 }
 
-EC_BOOL caio_event_handler(void *UNUSED(none))
+EC_BOOL caio_event_handler(CAIO_MD *caio_md)
 {
     int                 nread;
     int                 nevent;
@@ -368,7 +486,7 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
     struct io_event     event[64];
     struct timespec     timeout;
 
-    nread = read(g_caio_eventfd, &nready, sizeof(uint64_t));
+    nread = read(CAIO_MD_AIO_EVENTFD(caio_md), &nready, sizeof(uint64_t));
 
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
                                          "nread = %d\n",
@@ -385,7 +503,7 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
 
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
                                                  "read %d failed\n",
-                                                 g_caio_eventfd);
+                                                 CAIO_MD_AIO_EVENTFD(caio_md));
             return (EC_FALSE);
         }
 
@@ -406,7 +524,7 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
     {
         int idx;
 
-        if(EC_FALSE == __caio_getevents(g_caio_ctx, 1, 64, event, &timeout, &nevent))
+        if(EC_FALSE == __caio_getevents(CAIO_MD_AIO_CONTEXT(caio_md), 1, 64, event, &timeout, &nevent))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
                                                  "io get events failed\n");
@@ -428,14 +546,14 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
 
         for(idx = 0; idx < nevent; idx ++)
         {
-            COROUTINE_COND *coroutine_cond;
+            CAIO_NODE *caio_node;
 
             dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
                                                  "data: %lx, obj %lx, res %"PRId64", res2 %"PRId64"\n",
                                                  event[ idx ].data, event[ idx ].obj,
                                                  event[ idx ].res , event[ idx ].res2);
 
-            coroutine_cond = (COROUTINE_COND *)(event[ idx ].data);
+            caio_node = (CAIO_NODE *)(event[ idx ].data);
 
             /*WARNING: sometimes res2 = 0, but res stores the negative value of errno*/
             if(0 != event[ idx ].res2 || 0 > event[ idx ].res)
@@ -446,11 +564,11 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
                 dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
                                                      "errno = %d, errstr = %s\n",
                                                      err, strerror(err));
-                __caio_termination_handler(coroutine_cond);
+                __caio_termination_handler(caio_md, caio_node);
             }
             else
             {
-                __caio_completion_handler(coroutine_cond);
+                __caio_completion_handler(caio_md, caio_node);
             }
         }
     }
@@ -458,274 +576,927 @@ EC_BOOL caio_event_handler(void *UNUSED(none))
     return (EC_TRUE);
 }
 
-EC_BOOL caio_start(const UINT32 max_req_num)
+CAIO_MD *caio_start()
 {
-    if(ERR_FD == g_caio_eventfd)
+    CAIO_MD      *caio_md;
+
+    /* initialize new one CMC module */
+    caio_md = safe_malloc(sizeof(CAIO_MD), LOC_CAIO_0003);
+    if(NULL_PTR == caio_md)
     {
-        unsigned nr_reqs;
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: malloc caio module failed\n");
+        return (NULL_PTR);
+    }
+    
+    CAIO_MD_AIO_EVENTFD(caio_md) = ERR_FD;
+    CAIO_MD_AIO_CONTEXT(caio_md) = 0;
 
-        g_caio_eventfd = syscall(__NR_eventfd2, 0, O_NONBLOCK | O_CLOEXEC);
-        if(ERR_FD == g_caio_eventfd)
-        {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: get eventfd failed, errno = %d, errstr = %s\n",
-                            errno, strerror(errno));
-            return (EC_FALSE);
-        }
+    /*aio eventfd*/
+    CAIO_MD_AIO_EVENTFD(caio_md) = syscall(__NR_eventfd2, 0, O_NONBLOCK | O_CLOEXEC);
+    if(ERR_FD == CAIO_MD_AIO_EVENTFD(caio_md))
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: get eventfd failed, errno = %d, errstr = %s\n",
+                        errno, strerror(errno));
 
-        nr_reqs = (unsigned)max_req_num;
-
-        if(EC_FALSE == __caio_setup(nr_reqs, &g_caio_ctx))
-        {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: nr_reqs = %d\n", nr_reqs);
-
-            close(g_caio_eventfd);
-            g_caio_eventfd = ERR_FD;
-            g_caio_ctx     = 0;
-            return (EC_FALSE);
-        }
-
-        cepoll_set_event(task_brd_default_get_cepoll(),
-                          g_caio_eventfd,
-                          CEPOLL_RD_EVENT,
-                          (const char *)"caio_event_handler",
-                          (CEPOLL_EVENT_HANDLER)caio_event_handler,
-                          (void *)NULL_PTR);
-
-        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_start: nr_reqs = %d\n", nr_reqs);
+        caio_end(caio_md);
+        return (NULL_PTR);
     }
 
-    return (EC_TRUE);
+    /*aio context*/
+    if(EC_FALSE == __caio_setup((unsigned)CAIO_REQ_MAX_NUM, &CAIO_MD_AIO_CONTEXT(caio_md)))
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: nr_reqs = %d\n", (unsigned)CAIO_REQ_MAX_NUM);
+
+        caio_end(caio_md);
+        return (NULL_PTR);
+    }
+
+    csig_atexit_register((CSIG_ATEXIT_HANDLER)caio_end, (UINT32)caio_md);
+
+    /*set RD event*/
+    cepoll_set_event(task_brd_default_get_cepoll(),
+                      CAIO_MD_AIO_EVENTFD(caio_md),
+                      CEPOLL_RD_EVENT,
+                      (const char *)"caio_event_handler",
+                      (CEPOLL_EVENT_HANDLER)caio_event_handler,
+                      (void *)caio_md);
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_start: nr_reqs = %d\n", (unsigned)CAIO_REQ_MAX_NUM);
+
+    return (caio_md);
 }
 
-void caio_end()
-{
-    if(ERR_FD != g_caio_eventfd)
+void caio_end(CAIO_MD *caio_md)
+{  
+    csig_atexit_unregister((CSIG_ATEXIT_HANDLER)caio_end, (UINT32)caio_md);
+   
+    if(ERR_FD != CAIO_MD_AIO_EVENTFD(caio_md))
     {
         cepoll_del_event(task_brd_default_get_cepoll(),
-                         g_caio_eventfd,
+                         CAIO_MD_AIO_EVENTFD(caio_md),
                          CEPOLL_RD_EVENT);
-        close(g_caio_eventfd);
-        g_caio_eventfd = ERR_FD;
+        close(CAIO_MD_AIO_EVENTFD(caio_md));
+        CAIO_MD_AIO_EVENTFD(caio_md) = ERR_FD;
     }
 
-    if(0 != g_caio_ctx)
+    if(0 != CAIO_MD_AIO_CONTEXT(caio_md))
     {
-        __caio_destroy(g_caio_ctx);
-        g_caio_ctx = 0;
+        __caio_destroy(CAIO_MD_AIO_CONTEXT(caio_md));
+        CAIO_MD_AIO_CONTEXT(caio_md) = 0;
     }
+
+    safe_free(caio_md, LOC_CAIO_0004);
 
     return;
 }
 
-EC_BOOL caio_file_load(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+STATIC_CAST static EC_BOOL __caio_cleanup_all(struct iocb **piocb, const UINT32 idx_from, const UINT32 idx_to)
 {
-    struct iocb         aiocb;
-    struct iocb        *piocb[1];
-    COROUTINE_COND      coroutine_cond;
-    EC_BOOL             ret;
+    UINT32 idx;
 
-    void               *buff_t;
-    size_t              buff_len;
-    off_t               offset_t;
-    off_t               offset_diff;
-
-    /*buff address and offset value must be aligned to block size!*/
-    offset_t    = (off_t)((*offset) & (~CAIO_PAGE_SIZE));
-    offset_diff = (off_t)(offset_t - (*offset));
-    buff_len    = ((size_t)(offset_diff + rsize));
-    buff_len    = VAL_ALIGN(buff_len, CAIO_PAGE_SIZE);
-
-    if(0 != posix_memalign(&buff_t, CAIO_PAGE_SIZE, buff_len))
+    for(idx = idx_from; idx < idx_to; idx ++)
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: posix_memalign failed where page %d, len %d\n",
-                        CAIO_PAGE_SIZE, buff_len);
+        CAIO_NODE          *caio_node;
 
-        return (EC_FALSE);
+        caio_node = CAIO_AIOCB_NODE(piocb[ idx ]);
+        piocb[ idx ] = NULL_PTR;
+        caio_node_free(caio_node);
     }
-
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_load: offset %ld, offset_t %ld, offset_diff %ld, buff_len %d\n",
-                        (*offset), offset_t, offset_diff, buff_len);
-
-    coroutine_cond_init(&coroutine_cond, 0, LOC_CAIO_0003);
-    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAIO_0004);
-
-    /*set up aio request*/
-    BSET(&aiocb, 0, sizeof(struct iocb));
-    aiocb.aio_data          = (uint64_t)((uintptr_t)(&coroutine_cond));
-    aiocb.aio_lio_opcode    = IOCB_CMD_PREAD;
-    aiocb.aio_fildes        = fd;
-    aiocb.aio_buf           = (uint64_t)((uintptr_t)buff_t);
-    aiocb.aio_nbytes        = (size_t)buff_len;
-    aiocb.aio_offset        = (off_t)offset_t;
-    aiocb.aio_flags         = IOCB_FLAG_RESFD;
-    aiocb.aio_resfd         = g_caio_eventfd;
-
-    piocb[0] = &aiocb;
-
-    if(EC_FALSE == __caio_submit(g_caio_ctx, 1, piocb))
-    {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: "
-                                             "io submit failed, fd %d, eventfd %d\n",
-                                             fd, g_caio_eventfd);
-
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0005);
-        free(buff_t);
-
-        /*switch to block-mode*/
-        return c_file_load(fd, offset, rsize, buff);
-    }
-
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_load: "
-                                         "io submit done, fd %d, eventfd %d, coroutine_cond %p, buff %p, offset %ld\n",
-                                         fd, g_caio_eventfd, (void *)&coroutine_cond, buff_t, offset_t);
-
-    ret = coroutine_cond_wait(&coroutine_cond, LOC_CAIO_0006);
-
-    __COROUTINE_IF_EXCEPTION() {/*exception*/
-        struct io_event     event;
-        
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was cancelled\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
-        free(buff_t);
-        
-        __caio_cancel(g_caio_ctx, piocb[0], &event);
-
-        return (EC_FALSE);
-    }
-
-    if(EC_TIMEOUT == ret)
-    {
-        struct io_event     event;
-        
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was timeout\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0008);
-        free(buff_t);
-
-        __caio_cancel(g_caio_ctx, piocb[0], &event);
-
-        return (EC_FALSE);
-    }
-
-    if(EC_TERMINATE == ret)
-    {
-        struct io_event     event;
-        
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: coroutine was terminated\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0009);
-
-        free(buff_t);
-
-        __caio_cancel(g_caio_ctx, piocb[0], &event);
-
-        return (EC_FALSE);
-    }
-
-    coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0010);
-
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_load: '%.*s'\n", (uint32_t)rsize, (char *)(buff_t + offset_diff));
-    BCOPY(buff_t + offset_diff, buff, rsize);
-
-    (*offset) += (size_t)rsize;
-
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_load: done\n");
-
-    free(buff_t);
 
     return (EC_TRUE);
 }
 
-EC_BOOL caio_file_flush(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+STATIC_CAST static CAIO_NODE *__caio_file_load_req(CAIO_MD *caio_md, int fd, 
+                            const UINT32 f_s_offset, const UINT32 f_e_offset, /*range in file*/
+                            const UINT32 b_s_offset, const UINT32 b_e_offset, /*range in block*/
+                            UINT8 *m_cache)
 {
-    struct iocb         aiocb;
-    struct iocb        *piocb[1];
-    COROUTINE_COND      coroutine_cond;
-    EC_BOOL             ret;
+    CAIO_NODE          *caio_node;
+    struct iocb        *aiocb;
 
-    void               *buff_t;
-    size_t              buff_len;
-    off_t               offset_t;
-    off_t               offset_diff;
-
-    /*buff address and offset value must be aligned to block size!*/
-    offset_t    = (off_t)((*offset) & (~CAIO_PAGE_SIZE));
-    offset_diff = (off_t)(offset_t - (*offset));
-    buff_len    = ((size_t)(offset_diff + wsize));
-    buff_len    = VAL_ALIGN(buff_len, CAIO_PAGE_SIZE);
-
-    if(0 != posix_memalign(&buff_t, CAIO_PAGE_SIZE, buff_len))
-    {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: posix_memalign failed where page %d, len %d\n",
-                        CAIO_PAGE_SIZE, buff_len);
-
-        return (EC_FALSE);
-    }
-
-    BCOPY(buff, buff_t + offset_diff, wsize);
-
-    coroutine_cond_init(&coroutine_cond, 0, LOC_CAIO_0011);
-    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAIO_0012);
+    ASSERT(0 == (CAIO_BLOCK_SIZE_MASK & (f_s_offset)));
 
     /*set up aio request*/
-    BSET(&aiocb, 0, sizeof(struct iocb));
-    aiocb.aio_data          = (uint64_t)((uintptr_t)(&coroutine_cond));
-    aiocb.aio_lio_opcode    = IOCB_CMD_PWRITE;
-    aiocb.aio_fildes        = fd;
-    aiocb.aio_buf           = (uint64_t)((uintptr_t)buff_t);
-    aiocb.aio_nbytes        = (size_t)buff_len;
-    aiocb.aio_offset        = (size_t)offset_t;
-    aiocb.aio_flags         = IOCB_FLAG_RESFD;
-    aiocb.aio_resfd         = g_caio_eventfd;
-
-    piocb[0] = &aiocb;
-
-    if(EC_FALSE == __caio_submit(g_caio_ctx, 1, piocb))
+    caio_node = caio_node_new();
+    if(NULL_PTR == caio_node)
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: "
-                                             "io submit failed, fd %d, eventfd %d\n",
-                                             fd, g_caio_eventfd);
-
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0013);
-        free(buff_t);
-
-        /*switch to block-mode*/
-        return c_file_flush(fd, offset, wsize, buff);
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load_req: "
+                                             "new caio_node failed\n");
+        return (NULL_PTR);
     }
 
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_flush: "
-                                         "io submit done, fd %d, eventfd %d, coroutine_cond %p\n",
-                                         fd, g_caio_eventfd, (void *)&coroutine_cond);
+    aiocb = CAIO_NODE_AIOCB(caio_node);
+    aiocb->aio_data          = (uint64_t)((uintptr_t)(caio_node));
+    aiocb->aio_lio_opcode    = IOCB_CMD_PREAD;
+    aiocb->aio_fildes        = fd;
+    aiocb->aio_buf           = (uint64_t)((uintptr_t)CAIO_NODE_F_CACHE(caio_node));
+    aiocb->aio_nbytes        = (size_t)(f_e_offset - f_s_offset);
+    aiocb->aio_offset        = (off_t )(f_s_offset);
+    aiocb->aio_flags         = IOCB_FLAG_RESFD;
+    aiocb->aio_resfd         = CAIO_MD_AIO_EVENTFD(caio_md);
 
-    ret = coroutine_cond_wait(&coroutine_cond, LOC_CAIO_0014);
+    CAIO_NODE_OP(caio_node)         = CAIO_NODE_READ_OP;
+    CAIO_NODE_M_CACHE(caio_node)    = m_cache;
+    CAIO_NODE_F_S_OFFSET(caio_node) = f_s_offset;
+    CAIO_NODE_F_E_OFFSET(caio_node) = f_e_offset;
+    CAIO_NODE_B_S_OFFSET(caio_node) = b_s_offset;
+    CAIO_NODE_B_E_OFFSET(caio_node) = b_e_offset;
+    CAIO_NODE_NTIME_TS(caio_node)   = task_brd_default_get_time() + CAIO_RW_TIMEOUT_NSEC;
 
-    __COROUTINE_IF_EXCEPTION() {/*exception*/
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: coroutine was cancelled\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0015);
-        free(buff_t);
+    return (caio_node);
+}
+
+STATIC_CAST static EC_BOOL __caio_file_load(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+{
+    COROUTINE_COND      coroutine_cond;
+    
+    struct iocb        *piocb[ CAIO_REQ_MAX_NUM ];
+    UINT32              req_num;
+    UINT32              req_idx;
+    
+    UINT32              f_s_offset;
+    UINT32              f_e_offset;
+
+    UINT8              *m_cache;
+
+    coroutine_cond_init(&coroutine_cond, CAIO_RW_TIMEOUT_NSEC * 1000, LOC_CAIO_0003);
+
+    f_s_offset = (*offset);
+    f_e_offset = f_s_offset + rsize;
+    m_cache    = buff;
+
+    for(req_num = 0; req_num < CAIO_REQ_MAX_NUM && f_s_offset < f_e_offset; req_num ++)
+    {
+        UINT32              b_s_offset;
+        UINT32              b_e_offset;
+    
+        CAIO_NODE          *caio_node;
+        
+        b_s_offset  = f_s_offset & CAIO_BLOCK_SIZE_MASK;
+        f_s_offset  = f_s_offset & (~CAIO_BLOCK_SIZE_MASK); /*align to block starting*/
+                                             
+        b_e_offset  = DMIN(f_s_offset + CAIO_BLOCK_SIZE_NBYTE, f_e_offset) & CAIO_BLOCK_SIZE_MASK;
+        if(0 == b_e_offset) /*adjust to next block boundary*/
+        {
+            b_e_offset = CAIO_BLOCK_SIZE_NBYTE;
+        }
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_load: "
+                                             "request %ld #, fd %d, eventfd %d, "
+                                             "file range [%ld, %ld), "
+                                             "block range [%ld, %ld), "
+                                             "mcache %p\n",
+                                             req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md),
+                                             f_s_offset, f_e_offset,
+                                             b_s_offset, b_e_offset,
+                                             m_cache);
+                                             
+        caio_node = __caio_file_load_req(caio_md, fd, 
+                                         f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE, 
+                                         b_s_offset, b_e_offset, m_cache);
+        if(NULL_PTR == caio_node)
+        {
+            break;
+        } 
+
+        CAIO_NODE_CCOND(caio_node) = &coroutine_cond; /*mount*/
+        piocb[ req_num ] = CAIO_NODE_AIOCB(caio_node);
+
+        m_cache    += b_e_offset - b_s_offset;
+        f_s_offset += CAIO_BLOCK_SIZE_NBYTE;/*align to next block starting*/
+    }
+  
+    if(0 == req_num)
+    {
         return (EC_FALSE);
     }
 
-    if(EC_TIMEOUT == ret)
+    if(f_s_offset > f_e_offset) /*adjust file start offset which would be used by offset calculation*/
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: coroutine was timeout\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0016);
-        free(buff_t);
+        f_s_offset = f_e_offset;
+    }
+
+    if(EC_TRUE == __caio_submit(CAIO_MD_AIO_CONTEXT(caio_md), (long)req_num, piocb))
+    {   
+        EC_BOOL             ret;
+        
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_load: "
+                                             "io submit %ld requests done, fd %d, eventfd %d\n",
+                                             req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));    
+
+        coroutine_cond_reserve(&coroutine_cond, req_num, LOC_CAIO_0004);
+
+        ret = coroutine_cond_wait(&coroutine_cond, LOC_CAIO_0006);
+
+        __COROUTINE_IF_EXCEPTION() {/*exception*/
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: coroutine was cancelled\n");
+
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        if(EC_TIMEOUT == ret)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: coroutine was timeout\n");
+            
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        if(EC_TERMINATE == ret)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: coroutine was terminated\n");
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0010);
+
+        (*offset) = f_s_offset;
+        return (EC_TRUE);
+    }
+
+    coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: "
+                                         "io submit %ld requests failed, fd %d, eventfd %d\n",
+                                         req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));
+
+    /*switch to block-mode*/
+    for(req_idx = 0; req_idx < req_num; req_idx ++)
+    {
+        CAIO_NODE          *caio_node;
+        UINT32              f_offset;
+        UINT32              f_rsize;
+
+        caio_node = CAIO_AIOCB_NODE(piocb[ req_idx ]);
+
+        f_offset  = CAIO_NODE_F_S_OFFSET(caio_node);
+        f_rsize   = CAIO_NODE_F_E_OFFSET(caio_node) - CAIO_NODE_F_S_OFFSET(caio_node);
+
+        if(EC_FALSE == c_file_pread(fd, &f_offset, f_rsize, CAIO_NODE_F_CACHE(caio_node)))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: "
+                                                 "pread %ld/%ld request failed, fd %d, eventfd %d\n",
+                                                 req_idx, req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));        
+            break;
+        }
+
+        /*copy data*/
+        BCOPY(CAIO_NODE_F_CACHE(caio_node) + CAIO_NODE_B_S_OFFSET(caio_node), 
+              CAIO_NODE_M_CACHE(caio_node), 
+              CAIO_NODE_B_E_OFFSET(caio_node) - CAIO_NODE_B_S_OFFSET(caio_node));
+
+        (*offset) += CAIO_NODE_B_E_OFFSET(caio_node) - CAIO_NODE_B_S_OFFSET(caio_node);
+        
+        piocb[ req_idx ] = NULL_PTR;
+        caio_node_free(caio_node);
+    }
+
+    /*clean up residue*/
+    __caio_cleanup_all((struct iocb **)piocb, req_idx, req_num);
+    
+    /*no pread succ, return false*/
+    if(0 == req_idx)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: "
+                                             "pread failed, fd %d, eventfd %d\n",
+                                             fd, CAIO_MD_AIO_EVENTFD(caio_md));
+        
         return (EC_FALSE);
     }
 
-    if(EC_TERMINATE == ret)
+    /*one or more pread succ, return true*/
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_load: "
+                                         "pread succ %ld of %ld requests, fd %d, eventfd %d\n",
+                                         req_idx + 1, req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));
+    return (EC_TRUE);
+}
+
+EC_BOOL caio_file_load(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+{
+    UINT32              s_offset;
+    UINT32              e_offset;
+    UINT8              *m_cache;
+
+    s_offset = (*offset);
+    e_offset = s_offset + rsize;
+    m_cache  = buff;
+
+    while(s_offset < e_offset)
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: coroutine was terminated\n");
-        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0017);
-        free(buff_t);
+        UINT32  offset_t;
+
+        offset_t = s_offset; /*save*/
+        
+        if(EC_FALSE ==__caio_file_load(caio_md, fd, &offset_t, e_offset - s_offset, m_cache))
+        {
+            break;
+        }
+
+        m_cache += (offset_t - s_offset);
+
+        s_offset = offset_t;
+    }
+
+    if(s_offset == (*offset))
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_load: load failed where offset %ld, rsize %ld\n",
+                        (*offset), rsize);
         return (EC_FALSE);
     }
 
-    coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0018);
-    free(buff_t);
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_load: offset %ld => %ld done\n", 
+                    (*offset), s_offset);
 
-    (*offset) += (size_t)wsize;
+    (*offset) = s_offset;
+    
+    return (EC_TRUE);
+}
 
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_flush: done\n");
+STATIC_CAST static CAIO_NODE *__caio_file_flush_req(CAIO_MD *caio_md, int fd, 
+                            const UINT32 f_s_offset, const UINT32 f_e_offset, /*range in file*/
+                            const UINT32 b_s_offset, const UINT32 b_e_offset, /*range in block*/
+                            UINT8 *m_cache)
+{
+    CAIO_NODE          *caio_node;
+    struct iocb        *aiocb;
+
+    ASSERT(0 == (CAIO_BLOCK_SIZE_MASK & (f_s_offset)));
+
+    /*set up aio request*/
+    caio_node = caio_node_new();
+    if(NULL_PTR == caio_node)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush_req: "
+                                             "new caio_node failed\n");
+        return (NULL_PTR);
+    }
+
+    aiocb = CAIO_NODE_AIOCB(caio_node);
+    aiocb->aio_data          = (uint64_t)((uintptr_t)(caio_node));
+    aiocb->aio_lio_opcode    = IOCB_CMD_PWRITE;
+    aiocb->aio_fildes        = fd;
+    aiocb->aio_buf           = (uint64_t)((uintptr_t)CAIO_NODE_F_CACHE(caio_node));
+    aiocb->aio_nbytes        = (size_t)(f_e_offset - f_s_offset);
+    aiocb->aio_offset        = (off_t )(f_s_offset);
+    aiocb->aio_flags         = IOCB_FLAG_RESFD;
+    aiocb->aio_resfd         = CAIO_MD_AIO_EVENTFD(caio_md);
+
+    CAIO_NODE_OP(caio_node)         = CAIO_NODE_WRITE_OP;
+    CAIO_NODE_M_CACHE(caio_node)    = m_cache;
+    CAIO_NODE_F_S_OFFSET(caio_node) = f_s_offset;
+    CAIO_NODE_F_E_OFFSET(caio_node) = f_e_offset;
+    CAIO_NODE_B_S_OFFSET(caio_node) = b_s_offset;
+    CAIO_NODE_B_E_OFFSET(caio_node) = b_e_offset;
+    CAIO_NODE_NTIME_TS(caio_node)   = task_brd_default_get_time() + CAIO_RW_TIMEOUT_NSEC;
+
+    return (caio_node);
+}
+
+STATIC_CAST static EC_BOOL __caio_file_flush(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+{
+    COROUTINE_COND      coroutine_cond;
+    
+    struct iocb        *piocb[ CAIO_REQ_MAX_NUM ];
+    UINT32              req_num;
+    UINT32              req_idx;
+    
+    UINT32              s_offset;
+    UINT32              e_offset;
+    UINT32              f_s_offset;
+    UINT32              f_e_offset;
+    UINT8              *m_buff;
+
+    coroutine_cond_init(&coroutine_cond, CAIO_RW_TIMEOUT_NSEC * 1000, LOC_CAIO_0003);
+
+    s_offset    = (*offset);
+    e_offset    = (*offset) + wsize;
+
+    f_s_offset  = (*offset) & (~CAIO_BLOCK_SIZE_MASK); /*align to block starting*/
+    f_e_offset  = ((*offset) + wsize) & (~CAIO_BLOCK_SIZE_MASK); /*align to previous block of ending*/
+
+    m_buff      = (UINT8 *)buff;
+
+    req_num     = 0;
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [1] "
+                    "m_buff %p, req_num %ld, "
+                    "raw [%ld, %ld) => file [%ld, %ld)\n",
+                    m_buff, req_num,
+                    s_offset, e_offset,
+                    f_s_offset, f_e_offset);
+
+    if(f_s_offset != s_offset)
+    {
+        UINT8              *head_block;
+        
+        UINT32              head_offset;
+        UINT32              head_size;
+
+        UINT32              b_s_offset;
+        UINT32              b_e_offset;
+    
+        CAIO_NODE          *caio_node;
+        
+        head_block = safe_malloc(CAIO_BLOCK_SIZE_NBYTE, LOC_CAIO_0001);
+        if(NULL_PTR == head_block)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: malloc head block failed\n");
+            return (EC_FALSE);
+        }
+
+        head_offset = f_s_offset;
+        head_size   = (s_offset & CAIO_BLOCK_SIZE_MASK);
+
+        if(EC_FALSE == caio_file_load(caio_md, fd, &head_offset, head_size, head_block))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load head block [%ld, %ld) failed\n",
+                            f_s_offset, f_s_offset + head_size);
+
+            safe_free(head_block, LOC_CAIO_0001);
+            return (EC_FALSE);
+        }
+
+        if(head_offset != f_s_offset + head_size)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load head block [%ld, %ld) but head offset reach %ld only\n",
+                            f_s_offset, f_s_offset + head_size, head_offset);
+
+            safe_free(head_block, LOC_CAIO_0001);
+            return (EC_FALSE);
+        }
+
+        /*--------------------------------------------------------------------*/
+        b_s_offset  = (s_offset & CAIO_BLOCK_SIZE_MASK);
+        b_e_offset  = DMIN(f_s_offset + CAIO_BLOCK_SIZE_NBYTE, f_e_offset) & CAIO_BLOCK_SIZE_MASK;
+        if(0 == b_e_offset) /*adjust to next block boundary*/
+        {
+            b_e_offset = CAIO_BLOCK_SIZE_NBYTE;
+        }
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [2] "
+                        "m_buff %p, req_num %ld, "
+                        "raw [%ld, %ld), flush file [%ld, %ld), block [%ld, %ld)\n",
+                        m_buff, req_num,
+                        s_offset, e_offset,
+                        f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE,
+                        b_s_offset, b_e_offset);
+                    
+        caio_node = __caio_file_flush_req(caio_md, fd, 
+                                          f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE, 
+                                          b_s_offset, b_e_offset, NULL_PTR);
+        if(NULL_PTR == caio_node)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                                 "new caio_node failed\n");
+
+            safe_free(head_block, LOC_CAIO_0001);
+            return (EC_FALSE);
+        }
+
+        CAIO_NODE_CCOND(caio_node) = &coroutine_cond; /*mount*/
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [2.1] "
+                        "m_buff %p, req_num %ld, "
+                        "copy %ld bytes from head block to f_cache %p\n",
+                        m_buff, req_num,
+                        head_size, CAIO_NODE_F_CACHE(caio_node));
+                        
+        BCOPY(head_block, CAIO_NODE_F_CACHE(caio_node), head_size);
+        safe_free(head_block, LOC_CAIO_0001);
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [2.1] "
+                        "m_buff %p, req_num %ld, "
+                        "copy %ld bytes from m_buff to f_cache %p\n",
+                        m_buff, req_num,
+                        b_e_offset - b_s_offset, CAIO_NODE_F_CACHE(caio_node) + head_size);
+                        
+        BCOPY(m_buff, CAIO_NODE_F_CACHE(caio_node) + head_size, b_e_offset - b_s_offset);
+        f_s_offset += b_e_offset;
+        m_buff     += b_e_offset - b_s_offset;
+
+        piocb[ req_num ++ ] = CAIO_NODE_AIOCB(caio_node); /*push*/
+    }
+
+    for(; req_num < CAIO_REQ_MAX_NUM && f_s_offset < f_e_offset;)
+    {
+        CAIO_NODE          *caio_node;
+
+        UINT32              b_s_offset;
+        UINT32              b_e_offset;
+
+        b_s_offset = 0;
+        b_e_offset = CAIO_BLOCK_SIZE_NBYTE;
+        
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [3] "
+                        "m_buff %p, req_num %ld, "
+                        "raw [%ld, %ld), flush file [%ld, %ld), block [%ld, %ld)\n",
+                        m_buff, req_num,
+                        s_offset, e_offset,
+                        f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE,
+                        b_s_offset, b_e_offset);
+                        
+        caio_node = __caio_file_flush_req(caio_md, fd, 
+                                          f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE, 
+                                          b_s_offset, b_e_offset, NULL_PTR);
+        if(NULL_PTR == caio_node)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                                 "new caio_node failed\n");
+
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        CAIO_NODE_CCOND(caio_node) = &coroutine_cond; /*mount*/
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [3.1] "
+                        "m_buff %p, req_num %ld, "
+                        "copy %ld bytes from m_buff to f_cache %p\n",
+                        m_buff, req_num,
+                        b_e_offset - b_s_offset, CAIO_NODE_F_CACHE(caio_node) + b_s_offset);
+                        
+        BCOPY(m_buff, CAIO_NODE_F_CACHE(caio_node) + b_s_offset, b_e_offset - b_s_offset);
+        f_s_offset += b_e_offset;
+        m_buff     += b_e_offset - b_s_offset;
+
+        piocb[ req_num ++ ] = CAIO_NODE_AIOCB(caio_node); /*push*/    
+    }
+
+    /*if s_offset and e_offset in same block, then reuse the previouse caio_node*/
+    if((s_offset & (~CAIO_BLOCK_SIZE_MASK)) == (e_offset & (~CAIO_BLOCK_SIZE_MASK)))
+    {
+        UINT8              *tail_block;
+        UINT32              tail_offset;
+        UINT32              tail_size; 
+
+        UINT32              b_s_offset;
+        UINT32              b_e_offset;
+    
+        CAIO_NODE          *caio_node;
+
+        ASSERT(0 == req_num || 1 == req_num);
+        
+        tail_block = safe_malloc(CAIO_BLOCK_SIZE_NBYTE, LOC_CAIO_0001);
+        if(NULL_PTR == tail_block)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: malloc tail block failed\n");
+
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        tail_offset = e_offset;
+        tail_size   = CAIO_BLOCK_SIZE_NBYTE - (e_offset & CAIO_BLOCK_SIZE_MASK);  
+
+        if(EC_FALSE == caio_file_load(caio_md, fd, &tail_offset, tail_size, tail_block))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load tail block [%ld, %ld) failed\n",
+                            e_offset, e_offset + tail_size);
+            safe_free(tail_block, LOC_CAIO_0001);
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        if(tail_offset != e_offset + tail_size)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load head block [%ld, %ld) but tail offset reach %ld only\n",
+                            e_offset, e_offset + tail_size, tail_offset);
+
+            safe_free(tail_block, LOC_CAIO_0001);
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }    
+
+        /*--------------------------------------------------------------------*/
+        b_s_offset = (s_offset & CAIO_BLOCK_SIZE_MASK);
+        b_e_offset = (e_offset & CAIO_BLOCK_SIZE_MASK);
+
+        if(0 == req_num)
+        {
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [4] "
+                            "m_buff %p, req_num %ld, "
+                            "raw [%ld, %ld), flush file [%ld, %ld), block [%ld, %ld)\n",
+                            m_buff, req_num,
+                            s_offset, e_offset,
+                            f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE,
+                            b_s_offset, b_e_offset);
+                        
+            caio_node = __caio_file_flush_req(caio_md, fd, 
+                                              f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE, 
+                                              b_s_offset, b_e_offset, NULL_PTR);
+            if(NULL_PTR == caio_node)
+            {
+                dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                                     "new caio_node failed\n");
+
+                safe_free(tail_block, LOC_CAIO_0001);
+                __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+                return (EC_FALSE);
+            }   
+
+            CAIO_NODE_CCOND(caio_node) = &coroutine_cond; /*mount*/
+
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [4.1] "
+                            "m_buff %p, req_num %ld, "
+                            "copy %ld bytes from m_buff to f_cache %p\n",
+                            m_buff, req_num,
+                            b_e_offset - b_s_offset, CAIO_NODE_F_CACHE(caio_node) + b_s_offset);
+                        
+            BCOPY(m_buff, CAIO_NODE_F_CACHE(caio_node) + b_s_offset, b_e_offset - b_s_offset);
+            f_s_offset += b_e_offset;
+            m_buff     += b_e_offset - b_s_offset;
+
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [4.2] "
+                            "m_buff %p, req_num %ld, "
+                            "copy %ld bytes from tail block to f_cache %p\n",
+                            m_buff, req_num,
+                            tail_size, CAIO_NODE_F_CACHE(caio_node) + b_e_offset);
+                            
+            BCOPY(tail_block, CAIO_NODE_F_CACHE(caio_node) + b_e_offset, tail_size);
+            //f_s_offset += tail_size;/*xxx*/
+            
+            safe_free(tail_block, LOC_CAIO_0001); 
+
+            piocb[ req_num ++ ] = CAIO_NODE_AIOCB(caio_node); /*push*/
+        }
+        else
+        {
+            caio_node = CAIO_AIOCB_NODE(piocb[ req_num - 1 ]); /*reuse*/
+
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [4.3] "
+                            "m_buff %p, req_num %ld, "
+                            "copy %ld bytes from m_buff to f_cache %p\n",
+                            m_buff, req_num,
+                            b_e_offset - b_s_offset, CAIO_NODE_F_CACHE(caio_node) + b_s_offset);
+                            
+            BCOPY(m_buff, CAIO_NODE_F_CACHE(caio_node) + b_s_offset, b_e_offset - b_s_offset);
+            f_s_offset += b_e_offset;
+            m_buff     += b_e_offset - b_s_offset;
+
+            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [4.4] "
+                            "m_buff %p, req_num %ld, "
+                            "copy %ld bytes from tail block to f_cache %p\n",
+                            m_buff, req_num,
+                            tail_size, CAIO_NODE_F_CACHE(caio_node) + b_e_offset);
+                        
+            BCOPY(tail_block, CAIO_NODE_F_CACHE(caio_node) + b_e_offset, tail_size);
+            //f_s_offset += tail_size;/*xxx*/
+            
+            safe_free(tail_block, LOC_CAIO_0001);
+        }
+    }
+
+    else if(f_e_offset < e_offset && req_num < CAIO_REQ_MAX_NUM)
+    {
+        UINT8              *tail_block;
+        UINT32              tail_offset;
+        UINT32              tail_size; 
+
+        UINT32              b_s_offset;
+        UINT32              b_e_offset;
+    
+        CAIO_NODE          *caio_node;
+        
+        tail_block = safe_malloc(CAIO_BLOCK_SIZE_NBYTE, LOC_CAIO_0001);
+        if(NULL_PTR == tail_block)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: malloc tail block failed\n");
+
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        tail_offset = e_offset;
+        tail_size   = CAIO_BLOCK_SIZE_NBYTE - (e_offset & CAIO_BLOCK_SIZE_MASK);  
+
+        if(EC_FALSE == caio_file_load(caio_md, fd, &tail_offset, tail_size, tail_block))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load tail block [%ld, %ld) failed\n",
+                            e_offset, e_offset + tail_size);
+            safe_free(tail_block, LOC_CAIO_0001);
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        if(tail_offset != e_offset + tail_size)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: load head block [%ld, %ld) but tail offset reach %ld only\n",
+                            e_offset, e_offset + tail_size, tail_offset);
+
+            safe_free(tail_block, LOC_CAIO_0001);
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }    
+
+        /*--------------------------------------------------------------------*/
+        b_s_offset = 0;
+        b_e_offset = (e_offset & CAIO_BLOCK_SIZE_MASK);
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [5] "
+                        "m_buff %p, req_num %ld, "
+                        "raw [%ld, %ld), flush file [%ld, %ld), block [%ld, %ld)\n",
+                        m_buff, req_num,
+                        s_offset, e_offset,
+                        f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE,
+                        b_s_offset, b_e_offset);
+                        
+        caio_node = __caio_file_flush_req(caio_md, fd, 
+                                          f_s_offset, f_s_offset + CAIO_BLOCK_SIZE_NBYTE, 
+                                          b_s_offset, b_e_offset, NULL_PTR);
+        if(NULL_PTR == caio_node)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                                 "new caio_node failed\n");
+
+            safe_free(tail_block, LOC_CAIO_0001);
+            __caio_cleanup_all((struct iocb * *)piocb, 0, req_num);
+            return (EC_FALSE);
+        }
+
+        CAIO_NODE_CCOND(caio_node) = &coroutine_cond; /*mount*/
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [5.1] "
+                        "m_buff %p, req_num %ld, "
+                        "copy %ld bytes from m_buff to f_cache %p\n",
+                        m_buff, req_num,
+                        b_e_offset - b_s_offset, CAIO_NODE_F_CACHE(caio_node) + b_s_offset);
+                            
+        BCOPY(m_buff, CAIO_NODE_F_CACHE(caio_node) + b_s_offset, b_e_offset - b_s_offset);
+        f_s_offset += b_e_offset;
+        m_buff     += b_e_offset - b_s_offset;
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: [5.2] "
+                        "m_buff %p, req_num %ld, "
+                        "copy %ld bytes from tail block to f_cache %p\n",
+                        m_buff, req_num,
+                        tail_size, CAIO_NODE_F_CACHE(caio_node) + b_e_offset);
+                            
+        BCOPY(tail_block, CAIO_NODE_F_CACHE(caio_node) + b_e_offset, tail_size);
+        //f_s_offset += tail_size;/*xxx*/
+        
+        safe_free(tail_block, LOC_CAIO_0001);
+        
+        piocb[ req_num ++ ] = CAIO_NODE_AIOCB(caio_node); /*push*/        
+    }
+
+    if(0 == req_num)
+    {
+        return (EC_FALSE);
+    }
+
+    if(EC_TRUE == __caio_submit(CAIO_MD_AIO_CONTEXT(caio_md), (long)req_num, piocb))
+    {
+        EC_BOOL             ret;
+        
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_flush: "
+                                             "io submit %ld requests done, fd %d, eventfd %d\n",
+                                             req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));    
+
+        coroutine_cond_reserve(&coroutine_cond, req_num, LOC_CAIO_0004);
+
+        ret = coroutine_cond_wait(&coroutine_cond, LOC_CAIO_0006);
+
+        __COROUTINE_IF_EXCEPTION() {/*exception*/
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: coroutine was cancelled\n");
+
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        if(EC_TIMEOUT == ret)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: coroutine was timeout\n");
+            
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        if(EC_TERMINATE == ret)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: coroutine was terminated\n");
+            __caio_cancel_all(CAIO_MD_AIO_CONTEXT(caio_md), (struct iocb **)piocb, 0, req_num);
+            __caio_cleanup_all((struct iocb **)piocb, 0, req_num);
+            coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0007);
+
+            return (EC_FALSE);
+        }
+
+        coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0010);
+
+        (*offset) = f_s_offset;
+        return (EC_TRUE);
+    }   
+
+    coroutine_cond_clean(&coroutine_cond, LOC_CAIO_0010);
+
+    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                         "io submit %ld requests failed, fd %d, eventfd %d\n",
+                                         req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));
+
+    /*switch to block-mode*/
+    for(req_idx = 0; req_idx < req_num; req_idx ++)
+    {
+        CAIO_NODE          *caio_node;
+        
+        UINT32              f_offset;
+        UINT32              f_wsize;
+
+        caio_node = CAIO_AIOCB_NODE(piocb[ req_idx ]);
+
+        f_offset  = CAIO_NODE_F_S_OFFSET(caio_node);
+        f_wsize   = CAIO_NODE_F_E_OFFSET(caio_node) - CAIO_NODE_F_S_OFFSET(caio_node);
+
+        if(EC_FALSE == c_file_pwrite(fd, &f_offset, f_wsize, CAIO_NODE_F_CACHE(caio_node)))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_flush: "
+                                                 "pwrite %ld/%ld request failed, fd %d, eventfd %d\n",
+                                                 req_idx, req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));        
+            break;
+        }
+
+        (*offset) += CAIO_NODE_B_E_OFFSET(caio_node) - CAIO_NODE_B_S_OFFSET(caio_node);
+        
+        piocb[ req_idx ] = NULL_PTR;
+        caio_node_free(caio_node);
+    }
+
+    /*clean up residue*/
+    __caio_cleanup_all((struct iocb **)piocb, req_idx, req_num);
+    
+    /*no pread succ, return false*/
+    if(0 == req_idx)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_file_load: "
+                                             "pwrite failed of %ld requests, fd %d, eventfd %d\n",
+                                             req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));
+        
+        return (EC_FALSE);
+    }
+
+    /*one or more pread succ, return true*/
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] __caio_file_load: "
+                                         "pwrite %ld of %ld requests succ, fd %d, eventfd %d\n",
+                                         req_idx + 1, req_num, fd, CAIO_MD_AIO_EVENTFD(caio_md));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL caio_file_flush(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+{
+    UINT32              s_offset;
+    UINT32              e_offset;
+    const UINT8        *m_cache;
+
+    s_offset = (*offset);
+    e_offset = s_offset + wsize;
+    m_cache  = buff;
+
+    while(s_offset < e_offset)
+    {
+        UINT32      offset_t;
+
+        offset_t = s_offset;
+        
+        if(EC_FALSE ==__caio_file_flush(caio_md, fd, &offset_t, e_offset - s_offset, m_cache))
+        {
+            break;
+        }
+
+        m_cache += (offset_t - s_offset);
+        s_offset = offset_t;
+    }
+
+    if(s_offset == (*offset))
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_file_flush: flush failed where offset %ld, wsize %ld\n",
+                        (*offset), wsize);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_file_flush: offset %ld => %ld done\n", 
+                    (*offset), s_offset);
+
+    (*offset) = s_offset;
+    
     return (EC_TRUE);
 }
 

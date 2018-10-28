@@ -19,6 +19,8 @@ extern "C"{
 #include "cmutex.h"
 #include "cmisc.h"
 
+#include "caio.h"
+
 /*MD_TYPE*/
 #define     MD_CONV      ((UINT32)  0)
 #define     MD_TASK      ((UINT32)  1)
@@ -320,6 +322,7 @@ extern "C"{
 #define                   MM_CMCNP_DNODE    ((UINT32)238)
 #define                     MM_CMCNP_KEY    ((UINT32)239)
 #define                    MM_CMCNP_ITEM    ((UINT32)240)
+#define                     MM_CAIO_NODE    ((UINT32)241)
 
 
 #define                           MM_END    ((UINT32)512)
