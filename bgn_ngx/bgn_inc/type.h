@@ -172,6 +172,9 @@ typedef UINT8 UUID[16];
 
 #define VAL_IS_POWER_OF_TWO(value)  (0 < (value) && (((value) & (~(value) + 1)) == (value)))
 
+#define VAL_ALIGN_NEXT(value, mask) (((value) + (mask)) & (~(mask)))
+#define VAL_ALIGN_HEAD(value, mask) ((value) & (~mask))
+
 #if 0
 netinet/in.h
 ======
@@ -281,8 +284,10 @@ netinet/in.h
 #define UINT32_ZERO  ((UINT32) 0)
 #define UINT32_ONE   ((UINT32) 1)
 
+#define ANY_FD       ((int)-2)
 #define ERR_FD       ((int)-1)
 #define ERR_SEEK     (-1)
+#define ERR_OFFSET   ((UINT32)-1)
 
 #define FILE_PAD_CHAR (0x00)
 
@@ -396,7 +401,7 @@ extern long int lrint(double x);
 
 #define BCOPY(src, des, len)           memcpy(des, src, len)
 #define BMOVE(src, des, len)           memmove(des, src, len)
-#define BSET(pstr, ch, len)            memset(pstr, ch, len)
+#define BSET(pvoid, ch, len)           memset(pvoid, ch, len)
 #define BCMP(pstr1, pstr2, len)        memcmp(pstr1, pstr2, len)
 #define STRCMP(pstr1, pstr2)           strcmp(pstr1, pstr2)
 #define STRCASECMP(pstr1, pstr2)       strcasecmp(pstr1, pstr2)

@@ -19,6 +19,8 @@ extern "C"{
 #include "cmutex.h"
 #include "cmisc.h"
 
+#include "caio.h"
+
 /*MD_TYPE*/
 #define     MD_CONV      ((UINT32)  0)
 #define     MD_TASK      ((UINT32)  1)
@@ -47,7 +49,8 @@ extern "C"{
 #define     MD_CFILE     ((UINT32) 24)
 #define     MD_CDETECTN  ((UINT32) 25)
 #define     MD_CMIAOPAI  ((UINT32) 26)
-#define     MD_END       ((UINT32) 27)
+#define     MD_CMC       ((UINT32) 27)
+#define     MD_END       ((UINT32) 28)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)
@@ -310,6 +313,38 @@ extern "C"{
 #define                 MM_CRFS_HOT_PATH    ((UINT32)230)
 #define         MM_CDETECTN_STATUS_RANGE    ((UINT32)231)
 #define          MM_CDETECTN_DOMAIN_NODE    ((UINT32)232)
+
+#define                         MM_CMCDN    ((UINT32)233)
+#define                        MM_CMCPGV    ((UINT32)234)
+#define                        MM_CMCPGD    ((UINT32)235)
+#define                         MM_CMCNP    ((UINT32)236)
+#define                   MM_CMCNP_FNODE    ((UINT32)237)
+#define                   MM_CMCNP_DNODE    ((UINT32)238)
+#define                     MM_CMCNP_KEY    ((UINT32)239)
+#define                    MM_CMCNP_ITEM    ((UINT32)240)
+#define                  MM_CMCNP_BITMAP    ((UINT32)241)
+
+#define                     MM_CAIO_NODE    ((UINT32)242)
+#define                      MM_CAIO_REQ    ((UINT32)243)
+#define                     MM_CAIO_PAGE    ((UINT32)244)
+
+#define                     MM_CAMD_PAGE    ((UINT32)245)
+#define                      MM_CAMD_REQ    ((UINT32)246)
+#define                     MM_CAMD_NODE    ((UINT32)247)
+
+#define                         MM_CDCDN    ((UINT32)248)
+#define                        MM_CDCPGV    ((UINT32)249)
+#define                        MM_CDCPGD    ((UINT32)250)
+#define                         MM_CDCNP    ((UINT32)251)
+#define                   MM_CDCNP_FNODE    ((UINT32)252)
+#define                   MM_CDCNP_DNODE    ((UINT32)253)
+#define                     MM_CDCNP_KEY    ((UINT32)254)
+#define                    MM_CDCNP_ITEM    ((UINT32)255)
+#define                  MM_CDCNP_BITMAP    ((UINT32)256)
+#define                     MM_CDCDN_AIO    ((UINT32)257)
+#define                     MM_CDCNP_AIO    ((UINT32)258)
+#define                MM_CDCDN_FILE_AIO    ((UINT32)259)
+#define                  MM_CDC_FILE_AIO    ((UINT32)260)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

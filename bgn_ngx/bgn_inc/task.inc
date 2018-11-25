@@ -418,6 +418,17 @@ typedef struct
 
 typedef EC_BOOL (*TASK_BRD_EXTRA_CLEANER)(void *);
 
+typedef EC_BOOL (*TASK_BRD_CALLBACK)(void *);
+
+typedef struct
+{
+    TASK_BRD_CALLBACK        func;
+    void                    *arg;
+}TASK_BRD_CB_HANDLER;
+
+#define TASK_BRD_CB_HANDLER_FUNC(task_brd_cb_handler)           ((task_brd_cb_handler)->func)
+#define TASK_BRD_CB_HANDLER_ARG(task_brd_cb_handler)            ((task_brd_cb_handler)->arg)
+
 /*task board*/
 typedef struct _TASK_BRD
 {
@@ -527,6 +538,8 @@ typedef struct _TASK_BRD
 
     CLIST        task_report_list; /*task report log cache which records info when a task come to end. item data type: TASK_REPORT_NODE*/
     CLIST        task_cbtimer_list;
+
+    CLIST        task_process_list;/*item is TASK_BRD_CB_HANDLER*/
 
     EC_BOOL      enable_flag;      /*when enabled (== EC_TRUE), obtain actual load, when disabled (== EC_FALSE), obtain faked load(-1, the max int value)*/
     EC_BOOL      reset_flag;       /*when enabled (== EC_TRUE), reset do_slave thread if down, otherwise, not reset do_slave thread if down*/
@@ -964,6 +977,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_CONTEXT_LIST(task_brd)                      (&((task_brd)->context_list))
 #define TASK_BRD_REPORT_LIST(task_brd)                       (&((task_brd)->task_report_list))
 #define TASK_BRD_CBTIMER_LIST(task_brd)                      (&((task_brd)->task_cbtimer_list))
+#define TASK_BRD_PROCESS_LIST(task_brd)                      (&((task_brd)->task_process_list))
 
 #define TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 #define TASK_BRD_ARGING_TASK_MGR_LIST_INIT(task_brd, location)         (clist_init(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), MM_IGNORE, location))

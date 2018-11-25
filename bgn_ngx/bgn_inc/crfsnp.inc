@@ -41,7 +41,7 @@ extern "C"{
 #define CRFSNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
 #define CRFSNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
 
-#define CRFSNP_KEY_MAX_SIZE             (CRFSNP_KEY_SIZE_063B)  
+#define CRFSNP_KEY_MAX_SIZE             (CRFSNP_KEY_SIZE_063B)
 #define CRFSNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 
 #define CRFSNP_008M_MODEL   ((uint8_t) 0)
@@ -92,8 +92,8 @@ typedef struct
     uint32_t      file_replica_num:4;
     uint32_t      file_path_hash;
 
-    /*8B*/  
-    CRFSNP_INODE  inodes[ CRFSNP_FILE_REPLICA_MAX_NUM ]; 
+    /*8B*/
+    CRFSNP_INODE  inodes[ CRFSNP_FILE_REPLICA_MAX_NUM ];
 }CRFSNP_FNODE;/*16B*/
 
 #define CRFSNP_FNODE_FILESZ(crfsnp_fnode)        ((crfsnp_fnode)->file_size)
@@ -176,7 +176,7 @@ typedef struct
 
 #define CRFSNP_ITEM_KEY(crfsnp_item)              \
     ((CRFSNP_KEY *)(((void *)(crfsnp_item)) + CRFSNP_ITEM_KEY_OFFSET(crfsnp_item)))
-    
+
 #define CRFSNP_ITEM_KLEN(crfsnp_item)             (CRFSNP_KEY_LEN(CRFSNP_ITEM_KEY(crfsnp_item)))
 #define CRFSNP_ITEM_KNAME(crfsnp_item)            (CRFSNP_KEY_NAME(CRFSNP_ITEM_KEY(crfsnp_item)))
 
@@ -192,7 +192,7 @@ typedef struct
 /*get CRFSNP_ITEM from CRFSNPDEL_NODE*/
 #define CRFSNP_DEL_NODE_ITEM(crfsnpdel_node)        ((NULL_PTR == (crfsnpdel_node)) ? NULL_PTR : \
     ((CRFSNP_ITEM *)((char *)(crfsnpdel_node)-(unsigned long)(&((CRFSNP_ITEM *)0)->del_node))))
-    
+
 #define CRFSNP_ITEM_IS_REG(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_REG == (CRFSNP_ITEM_FILE_IS_REG & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 #define CRFSNP_ITEM_IS_DIR(crfsnp_item)            (CRFSNP_ITEM_FILE_IS_DIR == (CRFSNP_ITEM_FILE_IS_DIR & CRFSNP_ITEM_DIR_FLAG(crfsnp_item)))
 
@@ -368,26 +368,25 @@ typedef struct
 
 typedef struct
 {
-    int              fd;         /* rfs namespace fd  */
-    uint32_t         rsvd;
+    int                     fd;           /* rfs namespace fd  */
+    uint32_t                rsvd;
 
-    UINT32           fsize;
+    UINT32                  fsize;
 
-    uint8_t         *fname;
+    uint8_t                *fname;
 
-    uint64_t         del_size;     /* deleted but not recycled bytes*/
-    uint64_t         recycle_size; /* recycled bytes*/
+    uint64_t                del_size;     /* deleted but not recycled bytes*/
+    uint64_t                recycle_size; /* recycled bytes*/
 
-    CRFSNP_HEADER   *header;       /* hashdb header */
+    CRFSNP_HEADER          *header;       /* hashdb header */
 
     /*shortcut of lru list which point to root rb node */
-    CRFSNPLRU_NODE  *lru_list; /*the lastest access node is at head covering fnode only*/
+    CRFSNPLRU_NODE         *lru_list; /*the lastest access node is at head covering fnode only*/
 
     /*shortcut of del list which point to root rb node */
-    CRFSNPDEL_NODE  *del_list; /*the deleted but not recycled nodes are in covering fnode and dnode*/
+    CRFSNPDEL_NODE         *del_list;      /*the deleted but not recycled nodes are in covering fnode and dnode*/
 
-    CHASH_ALGO       chash_algo_2nd;       /* hash algo for rbtree in the hash bucket: used to compute crfsnprb_node hash data*/
-
+    CHASH_ALGO              chash_algo_2nd;/* hash algo for rbtree in the hash bucket: used to compute crfsnprb_node hash data*/
 } CRFSNP;
 
 #define CRFSNP_FD(crfsnp)                     ((crfsnp)->fd)

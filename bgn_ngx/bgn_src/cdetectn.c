@@ -210,7 +210,7 @@ EC_BOOL cdetectn_orig_node_init(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
     CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)           = NULL_PTR;
     CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node)        = 0;
-    
+
     cstring_init(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node), NULL_PTR);
     cstring_init(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node), NULL_PTR);
     clist_init(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), MM_CDETECTN_IP_NODE, LOC_CDETECTN_0003);
@@ -237,11 +237,11 @@ EC_BOOL cdetectn_orig_node_clean(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
     if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
     {
-        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0005);
         CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = NULL_PTR;
         CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
     }
-    
+
     cstring_clean(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node));
     cstring_clean(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node));
     clist_clean(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), (CLIST_DATA_DATA_CLEANER)cdetectn_ip_node_free);
@@ -267,11 +267,11 @@ EC_BOOL cdetectn_orig_node_clear(CDETECTN_ORIG_NODE *cdetectn_orig_node)
 {
     if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
     {
-        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+        cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0006);
         CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = NULL_PTR;
         CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
     }
-    
+
     //cstring_clean(CDETECTN_ORIG_NODE_DOMAIN(cdetectn_orig_node));
     //cstring_clean(CDETECTN_ORIG_NODE_URI(cdetectn_orig_node));
     //clist_clean(CDETECTN_ORIG_NODE_IP_NODES(cdetectn_orig_node), (CLIST_DATA_DATA_CLEANER)cdetectn_ip_node_free);
@@ -298,7 +298,7 @@ EC_BOOL cdetectn_orig_node_free(CDETECTN_ORIG_NODE *cdetectn_orig_node)
     if(NULL_PTR != cdetectn_orig_node)
     {
         cdetectn_orig_node_clean(cdetectn_orig_node);
-        free_static_mem(MM_CDETECTN_ORIG_NODE, cdetectn_orig_node, LOC_CDETECTN_0005);
+        free_static_mem(MM_CDETECTN_ORIG_NODE, cdetectn_orig_node, LOC_CDETECTN_0007);
     }
     return (EC_TRUE);
 }
@@ -486,12 +486,12 @@ EC_BOOL cdetectn_orig_node_parse_reachable_status_code(CDETECTN_ORIG_NODE *cdete
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_orig_node_parse_reachable_status_code: "
                                                      "[%ld/%ld] parse %s failed\n",
                                                      idx, segs_num, segs[ idx ]);
-            safe_free(status_str, LOC_CDETECTN_0006);
+            safe_free(status_str, LOC_CDETECTN_0008);
             return (EC_FALSE);
         }
     }
 
-    safe_free(status_str, LOC_CDETECTN_0007);
+    safe_free(status_str, LOC_CDETECTN_0009);
     return (EC_TRUE);
 }
 
@@ -545,7 +545,7 @@ CDETECTN_IP_NODE *cdetectn_ip_node_new()
 {
     CDETECTN_IP_NODE *cdetectn_ip_node;
 
-    alloc_static_mem(MM_CDETECTN_IP_NODE, &cdetectn_ip_node, LOC_CDETECTN_0008);
+    alloc_static_mem(MM_CDETECTN_IP_NODE, &cdetectn_ip_node, LOC_CDETECTN_0010);
     if(NULL_PTR != cdetectn_ip_node)
     {
         cdetectn_ip_node_init(cdetectn_ip_node);
@@ -595,7 +595,7 @@ EC_BOOL cdetectn_ip_node_free(CDETECTN_IP_NODE *cdetectn_ip_node)
     if(NULL_PTR != cdetectn_ip_node)
     {
         cdetectn_ip_node_clean(cdetectn_ip_node);
-        free_static_mem(MM_CDETECTN_IP_NODE, cdetectn_ip_node, LOC_CDETECTN_0009);
+        free_static_mem(MM_CDETECTN_IP_NODE, cdetectn_ip_node, LOC_CDETECTN_0011);
     }
     return (EC_TRUE);
 }
@@ -652,7 +652,7 @@ CDETECTN_DOMAIN_NODE *cdetectn_domain_node_new()
 {
     CDETECTN_DOMAIN_NODE *cdetectn_domain_node;
 
-    alloc_static_mem(MM_CDETECTN_DOMAIN_NODE, &cdetectn_domain_node, LOC_CDETECTN_0010);
+    alloc_static_mem(MM_CDETECTN_DOMAIN_NODE, &cdetectn_domain_node, LOC_CDETECTN_0012);
     if(NULL_PTR != cdetectn_domain_node)
     {
         cdetectn_domain_node_init(cdetectn_domain_node);
@@ -683,7 +683,7 @@ EC_BOOL cdetectn_domain_node_free(CDETECTN_DOMAIN_NODE *cdetectn_domain_node)
     if(NULL_PTR != cdetectn_domain_node)
     {
         cdetectn_domain_node_clean(cdetectn_domain_node);
-        free_static_mem(MM_CDETECTN_IP_NODE, cdetectn_domain_node, LOC_CDETECTN_0011);
+        free_static_mem(MM_CDETECTN_IP_NODE, cdetectn_domain_node, LOC_CDETECTN_0013);
     }
     return (EC_TRUE);
 }
@@ -709,7 +709,7 @@ CDETECTN_STATUS_RANGE *cdetectn_status_range_new()
 {
     CDETECTN_STATUS_RANGE *cdetectn_status_range;
 
-    alloc_static_mem(MM_CDETECTN_STATUS_RANGE, &cdetectn_status_range, LOC_CDETECTN_0012);
+    alloc_static_mem(MM_CDETECTN_STATUS_RANGE, &cdetectn_status_range, LOC_CDETECTN_0014);
     if(NULL_PTR != cdetectn_status_range)
     {
         cdetectn_status_range_init(cdetectn_status_range);
@@ -738,7 +738,7 @@ EC_BOOL cdetectn_status_range_free(CDETECTN_STATUS_RANGE *cdetectn_status_range)
     if(NULL_PTR != cdetectn_status_range)
     {
         cdetectn_status_range_clean(cdetectn_status_range);
-        free_static_mem(MM_CDETECTN_STATUS_RANGE, cdetectn_status_range, LOC_CDETECTN_0013);
+        free_static_mem(MM_CDETECTN_STATUS_RANGE, cdetectn_status_range, LOC_CDETECTN_0015);
     }
     return (EC_TRUE);
 }
@@ -774,7 +774,7 @@ EC_BOOL cdetectn_status_range_is_in(const CDETECTN_STATUS_RANGE *cdetectn_status
 
 EC_BOOL cdetectn_status_range_mgr_init(CLIST *cdetectn_status_range_mgr)
 {
-    clist_init(cdetectn_status_range_mgr, MM_CDETECTN_STATUS_RANGE, LOC_CDETECTN_0014);
+    clist_init(cdetectn_status_range_mgr, MM_CDETECTN_STATUS_RANGE, LOC_CDETECTN_0016);
 
     return (EC_TRUE);
 }
@@ -1521,7 +1521,7 @@ EC_BOOL cdetectn_load_conf(const UINT32 cdetectn_md_id, const CSTRING *cdetectn_
         return (EC_FALSE);
     }
 
-    fcontent = safe_malloc(fsize, LOC_CDETECTN_0015);
+    fcontent = safe_malloc(fsize, LOC_CDETECTN_0017);
     if(NULL_PTR == fcontent)
     {
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_load_conf: "
@@ -1538,7 +1538,7 @@ EC_BOOL cdetectn_load_conf(const UINT32 cdetectn_md_id, const CSTRING *cdetectn_
                                                  "load file '%s' failed\n",
                                                  (char *)cstring_get_str(cdetectn_conf_file));
         c_file_close(fd);
-        safe_free(fcontent, LOC_CDETECTN_0016);
+        safe_free(fcontent, LOC_CDETECTN_0018);
         return (EC_FALSE);
     }
     c_file_close(fd);
@@ -1562,10 +1562,10 @@ EC_BOOL cdetectn_load_conf(const UINT32 cdetectn_md_id, const CSTRING *cdetectn_
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_load_conf: "
                                                  "parse conf file '%s' failed\n",
                                                  (char *)cstring_get_str(cdetectn_conf_file));
-        safe_free(fcontent, LOC_CDETECTN_0017);
+        safe_free(fcontent, LOC_CDETECTN_0019);
         return (EC_FALSE);
     }
-    safe_free(fcontent, LOC_CDETECTN_0018);
+    safe_free(fcontent, LOC_CDETECTN_0020);
 
     dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] cdetectn_load_conf: "
                                              "parse conf file '%s' done\n",
@@ -1921,12 +1921,12 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_recv_handle(CDNS_
     cdetectn_orig_node   = CDNS_NODE_PRIVATE_DATA0(cdns_node);
     cdetectn_domain_node = CDNS_NODE_PRIVATE_DATA1(cdns_node);
 
-    domain = (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node));  
-        
+    domain = (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node));
+
     if(NULL_PTR != CDNS_NODE_RSP(cdns_node) && BIT_TRUE == CDNS_NODE_RECV_COMPLETE(cdns_node))
     {
         CLIST_DATA           *clist_data;
-       
+
         cdetectn_orig_node_clear_ip_nodes(cdetectn_orig_node, domain);
 
         CLIST_LOOP_NEXT(CDNS_NODE_RSP(cdns_node), clist_data)
@@ -1957,7 +1957,7 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_recv_handle(CDNS_
                                                      domain,
                                                      CDETECTN_IP_NODE_IPADDR_STR(cdetectn_ip_node),
                                                      CDETECTN_IP_NODE_PORT(cdetectn_ip_node));
-        }        
+        }
 
         //__cdetectn_resolve_orig_node_domain_cleanup_handle(cdns_node);
         return (EC_TRUE);
@@ -1982,14 +1982,14 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_recv_handle(CDNS_
 
         dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain_recv_handle: "
                                                  "domain '%s': try name server [%ld / %ld] %s\n",
-                                                 domain, 
+                                                 domain,
                                                  name_server_pos, name_server_num, c_word_to_ipv4(name_server_ip));
 
         __cdetectn_resolve_orig_node_domain(cdetectn_orig_node, cdetectn_domain_node);
-    
+
         return (EC_FALSE);
     }
-    
+
     //__cdetectn_resolve_orig_node_domain_cleanup_handle(cdns_node);
     return (EC_TRUE);
 }
@@ -2027,7 +2027,7 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain(CDETECTN_ORIG_NOD
     {
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:__cdetectn_resolve_orig_node_domain: new cdns_req failed\n");
         return (EC_FALSE);
-    }    
+    }
 
     name_server_pos = CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node);
     name_server_ip = (UINT32)cvector_get(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), name_server_pos);
@@ -2047,8 +2047,8 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain(CDETECTN_ORIG_NOD
 
     dbg_log(SEC_0070_CDETECTN, 9)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain: "
                                              "domain '%s': request to name server %s\n",
-                                             (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node)), 
-                                             c_word_to_ipv4(name_server_ip));    
+                                             (char *)cstring_get_str(CDETECTN_DOMAIN_NODE_NAME(cdetectn_domain_node)),
+                                             c_word_to_ipv4(name_server_ip));
 
     return (EC_TRUE);
 }
@@ -2494,7 +2494,7 @@ EC_BOOL cdetectn_start_domain(const UINT32 cdetectn_md_id, const CSTRING *domain
     CDETECTN_MD          *cdetectn_md;
 
     CDETECTN_ORIG_NODE   *cdetectn_orig_node;
-    
+
     CVECTOR              *name_servers;
 
 #if ( SWITCH_ON == CDETECTN_DEBUG_SWITCH )
@@ -2519,22 +2519,22 @@ EC_BOOL cdetectn_start_domain(const UINT32 cdetectn_md_id, const CSTRING *domain
         return (EC_FALSE);
     }
 
-    name_servers = cvector_new(8, MM_UINT32, LOC_CDETECTN_0001);
+    name_servers = cvector_new(8, MM_UINT32, LOC_CDETECTN_0021);
     if(NULL_PTR != name_servers)
     {
         if(EC_FALSE == c_import_resolve_conf(name_servers))
         {
             dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "warn:cdetectn_start_domain: "
                                                      "domain '%s', resolve name servers failed\n",
-                                                     (char *)cstring_get_str(domain));        
-            cvector_free(name_servers, LOC_CDETECTN_0001);
+                                                     (char *)cstring_get_str(domain));
+            cvector_free(name_servers, LOC_CDETECTN_0022);
         }
         else
         {
             /*update name servers in orig node*/
             if(NULL_PTR != CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node))
             {
-                cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0001);
+                cvector_free(CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node), LOC_CDETECTN_0023);
                 CDETECTN_ORIG_NODE_NAME_SERVERS(cdetectn_orig_node)    = name_servers;
                 CDETECTN_ORIG_NODE_NAME_SERVER_POS(cdetectn_orig_node) = 0;
             }
@@ -2550,7 +2550,7 @@ EC_BOOL cdetectn_start_domain(const UINT32 cdetectn_md_id, const CSTRING *domain
     {
         dbg_log(SEC_0070_CDETECTN, 0)(LOGSTDOUT, "error:cdetectn_start_domain: "
                                                  "domain '%s', no resolved name server\n",
-                                                 (char *)cstring_get_str(domain));        
+                                                 (char *)cstring_get_str(domain));
         return (EC_FALSE);
     }
 

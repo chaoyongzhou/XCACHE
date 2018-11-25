@@ -166,6 +166,8 @@ EC_BOOL crb_tree_load(CRB_TREE *crbtree, int fd, UINT32 *offset, void *(*data_ne
 EC_BOOL crb_inorder_clone(const CRB_TREE *crbtree_src, CRB_TREE *crbtree_des, void *(*data_new)(), EC_BOOL (*data_clone)(const void *, void *));
 EC_BOOL crb_tree_clone(const CRB_TREE *crbtree_src, CRB_TREE *crbtree_des, void *(*data_new)(), EC_BOOL (*data_clone)(const void *, void *));
 
+EC_BOOL crb_tree_move(CRB_TREE *crbtree_src, CRB_TREE *crbtree_des);
+
 #endif    /* _CRB_H */
 
 #ifdef __cplusplus
