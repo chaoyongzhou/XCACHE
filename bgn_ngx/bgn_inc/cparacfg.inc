@@ -63,7 +63,7 @@ typedef struct
     UINT32    conn_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
     UINT32    timeout_max_num_per_loop      ;/*once cepoll loop shutdown the timeout connections to the max num*/
     UINT32    cdns_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
-    
+
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
     UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
@@ -72,8 +72,13 @@ typedef struct
     UINT32    crfsnp_try_recycle_max_num    ; /* CRFSNP_TRY_RECYCLE_MAX_NUM */
     UINT32    crfsnp_cache_in_mem_switch    ; /* CRFSNP_CACHE_IN_MEM_SWITCH */
     UINT32    crfsdn_cache_in_mem_switch    ; /* CRFSDN_CACHE_IN_MEM_SWITCH */
-    UINT32    crfsdn_caio_switch            ; /* CRFSDN_CAIO_SWITCH*/
-    
+
+    UINT32    crfsdn_camd_switch            ; /* CRFSDN_CAMD_SWITCH*/
+    UINT32    crfsdn_camd_sata_disk_size    ; /* CRFSDN_CAMD_SATA_DISK_SIZE (in GB)*/
+    UINT32    crfsdn_camd_mem_disk_size     ; /* CRFSDN_CAMD_MEM_DISK_SIZE (in MB)*/
+    UINT32    crfsdn_camd_ssd_disk_offset   ; /* CRFSDN_CAMD_SSD_DISK_OFFSET (in B)*/
+    UINT32    crfsdn_camd_ssd_disk_size     ; /* CRFSDN_CAMD_SSD_DISK_SIZE (in GB)*/
+
     uint16_t  rsvd03;
     uint16_t  crfsmon_conhash_replicas      ; /* CRFSMON_CONHASH_REPLICAS */
     UINT32    crfsmon_conhash_switch        ; /* CRFSMON_CONHASH_SWITCH */
@@ -170,7 +175,13 @@ typedef struct
 #define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->crfsnp_try_recycle_max_num)
 #define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsnp_cache_in_mem_switch)
 #define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsdn_cache_in_mem_switch)
-#define CPARACFG_CRFSDN_CAIO_SWITCH(cparacfg)                       ((cparacfg)->crfsdn_caio_switch)
+
+#define CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->crfsdn_camd_switch)
+#define CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->crfsdn_camd_sata_disk_size)
+#define CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->crfsdn_camd_mem_disk_size)
+#define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->crfsdn_camd_ssd_disk_offset)
+#define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->crfsdn_camd_ssd_disk_size)
+
 #define CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->crfsmon_conhash_switch)
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
@@ -218,7 +229,8 @@ typedef struct
 
 #define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
-#define CPARACFG_CRFSDN_CAIO_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CRFSDN_CAIO_SWITCH(cparacfg)))
+
+#define CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)))
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
@@ -339,7 +351,12 @@ typedef struct
 #define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
 #define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
-#define CPARACFG_CRFSDN_CAIO_SWITCH_DEF                          SWITCH_OFF
+
+#define CPARACFG_CRFSDN_CAMD_SWITCH_DEF                          SWITCH_OFF
+#define CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
+#define CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE_DEF                   0
+#define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
+#define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
@@ -428,7 +445,13 @@ typedef struct
 #define    CRFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM)
 #define    CRFSNP_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH)
 #define    CRFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH)
-#define    CRFSDN_CAIO_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAIO_SWITCH)
+
+#define    CRFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SWITCH)
+#define    CRFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE)
+#define    CRFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE)
+#define    CRFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET)
+#define    CRFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE)
+
 #define    CRFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_SWITCH)
 #define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
 #define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)

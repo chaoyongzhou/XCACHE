@@ -1277,6 +1277,23 @@ EC_BOOL log_file_fopen(LOG *log)
         return (EC_FALSE);
     }
 
+    if(1)
+    {
+        int  fd;
+
+        fd = fileno(LOG_FILE_FP(log));
+
+        if(0 > fcntl(fd, F_SETFD, FD_CLOEXEC))
+        {
+            fprintf(stderr, "error:log_file_fopen: set fd %d to FD_CLOEXEC failed, errno = %d, errstr = %s\n",
+                            fd, errno, strerror(errno));
+
+            fclose(LOG_FILE_FP(log));
+            LOG_FILE_FP(log) = NULL_PTR;
+            return (EC_FALSE);
+        }
+    }
+
 #if 1
     if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log))
     {

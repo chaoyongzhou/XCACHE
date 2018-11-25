@@ -37,28 +37,28 @@ uint8_t btreeScan(const BTree *tree, const RawFile *rawFile, const uint8_t *des_
             return 0;
         }
 
-        MEM_CHECK(key = (uint8_t *)SAFE_MALLOC(klen + 2 + 4 , LOC_BTREE_0123));
+        MEM_CHECK(key = (uint8_t *)SAFE_MALLOC(klen + 2 + 4 , LOC_BTREE_0055));
 
         if(RAW_FILE_FAIL == rawFileRead8s(rawFile, key, klen + 2 + 4, &len, offset + sizeof(uint32_t)))
         {
             dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT,"error:btreeScan: read key %d bytes at offset %d failed\n",
                             klen + 2 + 4, (uint32_t)(offset + sizeof(uint32_t)));
 
-            SAFE_FREE(key, LOC_BTREE_0124);
+            SAFE_FREE(key, LOC_BTREE_0056);
             btreeDestroyTraversal(trav);
             return 0;
         }
 
         if(0 == keyCompare(key, des_key))
         {
-            SAFE_FREE(key, LOC_BTREE_0125);
+            SAFE_FREE(key, LOC_BTREE_0057);
             btreeDestroyTraversal(trav);
 
             (*filePos) = offset;
             return 1;/*succ*/
         }
 
-        SAFE_FREE(key, LOC_BTREE_0126);
+        SAFE_FREE(key, LOC_BTREE_0058);
     }
 
     btreeDestroyTraversal(trav);

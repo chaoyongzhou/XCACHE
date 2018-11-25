@@ -33,7 +33,10 @@ extern "C"{
 #include "cpgd.h"
 #include "cpgv.h"
 
+#include "camd.h"
+
 #define CRFSDN_DB_NAME      ((const char *)"dn_cfg.dat")
+#define CRFSDN_SSD_NAME     ((const char *)"ssd_cfg.dat")
 
 #define CRFSDN_NODE_NAME_MAX_SIZE       (256)
 
@@ -86,7 +89,7 @@ extern "C"{
 
 #define CRFSDN_CACHE_MAX_BYTE_SIZE       ((UINT32)(UINT32_ONE << (CRFSDN_SEG_NO_NBITS + CPGB_CACHE_BIT_SIZE)))
 
-#define CRFSDN_EXPIRED_IN_NSEC               ((uint32_t) 30 * 60) /*30 minutes*/
+#define CRFSDN_EXPIRED_IN_NSEC           ((uint32_t) 30 * 60) /*30 minutes*/
 
 /*memory cached block info*/
 typedef struct
@@ -101,6 +104,7 @@ typedef struct
 #if (64 == WORDSIZE)
     uint32_t        rsvd;
 #endif
+
 }CRFSDN_NODE;
 
 #define CRFSDN_NODE_ID(crfsdn_node)                       ((crfsdn_node)->id)
@@ -151,14 +155,14 @@ typedef struct
     uint8_t           *root_dname;
     CPGV              *cpgv;
 
-    CAIO_MD           *caio_md;
+    CAMD_MD           *camd_md;
 }CRFSDN;
 
 #define CRFSDN_OPEN_NODES(crfsdn)                          (&((crfsdn)->open_nodes))
 #define CRFSDN_CACHED_NODES(crfsdn)                        (&((crfsdn)->cached_nodes))
 #define CRFSDN_ROOT_DNAME(crfsdn)                          ((crfsdn)->root_dname)
 #define CRFSDN_CPGV(crfsdn)                                ((crfsdn)->cpgv)
-#define CRFSDN_CAIO_MD(crfsdn)                             ((crfsdn)->caio_md)
+#define CRFSDN_CAMD_MD(crfsdn)                             ((crfsdn)->camd_md)
 
 #define CRFSDN_OPEN_NODE(_crfsdn, node_id)                 (crfsdn_node_fetch((_crfsdn), (node_id)))
 

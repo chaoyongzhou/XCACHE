@@ -1,0 +1,472 @@
+/******************************************************************************
+*
+* Copyright (C) Chaoyong Zhou
+* Email: bgnvendor@163.com
+* QQ: 2796796
+*
+*******************************************************************************/
+#ifdef __cplusplus
+extern "C"{
+#endif/*__cplusplus*/
+
+#ifndef _CAMD_H
+#define _CAMD_H
+
+#include <errno.h>
+
+#include "type.h"
+#include "mm.h"
+#include "log.h"
+
+#include "clist.h"
+#include "crb.h"
+
+#include "caio.h"
+#include "cmc.h"
+#include "cdc.h"
+
+#include "coroutine.h"
+
+/*AMD: aio + mem cache + disk cache*/
+
+#define CAMD_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
+#define CAMD_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
+#define CAMD_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
+#define CAMD_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
+
+#define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (1 << 10) /*align to 1KB*/
+#define CAMD_PROCESS_EVENT_ONCE_NUM                     (128)
+
+#define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
+
+#define camd_default_get_time()                         c_time(NULL_PTR)
+
+typedef CAIO_CB             CAMD_CB;
+typedef CAIO_CALLBACK       CAMD_CALLBACK;
+
+#define camd_cb_set_timeout_handler                     caio_cb_set_timeout_handler
+#define camd_cb_set_terminate_handler                   caio_cb_set_terminate_handler
+#define camd_cb_set_complete_handler                    caio_cb_set_complete_handler
+#define camd_cb_init                                    caio_cb_init
+#define camd_cb_clean                                   caio_cb_clean
+
+typedef struct
+{
+    CAIO_MD         *caio_md;
+    CMC_MD          *cmc_md;
+    CDC_MD          *cdc_md;
+
+    UINT32           seq_no;            /*sequence number factory*/
+
+    CLIST            req_list;          /*item is CAMD_REQ. reading & writing request list in order*/
+    CRB_TREE         page_tree[2];      /*item is CAMD_PAGE. working page tree*/
+    UINT32           page_tree_idx;     /*page tree active index, range in [0, 1]*/
+
+    CLIST            post_event_reqs;   /*item is CAMD_REQ */
+}CAMD_MD;
+
+#define CAMD_MD_CAIO_MD(camd_md)                        ((camd_md)->caio_md)
+#define CAMD_MD_CMC_MD(camd_md)                         ((camd_md)->cmc_md)
+#define CAMD_MD_CDC_MD(camd_md)                         ((camd_md)->cdc_md)
+#define CAMD_MD_SEQ_NO(camd_md)                         ((camd_md)->seq_no)
+#define CAMD_MD_REQ_LIST(camd_md)                       (&((camd_md)->req_list))
+#define CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md)           ((camd_md)->page_tree_idx)
+#define CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)          (1 ^ CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md))
+#define CAMD_MD_PAGE_TREE(camd_md, idx)                 (&((camd_md)->page_tree[ (idx) ]))
+#define CAMD_MD_POST_EVENT_REQS(camd_md)                (&((camd_md)->post_event_reqs))
+
+#define CAMD_MD_SWITCH_PAGE_TREE(camd_md)               \
+    do{                                                 \
+        CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md) ^= 1;     \
+    }while(0)
+
+
+typedef struct
+{
+    int                     fd;
+    int                     rsvd01;
+
+    UINT32                  f_s_offset;
+    UINT32                  f_e_offset;
+
+    UINT32                  f_t_offset;             /*temporary offset*/
+
+    UINT32                  timeout_nsec;           /*timeout in seconds*/
+
+    uint32_t                dirty_flag       :1;    /*page was changed by writing op*/
+    uint32_t                sata_loaded_flag :1;    /*page was loaded from sata*/
+    uint32_t                ssd_loaded_flag  :1;    /*page was loaded from ssd*/
+    uint32_t                sata_loading_flag:1;    /*page is loading from sata*/
+    uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
+    uint32_t                rsvd02           :27;
+    uint32_t                rsvd03;
+
+    UINT8                  *m_cache;                /*cache for one page*/
+
+    CLIST                   owners;                 /*item is CAMD_NODE*/
+
+    CAMD_MD                *camd_md;                /*shortcut: point to camd module*/
+
+    /*shortcut*/
+    CRB_NODE               *mounted_pages;          /*mount point in page tree of camd module*/
+}CAMD_PAGE;
+
+#define CAMD_PAGE_FD(camd_page)                         ((camd_page)->fd)
+
+#define CAMD_PAGE_F_S_OFFSET(camd_page)                 ((camd_page)->f_s_offset)
+#define CAMD_PAGE_F_E_OFFSET(camd_page)                 ((camd_page)->f_e_offset)
+
+#define CAMD_PAGE_F_T_OFFSET(camd_page)                 ((camd_page)->f_t_offset)
+
+#define CAMD_PAGE_TIMEOUT_NSEC(camd_page)               ((camd_page)->timeout_nsec)
+#define CAMD_PAGE_DIRTY_FLAG(camd_page)                 ((camd_page)->dirty_flag)
+#define CAMD_PAGE_SATA_LOADED_FLAG(camd_page)           ((camd_page)->sata_loaded_flag)
+#define CAMD_PAGE_SSD_LOADED_FLAG(camd_page)            ((camd_page)->ssd_loaded_flag)
+#define CAMD_PAGE_SATA_LOADING_FLAG(camd_page)          ((camd_page)->sata_loading_flag)
+#define CAMD_PAGE_MEM_CACHE_FLAG(camd_page)             ((camd_page)->mem_cache_flag)
+
+#define CAMD_PAGE_M_CACHE(camd_page)                    ((camd_page)->m_cache)
+#define CAMD_PAGE_OWNERS(camd_page)                     (&((camd_page)->owners))
+#define CAMD_PAGE_CAMD_MD(camd_page)                    ((camd_page)->camd_md)
+#define CAMD_PAGE_MOUNTED_PAGES(camd_page)              ((camd_page)->mounted_pages)
+
+typedef void (*CAMD_EVENT_HANDLER)(void *);
+
+typedef struct
+{
+    CAIO_CB                 caio_cb;
+
+    UINT32                  seq_no;             /*unique sequence number of request*/
+    UINT32                  op;                 /*reading or writing*/
+
+    UINT32                  sub_seq_num;        /*sub request number*/
+    UINT32                  succ_num;           /*complete nodes number*/
+    UINT32                  u_e_offset;         /*upper offset at most in file*/
+
+    CAMD_MD                *camd_md;            /*shortcut: point to camd module*/
+    int                     fd;                 /*inherited from application*/
+    int                     rsvd01;
+    UINT8                  *m_cache;            /*inherited from camd page*/
+    UINT8                  *m_buff;             /*inherited from application*/
+    UINT32                 *offset;             /*inherited from application*/
+    UINT32                  f_s_offset;         /*start offset in file*/
+    UINT32                  f_e_offset;         /*end offset in file*/
+    UINT32                  timeout_nsec;       /*timeout in seconds*/
+    CTIMET                  next_access_time;   /*next access in second*/
+#if (32 == WORDSIZE)
+    uint32_t                rsvd02;
+#endif
+
+    CAMD_EVENT_HANDLER      post_event_handler;
+    CLIST_DATA             *mounted_post_event_reqs;   /*mount point in post event reqs of camd md*/
+
+    CLIST                   nodes;              /*item is CAMD_NODE*/
+
+    /*shortcut*/
+    CLIST_DATA             *mounted_reqs;      /*mount point in req list of camd module*/
+}CAMD_REQ;
+
+#define CAMD_REQ_CAIO_CB(camd_req)                      (&((camd_req)->caio_cb))
+
+#define CAMD_REQ_SEQ_NO(camd_req)                       ((camd_req)->seq_no)
+#define CAMD_REQ_OP(camd_req)                           ((camd_req)->op)
+#define CAMD_REQ_SUB_SEQ_NUM(camd_req)                  ((camd_req)->sub_seq_num)
+
+#define CAMD_REQ_SUCC_NUM(camd_req)                     ((camd_req)->succ_num)
+#define CAMD_REQ_U_S_OFFSET(camd_req)                   ((camd_req)->u_e_offset)
+
+#define CAMD_REQ_CAMD_MD(camd_req)                      ((camd_req)->camd_md)
+#define CAMD_REQ_FD(camd_req)                           ((camd_req)->fd)
+#define CAMD_REQ_M_CACHE(camd_req)                      ((camd_req)->m_cache)
+#define CAMD_REQ_M_BUFF(camd_req)                       ((camd_req)->m_buff)
+#define CAMD_REQ_OFFSET(camd_req)                       ((camd_req)->offset)
+#define CAMD_REQ_F_S_OFFSET(camd_req)                   ((camd_req)->f_s_offset)
+#define CAMD_REQ_F_E_OFFSET(camd_req)                   ((camd_req)->f_e_offset)
+#define CAMD_REQ_TIMEOUT_NSEC(camd_req)                 ((camd_req)->timeout_nsec)
+#define CAMD_REQ_NTIME_TS(camd_req)                     ((camd_req)->next_access_time)
+
+#define CAMD_REQ_POST_EVENT_HANDLER(camd_req)           ((camd_req)->post_event_handler)
+#define CAMD_REQ_MOUNTED_POST_EVENT_REQS(camd_req)      ((camd_req)->mounted_post_event_reqs)
+
+#define CAMD_REQ_NODES(camd_req)                        (&((camd_req)->nodes))
+#define CAMD_REQ_MOUNTED_REQS(camd_req)                 ((camd_req)->mounted_reqs)
+
+typedef struct
+{
+    CAMD_REQ               *camd_req;           /*shortcut: point to parent request*/
+    CAMD_PAGE              *camd_page;          /*shortcut: point to owning page*/
+
+    UINT32                  seq_no;             /*inherited from camd req*/
+    UINT32                  sub_seq_no;         /*mark the order in camd req*/
+    UINT32                  sub_seq_num;        /*shortcut for debug purpose. inherited from camd req*/
+    UINT32                  op;                 /*reading or writing*/
+
+    CAMD_MD                *camd_md;            /*shortcut: point to camd module*/
+    int                     fd;                 /*inherited from application*/
+    int                     rsvd01;
+    UINT8                  *m_cache;            /*inherited from camd page*/
+    UINT8                  *m_buff;             /*inherited from application*/
+    UINT32                  f_s_offset;         /*start offset in file*/
+    UINT32                  f_e_offset;         /*end offset in file*/
+    UINT32                  b_s_offset;         /*start offset in page*/
+    UINT32                  b_e_offset;         /*end offset in page*/
+    UINT32                  timeout_nsec;       /*timeout in seconds*/
+    CTIMET                  next_access_time;   /*next access in second*/
+#if (32 == WORDSIZE)
+    uint32_t                rsvd02;
+#endif
+
+    /*shortcut*/
+    CLIST_DATA             *mounted_nodes;      /*mount point in nodes of camd req*/
+    CLIST_DATA             *mounted_owners;     /*mount point in owners of camd page*/
+}CAMD_NODE;
+
+#define CAMD_NODE_CAMD_REQ(camd_node)                   ((camd_node)->camd_req)
+#define CAMD_NODE_CAMD_PAGE(camd_node)                  ((camd_node)->camd_page)
+#define CAMD_NODE_SEQ_NO(camd_node)                     ((camd_node)->seq_no)
+#define CAMD_NODE_SUB_SEQ_NO(camd_node)                 ((camd_node)->sub_seq_no)
+#define CAMD_NODE_SUB_SEQ_NUM(camd_node)                ((camd_node)->sub_seq_num)
+#define CAMD_NODE_OP(camd_node)                         ((camd_node)->op)
+#define CAMD_NODE_CAMD_MD(camd_node)                    ((camd_node)->camd_md)
+#define CAMD_NODE_FD(camd_node)                         ((camd_node)->fd)
+#define CAMD_NODE_M_CACHE(camd_node)                    ((camd_node)->m_cache)
+#define CAMD_NODE_M_BUFF(camd_node)                     ((camd_node)->m_buff)
+#define CAMD_NODE_F_S_OFFSET(camd_node)                 ((camd_node)->f_s_offset)
+#define CAMD_NODE_F_E_OFFSET(camd_node)                 ((camd_node)->f_e_offset)
+#define CAMD_NODE_B_S_OFFSET(camd_node)                 ((camd_node)->b_s_offset)
+#define CAMD_NODE_B_E_OFFSET(camd_node)                 ((camd_node)->b_e_offset)
+#define CAMD_NODE_TIMEOUT_NSEC(camd_node)               ((camd_node)->timeout_nsec)
+#define CAMD_NODE_NTIME_TS(camd_node)                   ((camd_node)->next_access_time)
+#define CAMD_NODE_MOUNTED_NODES(camd_node)              ((camd_node)->mounted_nodes)
+#define CAMD_NODE_MOUNTED_OWNERS(camd_node)             ((camd_node)->mounted_owners)
+
+
+/*----------------------------------- camd page interface -----------------------------------*/
+
+void camd_mem_cache_counter_print(LOG *log);
+
+CAMD_PAGE *camd_page_new();
+
+EC_BOOL camd_page_init(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_clean(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_free(CAMD_PAGE *camd_page);
+
+void camd_page_print(LOG *log, const CAMD_PAGE *camd_page);
+
+int camd_page_cmp(const CAMD_PAGE *camd_page_1st, const CAMD_PAGE *camd_page_2nd);
+
+EC_BOOL camd_page_add_node(CAMD_PAGE *camd_page, CAMD_NODE *camd_node);
+
+EC_BOOL camd_page_del_node(CAMD_PAGE *camd_page, CAMD_NODE *camd_node);
+
+EC_BOOL camd_page_cleanup_nodes(CAMD_PAGE *camd_page);
+
+CAMD_NODE *camd_page_pop_node_front(CAMD_PAGE *camd_page);
+
+CAMD_NODE *camd_page_pop_node_back(CAMD_PAGE *camd_page);
+
+/*process when page is in mem cache*/
+EC_BOOL camd_page_process(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_load_aio_timeout(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_load_aio_terminate(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_load_aio_complete(CAMD_PAGE *camd_page);
+
+/*load page from disk to mem cache*/
+EC_BOOL camd_page_load_aio(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_notify_timeout(CAMD_PAGE *camd_page);
+
+/*aio flush timeout*/
+EC_BOOL camd_page_flush_aio_timeout(CAMD_PAGE *camd_page);
+
+/*aio flush terminate*/
+EC_BOOL camd_page_flush_aio_terminate(CAMD_PAGE *camd_page);
+
+/*aio flush complete*/
+EC_BOOL camd_page_flush_aio_complete(CAMD_PAGE *camd_page);
+
+/*flush page to disk*/
+EC_BOOL camd_page_flush_aio(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_flush_mem(CAMD_PAGE *camd_page);
+
+EC_BOOL camd_page_purge_ssd(CAMD_PAGE *camd_page);
+
+/*----------------------------------- camd node interface -----------------------------------*/
+
+CAMD_NODE *camd_node_new();
+
+EC_BOOL camd_node_init(CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_clean(CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_free(CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_is(const CAMD_NODE *camd_node, const UINT32 sub_seq_no);
+
+void camd_node_print(LOG *log, const CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_timeout(CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_terminate(CAMD_NODE *camd_node);
+
+EC_BOOL camd_node_complete(CAMD_NODE *camd_node);
+
+/*----------------------------------- camd req interface -----------------------------------*/
+
+CAMD_REQ *camd_req_new();
+
+EC_BOOL camd_req_init(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_clean(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_free(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_exec_timeout_handler(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_exec_terminate_handler(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_exec_complete_handler(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_set_post_event(CAMD_REQ *camd_req, CAMD_EVENT_HANDLER handler);
+
+EC_BOOL camd_req_del_post_event(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_is(const CAMD_REQ *camd_req, const UINT32 seq_no);
+
+void camd_req_print(LOG *log, const CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_cleanup_nodes(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_push_node_back(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
+
+CAMD_NODE *camd_req_pop_node_back(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_push_node_front(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
+
+EC_BOOL camd_req_del_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
+
+EC_BOOL camd_req_reorder_sub_seq_no(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_make_read_op(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_make_write_op(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_make_read(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_make_write(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_timeout(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_terminate(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_complete(CAMD_REQ *camd_req);
+
+EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
+
+EC_BOOL camd_req_cancel_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
+
+/*----------------------------------- camd module interface -----------------------------------*/
+
+CAMD_MD *camd_start(const UINT32 sata_disk_size /*in GB*/, const UINT32 mem_disk_size /*in MB*/,
+                       const int ssd_disk_fd, const UINT32 ssd_disk_offset, const UINT32 ssd_disk_size/*in GB*/);
+
+void camd_end(CAMD_MD *camd_md);
+
+EC_BOOL camd_create(const CAMD_MD *camd_md);
+
+EC_BOOL camd_load(const CAMD_MD *camd_md);
+
+EC_BOOL camd_flush(const CAMD_MD *camd_md);
+
+void camd_print(LOG *log, const CAMD_MD *camd_md);
+
+int camd_get_eventfd(CAMD_MD *camd_md);
+
+EC_BOOL camd_event_handler(CAMD_MD *camd_md);
+
+int camd_get_cdc_eventfd(CAMD_MD *camd_md);
+
+EC_BOOL camd_cdc_event_handler(CAMD_MD *camd_md);
+
+EC_BOOL camd_poll(CAMD_MD *camd_md);
+
+void camd_process(CAMD_MD *camd_md);
+
+void camd_process_reqs(CAMD_MD *camd_md);
+
+void camd_process_timeout_reqs(CAMD_MD *camd_md);
+
+void camd_process_pages(CAMD_MD *camd_md);
+
+void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page);
+
+void camd_process_events(CAMD_MD *camd_md);
+
+void camd_process_post_event_reqs(CAMD_MD *camd_md, const UINT32 process_event_max_num);
+
+void camd_show_pages(LOG *log, const CAMD_MD *camd_md);
+
+void camd_show_page(LOG *log, const CAMD_MD *camd_md, const UINT32 f_s_offset, const UINT32 f_e_offset);
+
+void camd_show_reqs(LOG *log, const CAMD_MD *camd_md);
+
+void camd_show_req(LOG *log, const CAMD_MD *camd_md, const UINT32 seq_no);
+
+void camd_show_post_event_reqs(LOG *log, const CAMD_MD *camd_md);
+
+void camd_show_node(LOG *log, const CAMD_MD *camd_md, const UINT32 seq_no, const UINT32 sub_seq_no);
+
+EC_BOOL camd_submit_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_add_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_del_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_make_req_op(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_dispatch_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_cancel_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
+
+EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page);
+
+EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page);
+
+CAMD_PAGE *camd_pop_first_page(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+
+CAMD_PAGE *camd_pop_last_page(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+
+CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, const UINT32 f_s_offset, const UINT32 f_e_offset);
+
+EC_BOOL camd_cleanup_pages(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+
+EC_BOOL camd_cleanup_reqs(CAMD_MD *camd_md);
+
+EC_BOOL camd_cleanup_post_event_reqs(CAMD_MD *camd_md);
+
+CAMD_REQ *camd_search_req(CAMD_MD *camd_md, const UINT32 seq_no);
+
+/*for cmc retire*/
+EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+/*----------------------------------- camd external interface -----------------------------------*/
+
+EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
+
+EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
+
+EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize);
+
+
+
+#endif /*_CAMD_H*/
+
+#ifdef __cplusplus
+}
+#endif/*__cplusplus*/

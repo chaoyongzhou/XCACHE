@@ -24,6 +24,7 @@ extern "C"{
 #include <sys/socket.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <sys/mman.h>
 
 #include <memory.h>
 #include <ucontext.h>
@@ -185,6 +186,27 @@ static char  *g_months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 static int    g_dev_null_fd = -1;       /*fd of device /dev/null*/
 static FILE  *g_dev_null_fp = NULL_PTR; /*fp of device /dev/null*/
 
+void c_log_init()
+{
+    /*prepare stdout,stderr, stdin devices*/
+    log_start();
+
+    return;
+}
+
+void c_static_mem_init()
+{
+    init_static_mem();
+
+    return;
+}
+
+void c_env_init()
+{
+    c_log_init();
+    c_static_mem_init();
+    return;
+}
 EC_BOOL cmisc_init(UINT32 location)
 {
     c_mutex_init(&g_cmisc_str_cmutex, CMUTEX_PROCESS_PRIVATE, location);
@@ -3545,9 +3567,21 @@ EC_BOOL c_usleep(const UINT32 msec, const UINT32 location)
     tv.tv_sec  = (msec / 1000);
     tv.tv_usec = (msec % 1000) * 1000;
 
-    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_usleep: now sleep %ld.%03ld seconds at %s:%ld\n",
-                        msec / 1000, msec % 1000,
-                        MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    if(do_log(SEC_0013_CMISC, 9))
+    {
+        if(LOC_NONE_BASE != location && LOC_NONE_END != location)
+        {
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_usleep: now sleep %ld.%03ld seconds at %s:%ld\n",
+                                msec / 1000, msec % 1000,
+                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+        else
+        {
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_usleep: now sleep %ld.%03ld seconds\n",
+                                msec / 1000, msec % 1000);
+        }
+    }
+
 
     select(0, NULL, NULL, NULL, &tv);
 
@@ -3561,9 +3595,20 @@ EC_BOOL c_sleep(const UINT32 nsec, const UINT32 location)
     tv.tv_sec  = nsec;
     tv.tv_usec = 0;
 
-    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_sleep: now sleep %ld seconds at %s:%ld\n",
-                        nsec,
-                        MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    if(do_log(SEC_0013_CMISC, 9))
+    {
+        if(LOC_NONE_BASE != location && LOC_NONE_END != location)
+        {
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_sleep: now sleep %ld seconds at %s:%ld\n",
+                                nsec,
+                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        }
+        else
+        {
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_sleep: now sleep %ld seconds\n", nsec);
+        }
+    }
+
     select(0, NULL, NULL, NULL, &tv);
 
     return (EC_TRUE);
@@ -6005,6 +6050,70 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     }
 
     safe_free(file_buff, LOC_CMISC_0075);
+    return (EC_TRUE);
+}
+
+static UINT32 g_misc_mem_cache_counter = 0;
+void *c_memalign_new(const UINT32 size, const UINT32 align)
+{
+    void *data;
+
+    if(0 != posix_memalign((void **)&data, (size_t)align, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_memalign_new: "
+                                              "new %ld bytes align to %ld failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              size, align,
+                                              errno, strerror(errno));
+        return (NULL_PTR);
+    }
+
+    g_misc_mem_cache_counter ++;
+    return (data);
+}
+
+void c_memalign_free(void *data)
+{
+    if(NULL_PTR != data)
+    {
+        g_misc_mem_cache_counter --;
+        free(data);
+    }
+    return;
+}
+
+void c_memalign_counter_print(LOG *log)
+{
+    sys_log(log, "g_misc_mem_cache_counter: %ld\n", g_misc_mem_cache_counter);
+}
+
+EC_BOOL c_mlock(void *addr, const UINT32 size)
+{
+    if(0 != mlock(addr, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mlock: "
+                                              "mlock %p, len %ld failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              addr, size,
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_munlock(void *addr, const UINT32 size)
+{
+    if(0 != munlock(addr, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_munlock: "
+                                              "munlock %p, len %ld failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              addr, size,
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
     return (EC_TRUE);
 }
 

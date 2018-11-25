@@ -47,6 +47,12 @@ extern "C"{
 
 typedef EC_BOOL (*C_RETVAL_CHECKER)(const void *);
 
+void c_log_init();
+
+void c_static_mem_init();
+
+void c_env_init();
+
 EC_BOOL cmisc_init(UINT32 location);
 
 EC_BOOL c_chars_are_digit(const char *chars, const UINT32 len);
@@ -434,6 +440,15 @@ int c_format_len(const char *format, ...);
 
 EC_BOOL c_import_resolve_conf(CVECTOR *name_servers);
 
+void *c_memalign_new(const UINT32 size, const UINT32 align);
+
+void c_memalign_free(void *data);
+
+void c_memalign_counter_print(LOG *log);
+
+EC_BOOL c_mlock(void *addr, const UINT32 size);
+
+EC_BOOL c_munlock(void *addr, const UINT32 size);
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

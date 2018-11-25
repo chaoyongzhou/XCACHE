@@ -31,7 +31,6 @@ extern "C"{
 #include "real.h"
 
 #include "clist.h"
-#include "caio.h"
 #include "task.h"
 
 #include "cdsk.h"
@@ -42,6 +41,7 @@ extern "C"{
 #include "cpgd.h"
 #include "cpgv.h"
 
+#include "camd.h"
 
 /*Random File System Data Node*/
 CRFSDN_NODE *crfsdn_node_new()
@@ -261,12 +261,25 @@ CRFSDN_NODE *crfsdn_node_create(CRFSDN *crfsdn, const UINT32 node_id)
     CRFSDN_NODE_ATIME(crfsdn_node) = task_brd_get_time(task_brd_default_get());
 
     /*creat file*/
-    CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR | O_CREAT, 0666);
-    if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
     {
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_create: open node file %s failed\n", path);
-        crfsdn_node_free(crfsdn_node);
-        return (NULL_PTR);
+        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR | O_CREAT, 0666);
+        if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_create: open node file %s failed\n", path);
+            crfsdn_node_free(crfsdn_node);
+            return (NULL_PTR);
+        }
+    }
+    else
+    {
+        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_DIRECT | O_RDWR | O_CREAT, 0666);
+        if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_create: open node file %s failed\n", path);
+            crfsdn_node_free(crfsdn_node);
+            return (NULL_PTR);
+        }
     }
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_node_create: create file %s done\n", path);
 
@@ -348,19 +361,12 @@ CRFSDN_NODE *crfsdn_node_open(CRFSDN *crfsdn, const UINT32 node_id, const UINT32
     CRFSDN_NODE_ATIME(crfsdn_node) = task_brd_get_time(task_brd_default_get());
 
     /*when node file exit, then open it*/
-    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
     {
-        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_RDWR | O_NONBLOCK, 0666);
+        CRFSDN_NODE_FD(crfsdn_node) = c_file_open(path, O_DIRECT | O_RDWR /*| O_NONBLOCK*/, 0666);
         if(ERR_FD == CRFSDN_NODE_FD(crfsdn_node))
         {
             dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: open node file %s failed\n", path);
-            crfsdn_node_free(crfsdn_node);
-            return (NULL_PTR);
-        }
-
-        if(0 != c_file_direct_on(CRFSDN_NODE_FD(crfsdn_node)))
-        {
-            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_open: direct on node file %s failed\n", path);
             crfsdn_node_free(crfsdn_node);
             return (NULL_PTR);
         }
@@ -447,15 +453,24 @@ EC_BOOL crfsdn_node_write(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 dat
     offset_r = offset_b + (*offset);
 
     CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0005);
-    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
     {
-        if(EC_FALSE == caio_file_flush(CRFSDN_CAIO_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        UINT32 offset_disk; /*offset in disk: disk_no | block_no | page_no | offset*/
+        UINT32 offset_disk_saved;
+
+        /*distinguish offset in different crfsdn nodes*/
+        offset_disk       = (((UINT32)node_id) << 32) + (*offset);
+        offset_disk_saved = offset_disk;
+
+        if(EC_FALSE == camd_file_write(CRFSDN_CAMD_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_disk, data_max_len, data_buff))
         {
             CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0006);
             dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_write: flush %ld bytes to node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
             return (EC_FALSE);
         }
+
+        offset_r += (offset_disk - offset_disk_saved);
     }
     else
     {
@@ -492,15 +507,25 @@ EC_BOOL crfsdn_node_read(CRFSDN *crfsdn, const UINT32 node_id, const UINT32 data
 
     CRFSDN_NODE_CMUTEX_LOCK(crfsdn_node, LOC_CRFSDN_0009);
 
-    if(SWITCH_ON == CRFSDN_CAIO_SWITCH)
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
     {
-        if(EC_FALSE == caio_file_load(CRFSDN_CAIO_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_r, data_max_len, data_buff))
+        UINT32 offset_disk; /*offset in disk: disk_no | block_no | page_no | offset*/
+        UINT32 offset_disk_saved;
+
+        /*distinguish offset in different crfsdn nodes*/
+        offset_disk       = (((UINT32)node_id) << 32) + (*offset);
+        offset_disk_saved = offset_disk;
+
+
+        if(EC_FALSE == camd_file_read(CRFSDN_CAMD_MD(crfsdn), CRFSDN_NODE_FD(crfsdn_node), &offset_disk, data_max_len, data_buff))
         {
             CRFSDN_NODE_CMUTEX_UNLOCK(crfsdn_node, LOC_CRFSDN_0010);
-            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: AIO load %ld bytes from node %ld at offset %ld failed\n",
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_node_read: AMD load %ld bytes from node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
             return (EC_FALSE);
         }
+
+        offset_r += (offset_disk - offset_disk_saved);
     }
     else
     {
@@ -729,6 +754,66 @@ STATIC_CAST static char * __crfsdn_vol_fname_gen(const char *root_dname)
     return (vol_fname);
 }
 
+STATIC_CAST static char * __crfsdn_ssd_fname_gen(const char *root_dname)
+{
+    const char *field[ 2 ];
+    char       *ssd_fname;
+
+    field[ 0 ] = root_dname;
+    field[ 1 ] = CRFSDN_SSD_NAME;
+
+    ssd_fname = c_str_join("/", field, 2);/*${root_dname}/${ssd_basename}*/
+    if(NULL_PTR == ssd_fname)
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:__crfsdn_ssd_fname_gen: make ssd_fname %s/%s failed\n", root_dname, CRFSDN_DB_NAME);
+        return (NULL_PTR);
+    }
+
+    return (ssd_fname);
+}
+
+STATIC_CAST static int __crfsdn_ssd_open(const char *root_dname)
+{
+    char       *ssd_disk_fname;
+    int         ssd_disk_fd;
+
+    ssd_disk_fname = __crfsdn_ssd_fname_gen(root_dname);
+    if(NULL_PTR == ssd_disk_fname)
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:__crfsdn_ssd_open: "
+                                               "make ssd_disk_fname from root_dname %s failed\n",
+                                               root_dname);
+        return (ERR_FD);
+    }
+
+    if(EC_FALSE == c_file_access(ssd_disk_fname, F_OK))
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:__crfsdn_ssd_open: "
+                                               "ssd %s not exist\n",
+                                               ssd_disk_fname);
+        safe_free(ssd_disk_fname, LOC_CRFSDN_0020);
+        return (ERR_FD);
+    }
+
+    ssd_disk_fd = c_file_open(ssd_disk_fname, O_DIRECT | O_RDWR /*| O_NONBLOCK*/, 0666);
+    if(ERR_FD == ssd_disk_fd)
+    {
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:__crfsdn_ssd_open: "
+                                               "open ssd %s failed\n",
+                                               ssd_disk_fname);
+        safe_free(ssd_disk_fname, LOC_CRFSDN_0021);
+        return (ERR_FD);
+    }
+
+    dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] __crfsdn_ssd_open: "
+                                           "open ssd %s done\n",
+                                           ssd_disk_fname);
+
+    safe_free(ssd_disk_fname, LOC_CRFSDN_0022);
+
+    return (ssd_disk_fd);
+}
+
 CRFSDN *crfsdn_create(const char *root_dname)
 {
     CRFSDN *crfsdn;
@@ -762,12 +847,61 @@ CRFSDN *crfsdn_create(const char *root_dname)
     {
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create: new vol %s failed\n", vol_fname);
         crfsdn_free(crfsdn);
-        safe_free(vol_fname, LOC_CRFSDN_0020);
+        safe_free(vol_fname, LOC_CRFSDN_0023);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_create: vol %s was created\n", vol_fname);
-    safe_free(vol_fname, LOC_CRFSDN_0021);
+    safe_free(vol_fname, LOC_CRFSDN_0024);
+
+    dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create: CRFSDN_CAMD_SWITCH: %s\n",
+                                           c_switch_to_str(CRFSDN_CAMD_SWITCH));
+
+    dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create: CRFSDN_CAMD_SATA_DISK_SIZE: %ld\n",
+                                           CRFSDN_CAMD_SATA_DISK_SIZE);
+
+    dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create: CRFSDN_CAMD_MEM_DISK_SIZE: %ld\n",
+                                           CRFSDN_CAMD_MEM_DISK_SIZE);
+
+    dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create: CRFSDN_CAMD_SSD_DISK_OFFSET: %ld\n",
+                                           CRFSDN_CAMD_SSD_DISK_OFFSET);
+
+    dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create: CRFSDN_CAMD_SSD_DISK_SIZE: %ld\n",
+                                           CRFSDN_CAMD_SSD_DISK_SIZE);
+
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
+    {
+        UINT32      sata_disk_size; /*in GB*/
+        UINT32      mem_disk_size;  /*in MB*/
+        UINT32      ssd_disk_offset;/*in B*/
+        UINT32      ssd_disk_size;  /*in GB*/
+        int         ssd_disk_fd;
+
+        sata_disk_size  = CRFSDN_CAMD_SATA_DISK_SIZE;
+        mem_disk_size   = CRFSDN_CAMD_MEM_DISK_SIZE;
+
+        ssd_disk_fd     = __crfsdn_ssd_open((char *)CRFSDN_ROOT_DNAME(crfsdn));
+        ssd_disk_offset = CRFSDN_CAMD_SSD_DISK_OFFSET;
+        ssd_disk_size   = CRFSDN_CAMD_SSD_DISK_SIZE;
+
+        CRFSDN_CAMD_MD(crfsdn) = camd_start(sata_disk_size, mem_disk_size,
+                                            ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
+        if(NULL_PTR == CRFSDN_CAMD_MD(crfsdn))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create:start camd failed\n");
+            crfsdn_free(crfsdn);
+            return (NULL_PTR);
+        }
+
+        if(EC_FALSE == camd_create(CRFSDN_CAMD_MD(crfsdn)))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create:create cdc failed\n");
+            crfsdn_free(crfsdn);
+            return (NULL_PTR);
+        }
+
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_create:create cdc done\n");
+    }
 
     if(EC_FALSE == crfsdn_flush(crfsdn))/*xxx*/
     {
@@ -776,13 +910,6 @@ CRFSDN *crfsdn_create(const char *root_dname)
         return (NULL_PTR);
     }
 
-    CRFSDN_CAIO_MD(crfsdn) = caio_start();
-    if(NULL_PTR == CRFSDN_CAIO_MD(crfsdn))
-    {
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_create:start caio failed\n");
-        crfsdn_free(crfsdn);
-        return (NULL_PTR);
-    }
     return (crfsdn);
 }
 
@@ -856,7 +983,7 @@ CRFSDN *crfsdn_new()
 {
     CRFSDN *crfsdn;
 
-    alloc_static_mem(MM_CRFSDN, &crfsdn, LOC_CRFSDN_0022);
+    alloc_static_mem(MM_CRFSDN, &crfsdn, LOC_CRFSDN_0025);
     if(NULL_PTR != crfsdn)
     {
         crfsdn_init(crfsdn);
@@ -871,11 +998,11 @@ EC_BOOL crfsdn_init(CRFSDN *crfsdn)
                   (CRB_DATA_CMP  )crfsdn_node_cmp,
                   (CRB_DATA_FREE )crfsdn_node_free,
                   (CRB_DATA_PRINT)crfsdn_node_print);
-    clist_init(CRFSDN_CACHED_NODES(crfsdn), MM_CRFSDN_CACHE_NODE, LOC_CRFSDN_0023);
+    clist_init(CRFSDN_CACHED_NODES(crfsdn), MM_CRFSDN_CACHE_NODE, LOC_CRFSDN_0026);
 
     CRFSDN_ROOT_DNAME(crfsdn)  = NULL_PTR;
     CRFSDN_CPGV(crfsdn)        = NULL_PTR;
-    CRFSDN_CAIO_MD(crfsdn)     = NULL_PTR;
+    CRFSDN_CAMD_MD(crfsdn)     = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -886,7 +1013,7 @@ EC_BOOL crfsdn_clean(CRFSDN *crfsdn)
 
     if(NULL_PTR != CRFSDN_ROOT_DNAME(crfsdn))
     {
-        safe_free(CRFSDN_ROOT_DNAME(crfsdn), LOC_CRFSDN_0024);
+        safe_free(CRFSDN_ROOT_DNAME(crfsdn), LOC_CRFSDN_0027);
         CRFSDN_ROOT_DNAME(crfsdn) = NULL_PTR;
     }
 
@@ -896,10 +1023,10 @@ EC_BOOL crfsdn_clean(CRFSDN *crfsdn)
         CRFSDN_CPGV(crfsdn) = NULL_PTR;
     }
 
-    if(NULL_PTR != CRFSDN_CAIO_MD(crfsdn))
+    if(NULL_PTR != CRFSDN_CAMD_MD(crfsdn))
     {
-        caio_end(CRFSDN_CAIO_MD(crfsdn));
-        CRFSDN_CAIO_MD(crfsdn) = NULL_PTR;
+        camd_end(CRFSDN_CAMD_MD(crfsdn));
+        CRFSDN_CAMD_MD(crfsdn) = NULL_PTR;
     }
 
     return (EC_TRUE);
@@ -910,7 +1037,7 @@ EC_BOOL crfsdn_free(CRFSDN *crfsdn)
     if(NULL_PTR != crfsdn)
     {
         crfsdn_clean(crfsdn);
-        free_static_mem(MM_CRFSDN, crfsdn, LOC_CRFSDN_0025);
+        free_static_mem(MM_CRFSDN, crfsdn, LOC_CRFSDN_0028);
     }
     return (EC_TRUE);
 }
@@ -949,6 +1076,17 @@ EC_BOOL crfsdn_flush(CRFSDN *crfsdn)
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_flush: sync cpgv failed\n");
         return (EC_FALSE);
     }
+
+    if(NULL_PTR != CRFSDN_CAMD_MD(crfsdn))
+    {
+        if(EC_FALSE == camd_flush(CRFSDN_CAMD_MD(crfsdn)))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_flush: flush camd failed\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "[DEBUG] crfsdn_flush: flush camd done\n");
+    }
+
     return (EC_TRUE);
 }
 
@@ -986,13 +1124,42 @@ EC_BOOL crfsdn_load(CRFSDN *crfsdn, const char *root_dname)
     if(NULL_PTR == CRFSDN_CPGV(crfsdn))
     {
         dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_load: load/open vol from %s failed\n", (char *)vol_fname);
-        safe_free(vol_fname, LOC_CRFSDN_0026);
+        safe_free(vol_fname, LOC_CRFSDN_0029);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_load: load/open vol from %s done\n", (char *)vol_fname);
-    safe_free(vol_fname, LOC_CRFSDN_0027);
+    safe_free(vol_fname, LOC_CRFSDN_0030);
 
+    if(SWITCH_ON == CRFSDN_CAMD_SWITCH)
+    {
+        UINT32 sata_disk_size; /*in GB*/
+        UINT32 mem_disk_size;  /*in MB*/
+        UINT32 ssd_disk_offset;/*in B*/
+        UINT32 ssd_disk_size;  /*in GB*/
+        int    ssd_disk_fd;
+
+        sata_disk_size  = CRFSDN_CAMD_SATA_DISK_SIZE;
+        mem_disk_size   = CRFSDN_CAMD_MEM_DISK_SIZE;
+
+        ssd_disk_fd     = __crfsdn_ssd_open((char *)CRFSDN_ROOT_DNAME(crfsdn));
+        ssd_disk_offset = CRFSDN_CAMD_SSD_DISK_OFFSET;
+        ssd_disk_size   = CRFSDN_CAMD_SSD_DISK_SIZE;
+
+        CRFSDN_CAMD_MD(crfsdn) = camd_start(sata_disk_size, mem_disk_size,
+                                            ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
+        if(NULL_PTR == CRFSDN_CAMD_MD(crfsdn))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_load:start camd failed\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == camd_load(CRFSDN_CAMD_MD(crfsdn)))
+        {
+            dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_load:load cdc failed\n");
+            return (EC_FALSE);
+        }
+    }
     return (EC_TRUE);
 }
 
@@ -1010,11 +1177,11 @@ EC_BOOL crfsdn_exist(const char *root_dname)
     if(EC_FALSE == c_file_access(vol_fname, F_OK))
     {
         dbg_log(SEC_0024_CRFSDN, 7)(LOGSTDOUT, "error:crfsdn_exist: vol file %s not exist\n", vol_fname);
-        safe_free(vol_fname, LOC_CRFSDN_0028);
+        safe_free(vol_fname, LOC_CRFSDN_0031);
         return (EC_FALSE);
     }
 
-    safe_free(vol_fname, LOC_CRFSDN_0029);
+    safe_free(vol_fname, LOC_CRFSDN_0032);
     return (EC_TRUE);
 }
 
@@ -1049,14 +1216,6 @@ CRFSDN *crfsdn_open(const char *root_dname)
         return (NULL_PTR);
     }
 
-    CRFSDN_CAIO_MD(crfsdn) = caio_start();
-    if(NULL_PTR == CRFSDN_CAIO_MD(crfsdn))
-    {
-        dbg_log(SEC_0024_CRFSDN, 0)(LOGSTDOUT, "error:crfsdn_open:start caio failed\n");
-        crfsdn_free(crfsdn);
-        return (NULL_PTR);
-    }
-    
     dbg_log(SEC_0024_CRFSDN, 9)(LOGSTDOUT, "[DEBUG] crfsdn_open: load crfsdn from root dir %s done\n", root_dname);
 
     return (crfsdn);
@@ -1437,7 +1596,7 @@ EC_BOOL crfsdn_write_p_cache(CRFSDN *crfsdn, const UINT32 data_max_len, const UI
         return (EC_TRUE);
     }
 
-    data_buff_t = safe_malloc(data_max_len, LOC_CRFSDN_0030);
+    data_buff_t = safe_malloc(data_max_len, LOC_CRFSDN_0033);
     if(NULL_PTR == data_buff_t)/*try all best*/
     {
         UINT32 offset;

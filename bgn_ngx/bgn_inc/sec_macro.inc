@@ -132,17 +132,17 @@
 #define SEC_0122_CPGB                       ((UINT32)(    122)) /*cpgb                            */
 #define SEC_0123_CREG                       ((UINT32)(    123)) /*creg                            */
 #define SEC_0124_HTTP                       ((UINT32)(    124)) /*http                            */
-#define SEC_0125_XXXXX                      ((UINT32)(    125)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxx    */
+#define SEC_0125_CAMD                       ((UINT32)(    125)) /*camd                            */
 #define SEC_0126_CBUFFER                    ((UINT32)(    126)) /*cbuffer                         */
 #define SEC_0127_CDFSNPMGR                  ((UINT32)(    127)) /*cdfsnpmgr                       */
 #define SEC_0128_CSET                       ((UINT32)(    128)) /*cset                            */
-#define SEC_0129_XXXX                       ((UINT32)(    129)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxx     */
+#define SEC_0129_CDCNP                      ((UINT32)(    129)) /*cdcnp                           */
 #define SEC_0130_BTREE                      ((UINT32)(    130)) /*btree                           */
 #define SEC_0131_DB                         ((UINT32)(    131)) /*db                              */
 #define SEC_0132_RAW                        ((UINT32)(    132)) /*raw                             */
 #define SEC_0133_KEYVALUE                   ((UINT32)(    133)) /*keyvalue                        */
 #define SEC_0134_POSLIST                    ((UINT32)(    134)) /*poslist                         */
-#define SEC_0135_XXXXXXX                    ((UINT32)(    135)) /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */
+#define SEC_0135_CDCNPDEL                   ((UINT32)(    135)) /*cdcnpdel                        */
 #define SEC_0136_GM                         ((UINT32)(    136)) /*gm                              */
 #define SEC_0137_DEMO                       ((UINT32)(    137)) /*demo                            */
 #define SEC_0138_CRUN                       ((UINT32)(    138)) /*crun                            */
@@ -187,5 +187,13 @@
 #define SEC_0177_CCACHE                     ((UINT32)(    177)) /*ccache                          */
 #define SEC_0178_CCALLBACK                  ((UINT32)(    178)) /*ccallback                       */
 #define SEC_0179_CREFRESH                   ((UINT32)(    179)) /*crefresh                        */
-#define SEC_NONE_END                        ((UINT32)(    180))
+#define SEC_0180_CDCNPLRU                   ((UINT32)(    180)) /*cdcnplru                        */
+#define SEC_0181_CDCNPRB                    ((UINT32)(    181)) /*cdcnprb                         */
+#define SEC_0182_CDC                        ((UINT32)(    182)) /*cdc                             */
+#define SEC_0183_CDCPGB                     ((UINT32)(    183)) /*cdcpgb                          */
+#define SEC_0184_CDCPGD                     ((UINT32)(    184)) /*cdcpgd                          */
+#define SEC_0185_CDCPGRB                    ((UINT32)(    185)) /*cdcpgrb                         */
+#define SEC_0186_CDCPGV                     ((UINT32)(    186)) /*cdcpgv                          */
+#define SEC_0187_CDCDN                      ((UINT32)(    187)) /*cdcdn                           */
+#define SEC_NONE_END                        ((UINT32)(    188))
 #endif/*_SEC_MACRO_INC*/

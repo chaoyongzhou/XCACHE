@@ -1522,6 +1522,23 @@ EC_BOOL crb_tree_clone(const CRB_TREE *crbtree_src, CRB_TREE *crbtree_des, void 
     return crb_inorder_clone(crbtree_src, crbtree_des, data_new, data_clone);
 }
 
+EC_BOOL crb_tree_move(CRB_TREE *crbtree_src, CRB_TREE *crbtree_des)
+{
+    CRB_TREE_NODE_NUM(crbtree_des)    = CRB_TREE_NODE_NUM(crbtree_src);
+    CRB_TREE_ROOT(crbtree_des)        = CRB_TREE_ROOT(crbtree_src);
+    CRB_TREE_DATA_CMP(crbtree_des)    = CRB_TREE_DATA_CMP(crbtree_src);
+    CRB_TREE_DATA_FREE(crbtree_des)   = CRB_TREE_DATA_FREE(crbtree_src);
+    CRB_TREE_DATA_PRINT(crbtree_des)  = CRB_TREE_DATA_PRINT(crbtree_src);
+
+    CRB_TREE_NODE_NUM(crbtree_src)    = 0;
+    CRB_TREE_ROOT(crbtree_src)        = NULL_PTR;
+    CRB_TREE_DATA_CMP(crbtree_src)    = NULL_PTR;
+    CRB_TREE_DATA_FREE(crbtree_src)   = NULL_PTR;
+    CRB_TREE_DATA_PRINT(crbtree_src)  = NULL_PTR;
+
+    return (EC_TRUE);
+}
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

@@ -350,7 +350,9 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
     {
         /*note: only the first CRFS module is allowed to launch rfs http server*/
         /*http server*/
-        if(EC_TRUE == task_brd_default_check_csrv_enabled() && 0 == crfs_md_id)
+        if(EC_TRUE == task_brd_default_check_csrv_enabled()
+        && NULL_PTR != task_brd_default_get_cepoll()
+        && 0 == crfs_md_id)
         {
             if(EC_FALSE == chttp_defer_request_queue_init())
             {
@@ -366,7 +368,9 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
 
         /*https server*/
 #if 1
-        else if(EC_TRUE == task_brd_default_check_ssrv_enabled() && 0 == crfs_md_id)
+        else if(EC_TRUE == task_brd_default_check_ssrv_enabled()
+        && NULL_PTR != task_brd_default_get_cepoll()
+        && 0 == crfs_md_id)
         {
             if(EC_FALSE == chttps_defer_request_queue_init())
             {
