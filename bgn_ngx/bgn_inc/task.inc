@@ -518,6 +518,7 @@ typedef struct _TASK_BRD
     CCONNP_MGR   *http_cconnp_mgr;
 
     UINT32       crfsmon_id;
+    UINT32       cxfsmon_id;
     UINT32       chfsmon_id;
     UINT32       csfsmon_id;
 
@@ -1038,6 +1039,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_HTTP_CCONNP_MGR(task_brd)                   ((task_brd)->http_cconnp_mgr)
 
 #define TASK_BRD_CRFSMON_ID(task_brd)                        ((task_brd)->crfsmon_id)
+#define TASK_BRD_CXFSMON_ID(task_brd)                        ((task_brd)->cxfsmon_id)
 #define TASK_BRD_CHFSMON_ID(task_brd)                        ((task_brd)->chfsmon_id)
 #define TASK_BRD_CSFSMON_ID(task_brd)                        ((task_brd)->csfsmon_id)
 

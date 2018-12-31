@@ -267,14 +267,14 @@ UINT8 *api_cmd_greedy_word(const UINT8 *pbeg, const UINT8 *pend, UINT8 *word, UI
 CMD_TREE *api_cmd_tree_new()
 {
     CMD_TREE *cmd_tree;
-    alloc_static_mem(MM_CLIST, &cmd_tree, LOC_API_0404);
+    alloc_static_mem(MM_CLIST, &cmd_tree, LOC_API_0422);
     api_cmd_tree_init(cmd_tree);
     return (cmd_tree);
 }
 
 EC_BOOL api_cmd_tree_init(CMD_TREE *cmd_tree)
 {
-    clist_init(CMD_TREE_SEG_LIST(cmd_tree), MM_IGNORE, LOC_API_0405);
+    clist_init(CMD_TREE_SEG_LIST(cmd_tree), MM_IGNORE, LOC_API_0423);
     return (EC_TRUE);
 }
 
@@ -287,7 +287,7 @@ EC_BOOL api_cmd_tree_clean(CMD_TREE *cmd_tree)
 EC_BOOL api_cmd_tree_free(CMD_TREE *cmd_tree)
 {
     api_cmd_tree_clean(cmd_tree);
-    free_static_mem(MM_CLIST, cmd_tree, LOC_API_0406);
+    free_static_mem(MM_CLIST, cmd_tree, LOC_API_0424);
     return (EC_TRUE);
 }
 
@@ -420,7 +420,7 @@ CMD_SEG *api_cmd_seg_new()
 {
     CMD_SEG *cmd_seg;
 
-    alloc_static_mem(MM_CMD_SEG, &cmd_seg, LOC_API_0407);
+    alloc_static_mem(MM_CMD_SEG, &cmd_seg, LOC_API_0425);
     api_cmd_seg_init(cmd_seg);
     return (cmd_seg);
 }
@@ -462,7 +462,7 @@ EC_BOOL api_cmd_seg_clean(CMD_SEG *cmd_seg)
 EC_BOOL api_cmd_seg_free(CMD_SEG *cmd_seg)
 {
     api_cmd_seg_clean(cmd_seg);
-    free_static_mem(MM_CMD_SEG, cmd_seg, LOC_API_0408);
+    free_static_mem(MM_CMD_SEG, cmd_seg, LOC_API_0426);
     return (EC_TRUE);
 }
 
@@ -706,7 +706,7 @@ EC_BOOL api_cmd_seg_parse(const CMD_SEG *cmd_seg, const UINT8 *cmd_line, CMD_PAR
             CMD_PARA *cmd_para;
             CSTRING *cstring;
 
-            cstring = cstring_new(NULL_PTR, LOC_API_0409);
+            cstring = cstring_new(NULL_PTR, LOC_API_0427);
             pcur = api_cmd_greedy_cstring(pcur, pend, cstring);
 
             cmd_para = api_cmd_para_new();
@@ -767,7 +767,7 @@ EC_BOOL api_cmd_seg_parse(const CMD_SEG *cmd_seg, const UINT8 *cmd_line, CMD_PAR
             CSTRING *cstring;
             UINT32 value;
 
-            cstring = cstring_new(NULL_PTR, LOC_API_0410);
+            cstring = cstring_new(NULL_PTR, LOC_API_0428);
             pcur = api_cmd_greedy_cstring(pcur, pend, cstring);
 
             api_cmd_elem_find_list_item(CMD_SEG_ELEM(cmd_seg), (char *)cstring_get_str(cstring), &value);
@@ -791,7 +791,7 @@ CMD_PARA *api_cmd_para_new()
 {
     CMD_PARA *cmd_para;
 
-    alloc_static_mem(MM_CMD_PARA, &cmd_para, LOC_API_0411);
+    alloc_static_mem(MM_CMD_PARA, &cmd_para, LOC_API_0429);
     api_cmd_para_init(cmd_para);
     return (cmd_para);
 }
@@ -827,7 +827,7 @@ EC_BOOL api_cmd_para_clean(CMD_PARA *cmd_para)
 EC_BOOL api_cmd_para_free(CMD_PARA *cmd_para)
 {
     api_cmd_para_clean(cmd_para);
-    free_static_mem(MM_CMD_PARA, cmd_para, LOC_API_0412);
+    free_static_mem(MM_CMD_PARA, cmd_para, LOC_API_0430);
     return (EC_TRUE);
 }
 
@@ -954,27 +954,27 @@ EC_BOOL api_cmd_para_get_cstring(const CMD_PARA *cmd_para, CSTRING **cstring)
 CMD_PARA_VEC *api_cmd_para_vec_new()
 {
     CMD_PARA_VEC *cmd_para_vec;
-    alloc_static_mem(MM_CVECTOR, &cmd_para_vec, LOC_API_0413);
+    alloc_static_mem(MM_CVECTOR, &cmd_para_vec, LOC_API_0431);
     api_cmd_para_vec_init(cmd_para_vec);
     return (cmd_para_vec);
 }
 
 EC_BOOL api_cmd_para_vec_init(CMD_PARA_VEC *cmd_para_vec)
 {
-    cvector_init(CMD_PARA_VAL_LIST(cmd_para_vec), 0, MM_CMD_PARA, CVECTOR_LOCK_ENABLE, LOC_API_0414);
+    cvector_init(CMD_PARA_VAL_LIST(cmd_para_vec), 0, MM_CMD_PARA, CVECTOR_LOCK_ENABLE, LOC_API_0432);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_para_vec_clean(CMD_PARA_VEC *cmd_para_vec)
 {
-    cvector_clean(CMD_PARA_VAL_LIST(cmd_para_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_para_free, LOC_API_0415);
+    cvector_clean(CMD_PARA_VAL_LIST(cmd_para_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_para_free, LOC_API_0433);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_para_vec_free(CMD_PARA_VEC *cmd_para_vec)
 {
     api_cmd_para_vec_clean(cmd_para_vec);
-    free_static_mem(MM_CVECTOR, cmd_para_vec, LOC_API_0416);
+    free_static_mem(MM_CVECTOR, cmd_para_vec, LOC_API_0434);
     return (EC_TRUE);
 }
 
@@ -1091,7 +1091,7 @@ void api_cmd_para_vec_print(LOG *log, const CMD_PARA_VEC *cmd_para_vec)
 CMD_HELP *api_cmd_help_new()
 {
     CMD_HELP *cmd_help;
-    alloc_static_mem(MM_CMD_HELP, &cmd_help, LOC_API_0417);
+    alloc_static_mem(MM_CMD_HELP, &cmd_help, LOC_API_0435);
     api_cmd_help_init(cmd_help);
     return (cmd_help);
 }
@@ -1113,7 +1113,7 @@ EC_BOOL api_cmd_help_clean(CMD_HELP *cmd_help)
 EC_BOOL api_cmd_help_free(CMD_HELP *cmd_help)
 {
     api_cmd_help_clean(cmd_help);
-    free_static_mem(MM_CMD_HELP, cmd_help, LOC_API_0418);
+    free_static_mem(MM_CMD_HELP, cmd_help, LOC_API_0436);
     return (EC_TRUE);
 }
 
@@ -1148,27 +1148,27 @@ void api_cmd_help_print(LOG *log, const CMD_HELP *cmd_help)
 CMD_HELP_VEC *api_cmd_help_vec_new()
 {
     CMD_HELP_VEC *cmd_help_vec;
-    alloc_static_mem(MM_CVECTOR, &cmd_help_vec, LOC_API_0419);
+    alloc_static_mem(MM_CVECTOR, &cmd_help_vec, LOC_API_0437);
     api_cmd_help_vec_init(cmd_help_vec);
     return (cmd_help_vec);
 }
 
 EC_BOOL api_cmd_help_vec_init(CMD_HELP_VEC *cmd_help_vec)
 {
-    cvector_init(CMD_HELP_NODE_VEC(cmd_help_vec), 0, MM_CMD_HELP, CVECTOR_LOCK_ENABLE, LOC_API_0420);
+    cvector_init(CMD_HELP_NODE_VEC(cmd_help_vec), 0, MM_CMD_HELP, CVECTOR_LOCK_ENABLE, LOC_API_0438);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_help_vec_clean(CMD_HELP_VEC *cmd_help_vec)
 {
-    cvector_clean(CMD_HELP_NODE_VEC(cmd_help_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_help_free, LOC_API_0421);
+    cvector_clean(CMD_HELP_NODE_VEC(cmd_help_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_help_free, LOC_API_0439);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_help_vec_free(CMD_HELP_VEC *cmd_help_vec)
 {
     api_cmd_help_vec_clean(cmd_help_vec);
-    free_static_mem(MM_CVECTOR, cmd_help_vec, LOC_API_0422);
+    free_static_mem(MM_CVECTOR, cmd_help_vec, LOC_API_0440);
     return (EC_TRUE);
 }
 
@@ -1222,7 +1222,7 @@ CMD_ELEM *api_cmd_elem_new()
 {
     CMD_ELEM *cmd_elem;
 
-    alloc_static_mem(MM_CMD_ELEM, &cmd_elem, LOC_API_0423);
+    alloc_static_mem(MM_CMD_ELEM, &cmd_elem, LOC_API_0441);
     api_cmd_elem_init(cmd_elem);
     return (cmd_elem);
 }
@@ -1260,8 +1260,8 @@ EC_BOOL api_cmd_elem_clean(CMD_ELEM *cmd_elem)
         case CMD_PARA_TYPE_LIST:
             if(NULL_PTR != CMD_ELEM_VEC(cmd_elem))
             {
-                cvector_clean(CMD_ELEM_VEC(cmd_elem), (CVECTOR_DATA_CLEANER)api_cmd_elem_free, LOC_API_0424);
-                cvector_free(CMD_ELEM_VEC(cmd_elem), LOC_API_0425);
+                cvector_clean(CMD_ELEM_VEC(cmd_elem), (CVECTOR_DATA_CLEANER)api_cmd_elem_free, LOC_API_0442);
+                cvector_free(CMD_ELEM_VEC(cmd_elem), LOC_API_0443);
                 CMD_ELEM_VEC(cmd_elem) = NULL_PTR;
             }
             break;
@@ -1277,7 +1277,7 @@ EC_BOOL api_cmd_elem_clean(CMD_ELEM *cmd_elem)
 EC_BOOL api_cmd_elem_free(CMD_ELEM *cmd_elem)
 {
     api_cmd_elem_clean(cmd_elem);
-    free_static_mem(MM_CMD_ELEM, cmd_elem, LOC_API_0426);
+    free_static_mem(MM_CMD_ELEM, cmd_elem, LOC_API_0444);
     return (EC_TRUE);
 }
 
@@ -1397,7 +1397,7 @@ CMD_ELEM *api_cmd_elem_create_list(const char *word)
 
     cmd_elem = api_cmd_elem_new();
     CMD_ELEM_TYPE(cmd_elem) = CMD_PARA_TYPE_LIST;
-    CMD_ELEM_VEC(cmd_elem)  = cvector_new(0, MM_CMD_ELEM, LOC_API_0427);
+    CMD_ELEM_VEC(cmd_elem)  = cvector_new(0, MM_CMD_ELEM, LOC_API_0445);
 
     for(pos = 0; pos + 1 < API_CMD_SEG_WORD_SIZE && pos < strlen(word); pos ++)
     {
@@ -1450,27 +1450,27 @@ EC_BOOL api_cmd_elem_find_list_item(CMD_ELEM *cmd_elem_list, const char *word, U
 CMD_ELEM_VEC *api_cmd_elem_vec_new()
 {
     CMD_ELEM_VEC *cmd_elem_vec;
-    alloc_static_mem(MM_CVECTOR, &cmd_elem_vec, LOC_API_0428);
+    alloc_static_mem(MM_CVECTOR, &cmd_elem_vec, LOC_API_0446);
     api_cmd_elem_vec_init(cmd_elem_vec);
     return (cmd_elem_vec);
 }
 
 EC_BOOL api_cmd_elem_vec_init(CMD_ELEM_VEC *cmd_elem_vec)
 {
-    cvector_init(CMD_ELEM_NODE_VEC(cmd_elem_vec), 0, MM_CMD_ELEM, CVECTOR_LOCK_ENABLE, LOC_API_0429);
+    cvector_init(CMD_ELEM_NODE_VEC(cmd_elem_vec), 0, MM_CMD_ELEM, CVECTOR_LOCK_ENABLE, LOC_API_0447);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_elem_vec_clean(CMD_ELEM_VEC *cmd_elem_vec)
 {
-    cvector_clean(CMD_ELEM_NODE_VEC(cmd_elem_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_elem_free, LOC_API_0430);
+    cvector_clean(CMD_ELEM_NODE_VEC(cmd_elem_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_elem_free, LOC_API_0448);
     return (EC_TRUE);
 }
 
 EC_BOOL api_cmd_elem_vec_free(CMD_ELEM_VEC *cmd_elem_vec)
 {
     api_cmd_elem_vec_clean(cmd_elem_vec);
-    free_static_mem(MM_CVECTOR, cmd_elem_vec, LOC_API_0431);
+    free_static_mem(MM_CVECTOR, cmd_elem_vec, LOC_API_0449);
     return (EC_TRUE);
 }
 

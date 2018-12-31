@@ -84,24 +84,40 @@ typedef struct
     UINT32    crfsmon_conhash_switch        ; /* CRFSMON_CONHASH_SWITCH */
     UINT32    crfsmon_hot_path_switch       ; /* CRFSMON_HOT_PATH_SWITCH */
 
+    UINT32    cxfsnp_try_retire_max_num     ; /* CXFSNP_TRY_RETIRE_MAX_NUM */
+    UINT32    cxfsnp_try_recycle_max_num    ; /* CXFSNP_TRY_RECYCLE_MAX_NUM */
+    UINT32    cxfsnp_cache_in_mem_switch    ; /* CXFSNP_CACHE_IN_MEM_SWITCH */
+    UINT32    cxfsdn_cache_in_mem_switch    ; /* CXFSDN_CACHE_IN_MEM_SWITCH */
+
+    UINT32    cxfsdn_camd_switch            ; /* CXFSDN_CAMD_SWITCH*/
+    UINT32    cxfsdn_camd_sata_disk_size    ; /* CXFSDN_CAMD_SATA_DISK_SIZE (in GB)*/
+    UINT32    cxfsdn_camd_mem_disk_size     ; /* CXFSDN_CAMD_MEM_DISK_SIZE (in MB)*/
+    UINT32    cxfsdn_camd_ssd_disk_offset   ; /* CXFSDN_CAMD_SSD_DISK_OFFSET (in B)*/
+    UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE (in GB)*/
+
+    uint16_t  rsvd04;
+    uint16_t  cxfsmon_conhash_replicas      ; /* CXFSMON_CONHASH_REPLICAS */
+    UINT32    cxfsmon_conhash_switch        ; /* CXFSMON_CONHASH_SWITCH */
+    UINT32    cxfsmon_hot_path_switch       ; /* CXFSMON_HOT_PATH_SWITCH */
+
     UINT32    chfs_memc_switch              ; /* CHFS_MEMC_SWITCH */
-    uint8_t   rsvd04;
+    uint8_t   rsvd05;
     uint8_t   chfs_memc_np_model;           ;
     uint16_t  chfs_memc_cpgd_block_num      ;
     uint32_t  chfs_memc_bucket_num          ;
-    uint32_t  rsvd05;
+    uint32_t  rsvd06;
 
-    uint16_t  rsvd06;
+    uint16_t  rsvd07;
     uint16_t  chfsmon_conhash_replicas      ; /* CHFSMON_CONHASH_REPLICAS */
     UINT32    chfsmon_conhash_switch        ; /* CHFSMON_CONHASH_SWITCH */
 
     UINT32    csfs_memc_switch              ; /* CSFS_MEMC_SWITCH */
-    uint8_t   rsvd07;
+    uint8_t   rsvd08;
     uint8_t   csfs_memc_np_model;           ;
     uint16_t  csfs_memc_csfsd_block_num     ;
     uint32_t  csfs_memc_bucket_num          ;
-    uint32_t  rsvd08;
-    uint16_t  rsvd09;
+    uint32_t  rsvd09;
+    uint16_t  rsvd10;
     uint16_t  csfsmon_conhash_replicas      ; /* CSFSMON_CONHASH_REPLICAS */
     UINT32    csfsmon_conhash_switch        ; /* CSFSMON_CONHASH_SWITCH */
 
@@ -110,8 +126,10 @@ typedef struct
 
     uint32_t  ngx_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  rfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
+    uint32_t  xfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  hfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  sfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
+    uint32_t  rsvd11;
     CSTRING   ssl_certificate_file_name_cstr;
     CSTRING   ssl_private_key_file_name_cstr;
 
@@ -186,6 +204,21 @@ typedef struct
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
 
+#define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->cxfsnp_try_retire_max_num)
+#define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->cxfsnp_try_recycle_max_num)
+#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsnp_cache_in_mem_switch)
+#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsdn_cache_in_mem_switch)
+
+#define CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->cxfsdn_camd_switch)
+#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->cxfsdn_camd_sata_disk_size)
+#define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_mem_disk_size)
+#define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->cxfsdn_camd_ssd_disk_offset)
+#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
+
+#define CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->cxfsmon_conhash_switch)
+#define CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->cxfsmon_conhash_replicas)
+#define CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->cxfsmon_hot_path_switch)
+
 #define CPARACFG_CHFS_MEMC_SWITCH(cparacfg)                         ((cparacfg)->chfs_memc_switch)
 #define CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)                       ((cparacfg)->chfs_memc_np_model)
 #define CPARACFG_CHFS_MEMC_BUCKET_NUM(cparacfg)                     ((cparacfg)->chfs_memc_bucket_num)
@@ -205,6 +238,7 @@ typedef struct
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->ngx_http_req_num_per_loop)
 #define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->rfs_http_req_num_per_loop)
+#define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->xfs_http_req_num_per_loop)
 #define CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->hfs_http_req_num_per_loop)
 #define CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->sfs_http_req_num_per_loop)
 
@@ -234,6 +268,14 @@ typedef struct
 
 #define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
+
+#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
+
+#define CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)))
+
+#define CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)))
+#define CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)))
 
 #define CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CHFS_MEMC_SWITCH(cparacfg)))
 #define CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)))
@@ -362,6 +404,21 @@ typedef struct
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
 
+#define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
+#define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
+#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
+#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
+
+#define CPARACFG_CXFSDN_CAMD_SWITCH_DEF                          SWITCH_OFF
+#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
+#define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE_DEF                   0
+#define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
+#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
+
+#define CPARACFG_CXFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
+#define CPARACFG_CXFSMON_CONHASH_REPLICAS_DEF                    4096
+#define CPARACFG_CXFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
+
 #define CPARACFG_CHFS_MEMC_SWITCH_DEF                            SWITCH_OFF
 #define CPARACFG_CHFS_MEMC_NP_MODEL_DEF                          CHFSNP_128M_MODEL
 #define CPARACFG_CHFS_MEMC_BUCKET_NUM_DEF                        CHFSNP_BUCKET_NUM
@@ -382,6 +439,7 @@ typedef struct
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
+#define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR_DEF              ((uint8_t *)"certificate.pem")
@@ -456,6 +514,21 @@ typedef struct
 #define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
 #define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)
 
+#define    CXFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM)
+#define    CXFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM)
+#define    CXFSNP_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH)
+#define    CXFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH)
+
+#define    CXFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SWITCH)
+#define    CXFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE)
+#define    CXFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE)
+#define    CXFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET)
+#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
+
+#define    CXFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_SWITCH)
+#define    CXFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_REPLICAS)
+#define    CXFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_HOT_PATH_SWITCH)
+
 #define    CHFS_MEMC_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_SWITCH)
 #define    CHFS_MEMC_NP_MODEL                            CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_NP_MODEL)
 #define    CHFS_MEMC_BUCKET_NUM                          CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_BUCKET_NUM)
@@ -475,6 +548,7 @@ typedef struct
 
 #define    NGX_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP)
 #define    RFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP)
+#define    XFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP)
 #define    HFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP)
 #define    SFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP)
 

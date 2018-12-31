@@ -16,6 +16,7 @@ extern "C"{
 
 #include "type.h"
 #include "log.h"
+#include "cmisc.h"
 #include "cmpic.inc"
 #include "cbytecode.h"
 #include "ccode.h"

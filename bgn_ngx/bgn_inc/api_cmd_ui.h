@@ -408,6 +408,51 @@ EC_BOOL api_cmd_ui_crfsc_flush_dt(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfsc_load_dt(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfsc_show_dt(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_cxfs_create_npp(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_create_dn(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_add_disk(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_del_disk(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_mount_disk(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_umount_disk(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_open(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_close(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_read(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_write(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_mkdir(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_search(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_count_file_num(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_count_file_size(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qfile(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qdir(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_path_of_np(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_seg_of_np(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_path(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_seg(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_tree_of_np(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_qlist_tree(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_delete_file(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_delete_dir(CMD_PARA_VEC * param);
+
+/* for deleting root dir / only! */
+EC_BOOL api_cmd_ui_cxfs_delete_root_dir(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_cxfs_delete_path(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_recycle(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_retire(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_flush(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_flush_npp(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_flush_dn(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_npp_lru_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_npp_del_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_npp(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_dn(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_specific_np_lru_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_specific_np_del_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param);
+
+
 EC_BOOL api_cmd_ui_chfs_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_chfs_create_dn(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_chfs_add_disk(CMD_PARA_VEC * param);

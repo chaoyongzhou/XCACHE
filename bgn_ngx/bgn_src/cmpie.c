@@ -49,6 +49,11 @@ extern "C"{
 #include "crfsnp.h"
 #include "crfsdn.h"
 #include "crfsmon.h"
+#include "cxfs.h"
+#include "cxfsnp.h"
+#include "cxfsdn.h"
+#include "cxfsmon.h"
+#include "cxfsconhash.h"
 #include "chfs.h"
 #include "chfsnp.h"
 
@@ -7327,6 +7332,1054 @@ UINT32 cmpi_decode_cp2p_cmd(const UINT32 comm, const UINT8 *in_buff, const UINT3
 
 #endif
 
+#if 1
+UINT32 cmpi_encode_cxfsnp_inode(const UINT32 comm, const CXFSNP_INODE *cxfsnp_inode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnp_inode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_inode: cxfsnp_inode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_inode: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_inode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint16(comm, CXFSNP_INODE_DISK_NO(cxfsnp_inode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint16(comm, CXFSNP_INODE_BLOCK_NO(cxfsnp_inode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint16(comm, CXFSNP_INODE_PAGE_NO(cxfsnp_inode), out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_inode_size(const UINT32 comm, const CXFSNP_INODE *cxfsnp_inode, UINT32 *size)
+{
+    cmpi_encode_uint16_size(comm, CXFSNP_INODE_DISK_NO(cxfsnp_inode), size);
+    cmpi_encode_uint16_size(comm, CXFSNP_INODE_BLOCK_NO(cxfsnp_inode), size);
+    cmpi_encode_uint16_size(comm, CXFSNP_INODE_PAGE_NO(cxfsnp_inode), size);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnp_inode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_INODE *cxfsnp_inode)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_inode: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_inode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnp_inode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_inode: cxfsnp_inode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CXFSNP_INODE_DISK_NO(cxfsnp_inode)));
+    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CXFSNP_INODE_BLOCK_NO(cxfsnp_inode)));
+    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CXFSNP_INODE_PAGE_NO(cxfsnp_inode)));
+
+    return ((UINT32)0);
+}
+
+
+UINT32 cmpi_encode_cxfsnp_fnode(const UINT32 comm, const CXFSNP_FNODE *cxfsnp_fnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    uint32_t cxfsnp_inode_pos;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnp_fnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_fnode: cxfsnp_fnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_fnode: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_fnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32_t(comm, CXFSNP_FNODE_FILESZ(cxfsnp_fnode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_FNODE_REPNUM(cxfsnp_fnode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_FNODE_HASH(cxfsnp_fnode), out_buff, out_buff_max_len, position);
+
+    for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < (CXFSNP_FNODE_REPNUM(cxfsnp_fnode)) && cxfsnp_inode_pos < CXFSNP_FILE_REPLICA_MAX_NUM; cxfsnp_inode_pos ++)
+    {
+        CXFSNP_INODE *cxfsnp_inode;
+
+        cxfsnp_inode = (CXFSNP_INODE *)CXFSNP_FNODE_INODE(cxfsnp_fnode, cxfsnp_inode_pos);
+        cmpi_encode_cxfsnp_inode(comm, cxfsnp_inode, out_buff, out_buff_max_len, position);
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_fnode_size(const UINT32 comm, const CXFSNP_FNODE *cxfsnp_fnode, UINT32 *size)
+{
+    uint32_t cxfsnp_inode_pos;
+
+    cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_FILESZ(cxfsnp_fnode), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_REPNUM(cxfsnp_fnode), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_HASH(cxfsnp_fnode), size);
+
+    for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && cxfsnp_inode_pos < CXFSNP_FILE_REPLICA_MAX_NUM; cxfsnp_inode_pos ++)
+    {
+        CXFSNP_INODE *cxfsnp_inode;
+
+        cxfsnp_inode = (CXFSNP_INODE *)CXFSNP_FNODE_INODE(cxfsnp_fnode, cxfsnp_inode_pos);
+        cmpi_encode_cxfsnp_inode_size(comm, cxfsnp_inode, size);
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_FNODE *cxfsnp_fnode)
+{
+    uint32_t file_size;
+    uint32_t replica_num;
+    uint32_t hash;
+
+    uint32_t cxfsnp_inode_pos;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_fnode: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_fnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnp_fnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_fnode: cxfsnp_fnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(file_size));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(replica_num));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(hash));
+
+    if(CXFSNP_FILE_REPLICA_MAX_NUM < (replica_num))
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsnp_fnode: replica num %ld overflow\n", replica_num);
+        return ((UINT32)-1);
+    }
+
+    CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = (uint32_t)(file_size);
+    CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = (uint32_t)(replica_num);
+    CXFSNP_FNODE_HASH(cxfsnp_fnode)   = (uint32_t)(hash);
+
+    for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode); cxfsnp_inode_pos ++)
+    {
+        CXFSNP_INODE *cxfsnp_inode;
+
+        cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, cxfsnp_inode_pos);
+        cmpi_decode_cxfsnp_inode(comm, in_buff, in_buff_max_len, position, cxfsnp_inode);
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_key(const UINT32 comm, const CXFSNP_KEY *cxfsnp_key, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnp_key )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_key: cxfsnp_key is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_key: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_key: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint8(comm, CXFSNP_KEY_LEN(cxfsnp_key), out_buff, out_buff_max_len, position);
+    cmpi_pack(CXFSNP_KEY_NAME(cxfsnp_key), CXFSNP_KEY_LEN(cxfsnp_key), CMPI_UCHAR, out_buff, out_buff_max_len, position, comm);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_key_size(const UINT32 comm, const CXFSNP_KEY *cxfsnp_key, UINT32 *size)
+{
+    cmpi_encode_uint8_size(comm, CXFSNP_KEY_LEN(cxfsnp_key), size);
+    cmpi_pack_size(CXFSNP_KEY_LEN(cxfsnp_key), CMPI_UCHAR, size,  comm);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnp_key(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_KEY *cxfsnp_key)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_key: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_key: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnp_key )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_key: cxfsnp_key is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint8(comm, in_buff, in_buff_max_len, position, &CXFSNP_KEY_LEN(cxfsnp_key));
+    cmpi_unpack(in_buff, in_buff_max_len, position, CXFSNP_KEY_NAME(cxfsnp_key), CXFSNP_KEY_LEN(cxfsnp_key), CMPI_UCHAR, comm);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnplru_node(const UINT32 comm, const CXFSNPLRU_NODE *cxfsnplru_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnplru_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnplru_node: cxfsnplru_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnplru_node: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnplru_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32_t(comm, CXFSNPLRU_NODE_PREV_POS(cxfsnplru_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNPLRU_NODE_NEXT_POS(cxfsnplru_node), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnplru_node_size(const UINT32 comm, const CXFSNPLRU_NODE *cxfsnplru_node, UINT32 *size)
+{
+    cmpi_encode_uint32_t_size(comm, CXFSNPLRU_NODE_PREV_POS(cxfsnplru_node), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNPLRU_NODE_NEXT_POS(cxfsnplru_node), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnplru_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNPLRU_NODE *cxfsnplru_node)
+{
+    uint32_t num;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnplru_node: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnplru_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnplru_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnplru_node: cxfsnplru_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNPLRU_NODE_PREV_POS(cxfsnplru_node) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNPLRU_NODE_NEXT_POS(cxfsnplru_node)  = num;
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnpdel_node(const UINT32 comm, const CXFSNPDEL_NODE *cxfsnpdel_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnpdel_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnpdel_node: cxfsnpdel_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnpdel_node: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnpdel_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32_t(comm, CXFSNPDEL_NODE_PREV_POS(cxfsnpdel_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNPDEL_NODE_NEXT_POS(cxfsnpdel_node), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnpdel_node_size(const UINT32 comm, const CXFSNPDEL_NODE *cxfsnpdel_node, UINT32 *size)
+{
+    cmpi_encode_uint32_t_size(comm, CXFSNPDEL_NODE_PREV_POS(cxfsnpdel_node), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNPDEL_NODE_NEXT_POS(cxfsnpdel_node), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnpdel_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNPDEL_NODE *cxfsnpdel_node)
+{
+    uint32_t num;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnpdel_node: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnpdel_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnpdel_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnpdel_node: cxfsnpdel_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNPDEL_NODE_PREV_POS(cxfsnpdel_node) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNPDEL_NODE_NEXT_POS(cxfsnpdel_node)  = num;
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_item(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsnp_item )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_item: cxfsnp_item is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_item: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsnp_item: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_CREATE_TIME(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), out_buff, out_buff_max_len, position);
+
+    cmpi_encode_cxfsnplru_node(comm, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_cxfsnpdel_node(comm, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), out_buff, out_buff_max_len, position);
+
+    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_encode_uint32_t(comm, CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)), out_buff, out_buff_max_len, position);
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_encode_cxfsnp_fnode(comm, CXFSNP_ITEM_FNODE(cxfsnp_item), out_buff, out_buff_max_len, position);
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsnp_item_size(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item, UINT32 *size)
+{
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_CREATE_TIME(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), size);
+
+    cmpi_encode_cxfsnplru_node_size(comm, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), size);
+    cmpi_encode_cxfsnpdel_node_size(comm, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), size);
+
+    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_encode_uint32_t_size(comm, CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)), size);
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_encode_cxfsnp_fnode_size(comm, CXFSNP_ITEM_FNODE(cxfsnp_item), size);
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_ITEM *cxfsnp_item)
+{
+    uint32_t num;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_item: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_item: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsnp_item )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsnp_item: cxfsnp_item is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_USED_FLAG(cxfsnp_item) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)  = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_SECOND_HASH(cxfsnp_item) = num;
+
+    cmpi_decode_cxfsnplru_node(comm, in_buff, in_buff_max_len, position, CXFSNP_ITEM_LRU_NODE(cxfsnp_item));
+    cmpi_decode_cxfsnpdel_node(comm, in_buff, in_buff_max_len, position, CXFSNP_ITEM_DEL_NODE(cxfsnp_item));
+
+    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+        CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)) = num;
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        cmpi_decode_cxfsnp_fnode(comm, in_buff, in_buff_max_len, position, CXFSNP_ITEM_FNODE(cxfsnp_item));
+    }
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_rnode(const UINT32 comm, const CXFSCONHASH_RNODE *cxfsconhash_rnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsconhash_rnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode: cxfsconhash_rnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint16(comm, CXFSCONHASH_RNODE_REPLICAS(cxfsconhash_rnode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint16(comm, CXFSCONHASH_RNODE_STATUS(cxfsconhash_rnode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSCONHASH_RNODE_TCID(cxfsconhash_rnode), out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_rnode_size(const UINT32 comm, const CXFSCONHASH_RNODE *cxfsconhash_rnode, UINT32 *size)
+{
+    cmpi_encode_uint16_size(comm, CXFSCONHASH_RNODE_REPLICAS(cxfsconhash_rnode), size);
+    cmpi_encode_uint16_size(comm, CXFSCONHASH_RNODE_STATUS(cxfsconhash_rnode), size);
+    cmpi_encode_uint32_t_size(comm, CXFSCONHASH_RNODE_TCID(cxfsconhash_rnode), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsconhash_rnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSCONHASH_RNODE *cxfsconhash_rnode)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsconhash_rnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode: cxfsconhash_rnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_RNODE_REPLICAS(cxfsconhash_rnode)));
+    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_RNODE_STATUS(cxfsconhash_rnode)));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_RNODE_TCID(cxfsconhash_rnode)));
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_vnode(const UINT32 comm, const CXFSCONHASH_VNODE *cxfsconhash_vnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsconhash_vnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode: cxfsconhash_vnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32_t(comm, CXFSCONHASH_VNODE_HASH(cxfsconhash_vnode), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSCONHASH_VNODE_POS(cxfsconhash_vnode), out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_vnode_size(const UINT32 comm, const CXFSCONHASH_VNODE *cxfsconhash_vnode, UINT32 *size)
+{
+    cmpi_encode_uint32_t_size(comm, CXFSCONHASH_VNODE_HASH(cxfsconhash_vnode), size);
+    cmpi_encode_uint32_t_size(comm, CXFSCONHASH_VNODE_POS(cxfsconhash_vnode), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsconhash_vnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSCONHASH_VNODE *cxfsconhash_vnode)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsconhash_vnode )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode: cxfsconhash_vnode is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_VNODE_HASH(cxfsconhash_vnode)));
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_VNODE_POS(cxfsconhash_vnode)));
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode_vec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    UINT32 num;
+    UINT32 pos;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == rnode_vec )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode_vec: rnode_vec is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode_vec: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_rnode_vec: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    num = cvector_size(rnode_vec);
+    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CXFSCONHASH_RNODE *cxfsconhash_rnode;
+        cxfsconhash_rnode = (CXFSCONHASH_RNODE *)cvector_get(rnode_vec, pos);
+        if(NULL_PTR == cxfsconhash_rnode)
+        {
+            uint32_t     tcid;
+            uint16_t     replicas;
+
+            replicas = CXFSCONHASH_ERR_REPLICAS;
+            tcid     = (uint32_t)CMPI_ERROR_TCID;
+
+            cmpi_encode_uint16(comm, replicas, out_buff, out_buff_max_len, position);
+            cmpi_encode_uint32_t(comm, tcid, out_buff, out_buff_max_len, position);
+
+            continue;
+        }
+
+        cmpi_encode_cxfsconhash_rnode(comm, cxfsconhash_rnode, out_buff, out_buff_max_len, position);
+    }
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *rnode_vec, UINT32 *size)
+{
+    UINT32 num;
+    UINT32 pos;
+
+    num = cvector_size(rnode_vec);
+    cmpi_encode_uint32_size(comm, num, size);
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CXFSCONHASH_RNODE *cxfsconhash_rnode;
+        cxfsconhash_rnode = (CXFSCONHASH_RNODE *)cvector_get(rnode_vec, pos);
+        if(NULL_PTR == cxfsconhash_rnode)
+        {
+            uint32_t     tcid;
+            uint16_t     replicas;
+
+            replicas = CXFSCONHASH_ERR_REPLICAS;
+            tcid     = (uint32_t)CMPI_ERROR_TCID;
+
+            cmpi_encode_uint16_size(comm, replicas, size);
+            cmpi_encode_uint32_t_size(comm, tcid, size);
+
+            continue;
+        }
+
+        cmpi_encode_cxfsconhash_rnode_size(comm, cxfsconhash_rnode, size);
+    }
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CVECTOR *rnode_vec)
+{
+    UINT32 num;
+    UINT32 pos;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode_vec: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode_vec: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == rnode_vec )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_rnode_vec: rnode_vec is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CXFSCONHASH_RNODE *cxfsconhash_rnode;
+
+        cxfsconhash_rnode = cxfsconhash_rnode_new();
+        if(NULL_PTR == cxfsconhash_rnode)
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsconhash_rnode_vec: new rnode %ld# failed\n", pos);
+            return ((UINT32)-1);
+        }
+
+        if(EC_FALSE == cmpi_decode_cxfsconhash_rnode(comm, in_buff, in_buff_max_len, position, cxfsconhash_rnode))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsconhash_rnode_vec: decode rnode %ld# failed\n", pos);
+            cxfsconhash_rnode_free(cxfsconhash_rnode);
+            return ((UINT32)-1);
+        }
+
+        if(CXFSCONHASH_ERR_REPLICAS == CXFSCONHASH_RNODE_REPLICAS(cxfsconhash_rnode)
+        && ((uint32_t)CMPI_ERROR_TCID) == CXFSCONHASH_RNODE_TCID(cxfsconhash_rnode))
+        {
+            cvector_push(rnode_vec, NULL_PTR);
+            cxfsconhash_rnode_free(cxfsconhash_rnode);
+            continue;
+        }
+
+        cvector_push(rnode_vec, cxfsconhash_rnode);
+    }
+
+    return ((UINT32)0);
+}
+
+STATIC_CAST static UINT32 __cmpi_encode_cxfsconhash_vnode_tree_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+   CXFSCONHASH_VNODE *cxfsconhash_vnode;
+    if(NULL_PTR == node)
+    {
+        return ((UINT32)0);
+    }
+
+    if(NULL_PTR != CRB_NODE_LEFT(node))
+    {
+        if(0 != __cmpi_encode_cxfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), out_buff, out_buff_max_len, position))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cxfsconhash_flush_vnodes_inorder: encode left subtree %p failed\n", CRB_NODE_LEFT(node));
+            return ((UINT32)-1);
+        }
+    }
+
+    cxfsconhash_vnode = (CXFSCONHASH_VNODE *)CRB_NODE_DATA(node);
+    if(NULL_PTR == cxfsconhash_vnode)
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cxfsconhash_flush_vnodes_inorder: data of crb node %p is null\n", node);
+        return ((UINT32)-1);
+    }
+
+    if(0 != cmpi_encode_cxfsconhash_vnode(comm, cxfsconhash_vnode, out_buff, out_buff_max_len, position))
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cxfsconhash_flush_vnodes_inorder: encode vnode %p failed\n", cxfsconhash_vnode);
+        return ((UINT32)-1);
+    }
+
+    if(NULL_PTR != CRB_NODE_RIGHT(node))
+    {
+        if(0 != __cmpi_encode_cxfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_NODE_RIGHT(node), out_buff, out_buff_max_len, position))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cxfsconhash_flush_vnodes_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
+            return ((UINT32)-1);
+        }
+    }
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vnode_tree, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    uint32_t num;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == vnode_tree )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode_tree: vnode_tree is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode_tree: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash_vnode_tree: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    num = crb_tree_node_num(vnode_tree);
+    cmpi_encode_uint32_t(comm, num, out_buff, out_buff_max_len, position);
+
+    __cmpi_encode_cxfsconhash_vnode_tree_inorder(comm, vnode_tree, CRB_TREE_ROOT(vnode_tree), out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+STATIC_CAST static UINT32 __cmpi_encode_cxfsconhash_vnode_tree_size_inorder(const UINT32 comm, const CRB_TREE *vnode_tree, const CRB_NODE *node, UINT32 *size)
+{
+   CXFSCONHASH_VNODE *cxfsconhash_vnode;
+    if(NULL_PTR == node)
+    {
+        return ((UINT32)0);
+    }
+
+    if(NULL_PTR != CRB_NODE_LEFT(node))
+    {
+        if(0 != __cmpi_encode_cxfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_NODE_LEFT(node), size))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_cxfsconhash_vnode_tree_size_inorder: encode left subtree %p failed\n", CRB_NODE_LEFT(node));
+            return ((UINT32)-1);
+        }
+    }
+
+    cxfsconhash_vnode = (CXFSCONHASH_VNODE *)CRB_NODE_DATA(node);
+    if(NULL_PTR == cxfsconhash_vnode)
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_cxfsconhash_vnode_tree_size_inorder: data of crb node %p is null\n", node);
+        return ((UINT32)-1);
+    }
+
+    if(0 != cmpi_encode_cxfsconhash_vnode_size(comm, cxfsconhash_vnode, size))
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_cxfsconhash_vnode_tree_size_inorder: encode vnode %p failed\n", cxfsconhash_vnode);
+        return ((UINT32)-1);
+    }
+
+    if(NULL_PTR != CRB_NODE_RIGHT(node))
+    {
+        if(0 != __cmpi_encode_cxfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_NODE_RIGHT(node), size))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:__cmpi_encode_cxfsconhash_vnode_tree_size_inorder: encode right subtree %p failed\n", CRB_NODE_RIGHT(node));
+            return ((UINT32)-1);
+        }
+    }
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_vnode_tree_size(const UINT32 comm, const CRB_TREE *vnode_tree, UINT32 *size)
+{
+    uint32_t num;
+
+    num = crb_tree_node_num(vnode_tree);
+    cmpi_encode_uint32_t_size(comm, num, size);
+
+    __cmpi_encode_cxfsconhash_vnode_tree_size_inorder(comm, vnode_tree, CRB_TREE_ROOT(vnode_tree), size);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRB_TREE *vnode_tree)
+{
+    uint32_t num;
+    uint32_t pos;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode_tree: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode_tree: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == vnode_tree )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash_vnode_tree: vnode_tree is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CXFSCONHASH_VNODE *cxfsconhash_vnode;
+
+        cxfsconhash_vnode = cxfsconhash_vnode_new();
+        if(NULL_PTR == cxfsconhash_vnode)
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsconhash_vnode_tree: new vnode %u# failed\n", pos);
+            return ((UINT32)-1);
+        }
+
+        if(0 != cmpi_decode_cxfsconhash_vnode(comm, in_buff, in_buff_max_len, position, cxfsconhash_vnode))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsconhash_vnode_tree: decode vnode %u# failed\n", pos);
+            cxfsconhash_vnode_free(cxfsconhash_vnode);
+            return ((UINT32)-1);
+        }
+
+        if(NULL_PTR == crb_tree_insert_data(vnode_tree, (void *)cxfsconhash_vnode))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsconhash_vnode_tree: insert vnode %u# at failed\n", pos);
+            cxfsconhash_vnode_free(cxfsconhash_vnode);
+            return ((UINT32)-1);
+        }
+    }
+
+    return ((UINT32)0);
+}
+
+
+UINT32 cmpi_encode_cxfsconhash(const UINT32 comm, const CXFSCONHASH *cxfsconhash, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfsconhash )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash: cxfsconhash is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfsconhash: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32(comm, CXFSCONHASH_HASH_ID(cxfsconhash), out_buff, out_buff_max_len, position);
+    cmpi_encode_cxfsconhash_rnode_vec(comm, CXFSCONHASH_RNODE_VEC(cxfsconhash), out_buff, out_buff_max_len, position);
+    cmpi_encode_cxfsconhash_vnode_tree(comm, CXFSCONHASH_VNODE_TREE(cxfsconhash), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfsconhash_size(const UINT32 comm, const CXFSCONHASH *cxfsconhash, UINT32 *size)
+{
+    cmpi_encode_uint32_size(comm, CXFSCONHASH_HASH_ID(cxfsconhash), size);
+    cmpi_encode_cxfsconhash_rnode_vec_size(comm, CXFSCONHASH_RNODE_VEC(cxfsconhash), size);
+    cmpi_encode_cxfsconhash_vnode_tree_size(comm, CXFSCONHASH_VNODE_TREE(cxfsconhash), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfsconhash(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSCONHASH *cxfsconhash)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfsconhash )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfsconhash: cxfsconhash is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CXFSCONHASH_HASH_ID(cxfsconhash)));
+    cmpi_decode_cxfsconhash_rnode_vec(comm, in_buff, in_buff_max_len, position, CXFSCONHASH_RNODE_VEC(cxfsconhash));
+    cmpi_decode_cxfsconhash_vnode_tree(comm, in_buff, in_buff_max_len, position, CXFSCONHASH_VNODE_TREE(cxfsconhash));
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfs_node(const UINT32 comm, const CXFS_NODE *cxfs_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == cxfs_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfs_node: cxfs_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfs_node: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cxfs_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_encode_uint32(comm, CXFS_NODE_TCID(cxfs_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CXFS_NODE_IPADDR(cxfs_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CXFS_NODE_PORT(cxfs_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CXFS_NODE_MODI(cxfs_node), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CXFS_NODE_STATE(cxfs_node), out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cxfs_node_size(const UINT32 comm, const CXFS_NODE *cxfs_node, UINT32 *size)
+{
+    cmpi_encode_uint32_size(comm, CXFS_NODE_TCID(cxfs_node), size);
+    cmpi_encode_uint32_size(comm, CXFS_NODE_IPADDR(cxfs_node), size);
+    cmpi_encode_uint32_size(comm, CXFS_NODE_PORT(cxfs_node), size);
+    cmpi_encode_uint32_size(comm, CXFS_NODE_MODI(cxfs_node), size);
+    cmpi_encode_uint32_size(comm, CXFS_NODE_STATE(cxfs_node), size);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cxfs_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFS_NODE *cxfs_node)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfs_node: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfs_node: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cxfs_node )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cxfs_node: cxfs_node is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CXFS_NODE_TCID(cxfs_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CXFS_NODE_IPADDR(cxfs_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CXFS_NODE_PORT(cxfs_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CXFS_NODE_MODI(cxfs_node));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CXFS_NODE_STATE(cxfs_node));
+
+    return ((UINT32)0);
+}
+
+#endif
 
 #ifdef __cplusplus
 }

@@ -87,6 +87,8 @@ extern "C"{
 #include "crfsmon.h"
 #include "crfshttp.h"
 #include "crfschttp.h"
+#include "cxfsmon.h"
+#include "cxfshttp.h"
 #include "chfshttp.h"
 #include "csfshttp.h"
 
@@ -5635,6 +5637,7 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
     TASK_BRD_HTTP_CCONNP_MGR(task_brd)    = NULL_PTR;
 
     TASK_BRD_CRFSMON_ID(task_brd)         = CMPI_ERROR_MODI;
+    TASK_BRD_CXFSMON_ID(task_brd)         = CMPI_ERROR_MODI;
 
     /*initialize queues*/
     task_queue_init(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE));
@@ -8328,6 +8331,18 @@ LOG * task_brd_default_init(int argc, char **argv)
             task_brd_default_abort();/*abort !*/
         }
     }
+    /*start cxfs monintor*/
+    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
+    {
+        TASK_BRD_CXFSMON_ID(task_brd) = cxfsmon_start();
+        if(CMPI_ERROR_MODI == TASK_BRD_CXFSMON_ID(task_brd))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start cxfsmon failed\n");
+            task_brd_free(task_brd);
+
+            task_brd_default_abort();/*abort !*/
+        }
+    }
 #if 0/*not need HFS at present*/
     /*start chfs monintor*/
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
@@ -8736,6 +8751,11 @@ UINT32 task_brd_default_get_network_level()
 UINT32 task_brd_default_get_crfsmon_id()
 {
     return TASK_BRD_CRFSMON_ID(task_brd_default_get());
+}
+
+UINT32 task_brd_default_get_cxfsmon_id()
+{
+    return TASK_BRD_CXFSMON_ID(task_brd_default_get());
 }
 
 UINT32 task_brd_default_get_chfsmon_id()
@@ -12146,6 +12166,25 @@ EC_BOOL task_brd_default_add_runner(const UINT32 tcid, const UINT32 rank, const 
         cstack_push(task_brd_runner_stack, task_runner_node);
 
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_add_runner: tcid %s rank %ld runner set to '%s'\n",
+                           TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), name);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_default_fork_runner(const UINT32 tcid, const UINT32 rank, const char * name, TASK_RUNNER_FUNC runner, void *arg)
+{
+    TASK_BRD *task_brd;
+
+    task_brd = task_brd_default_get();
+
+    if(
+        (tcid == TASK_BRD_TCID(task_brd) || CMPI_ANY_TCID == tcid )
+     && (rank == TASK_BRD_RANK(task_brd) || CMPI_ANY_RANK == rank)
+     )
+    {
+        coroutine_pool_load(TASK_BRD_CROUTINE_POOL(task_brd), (UINT32)runner, (UINT32)1, arg);
+
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_fork_runner: tcid %s rank %ld runner set to '%s'\n",
                            TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), name);
     }
     return (EC_TRUE);

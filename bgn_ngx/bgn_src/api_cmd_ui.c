@@ -45,6 +45,10 @@ extern "C"{
 #include "crfsdn.h"
 #include "crfsc.h"
 
+#include "cxfs.h"
+#include "cxfsnp.h"
+#include "cxfsdn.h"
+
 #include "chfs.h"
 #include "chfsnp.h"
 
@@ -288,6 +292,52 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs md5sum"  , "hsrfs <id> md5sum file <name> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsrfs md5sum"  , "hsrfs <id> md5sum bigfile <name> seg <no> on tcid <tcid> at <console|log>");
 #endif
+#if 1
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs create"  , "hsxfs <id> create np model <model> max num <np mum> with hash algo <id> and root <root dir> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs create"  , "hsxfs <id> create dn with root <root dir> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs add"     , "hsxfs <id> add disk <disk no> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs del"     , "hsxfs <id> del disk <disk no> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs mount"   , "hsxfs <id> mount disk <disk no> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs umount"  , "hsxfs <id> umount disk <disk no> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs open"    , "hsxfs <id> open from root <dir> on tcid <tcid>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs close"   , "hsxfs <id> close on tcid <tcid>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs read"    , "hsxfs <id> read file <name> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs write"   , "hsxfs <id> write file <name> with content <string> and expire <num> seconds on tcid <tcid> at <console|log>");
+
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs write"   , "hsxfs <id> write file <name> with content <string> on tcid <tcid> at <console|log>");
+
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs create"  , "hsxfs <id> create bigfile <name> with size <file size> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs read"    , "hsxfs <id> read bigfile <name> from offset <offset> max <max len> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs download", "hsxfs <id> download bigfile <name> to file <name> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs upload"  , "hsxfs <id> upload file <name> to bigfile <name> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs write"   , "hsxfs <id> write bigfile <name> with content <string> at offset <offset> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete"  , "hsxfs <id> delete bigfile <name> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete"  , "hsxfs <id> delete {file|dir|path} <name> on tcid <tcid> at <console|log>");
+
+    /* for deleting root dir / only! */
+    /* but do not exposure at api cmd ui */
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete root dir"  , "hsxfs <id> delete root dir / on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs recycle" , "hsxfs <id> recycle on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs retire"  , "hsxfs <id> retire max <num> files on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush npp on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush dn on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs mkdir"   , "hsxfs <id> mkdir <path> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs search"  , "hsxfs <id> search <path> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs count"   , "hsxfs <id> count file num of <path> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs count"   , "hsxfs <id> count file size of <path> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs qfile"   , "hsxfs <id> qfile <file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs qdir"    , "hsxfs <id> qdir <dir> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs qlist"   , "hsxfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show npp [<lru | del>] on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show dn on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show cached np [<lru | del>] on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show specific np <id> [<lru | del>] on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show locked files on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum file <name> on tcid <tcid> at <console|log>");
+    //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum bigfile <name> seg <no> on tcid <tcid> at <console|log>");
+#endif
+
 
 #if 0
     api_cmd_help_vec_create(cmd_help_vec, "hsrfsc open"    , "hsrfsc open from root <dir> on tcid <tcid>");
@@ -725,6 +775,47 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qlist_path       , "hsrfs %n qlist %s full on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qlist_seg        , "hsrfs %n qlist %s short on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfs_qlist_tree       , "hsrfs %n qlist %s tree on tcid %t at %s", rank, where, tcid, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_create_npp       , "hsxfs %n create np model %n max num %n with hash algo %n and root %s on tcid %t at %s", rank, rank, rank, rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_create_dn        , "hsxfs %n create dn with root %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_add_disk         , "hsxfs %n add disk %n on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_del_disk         , "hsxfs %n del disk %n on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_mount_disk       , "hsxfs %n mount disk %n on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_umount_disk      , "hsxfs %n umount disk %n on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_open             , "hsxfs %n open from root %s on tcid %t", rank, where, tcid);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_close            , "hsxfs %n close on tcid %t", rank, tcid);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_read             , "hsxfs %n read file %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_write            , "hsxfs %n write file %s with content %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_mkdir            , "hsxfs %n mkdir %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_search           , "hsxfs %n search %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_file      , "hsxfs %n delete file %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_dir       , "hsxfs %n delete dir %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_path      , "hsxfs %n delete path %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_root_dir  , "hsxfs %n delete root dir %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_recycle          , "hsxfs %n recycle on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_retire           , "hsxfs %n retire max %n files on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_flush            , "hsxfs %n flush on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_flush_npp        , "hsxfs %n flush npp on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_flush_dn         , "hsxfs %n flush dn on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_npp_lru_list, "hsxfs %n show npp lru on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_npp_del_list, "hsxfs %n show npp del on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_npp         , "hsxfs %n show npp on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_dn          , "hsxfs %n show dn on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_specific_np_lru_list , "hsxfs %n show specific np %n lru on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_specific_np_del_list , "hsxfs %n show specific np %n del on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_specific_np , "hsxfs %n show specific np %n on tcid %t at %s", rank, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_locked_files, "hsxfs %n show locked files on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_md5sum           , "hsxfs %n md5sum file %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_count_file_num   , "hsxfs %n count file num of %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_count_file_size  , "hsxfs %n count file size of %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qfile            , "hsxfs %n qfile %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qdir             , "hsxfs %n qdir %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_path_of_np , "hsxfs %n qlist %s full of np %n on tcid %t at %s", rank, where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_seg_of_np  , "hsxfs %n qlist %s short of np %n on tcid %t at %s", rank, where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_tree_of_np , "hsxfs %n qlist %s tree of np %n on tcid %t at %s", rank, where, rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_path       , "hsxfs %n qlist %s full on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_seg        , "hsxfs %n qlist %s short on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_tree       , "hsxfs %n qlist %s tree on tcid %t at %s", rank, where, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_open            , "hsrfsc open from root %s on tcid %t", where, tcid);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_crfsc_close           , "hsrfsc close on tcid %t", tcid);
@@ -18746,6 +18837,2404 @@ EC_BOOL api_cmd_ui_crfsc_show_dt(CMD_PARA_VEC * param)
 
     sys_log(des_log, "[rank_%s_%ld]\n%s", c_word_to_ipv4(crfsnp_tcid),CMPI_CRFSC_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
     log_cstr_close(log);
+
+    return (EC_TRUE);
+}
+
+#endif
+
+#if 1
+EC_BOOL api_cmd_ui_cxfs_create_npp(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_model;
+    UINT32   cxfsnp_max_num;
+    UINT32   cxfsnp_2nd_chash_algo_id;
+    CSTRING *cxfsnp_db_root_dir;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &cxfsnp_model);
+    api_cmd_para_vec_get_uint32(param  , 2, &cxfsnp_max_num);
+    api_cmd_para_vec_get_uint32(param  , 3, &cxfsnp_2nd_chash_algo_id);
+    api_cmd_para_vec_get_cstring(param , 4, &cxfsnp_db_root_dir);
+    api_cmd_para_vec_get_tcid(param    , 5, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 6, &where);
+
+    /*hsxfs <id> create np model <model> max num <np mum> with hash algo <id> and root <root dir> on tcid <tcid> at <where>*/
+    /*hsxfs %n create np model %n max num %n with hash algo %n and root %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_create_npp: hsxfs %ld create np model %ld max num %ld with hash algo %ld and root %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        cxfsnp_model,
+                        cxfsnp_max_num,
+                        cxfsnp_2nd_chash_algo_id,
+                        (char *)cstring_get_str(cxfsnp_db_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_create_npp, CMPI_ERROR_MODI,
+             cxfsnp_model, cxfsnp_max_num, cxfsnp_2nd_chash_algo_id, cxfsnp_db_root_dir);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld create np model %u max num %u with hash algo %u and root %s on tcid %s successfully\n",
+                        cxfs_modi,
+                        cxfsnp_model,
+                        cxfsnp_max_num,
+                        cxfsnp_2nd_chash_algo_id,
+                        (char *)cstring_get_str(cxfsnp_db_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld create np model %u max num %u with hash algo %u and root %s on tcid %s failed\n",
+                        cxfs_modi,
+                        cxfsnp_model,
+                        cxfsnp_max_num,
+                        cxfsnp_2nd_chash_algo_id,
+                        (char *)cstring_get_str(cxfsnp_db_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_create_dn(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *cxfsnp_dn_root_dir;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &cxfsnp_dn_root_dir);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> create dn with root <root dir> on tcid <tcid> at <where>*/
+    /*hsxfs %n create dn with root %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_create_dn: hsxfs %ld create dn with root %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(cxfsnp_dn_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_create_dn, CMPI_ERROR_MODI, cxfsnp_dn_root_dir);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld create dn with root %s on tcid %s successfully\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(cxfsnp_dn_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld create dn with root %s on tcid %s failed\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(cxfsnp_dn_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_add_disk(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   disk_no;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &disk_no);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> add disk <disk no> on tcid <tcid> at <where>*/
+    /*hsxfs %n add disk %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_add_disk: hsxfs %ld add disk %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_add_disk, CMPI_ERROR_MODI, disk_no);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld add disk %ld on tcid %s successfully\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld add disk %ld on tcid %s failed\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_del_disk(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   disk_no;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &disk_no);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> del disk <disk no> on tcid <tcid> at <where>*/
+    /*hsxfs %n del disk %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_del_disk: hsxfs %ld del disk %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_del_disk, CMPI_ERROR_MODI, disk_no);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld del disk %ld on tcid %s successfully\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld del disk %ld on tcid %s failed\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_mount_disk(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   disk_no;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &disk_no);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> mount disk <disk no> on tcid <tcid> at <where>*/
+    /*hsxfs %n mount disk %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_mount_disk: hsxfs %ld mount disk %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_mount_disk, CMPI_ERROR_MODI, disk_no);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld mount disk %ld on tcid %s successfully\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld mount disk %ld on tcid %s failed\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_umount_disk(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   disk_no;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &disk_no);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> umount disk <disk no> on tcid <tcid> at <where>*/
+    /*hsxfs %n umount disk %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_umount_disk: hsxfs %ld umount disk %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    task_p2p(CMPI_ANY_MODI, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_umount_disk, CMPI_ERROR_MODI, disk_no);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] hsxfs %ld umount disk %ld on tcid %s successfully\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] hsxfs %ld umount disk %ld on tcid %s failed\n",
+                        cxfs_modi,
+                        disk_no,
+                        c_word_to_ipv4(cxfsnp_tcid));
+    }
+
+    return (EC_TRUE);
+}
+EC_BOOL api_cmd_ui_cxfs_open(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *cxfs_root_dir;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR   *mod_mgr_def;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &cxfs_root_dir);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+
+    /*hsxfs <id> open from root <dir> on tcid <tcid>*/
+    /*hsxfs %n open from root %s on tcid %t*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_open: hsxfs %ld open from root %s on tcid %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(cxfs_root_dir),
+                        c_word_to_ipv4(cxfsnp_tcid));
+
+    mod_mgr_def = api_cmd_ui_gen_mod_mgr(cxfsnp_tcid, CMPI_CXFS_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, cxfs_modi);
+
+    task_act(mod_mgr_def, NULL_PTR, TASK_DEFAULT_LIVE, (UINT32)1, LOAD_BALANCING_LOOP, TASK_PRIO_NORMAL,
+             FI_cxfs_start, cxfs_root_dir);
+    mod_mgr_free(mod_mgr_def);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_close(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR   *mod_mgr_def;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+
+    /*hsxfs <id> close on tcid <tcid>*/
+    /*hsxfs %n close on tcid %t*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_close: hsxfs %ld close on tcid %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid));
+
+    mod_mgr_def = api_cmd_ui_gen_mod_mgr(cxfsnp_tcid, CMPI_CXFS_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, cxfs_modi);
+
+    task_dea(mod_mgr_def, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, FI_cxfs_end, CMPI_ERROR_MODI);
+    mod_mgr_free(mod_mgr_def);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_read(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *file_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    CBYTES    *cbytes;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &file_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> read file <name> on tcid <tcid> at <where>*/
+    /*hsxfs %n read file %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_read: hsxfs %ld read file %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(file_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    cbytes = cbytes_new(0);
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_read, CMPI_ERROR_MODI, file_name, cbytes);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] api_cmd_ui_cxfs_read: read %s result: \n%.*s\n",
+                          (char *)cstring_get_str(file_name),
+                          cbytes_len(cbytes), (char *)cbytes_buf(cbytes));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] api_cmd_ui_cxfs_read: read %s failed\n", (char *)cstring_get_str(file_name));
+    }
+
+    cbytes_free(cbytes);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_write(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *file_name;
+    CSTRING *file_content;
+//    UINT32   expire_nsec;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    CBYTES    *cbytes;
+    LOG       *des_log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &file_name);
+    api_cmd_para_vec_get_cstring(param , 2, &file_content);
+    //api_cmd_para_vec_get_uint32(param  , 3, &expire_nsec);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*hsxfs <id> write file <name> with content <string> on tcid <tcid> at <where>*/
+    /*hsxfs %n write file %s with content %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_write: hsxfs %ld write file %s with content %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(file_name),
+                        (char *)cstring_get_str(file_content),
+                        /*expire_nsec,*/
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+    cbytes = cbytes_new(0);
+
+    cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_write, CMPI_ERROR_MODI, file_name, cbytes);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] file name %s\n", (char *)cstring_get_str(file_name));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] file name %s\n", (char *)cstring_get_str(file_name));
+    }
+
+    cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
+    cbytes_free(cbytes);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_mkdir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> mkdir <path> on tcid <tcid> at <where>*/
+    /*hsxfs %n mkdir %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_mkdir: hsxfs %ld mkdir %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_mkdir, CMPI_ERROR_MODI, path_name);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] mkdir %s\n", (char *)cstring_get_str(path_name));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] mkdir %s\n", (char *)cstring_get_str(path_name));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_search(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> search <path> on tcid <tcid> at <where>*/
+    /*hsxfs %n search %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_search: hsxfs %ld search %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_search, CMPI_ERROR_MODI, path_name, (UINT32)CXFSNP_ITEM_FILE_IS_ANY);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] search %s\n", (char *)cstring_get_str(path_name));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] search %s\n", (char *)cstring_get_str(path_name));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_count_file_num(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    UINT32   file_num;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> count file num of <path> on tcid <tcid> at <where>*/
+    /*hsxfs %n count file num of %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_count_file_num: hsxfs %ld count file num of path %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_file_num, CMPI_ERROR_MODI, path_name, &file_num);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] count file num of path %s: %ld\n", (char *)cstring_get_str(path_name), file_num);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] count file num of path %s\n", (char *)cstring_get_str(path_name));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_count_file_size(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    uint64_t  file_size;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> count file size of <path> on tcid <tcid> at <where>*/
+    /*hsxfs %n count file size of %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_file_size: hsxfs %ld count file size of path %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_file_size, CMPI_ERROR_MODI, path_name, &file_size);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] count file size of path %s: %"PRId64"\n", (char *)cstring_get_str(path_name), file_size);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] count file size of path %s\n", (char *)cstring_get_str(path_name));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qfile(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *file_name;
+    CSTRING *where;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CXFSNP_ITEM *cxfsnp_item;
+    CXFSNP_KEY  *cxfsnp_key;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &file_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qfile %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(file_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qfile beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qfile end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+    cxfsnp_item = cxfsnp_item_new();
+    ASSERT(NULL_PTR != cxfsnp_item);
+
+    cxfsnp_key = cxfsnp_key_new();
+    ASSERT(NULL_PTR != cxfsnp_key);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qfile, CMPI_ERROR_MODI, file_name, cxfsnp_item, cxfsnp_key);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        cxfsnp_item_print(des_log, cxfsnp_item);
+        cxfsnp_key_print(des_log, cxfsnp_key);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    cxfsnp_item_free(cxfsnp_item);
+    cxfsnp_key_free(cxfsnp_key);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qdir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *dir_name;
+    CSTRING *where;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CXFSNP_ITEM *cxfsnp_item;
+    CXFSNP_KEY  *cxfsnp_key;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &dir_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qdir %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(dir_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qdir beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qdir end ----------------------------------\n");
+    }
+#endif
+
+    cxfsnp_item = cxfsnp_item_new();
+    ASSERT(NULL_PTR != cxfsnp_item);
+
+    cxfsnp_key = cxfsnp_key_new();
+    ASSERT(NULL_PTR != cxfsnp_key);
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qdir, CMPI_ERROR_MODI, dir_name, cxfsnp_item, cxfsnp_key);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+        cxfsnp_item_print(des_log, cxfsnp_item);
+        cxfsnp_key_print(des_log, cxfsnp_key);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    cxfsnp_item_free(cxfsnp_item);
+    cxfsnp_key_free(cxfsnp_key);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_path_of_np(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *path_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_uint32(param  , 2, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s full of np %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_path_of_np beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_path_of_np end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0404);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_path_of_np, CMPI_ERROR_MODI, path, cxfsnp_id, path_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0405);
+    cvector_free(path_cstr_vec, LOC_API_0406);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_seg_of_np(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *seg_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_uint32(param  , 2, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s short of np %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_seg_of_np beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_seg_of_np end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0407);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_seg_of_np, CMPI_ERROR_MODI, path, cxfsnp_id, seg_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(seg_cstr_vec); pos ++)
+        {
+            CSTRING *seg_cstr;
+
+            seg_cstr = (CSTRING *)cvector_get(seg_cstr_vec, pos);
+            if(NULL_PTR == seg_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(seg_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(seg_cstr_vec); pos ++)
+        {
+            CSTRING *seg_cstr;
+
+            seg_cstr = (CSTRING *)cvector_get(seg_cstr_vec, pos);
+            if(NULL_PTR == seg_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(seg_cstr));
+        }
+    }
+
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0408);
+    cvector_free(seg_cstr_vec, LOC_API_0409);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_path(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *path_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s full on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_path beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_path end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0410);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_path, CMPI_ERROR_MODI, path, path_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0411);
+    cvector_free(path_cstr_vec, LOC_API_0412);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_seg(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *seg_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s short on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_seg beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_seg end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0413);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_seg, CMPI_ERROR_MODI, path, seg_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(seg_cstr_vec); pos ++)
+        {
+            CSTRING *seg_cstr;
+
+            seg_cstr = (CSTRING *)cvector_get(seg_cstr_vec, pos);
+            if(NULL_PTR == seg_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(seg_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(seg_cstr_vec); pos ++)
+        {
+            CSTRING *seg_cstr;
+
+            seg_cstr = (CSTRING *)cvector_get(seg_cstr_vec, pos);
+            if(NULL_PTR == seg_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(seg_cstr));
+        }
+    }
+
+    cvector_clean(seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0414);
+    cvector_free(seg_cstr_vec, LOC_API_0415);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_tree_of_np(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *tree_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_uint32(param  , 2, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s tree of np %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_tree_of_np beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_tree_of_np end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    tree_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0416);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_tree_of_np, CMPI_ERROR_MODI, cxfsnp_id, path, tree_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(tree_cstr_vec); pos ++)
+        {
+            CSTRING *tree_cstr;
+
+            tree_cstr = (CSTRING *)cvector_get(tree_cstr_vec, pos);
+            if(NULL_PTR == tree_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(tree_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(tree_cstr_vec); pos ++)
+        {
+            CSTRING *tree_cstr;
+
+            tree_cstr = (CSTRING *)cvector_get(tree_cstr_vec, pos);
+            if(NULL_PTR == tree_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(tree_cstr));
+        }
+    }
+
+    cvector_clean(tree_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0417);
+    cvector_free(tree_cstr_vec, LOC_API_0418);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_qlist_tree(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfsnp_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CVECTOR     *path_cstr_vec;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld qlist %s tree on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfsnp_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_tree beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_qlist_tree end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_API_0419);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfsnp_tcid, &ret, FI_cxfs_qlist_tree, CMPI_ERROR_MODI, path, path_cstr_vec);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        UINT32 pos;
+
+        sys_log(des_log, "[SUCC]\n");
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+    else
+    {
+        UINT32 pos;
+        sys_log(des_log, "[FAIL]\n");
+
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            CSTRING *path_cstr;
+
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            sys_log(des_log, "%ld # %s\n", pos, (char *)cstring_get_str(path_cstr));
+        }
+    }
+
+    cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0420);
+    cvector_free(path_cstr_vec, LOC_API_0421);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_delete_file(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *fname;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &fname);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> delete file <name> on tcid <tcid> at <where>*/
+    /*hsxfs %n delete file %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_delete_file: hsxfs %ld delete file %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(fname),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_delete_file, CMPI_ERROR_MODI, fname);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] delete file %s\n", (char *)cstring_get_str(fname));
+        sys_log(LOGCONSOLE, "[SUCC] delete file %s\n", (char *)cstring_get_str(fname));
+        if(des_log == LOGCONSOLE)
+        {
+            sys_log(LOGCONSOLE, "[SUCC] des_log is CONSOLE\n");
+        }
+        else
+        {
+            sys_log(LOGCONSOLE, "[SUCC] des_log is NOT CONSOLE\n");
+        }
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] delete file %s\n", (char *)cstring_get_str(fname));
+        sys_log(LOGCONSOLE, "[FAIL] delete file %s\n", (char *)cstring_get_str(fname));
+        if(des_log == LOGCONSOLE)
+        {
+            sys_log(LOGCONSOLE, "[FAIL] des_log is CONSOLE\n");
+        }
+        else
+        {
+            sys_log(LOGCONSOLE, "[FAIL] des_log is NOT CONSOLE\n");
+        }
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_delete_dir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *dname;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL   ret;
+
+    EC_BOOL   is_root_dir;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &dname);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> delete dir <name> on tcid <tcid> at <where>*/
+    /*hsxfs %n delete dir %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_delete_dir: hsxfs %ld delete dir %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(dname),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+
+    des_log = api_cmd_ui_get_log(where);
+
+    ret = EC_FALSE;
+
+    /* ensure the dir to delete is NOT root dir / */
+    is_root_dir = cstring_is_str((const CSTRING *)dname, (const UINT8 *)"/");
+    if(EC_FALSE == is_root_dir)
+    {
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_delete_dir, CMPI_ERROR_MODI, dname);
+    }
+    else
+    {
+        sys_log(des_log, "[ERRO] can NOT use this interface to delete root dir %s \n", (char *)cstring_get_str(dname));
+        //sys_log(des_log, "[WARN] to delete root dir, use command: hsxfs <id> delete root dir / on tcid <tcid> at <console|log>\n");
+    }
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] delete dir %s\n", (char *)cstring_get_str(dname));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] delete dir %s\n", (char *)cstring_get_str(dname));
+    }
+
+    return (EC_TRUE);
+}
+
+
+EC_BOOL api_cmd_ui_cxfs_delete_root_dir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *dname;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL   ret;
+
+    EC_BOOL   is_root_dir;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &dname);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_delete_root_dir: hsxfs %ld delete root dir %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(dname),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+
+    des_log = api_cmd_ui_get_log(where);
+
+    ret = EC_FALSE;
+
+    /* ensure the dir to delete is root dir / */
+    is_root_dir = cstring_is_str((const CSTRING *)dname, (const UINT8 *)"/");
+    if(EC_TRUE == is_root_dir)
+    {
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_delete_dir, CMPI_ERROR_MODI, dname);
+    }
+    else
+    {
+        sys_log(des_log, "[ERRO] the dir %s to delete is not root dir / \n", (char *)cstring_get_str(dname));
+    }
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] delete root dir %s\n", (char *)cstring_get_str(dname));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] delete dir %s\n", (char *)cstring_get_str(dname));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_delete_path(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path_name;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path_name);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs delete path <name> on tcid <tcid> at <where>*/
+    /*hsxfs delete path %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_delete_path: hsxfs %ld delete path %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path_name),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_delete, CMPI_ERROR_MODI, path_name, (UINT32)CXFSNP_ITEM_FILE_IS_ANY);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] delete path %s\n", (char *)cstring_get_str(path_name));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] delete path %s\n", (char *)cstring_get_str(path_name));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_recycle(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+    UINT32     complete_num;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> recycle on tcid <tcid> at <where>*/
+    /*hsxfs %n recycle on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_recycle: hsxfs %ld recycle on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_recycle, CMPI_ERROR_MODI, CXFS_RECYCLE_MAX_NUM, &complete_num);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] recycle completion num %ld\n", complete_num);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] recycle\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_retire(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   max_retire_num;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+    UINT32     complete_retire_num;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &max_retire_num);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> retire max <num> files on tcid <tcid> at <where>*/
+    /*hsxfs %n retire max %n files on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_retire: hsxfs %ld retire max %ld files on tcid %s at %s\n",
+                        cxfs_modi,
+                        max_retire_num,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    complete_retire_num = 0;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_retire, CMPI_ERROR_MODI, max_retire_num, &complete_retire_num);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] retire %ld files\n", complete_retire_num);
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] retire %ld files\n", complete_retire_num);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_flush(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> flush on tcid <tcid> at <where>*/
+    /*hsxfs %n flush on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_flush: hsxfs %ld flush on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_flush, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] flush\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] flush\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_flush_npp(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> flush npp on tcid <tcid> at <where>*/
+    /*hsxfs %n flush on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_flush_npp: hsxfs %ld flush npp on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_flush_npp, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] flush npp\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] flush npp\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_flush_dn(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    EC_BOOL    ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> flush dn on tcid <tcid> at <where>*/
+    /*hsxfs %n flush on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_flush_dn: hsxfs %ld flush dn on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_flush_dn, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] flush dn\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL] flush dn\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_npp_lru_list(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show npp lru on tcid <tcid> at <where>*/
+    /*hsxfs %n show npp lru on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_npp_lru_list: hsxfs %ld show npp lru on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_npp_lru_list, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_npp_del_list(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show npp del on tcid <tcid> at <where>*/
+    /*hsxfs %n show npp del on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_npp_del_list: hsxfs %ld show npp del on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_npp_del_list, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_npp(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show npp on tcid <tcid> at <where>*/
+    /*hsxfs %n show npp on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_npp: hsxfs %ld show npp on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_npp, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_dn(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show dn on tcid <tcid> at <where>*/
+    /*hsxfs %n show dn on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_dn: hsxfs %ld show dn on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_dn, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL]\n%s", c_word_to_ipv4(cxfsnp_tcid),CMPI_CXFS_RANK, (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_specific_np_lru_list(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> show specific np <id> lru on tcid <tcid> at <where>*/
+    /*hsxfs %n show specific np %n lru on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_specific_np_lru_list: hsxfs %ld show specific np %ld lru on tcid %s at %s\n",
+                        cxfs_modi,
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_specific_np_lru_list, CMPI_ERROR_MODI, cxfsnp_id, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld\n%s",
+                           c_word_to_ipv4(cxfsnp_tcid),
+                           CMPI_CXFS_RANK,
+                           cxfsnp_id,
+                           (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld\n%s",
+                          c_word_to_ipv4(cxfsnp_tcid),
+                          CMPI_CXFS_RANK, cxfsnp_id,
+                          (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_specific_np_del_list(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> show specific np <id> del on tcid <tcid> at <where>*/
+    /*hsxfs %n show specific np %n del on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_specific_np_del_list: hsxfs %ld show specific np %ld del on tcid %s at %s\n",
+                        cxfs_modi,
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_specific_np_del_list, CMPI_ERROR_MODI, cxfsnp_id, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld\n%s",
+                           c_word_to_ipv4(cxfsnp_tcid),
+                           CMPI_CXFS_RANK,
+                           cxfsnp_id,
+                           (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld\n%s",
+                          c_word_to_ipv4(cxfsnp_tcid),
+                          CMPI_CXFS_RANK, cxfsnp_id,
+                          (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_id;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &cxfsnp_id);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> show specific np <id> on tcid <tcid> at <where>*/
+    /*hsxfs %n show specific np %n on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_specific_np: hsxfs %ld show specific np %ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        cxfsnp_id,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_show_specific_np, CMPI_ERROR_MODI, cxfsnp_id, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld\n%s",
+                           c_word_to_ipv4(cxfsnp_tcid),
+                           CMPI_CXFS_RANK,
+                           cxfsnp_id,
+                           (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld\n%s",
+                          c_word_to_ipv4(cxfsnp_tcid),
+                          CMPI_CXFS_RANK, cxfsnp_id,
+                          (char *)cstring_get_str(LOG_CSTR(log)));
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show locked files on tcid <tcid> at <console|log>*/
+    /*hsxfs %n show locked files on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_locked_files: hsxfs %ld locked files on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             NULL_PTR,
+             FI_cxfs_locked_files_print, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    sys_log(des_log, "[rank_%s_%ld][SUCC] \n%s",
+                       c_word_to_ipv4(cxfsnp_tcid),
+                       CMPI_CXFS_RANK,
+                       (char *)cstring_get_str(LOG_CSTR(log)));
+    log_cstr_close(log);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *fname;
+    UINT32   cxfsnp_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    EC_BOOL   ret;
+    CMD5_DIGEST md5sum;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &fname);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfsnp_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    /*hsxfs <id> md5sum file <name> on tcid <tcid> at <where>*/
+    /*hsxfs %n md5sum file %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_md5sum: hsxfs %ld md5sum file %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(fname),
+                        c_word_to_ipv4(cxfsnp_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfsnp_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_file_md5sum, CMPI_ERROR_MODI, fname, &md5sum);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld][SUCC] file %s, md5sum %s\n",
+                           c_word_to_ipv4(cxfsnp_tcid),
+                           CMPI_CXFS_RANK,
+                           (char *)cstring_get_str(fname),
+                           c_md5_to_hex_str(CMD5_DIGEST_SUM(&md5sum))
+                           );
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld][FAIL] file %s\n",
+                           c_word_to_ipv4(cxfsnp_tcid),
+                           CMPI_CXFS_RANK,
+                           (char *)cstring_get_str(fname)
+                           );
+    }
 
     return (EC_TRUE);
 }

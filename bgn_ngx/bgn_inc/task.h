@@ -31,6 +31,7 @@ extern "C"{
 #define CMPI_CDFS_RANK     ((UINT32)  0)  /*define cdfs rank*/
 #define CMPI_CRFS_RANK     ((UINT32)  0)  /*define crfs rank*/
 #define CMPI_CRFSC_RANK    ((UINT32)  0)  /*define crfsc rank*/
+#define CMPI_CXFS_RANK     ((UINT32)  0)  /*define cxfs rank*/
 #define CMPI_CHFS_RANK     ((UINT32)  0)  /*define chfs rank*/
 #define CMPI_CSFS_RANK     ((UINT32)  0)  /*define csfs rank*/
 
@@ -343,6 +344,7 @@ UINT32  task_brd_default_get_ssrv_port();
 UINT32  task_brd_default_get_network_level();
 
 UINT32  task_brd_default_get_crfsmon_id();
+UINT32 task_brd_default_get_cxfsmon_id();
 UINT32  task_brd_default_get_chfsmon_id();
 UINT32  task_brd_default_get_csfsmon_id();
 
@@ -371,6 +373,8 @@ EC_BOOL task_brd_net_add_runner(const UINT32 tcid, const UINT32 mask_nbits, cons
 EC_BOOL task_brd_range_add_runner(const UINT32 tcid_fr, const UINT32 tcid_to, const UINT32 rank, const char * name, TASK_RUNNER_FUNC runner, void *arg);
 
 EC_BOOL task_brd_default_add_runner(const UINT32 tcid, const UINT32 rank, const char * name, TASK_RUNNER_FUNC runner, void *arg);
+
+EC_BOOL task_brd_default_fork_runner(const UINT32 tcid, const UINT32 rank, const char * name, TASK_RUNNER_FUNC runner, void *arg);
 
 EC_BOOL task_brd_default_start_runner();
 

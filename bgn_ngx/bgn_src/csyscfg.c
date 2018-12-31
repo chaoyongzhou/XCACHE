@@ -967,6 +967,7 @@ void cparacfg_ssl_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     }
     return;
 }
+
 void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
     if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
@@ -985,6 +986,29 @@ void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " rfsDnAmdSsdDiskSizeGB=\"%ld\""  , CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
+        sys_print(log, "/>\n");
+    }
+    return;
+}
+
+void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
+{
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<xfsConfig");
+        sys_print(log, " xfsNpRetireMaxNum=\"%ld\""      , CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
+        sys_print(log, " xfsNpRecycleMaxNum=\"%ld\""     , CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
+        sys_print(log, " xfsNpCacheInMemSwitch=\"%s\""   , CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
+        sys_print(log, " xfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
+
+        sys_print(log, " xfsDnAmdSwitch=\"%s\""          , CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
+        sys_print(log, " xfsDnAmdSataDiskSizeGB=\"%ld\"" , CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+        sys_print(log, " xfsDnAmdMemDiskSizeMB=\"%ld\""  , CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
+        sys_print(log, " xfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
+        sys_print(log, " xfsDnAmdSsdDiskSizeGB=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+
+        sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
     }
     return;
@@ -1028,13 +1052,22 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     {
         c_ident_print(log, level);
         sys_print(log, "<ngxConfig");
+
         sys_print(log, " rfsConhashSwitch=\"%s\""        , CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " rfsConhashReplicas=\"%u\""      , CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg));
+        sys_print(log, " rfsHotPathSwitch=\"%s\""        , CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
+
+        sys_print(log, " xfsConhashSwitch=\"%s\""        , CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg));
+        sys_print(log, " xfsConhashReplicas=\"%u\""      , CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg));
+        sys_print(log, " xfsHotPathSwitch=\"%s\""        , CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg));
+
         sys_print(log, " hfsConhashSwitch=\"%s\""        , CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " hfsConhashReplicas=\"%u\""      , CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg));
+
         sys_print(log, " sfsConhashSwitch=\"%s\""        , CPARACFG_CSFSMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " sfsConhashReplicas=\"%u\""      , CPARACFG_CSFSMON_CONHASH_REPLICAS(cparacfg));
-        sys_print(log, " rfsHotPathSwitch=\"%s\""        , CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
+
+
         sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
         sys_print(log, " epollTimeoutMsec=\"%u\""        , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
@@ -1061,6 +1094,7 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     //cparacfg_log_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_conn_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_rfs_cfg_print_xml (log, cparacfg, level + 1);
+    cparacfg_xfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_hfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_sfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_ngx_cfg_print_xml (log, cparacfg, level + 1);

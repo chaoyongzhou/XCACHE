@@ -195,5 +195,25 @@
 #define SEC_0185_CDCPGRB                    ((UINT32)(    185)) /*cdcpgrb                         */
 #define SEC_0186_CDCPGV                     ((UINT32)(    186)) /*cdcpgv                          */
 #define SEC_0187_CDCDN                      ((UINT32)(    187)) /*cdcdn                           */
-#define SEC_NONE_END                        ((UINT32)(    188))
+#define SEC_0188_CDCNPDEG                   ((UINT32)(    188)) /*cdcnpdeg                        */
+#define SEC_0189_CMCNPDEG                   ((UINT32)(    189)) /*cmcnpdeg                        */
+#define SEC_0190_CXFSNPMGR                  ((UINT32)(    190)) /*cxfsnpmgr                       */
+#define SEC_0191_CXFSDN                     ((UINT32)(    191)) /*cxfsdn                          */
+#define SEC_0192_CXFS                       ((UINT32)(    192)) /*cxfs                            */
+#define SEC_0193_CXFSGW                     ((UINT32)(    193)) /*cxfsgw                          */
+#define SEC_0194_CXFSHTTP                   ((UINT32)(    194)) /*cxfshttp                        */
+#define SEC_0195_CXFSNPLRU                  ((UINT32)(    195)) /*cxfsnplru                       */
+#define SEC_0196_CXFSNPDEL                  ((UINT32)(    196)) /*cxfsnpdel                       */
+#define SEC_0197_CXFSNP                     ((UINT32)(    197)) /*cxfsnp                          */
+#define SEC_0198_CXFSNPRB                   ((UINT32)(    198)) /*cxfsnprb                        */
+#define SEC_0199_CXFSCONHASH                ((UINT32)(    199)) /*cxfsconhash                     */
+#define SEC_0200_CXFSHTTPS                  ((UINT32)(    200)) /*cxfshttps                       */
+#define SEC_0201_CXFSPGB                    ((UINT32)(    201)) /*cxfspgb                         */
+#define SEC_0202_CXFSPGD                    ((UINT32)(    202)) /*cxfspgd                         */
+#define SEC_0203_CXFSPGV                    ((UINT32)(    203)) /*cxfspgv                         */
+#define SEC_0204_CXFSPGRB                   ((UINT32)(    204)) /*cxfspgrb                        */
+#define SEC_0205_CXFSCFG                    ((UINT32)(    205)) /*cxfscfg                         */
+#define SEC_0206_CXFSMON                    ((UINT32)(    206)) /*cxfsmon                         */
+
+#define SEC_NONE_END                        ((UINT32)(    207))
 #endif/*_SEC_MACRO_INC*/

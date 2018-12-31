@@ -108,6 +108,11 @@ extern "C"{
 #define              e_dbg_CP2P_FILE_ptr    ((UINT32) 77)
 #define               e_dbg_CP2P_CMD_ptr    ((UINT32) 78)
 #define             e_dbg_CRFSNP_KEY_ptr    ((UINT32) 79)
+
+#define            e_dbg_CXFSNP_ITEM_ptr    ((UINT32) 80)
+#define           e_dbg_CXFSNP_FNODE_ptr    ((UINT32) 81)
+#define              e_dbg_CXFS_NODE_ptr    ((UINT32) 82)
+#define             e_dbg_CXFSNP_KEY_ptr    ((UINT32) 83)
 #define                   e_dbg_type_end    ((UINT32)128)
 
 /* description of E_DBG_TYPE */
