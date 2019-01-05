@@ -18,8 +18,13 @@ extern "C"{
 #include "cdcnpdel.h"
 #include "cdcnp.h"
 
-#define CDCNPDEL_ASSERT(condition)           ASSERT(condition)
-//#define CDCNPDEL_ASSERT(condition)           do{}while(0)
+#if (SWITCH_ON == CDC_ASSERT_SWITCH)
+#define CDCNPDEL_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CDC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CDC_ASSERT_SWITCH)
+#define CDCNPDEL_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CDC_ASSERT_SWITCH)*/
 
 void cdcnpdel_node_init(CDCNPDEL_NODE *node, const uint32_t node_pos)
 {
@@ -260,7 +265,7 @@ EC_BOOL cdcnpdel_pool_init(CDCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0135_CDCNPDEL, 0)(LOGSTDOUT, "info:cdcnpdel_pool_init: init node %u - %u of max %u done\n",
+            dbg_log(SEC_0135_CDCNPDEL, 9)(LOGSTDOUT, "info:cdcnpdel_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
         }
     }

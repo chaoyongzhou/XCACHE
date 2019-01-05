@@ -92,18 +92,18 @@ uint16_t cdcpgd_model_get(const char *model_str)
     return (CDCPGD_ERROR_BLOCK_NUM);
 }
 
-EC_BOOL cdcpgd_model_search(const UINT32 vdisk_size /*in MB*/, UINT32 *vdisk_num)
+EC_BOOL cdcpgd_model_search(const UINT32 vdisk_size /*in byte*/, UINT32 *vdisk_num)
 {
     UINT32      block_num;
 
     /*how many blocks for vdisk total space*/
-    block_num    = (((vdisk_size << 20) + (UINT32)CDCPGB_SIZE_NBYTES - 1) >> (UINT32)CDCPGB_SIZE_NBITS);
+    block_num    = ((vdisk_size + (UINT32)CDCPGB_SIZE_NBYTES - 1) >> (UINT32)CDCPGB_SIZE_NBITS);
 
     /*how many vdisks for the blocks*/
     (*vdisk_num) = ((block_num + CDCPGD_MAX_BLOCK_NUM - 1) / CDCPGD_MAX_BLOCK_NUM);
 
     dbg_log(SEC_0184_CDCPGD, 0)(LOGSTDOUT, "[DEBUG] cdcpgd_model_search: "
-                                           "vdisk size %ld MB => %ld vdisks, "
+                                           "vdisk size %ld bytes => %ld vdisks, "
                                            "where block size %u Bytes\n",
                                            vdisk_size, (*vdisk_num),
                                            (uint32_t)CDCPGB_SIZE_NBYTES);
@@ -376,7 +376,7 @@ STATIC_CAST static EC_BOOL __cdcpgd_assign_block(CDCPGD *cdcpgd, uint16_t *page_
     mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
     if(0 == (CDCPGD_PAGE_MODEL_ASSIGN_BITMAP(cdcpgd) & mask))
     {
-        dbg_log(SEC_0184_CDCPGD, 0)(LOGSTDOUT, "error:__cdcpgd_assign_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+        dbg_log(SEC_0184_CDCPGD, 7)(LOGSTDOUT, "error:__cdcpgd_assign_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
                            page_model_t, CDCPGD_PAGE_MODEL_ASSIGN_BITMAP(cdcpgd), mask);
         return (EC_FALSE);
     }
@@ -463,7 +463,7 @@ EC_BOOL cdcpgd_new_space(CDCPGD *cdcpgd, const uint32_t size, uint16_t *block_no
 
         if(EC_FALSE == __cdcpgd_assign_block(cdcpgd, &page_model_t, &block_no_t))
         {
-            dbg_log(SEC_0184_CDCPGD, 0)(LOGSTDOUT, "error:cdcpgd_new_space: assign one block from page model %u failed\n", page_model);
+            dbg_log(SEC_0184_CDCPGD, 7)(LOGSTDOUT, "error:cdcpgd_new_space: assign one block from page model %u failed\n", page_model);
             return (EC_FALSE);
         }
 

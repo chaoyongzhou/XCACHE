@@ -101,6 +101,21 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_uint32(xmlNodePtr node, const char *
     return (EC_FALSE);
 }
 
+STATIC_CAST static EC_BOOL __cxml_parse_tag_real(xmlNodePtr node, const char *tag, REAL *data)
+{
+    if(xmlHasProp(node, (const xmlChar*)tag))
+    {
+        xmlChar *attr_val;
+
+        attr_val = xmlGetProp(node, (const xmlChar*)tag);
+        (*data) = atof((char *)attr_val);
+        xmlFree(attr_val);
+
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
 STATIC_CAST static EC_BOOL __cxml_parse_tag_int(xmlNodePtr node, const char *tag, int *data)
 {
     if(xmlHasProp(node, (const xmlChar*)tag))
@@ -1237,6 +1252,32 @@ EC_BOOL cxml_parse_cparacfg_ssl_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     return (EC_TRUE);
 }
 
+EC_BOOL cxml_parse_cparacfg_amd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
+{
+    __cxml_parse_tag_uint32(node, (const char *)"ssdAioReqMaxNum"   , &(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"sataAioReqMaxNum"  , &(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)));
+
+    __cxml_parse_tag_uint32(node, (const char *)"cmcTryRetireMaxNum"  , &(CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cmcTryRecycleMaxNum" , &(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cmcScanRetireMaxNum" , &(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cmcProcessDegradeMaxNum", &(CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cmcScanDegradeMaxNum", &(CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cmcDegradeHiRatio"     , &(CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cmcDegradeMdRatio"     , &(CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cmcDegradeLoRatio"     , &(CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)));
+
+    __cxml_parse_tag_uint32(node, (const char *)"cdcTryRetireMaxNum"  , &(CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cdcTryRecycleMaxNum" , &(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cdcScanRetireMaxNum" , &(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cdcProcessDegradeMaxNum", &(CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"cdcScanDegradeMaxNum", &(CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cdcDegradeHiRatio"     , &(CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cdcDegradeMdRatio"     , &(CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"cdcDegradeLoRatio"     , &(CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)));
+
+    return (EC_TRUE);
+}
+
 STATIC_CAST static EC_BOOL cxml_parse_cparacfg_tcid_rank(xmlNodePtr node, UINT32 *tcid, UINT32 *rank)
 {
     if(EC_FALSE == __cxml_parse_tag_tcid(node, (const char *)"tcid", tcid))
@@ -1313,6 +1354,11 @@ EC_BOOL cxml_parse_cparacfg_para_cfg(xmlNodePtr node, CPARACFG *cparacfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"ngxConfig"))
         {
             cxml_parse_cparacfg_ngx_cfg(cur, cparacfg);
+            continue;
+        }
+        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"amdConfig"))
+        {
+            cxml_parse_cparacfg_amd_cfg(cur, cparacfg);
             continue;
         }
     }

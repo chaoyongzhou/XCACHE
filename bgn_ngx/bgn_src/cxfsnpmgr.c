@@ -95,6 +95,38 @@ EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
 
 EC_BOOL cxfsnp_mgr_clean(CXFSNP_MGR *cxfsnp_mgr)
 {
+    if(SWITCH_OFF == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
+    {
+        c_memalign_free(CXFSNP_MGR_NP_CACHE(cxfsnp_mgr));
+        CXFSNP_MGR_NP_CACHE(cxfsnp_mgr) = NULL_PTR;
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
+    {
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        wsize     = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+        mem_cache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+
+        if(0 != munmap(mem_cache, wsize))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "warn:cxfsnp_mgr_clean: "
+                                                      "munmap size %ld failed\n",
+                                                      wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_clean: "
+                                                      "munmap size %ld done\n",
+                                                      wsize);
+        }
+
+        CXFSNP_MGR_NP_CACHE(cxfsnp_mgr) = NULL_PTR;
+    }
+
     CXFSNP_MGR_FD(cxfsnp_mgr)                   = ERR_FD;
 
     CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)             = CXFSNP_ERR_MODEL;
@@ -107,12 +139,6 @@ EC_BOOL cxfsnp_mgr_clean(CXFSNP_MGR *cxfsnp_mgr)
     CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)          = 0;
 
     cvector_clean(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (CVECTOR_DATA_CLEANER)cxfsnp_free, LOC_CXFSNPMGR_0003);
-
-    if(NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
-    {
-        c_memalign_free(CXFSNP_MGR_NP_CACHE(cxfsnp_mgr));
-        CXFSNP_MGR_NP_CACHE(cxfsnp_mgr) = NULL_PTR;
-    }
 
     return (EC_TRUE);
 }
@@ -313,7 +339,8 @@ void cxfsnp_mgr_print(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
 
 EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
 {
-    if(NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    if(SWITCH_OFF == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
     && ERR_FD != CXFSNP_MGR_FD(cxfsnp_mgr))
     {
         UINT32      offset;
@@ -330,7 +357,6 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
                                                       "flush %ld bytes to offset %ld failed\n",
                                                       wsize,
                                                       CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr));
-            c_memalign_free(mem_cache);
             return (EC_FALSE);
         }
 
@@ -338,8 +364,31 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
                                                   "flush %ld bytes to offset %ld done\n",
                                                   wsize,
                                                   CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr));
-    }
+   }
 
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && ERR_FD != CXFSNP_MGR_FD(cxfsnp_mgr))
+    {
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        wsize     = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+        mem_cache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+
+        if(0 != msync(mem_cache, wsize, MS_SYNC))
+        {
+            dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "warn:cxfsnp_mgr_flush: "
+                                                   "sync np with size %ld failed\n",
+                                                   wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
+                                                   "sync np with size %ld done\n",
+                                                   wsize);
+        }
+    }
     return (EC_TRUE);
 }
 
@@ -356,30 +405,65 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
 
     ASSERT(0 == (np_mem_size & (CXFSNP_MGR_MEM_ALIGNMENT - 1)));
 
-    np_mem_cache = c_memalign_new(np_mem_size, CXFSNP_MGR_MEM_ALIGNMENT);
-    if(NULL_PTR == np_mem_cache)
+    if(SWITCH_OFF == CXFS_NP_MMAP_SWITCH)
     {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
-                                                  "alloc %ld bytes with alignment %ld failed\n",
-                                                  np_mem_size, np_mem_align);
-        return (EC_FALSE);
-    }
+        np_mem_cache = c_memalign_new(np_mem_size, CXFSNP_MGR_MEM_ALIGNMENT);
+        if(NULL_PTR == np_mem_cache)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
+                                                      "alloc %ld bytes with alignment %ld failed\n",
+                                                      np_mem_size, np_mem_align);
+            return (EC_FALSE);
+        }
 
-    np_offset = CXFSCFG_NP_S_OFFSET(cxfscfg);
-    if(EC_FALSE == c_file_pread(cxfsnp_dev_fd, &np_offset, np_mem_size, np_mem_cache))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
-                                                  "load %ld bytes from offset %ld failed\n",
+        np_offset = CXFSCFG_NP_S_OFFSET(cxfscfg);
+        if(EC_FALSE == c_file_pread(cxfsnp_dev_fd, &np_offset, np_mem_size, np_mem_cache))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
+                                                      "load %ld bytes from offset %ld failed\n",
+                                                      np_mem_size,
+                                                      CXFSCFG_NP_S_OFFSET(cxfscfg));
+            c_memalign_free(np_mem_cache);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
+                                                  "load %ld bytes from offset %ld done\n",
                                                   np_mem_size,
                                                   CXFSCFG_NP_S_OFFSET(cxfscfg));
-        c_memalign_free(np_mem_cache);
-        return (EC_FALSE);
     }
 
-    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
-                                              "load %ld bytes from offset %ld done\n",
-                                              np_mem_size,
-                                              CXFSCFG_NP_S_OFFSET(cxfscfg));
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH)
+    {
+        UINT8   *addr;
+
+        addr = c_mmap_aligned_addr(np_mem_size, CXFSNP_MGR_MEM_ALIGNMENT);
+        if(NULL_PTR == addr)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
+                                                      "fetch mmap aligned addr of size %ld align %ld failed\n",
+                                                      np_mem_size, (UINT32)CXFSNP_MGR_MEM_ALIGNMENT);
+            return (EC_FALSE);
+        }
+
+        np_offset = CXFSCFG_NP_S_OFFSET(cxfscfg);
+
+        np_mem_cache = (UINT8 *)mmap(addr, np_mem_size,
+                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
+                                     cxfsnp_dev_fd, np_offset);
+        if(MAP_FAILED == np_mem_cache)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
+                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
+                               cxfsnp_dev_fd, np_offset, np_mem_size, errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
+                                                  "mmap %ld bytes from offset %ld done\n",
+                                                  np_mem_size,
+                                                  CXFSCFG_NP_S_OFFSET(cxfscfg));
+    }
 
     /*init*/
     CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)              = CXFSCFG_NP_MODEL(cxfscfg);
@@ -692,13 +776,47 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
 
     /*align to 1MB*/
     np_mem_align = CXFSNP_MGR_MEM_ALIGNMENT;
-    np_mem_cache = c_memalign_new(np_total_size, np_mem_align);
-    if(NULL_PTR == np_mem_cache)
+
+    if(SWITCH_OFF == CXFS_NP_MMAP_SWITCH)
     {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
-                                                  "alloc %ld bytes with alignment %ld failed\n",
-                                                  np_total_size, np_mem_align);
-        return (NULL_PTR);
+        np_mem_cache = c_memalign_new(np_total_size, np_mem_align);
+        if(NULL_PTR == np_mem_cache)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
+                                                      "alloc %ld bytes with alignment %ld failed\n",
+                                                      np_total_size, np_mem_align);
+            return (NULL_PTR);
+        }
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH)
+    {
+        UINT8   *addr;
+
+        addr = c_mmap_aligned_addr(np_total_size, CXFSNP_MGR_MEM_ALIGNMENT);
+        if(NULL_PTR == addr)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
+                                                      "fetch mmap aligned addr of size %ld align %ld failed\n",
+                                                      np_total_size, (UINT32)CXFSNP_MGR_MEM_ALIGNMENT);
+            return (NULL_PTR);
+        }
+
+        np_mem_cache = (UINT8 *)mmap(addr, np_total_size,
+                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
+                                     cxfsnp_dev_fd, cxfsnp_dev_offset);
+        if(MAP_FAILED == np_mem_cache)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
+                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
+                               cxfsnp_dev_fd, cxfsnp_dev_offset, np_total_size, errno, strerror(errno));
+            return (NULL_PTR);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
+                                                  "mmap %ld bytes from offset %ld done\n",
+                                                  np_total_size,
+                                                  cxfsnp_dev_offset);
     }
 
     cxfsnp_mgr = cxfsnp_mgr_new();

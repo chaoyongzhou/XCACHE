@@ -75,6 +75,8 @@ CMCPGV_HDR *cmcpgv_hdr_new(CMCPGV *cmcpgv);
 
 EC_BOOL cmcpgv_hdr_free(CMCPGV *cmcpgv);
 
+REAL cmcpgv_hdr_used_ratio(const CMCPGV *cmcpgv);
+
 EC_BOOL cmcpgv_free(CMCPGV *cmcpgv);
 
 /* one page cache disk = 32GB */
@@ -97,6 +99,8 @@ EC_BOOL cmcpgv_is_full(const CMCPGV *cmcpgv);
 EC_BOOL cmcpgv_is_empty(const CMCPGV *cmcpgv);
 
 EC_BOOL cmcpgv_check(const CMCPGV *cmcpgv);
+
+REAL cmcpgv_used_ratio(const CMCPGV *cmcpgv);
 
 void cmcpgv_print(LOG *log, const CMCPGV *cmcpgv);
 

@@ -52,7 +52,7 @@ void c_log_init();
 void c_static_mem_init();
 
 void c_env_init();
-
+const char *c_strerror_get(int err);
 EC_BOOL cmisc_init(UINT32 location);
 
 EC_BOOL c_chars_are_digit(const char *chars, const UINT32 len);
@@ -281,6 +281,10 @@ EC_BOOL c_file_remove(const char *filename);
 
 EC_BOOL c_file_rename(const char *src_filename, const char *des_filename);
 
+int c_fp_dup(int fd);
+
+EC_BOOL c_dev_exist(const char *pathname);
+
 int c_mem_ncmp(const UINT8 *src, const UINT32 slen, const UINT8 *des, const UINT32 dlen);
 
 void c_ident_print(LOG * log, const UINT32 level);
@@ -407,6 +411,8 @@ CTMV *c_get_day_time();
 
 char *c_get_day_time_str();
 
+uint64_t c_get_cur_time_msec();
+
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
 
 /*note: host_name is domain or ipv4 string*/
@@ -449,6 +455,11 @@ void c_memalign_counter_print(LOG *log);
 EC_BOOL c_mlock(void *addr, const UINT32 size);
 
 EC_BOOL c_munlock(void *addr, const UINT32 size);
+
+uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size);
+
+const char *c_strerror(int err);
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

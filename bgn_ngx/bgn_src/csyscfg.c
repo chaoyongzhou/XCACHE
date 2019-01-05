@@ -1076,6 +1076,39 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     return;
 }
 
+void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
+{
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<amdConfig");
+
+        sys_print(log, " ssdAioReqMaxNum=\"%ld\""        , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
+        sys_print(log, " sataAioReqMaxNum=\"%ld\""       , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
+
+        sys_print(log, " cmcTryRetireMaxNum=\"%ld\""     , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
+        sys_print(log, " cmcTryRecycleMaxNum=\"%ld\""    , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));
+        sys_print(log, " cmcScanRetireMaxNum=\"%ld\""    , CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg));
+        sys_print(log, " cmcProcessDegradeMaxNum=\"%ld\"", CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
+        sys_print(log, " cmcScanDegradeMaxNum=\"%ld\""   , CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg));
+        sys_print(log, " cmcDegradeHiRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg));
+        sys_print(log, " cmcDegradeMdRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg));
+        sys_print(log, " cmcDegradeLoRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg));
+
+        sys_print(log, " cdcTryRetireMaxNum=\"%ld\""     , CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg));
+        sys_print(log, " cdcTryRecycleMaxNum=\"%ld\""    , CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg));
+        sys_print(log, " cdcScanRetireMaxNum=\"%ld\""    , CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg));
+        sys_print(log, " cdcProcessDegradeMaxNum=\"%ld\"", CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
+        sys_print(log, " cdcScanDegradeMaxNum=\"%ld\""   , CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg));
+        sys_print(log, " cdcDegradeHiRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg));
+        sys_print(log, " cdcDegradeMdRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg));
+        sys_print(log, " cdcDegradeLoRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg));
+
+        sys_print(log, "/>\n");
+    }
+    return;
+}
+
 void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
     c_ident_print(log, level);
@@ -1098,6 +1131,7 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     cparacfg_hfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_sfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_ngx_cfg_print_xml (log, cparacfg, level + 1);
+    cparacfg_amd_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_ssl_cfg_print_xml  (log, cparacfg, level + 1);
     cparacfg_log_cfg_print_xml (log, cparacfg, level + 1); /* change the order */
     c_ident_print(log, level);

@@ -154,15 +154,12 @@ typedef struct
 
     uint8_t           *root_dname;
     CPGV              *cpgv;
-
-    CAMD_MD           *camd_md;
 }CRFSDN;
 
 #define CRFSDN_OPEN_NODES(crfsdn)                          (&((crfsdn)->open_nodes))
 #define CRFSDN_CACHED_NODES(crfsdn)                        (&((crfsdn)->cached_nodes))
 #define CRFSDN_ROOT_DNAME(crfsdn)                          ((crfsdn)->root_dname)
 #define CRFSDN_CPGV(crfsdn)                                ((crfsdn)->cpgv)
-#define CRFSDN_CAMD_MD(crfsdn)                             ((crfsdn)->camd_md)
 
 #define CRFSDN_OPEN_NODE(_crfsdn, node_id)                 (crfsdn_node_fetch((_crfsdn), (node_id)))
 

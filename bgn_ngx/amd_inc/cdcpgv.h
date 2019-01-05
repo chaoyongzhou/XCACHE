@@ -97,6 +97,8 @@ EC_BOOL cdcpgv_hdr_new(CDCPGV *cdcpgv);
 
 EC_BOOL cdcpgv_hdr_free(CDCPGV *cdcpgv);
 
+REAL cdcpgv_hdr_used_ratio(const CDCPGV *cdcpgv);
+
 EC_BOOL cdcpgv_hdr_max_size(UINT32 *size);
 
 EC_BOOL cdcpgv_free(CDCPGV *cdcpgv);
@@ -129,6 +131,8 @@ EC_BOOL cdcpgv_load(CDCPGV *cdcpgv, UINT8 *base, UINT32 *pos);
 EC_BOOL cdcpgv_check(const CDCPGV *cdcpgv);
 
 void cdcpgv_print(LOG *log, const CDCPGV *cdcpgv);
+
+REAL cdcpgv_used_ratio(const CDCPGV *cdcpgv);
 
 CDCPGV *cdcpgv_new();
 

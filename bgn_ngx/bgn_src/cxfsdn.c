@@ -141,27 +141,79 @@ CXFSDN *cxfsdn_create(const int cxfsdn_dev_fd, const UINT32 cxfsdn_dev_size, con
     }
 
     dn_mem_align = CXFSDN_MEM_ALIGNMENT;
-    dn_mem_cache = c_memalign_new(dn_size, dn_mem_align);
-    if(NULL_PTR == dn_mem_cache)
+
+    if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
-                                               "alloc %ld bytes with alignment %ld failed\n",
-                                               dn_size, dn_mem_align);
-        cxfsdn_free(cxfsdn);
-        return (NULL_PTR);
+        dn_mem_cache = c_memalign_new(dn_size, dn_mem_align);
+        if(NULL_PTR == dn_mem_cache)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
+                                                   "alloc %ld bytes with alignment %ld failed\n",
+                                                   dn_size, dn_mem_align);
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: "
+                                               "dn_size %ld, dev offset %ld\n",
+                                               dn_size, cxfsdn_dev_offset);
+
+        CXFSDN_FD(cxfsdn)      = cxfsdn_dev_fd;
+        CXFSDN_SIZE(cxfsdn)    = dn_size;
+        CXFSDN_OFFSET(cxfsdn)  = cxfsdn_dev_offset;
+
+        CXFSDN_CXFSPGV(cxfsdn) = cxfspgv_new(dn_mem_cache, dn_size, disk_max_num);
+        if(NULL_PTR == CXFSDN_CXFSPGV(cxfsdn))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: new vol failed\n");
+
+            c_memalign_free(dn_mem_cache);
+
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
     }
 
-    CXFSDN_FD(cxfsdn)      = cxfsdn_dev_fd;
-    CXFSDN_SIZE(cxfsdn)    = dn_size;
-    CXFSDN_OFFSET(cxfsdn)  = cxfsdn_dev_offset;
-
-    CXFSDN_CXFSPGV(cxfsdn) = cxfspgv_new(dn_mem_cache, dn_size, disk_max_num);
-    if(NULL_PTR == CXFSDN_CXFSPGV(cxfsdn))
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: new vol failed\n");
-        c_memalign_free(dn_mem_cache);
-        cxfsdn_free(cxfsdn);
-        return (NULL_PTR);
+        UINT8   *addr;
+
+        addr = c_mmap_aligned_addr(dn_size, dn_mem_align);
+        if(NULL_PTR == addr)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
+                                                   "fetch mmap aligned addr of size %ld align %ld failed\n",
+                                                   dn_size, dn_mem_align);
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
+
+        dn_mem_cache = (UINT8 *)mmap(addr, dn_size,
+                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
+                                     cxfsdn_dev_fd, cxfsdn_dev_offset);
+        if(MAP_FAILED == dn_mem_cache)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
+                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
+                               cxfsdn_dev_fd, cxfsdn_dev_offset, dn_size, errno, strerror(errno));
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
+
+        CXFSDN_FD(cxfsdn)      = cxfsdn_dev_fd;
+        CXFSDN_SIZE(cxfsdn)    = dn_size;
+        CXFSDN_OFFSET(cxfsdn)  = cxfsdn_dev_offset;
+
+        CXFSDN_CXFSPGV(cxfsdn) = cxfspgv_new(dn_mem_cache, dn_size, disk_max_num);
+        if(NULL_PTR == CXFSDN_CXFSPGV(cxfsdn))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: new vol failed\n");
+
+            munmap(dn_mem_cache, dn_size);
+
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
     }
 
     CXFSDN_MEM_CACHE(cxfsdn) = dn_mem_cache;
@@ -248,9 +300,35 @@ EC_BOOL cxfsdn_clean(CXFSDN *cxfsdn)
         CXFSDN_CXFSPGV(cxfsdn) = NULL_PTR;
     }
 
-    if(NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
+    if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
     {
         c_memalign_free(CXFSDN_MEM_CACHE(cxfsdn));
+        CXFSDN_MEM_CACHE(cxfsdn) = NULL_PTR;
+    }
+
+    if(SWITCH_ON== CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
+    {
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        wsize     = CXFSDN_SIZE(cxfsdn);
+        mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
+
+        if(0 != munmap(mem_cache, wsize))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "warn:cxfsdn_clean: "
+                                                   "munmap size %ld failed\n",
+                                                   wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_clean: "
+                                                   "munmap size %ld done\n",
+                                                   wsize);
+        }
+
         CXFSDN_MEM_CACHE(cxfsdn) = NULL_PTR;
     }
 
@@ -286,7 +364,9 @@ EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn)
 
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
 {
-    if(NULL_PTR != cxfsdn && ERR_FD != CXFSDN_FD(cxfsdn))
+    if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && ERR_FD != CXFSDN_FD(cxfsdn))
     {
         UINT32      offset;
         UINT32      wsize;
@@ -295,6 +375,11 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
         offset    = CXFSDN_OFFSET(cxfsdn);
         wsize     = CXFSDN_SIZE(cxfsdn);
         mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: [1]"
+                                               "disk num %u, disk max num %u\n",
+                                               CXFSPGV_DISK_NUM(CXFSDN_CXFSPGV(cxfsdn)),
+                                               CXFSPGV_DISK_MAX_NUM(CXFSDN_CXFSPGV(cxfsdn)));
 
         if(EC_FALSE == c_file_pwrite(CXFSDN_FD(cxfsdn), &offset, wsize, mem_cache))
         {
@@ -308,10 +393,39 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
                                                "flush %ld bytes to offset %ld done\n",
                                                wsize, CXFSDN_OFFSET(cxfsdn));
     }
+
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && ERR_FD != CXFSDN_FD(cxfsdn))
+    {
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        wsize     = CXFSDN_SIZE(cxfsdn);
+        mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: [1]"
+                                               "disk num %u, disk max num %u\n",
+                                               CXFSPGV_DISK_NUM(CXFSDN_CXFSPGV(cxfsdn)),
+                                               CXFSPGV_DISK_MAX_NUM(CXFSDN_CXFSPGV(cxfsdn)));
+
+        if(0 != msync(mem_cache, wsize, MS_SYNC))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "warn:cxfsdn_flush: "
+                                                   "sync dn with size %ld failed\n",
+                                                   wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
+                                                   "sync dn with size %ld done\n",
+                                                   wsize);
+        }
+    }
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg)
+EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg)
 {
     CXFSPGV    *cxfspgv;
 
@@ -336,32 +450,69 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsnp_dev_fd, const CXFSCFG *cxfs
     dn_mem_align = CXFSDN_MEM_ALIGNMENT;
     ASSERT(0 == (dn_mem_size & (CXFSDN_MEM_ALIGNMENT - 1)));
 
-    dn_mem_cache = c_memalign_new(dn_mem_size, dn_mem_align);
-    if(NULL_PTR == dn_mem_cache)
+    if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
-                                               "alloc %ld bytes with alignment %ld failed\n",
-                                               dn_mem_size, dn_mem_align);
-        return (EC_FALSE);
+        dn_mem_cache = c_memalign_new(dn_mem_size, dn_mem_align);
+        if(NULL_PTR == dn_mem_cache)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
+                                                   "alloc %ld bytes with alignment %ld failed\n",
+                                                   dn_mem_size, dn_mem_align);
+            return (EC_FALSE);
+        }
+
+        dn_offset = CXFSCFG_DN_S_OFFSET(cxfscfg);
+        if(EC_FALSE == c_file_pread(cxfsdn_dev_fd, &dn_offset, dn_mem_size, dn_mem_cache))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
+                                                   "load %ld bytes from offset %ld failed\n",
+                                                   dn_mem_size,
+                                                   CXFSCFG_DN_S_OFFSET(cxfscfg));
+            c_memalign_free(dn_mem_cache);
+            return (EC_FALSE);
+        }
+
+        cxfspgv = cxfspgv_open(dn_mem_cache, cxfscfg);
+        if(NULL_PTR == cxfspgv)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load/open vol failed\n");
+            c_memalign_free(dn_mem_cache);
+            return (EC_FALSE);
+        }
     }
 
-    dn_offset = CXFSCFG_DN_S_OFFSET(cxfscfg);
-    if(EC_FALSE == c_file_pread(cxfsnp_dev_fd, &dn_offset, dn_mem_size, dn_mem_cache))
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
-                                               "load %ld bytes from offset %ld failed\n",
-                                               dn_mem_size,
-                                               CXFSCFG_DN_S_OFFSET(cxfscfg));
-        c_memalign_free(dn_mem_cache);
-        return (EC_FALSE);
-    }
+        UINT8   *addr;
 
-    cxfspgv = cxfspgv_open(dn_mem_cache, cxfscfg);
-    if(NULL_PTR == cxfspgv)
-    {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load/open vol failed\n");
-        c_memalign_free(dn_mem_cache);
-        return (EC_FALSE);
+        addr = c_mmap_aligned_addr(dn_mem_size, dn_mem_align);
+        if(NULL_PTR == addr)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
+                                                   "fetch mmap aligned addr of size %ld align %ld failed\n",
+                                                   dn_mem_size, dn_mem_align);
+            return (EC_FALSE);
+        }
+
+        dn_offset = CXFSCFG_DN_S_OFFSET(cxfscfg);
+        dn_mem_cache = (UINT8 *)mmap(addr, dn_mem_size,
+                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
+                                     cxfsdn_dev_fd, dn_offset);
+        if(MAP_FAILED == dn_mem_cache)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
+                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
+                               cxfsdn_dev_fd, dn_offset, dn_mem_size, errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        cxfspgv = cxfspgv_open(dn_mem_cache, cxfscfg);
+        if(NULL_PTR == cxfspgv)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load/open vol failed\n");
+            munmap(dn_mem_cache, dn_mem_size);
+            return (EC_FALSE);
+        }
     }
 
     CXFSDN_OFFSET(cxfsdn)       = CXFSPGV_OFFSET(cxfspgv);
@@ -374,7 +525,7 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsnp_dev_fd, const CXFSCFG *cxfs
     return (EC_TRUE);
 }
 
-CXFSDN *cxfsdn_open(const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg)
+CXFSDN *cxfsdn_open(const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg)
 {
     CXFSDN *cxfsdn;
 
@@ -385,14 +536,14 @@ CXFSDN *cxfsdn_open(const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg)
         return (NULL_PTR);
     }
 
-    if(EC_FALSE == cxfsdn_load(cxfsdn, cxfsnp_dev_fd, cxfscfg))
+    if(EC_FALSE == cxfsdn_load(cxfsdn, cxfsdn_dev_fd, cxfscfg))
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_open: load cxfsdn failed\n");
         cxfsdn_free(cxfsdn);
         return (NULL_PTR);
     }
 
-    CXFSDN_FD(cxfsdn) = cxfsnp_dev_fd;
+    CXFSDN_FD(cxfsdn) = cxfsdn_dev_fd;
 
     dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_open: load cxfsdn done\n");
 

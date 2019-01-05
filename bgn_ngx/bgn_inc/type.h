@@ -400,6 +400,7 @@ extern long int lrint(double x);
 #define CTMV_MSEC(tmv)         ((tmv)->tv_usec / 1000)
 
 #define BCOPY(src, des, len)           memcpy(des, src, len)
+#define FCOPY(src, des, len)           memcpy(des, src, len)
 #define BMOVE(src, des, len)           memmove(des, src, len)
 #define BSET(pvoid, ch, len)           memset(pvoid, ch, len)
 #define BCMP(pstr1, pstr2, len)        memcmp(pstr1, pstr2, len)

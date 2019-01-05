@@ -588,7 +588,7 @@ uint16_t cdcpgb_assign_page(CDCPGB *cdcpgb, const uint16_t page_model)
     mask = (uint16_t)((1 << (page_model + 1)) - 1);
     if(0 == (CDCPGB_PAGE_MODEL_ASSIGN_BITMAP(cdcpgb) & mask))
     {
-        dbg_log(SEC_0183_CDCPGB, 0)(LOGSTDOUT, "error:cdcpgb_assign_page: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+        dbg_log(SEC_0183_CDCPGB, 7)(LOGSTDOUT, "error:cdcpgb_assign_page: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
                            page_model, CDCPGB_PAGE_MODEL_ASSIGN_BITMAP(cdcpgb), mask);
         return (CDCPGRB_ERR_POS);
     }

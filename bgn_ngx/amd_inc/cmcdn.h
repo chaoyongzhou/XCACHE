@@ -94,13 +94,12 @@ extern "C"{
 #define CMCDN_SEG_NO_NBITS              (CMCDN_NODE_SIZE_NBITS - CMCPGB_SIZE_NBITS) /*how many blocks in one node*/
 #define CMCDN_SEG_NO_MASK               (((UINT32)(UINT32_ONE << CMCDN_SEG_NO_NBITS)) - 1)
 
-/*node id = disk_no | block_no*/
+/*node id = disk_no | block_no => node id is the block id in whole space*/
 
 #define CMCDN_NODE_ID_MAKE(disk_no, block_no)           ((((UINT32)(disk_no)) << (CMCPGD_SIZE_NBITS - CMCPGB_SIZE_NBITS)) | (((UINT32)(block_no)) << 0))
-#define CMCDN_NODE_ID_GET_DISK_NO(node_id)              ((uint16_t)(((node_id) >> (CMCPGD_SIZE_NBITS - CMCPGB_SIZE_NBITS)) & 0xFFFF))
-#define CMCDN_NODE_ID_GET_BLOCK_NO(node_id)             ((uint16_t)(((node_id) >>  0) & 0xFFFF))
 #define CMCDN_NODE_ERR_ID                               (CMCDN_NODE_ID_MAKE(CMCPGRB_ERR_POS, CMCPGRB_ERR_POS))
 
+/*seg no is the block id in this node*/
 #define CMCDN_NODE_ID_GET_SEG_NO(node_id)               ((uint16_t)(((node_id) >>  0) & CMCDN_SEG_NO_MASK))
 
 typedef struct
@@ -147,6 +146,8 @@ EC_BOOL cmcdn_clean(CMCDN *cmcdn);
 EC_BOOL cmcdn_free(CMCDN *cmcdn);
 
 void cmcdn_print(LOG *log, const CMCDN *cmcdn);
+
+REAL cmcdn_used_ratio(const CMCDN *cmcdn);
 
 EC_BOOL cmcdn_is_full(CMCDN *cmcdn);
 

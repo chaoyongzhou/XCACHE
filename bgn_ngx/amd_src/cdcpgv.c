@@ -171,6 +171,29 @@ EC_BOOL cdcpgv_hdr_init(CDCPGV *cdcpgv)
     return (EC_TRUE);
 }
 
+REAL cdcpgv_hdr_used_ratio(const CDCPGV *cdcpgv)
+{
+    if(NULL_PTR != CDCPGV_HEADER(cdcpgv))
+    {
+        CDCPGV_HDR *cdcpgv_hdr;
+
+        cdcpgv_hdr = CDCPGV_HEADER(cdcpgv);
+
+        if(0 < CDCPGV_HDR_PAGE_USED_NUM(cdcpgv_hdr))
+        {
+            REAL    page_used_num;
+            REAL    page_max_num;
+
+            page_used_num = (CDCPGV_HDR_PAGE_USED_NUM(cdcpgv_hdr) + 0.0);
+            page_max_num  = (CDCPGV_HDR_PAGE_MAX_NUM(cdcpgv_hdr)  + 0.0);
+
+            return (page_used_num / page_max_num);
+        }
+    }
+
+    return (0.0);
+}
+
 EC_BOOL cdcpgv_hdr_max_size(UINT32 *size)
 {
     (*size) += CDCPGV_HDR_SIZE;
@@ -350,7 +373,7 @@ STATIC_CAST static EC_BOOL __cdcpgv_assign_disk(CDCPGV *cdcpgv, uint16_t *page_m
     mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
     if(0 == (CDCPGV_PAGE_MODEL_ASSIGN_BITMAP(cdcpgv) & mask))
     {
-        dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:__cdcpgv_assign_disk: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+        dbg_log(SEC_0186_CDCPGV, 7)(LOGSTDOUT, "error:__cdcpgv_assign_disk: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
                            page_model_t, CDCPGV_PAGE_MODEL_ASSIGN_BITMAP(cdcpgv), mask);
         return (EC_FALSE);
     }
@@ -541,7 +564,7 @@ EC_BOOL cdcpgv_new_space_from_disk(CDCPGV *cdcpgv, const uint32_t size, const ui
 
     if(EC_FALSE == cdcpgd_new_space(cdcpgd, size, &block_no_t, &page_no_t))
     {
-        dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:cdcpgv_new_space_from_disk: assign size %u from disk %u failed\n", size, disk_no);
+        dbg_log(SEC_0186_CDCPGV, 7)(LOGSTDOUT, "error:cdcpgv_new_space_from_disk: assign size %u from disk %u failed\n", size, disk_no);
         return (EC_FALSE);
     }
 
@@ -656,7 +679,7 @@ EC_BOOL cdcpgv_new_space(CDCPGV *cdcpgv, const uint32_t size, uint16_t *disk_no,
 
         if(EC_FALSE == __cdcpgv_assign_disk(cdcpgv, &page_model_t, &disk_no_t))
         {
-            dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:cdcpgv_new_space: assign one disk from page model %u failed\n", page_model_t);
+            dbg_log(SEC_0186_CDCPGV, 7)(LOGSTDOUT, "error:cdcpgv_new_space: assign one disk from page model %u failed\n", page_model_t);
             return (EC_FALSE);
         }
 
@@ -1025,6 +1048,11 @@ EC_BOOL cdcpgv_check(const CDCPGV *cdcpgv)
     }
     dbg_log(SEC_0186_CDCPGV, 5)(LOGSTDOUT, "cdcpgv_check: cdcpgv %p check passed\n", cdcpgv);
     return (EC_TRUE);
+}
+
+REAL cdcpgv_used_ratio(const CDCPGV *cdcpgv)
+{
+    return cdcpgv_hdr_used_ratio(cdcpgv);
 }
 
 void cdcpgv_print(LOG *log, const CDCPGV *cdcpgv)

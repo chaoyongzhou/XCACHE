@@ -186,6 +186,12 @@ static char  *g_months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 static int    g_dev_null_fd = -1;       /*fd of device /dev/null*/
 static FILE  *g_dev_null_fp = NULL_PTR; /*fp of device /dev/null*/
 
+#define CMISC_MAX_ERRNO         (128)
+#define CMISC_STRERR_MAX_SIZE   (256)
+
+static char            g_strerror_tab[ CMISC_MAX_ERRNO ][ CMISC_STRERR_MAX_SIZE ];
+static EC_BOOL         g_strerror_init_flag = EC_FALSE;
+
 void c_log_init()
 {
     /*prepare stdout,stderr, stdin devices*/
@@ -199,6 +205,34 @@ void c_static_mem_init()
     init_static_mem();
 
     return;
+}
+
+void c_strerror_init()
+{
+    if(EC_FALSE == g_strerror_init_flag)
+    {
+        int err;
+        for(err = 0; err < CMISC_MAX_ERRNO; err ++)
+        {
+            strerror_r(err, (char *)g_strerror_tab[ err ], CMISC_STRERR_MAX_SIZE);
+        }
+
+        g_strerror_init_flag = EC_TRUE;
+    }
+
+    return;
+}
+
+const char *c_strerror_get(int err)
+{
+    c_strerror_init();
+
+    if(CMISC_MAX_ERRNO > err)
+    {
+        return ((const char *)g_strerror_tab[ err ]);
+    }
+
+    return ((const char *)"UNKNOWN ERROR");
 }
 
 void c_env_init()
@@ -3178,6 +3212,58 @@ EC_BOOL c_file_rename(const char *src_filename, const char *des_filename)
     return (EC_TRUE);
 }
 
+int c_fp_dup(int fd)
+{
+    int fd2;
+
+    fd2 = dup(fd);
+    if(0 > fd2)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_fp_dup: "
+                                              "dup fd %d failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              fd,
+                                              errno, c_strerror(errno));
+        return (ERR_FD);
+    }
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_fp_dup: "
+                                          "dup fd %d to %d\n",
+                                          fd, fd2);
+    return (fd2);
+}
+EC_BOOL c_dev_exist(const char *pathname)
+{
+    struct stat filestat;
+
+    if(0 != stat(pathname, &filestat))
+    {
+        return (EC_FALSE);
+    }
+
+    /************************************************************
+       S_ISREG(m)  is it a regular file?
+
+       S_ISDIR(m)  directory?
+
+       S_ISCHR(m)  character device?
+
+       S_ISBLK(m)  block device?
+
+       S_ISFIFO(m) FIFO (named pipe)?
+
+       S_ISLNK(m)  symbolic link? (Not in POSIX.1-1996.)
+
+       S_ISSOCK(m) socket? (Not in POSIX.1-1996.)
+    ************************************************************/
+    if(S_ISBLK(filestat.st_mode))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 int c_mem_ncmp(const UINT8 *src, const UINT32 slen, const UINT8 *des, const UINT32 dlen)
 {
     UINT32 len;
@@ -5104,6 +5190,17 @@ char *c_get_day_time_str()
     return (time_str);
 }
 
+uint64_t c_get_cur_time_msec()
+{
+    CTMV        timev_cur;
+    uint64_t    time_msec_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    time_msec_cur = (((uint64_t)timev_cur.tv_sec ) * 1000)
+                  + (((uint64_t)timev_cur.tv_usec) / 1000);
+    return (time_msec_cur);
+}
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
 {
     TASKS_CFG         *detect_tasks_cfg;
@@ -6115,6 +6212,27 @@ EC_BOOL c_munlock(void *addr, const UINT32 size)
     }
 
     return (EC_TRUE);
+}
+
+uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size)
+{
+    uint32_t   idx;
+    uint32_t   out_crc32;
+
+    /* accumulate crc32 for buffer */
+    out_crc32 = (in_crc32 ^ 0xFFFFFFFF);
+
+    for (idx = 0; idx < size; idx ++)
+    {
+        out_crc32 = (out_crc32 >> 8) ^ g_crc32_table256[ (out_crc32 ^ ((uint8_t *) buf)[ idx ]) & 0xFF ];
+    }
+
+    return (out_crc32 ^ 0xFFFFFFFF);
+}
+
+const char *c_strerror(int err)
+{
+    return c_strerror_get(err);
 }
 
 #ifdef __cplusplus

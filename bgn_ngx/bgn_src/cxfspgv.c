@@ -95,6 +95,7 @@ CXFSPGV_HDR *cxfspgv_hdr_create(CXFSPGV *cxfspgv)
         return (NULL_PTR);
     }
 
+    //CXFSPGV_HDR_DISK_NUM(cxfspgv_hdr)      = 0;
     CXFSPGV_HDR_DISK_MAX_NUM(cxfspgv_hdr)  = 0;
 
     return (cxfspgv_hdr);
@@ -216,14 +217,12 @@ CXFSPGV *cxfspgv_open(UINT8 *base, const CXFSCFG *cxfscfg)
     CXFSPGV_FSIZE(cxfspgv)  = CXFSCFG_DN_E_OFFSET(cxfscfg) - CXFSCFG_DN_S_OFFSET(cxfscfg);
     CXFSPGV_HEADER(cxfspgv) = ((CXFSPGV_HDR *)CXFSPGV_CACHE(cxfspgv));
 
-    /*cleanup everything but not disk max num*/
-    if(EC_FALSE == cxfspgv_hdr_init(cxfspgv))
-    {
-        dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "error:cxfspgv_open: "
-                                                "init cxfspgv header failed\n");
-        cxfspgv_close(cxfspgv);
-        return (NULL_PTR);
-    }
+    disk_num = CXFSPGV_DISK_NUM(cxfspgv);
+
+    dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "[DEBUG] cxfspgv_open: [1]"
+                                            "disk num %u, disk max num %u\n",
+                                            CXFSPGV_DISK_NUM(cxfspgv),
+                                            CXFSPGV_DISK_MAX_NUM(cxfspgv));
 
     if(CXFSPGV_MAX_DISK_NUM <= CXFSPGV_DISK_MAX_NUM(cxfspgv))
     {
@@ -235,7 +234,29 @@ CXFSPGV *cxfspgv_open(UINT8 *base, const CXFSCFG *cxfscfg)
         return (NULL_PTR);
     }
 
-    disk_num = CXFSPGV_DISK_MAX_NUM(cxfspgv);
+    if(CXFSPGV_DISK_NUM(cxfspgv) > CXFSPGV_DISK_MAX_NUM(cxfspgv))
+    {
+        dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "error:cxfspgv_open: "
+                                                "disk num %u > disk max num %u => invalid\n",
+                                                CXFSPGV_DISK_NUM(cxfspgv),
+                                                CXFSPGV_DISK_MAX_NUM(cxfspgv));
+        cxfspgv_close(cxfspgv);
+        return (NULL_PTR);
+    }
+
+    /*cleanup everything but not disk max num*/
+    if(EC_FALSE == cxfspgv_hdr_init(cxfspgv))
+    {
+        dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "error:cxfspgv_open: "
+                                                "init cxfspgv header failed\n");
+        cxfspgv_close(cxfspgv);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "[DEBUG] cxfspgv_open: [2]"
+                                            "disk num %u, disk max num %u\n",
+                                            CXFSPGV_DISK_NUM(cxfspgv),
+                                            CXFSPGV_DISK_MAX_NUM(cxfspgv));
 
     /*mount disks*/
     for(disk_no = 0; disk_no < disk_num; disk_no ++)
@@ -432,6 +453,10 @@ EC_BOOL cxfspgv_add_disk(CXFSPGV *cxfspgv, const uint16_t disk_no)
     offset = ((UINT32)CXFSPGV_HDR_SIZE) + cxfspgd_size(CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)disk_no);
     base   = CXFSPGV_CACHE(cxfspgv) + offset;
 
+    dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "[DEBUG] cxfspgv_add_disk: "
+                                            "disk %u, offset %ld\n",
+                                            disk_no, offset);
+
     cxfspgd = cxfspgd_new(base, CXFSPGD_MAX_BLOCK_NUM);
     if(NULL_PTR == cxfspgd)
     {
@@ -540,8 +565,12 @@ EC_BOOL cxfspgv_mount_disk(CXFSPGV *cxfspgv, const uint16_t disk_no)
         return (EC_FALSE);
     }
 
-    offset = ((UINT32)CXFSPGV_HDR_SIZE) + ((UINT32)CXFSPGD_HDR_SIZE) * ((UINT32)disk_no);
+    offset = ((UINT32)CXFSPGV_HDR_SIZE) + cxfspgd_size(CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)disk_no);
     base   = CXFSPGV_CACHE(cxfspgv) + offset;
+
+    dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDOUT, "[DEBUG] cxfspgv_mount_disk: "
+                                            "disk %u, offset %ld\n",
+                                            disk_no, offset);
 
     cxfspgd = cxfspgd_open(base, CXFSPGD_HDR_SIZE);
     if(NULL_PTR == cxfspgd)

@@ -18,8 +18,13 @@ extern "C"{
 #include "cdcnplru.h"
 #include "cdcnp.h"
 
-#define CDCNPLRU_ASSERT(condition)           ASSERT(condition)
-//#define CDCNPLRU_ASSERT(condition)           do{}while(0)
+#if (SWITCH_ON == CDC_ASSERT_SWITCH)
+#define CDCNPLRU_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CDC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CDC_ASSERT_SWITCH)
+#define CDCNPLRU_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CDC_ASSERT_SWITCH)*/
 
 void cdcnplru_node_init(CDCNPLRU_NODE *node, const uint32_t node_pos)
 {
@@ -260,7 +265,7 @@ EC_BOOL cdcnplru_pool_init(CDCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0180_CDCNPLRU, 0)(LOGSTDOUT, "info:cdcnplru_pool_init: init node %u - %u of max %u done\n",
+            dbg_log(SEC_0180_CDCNPLRU, 9)(LOGSTDOUT, "info:cdcnplru_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
         }
     }
@@ -280,6 +285,49 @@ void cdcnplru_list_print(LOG *log, const CDCNP *cdcnp)
     {
         node = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, node_pos));
         cdcnplru_node_print(log, node, node_pos);
+
+        node_pos = CDCNPLRU_NODE_NEXT_POS(node);
+
+    }while(CDCNPLRU_ROOT_POS != node_pos);
+    return;
+}
+
+UINT32 cdcnplru_count(const CDCNP *cdcnp)
+{
+    const CDCNPLRU_NODE *node;
+    UINT32   node_num;
+    uint32_t node_pos;
+
+    node_num = 0;
+    node_pos = CDCNPLRU_ROOT_POS;
+
+    do
+    {
+        node = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, node_pos));
+        node_num ++;
+
+        node_pos = CDCNPLRU_NODE_NEXT_POS(node);
+
+    }while(CDCNPLRU_ROOT_POS != node_pos);
+
+    return (node_num);
+}
+
+void cdcnplru_walk(const CDCNP *cdcnp, void *data, EC_BOOL (*walker)(const CDCNPLRU_NODE *, const uint32_t, void *))
+{
+    const CDCNPLRU_NODE *node;
+    uint32_t node_pos;
+
+    node_pos = CDCNPLRU_ROOT_POS;
+
+    do
+    {
+        node = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, node_pos));
+
+        if(EC_FALSE == walker(node, node_pos, data))
+        {
+            break;
+        }
 
         node_pos = CDCNPLRU_NODE_NEXT_POS(node);
 

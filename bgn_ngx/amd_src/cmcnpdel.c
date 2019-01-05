@@ -18,8 +18,13 @@ extern "C"{
 #include "cmcnpdel.h"
 #include "cmcnp.h"
 
+#if (SWITCH_ON == CMC_ASSERT_SWITCH)
 #define CMCNPDEL_ASSERT(condition)           ASSERT(condition)
-//#define CMCNPDEL_ASSERT(condition)           do{}while(0)
+#endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CMC_ASSERT_SWITCH)
+#define CMCNPDEL_ASSERT(condition)           do{}while(0)
+#endif/*(SWITCH_OFF == CMC_ASSERT_SWITCH)*/
 
 void cmcnpdel_node_init(CMCNPDEL_NODE *node, const uint32_t node_pos)
 {
@@ -260,7 +265,7 @@ EC_BOOL cmcnpdel_pool_init(CMCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0116_CMCNPDEL, 0)(LOGSTDOUT, "info:cmcnpdel_pool_init: init node %u - %u of max %u done\n",
+            dbg_log(SEC_0116_CMCNPDEL, 9)(LOGSTDOUT, "info:cmcnpdel_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
         }
     }

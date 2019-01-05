@@ -108,9 +108,9 @@ EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn);
 
-EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg);
+EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg);
 
-CXFSDN *cxfsdn_open(const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg);
+CXFSDN *cxfsdn_open(const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsdn_close(CXFSDN *cxfsdn);
 

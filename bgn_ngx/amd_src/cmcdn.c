@@ -34,6 +34,13 @@ extern "C"{
 #include "cmcpgd.h"
 #include "cmcpgv.h"
 
+#if (SWITCH_ON == CMC_ASSERT_SWITCH)
+#define CMCDN_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CMC_ASSERT_SWITCH)
+#define CMCDN_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CMC_ASSERT_SWITCH)*/
 
 /*Memory Cache Data Node*/
 void *cmcdn_node_fetch(const CMCDN *cmcdn, const UINT32 node_id)
@@ -66,7 +73,7 @@ EC_BOOL cmcdn_node_write(CMCDN *cmcdn, const UINT32 node_id, const UINT32 data_m
     offset_b = (((UINT32)CMCDN_NODE_ID_GET_SEG_NO(node_id)) << CMCPGB_SIZE_NBITS);
     offset_r = offset_b + (*offset);
 
-    BCOPY(data_buff, cmcdn_node + offset_r, data_max_len);
+    FCOPY(data_buff, cmcdn_node + offset_r, data_max_len);
 
     (*offset) += data_max_len;
 
@@ -89,7 +96,7 @@ EC_BOOL cmcdn_node_read(CMCDN *cmcdn, const UINT32 node_id, const UINT32 data_ma
     offset_b = (((UINT32)CMCDN_NODE_ID_GET_SEG_NO(node_id)) << CMCPGB_SIZE_NBITS);
     offset_r = offset_b + (*offset);
 
-    BCOPY(cmcdn_node + offset_r, data_buff, data_max_len);
+    FCOPY(cmcdn_node + offset_r, data_buff, data_max_len);
 
     (*offset) += data_max_len;
     return (EC_TRUE);
@@ -151,7 +158,7 @@ CMCDN *cmcdn_create(const uint16_t disk_num)
         return (NULL_PTR);
     }
 
-    ASSERT(NULL_PTR != base);
+    CMCDN_ASSERT(NULL_PTR != base);
 
     dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create: "
                                           "alloc %ld bytes with alignment %ld done\n",
@@ -315,6 +322,16 @@ void cmcdn_print(LOG *log, const CMCDN *cmcdn)
         cmcpgv_print(log, CMCDN_CMCPGV(cmcdn));
     }
     return;
+}
+
+REAL cmcdn_used_ratio(const CMCDN *cmcdn)
+{
+    if(NULL_PTR != CMCDN_CMCPGV(cmcdn))
+    {
+        return cmcpgv_used_ratio(CMCDN_CMCPGV(cmcdn));
+    }
+
+    return (0.0);
 }
 
 EC_BOOL cmcdn_is_full(CMCDN *cmcdn)

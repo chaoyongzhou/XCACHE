@@ -36,7 +36,7 @@ EC_BOOL cdcnp_model_file_size(const uint8_t cdcnp_model, UINT32 *file_size);
 
 EC_BOOL cdcnp_model_item_max_num(const uint8_t cdcnp_model, uint32_t *item_max_num);
 
-EC_BOOL cdcnp_model_search(const UINT32 rdisk_size /*in byte*/, uint8_t *cdcnp_model);
+EC_BOOL cdcnp_model_search(const UINT32 ssd_disk_size /*in byte*/, uint8_t *cdcnp_model);
 
 EC_BOOL cdcnp_inode_init(CDCNP_INODE *cdcnp_inode);
 
@@ -59,10 +59,6 @@ EC_BOOL cdcnp_fnode_clean(CDCNP_FNODE *cdcnp_fnode);
 EC_BOOL cdcnp_fnode_free(CDCNP_FNODE *cdcnp_fnode);
 
 EC_BOOL cdcnp_fnode_clone(const CDCNP_FNODE *cdcnp_fnode_src, CDCNP_FNODE *cdcnp_fnode_des);
-
-EC_BOOL cdcnp_fnode_check_inode_exist(const CDCNP_INODE *inode, const CDCNP_FNODE *cdcnp_fnode);
-
-EC_BOOL cdcnp_fnode_cmp(const CDCNP_FNODE *cdcnp_fnode_1st, const CDCNP_FNODE *cdcnp_fnode_2nd);
 
 EC_BOOL cdcnp_fnode_import(const CDCNP_FNODE *cdcnp_fnode_src, CDCNP_FNODE *cdcnp_fnode_des);
 
@@ -139,16 +135,6 @@ void cdcnp_bitmap_print(LOG *log, const CDCNP_BITMAP *cdcnp_bitmap);
 /*count the num of bit 1*/
 uint32_t cdcnp_bitmap_count_bits(const CDCNP_BITMAP *cdcnp_bitmap, const uint32_t s_bit_pos, const uint32_t e_bit_pos);
 
-CDCNP_AIO *cdcnp_aio_new();
-
-EC_BOOL cdcnp_aio_init(CDCNP_AIO *cdcnp_aio);
-
-EC_BOOL cdcnp_aio_clean(CDCNP_AIO *cdcnp_aio);
-
-EC_BOOL cdcnp_aio_free(CDCNP_AIO *cdcnp_aio);
-
-void cdcnp_aio_print(LOG *log, const CDCNP_AIO *cdcnp_aio);
-
 CDCNP_HEADER *cdcnp_header_new(const uint32_t np_id, const UINT32 fsize, const uint8_t np_model);
 
 EC_BOOL cdcnp_header_init(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, const uint8_t model);
@@ -156,6 +142,10 @@ EC_BOOL cdcnp_header_init(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, cons
 EC_BOOL cdcnp_header_clean(CDCNP_HEADER *cdcnp_header);
 
 CDCNP_HEADER *cdcnp_header_free(CDCNP_HEADER *cdcnp_header);
+
+REAL cdcnp_header_used_ratio(const CDCNP_HEADER *cdcnp_header);
+
+REAL cdcnp_header_deg_ratio(const CDCNP_HEADER *cdcnp_header);
 
 CDCNP *cdcnp_new();
 
@@ -171,6 +161,8 @@ EC_BOOL cdcnp_lru_list_is_empty(const CDCNP *cdcnp);
 
 EC_BOOL cdcnp_del_list_is_empty(const CDCNP *cdcnp);
 
+EC_BOOL cdcnp_deg_list_is_empty(const CDCNP *cdcnp);
+
 EC_BOOL cdcnp_reserve_key(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
 EC_BOOL cdcnp_release_key(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
@@ -182,6 +174,8 @@ void cdcnp_print(LOG *log, const CDCNP *cdcnp);
 void cdcnp_print_lru_list(LOG *log, const CDCNP *cdcnp);
 
 void cdcnp_print_del_list(LOG *log, const CDCNP *cdcnp);
+
+void cdcnp_print_deg_list(LOG *log, const CDCNP *cdcnp);
 
 void cdcnp_print_bitmap(LOG *log, const CDCNP *cdcnp);
 
@@ -236,11 +230,17 @@ EC_BOOL cdcnp_item_update(CDCNP *cdcnp, CDCNP_ITEM *cdcnp_item,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
-CDCNP_ITEM *cdcnp_set(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
+REAL cdcnp_used_ratio(const CDCNP *cdcnp);
 
-CDCNP_ITEM *cdcnp_get(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
+REAL cdcnp_deg_ratio(const CDCNP *cdcnp);
 
-CDCNP_FNODE *cdcnp_reserve(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+uint32_t cdcnp_deg_num(const CDCNP *cdcnp);
+
+CDCNP_ITEM *cdcnp_set(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag, uint32_t *cdcnp_item_pos);
+
+CDCNP_ITEM *cdcnp_get(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag, uint32_t *cdcnp_item_pos);
+
+CDCNP_ITEM *cdcnp_reserve(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cdcnp_item_pos);
 
 EC_BOOL cdcnp_release(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
@@ -250,13 +250,45 @@ EC_BOOL cdcnp_set_key(const CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
 EC_BOOL cdcnp_clear_key(const CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
+EC_BOOL cdcnp_set_ssd_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+
+EC_BOOL cdcnp_set_sata_flushed(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+
+EC_BOOL cdcnp_set_sata_not_flushed(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+
+EC_BOOL cdcnp_lock(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+
+EC_BOOL cdcnp_unlock(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+
+CDCNP_ITEM *cdcnp_locate(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cdcnp_item_pos);
+
+CDCNP_ITEM *cdcnp_map(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cdcnp_item_pos);
+
 EC_BOOL cdcnp_read(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, CDCNP_FNODE *cdcnp_fnode);
 
 EC_BOOL cdcnp_delete(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
 
 EC_BOOL cdcnp_update(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const CDCNP_FNODE *cdcnp_fnode);
 
-EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
+EC_BOOL cdcnp_degrade_cb_init(CDCNP_DEGRADE_CB *cdcnp_degrade_cb);
+
+EC_BOOL cdcnp_degrade_cb_clean(CDCNP_DEGRADE_CB *cdcnp_degrade_cb);
+
+EC_BOOL cdcnp_degrade_cb_clone(CDCNP_DEGRADE_CB *cdcnp_degrade_cb_src, CDCNP_DEGRADE_CB *cdcnp_degrade_cb_des);
+
+EC_BOOL cdcnp_degrade_cb_set(CDCNP_DEGRADE_CB *cdcnp_degrade_cb, CDCNP_DEGRADE_CALLBACK func, void *arg);
+
+EC_BOOL cdcnp_init_degrade_callback(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_clean_degrade_callback(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_set_degrade_callback(CDCNP *cdcnp, CDCNP_DEGRADE_CALLBACK func, void *arg);
+
+EC_BOOL cdcnp_exec_degrade_callback(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t node_pos);
+
+EC_BOOL cdcnp_degrade(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
+
+EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
 EC_BOOL cdcnp_umount_item(CDCNP *cdcnp, const uint32_t node_pos);
 
@@ -289,13 +321,11 @@ EC_BOOL cdcnp_create_root_item(CDCNP *cdcnp);
 
 CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t key_max_num, UINT32 *s_offset, const UINT32 e_offset);
 
+EC_BOOL cdcnp_erase(CDCNP *cdcnp, const uint32_t np_id, int fd, const UINT32 s_offset, const UINT32 e_offset);
+
 EC_BOOL cdcnp_flush(CDCNP *cdcnp);
 
-EC_BOOL cdcnp_flush_aio(CDCNP *cdcnp, CAIO_CB *caio_cb);
-
-EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, UINT32 e_offset);
-
-EC_BOOL cdcnp_load_aio(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, UINT32 e_offset, CAIO_CB *caio_cb);
+EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset);
 
 
 #endif/* _CDCNP_H */

@@ -238,7 +238,7 @@ const char *cdcpgd_model_str(const uint16_t pgd_block_num);
 
 uint16_t cdcpgd_model_get(const char *model_str);
 
-EC_BOOL cdcpgd_model_search(const UINT32 vdisk_size /*in MB*/, UINT32 *vdisk_num);
+EC_BOOL cdcpgd_model_search(const UINT32 vdisk_size /*in byte*/, UINT32 *vdisk_num);
 
 EC_BOOL cdcpgd_hdr_max_size(UINT32 *size);
 

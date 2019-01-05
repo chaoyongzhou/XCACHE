@@ -36,7 +36,7 @@ EC_BOOL cmcnp_model_file_size(const uint8_t cmcnp_model, UINT32 *file_size);
 
 EC_BOOL cmcnp_model_item_max_num(const uint8_t cmcnp_model, uint32_t *item_max_num);
 
-EC_BOOL cmcnp_model_search(const UINT32 rdisk_size /*in GB*/, uint8_t *cmcnp_model);
+EC_BOOL cmcnp_model_search(const UINT32 mem_disk_size /*in byte*/, uint8_t *cmcnp_model);
 
 EC_BOOL cmcnp_inode_init(CMCNP_INODE *cmcnp_inode);
 
@@ -59,10 +59,6 @@ EC_BOOL cmcnp_fnode_clean(CMCNP_FNODE *cmcnp_fnode);
 EC_BOOL cmcnp_fnode_free(CMCNP_FNODE *cmcnp_fnode);
 
 EC_BOOL cmcnp_fnode_clone(const CMCNP_FNODE *cmcnp_fnode_src, CMCNP_FNODE *cmcnp_fnode_des);
-
-EC_BOOL cmcnp_fnode_check_inode_exist(const CMCNP_INODE *inode, const CMCNP_FNODE *cmcnp_fnode);
-
-EC_BOOL cmcnp_fnode_cmp(const CMCNP_FNODE *cmcnp_fnode_1st, const CMCNP_FNODE *cmcnp_fnode_2nd);
 
 EC_BOOL cmcnp_fnode_import(const CMCNP_FNODE *cmcnp_fnode_src, CMCNP_FNODE *cmcnp_fnode_des);
 
@@ -147,6 +143,10 @@ EC_BOOL cmcnp_header_init(CMCNP_HEADER *cmcnp_header, const uint32_t np_id, cons
 
 EC_BOOL cmcnp_header_clean(CMCNP_HEADER *cmcnp_header);
 
+REAL cmcnp_header_used_ratio(const CMCNP_HEADER *cmcnp_header);
+
+REAL cmcnp_header_deg_ratio(const CMCNP_HEADER *cmcnp_header);
+
 CMCNP *cmcnp_new();
 
 EC_BOOL cmcnp_init(CMCNP *cmcnp);
@@ -161,6 +161,8 @@ EC_BOOL cmcnp_lru_list_is_empty(const CMCNP *cmcnp);
 
 EC_BOOL cmcnp_del_list_is_empty(const CMCNP *cmcnp);
 
+EC_BOOL cmcnp_deg_list_is_empty(const CMCNP *cmcnp);
+
 EC_BOOL cmcnp_reserve_key(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
 EC_BOOL cmcnp_release_key(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
@@ -172,6 +174,8 @@ void cmcnp_print(LOG *log, const CMCNP *cmcnp);
 void cmcnp_print_lru_list(LOG *log, const CMCNP *cmcnp);
 
 void cmcnp_print_del_list(LOG *log, const CMCNP *cmcnp);
+
+void cmcnp_print_deg_list(LOG *log, const CMCNP *cmcnp);
 
 void cmcnp_print_bitmap(LOG *log, const CMCNP *cmcnp);
 
@@ -226,6 +230,12 @@ EC_BOOL cmcnp_item_update(CMCNP *cmcnp, CMCNP_ITEM *cmcnp_item,
                                    const uint16_t src_disk_no, const uint16_t src_block_no, const uint16_t src_page_no,
                                    const uint16_t des_disk_no, const uint16_t des_block_no, const uint16_t des_page_no);
 
+REAL cmcnp_used_ratio(const CMCNP *cmcnp);
+
+REAL cmcnp_deg_ratio(const CMCNP *cmcnp);
+
+uint32_t cmcnp_deg_num(const CMCNP *cmcnp);
+
 CMCNP_ITEM *cmcnp_set(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
 CMCNP_ITEM *cmcnp_get(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
@@ -242,15 +252,43 @@ EC_BOOL cmcnp_clear_key(const CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
 CMCNP_FNODE *cmcnp_locate(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
+CMCNP_ITEM *cmcnp_map(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+
 EC_BOOL cmcnp_read(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, CMCNP_FNODE *cmcnp_fnode);
 
 EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
 EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE *cmcnp_fnode);
 
-EC_BOOL cmcnp_set_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+EC_BOOL cmcnp_set_ssd_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
-EC_BOOL cmcnp_clear_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+EC_BOOL cmcnp_set_ssd_not_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+
+EC_BOOL cmcnp_degrade_cb_init(CMCNP_DEGRADE_CB *cmcnp_degrade_cb);
+
+EC_BOOL cmcnp_degrade_cb_clean(CMCNP_DEGRADE_CB *cmcnp_degrade_cb);
+
+EC_BOOL cmcnp_degrade_cb_clone(CMCNP_DEGRADE_CB *cmcnp_degrade_cb_src, CMCNP_DEGRADE_CB *cmcnp_degrade_cb_des);
+
+EC_BOOL cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB *cmcnp_degrade_cb, CMCNP_DEGRADE_CALLBACK func, void *arg);
+
+EC_BOOL cmcnp_init_degrade_callback(CMCNP *cmcnp);
+
+EC_BOOL cmcnp_clean_degrade_callback(CMCNP *cmcnp);
+
+EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, CMCNP_DEGRADE_CALLBACK func, void *arg);
+
+EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t node_pos);
+
+EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
+
+EC_BOOL cmcnp_retire_cb_init(CMCNP_RETIRE_CB *cmcnp_retire_cb);
+
+EC_BOOL cmcnp_retire_cb_clean(CMCNP_RETIRE_CB *cmcnp_retire_cb);
+
+EC_BOOL cmcnp_retire_cb_clone(CMCNP_RETIRE_CB *cmcnp_retire_cb_src, CMCNP_RETIRE_CB *cmcnp_retire_cb_des);
+
+EC_BOOL cmcnp_retire_cb_set(CMCNP_RETIRE_CB *cmcnp_retire_cb, CMCNP_RETIRE_CALLBACK func, void *arg);
 
 EC_BOOL cmcnp_init_retire_callback(CMCNP *cmcnp);
 
@@ -260,7 +298,11 @@ EC_BOOL cmcnp_set_retire_callback(CMCNP *cmcnp, CMCNP_RETIRE_CALLBACK func, void
 
 EC_BOOL cmcnp_exec_retire_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t node_pos);
 
-EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
+EC_BOOL cmcnp_degrade_all(CMCNP *cmcnp, UINT32 *complete_degrade_num);
+
+EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
+
+EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
 EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos);
 

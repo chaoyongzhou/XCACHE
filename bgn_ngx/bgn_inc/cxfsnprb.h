@@ -23,7 +23,7 @@ extern "C"{
 #define CXFSNPRB_ROOT_POS       ((uint32_t)0)/*31 bits*/
 #define CXFSNPRB_ERR_POS        ((uint32_t)0x7FFFFFFF)/*31 bits*/
 
-#define CXFSNPRB_POOL_MAX_SIZE  ((uint32_t)(1 << 24))/* < 2^24, about 16,000,000*/
+#define CXFSNPRB_POOL_MAX_SIZE  ((uint32_t)(1 << 25))/* < 2^25, about 32,000,000*/
 
 typedef struct
 {
@@ -65,7 +65,7 @@ typedef struct
     uint32_t        node_used_num;/*used node number           */
     uint32_t        node_sizeof;  /*actual size of each node   */
     uint32_t        free_head;    /*unused CXFSNPRB_TREE head  */
-    
+
     CXFSNPRB_NODE   rb_nodes[0];  /*rb_nodes table             */
 }CXFSNPRB_POOL;
 

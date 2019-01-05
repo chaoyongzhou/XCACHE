@@ -159,9 +159,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
         return (CMPI_ERROR_MODI);
     }
 
-    if(EC_FALSE == c_file_exist((char *)cstring_get_str(sata_disk_path)))
+    if(EC_FALSE == c_file_exist((char *)cstring_get_str(sata_disk_path))
+    && EC_FALSE == c_dev_exist((char *)cstring_get_str(sata_disk_path)))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: ath %s not exist\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: '%s' is not file or block device\n",
                                              (char *)cstring_get_str(sata_disk_path));
 
         cbc_md_free(MD_CXFS, cxfs_md_id);

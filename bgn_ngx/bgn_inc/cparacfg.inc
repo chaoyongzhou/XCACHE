@@ -136,6 +136,30 @@ typedef struct
     UINT32    tdns_resolve_switch           ; /*TDNS_RESOLVE_SWITCH*/
     UINT32    tdns_resolve_timeout_nsec     ; /*TDNS resolve domain timeout in seconds*/
 
+    UINT32    camd_ssd_aio_req_max_num;    /*default: 8*/
+    UINT32    camd_sata_aio_req_max_num;   /*default: 8*/
+
+    UINT32    cmc_try_retire_max_num;      /*default: 8*/
+    UINT32    cmc_try_recycle_max_num;     /*default: 128*/
+    UINT32    cmc_scan_retire_max_num;     /*default: 256*/
+
+    UINT32    cmc_process_degrade_max_num; /*default: 8*/
+    UINT32    cmc_scan_degrade_max_num;    /*default: 256*/
+
+    REAL      cmc_degrade_hi_ratio;        /*default: 0.90*/
+    REAL      cmc_degrade_md_ratio;        /*default: 0.85*/
+    REAL      cmc_degrade_lo_ratio;        /*default: 0.80*/
+
+    UINT32    cdc_try_retire_max_num;      /*default: 8*/
+    UINT32    cdc_try_recycle_max_num;     /*default: 128*/
+    UINT32    cdc_scan_retire_max_num;     /*default: 128*/
+
+    UINT32    cdc_process_degrade_max_num; /*default: 8*/
+    UINT32    cdc_scan_degrade_max_num;    /*default: 256*/
+
+    REAL      cdc_degrade_hi_ratio;        /*default: 0.90*/
+    REAL      cdc_degrade_md_ratio;        /*default: 0.85*/
+    REAL      cdc_degrade_lo_ratio;        /*default: 0.80*/
     UINT32    log_level_tab[ SEC_NONE_END ] ;
 }CPARACFG;
 
@@ -247,6 +271,31 @@ typedef struct
 
 #define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                      ((cparacfg)->tdns_resolve_switch)
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)                ((cparacfg)->tdns_resolve_timeout_nsec)
+
+#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)                 ((cparacfg)->camd_ssd_aio_req_max_num)
+#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)                ((cparacfg)->camd_sata_aio_req_max_num)
+
+#define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cmc_try_retire_max_num)
+#define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_try_recycle_max_num)
+#define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_scan_retire_max_num)
+
+#define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cmc_process_degrade_max_num)
+#define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cmc_scan_degrade_max_num)
+
+#define CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_hi_ratio)
+#define CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_md_ratio)
+#define CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_lo_ratio)
+
+#define CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cdc_try_retire_max_num)
+#define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_try_recycle_max_num)
+#define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_scan_retire_max_num)
+
+#define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cdc_process_degrade_max_num)
+#define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cdc_scan_degrade_max_num)
+
+#define CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_hi_ratio)
+#define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_md_ratio)
+#define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_lo_ratio)
 
 #define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)))
@@ -448,6 +497,31 @@ typedef struct
 #define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_ON
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
+#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    8
+#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   8
+
+#define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
+#define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM_DEF                     128
+#define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM_DEF                     256
+
+#define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM_DEF                 8
+#define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM_DEF                    256
+
+#define CPARACFG_CMC_DEGRADE_HI_RATIO_DEF                        0.90
+#define CPARACFG_CMC_DEGRADE_MD_RATIO_DEF                        0.85
+#define CPARACFG_CMC_DEGRADE_LO_RATIO_DEF                        0.80
+
+#define CPARACFG_CDC_TRY_RETIRE_MAX_NUM_DEF                      8
+#define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM_DEF                     128
+#define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM_DEF                     128
+
+#define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM_DEF                 8
+#define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM_DEF                    256
+
+#define CPARACFG_CDC_DEGRADE_HI_RATIO_DEF                        0.90
+#define CPARACFG_CDC_DEGRADE_MD_RATIO_DEF                        0.85
+#define CPARACFG_CDC_DEGRADE_LO_RATIO_DEF                        0.80
+
 #define CPARACFG_SET_DEFAULT(cparacfg, macro_name)  \
             macro_name(cparacfg)  = macro_name##_DEF
 
@@ -557,6 +631,31 @@ typedef struct
 
 #define    TDNS_RESOLVE_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_SWITCH)
 #define    TDNS_RESOLVE_TIMEOUT_NSEC                     CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC)
+
+#define    CAMD_SSD_AIO_REQ_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM)
+#define    CAMD_SATA_AIO_REQ_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM)
+
+#define    CMC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RETIRE_MAX_NUM)
+#define    CMC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM)
+#define    CMC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM)
+
+#define    CMC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM)
+#define    CMC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM)
+
+#define    CMC_DEGRADE_HI_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_HI_RATIO)
+#define    CMC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_MD_RATIO)
+#define    CMC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_LO_RATIO)
+
+#define    CDC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RETIRE_MAX_NUM)
+#define    CDC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM)
+#define    CDC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM)
+
+#define    CDC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM)
+#define    CDC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM)
+
+#define    CDC_DEGRADE_HI_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_HI_RATIO)
+#define    CDC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_MD_RATIO)
+#define    CDC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_LO_RATIO)
 
 #endif/*_CPARACFG_INC*/
 

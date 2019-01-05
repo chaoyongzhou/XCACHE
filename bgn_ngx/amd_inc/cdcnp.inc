@@ -28,16 +28,16 @@ extern "C"{
 #include "cdcnprb.h"
 #include "cdcnplru.inc"
 #include "cdcnpdel.inc"
-
-#include "caio.h"
+#include "cdcnpdeg.inc"
 
 #define CDCNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
 #define CDCNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
+#define CDCNP_KEY_SIZE_000B            (   0)/*max len of file or dir seg name*/
 
-#define CDCNP_KEY_MAX_SIZE             (CDCNP_KEY_SIZE_063B)
+#define CDCNP_KEY_MAX_SIZE             (CDCNP_KEY_SIZE_000B)
 #define CDCNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 
-#define CDCNP_HEADER_SIZE_NBYTES       ((UINT32)(UINT32_ONE << 20))  /*1MB = 2^20*/
+#define CDCNP_HEADER_SIZE_NBYTES       ((UINT32)(UINT32_ONE << 23))  /*8MB = 2^23, support up to 16T sata disk*/
 #define CDCNP_HEADER_SIZE_MASK         (CDCNP_HEADER_SIZE_NBYTES - 1)
 
 #define CDCNP_OFFSET_ERR               ((UINT32)~0)
@@ -55,19 +55,24 @@ extern "C"{
 #define CDCNP_002G_MODEL   ((uint8_t) 8)
 #define CDCNP_004G_MODEL   ((uint8_t) 9)
 
-#define CDCNP_FILE_REPLICA_MAX_NUM     ((uint32_t) 1)  /*max num of supported replicas up to*/
+#define CDCNP_FILE_REPLICA_MAX_NUM     ((uint16_t) 1)  /*max num of supported replicas up to*/
 
 #define CDCNP_ITEM_FILE_IS_DIR         ((uint32_t) 0x0001)  /*directory   */
 #define CDCNP_ITEM_FILE_IS_REG         ((uint32_t) 0x0002)  /*regular file*/
 //#define CDCNP_ITEM_FILE_IS_ANY         ((uint32_t) 0x0004)  /*any file    */
 #define CDCNP_ITEM_FILE_IS_ERR         ((uint32_t) 0x0000)  /*4 bits      */
 
-#define CDCNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/
+#define CDCNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*1 bits*/
 #define CDCNP_ITEM_IS_USED             ((uint32_t) 0x0001)
+
+#define CDCNP_SATA_FLUSH_FLAG          ((uint32_t) 0x0001)  /*bitmap: 0001*/
+#define CDCNP_SATA_FLUSHING_FLAG       ((uint32_t) 0x0002)  /*bitmap: 0010*/
+#define CDCNP_SATA_FLUSHED_FLAG        ((uint32_t) 0x0004)  /*bitmap: 0100*/
 
 typedef struct
 {
-    uint16_t    rsvd;
+    uint16_t    file_replica_num:1;
+    uint16_t    file_page_num   :15;
     uint16_t    disk_no;        /*local disk_no*/
     uint16_t    block_no;       /*block_no in above disk*/
     uint16_t    page_no;        /*page_no in above block*/
@@ -77,25 +82,16 @@ typedef struct
 #define CDCNP_INODE_BLOCK_NO(cdcnp_inode)          ((cdcnp_inode)->block_no)
 #define CDCNP_INODE_PAGE_NO(cdcnp_inode)           ((cdcnp_inode)->page_no)
 
-#define CDCNP_FNODE_NO_MEM_CACHE_FLAG               ((uint32_t) 0)
-#define CDCNP_FNODE_HAS_MEM_CACHE_FLAG              ((uint32_t) 1)
-
 typedef struct
 {
     /*8B*/
-    uint32_t      file_size:28;    /*data/value length <= 64M = 2^26B*/
-    uint32_t      file_replica_num:4;
-    uint32_t      file_path_hash;  /*hash for disk choice*/
+    CDCNP_INODE   inodes[ CDCNP_FILE_REPLICA_MAX_NUM ];
+}CDCNP_FNODE;/*8B*/
 
-    /*8B*/
-    CDCNP_INODE  inodes[ CDCNP_FILE_REPLICA_MAX_NUM ];
-}CDCNP_FNODE;/*16B*/
-
-#define CDCNP_FNODE_FILESZ(cdcnp_fnode)        ((cdcnp_fnode)->file_size)
-#define CDCNP_FNODE_REPNUM(cdcnp_fnode)        ((cdcnp_fnode)->file_replica_num)
-#define CDCNP_FNODE_HASH(cdcnp_fnode)          ((cdcnp_fnode)->file_path_hash)
-#define CDCNP_FNODE_INODES(cdcnp_fnode)        ((cdcnp_fnode)->inodes)
-#define CDCNP_FNODE_INODE(cdcnp_fnode, idx)    (&((cdcnp_fnode)->inodes[ (idx) ]))
+#define CDCNP_FNODE_PAGENUM(cdcnp_fnode)                ((cdcnp_fnode)->inodes[0].file_page_num)
+#define CDCNP_FNODE_REPNUM(cdcnp_fnode)                 ((cdcnp_fnode)->inodes[0].file_replica_num)
+#define CDCNP_FNODE_INODES(cdcnp_fnode)                 ((cdcnp_fnode)->inodes)
+#define CDCNP_FNODE_INODE(cdcnp_fnode, idx)             (&((cdcnp_fnode)->inodes[ (idx) ]))
 
 #define CDCNP_FNODE_INODE_DISK_NO(cdcnp_fnode, idx)    CDCNP_INODE_DISK_NO(CDCNP_FNODE_INODE(cdcnp_fnode, idx))
 #define CDCNP_FNODE_INODE_BLOCK_NO(cdcnp_fnode, idx)   CDCNP_INODE_BLOCK_NO(CDCNP_FNODE_INODE(cdcnp_fnode, idx))
@@ -108,10 +104,7 @@ typedef struct
     /*8B*/
     uint32_t       file_num;   /*number of files under this directory*/
     uint32_t       root_pos;   /*dir root pos*/
-
-    /*8B*/
-    uint8_t        pad[ CDCNP_DNODE_PAD_SIZE ];
-}CDCNP_DNODE;/*16B*/
+}CDCNP_DNODE;/*8B*/
 
 #define CDCNP_DNODE_FILE_NUM(cdcnp_dnode)      ((cdcnp_dnode)->file_num)
 #define CDCNP_DNODE_ROOT_POS(cdcnp_dnode)      ((cdcnp_dnode)->root_pos)
@@ -134,15 +127,30 @@ typedef struct
 #define CDCNP_KEY_S_PAGE(cdcnp_key)          ((cdcnp_key)->page_start)
 #define CDCNP_KEY_E_PAGE(cdcnp_key)          ((cdcnp_key)->page_end)
 
+typedef EC_BOOL (*CDCNP_DEGRADE_CALLBACK)(void *, const CDCNP_KEY *);
+
+typedef struct
+{
+    CDCNP_DEGRADE_CALLBACK       func;
+    void                        *arg;
+}CDCNP_DEGRADE_CB;
+
+#define CDCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)         ((cmcnp_degrade_cb)->func)
+#define CDCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)          ((cmcnp_degrade_cb)->arg)
+
 typedef struct
 {
     /*16B*/
     CDCNPRB_NODE    rb_node;
 
     /*4B*/
-    uint32_t        used_flag   :3;  /* item status: not used, used */
-    uint32_t        dir_flag    :2;  /* directory or regular file */
-    uint32_t        rsvd01      :27;
+    uint32_t        used_flag         :1;  /* item status: not used, used */
+    uint32_t        dir_flag          :2;  /* directory or regular file */
+    uint32_t        ssd_locked_flag   :1;  /*locked for ssd loading or flushing*/
+    uint32_t        ssd_dirty_flag    :1;  /*file content dirty flag */
+    uint32_t        sata_flushing_flag:1;  /*file content is flushing to sata if set*/
+    uint32_t        sata_flushed_flag :1;  /*file content is flushed to sata if set */
+    uint32_t        rsvd01            :25;
 
     /*4B*/
     uint32_t        parent_pos;/*parent directory*/
@@ -154,29 +162,38 @@ typedef struct
     CDCNPDEL_NODE   del_node;
 
     /*8B*/
+    CDCNPDEG_NODE   deg_node;
+
+    /*8B*/
     CDCNP_KEY       key;
 
     union
     {
-        CDCNP_FNODE fnode;/*16B*/
-        CDCNP_DNODE dnode;/*16B*/
-    }u;/*16B*/
+        CDCNP_FNODE fnode;/*8B*/
+        CDCNP_DNODE dnode;/*8B*/
+    }u;/*8B*/
 } CDCNP_ITEM;/*64B*/
 
-#define CDCNP_ITEM_RB_NODE(cdcnp_item)          (&((cdcnp_item)->rb_node))
-#define CDCNP_ITEM_DIR_FLAG(cdcnp_item)         ((cdcnp_item)->dir_flag)
-#define CDCNP_ITEM_USED_FLAG(cdcnp_item)        ((cdcnp_item)->used_flag)
+#define CDCNP_ITEM_RB_NODE(cdcnp_item)                   (&((cdcnp_item)->rb_node))
+#define CDCNP_ITEM_DIR_FLAG(cdcnp_item)                  ((cdcnp_item)->dir_flag)
+#define CDCNP_ITEM_USED_FLAG(cdcnp_item)                 ((cdcnp_item)->used_flag)
+#define CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item)           ((cdcnp_item)->ssd_locked_flag)
+#define CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)            ((cdcnp_item)->ssd_dirty_flag)
+#define CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item)        ((cdcnp_item)->sata_flushing_flag)
+#define CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)         ((cdcnp_item)->sata_flushed_flag)
 
-#define CDCNP_ITEM_PARENT_POS(cdcnp_item)       ((cdcnp_item)->parent_pos)
-#define CDCNP_ITEM_FNODE(cdcnp_item)            (&((cdcnp_item)->u.fnode))
-#define CDCNP_ITEM_DNODE(cdcnp_item)            (&((cdcnp_item)->u.dnode))
-#define CDCNP_ITEM_LRU_NODE(cdcnp_item)         (&((cdcnp_item)->lru_node))
-#define CDCNP_ITEM_DEL_NODE(cdcnp_item)         (&((cdcnp_item)->del_node))
+#define CDCNP_ITEM_PARENT_POS(cdcnp_item)                ((cdcnp_item)->parent_pos)
+#define CDCNP_ITEM_FNODE(cdcnp_item)                     (&((cdcnp_item)->u.fnode))
+#define CDCNP_ITEM_DNODE(cdcnp_item)                     (&((cdcnp_item)->u.dnode))
 
-#define CDCNP_ITEM_KEY(cdcnp_item)              (&((cdcnp_item)->key))
+#define CDCNP_ITEM_LRU_NODE(cdcnp_item)                  (&((cdcnp_item)->lru_node))
+#define CDCNP_ITEM_DEL_NODE(cdcnp_item)                  (&((cdcnp_item)->del_node))
+#define CDCNP_ITEM_DEG_NODE(cdcnp_item)                  (&((cdcnp_item)->deg_node))
 
-#define CDCNP_ITEM_S_PAGE(cdcnp_item)           (CDCNP_KEY_S_PAGE(CDCNP_ITEM_KEY(cdcnp_item)))
-#define CDCNP_ITEM_E_PAGE(cdcnp_item)           (CDCNP_KEY_E_PAGE(CDCNP_ITEM_KEY(cdcnp_item)))
+#define CDCNP_ITEM_KEY(cdcnp_item)                       (&((cdcnp_item)->key))
+
+#define CDCNP_ITEM_S_PAGE(cdcnp_item)                    (CDCNP_KEY_S_PAGE(CDCNP_ITEM_KEY(cdcnp_item)))
+#define CDCNP_ITEM_E_PAGE(cdcnp_item)                    (CDCNP_KEY_E_PAGE(CDCNP_ITEM_KEY(cdcnp_item)))
 
 /*get CDCNP_ITEM from CDCNPRB_NODE*/
 #define CDCNP_RB_NODE_ITEM(cdcnprb_node)        ((NULL_PTR == (cdcnprb_node)) ? NULL_PTR : \
@@ -189,6 +206,10 @@ typedef struct
 /*get CDCNP_ITEM from CDCNPDEL_NODE*/
 #define CDCNP_DEL_NODE_ITEM(cdcnpdel_node)        ((NULL_PTR == (cdcnpdel_node)) ? NULL_PTR : \
     ((CDCNP_ITEM *)((char *)(cdcnpdel_node)-(unsigned long)(&((CDCNP_ITEM *)0)->del_node))))
+
+/*get CDCNP_ITEM from CDCNPDEG_NODE*/
+#define CDCNP_DEG_NODE_ITEM(cdcnpdeg_node)        ((NULL_PTR == (cdcnpdeg_node)) ? NULL_PTR : \
+    ((CDCNP_ITEM *)((char *)(cdcnpdeg_node)-(unsigned long)(&((CDCNP_ITEM *)0)->deg_node))))
 
 #define CDCNP_ITEM_IS_REG(cdcnp_item)            (CDCNP_ITEM_FILE_IS_REG == (CDCNP_ITEM_FILE_IS_REG & CDCNP_ITEM_DIR_FLAG(cdcnp_item)))
 #define CDCNP_ITEM_IS_DIR(cdcnp_item)            (CDCNP_ITEM_FILE_IS_DIR == (CDCNP_ITEM_FILE_IS_DIR & CDCNP_ITEM_DIR_FLAG(cdcnp_item)))
@@ -289,6 +310,51 @@ typedef struct
 
 #endif/*(CDCNP_KEY_SIZE_063B == CDCNP_KEY_MAX_SIZE)*/
 
+#if (CDCNP_KEY_SIZE_000B == CDCNP_KEY_MAX_SIZE)
+/**/
+/*item max num = [file size / 64] - [item header size / 64]*/
+/*item table start from offset 256B. */
+/*64 = 64 (sizeof item) + 0 (sizeof key)*/
+
+#define CDCNP_ITEM_SIZE_NBITS           (6)
+#define CDCNP_ITEM_SIZEOF               (1 << CDCNP_ITEM_SIZE_NBITS) /*it must be 64B*/
+
+#define CDCNP_008M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 23))
+#define CDCNP_008M_CFG_ITEM_MAX_NUM     ((CDCNP_008M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_016M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 24))
+#define CDCNP_016M_CFG_ITEM_MAX_NUM     ((CDCNP_016M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_032M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 25))
+#define CDCNP_032M_CFG_ITEM_MAX_NUM     ((CDCNP_032M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_064M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 26))
+#define CDCNP_064M_CFG_ITEM_MAX_NUM     ((CDCNP_064M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_128M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 27))
+#define CDCNP_128M_CFG_ITEM_MAX_NUM     ((CDCNP_128M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_256M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 28))
+#define CDCNP_256M_CFG_ITEM_MAX_NUM     ((CDCNP_256M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_512M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 29))
+#define CDCNP_512M_CFG_ITEM_MAX_NUM     ((CDCNP_512M_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_001G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 30))
+#define CDCNP_001G_CFG_ITEM_MAX_NUM     ((CDCNP_001G_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#define CDCNP_002G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 31))
+#define CDCNP_002G_CFG_ITEM_MAX_NUM     ((CDCNP_002G_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+#if (64 == WORDSIZE)
+#define CDCNP_004G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 32))
+#define CDCNP_004G_CFG_ITEM_MAX_NUM     ((CDCNP_004G_CFG_FILE_SIZE >> CDCNP_ITEM_SIZE_NBITS) - (CDCNP_HEADER_SIZE_NBYTES >> CDCNP_ITEM_SIZE_NBITS))
+
+/*due to offset is defined as 32bit integer, here cannot support more than 4G file*/
+#endif/*(64 == WORDSIZE)*/
+
+#endif/*(CDCNP_KEY_SIZE_000B == CDCNP_KEY_MAX_SIZE)*/
+
 
 typedef struct
 {
@@ -321,12 +387,15 @@ typedef struct
 /********************************************************************************************************************************
 *
 * np_id | model | rsvd | pad (bitmap size | bitmap data)  | node_max_num | node_used_num | node_sizeof | free_head | item x n    |
-* |<---------------------------------1 MB--------------------------------------------------------------------------------------->|
+* |<---------------------------------8 MB--------------------------------------------------------------------------------------->|
 *
 *********************************************************************************************************************************/
 
-#define CDCNP_BITMAP_SIZE_NBYTES        (CDCNP_HEADER_SIZE_NBYTES - 8 - 16)
+#define CDCNP_BITMAP_SIZE_NBYTES        (CDCNP_HEADER_SIZE_NBYTES - 8 - 4 - 4 - 16)
 #define CDCNP_PAGE_MAX_NUM              (CDCNP_BITMAP_SIZE_NBYTES << 3) /*nbytes * 8*/
+
+#define CDCNP_MAGIC_NUM                 ((uint32_t)0x31415926)
+#define CDCNP_ERR_MAGIC_NUM             ((uint32_t)~0)
 
 /*each np own one header*/
 typedef struct
@@ -338,6 +407,12 @@ typedef struct
     uint8_t             rsvd2;
     uint8_t             rsvd3;
 
+    /*4B*/
+    uint32_t            magic;
+
+    /*4B*/
+    uint32_t            deg_node_num;
+
     uint8_t             pad[ CDCNP_BITMAP_SIZE_NBYTES ]; /*pad the first part to 1 MB*/
 
     CDCNPRB_POOL        pool;                /*pool of CDCNP_ITEM, CDCNP_ITEM head must be CDCNPRB_NODE*/
@@ -345,6 +420,9 @@ typedef struct
 
 #define CDCNP_HEADER_NP_ID(cdcnp_header)              ((cdcnp_header)->np_id)
 #define CDCNP_HEADER_MODEL(cdcnp_header)              ((cdcnp_header)->model)
+#define CDCNP_HEADER_MAGIC(cdcnp_header)              ((cdcnp_header)->magic)
+
+#define CDCNP_HEADER_DEG_NODE_NUM(cdcnp_header)       ((cdcnp_header)->deg_node_num)
 
 #define CDCNP_HEADER_ITEMS_POOL(cdcnp_header)         (&((cdcnp_header)->pool))
 #define CDCNP_HEADER_ITEMS_MAX_NUM(cdcnp_header)      (CDCNPRB_POOL_NODE_MAX_NUM(CDCNP_HEADER_ITEMS_POOL(cdcnp_header)))
@@ -361,7 +439,6 @@ typedef struct
     UINT32           e_offset;     /* end offset of name node   */
 
     uint8_t         *fname;
-    CAIO_MD         *caio_md;      /* mount point. inherit from cdc module */
 
     uint64_t         del_size;     /* deleted but not recycled bytes */
     uint64_t         recycle_size; /* recycled bytes */
@@ -374,6 +451,12 @@ typedef struct
 
     /*shortcut of del list which point to root rb node */
     CDCNPDEL_NODE   *del_list;     /* the lastest access node is at head covering fnode only */
+
+    /*shortcut of degrade list which point to root rb node */
+    CDCNPDEG_NODE   *deg_list;     /* the lastest access node is at head covering fnode only */
+
+    /*for degrade callback*/
+    CDCNP_DEGRADE_CB  degrade_cb;
 } CDCNP;
 
 #define CDCNP_FD(cdcnp)                     ((cdcnp)->fd)
@@ -381,7 +464,6 @@ typedef struct
 #define CDCNP_E_OFFSET(cdcnp)               ((cdcnp)->e_offset)
 
 #define CDCNP_FNAME(cdcnp)                  ((cdcnp)->fname)
-#define CDCNP_CAIO_MD(cdcnp)                ((cdcnp)->caio_md)
 
 #define CDCNP_DEL_SIZE(cdcnp)               ((cdcnp)->del_size)
 #define CDCNP_RECYCLE_SIZE(cdcnp)           ((cdcnp)->recycle_size)
@@ -390,59 +472,18 @@ typedef struct
 
 #define CDCNP_LRU_LIST(cdcnp)               ((cdcnp)->lru_list)
 #define CDCNP_DEL_LIST(cdcnp)               ((cdcnp)->del_list)
+#define CDCNP_DEG_LIST(cdcnp)               ((cdcnp)->deg_list)
+
+#define CDCNP_DEGRADE_CB(cdcnp)             (&((cdcnp)->degrade_cb))
 
 #define CDCNP_ID(cdcnp)                     (CDCNP_HEADER_NP_ID(CDCNP_HDR(cdcnp)))
 #define CDCNP_MODEL(cdcnp)                  (CDCNP_HEADER_MODEL(CDCNP_HDR(cdcnp)))
 
+#define CDCNP_DEG_NODE_NUM(cdcnp)           (CDCNP_HEADER_DEG_NODE_NUM(CDCNP_HDR(cdcnp)))
+
 #define CDCNP_ITEMS_POOL(cdcnp)             (CDCNP_HEADER_ITEMS_POOL(CDCNP_HDR(cdcnp)))
 #define CDCNP_ITEMS_MAX_NUM(cdcnp)          (CDCNPRB_POOL_NODE_MAX_NUM(CDCNP_ITEMS_POOL(cdcnp)))
 #define CDCNP_ITEMS_USED_NUM(cdcnp)         (CDCNPRB_POOL_NODE_USED_NUM(CDCNP_ITEMS_POOL(cdcnp)))
-
-
-typedef struct
-{
-    CDCNP             *cdcnp;
-
-    uint32_t           np_id;
-    uint8_t            np_model;
-    uint8_t            rsvd01;
-    uint16_t           rsvd02;
-
-    UINT32             np_size;
-
-    int                fd;
-    int                rsvd03;
-
-    UINT32             f_s_offset;
-    UINT32             f_e_offset;
-
-    UINT32            *s_offset;           /*mounted input start offset pointer*/
-
-    UINT32             aio_s_offset;       /*start offset of reading or writing*/
-    UINT32             aio_e_offset;       /*expected end offset of reading or writing*/
-    UINT32             aio_c_offset;       /*current/reached offset of reading or writing*/
-
-    UINT8              aio_m_data[ 8 ];
-
-    UINT8             *aio_m_buff;
-
-    CAIO_CB            caio_cb;
-}CDCNP_AIO;
-
-#define CDCNP_AIO_CDCNP(cdcnp_aio)                       ((cdcnp_aio)->cdcnp)
-#define CDCNP_AIO_NP_ID(cdcnp_aio)                       ((cdcnp_aio)->np_id)
-#define CDCNP_AIO_NP_MODEL(cdcnp_aio)                    ((cdcnp_aio)->np_model)
-#define CDCNP_AIO_NP_SIZE(cdcnp_aio)                     ((cdcnp_aio)->np_size)
-#define CDCNP_AIO_FD(cdcnp_aio)                          ((cdcnp_aio)->fd)
-#define CDCNP_AIO_I_S_OFFSET(cdcnp_aio)                  ((cdcnp_aio)->s_offset)
-#define CDCNP_AIO_F_S_OFFSET(cdcnp_aio)                  ((cdcnp_aio)->f_s_offset)
-#define CDCNP_AIO_F_E_OFFSET(cdcnp_aio)                  ((cdcnp_aio)->f_e_offset)
-#define CDCNP_AIO_S_OFFSET(cdcnp_aio)                    ((cdcnp_aio)->aio_s_offset)
-#define CDCNP_AIO_E_OFFSET(cdcnp_aio)                    ((cdcnp_aio)->aio_e_offset)
-#define CDCNP_AIO_C_OFFSET(cdcnp_aio)                    ((cdcnp_aio)->aio_c_offset)
-#define CDCNP_AIO_M_DATA(cdcnp_aio)                      ((cdcnp_aio)->aio_m_data)
-#define CDCNP_AIO_M_BUFF(cdcnp_aio)                      ((cdcnp_aio)->aio_m_buff)
-#define CDCNP_AIO_CAIO_CB(cdcnp_aio)                     (&((cdcnp_aio)->caio_cb))
 
 typedef EC_BOOL (*CDCNP_RECYCLE_DN_FUNC)(void *, const CDCNP_FNODE *);
 

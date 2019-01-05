@@ -92,20 +92,20 @@ uint16_t cmcpgd_model_get(const char *model_str)
     return (CMCPGD_ERROR_BLOCK_NUM);
 }
 
-EC_BOOL cmcpgd_model_search(const UINT32 vdisk_size /*in MB*/, UINT32 *vdisk_num)
+EC_BOOL cmcpgd_model_search(const UINT32 mem_disk_size /*in byte*/, UINT32 *vdisk_num)
 {
     UINT32      block_num;
 
     /*how many blocks for vdisk total space*/
-    block_num    = (((vdisk_size << 20) + (UINT32)CMCPGB_SIZE_NBYTES - 1) >> (UINT32)CMCPGB_SIZE_NBITS);
+    block_num    = ((mem_disk_size + (UINT32)CMCPGB_SIZE_NBYTES - 1) >> (UINT32)CMCPGB_SIZE_NBITS);
 
     /*how many vdisks for the blocks*/
     (*vdisk_num) = ((block_num + CMCPGD_MAX_BLOCK_NUM - 1) / CMCPGD_MAX_BLOCK_NUM);
 
     dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "[DEBUG] cmcpgd_model_search: "
-                                           "vdisk size %ld MB => %ld vdisks, "
-                                           "where block size %u Bytes\n",
-                                           vdisk_size, (*vdisk_num),
+                                           "mem disk size %ld => %ld vdisks, "
+                                           "where block size %u\n",
+                                           mem_disk_size, (*vdisk_num),
                                            (uint32_t)CMCPGB_SIZE_NBYTES);
 
     return (EC_TRUE);
@@ -119,7 +119,9 @@ STATIC_CAST static uint16_t __cmcpgd_page_model_first_block(const CMCPGD *cmcpgd
     node_pos = cmcpgrb_tree_first_node(CMCPGD_PAGE_BLOCK_CMCPGRB_POOL(cmcpgd), CMCPGD_PAGE_MODEL_BLOCK_CMCPGRB_ROOT_POS(cmcpgd, page_model));
     if(CMCPGRB_ERR_POS == node_pos)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_page_model_first_block: no free page in page model %u\n", page_model);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_page_model_first_block: "
+                                               "no free page in page model %u\n",
+                                               page_model);
         return (CMCPGRB_ERR_POS);
     }
 
@@ -159,7 +161,9 @@ CMCPGD_HDR *cmcpgd_hdr_new(CMCPGD *cmcpgd, const uint16_t block_num)
 
     if(EC_FALSE == cmcpgrb_pool_init(CMCPGD_HDR_CMCPGRB_POOL(cmcpgd_hdr), block_num))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_hdr_new: init cmcpgrb pool failed where block_num = %u\n", block_num);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_hdr_new: "
+                                               "init cmcpgrb pool failed where block_num = %u\n",
+                                               block_num);
         safe_free(cmcpgd_hdr, LOC_CMCPGD_0002);
         return (NULL_PTR);
     }
@@ -213,7 +217,8 @@ CMCPGD *cmcpgd_new(const uint16_t block_num)
 
     cmcpgd_init(cmcpgd);
 
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new: CMCPGD_HDR_SIZE %ld, block_num %u, CMCPGB_SIZE %ld, sizeof(off_t) = %ld\n",
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new: "
+                        "CMCPGD_HDR_SIZE %ld, block_num %u, CMCPGB_SIZE %ld, sizeof(off_t) = %ld\n",
                         CMCPGD_HDR_SIZE, block_num, CMCPGB_SIZE, sizeof(off_t));
 
     CMCPGD_SIZE(cmcpgd) = CMCPGD_HDR_SIZE + block_num * CMCPGB_SIZE;
@@ -235,7 +240,8 @@ CMCPGD *cmcpgd_new(const uint16_t block_num)
 
         if(0 == ((block_no + 1) % 1000))
         {
-            dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_new: init block %u - %u done\n", block_no - 999, block_no);
+            dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_new: init block %u - %u done\n",
+                                                   block_no - 999, block_no);
         }
     }
     dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_new: init %u blocks done\n", block_num);
@@ -324,14 +330,18 @@ EC_BOOL cmcpgd_add_block(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_t
 {
     if(CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd) <= block_no)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_add_block: block_no %u overflow where block max num is %u\n", block_no, CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_add_block: "
+                                               "block_no %u overflow where block max num is %u\n",
+                                               block_no, CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd));
         return (EC_FALSE);
     }
 
     /*insert block_no to rbtree*/
     if(CMCPGRB_ERR_POS == cmcpgrb_tree_insert_data(CMCPGD_PAGE_BLOCK_CMCPGRB_POOL(cmcpgd), &(CMCPGD_PAGE_MODEL_BLOCK_CMCPGRB_ROOT_POS(cmcpgd, page_model)), block_no))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_add_block: add block_no %u to rbtree of page model %u failed\n", block_no, page_model);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_add_block: "
+                                               "add block_no %u to rbtree of page model %u failed\n",
+                                               block_no, page_model);
         return (EC_FALSE);
     }
 
@@ -348,7 +358,9 @@ EC_BOOL cmcpgd_del_block(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_t
     /*del block_no from rbtree*/
     if(CMCPGRB_ERR_POS == cmcpgrb_tree_delete_data(CMCPGD_PAGE_BLOCK_CMCPGRB_POOL(cmcpgd), &(CMCPGD_PAGE_MODEL_BLOCK_CMCPGRB_ROOT_POS(cmcpgd, page_model)), block_no))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_del_block: del block_no %u from rbtree of page model %u failed\n", block_no, page_model);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_del_block: "
+                                               "del block_no %u from rbtree of page model %u failed\n",
+                                               block_no, page_model);
         return (EC_FALSE);
     }
 
@@ -382,7 +394,8 @@ STATIC_CAST static EC_BOOL __cmcpgd_assign_block(CMCPGD *cmcpgd, uint16_t *page_
     mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
     if(0 == (CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd) & mask))
     {
-        dbg_log(SEC_0102_CMCPGD, 1)(LOGSTDOUT, "error:__cmcpgd_assign_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+        dbg_log(SEC_0102_CMCPGD, 7)(LOGSTDOUT, "error:__cmcpgd_assign_block: "
+                           "page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
                            page_model_t, CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd), mask);
         return (EC_FALSE);
     }
@@ -396,14 +409,18 @@ STATIC_CAST static EC_BOOL __cmcpgd_assign_block(CMCPGD *cmcpgd, uint16_t *page_
 
     if(CMCPGB_MODEL_NUM <= page_model_t)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_assign_block: no free block available from page model %u\n", *page_model);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_assign_block: "
+                                               "no free block available from page model %u\n",
+                                               *page_model);
         return (EC_FALSE);
     }
 
     block_no_t = __cmcpgd_page_model_first_block(cmcpgd, page_model_t);
     if(CMCPGRB_ERR_POS == block_no_t)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_assign_block: no free block in page model %u\n", page_model_t);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:__cmcpgd_assign_block: "
+                                               "no free block in page model %u\n",
+                                               page_model_t);
         return (EC_FALSE);
     }
 
@@ -469,7 +486,9 @@ EC_BOOL cmcpgd_new_space(CMCPGD *cmcpgd, const uint32_t size, uint16_t *block_no
 
         if(EC_FALSE == __cmcpgd_assign_block(cmcpgd, &page_model_t, &block_no_t))
         {
-            dbg_log(SEC_0102_CMCPGD, 1)(LOGSTDOUT, "error:cmcpgd_new_space: assign one block from page model %u failed\n", page_model);
+            dbg_log(SEC_0102_CMCPGD, 7)(LOGSTDOUT, "error:cmcpgd_new_space: "
+                                                   "assign one block from page model %u failed\n",
+                                                   page_model);
             return (EC_FALSE);
         }
 
@@ -500,7 +519,9 @@ EC_BOOL cmcpgd_new_space(CMCPGD *cmcpgd, const uint32_t size, uint16_t *block_no
         CMCPGD_ASSERT(CMCPGB_MODEL_NUM > page_model_t);
         cmcpgd_add_block(cmcpgd, block_no_t, page_model_t);
 
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "warn:cmcpgd_new_space: block %u relocation to page model %u\n", block_no_t, page_model_t);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "warn:cmcpgd_new_space: "
+                                               "block %u relocation to page model %u\n",
+                                               block_no_t, page_model_t);
     }
 
     pgb_assign_bitmap_new = CMCPGB_PAGE_MODEL_ASSIGN_BITMAP(cmcpgb);
@@ -555,10 +576,12 @@ EC_BOOL cmcpgd_new_space(CMCPGD *cmcpgd, const uint32_t size, uint16_t *block_no
 
     CMCPGD_ASSERT(EC_TRUE == cmcpgd_check(cmcpgd));
 
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new_space: pgd_page_used_num %u due to increment %u\n",
-                        CMCPGD_PAGE_USED_NUM(cmcpgd), page_num_need);
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new_space: pgd_actual_used_size %"PRId64" due to increment %u\n",
-                        CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd), size);
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new_space: "
+                                           "pgd_page_used_num %u due to increment %u\n",
+                                           CMCPGD_PAGE_USED_NUM(cmcpgd), page_num_need);
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_new_space: "
+                                           "pgd_actual_used_size %"PRId64" due to increment %u\n",
+                                           CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd), size);
 
     return (EC_TRUE);
 }
@@ -576,7 +599,9 @@ EC_BOOL cmcpgd_free_space(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_
 
     if(CMCPGB_SIZE_NBYTES < size)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: invalid size %u due to overflow\n", size);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: "
+                                               "invalid size %u due to overflow\n",
+                                               size);
         return (EC_FALSE);
     }
 
@@ -585,8 +610,9 @@ EC_BOOL cmcpgd_free_space(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_
 
     if(EC_FALSE == cmcpgb_free_space(cmcpgb, page_no, size))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: block_no %u free space of page_no %u, size %u failed\n",
-                           block_no, page_no, size);
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: "
+                                               "block_no %u free space of page_no %u, size %u failed\n",
+                                               block_no, page_no, size);
         return (EC_FALSE);
     }
 
@@ -620,8 +646,10 @@ EC_BOOL cmcpgd_free_space(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_
 
         if(EC_FALSE == cmcpgd_add_block(cmcpgd, block_no, page_model_new))
         {
-            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: add block %d, page_model_new %u failed, fix it!\n",
-                                block_no, page_model_new);
+            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_free_space: "
+                                                   "add block %d, page_model_new %u failed, fix it!\n",
+                                                   block_no,
+                                                   page_model_new);
             abort();
         }
     }
@@ -631,10 +659,12 @@ EC_BOOL cmcpgd_free_space(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_
     CMCPGD_PAGE_USED_NUM(cmcpgd)         -= page_num_used;
     CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd) -= size;
 
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_free_space: pgd_page_used_num %u due to decrement %u\n",
-                        CMCPGD_PAGE_USED_NUM(cmcpgd), page_num_used);
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_free_space: pgd_actual_used_size %"PRId64" due to decrement %u\n",
-                        CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd), size);
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_free_space: "
+                                           "pgd_page_used_num %u due to decrement %u\n",
+                                           CMCPGD_PAGE_USED_NUM(cmcpgd), page_num_used);
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_free_space: "
+                                           "pgd_actual_used_size %"PRId64" due to decrement %u\n",
+                                           CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd), size);
 
     return (EC_TRUE);
 }
@@ -670,8 +700,9 @@ uint16_t cmcpgd_page_model(const CMCPGD *cmcpgd)
         /*do nothing*/
     }
 
-    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_page_model: cmcpgd %p: assign bitmap %s ==> page_model %u\n",
-                       cmcpgd, c_uint16_t_to_bin_str(pgd_assign_bitmap), page_model);
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_page_model: "
+                                           "cmcpgd %p: assign bitmap %s ==> page_model %u\n",
+                                           cmcpgd, c_uint16_t_to_bin_str(pgd_assign_bitmap), page_model);
 
     return (page_model);
 }
@@ -714,28 +745,33 @@ EC_BOOL cmcpgd_check(const CMCPGD *cmcpgd)
 
     if(pgd_assign_bitmap != pgb_assign_bitmap)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: inconsistent bitmap: pgd_assign_bitmap = %s, pgb_assign_bitmap = %s\n",
-                           c_uint16_t_to_bin_str(pgd_assign_bitmap), c_uint16_t_to_bin_str(pgb_assign_bitmap));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: "
+                           "inconsistent bitmap: pgd_assign_bitmap = %s, pgb_assign_bitmap = %s\n",
+                           c_uint16_t_to_bin_str(pgd_assign_bitmap),
+                           c_uint16_t_to_bin_str(pgb_assign_bitmap));
         return (EC_FALSE);
     }
 
     if(pgd_actual_used_size != pgb_actual_used_size)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: inconsistent actual used size: pgd_actual_used_size = %"PRId64", pgb_actual_used_size = %"PRId64"\n",
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: inconsistent "
+                            "actual used size: pgd_actual_used_size = %"PRId64", pgb_actual_used_size = %"PRId64"\n",
                             pgd_actual_used_size, pgb_actual_used_size);
         return (EC_FALSE);
     }
 
     if(pgd_page_max_num != pgb_page_max_num)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: inconsistent page max num: pgd_page_max_num = %u, pgb_page_max_num = %u\n",
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: "
+                            "inconsistent page max num: pgd_page_max_num = %u, pgb_page_max_num = %u\n",
                             pgd_page_max_num, pgb_page_max_num);
         return (EC_FALSE);
     }
 
     if(pgd_page_used_num != pgb_page_used_num)
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: inconsistent page used num: pgd_page_used_num = %u, pgb_page_used_num = %u\n",
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: "
+                            "inconsistent page used num: pgd_page_used_num = %u, pgb_page_used_num = %u\n",
                             pgd_page_used_num, pgb_page_used_num);
         return (EC_FALSE);
     }
@@ -745,7 +781,9 @@ EC_BOOL cmcpgd_check(const CMCPGD *cmcpgd)
     {
         if(EC_FALSE == cmcpgb_check(CMCPGD_BLOCK_NODE(cmcpgd, block_no)))
         {
-            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: check CMCPGD_BLOCK_NODE of block_no %u failed\n", block_no);
+            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_check: "
+                                "check CMCPGD_BLOCK_NODE of block_no %u failed\n",
+                                block_no);
             return (EC_FALSE);
         }
     }
@@ -791,7 +829,9 @@ void cmcpgd_print(LOG *log, const CMCPGD *cmcpgd)
                  EC_TRUE == REAL_ISZERO(CMPI_ERROR_MODI, occupied_size) ? 0.0 : (used_size / occupied_size)
                  );
 */
-    sys_log(log, "cmcpgd_print: cmcpgd %p, block num %u, %s, page max num %u, page used num %u, page ratio %.2f, actual used size %"PRId64", size ratio %.2f\n",
+    sys_log(log, "cmcpgd_print: cmcpgd %p, "
+                 "block num %u, %s, page max num %u, page used num %u, page ratio %.2f, "
+                 "actual used size %"PRId64", size ratio %.2f\n",
                  cmcpgd,
                  CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd),
                  page_desc,
@@ -859,7 +899,8 @@ EC_BOOL cmcpgd_debug_cmp(const CMCPGD *cmcpgd_1st, const CMCPGD *cmcpgd_2nd)
 
         if(root_pos_1st != root_pos_2nd)
         {
-            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent root_pos: %u != %u at page_model %u\n",
+            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                                "inconsistent root_pos: %u != %u at page_model %u\n",
                                 root_pos_1st, root_pos_2nd, page_model);
             return (EC_FALSE);
         }
@@ -868,40 +909,50 @@ EC_BOOL cmcpgd_debug_cmp(const CMCPGD *cmcpgd_1st, const CMCPGD *cmcpgd_2nd)
     /*assign bitmap*/
     if(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_1st) != CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_1st))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_PAGE_MODEL_ASSIGN_BITMAP: %u != %u\n",
-                            CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_1st), CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_2nd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                            "inconsistent CMCPGD_PAGE_MODEL_ASSIGN_BITMAP: %u != %u\n",
+                            CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_1st),
+                            CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd_2nd));
         return (EC_FALSE);
     }
 
     /*block max num*/
     if(CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_1st) != CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_1st))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_PAGE_BLOCK_MAX_NUM: %u != %u\n",
-                            CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_1st), CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_2nd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                            "inconsistent CMCPGD_PAGE_BLOCK_MAX_NUM: %u != %u\n",
+                            CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_1st),
+                            CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_2nd));
         return (EC_FALSE);
     }
 
     /*page max num*/
     if(CMCPGD_PAGE_MAX_NUM(cmcpgd_1st) != CMCPGD_PAGE_MAX_NUM(cmcpgd_1st))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_PAGE_MAX_NUM: %u != %u\n",
-                            CMCPGD_PAGE_MAX_NUM(cmcpgd_1st), CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_2nd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                            "inconsistent CMCPGD_PAGE_MAX_NUM: %u != %u\n",
+                            CMCPGD_PAGE_MAX_NUM(cmcpgd_1st),
+                            CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd_2nd));
         return (EC_FALSE);
     }
 
     /*page used num*/
     if(CMCPGD_PAGE_USED_NUM(cmcpgd_1st) != CMCPGD_PAGE_USED_NUM(cmcpgd_1st))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_PAGE_USED_NUM: %u != %u\n",
-                            CMCPGD_PAGE_USED_NUM(cmcpgd_1st), CMCPGD_PAGE_USED_NUM(cmcpgd_2nd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                            "inconsistent CMCPGD_PAGE_USED_NUM: %u != %u\n",
+                            CMCPGD_PAGE_USED_NUM(cmcpgd_1st),
+                            CMCPGD_PAGE_USED_NUM(cmcpgd_2nd));
         return (EC_FALSE);
     }
 
     /*page actual used bytes num*/
     if(CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_1st) != CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_1st))
     {
-        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_PAGE_ACTUAL_USED_SIZE: %"PRId64" != %"PRId64"\n",
-                            CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_1st), CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_2nd));
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                            "inconsistent CMCPGD_PAGE_ACTUAL_USED_SIZE: %"PRId64" != %"PRId64"\n",
+                            CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_1st),
+                            CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd_2nd));
         return (EC_FALSE);
     }
 
@@ -910,7 +961,9 @@ EC_BOOL cmcpgd_debug_cmp(const CMCPGD *cmcpgd_1st, const CMCPGD *cmcpgd_2nd)
     {
         if(EC_FALSE == cmcpgb_debug_cmp(CMCPGD_BLOCK_NODE(cmcpgd_1st, block_no), CMCPGD_BLOCK_NODE(cmcpgd_2nd, block_no)))
         {
-            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: inconsistent CMCPGD_BLOCK_NODE at block_no %u\n", block_no);
+            dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_debug_cmp: "
+                                "inconsistent CMCPGD_BLOCK_NODE at block_no %u\n",
+                                block_no);
             return (EC_FALSE);
         }
     }

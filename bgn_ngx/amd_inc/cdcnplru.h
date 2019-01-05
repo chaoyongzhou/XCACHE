@@ -47,6 +47,10 @@ EC_BOOL cdcnplru_pool_init(CDCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
 void cdcnplru_list_print(LOG *log, const CDCNP *cdcnp);
 
+UINT32 cdcnplru_count(const CDCNP *cdcnp);
+
+void cdcnplru_walk(const CDCNP *cdcnp, void *data, EC_BOOL (*walker)(const CDCNPLRU_NODE *, const uint32_t, void *));
+
 #endif    /* _CDCNPLRU_H */
 
 #ifdef __cplusplus

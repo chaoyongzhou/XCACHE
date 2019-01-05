@@ -236,7 +236,7 @@ const char *cmcpgd_model_str(const uint16_t pgd_block_num);
 
 uint16_t cmcpgd_model_get(const char *model_str);
 
-EC_BOOL cmcpgd_model_search(const UINT32 vdisk_size /*in MB*/, UINT32 *vdisk_num);
+EC_BOOL cmcpgd_model_search(const UINT32 mem_disk_size /*in byte*/, UINT32 *vdisk_num);
 
 CMCPGD_HDR *cmcpgd_hdr_new(CMCPGD *cmcpgd, const uint16_t block_num);
 

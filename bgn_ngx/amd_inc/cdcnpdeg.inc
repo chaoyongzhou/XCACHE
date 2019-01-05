@@ -9,16 +9,16 @@
 extern "C"{
 #endif/*__cplusplus*/
 
-#ifndef    _CDCNPLRU_INC
-#define    _CDCNPLRU_INC
+#ifndef    _CDCNPDEG_INC
+#define    _CDCNPDEG_INC
 
 #include "type.h"
 #include "cdcnprb.h"
 
-#define CDCNPLRU_ROOT_POS          (0)/*point to the root rb node*/
+#define CDCNPDEG_ROOT_POS          (0)/*point to the root rb node*/
 
-#define CDCNPLRU_NODE_NOT_USED     ((uint32_t)0)
-#define CDCNPLRU_NODE_USED         ((uint32_t)1)
+#define CDCNPDEG_NODE_NOT_USED     ((uint32_t)0)
+#define CDCNPDEG_NODE_USED         ((uint32_t)1)
 
 typedef struct
 {
@@ -27,14 +27,13 @@ typedef struct
 
     uint32_t next_pos :31; /*value range: [0, 0x7FFFFFFF)*/
     uint32_t rsvd2    : 1;
-}CDCNPLRU_NODE; /*8B*/
+}CDCNPDEG_NODE; /*8B*/
 
-#define CDCNPLRU_NODE_PREV_POS(node)          ((node)->prev_pos)
-#define CDCNPLRU_NODE_NEXT_POS(node)          ((node)->next_pos)
+#define CDCNPDEG_NODE_PREV_POS(node)          ((node)->prev_pos)
+#define CDCNPDEG_NODE_NEXT_POS(node)          ((node)->next_pos)
 
-typedef EC_BOOL (*CDCNPLRU_WALK)(const CDCNPLRU_NODE *, const uint32_t, void *);
 
-#endif    /* _CDCNPLRU_INC */
+#endif    /* _CDCNPDEG_INC */
 
 #ifdef __cplusplus
 }

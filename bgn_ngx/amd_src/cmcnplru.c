@@ -260,7 +260,7 @@ EC_BOOL cmcnplru_pool_init(CMCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0114_CMCNPLRU, 0)(LOGSTDOUT, "info:cmcnplru_pool_init: init node %u - %u of max %u done\n",
+            dbg_log(SEC_0114_CMCNPLRU, 9)(LOGSTDOUT, "info:cmcnplru_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
         }
     }

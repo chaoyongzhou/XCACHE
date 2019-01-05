@@ -85,13 +85,16 @@ extern "C"{
 #define CAIO_001M_BLOCK_SIZE_NBYTE  (UINT32_ONE << CAIO_001M_BLOCK_SIZE_NBIT)
 #define CAIO_001M_BLOCK_SIZE_MASK   (CAIO_001M_BLOCK_SIZE_NBYTE - 1)
 
-#define CAIO_REQ_MAX_NUM                (32)
+#define CAIO_REQ_MAX_NUM                (128)
 
 #define CAIO_SECTOR_SIZE_NBYTE          (512)
 
-#define CAIO_EVENT_MAX_NUM              (32) /*sata disk Queue max depth is 32*/
+#define CAIO_EVENT_MAX_NUM              (128)
 
 #define CAIO_PROCESS_EVENT_ONCE_NUM     (128)
+
+//#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)1024) /*256MB for 256K-page*/
+#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)~0)/*no limitation*/
 
 #define CAIO_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
 #define CAIO_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
@@ -103,7 +106,7 @@ extern "C"{
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (30) /*second*/
 
-#define caio_default_get_time()                         c_time(NULL_PTR)
+#define CAIO_PAGE_LIST_IDX_ERR                          ((UINT32)~0)
 
 typedef struct
 {
@@ -144,6 +147,19 @@ typedef struct
 #define CAIO_CB_TIMEOUT_HANDLER(caio_cb)                (&((caio_cb)->timeout_handler))
 #define CAIO_CB_COMPLETE_HANDLER(caio_cb)               (&((caio_cb)->complete_handler))
 
+typedef struct
+{
+    int         fd;
+    int         rsvd;
+
+    UINT32      max_req_num;
+    UINT32      cur_req_num;
+}CAIO_DISK;
+
+#define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
+#define CAIO_DISK_MAX_REQ_NUM(caio_disk)                ((caio_disk)->max_req_num)
+#define CAIO_DISK_CUR_REQ_NUM(caio_disk)                ((caio_disk)->cur_req_num)
+
 typedef void (*CAIO_EVENT_HANDLER)(void *);
 
 typedef struct
@@ -156,12 +172,11 @@ typedef struct
     int              rsvd01;
     aio_context_t    aio_context;       /*8B*/
 
-    UINT32           max_req_num;
-    UINT32           cur_req_num;
+    CLIST            disk_list;
 
     CLIST            req_list;          /*item is CAIO_REQ. reading & writing request list in order*/
-    CRB_TREE         page_tree[2];      /*item is CAIO_PAGE. working page tree*/
-    UINT32           page_tree_idx;     /*page tree active index, range in [0, 1]*/
+    CLIST            page_list[2];      /*item is CAIO_PAGE. working page tree*/
+    UINT32           page_list_idx;     /*page tree active index, range in [0, 1]*/
 
     CLIST            post_event_reqs;   /*item is CAIO_REQ */
 }CAIO_MD;
@@ -173,24 +188,23 @@ typedef struct
 #define CAIO_MD_AIO_EVENTFD(caio_md)                    ((caio_md)->aio_eventfd)
 #define CAIO_MD_AIO_CONTEXT(caio_md)                    ((caio_md)->aio_context)
 
-#define CAIO_MD_MAX_REQ_NUM(caio_md)                    ((caio_md)->max_req_num)
-#define CAIO_MD_CUR_REQ_NUM(caio_md)                    ((caio_md)->cur_req_num)
+#define CAIO_MD_DISK_LIST(caio_md)                      (&((caio_md)->disk_list))
 
 #define CAIO_MD_REQ_LIST(caio_md)                       (&((caio_md)->req_list))
-#define CAIO_MD_ACTIVE_PAGE_TREE_IDX(caio_md)           ((caio_md)->page_tree_idx)
-#define CAIO_MD_STANDBY_PAGE_TREE_IDX(caio_md)          (1 ^ CAIO_MD_ACTIVE_PAGE_TREE_IDX(caio_md))
-#define CAIO_MD_PAGE_TREE(caio_md, idx)                 (&((caio_md)->page_tree[ (idx) ]))
+#define CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md)           ((caio_md)->page_list_idx)
+#define CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md)          (1 ^ CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md))
+#define CAIO_MD_PAGE_LIST(caio_md, idx)                 (&((caio_md)->page_list[ (idx) ]))
 #define CAIO_MD_POST_EVENT_REQS(caio_md)                (&((caio_md)->post_event_reqs))
 
-#define CAIO_MD_SWITCH_PAGE_TREE(caio_md)               \
+#define CAIO_MD_SWITCH_PAGE_LIST(caio_md)               \
     do{                                                 \
-        CAIO_MD_ACTIVE_PAGE_TREE_IDX(caio_md) ^= 1;     \
+        CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) ^= 1;     \
     }while(0)
 
 
 typedef struct
 {
-    uint32_t                sata_loading_flag:1;    /*page is loading from sata*/
+    uint32_t                working_flag     :1;    /*page is reading or writing disk*/
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
     uint32_t                rsvd01           :30;
     int                     fd;
@@ -202,19 +216,22 @@ typedef struct
 
     struct iocb             aiocb;                  /*64B*/
 
-    UINT32                  timeout_nsec;           /*timeout in seconds*/
+    /*UINT32                  timeout_nsec; */          /*timeout in seconds*/
 
     UINT8                  *m_cache;                /*cache for one page*/
 
     CLIST                   owners;                 /*item is CAIO_NODE*/
 
-    CAIO_MD                *cxiao_md;               /*shortcut: point to cxiao module*/
+    CAIO_MD                *caio_md;                /*shortcut: point to caio module*/
+    CAIO_DISK              *caio_disk;              /*shortcut: page in which disk*/
 
     /*shortcut*/
-    CRB_NODE               *mounted_pages;          /*mount point in page tree of caio module*/
+
+    CLIST_DATA             *mounted_pages;          /*mount point in page list of caio module*/
+    UINT32                  mounted_list_idx;       /*mount in which page list*/
 }CAIO_PAGE;
 
-#define CAIO_PAGE_SATA_LOADING_FLAG(caio_page)          ((caio_page)->sata_loading_flag)
+#define CAIO_PAGE_WORKING_FLAG(caio_page)               ((caio_page)->working_flag)
 #define CAIO_PAGE_MEM_CACHE_FLAG(caio_page)             ((caio_page)->mem_cache_flag)
 
 #define CAIO_PAGE_FD(caio_page)                         ((caio_page)->fd)
@@ -228,14 +245,14 @@ typedef struct
 
 #define CAIO_PAGE_OWNERS(caio_page)                     (&((caio_page)->owners))
 
-#define CAIO_PAGE_CAIO_MD(caio_page)                    ((caio_page)->cxiao_md)
+#define CAIO_PAGE_CAIO_MD(caio_page)                    ((caio_page)->caio_md)
+#define CAIO_PAGE_CAIO_DISK(caio_page)                  ((caio_page)->caio_disk)
 
 #define CAIO_PAGE_MOUNTED_PAGES(caio_page)              ((caio_page)->mounted_pages)
+#define CAIO_PAGE_MOUNTED_LIST_IDX(caio_page)           ((caio_page)->mounted_list_idx)
 
 #define CAIO_AIOCB_PAGE(__aiocb)     \
         ((CAIO_PAGE *)((char *)(__aiocb)-(unsigned long)(&((CAIO_PAGE *)0)->aiocb)))
-
-typedef void (*CAIO_EVENT_HANDLER)(void *);
 
 typedef struct
 {
@@ -257,10 +274,7 @@ typedef struct
     UINT32                  f_s_offset;         /*start offset in file*/
     UINT32                  f_e_offset;         /*end offset in file*/
     UINT32                  timeout_nsec;       /*timeout in seconds*/
-    CTIMET                  next_access_time;   /*next access in second*/
-#if (32 == WORDSIZE)
-    uint32_t                rsvd02;
-#endif
+    uint64_t                next_access_ms;     /*next access in msec*/
 
     CAIO_EVENT_HANDLER      post_event_handler;
     CLIST_DATA             *mounted_post_event_reqs;   /*mount point in post event reqs of caio md*/
@@ -291,7 +305,7 @@ typedef struct
 #define CAIO_REQ_F_S_OFFSET(caio_req)                   ((caio_req)->f_s_offset)
 #define CAIO_REQ_F_E_OFFSET(caio_req)                   ((caio_req)->f_e_offset)
 #define CAIO_REQ_TIMEOUT_NSEC(caio_req)                 ((caio_req)->timeout_nsec)
-#define CAIO_REQ_NTIME_TS(caio_req)                     ((caio_req)->next_access_time)
+#define CAIO_REQ_NTIME_MS(caio_req)                     ((caio_req)->next_access_ms)
 
 #define CAIO_REQ_POST_EVENT_HANDLER(caio_req)           ((caio_req)->post_event_handler)
 #define CAIO_REQ_MOUNTED_POST_EVENT_REQS(caio_req)      ((caio_req)->mounted_post_event_reqs)
@@ -320,10 +334,7 @@ typedef struct
     UINT32                  b_s_offset;         /*start offset in page*/
     UINT32                  b_e_offset;         /*end offset in page*/
     UINT32                  timeout_nsec;       /*timeout in seconds*/
-    CTIMET                  next_access_time;   /*next access in second*/
-#if (32 == WORDSIZE)
-    uint32_t                rsvd02;
-#endif
+    uint64_t                next_access_ms;     /*next access in msec*/
 
     /*shortcut*/
     CLIST_DATA             *mounted_nodes;      /*mount point in nodes of caio req*/
@@ -345,7 +356,7 @@ typedef struct
 #define CAIO_NODE_B_S_OFFSET(caio_node)                 ((caio_node)->b_s_offset)
 #define CAIO_NODE_B_E_OFFSET(caio_node)                 ((caio_node)->b_e_offset)
 #define CAIO_NODE_TIMEOUT_NSEC(caio_node)               ((caio_node)->timeout_nsec)
-#define CAIO_NODE_NTIME_TS(caio_node)                   ((caio_node)->next_access_time)
+#define CAIO_NODE_NTIME_MS(caio_node)                   ((caio_node)->next_access_ms)
 #define CAIO_NODE_MOUNTED_NODES(caio_node)              ((caio_node)->mounted_nodes)
 #define CAIO_NODE_MOUNTED_OWNERS(caio_node)             ((caio_node)->mounted_owners)
 
@@ -385,6 +396,20 @@ EC_BOOL caio_cb_clone(const CAIO_CB *caio_cb_src, CAIO_CB *caio_cb_des);
 
 void caio_cb_print(LOG *log, const CAIO_CB *caio_cb);
 
+/*----------------------------------- caio disk interface -----------------------------------*/
+
+CAIO_DISK *caio_disk_new();
+
+EC_BOOL caio_disk_init(CAIO_DISK *caio_disk);
+
+EC_BOOL caio_disk_clean(CAIO_DISK *caio_disk);
+
+EC_BOOL caio_disk_free(CAIO_DISK *caio_disk);
+
+void caio_disk_print(LOG *log, const CAIO_DISK *caio_disk);
+
+EC_BOOL caio_disk_is_fd(const CAIO_DISK *caio_disk, const int fd);
+
 /*----------------------------------- caio page interface -----------------------------------*/
 
 CAIO_PAGE *caio_page_new();
@@ -399,7 +424,7 @@ void caio_page_print(LOG *log, const CAIO_PAGE *caio_page);
 
 void caio_page_print_range(LOG *log, const CAIO_PAGE *caio_page);
 
-int caio_page_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd);
+EC_BOOL caio_page_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd);
 
 EC_BOOL caio_page_add_node(CAIO_PAGE *caio_page, CAIO_NODE *caio_node);
 
@@ -505,6 +530,8 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md);
 
 int caio_get_eventfd(CAIO_MD *caio_md);
 
+EC_BOOL caio_try_quit(CAIO_MD *caio_md);
+
 /*for debug*/
 EC_BOOL caio_poll(CAIO_MD *caio_md);
 
@@ -521,11 +548,19 @@ void caio_process_events(CAIO_MD *caio_md);
 
 void caio_process_post_event_reqs(CAIO_MD *caio_md, const UINT32 process_event_max_num);
 
+EC_BOOL caio_has_post_event_req(CAIO_MD *caio_md);
+
+EC_BOOL caio_has_event(CAIO_MD *caio_md);
+
+EC_BOOL caio_has_req(CAIO_MD *caio_md);
+
 void caio_show_pages(LOG *log, const CAIO_MD *caio_md);
 
 void caio_show_post_event_reqs(LOG *log, const CAIO_MD *caio_md);
 
-void caio_show_page(LOG *log, const CAIO_MD *caio_md, const UINT32 f_s_offset, const UINT32 f_e_offset);
+void caio_show_page(LOG *log, const CAIO_MD *caio_md, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
+
+void caio_show_disks(LOG *log, const CAIO_MD *caio_md);
 
 void caio_show_reqs(LOG *log, const CAIO_MD *caio_md);
 
@@ -549,11 +584,13 @@ EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *c
 
 EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *caio_page);
 
+EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
+
 CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
 
 CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
 
-CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, const UINT32 f_s_offset, const UINT32 f_e_offset);
+CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
 
 EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md);
 
@@ -563,6 +600,13 @@ EC_BOOL caio_cleanup_post_event_reqs(CAIO_MD *caio_md);
 
 CAIO_REQ *caio_search_req(CAIO_MD *caio_md, const UINT32 seq_no);
 
+EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, const UINT32 max_req_num);
+
+EC_BOOL caio_del_disk(CAIO_MD *caio_md, const int fd);
+
+CAIO_DISK *caio_find_disk(CAIO_MD *caio_md, const int fd);
+
+UINT32 caio_count_req_num(CAIO_MD *caio_md);
 
 /*----------------------------------- caio external interface -----------------------------------*/
 

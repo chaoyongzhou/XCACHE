@@ -20,25 +20,49 @@ extern "C"{
 #include "cmcnp.h"
 #include "cmcdn.h"
 
-#define CMC_RECYCLE_MAX_NUM                ((UINT32)~0)
+#include "cparacfg.h"
 
-#define CMC_TRY_RETIRE_MAX_NUM             (2)
+#if 0
+#define CMC_TRY_RETIRE_MAX_NUM             (8)
 #define CMC_TRY_RECYCLE_MAX_NUM            (128)
+#define CMC_SCAN_RETIRE_MAX_NUM            (256)
+
+#define CMC_PROCESS_DEGRADE_MAX_NUM        (8)
+#define CMC_SCAN_DEGRADE_MAX_NUM           (256)
+
+#define CMC_RETIRE_HI_RATIO                (0.90) /*90%*/
+#define CMC_RETIRE_MD_RATIO                (0.85) /*85%*/
+#define CMC_RETIRE_LO_RATIO                (0.80) /*80%*/
+#endif
+
+#define CMC_DEGRADE_TRAFFIC_10M            (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_DEGRADE_TRAFFIC_20M            (((uint64_t)20) << 23) /*20Mbps*/
+#define CMC_DEGRADE_TRAFFIC_30M            (((uint64_t)30) << 23) /*30Mbps*/
+#define CMC_DEGRADE_TRAFFIC_40M            (((uint64_t)40) << 23) /*40Mbps*/
+#define CMC_DEGRADE_TRAFFIC_60M            (((uint64_t)60) << 23) /*60Mbps*/
+#define CMC_DEGRADE_TRAFFIC_80M            (((uint64_t)80) << 23) /*80Mbps*/
+
 typedef struct
 {
     CMCDN              *cmcdn;
     CMCNP              *cmcnp;
+
+    uint32_t            fc_max_speed_flag:1;/*enable flow control in max speed, */
+                                            /*i.e., flush data from mem to ssd in max speed*/
+    uint32_t            rsvd01:31;
+    uint32_t            rsvd02;
 }CMC_MD;
 
 #define CMC_MD_DN(cmc_md)                ((cmc_md)->cmcdn)
 #define CMC_MD_NP(cmc_md)                ((cmc_md)->cmcnp)
+#define CMC_MD_FC_MAX_SPEED_FLAG(cmc_md) ((cmc_md)->fc_max_speed_flag)
 
 /**
 *
 * start CMC module
 *
 **/
-CMC_MD *cmc_start(const UINT32 rdisk_size/*in GB*/, const UINT32 vdisk_size /*in MB*/);
+CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk_size/*in byte*/);
 
 /**
 *
@@ -56,10 +80,48 @@ void cmc_print(LOG *log, const CMC_MD *cmc_md);
 
 /**
 *
+* try to quit cmc
+*
+**/
+EC_BOOL cmc_try_quit(CMC_MD *cmc_md);
+
+/**
+*
+* flow control enable max speed
+*
+**/
+EC_BOOL cmc_flow_control_enable_max_speed(CMC_MD *cmc_md);
+
+/**
+*
+* flow control disable max speed
+*
+**/
+EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md);
+
+/**
+*
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md);
+void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps);
+
+/**
+*
+*  degrade pages of cmc module
+*
+**/
+void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
+                                 const UINT32 scan_max_num,
+                                 const UINT32 expect_degrade_num,
+                                 UINT32 *complete_degrade_num);
+
+/**
+*
+*  degrade all pages of cmc module
+*
+**/
+void cmc_process_all_degrades(CMC_MD *cmc_md);
 
 /**
 *
@@ -148,10 +210,17 @@ EC_BOOL cmc_file_delete(CMC_MD *cmc_md, UINT32 *offset, const UINT32 dsize);
 
 /**
 *
-*  set file flush flag which means flush it to ssd when retire
+*  set file ssd flush flag which means flush it to ssd later
 *
 **/
-EC_BOOL cmc_file_set_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
+EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
+
+/**
+*
+*  set file ssd not flush flag which means cmc should not flush it to ssd
+*
+**/
+EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
 
 /**
 *
@@ -264,6 +333,27 @@ EC_BOOL cmc_file_size(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, uint64_t *file
 
 /**
 *
+*  name node used ratio
+*
+**/
+REAL cmc_used_ratio(CMC_MD *cmc_md);
+
+/**
+*
+*  name node deg ratio
+*
+**/
+REAL cmc_deg_ratio(CMC_MD *cmc_md);
+
+/**
+*
+*  name node deg num
+*
+**/
+uint32_t cmc_deg_num(CMC_MD *cmc_md);
+
+/**
+*
 *  search in current name node
 *
 **/
@@ -282,6 +372,8 @@ EC_BOOL cmc_recycle(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
 *
 **/
 EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
+
+EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, CMCNP_DEGRADE_CALLBACK func, void *arg);
 
 EC_BOOL cmc_set_retire_callback(CMC_MD *cmc_md, CMCNP_RETIRE_CALLBACK func, void *arg);
 
@@ -308,6 +400,14 @@ EC_BOOL cmc_show_np_lru_list(const CMC_MD *cmc_md, LOG *log);
 *
 **/
 EC_BOOL cmc_show_np_del_list(const CMC_MD *cmc_md, LOG *log);
+
+/**
+*
+*  show name node DEG
+*
+*
+**/
+EC_BOOL cmc_show_np_deg_list(const CMC_MD *cmc_md, LOG *log);
 
 /**
 *

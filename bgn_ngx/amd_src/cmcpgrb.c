@@ -23,6 +23,13 @@ extern "C"{
 
 #include "cmcpgrb.h"
 
+#if (SWITCH_ON == CMC_ASSERT_SWITCH)
+#define CMCPGRB_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CMC_ASSERT_SWITCH)
+#define CMCPGRB_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CMC_ASSERT_SWITCH)*/
 
 /*new a CMCPGRB_NODE and return its position*/
 uint16_t cmcpgrb_node_new(CMCPGRB_POOL *pool)
@@ -249,7 +256,7 @@ STATIC_CAST static void __cmcpgrb_tree_insert_color(CMCPGRB_POOL *pool, const ui
         parent_pos = CMCPGRB_NODE_PARENT_POS(node);
 
         gparent_pos = CMCPGRB_NODE_PARENT_POS(parent);
-        ASSERT(CMCPGRB_ERR_POS != gparent_pos);
+        CMCPGRB_ASSERT(CMCPGRB_ERR_POS != gparent_pos);
         gparent = CMCPGRB_POOL_NODE(pool, gparent_pos);
 
         if (parent_pos == CMCPGRB_NODE_LEFT_POS(gparent))
@@ -486,8 +493,8 @@ STATIC_CAST static void __cmcpgrb_tree_erase(CMCPGRB_POOL *pool, const uint16_t 
     node_pos_t = node_pos;
     node = CMCPGRB_POOL_NODE(pool, node_pos_t);
 
-    ASSERT(NULL_PTR != node);
-    ASSERT(CMCPGRB_NODE_IS_USED(node));
+    CMCPGRB_ASSERT(NULL_PTR != node);
+    CMCPGRB_ASSERT(CMCPGRB_NODE_IS_USED(node));
 
     if (CMCPGRB_ERR_POS == CMCPGRB_NODE_LEFT_POS(node))
     {
@@ -936,7 +943,7 @@ EC_BOOL cmcpgrb_pool_init(CMCPGRB_POOL *pool, const uint16_t node_num)
 {
     uint16_t node_pos;
 
-    ASSERT(CMCPGRB_POOL_MAX_SIZE >= node_num);
+    CMCPGRB_ASSERT(CMCPGRB_POOL_MAX_SIZE >= node_num);
 
     CMCPGRB_POOL_NODE_NUM(pool) = node_num;
 

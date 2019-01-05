@@ -45,7 +45,9 @@ STATIC_CAST static uint16_t __cmcpgv_page_model_first_disk(const CMCPGV *cmcpgv,
     node_pos = cmcpgrb_tree_first_node(CMCPGV_PAGE_DISK_CMCPGRB_POOL(cmcpgv), CMCPGV_PAGE_MODEL_DISK_CMCPGRB_ROOT_POS(cmcpgv, page_model));
     if(CMCPGRB_ERR_POS == node_pos)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_page_model_first_disk: no free page in page model %u\n", page_model);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_page_model_first_disk: "
+                                               "no free page in page model %u\n",
+                                               page_model);
         return (CMCPGRB_ERR_POS);
     }
 
@@ -84,7 +86,8 @@ CMCPGV_HDR *cmcpgv_hdr_new(CMCPGV *cmcpgv)
     cmcpgv_hdr = (CMCPGV_HDR *)safe_malloc(CMCPGV_SIZE(cmcpgv), LOC_CMCPGV_0002);
     if(NULL_PTR == cmcpgv_hdr)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_hdr_new: new header with %u bytes failed\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_hdr_new: "
+                                               "new header with %u bytes failed\n",
                                                CMCPGV_SIZE(cmcpgv));
         return (NULL_PTR);
     }
@@ -113,7 +116,9 @@ EC_BOOL cmcpgv_hdr_init(CMCPGV *cmcpgv)
     cmcpgv_hdr = CMCPGV_HEADER(cmcpgv);
     if(EC_FALSE == cmcpgrb_pool_init(CMCPGV_HDR_CMCPGRB_POOL(cmcpgv_hdr), CMCPGV_MAX_DISK_NUM))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_hdr_init: init cpgrb pool failed where disk_num = %u\n", CMCPGV_MAX_DISK_NUM);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_hdr_init: "
+                                               "init cpgrb pool failed where disk_num = %u\n",
+                                               CMCPGV_MAX_DISK_NUM);
         return (EC_FALSE);
     }
 
@@ -133,6 +138,30 @@ EC_BOOL cmcpgv_hdr_init(CMCPGV *cmcpgv)
 
     return (EC_TRUE);
 }
+
+REAL cmcpgv_hdr_used_ratio(const CMCPGV *cmcpgv)
+{
+    if(NULL_PTR != CMCPGV_HEADER(cmcpgv))
+    {
+        CMCPGV_HDR *cmcpgv_hdr;
+
+        cmcpgv_hdr = CMCPGV_HEADER(cmcpgv);
+
+        if(0 < CMCPGV_HDR_PAGE_USED_NUM(cmcpgv_hdr))
+        {
+            REAL    page_used_num;
+            REAL    page_max_num;
+
+            page_used_num = (CMCPGV_HDR_PAGE_USED_NUM(cmcpgv_hdr) + 0.0);
+            page_max_num  = (CMCPGV_HDR_PAGE_MAX_NUM(cmcpgv_hdr)  + 0.0);
+
+            return (page_used_num / page_max_num);
+        }
+    }
+
+    return (0.0);
+}
+
 
 CMCPGV *cmcpgv_new()
 {
@@ -247,14 +276,18 @@ STATIC_CAST static EC_BOOL __cmcpgv_add_disk(CMCPGV *cmcpgv, const uint16_t disk
 {
     if(CMCPGV_MAX_DISK_NUM <= disk_no)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_add_disk: disk_no %u overflow where disk max num is %u\n", disk_no, CMCPGV_MAX_DISK_NUM);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_add_disk: "
+                                               "disk_no %u overflow where disk max num is %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
         return (EC_FALSE);
     }
 
     /*insert disk_no to rbtree*/
     if(CMCPGRB_ERR_POS == cmcpgrb_tree_insert_data(CMCPGV_PAGE_DISK_CMCPGRB_POOL(cmcpgv), &(CMCPGV_PAGE_MODEL_DISK_CMCPGRB_ROOT_POS(cmcpgv, page_model)), disk_no))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_add_disk: add disk_no %u to rbtree of page model %u failed\n", disk_no, page_model);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_add_disk: "
+                                               "add disk_no %u to rbtree of page model %u failed\n",
+                                               disk_no, page_model);
         return (EC_FALSE);
     }
 
@@ -271,7 +304,9 @@ STATIC_CAST static EC_BOOL __cmcpgv_del_disk(CMCPGV *cmcpgv, const uint16_t disk
     /*del disk_no from rbtree*/
     if(CMCPGRB_ERR_POS == cmcpgrb_tree_delete_data(CMCPGV_PAGE_DISK_CMCPGRB_POOL(cmcpgv), &(CMCPGV_PAGE_MODEL_DISK_CMCPGRB_ROOT_POS(cmcpgv, page_model)), disk_no))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_del_disk: del disk_no %u from rbtree of page model %u failed\n", disk_no, page_model);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_del_disk: "
+                                               "del disk_no %u from rbtree of page model %u failed\n",
+                                               disk_no, page_model);
         return (EC_FALSE);
     }
 
@@ -305,8 +340,12 @@ STATIC_CAST static EC_BOOL __cmcpgv_assign_disk(CMCPGV *cmcpgv, uint16_t *page_m
     mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
     if(0 == (CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv) & mask))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_assign_disk: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
-                           page_model_t, CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv), mask);
+        dbg_log(SEC_0105_CMCPGV, 7)(LOGSTDOUT, "error:__cmcpgv_assign_disk: "
+                                               "page_model = %u where 0 == bitmap %x & mask %x "
+                                               "indicates page is not available\n",
+                                               page_model_t,
+                                               CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv),
+                                               mask);
         return (EC_FALSE);
     }
 
@@ -319,14 +358,18 @@ STATIC_CAST static EC_BOOL __cmcpgv_assign_disk(CMCPGV *cmcpgv, uint16_t *page_m
 
     if(CMCPGB_MODEL_NUM <= page_model_t)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_assign_disk: no free disk available from page model %u\n", *page_model);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_assign_disk: "
+                                               "no free disk available from page model %u\n",
+                                               *page_model);
         return (EC_FALSE);
     }
 
     disk_no_t = __cmcpgv_page_model_first_disk(cmcpgv, page_model_t);
     if(CMCPGRB_ERR_POS == disk_no_t)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_assign_disk: no free disk in page model %u\n", page_model_t);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:__cmcpgv_assign_disk: "
+                                               "no free disk in page model %u\n",
+                                               page_model_t);
         return (EC_FALSE);
     }
 
@@ -342,26 +385,36 @@ EC_BOOL cmcpgv_add_disk(CMCPGV *cmcpgv, const uint16_t disk_no)
 
     if(CMCPGV_MAX_DISK_NUM <= disk_no)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: disk %u overflow the max disk num %u\n", disk_no, CMCPGV_MAX_DISK_NUM);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: "
+                                               "disk %u overflow the max disk num %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
         return (EC_FALSE);
     }
 
     if(NULL_PTR != CMCPGV_DISK_CMCPGD(cmcpgv, disk_no))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: disk %u already exist\n", disk_no);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: "
+                                                "disk %u already exist\n",
+                                                disk_no);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_add_disk: try to create disk %u ...\n", disk_no);
+    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_add_disk: "
+                                           "try to create disk %u ...\n",
+                                           disk_no);
 
     cmcpgd = cmcpgd_new(CMCPGD_MAX_BLOCK_NUM);
     if(NULL_PTR == cmcpgd)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: create disk %u failed\n", disk_no);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_add_disk: "
+                                               "create disk %u failed\n",
+                                               disk_no);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_add_disk: create disk %u done\n", disk_no);
+    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_add_disk: "
+                                           "create disk %u done\n",
+                                           disk_no);
 
     /*add disk to volume*/
     CMCPGV_DISK_CMCPGD(cmcpgv, disk_no) = cmcpgd;
@@ -383,25 +436,33 @@ EC_BOOL cmcpgv_del_disk(CMCPGV *cmcpgv, const uint16_t disk_no)
 
     if(CMCPGV_MAX_DISK_NUM <= disk_no)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: disk %u overflow the max disk num %u\n", disk_no, CMCPGV_MAX_DISK_NUM);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: "
+                                               "disk %u overflow the max disk num %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
         return (EC_FALSE);
     }
 
     cmcpgd = CMCPGV_DISK_CMCPGD(cmcpgv, disk_no);
     if(NULL_PTR == cmcpgd)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: disk %u not exist\n", disk_no);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: "
+                                               "disk %u not exist\n",
+                                               disk_no);
         return (EC_FALSE);
     }
 
     page_model = cmcpgd_page_model(cmcpgd);
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_del_disk: disk %u, page_model %u\n", disk_no, page_model);
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_del_disk: "
+                                           "disk %u, page_model %u\n",
+                                           disk_no, page_model);
 
     /*delete the disk from pool*/
     if(EC_FALSE == __cmcpgv_del_disk(cmcpgv, disk_no, page_model))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: del disk %u, page model %u failed\n", disk_no, page_model);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_del_disk: "
+                                               "del disk %u, page model %u failed\n",
+                                               disk_no, page_model);
         return (EC_FALSE);
     }
 
@@ -427,7 +488,9 @@ STATIC_CAST static EC_BOOL __cmcpgv_size_to_page_model(const uint32_t size, uint
     uint16_t t;
 
     page_num_need = (uint16_t)((size + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDNULL, "[DEBUG] __cmcpgv_size_to_page_model: size = %u ==> page_num_need = %u\n", size, page_num_need);
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDNULL, "[DEBUG] __cmcpgv_size_to_page_model: "
+                                            "size = %u ==> page_num_need = %u\n",
+                                            size, page_num_need);
 
     /*find a page model which can accept the page_num_need pages */
     /*and then split the left space into page model with smaller size  */
@@ -440,8 +503,9 @@ STATIC_CAST static EC_BOOL __cmcpgv_size_to_page_model(const uint32_t size, uint
     {
         /*do nothing*/
     }
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDNULL, "[DEBUG] __cmcpgv_size_to_page_model: t = 0x%x, page_model = %u, e = 0x%x, t << 1 is 0x%x\n",
-                        t, page_model_t, e, (t << 1));
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDNULL, "[DEBUG] __cmcpgv_size_to_page_model: "
+                                            "t = 0x%x, page_model = %u, e = 0x%x, t << 1 is 0x%x\n",
+                                            t, page_model_t, e, (t << 1));
 
     if(CMCPGB_PAGE_LO_BITS_MASK & t)
     {
@@ -474,7 +538,9 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
 
     if(CMCPGB_SIZE_NBYTES < size)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_new_space_from_disk: the expected size %u overflow\n", size);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_new_space_from_disk: "
+                                               "the expected size %u overflow\n",
+                                               size);
         return (EC_FALSE);
     }
 
@@ -490,7 +556,9 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
 
     if(EC_FALSE == cmcpgd_new_space(cmcpgd, size, &block_no_t, &page_no_t))
     {
-        dbg_log(SEC_0105_CMCPGV, 1)(LOGSTDOUT, "error:cmcpgv_new_space_from_disk: assign size %u from disk %u failed\n", size, disk_no);
+        dbg_log(SEC_0105_CMCPGV, 7)(LOGSTDOUT, "error:cmcpgv_new_space_from_disk: "
+                                               "assign size %u from disk %u failed\n",
+                                               size, disk_no);
         return (EC_FALSE);
     }
 
@@ -501,7 +569,8 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
     /*pgd_assign_bitmap changes may make pgv_assign_bitmap changes*/
     if(pgd_assign_bitmap_new != pgd_assign_bitmap_old)
     {
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: before delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                           "before delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                             disk_no_t,
                             c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                             c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
@@ -517,12 +586,14 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
         /*delete the disk from pool*/
         __cmcpgv_del_disk(cmcpgv, disk_no_t, page_model);
 
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: after  delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                            "after  delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                             disk_no_t,
                             c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                             c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
 
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: disk_no_t %u: max pages %u, used pages %u\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                            "disk_no_t %u: max pages %u, used pages %u\n",
                             disk_no_t, CMCPGD_PAGE_MAX_NUM(cmcpgd), CMCPGD_PAGE_USED_NUM(cmcpgd));
 
         if(EC_FALSE == cmcpgd_is_full(cmcpgd))
@@ -539,10 +610,13 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
 
             CMCPGV_ASSERT(CMCPGB_MODEL_NUM > page_model_t);
 
-            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: page_model %u, page_model_t %u\n", page_model, page_model_t);
+            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                                                   "page_model %u, page_model_t %u\n",
+                                                   page_model, page_model_t);
             /*add the disk into pool*/
             __cmcpgv_add_disk(cmcpgv, disk_no_t, page_model_t);
-            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                                "disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                                 disk_no_t,
                                 c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                                 c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
@@ -561,9 +635,11 @@ EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const ui
 
     CMCPGV_ASSERT(EC_TRUE == cmcpgv_check(cmcpgv));
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: pgv_page_used_num %"PRId64" due to increment %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                        "pgv_page_used_num %"PRId64" due to increment %u\n",
                         CMCPGV_PAGE_USED_NUM(cmcpgv), page_num_need);
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: pgv_actual_used_size %"PRId64" due to increment %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space_from_disk: "
+                        "pgv_actual_used_size %"PRId64" due to increment %u\n",
                         CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv), size);
 
     return (EC_TRUE);
@@ -588,13 +664,16 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
 
     if(CMCPGB_SIZE_NBYTES < size)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_new_space: the expected size %u overflow\n", size);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_new_space: "
+                                               "the expected size %u overflow\n",
+                                               size);
         return (EC_FALSE);
     }
 
     __cmcpgv_size_to_page_model(size, &page_num_need, &page_model);
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: size = %u ==> page_num_need = %u ==> page_model = %u (has %u pages )\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                       "size = %u ==> page_num_need = %u ==> page_model = %u (has %u pages )\n",
                        size, page_num_need, page_model, (uint16_t)(1 << (CMCPGB_MODEL_NUM - 1 - page_model)));
 
     for(;;)/*Oops! fix inconsistency between cmcpgv and cmcpgd*/
@@ -605,11 +684,15 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
 
         if(EC_FALSE == __cmcpgv_assign_disk(cmcpgv, &page_model_t, &disk_no_t))
         {
-            dbg_log(SEC_0105_CMCPGV, 1)(LOGSTDOUT, "error:cmcpgv_new_space: assign one disk from page model %u failed\n", page_model_t);
+            dbg_log(SEC_0105_CMCPGV, 7)(LOGSTDOUT, "error:cmcpgv_new_space: "
+                                                   "assign one disk from page model %u failed\n",
+                                                   page_model_t);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: size %u ==> page_model_t %u and disk_no_t %u\n", size, page_model_t, disk_no_t);
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                                               "size %u ==> page_model_t %u and disk_no_t %u\n",
+                                               size, page_model_t, disk_no_t);
 
         cmcpgd = CMCPGV_DISK_NODE(cmcpgv, disk_no_t);
         pgd_assign_bitmap_old = CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd);
@@ -637,17 +720,22 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
         /*add the disk into pool*/
         __cmcpgv_add_disk(cmcpgv, disk_no_t, page_model_t);
 
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "warn:cmcpgv_new_space: disk %u model %u relocation to page model %u\n", disk_no_t, page_model_t, page_model_t);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "warn:cmcpgv_new_space: "
+                                               "disk %u model %u relocation to page model %u\n",
+                                               disk_no_t, page_model_t, page_model_t);
     }
 
     pgd_assign_bitmap_new = CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd);
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: disk_no_t %u: pgd bitmap %x => %x\n", disk_no_t, pgd_assign_bitmap_old, pgd_assign_bitmap_new);
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                                           "disk_no_t %u: pgd bitmap %x => %x\n",
+                                           disk_no_t, pgd_assign_bitmap_old, pgd_assign_bitmap_new);
 
     /*pgd_assign_bitmap changes may make pgv_assign_bitmap changes*/
     if(pgd_assign_bitmap_new != pgd_assign_bitmap_old)
     {
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: before delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                            "before delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                             disk_no_t,
                             c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                             c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
@@ -655,12 +743,14 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
         /*delete the disk from pool*/
         __cmcpgv_del_disk(cmcpgv, disk_no_t, page_model);
 
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: after  delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                            "delete disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                             disk_no_t,
                             c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                             c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
 
-        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: disk_no_t %u: max pages %u, used pages %u\n",
+        dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                            "disk_no_t %u: max pages %u, used pages %u\n",
                             disk_no_t, CMCPGD_PAGE_MAX_NUM(cmcpgd), CMCPGD_PAGE_USED_NUM(cmcpgd));
 
         if(EC_FALSE == cmcpgd_is_full(cmcpgd))
@@ -677,10 +767,13 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
 
             CMCPGV_ASSERT(CMCPGB_MODEL_NUM > page_model_t);
 
-            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: page_model %u, page_model_t %u\n", page_model, page_model_t);
+            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                                                   "page_model %u, page_model_t %u\n",
+                                                   page_model, page_model_t);
             /*add the disk into pool*/
             __cmcpgv_add_disk(cmcpgv, disk_no_t, page_model_t);
-            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
+            dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                                "disk_no_t %u: pgb bitmap %s, pgv assign bitmap %s\n",
                                 disk_no_t,
                                 c_uint16_t_to_bin_str(CMCPGD_PAGE_MODEL_ASSIGN_BITMAP(cmcpgd)),
                                 c_uint16_t_to_bin_str(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv)));
@@ -700,9 +793,11 @@ EC_BOOL cmcpgv_new_space(CMCPGV *cmcpgv, const uint32_t size, uint16_t *disk_no,
 
     CMCPGV_ASSERT(EC_TRUE == cmcpgv_check(cmcpgv));
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: pgv_page_used_num %"PRId64" due to increment %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                        "pgv_page_used_num %"PRId64" due to increment %u\n",
                         CMCPGV_PAGE_USED_NUM(cmcpgv), page_num_need);
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: pgv_actual_used_size %"PRId64" due to increment %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_new_space: "
+                        "pgv_actual_used_size %"PRId64" due to increment %u\n",
                         CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv), size);
 
     return (EC_TRUE);
@@ -721,7 +816,9 @@ EC_BOOL cmcpgv_free_space(CMCPGV *cmcpgv, const uint16_t disk_no, const uint16_t
 
     if(CMCPGB_SIZE_NBYTES < size)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_free_space: invalid size %u due to overflow\n", size);
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_free_space: "
+                                               "invalid size %u due to overflow\n",
+                                               size);
         return (EC_FALSE);
     }
 
@@ -730,7 +827,8 @@ EC_BOOL cmcpgv_free_space(CMCPGV *cmcpgv, const uint16_t disk_no, const uint16_t
 
     if(EC_FALSE == cmcpgd_free_space(cmcpgd, block_no, page_no, size))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_free_space: disk_no %u free space of block_no %u, page_no %u, size %u failed\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_free_space: "
+                           "disk_no %u free space of block_no %u, page_no %u, size %u failed\n",
                            disk_no, block_no, page_no, size);
         return (EC_FALSE);
     }
@@ -757,9 +855,11 @@ EC_BOOL cmcpgv_free_space(CMCPGV *cmcpgv, const uint16_t disk_no, const uint16_t
     CMCPGV_PAGE_USED_NUM(cmcpgv)         -= page_num_used;
     CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv) -= size;
 
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_free_space: pgv_page_used_num %"PRId64" due to decrement %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_free_space: "
+                        "pgv_page_used_num %"PRId64" due to decrement %u\n",
                         CMCPGV_PAGE_USED_NUM(cmcpgv), page_num_used);
-    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_free_space: pgv_actual_used_size %"PRId64" due to decrement %u\n",
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_free_space: "
+                        "pgv_actual_used_size %"PRId64" due to decrement %u\n",
                         CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv), size);
 
     return (EC_TRUE);
@@ -819,7 +919,8 @@ EC_BOOL cmcpgv_check(const CMCPGV *cmcpgv)
 
     if(disk_num != CMCPGV_PAGE_DISK_NUM(cmcpgv))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: inconsistent disk_num: counted disk num = %u, CMCPGV_PAGE_DISK_NUM = %u\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                           "inconsistent disk_num: counted disk num = %u, CMCPGV_PAGE_DISK_NUM = %u\n",
                            disk_num, CMCPGV_PAGE_DISK_NUM(cmcpgv));
         return (EC_FALSE);
     }
@@ -837,28 +938,36 @@ EC_BOOL cmcpgv_check(const CMCPGV *cmcpgv)
 
     if(pgv_assign_bitmap != pgd_assign_bitmap)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: inconsistent bitmap: pgv_assign_bitmap = %s, pgd_assign_bitmap = %s\n",
-                           c_uint16_t_to_bin_str(pgv_assign_bitmap), c_uint16_t_to_bin_str(pgd_assign_bitmap));
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                           "inconsistent bitmap: pgv_assign_bitmap = %s, pgd_assign_bitmap = %s\n",
+                           c_uint16_t_to_bin_str(pgv_assign_bitmap),
+                           c_uint16_t_to_bin_str(pgd_assign_bitmap));
         return (EC_FALSE);
     }
 
     if(pgv_actual_used_size != pgd_actual_used_size)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: inconsistent actual used size: pgv_actual_used_size = %"PRId64", pgd_actual_used_size = %"PRId64"\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                            "inconsistent actual used size: "
+                            "pgv_actual_used_size = %"PRId64", pgd_actual_used_size = %"PRId64"\n",
                             pgv_actual_used_size, pgd_actual_used_size);
         return (EC_FALSE);
     }
 
     if(pgv_page_max_num != pgd_page_max_num)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: inconsistent page max num: pgv_page_max_num = %"PRId64", pgd_page_max_num = %"PRId64"\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                            "inconsistent page max num: "
+                            "pgv_page_max_num = %"PRId64", pgd_page_max_num = %"PRId64"\n",
                             pgv_page_max_num, pgd_page_max_num);
         return (EC_FALSE);
     }
 
     if(pgv_page_used_num != pgd_page_used_num)
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: inconsistent page used num: pgv_page_used_num = %"PRId64", pgd_page_used_num = %"PRId64"\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                            "inconsistent page used num: "
+                            "pgv_page_used_num = %"PRId64", pgd_page_used_num = %"PRId64"\n",
                             pgv_page_used_num, pgd_page_used_num);
         return (EC_FALSE);
     }
@@ -870,13 +979,20 @@ EC_BOOL cmcpgv_check(const CMCPGV *cmcpgv)
         {
             if(EC_FALSE == cmcpgd_check(CMCPGV_DISK_NODE(cmcpgv, disk_no)))
             {
-                dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: check CMCPGV_DISK_NODE of disk_no %u failed\n", disk_no);
+                dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_check: "
+                                                       "check CMCPGV_DISK_NODE of disk_no %u failed\n",
+                                                       disk_no);
                 return (EC_FALSE);
             }
         }
     }
     dbg_log(SEC_0105_CMCPGV, 5)(LOGSTDOUT, "cmcpgv_check: cmcpgv %p check passed\n", cmcpgv);
     return (EC_TRUE);
+}
+
+REAL cmcpgv_used_ratio(const CMCPGV *cmcpgv)
+{
+    return cmcpgv_hdr_used_ratio(cmcpgv);
 }
 
 void cmcpgv_print(LOG *log, const CMCPGV *cmcpgv)
@@ -912,7 +1028,10 @@ void cmcpgv_print(LOG *log, const CMCPGV *cmcpgv)
 
     page_desc     = (char *)CMCPGB_PAGE_DESC;
 
-    sys_log(log, "cmcpgv_print: cmcpgv %p, disk num %u, %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, used size %"PRId64", size ratio %.2f\n",
+    sys_log(log, "cmcpgv_print: cmcpgv %p, "
+                 "disk num %u, %s, "
+                 "page max num %"PRId64", page used num %"PRId64", page ratio %.2f, "
+                 "used size %"PRId64", size ratio %.2f\n",
                  cmcpgv,
                  CMCPGV_PAGE_DISK_NUM(cmcpgv),
                  page_desc,
@@ -983,7 +1102,8 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
 
         if(root_pos_1st != root_pos_2nd)
         {
-            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent root_pos: %u != %u at page_model %u\n",
+            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                                "inconsistent root_pos: %u != %u at page_model %u\n",
                                 root_pos_1st, root_pos_2nd, page_model);
             return (EC_FALSE);
         }
@@ -992,15 +1112,18 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
     /*assign bitmap*/
     if(CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_1st) != CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_1st))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_PAGE_MODEL_ASSIGN_BITMAP: %u != %u\n",
-                            CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_1st), CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_2nd));
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                            "inconsistent CMCPGV_PAGE_MODEL_ASSIGN_BITMAP: %u != %u\n",
+                            CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_1st),
+                            CMCPGV_PAGE_MODEL_ASSIGN_BITMAP(cmcpgv_2nd));
         return (EC_FALSE);
     }
 
     /*dis num*/
     if(CMCPGV_PAGE_DISK_NUM(cmcpgv_1st) != CMCPGV_PAGE_DISK_NUM(cmcpgv_1st))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_PAGE_DISK_NUM: %u != %u\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                            "inconsistent CMCPGV_PAGE_DISK_NUM: %u != %u\n",
                             CMCPGV_PAGE_DISK_NUM(cmcpgv_1st), CMCPGV_PAGE_DISK_NUM(cmcpgv_2nd));
         return (EC_FALSE);
     }
@@ -1008,7 +1131,8 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
     /*page max num*/
     if(CMCPGV_PAGE_MAX_NUM(cmcpgv_1st) != CMCPGV_PAGE_MAX_NUM(cmcpgv_1st))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_PAGE_MAX_NUM: %"PRId64" != %"PRId64"\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                            "inconsistent CMCPGV_PAGE_MAX_NUM: %"PRId64" != %"PRId64"\n",
                             CMCPGV_PAGE_MAX_NUM(cmcpgv_1st), CMCPGV_PAGE_MAX_NUM(cmcpgv_2nd));
         return (EC_FALSE);
     }
@@ -1016,7 +1140,8 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
     /*page used num*/
     if(CMCPGV_PAGE_USED_NUM(cmcpgv_1st) != CMCPGV_PAGE_USED_NUM(cmcpgv_1st))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_PAGE_USED_NUM: %"PRId64" != %"PRId64"\n",
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                            "inconsistent CMCPGV_PAGE_USED_NUM: %"PRId64" != %"PRId64"\n",
                             CMCPGV_PAGE_USED_NUM(cmcpgv_1st), CMCPGV_PAGE_USED_NUM(cmcpgv_2nd));
         return (EC_FALSE);
     }
@@ -1024,8 +1149,10 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
     /*page actual used bytes num*/
     if(CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_1st) != CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_1st))
     {
-        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_PAGE_ACTUAL_USED_SIZE: %"PRId64" != %"PRId64"\n",
-                            CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_1st), CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_2nd));
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                            "inconsistent CMCPGV_PAGE_ACTUAL_USED_SIZE: %"PRId64" != %"PRId64"\n",
+                            CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_1st),
+                            CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv_2nd));
         return (EC_FALSE);
     }
 
@@ -1034,13 +1161,19 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
     {
         if(NULL_PTR == CMCPGV_DISK_NODE(cmcpgv_1st, disk_no) && NULL_PTR != CMCPGV_DISK_NODE(cmcpgv_2nd, disk_no))
         {
-            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_DISK_NODE at disk_no %u: 1st is null but 2nd is not null\n", disk_no);
+            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                                                   "inconsistent CMCPGV_DISK_NODE at disk_no %u: "
+                                                   "1st is null but 2nd is not null\n",
+                                                   disk_no);
             return (EC_FALSE);
         }
 
         if(NULL_PTR != CMCPGV_DISK_NODE(cmcpgv_1st, disk_no) && NULL_PTR == CMCPGV_DISK_NODE(cmcpgv_2nd, disk_no))
         {
-            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_DISK_NODE at disk_no %u: 1st is not null but 2nd is null\n", disk_no);
+            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                                                   "inconsistent CMCPGV_DISK_NODE at disk_no %u: "
+                                                   "1st is not null but 2nd is null\n",
+                                                   disk_no);
             return (EC_FALSE);
         }
 
@@ -1051,7 +1184,9 @@ EC_BOOL cmcpgv_debug_cmp(const CMCPGV *cmcpgv_1st, const CMCPGV *cmcpgv_2nd)
 
         if(EC_FALSE == cmcpgd_debug_cmp(CMCPGV_DISK_NODE(cmcpgv_1st, disk_no), CMCPGV_DISK_NODE(cmcpgv_2nd, disk_no)))
         {
-            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: inconsistent CMCPGV_DISK_NODE at disk_no %u\n", disk_no);
+            dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_debug_cmp: "
+                                                   "inconsistent CMCPGV_DISK_NODE at disk_no %u\n",
+                                                   disk_no);
             return (EC_FALSE);
         }
     }

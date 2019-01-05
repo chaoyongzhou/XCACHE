@@ -22,6 +22,14 @@ extern "C"{
 #include "cmcnprb.h"
 #include "cmcnp.inc"
 
+#if (SWITCH_ON == CMC_ASSERT_SWITCH)
+#define CMCNPRB_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CMC_ASSERT_SWITCH)
+#define CMCNPRB_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CMC_ASSERT_SWITCH)*/
+
 /*new a CMCNPRB_NODE and return its position*/
 uint32_t cmcnprb_node_new(CMCNPRB_POOL *pool)
 {
@@ -42,7 +50,7 @@ uint32_t cmcnprb_node_new(CMCNPRB_POOL *pool)
         return (CMCNPRB_ERR_POS);
     }
 
-    ASSERT(CMCNPRB_POOL_FREE_HEAD(pool) < CMCNPRB_POOL_NODE_MAX_NUM(pool));
+    CMCNPRB_ASSERT(CMCNPRB_POOL_FREE_HEAD(pool) < CMCNPRB_POOL_NODE_MAX_NUM(pool));
 
     node = CMCNPRB_POOL_NODE(pool, node_pos_t);
 #if 0
@@ -69,10 +77,10 @@ void cmcnprb_node_free(CMCNPRB_POOL *pool, const uint32_t node_pos)
     {
         CMCNPRB_NODE *node;
 
-        ASSERT(node_pos < CMCNPRB_POOL_NODE_MAX_NUM(pool));
+        CMCNPRB_ASSERT(node_pos < CMCNPRB_POOL_NODE_MAX_NUM(pool));
 
         node = CMCNPRB_POOL_NODE(pool, node_pos);
-        ASSERT(CMCNPRB_NODE_IS_USED(node));
+        CMCNPRB_ASSERT(CMCNPRB_NODE_IS_USED(node));
 
         CMCNPRB_NODE_USED_FLAG(node)  = CMCNPRB_NODE_NOT_USED;
         CMCNPRB_NODE_PARENT_POS(node) = CMCNPRB_ERR_POS;
@@ -107,7 +115,7 @@ void cmcnprb_node_clean(CMCNPRB_POOL *pool, const uint32_t node_pos)
 {
     CMCNPRB_NODE *node;
 
-    ASSERT(node_pos < CMCNPRB_POOL_NODE_MAX_NUM(pool));
+    CMCNPRB_ASSERT(node_pos < CMCNPRB_POOL_NODE_MAX_NUM(pool));
 
     node = CMCNPRB_POOL_NODE(pool, node_pos);
 
@@ -285,7 +293,7 @@ STATIC_CAST static void __cmcnprb_tree_insert_color(CMCNPRB_POOL *pool, const ui
         parent_pos = CMCNPRB_NODE_PARENT_POS(node);
 
         gparent_pos = CMCNPRB_NODE_PARENT_POS(parent);
-        ASSERT(CMCNPRB_ERR_POS != gparent_pos);
+        CMCNPRB_ASSERT(CMCNPRB_ERR_POS != gparent_pos);
         gparent = CMCNPRB_POOL_NODE(pool, gparent_pos);
 
         if (parent_pos == CMCNPRB_NODE_LEFT_POS(gparent))
@@ -523,8 +531,8 @@ EC_BOOL cmcnprb_tree_erase(CMCNPRB_POOL *pool, const uint32_t node_pos, uint32_t
     node_pos_t = node_pos;
     node = CMCNPRB_POOL_NODE(pool, node_pos_t);
 
-    ASSERT(NULL_PTR != node);
-    ASSERT(CMCNPRB_NODE_IS_USED(node));
+    CMCNPRB_ASSERT(NULL_PTR != node);
+    CMCNPRB_ASSERT(CMCNPRB_NODE_IS_USED(node));
 
     if (CMCNPRB_ERR_POS == CMCNPRB_NODE_LEFT_POS(node))
     {
@@ -1247,7 +1255,7 @@ EC_BOOL cmcnprb_pool_init(CMCNPRB_POOL *pool, const uint32_t node_max_num, const
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0113_CMCNPRB, 0)(LOGSTDOUT, "info:cmcnprb_pool_init: init node %u - %u of max %u done\n",
+            dbg_log(SEC_0113_CMCNPRB, 9)(LOGSTDOUT, "info:cmcnprb_pool_init: init node %u - %u of max %u done\n",
                                node_pos - 99999, node_pos, node_max_num);
         }
     }

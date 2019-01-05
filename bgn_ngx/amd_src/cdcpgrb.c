@@ -23,6 +23,13 @@ extern "C"{
 
 #include "cdcpgrb.h"
 
+#if (SWITCH_ON == CDC_ASSERT_SWITCH)
+#define CDCPGRB_ASSERT(condition)   ASSERT(condition)
+#endif/*(SWITCH_ON == CDC_ASSERT_SWITCH)*/
+
+#if (SWITCH_OFF == CDC_ASSERT_SWITCH)
+#define CDCPGRB_ASSERT(condition)   do{}while(0)
+#endif/*(SWITCH_OFF == CDC_ASSERT_SWITCH)*/
 
 /*new a CDCPGRB_NODE and return its position*/
 uint16_t cdcpgrb_node_new(CDCPGRB_POOL *pool)
@@ -249,7 +256,7 @@ STATIC_CAST static void __cdcpgrb_tree_insert_color(CDCPGRB_POOL *pool, const ui
         parent_pos = CDCPGRB_NODE_PARENT_POS(node);
 
         gparent_pos = CDCPGRB_NODE_PARENT_POS(parent);
-        ASSERT(CDCPGRB_ERR_POS != gparent_pos);
+        CDCPGRB_ASSERT(CDCPGRB_ERR_POS != gparent_pos);
         gparent = CDCPGRB_POOL_NODE(pool, gparent_pos);
 
         if (parent_pos == CDCPGRB_NODE_LEFT_POS(gparent))
@@ -486,8 +493,8 @@ STATIC_CAST static void __cdcpgrb_tree_erase(CDCPGRB_POOL *pool, const uint16_t 
     node_pos_t = node_pos;
     node = CDCPGRB_POOL_NODE(pool, node_pos_t);
 
-    ASSERT(NULL_PTR != node);
-    ASSERT(CDCPGRB_NODE_IS_USED(node));
+    CDCPGRB_ASSERT(NULL_PTR != node);
+    CDCPGRB_ASSERT(CDCPGRB_NODE_IS_USED(node));
 
     if (CDCPGRB_ERR_POS == CDCPGRB_NODE_LEFT_POS(node))
     {
@@ -936,7 +943,7 @@ EC_BOOL cdcpgrb_pool_init(CDCPGRB_POOL *pool, const uint16_t node_num)
 {
     uint16_t node_pos;
 
-    ASSERT(CDCPGRB_POOL_MAX_SIZE >= node_num);
+    CDCPGRB_ASSERT(CDCPGRB_POOL_MAX_SIZE >= node_num);
 
     CDCPGRB_POOL_NODE_NUM(pool) = node_num;
 
