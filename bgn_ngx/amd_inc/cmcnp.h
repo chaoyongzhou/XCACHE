@@ -202,10 +202,6 @@ uint32_t cmcnp_search(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t d
 
 void cmcnp_walk(CMCNP *cmcnp, void (*walker)(void *, const void *, const uint32_t), void *arg);
 
-uint32_t cmcnp_find_intersected(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
-
-uint32_t cmcnp_find_closest(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
-
 uint32_t cmcnp_insert(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag);
 
 CMCNP_ITEM *cmcnp_fetch(const CMCNP *cmcnp, const uint32_t node_pos);
@@ -260,9 +256,9 @@ EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t df
 
 EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE *cmcnp_fnode);
 
-EC_BOOL cmcnp_set_ssd_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+EC_BOOL cmcnp_set_ssd_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
-EC_BOOL cmcnp_set_ssd_not_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
+EC_BOOL cmcnp_set_ssd_not_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
 EC_BOOL cmcnp_degrade_cb_init(CMCNP_DEGRADE_CB *cmcnp_degrade_cb);
 

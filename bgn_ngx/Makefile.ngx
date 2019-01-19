@@ -66,6 +66,10 @@ BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
 BGN_LIB  = -L $(LIB_DIR) -lbgn
 
+AMD_SRC  = $(ROOT_DIR)/amd_src
+AMD_INC  = -I $(ROOT_DIR)/amd_inc
+AMD_LIB  = -L $(LIB_DIR) -lamd
+
 GDB_SRC = $(ROOT_DIR)/gdb_src
 GDB_INC = -I $(ROOT_DIR)/gdb_inc
 GDB_LIB = -L $(LIB_DIR) -lgdb
@@ -243,9 +247,33 @@ CMACRO = \
          -DCSRV_ACCEPT_MAX_NUM=20 \
          -DCRFS_MD5_SWITCH=SWITCH_OFF \
          -DCSFS_MD5_SWITCH=SWITCH_OFF \
+         -DCXFS_ASSERT_SWITCH=SWITCH_OFF \
+         -DCXFSNGX_SWITCH=SWITCH_OFF \
+         -DCXFSNGX_SOCKET_TIMEOUT_NSEC=60 \
+         -DCXFSMONHTTP_SWITCH=SWITCH_OFF \
+         -DCXFSHTTP_SWITCH=SWITCH_ON \
+         -DCXFS_MD5_SWITCH=SWITCH_OFF \
+         -DCXFS_NP_MMAP_SWITCH=SWITCH_ON \
+         -DCXFS_DN_MMAP_SWITCH=SWITCH_ON \
          -DCDETECTHTTP_SWITCH=SWITCH_OFF \
          -DLOAD_UPDATE_SWITCH=SWITCH_OFF \
          -DNGX_BGN_SWITCH=SWITCH_ON \
+         -DCAMD_ASSERT_SWITCH=SWITCH_OFF \
+         -DCMCPGD_DISK_CHOICE=CMCPGD_001G_DISK \
+         -DCMCPGB_PAGE_CHOICE=CMCPGB_256K_PAGE \
+         -DCMCDN_NODE_CHOICE=CMCDN_001G_NODE \
+         -DCDC_ASSERT_SWITCH=SWITCH_OFF \
+         -DCDC_BIND_AIO_SWITCH=SWITCH_ON \
+         -DCDCPGD_DISK_CHOICE=CDCPGD_008G_DISK \
+         -DCDCPGB_PAGE_CHOICE=CDCPGB_256K_PAGE \
+         -DCDCDN_NODE_CHOICE=CDCDN_004G_NODE \
+         -DCAIO_ASSERT_SWITCH=SWITCH_OFF \
+         -DCAIO_MODEL_CHOICE=CAIO_256K_MODEL \
+         -DCAMD_ASSERT_SWITCH=SWITCH_OFF \
+         -DCAMD_SYNC_SATA_SWITCH=SWITCH_OFF \
+         -DCAMD_SYNC_SSD_SWITCH=SWITCH_OFF \
+         -DCAMD_SYNC_CDC_SWITCH=SWITCH_OFF \
+         -DCUNIT_DEBUG_SWITCH=SWITCH_OFF \
 
 # C Language
 CC       = /usr/bin/gcc
@@ -271,6 +299,7 @@ COPTS    = -g
 CFLAGS = $(CWARNS) $(COPTS) -m$(MBITS) $(CMACRO) -fstack-check -fpic
 
 BGN_OBJS      = $(patsubst $(BGN_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(BGN_SRC)/*.c))
+AMD_OBJS      = $(patsubst $(AMD_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(AMD_SRC)/*.c))
 GDB_OBJS      = $(patsubst $(GDB_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(GDB_SRC)/*.c))
 JSON_OBJS     = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*.c))
 REL_OBJS      = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
@@ -290,6 +319,9 @@ usage:
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
+
+libamd: $(AMD_OBJS)
+	$(AR) $(LIB_DIR)/libamd.a $(AMD_OBJS)
 
 libgdb: $(GDB_OBJS)
 	$(AR) $(LIB_DIR)/libgdb.a $(GDB_OBJS)
@@ -315,47 +347,50 @@ libcflv: $(CFLV_OBJS)
 libcmp4: $(CMP4_OBJS)
 	$(SO) $(LIB_DIR)/libcmp4.so $(CMP4_OBJS)
 
-libngx: $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
-	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
-	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+libngx: $(BGN_OBJS) $(AMD_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+	$(SO) $(LIB_DIR)/libngx.so $(BGN_OBJS) $(AMD_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
+	#$(AR) $(LIB_DIR)/libngx.a $(BGN_OBJS) $(AMD_OBJS) $(GDB_OBJS) $(JSON_OBJS) $(NGX_OBJS)
 
 libs: libngx libcvendor libcflv libcmp4	libcrfsgw libcrefresh libcmiaopai
 
 $(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
+
+$(AMD_OBJS): $(OBJ_DIR)/%.o: $(AMD_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(EXT_INC) -o $@	
 
 $(GDB_OBJS): $(OBJ_DIR)/%.o: $(GDB_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(EXT_INC) -o $@
 
 $(JSON_OBJS): $(OBJ_DIR)/%.o: $(JSON_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(JSON_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
 
 $(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(REL_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(REL_INC) $(EXT_INC) -o $@
 
 $(NGX_OBJS): $(OBJ_DIR)/%.o: $(NGX_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
 
 $(CMIAOPAI_OBJS): $(OBJ_DIR)/%.o: $(CMIAOPAI_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMIAOPAI_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMIAOPAI_INC) $(EXT_INC) -o $@
 
 $(CVENDOR_OBJS): $(OBJ_DIR)/%.o: $(CVENDOR_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CVENDOR_INC) $(EXT_INC) -o $@
 
 $(CREFRESH_OBJS): $(OBJ_DIR)/%.o: $(CREFRESH_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CREFRESH_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CREFRESH_INC) $(EXT_INC) -o $@
 
 $(CRFSGW_OBJS): $(OBJ_DIR)/%.o: $(CRFSGW_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CRFSGW_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CRFSGW_INC) $(EXT_INC) -o $@
 
 $(CFLV_OBJS): $(OBJ_DIR)/%.o: $(CFLV_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CFLV_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CFLV_INC) $(EXT_INC) -o $@
 
 $(CMP4_OBJS): $(OBJ_DIR)/%.o: $(CMP4_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMP4_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(GDB_INC) $(JSON_INC) $(NGX_INC) $(CMP4_INC) $(EXT_INC) -o $@
 
 $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(GDB_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(AMD_INC) $(GDB_INC) $(EXT_INC) -o $@
 
 install-lib:
 	$(if $(wildcard $(LIB_DIR)/*.a) ,cp -rp $(LIB_DIR)/*.a  $(DESTDIR)/lib,)

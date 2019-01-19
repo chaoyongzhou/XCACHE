@@ -185,10 +185,6 @@ uint32_t cdcnp_dnode_search(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, 
 
 void cdcnp_dnode_walk(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, void (*walker)(void *, const void *, const uint32_t), void *arg);
 
-uint32_t cdcnp_dnode_find_intersected(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, const CDCNP_KEY *cdcnp_key);
-
-uint32_t cdcnp_dnode_find_closest(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, const CDCNP_KEY *cdcnp_key);
-
 uint32_t cdcnp_dnode_insert(CDCNP *cdcnp, const uint32_t parent_pos, const CDCNP_KEY *cdcnp_key, const uint32_t dir_flag);
 
 /**
@@ -201,10 +197,6 @@ EC_BOOL cdcnp_dnode_delete_dir_son(const CDCNP *cdcnp, CDCNP_DNODE *cdcnp_dnode)
 uint32_t cdcnp_search(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
 
 void cdcnp_walk(CDCNP *cdcnp, void (*walker)(void *, const void *, const uint32_t), void *arg);
-
-uint32_t cdcnp_find_intersected(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
-
-uint32_t cdcnp_find_closest(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
 
 uint32_t cdcnp_insert(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);
 
@@ -250,7 +242,7 @@ EC_BOOL cdcnp_set_key(const CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
 EC_BOOL cdcnp_clear_key(const CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
-EC_BOOL cdcnp_set_ssd_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
+EC_BOOL cdcnp_set_sata_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 
 EC_BOOL cdcnp_set_sata_flushed(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key);
 

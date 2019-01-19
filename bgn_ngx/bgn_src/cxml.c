@@ -1104,6 +1104,8 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_switch(node, (const char *)"taskFwdDecodeThreadSwitch", &(CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverHttpSwitch"     , &(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverRfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverXfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)));
 
     return (EC_TRUE);
 }
@@ -1161,10 +1163,10 @@ EC_BOOL cxml_parse_cparacfg_rfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_switch(node, (const char *)"rfsDnCacheInMemSwitch", &(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"rfsDnAmdSwitch"        , &(CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSataDiskSizeGB", &(CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdMemDiskSizeMB" , &(CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSataDiskSize", &(CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdMemDiskSize" , &(CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSsdDiskOffset" , &(CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSsdDiskSizeGB" , &(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSsdDiskSize" , &(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
 
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
@@ -1176,11 +1178,11 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRetireMaxNum" , &(CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRecycleMaxNum", &(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
 
-    __cxml_parse_tag_switch(node, (const char *)"xfsDnAmdSwitch"        , &(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSataDiskSizeGB", &(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdMemDiskSizeMB" , &(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskOffset" , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskSizeGB" , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"xfsDnAmdSwitch"       , &(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSataDiskSize" , &(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdMemDiskSize"  , &(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskOffset", &(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskSize"  , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
 
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 

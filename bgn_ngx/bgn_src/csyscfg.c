@@ -825,6 +825,8 @@ void cparacfg_thread_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UIN
     sys_print(log, " taskFwdDecodeThreadSwitch=\"%s\"" , CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg));
 #endif
     sys_print(log, " ngxBgnOverHttpSwitch=\"%s\""      , CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
+    sys_print(log, " ngxBgnOverRfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
+    sys_print(log, " ngxBgnOverXfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
     sys_print(log, "/>\n");
 
     return ;
@@ -980,10 +982,10 @@ void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " rfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
         sys_print(log, " rfsDnAmdSwitch=\"%s\""          , CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg));
-        sys_print(log, " rfsDnAmdSataDiskSizeGB=\"%ld\"" , CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-        sys_print(log, " rfsDnAmdMemDiskSizeMB=\"%ld\""  , CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
+        sys_print(log, " rfsDnAmdSataDiskSize=\"%ld\""   , CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+        sys_print(log, " rfsDnAmdMemDiskSize=\"%ld\""    , CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
         sys_print(log, " rfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-        sys_print(log, " rfsDnAmdSsdDiskSizeGB=\"%ld\""  , CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+        sys_print(log, " rfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
@@ -1003,10 +1005,10 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " xfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
         sys_print(log, " xfsDnAmdSwitch=\"%s\""          , CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
-        sys_print(log, " xfsDnAmdSataDiskSizeGB=\"%ld\"" , CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-        sys_print(log, " xfsDnAmdMemDiskSizeMB=\"%ld\""  , CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
+        sys_print(log, " xfsDnAmdSataDiskSize=\"%ld\""   , CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+        sys_print(log, " xfsDnAmdMemDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
         sys_print(log, " xfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-        sys_print(log, " xfsDnAmdSsdDiskSizeGB=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+        sys_print(log, " xfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");

@@ -45,16 +45,16 @@ __compressNode(BTreeNode *node, uint8_t ***newKeys, uint16_t **newKeySizes)
     {
         return;
     }
-    MEM_CHECK(*newKeys = (uint8_t **)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0012));
+    MEM_CHECK(*newKeys = (uint8_t **)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0001));
     memset(*newKeys, 0, (node->tree->order - 1) * sizeof(uint8_t *));
 
 
     MEM_CHECK(*newKeySizes =
-              (uint16_t *)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0013));
+              (uint16_t *)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0002));
     memset(*newKeySizes, 0, (node->tree->order - 1) * sizeof(uint16_t));
 
 #if (SWITCH_ON == COMPRESS_MODE)
-    (*newKeys)[0]     = keyDup(node->keys[0], LOC_BTREE_0014);
+    (*newKeys)[0]     = keyDup(node->keys[0], LOC_BTREE_0003);
     (*newKeySizes)[0] = node->keySizes[0];
 
     for (i = node->keyCount - 1; i > 0; i--)
@@ -68,7 +68,7 @@ __compressNode(BTreeNode *node, uint8_t ***newKeys, uint16_t **newKeySizes)
 #if (SWITCH_OFF == COMPRESS_MODE)
     for(i = 0; i < node->keyCount; i ++)
     {
-        (*newKeys)[i]     = keyDup(node->keys[i], LOC_BTREE_0015);
+        (*newKeys)[i]     = keyDup(node->keys[i], LOC_BTREE_0004);
         (*newKeySizes)[i] = node->keySizes[i];
     }
 #endif/*(SWITCH_OFF == COMPRESS_MODE)*/
@@ -84,15 +84,15 @@ __uncompressNode(BTreeNode *node, uint8_t ***newKeys,
     {
         return;
     }
-    MEM_CHECK(*newKeys = (uint8_t **)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0016));
+    MEM_CHECK(*newKeys = (uint8_t **)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0005));
     memset(*newKeys, 0, (node->tree->order - 1) * sizeof(uint8_t *));
 
 
-    MEM_CHECK(*newKeySizes = (uint16_t *)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0017));
+    MEM_CHECK(*newKeySizes = (uint16_t *)SAFE_MALLOC((node->tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0006));
     memset(*newKeySizes, 0, (node->tree->order - 1) * sizeof(uint16_t));
 
 #if (SWITCH_ON == COMPRESS_MODE)
-    (*newKeys)[0]     = keyDup(node->keys[0], LOC_BTREE_0018);
+    (*newKeys)[0]     = keyDup(node->keys[0], LOC_BTREE_0007);
     (*newKeySizes)[0] = node->keySizes[0];
 
     for (i = 1; i <= node->keyCount - 1; i++)
@@ -105,7 +105,7 @@ __uncompressNode(BTreeNode *node, uint8_t ***newKeys,
 #if (SWITCH_OFF == COMPRESS_MODE)
     for(i = 0; i < node->keyCount; i ++)
     {
-        (*newKeys)[i]     = keyDup(node->keys[i], LOC_BTREE_0019);
+        (*newKeys)[i]     = keyDup(node->keys[i], LOC_BTREE_0008);
         (*newKeySizes)[i] = node->keySizes[i];
     }
 #endif/*(SWITCH_OFF == COMPRESS_MODE)*/
@@ -139,7 +139,7 @@ btreeReadNodeBlock(GdbBlock *block, const uint8_t *buffer, void *extra)
     {
         if (node->keySizes[i] > 0)
         {
-            MEM_CHECK(node->keys[i] = keyNew(node->keySizes[i], LOC_BTREE_0020));
+            MEM_CHECK(node->keys[i] = keyNew(node->keySizes[i], LOC_BTREE_0009));
             memcpy(node->keys[i], buffer + counter, node->keySizes[i]);
 
             counter += node->keySizes[i];
@@ -159,12 +159,12 @@ btreeReadNodeBlock(GdbBlock *block, const uint8_t *buffer, void *extra)
         {
             if (node->keys[i] != NULL)
             {
-                keyFree(node->keys[i], LOC_BTREE_0021);
+                keyFree(node->keys[i], LOC_BTREE_0010);
             }
         }
 
-        SAFE_FREE(node->keys, LOC_BTREE_0022);
-        SAFE_FREE(node->keySizes, LOC_BTREE_0023);
+        SAFE_FREE(node->keys, LOC_BTREE_0011);
+        SAFE_FREE(node->keySizes, LOC_BTREE_0012);
 
         /* Move over the new arrays. */
         node->keys     = newKeys;
@@ -204,7 +204,7 @@ btreeWriteNodeBlock(GdbBlock *block, uint8_t **buffer, uint32_t *size)
 
     *size = __getNodeSize(node, newKeySizes);
 
-    MEM_CHECK(*buffer = (uint8_t *)SAFE_MALLOC(*size, LOC_BTREE_0024));
+    MEM_CHECK(*buffer = (uint8_t *)SAFE_MALLOC(*size, LOC_BTREE_0013));
 
     gdbPut8(*buffer, &counter, node->keyCount);
 
@@ -233,12 +233,12 @@ btreeWriteNodeBlock(GdbBlock *block, uint8_t **buffer, uint32_t *size)
         {
             if (newKeys[i] != NULL)
             {
-                keyFree(newKeys[i], LOC_BTREE_0025);
+                keyFree(newKeys[i], LOC_BTREE_0014);
             }
         }
 
-        SAFE_FREE(newKeys, LOC_BTREE_0026);
-        SAFE_FREE(newKeySizes, LOC_BTREE_0027);
+        SAFE_FREE(newKeys, LOC_BTREE_0015);
+        SAFE_FREE(newKeySizes, LOC_BTREE_0016);
     }
 #endif/*(SWITCH_ON == COMPRESS_MODE)*/
 }
@@ -251,7 +251,7 @@ btreeCreateNodeBlock(GdbBlock *block, void *extra)
 
     tree = (BTree *)extra;
 
-    MEM_CHECK(node = (BTreeNode *)SAFE_MALLOC(sizeof(BTreeNode), LOC_BTREE_0028));
+    MEM_CHECK(node = (BTreeNode *)SAFE_MALLOC(sizeof(BTreeNode), LOC_BTREE_0017));
     memset(node, 0, sizeof(BTreeNode));
 
     node->tree  = tree;
@@ -259,15 +259,15 @@ btreeCreateNodeBlock(GdbBlock *block, void *extra)
 
     /*comment: when reach here, we have no idea about keyCount, hence alloc children/keySizes/keys as the max possible num: the order*/
 
-    MEM_CHECK(node->children = (offset_t *)SAFE_MALLOC(tree->order * sizeof(offset_t), LOC_BTREE_0029));
+    MEM_CHECK(node->children = (offset_t *)SAFE_MALLOC(tree->order * sizeof(offset_t), LOC_BTREE_0018));
     memset(node->children, 0, tree->order * sizeof(offset_t));
 
 
-    MEM_CHECK(node->keySizes = (uint16_t *)SAFE_MALLOC((tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0030));
+    MEM_CHECK(node->keySizes = (uint16_t *)SAFE_MALLOC((tree->order - 1) * sizeof(uint16_t), LOC_BTREE_0019));
     memset(node->keySizes, 0, (tree->order - 1)  * sizeof(uint16_t));
 
 
-    MEM_CHECK(node->keys = (uint8_t **)SAFE_MALLOC((tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0031));
+    MEM_CHECK(node->keys = (uint8_t **)SAFE_MALLOC((tree->order - 1) * sizeof(uint8_t *), LOC_BTREE_0020));
     memset(node->keys, 0, (tree->order - 1) * sizeof(uint8_t *));
 
     return node;
@@ -292,7 +292,7 @@ btreeDestroyNodeBlock(void *data)
                     node->keySizes[i], node->keys[i],
                     node->keySizes[i], node->keys[i]);
         */
-            keyFree(node->keys[i], LOC_BTREE_0032);
+            keyFree(node->keys[i], LOC_BTREE_0021);
         }
     }
 
@@ -302,11 +302,11 @@ btreeDestroyNodeBlock(void *data)
                             node->block->offset);
     }
 
-    SAFE_FREE(node->children, LOC_BTREE_0033);
-    SAFE_FREE(node->keySizes, LOC_BTREE_0034);
-    SAFE_FREE(node->keys, LOC_BTREE_0035);
+    SAFE_FREE(node->children, LOC_BTREE_0022);
+    SAFE_FREE(node->keySizes, LOC_BTREE_0023);
+    SAFE_FREE(node->keys, LOC_BTREE_0024);
 
-    SAFE_FREE(node, LOC_BTREE_0036);
+    SAFE_FREE(node, LOC_BTREE_0025);
 }
 
 BTreeNode *

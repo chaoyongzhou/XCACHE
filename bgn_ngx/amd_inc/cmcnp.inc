@@ -133,12 +133,10 @@ typedef struct
     /*4B*/
     uint32_t        used_flag       :3;  /* item status: not used, used */
     uint32_t        dir_flag        :2;  /* directory or regular file */
-    uint32_t        ssd_flush_flag  :1;  /* file content should be flushed to ssd if set */
-                                         /* file is dirty => flush to ssd*/
-                                         /* file is loaded from sata => flush to ssd */
-                                         /* file is loaded from ssd and dirty => flush to ssd*/
-                                         /* otherwise, do not flush to ssd */
-    uint32_t        rsvd01          :26;
+    uint32_t        ssd_dirty_flag  :1;  /* file content should be flushed to ssd if set*/
+    uint32_t        sata_dirty_flag :1;  /* file content should be flushed to sata if set*/
+    uint32_t        deg_times       :7;  /* max times try to degrade up to 128 (2^7) times*/
+    uint32_t        rsvd01          :18;
 
     /*4B*/
     uint32_t        parent_pos;/*parent directory*/
@@ -165,8 +163,9 @@ typedef struct
 #define CMCNP_ITEM_RB_NODE(cmcnp_item)          (&((cmcnp_item)->rb_node))
 #define CMCNP_ITEM_DIR_FLAG(cmcnp_item)         ((cmcnp_item)->dir_flag)
 #define CMCNP_ITEM_USED_FLAG(cmcnp_item)        ((cmcnp_item)->used_flag)
-#define CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item)   ((cmcnp_item)->ssd_flush_flag)
-
+#define CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)   ((cmcnp_item)->ssd_dirty_flag)
+#define CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item)  ((cmcnp_item)->sata_dirty_flag)
+#define CMCNP_ITEM_DEG_TIMES(cmcnp_item)        ((cmcnp_item)->deg_times)
 #define CMCNP_ITEM_PARENT_POS(cmcnp_item)       ((cmcnp_item)->parent_pos)
 #define CMCNP_ITEM_FNODE(cmcnp_item)            (&((cmcnp_item)->u.fnode))
 #define CMCNP_ITEM_DNODE(cmcnp_item)            (&((cmcnp_item)->u.dnode))
@@ -312,7 +311,7 @@ typedef struct
 #endif/*(CMCNP_KEY_SIZE_063B == CMCNP_KEY_MAX_SIZE)*/
 
 #if (CMCNP_KEY_SIZE_000B == CMCNP_KEY_MAX_SIZE)
-/*item max num = [file size / 64] - 2*/
+/*item max num = [file size / 64] - 4*/
 /*item table start from offset 256B. */
 /*64 = 64 (sizeof item) + 0 (sizeof key)*/
 
@@ -320,44 +319,44 @@ typedef struct
 #define CMCNP_ITEM_SIZEOF               (1 << CMCNP_ITEM_SIZE_NBITS) /*it must be 64B*/
 
 #define CMCNP_001M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 20))
-#define CMCNP_001M_CFG_ITEM_MAX_NUM     ((CMCNP_001M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_001M_CFG_ITEM_MAX_NUM     ((CMCNP_001M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_002M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 21))
-#define CMCNP_002M_CFG_ITEM_MAX_NUM     ((CMCNP_002M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_002M_CFG_ITEM_MAX_NUM     ((CMCNP_002M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_004M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 22))
-#define CMCNP_004M_CFG_ITEM_MAX_NUM     ((CMCNP_004M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_004M_CFG_ITEM_MAX_NUM     ((CMCNP_004M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_008M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 23))
-#define CMCNP_008M_CFG_ITEM_MAX_NUM     ((CMCNP_008M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_008M_CFG_ITEM_MAX_NUM     ((CMCNP_008M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_016M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 24))
-#define CMCNP_016M_CFG_ITEM_MAX_NUM     ((CMCNP_016M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_016M_CFG_ITEM_MAX_NUM     ((CMCNP_016M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_032M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 25))
-#define CMCNP_032M_CFG_ITEM_MAX_NUM     ((CMCNP_032M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_032M_CFG_ITEM_MAX_NUM     ((CMCNP_032M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_064M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 26))
-#define CMCNP_064M_CFG_ITEM_MAX_NUM     ((CMCNP_064M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_064M_CFG_ITEM_MAX_NUM     ((CMCNP_064M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_128M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 27))
-#define CMCNP_128M_CFG_ITEM_MAX_NUM     ((CMCNP_128M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_128M_CFG_ITEM_MAX_NUM     ((CMCNP_128M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_256M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 28))
-#define CMCNP_256M_CFG_ITEM_MAX_NUM     ((CMCNP_256M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_256M_CFG_ITEM_MAX_NUM     ((CMCNP_256M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_512M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 29))
-#define CMCNP_512M_CFG_ITEM_MAX_NUM     ((CMCNP_512M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_512M_CFG_ITEM_MAX_NUM     ((CMCNP_512M_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_001G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 30))
-#define CMCNP_001G_CFG_ITEM_MAX_NUM     ((CMCNP_001G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_001G_CFG_ITEM_MAX_NUM     ((CMCNP_001G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #define CMCNP_002G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 31))
-#define CMCNP_002G_CFG_ITEM_MAX_NUM     ((CMCNP_002G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_002G_CFG_ITEM_MAX_NUM     ((CMCNP_002G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 #if (64 == WORDSIZE)
 #define CMCNP_004G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 32))
-#define CMCNP_004G_CFG_ITEM_MAX_NUM     ((CMCNP_004G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 2)
+#define CMCNP_004G_CFG_ITEM_MAX_NUM     ((CMCNP_004G_CFG_FILE_SIZE >> CMCNP_ITEM_SIZE_NBITS) - 4)
 
 /*due to offset is defined as 32bit integer, here cannot support more than 4G file*/
 #endif/*(64 == WORDSIZE)*/
@@ -437,7 +436,7 @@ typedef struct
 #define CMCNP_RETIRE_CB_FUNC(cmcnp_retire_cb)         ((cmcnp_retire_cb)->func)
 #define CMCNP_RETIRE_CB_ARG(cmcnp_retire_cb)          ((cmcnp_retire_cb)->arg)
 
-typedef EC_BOOL (*CMCNP_DEGRADE_CALLBACK)(void *, const CMCNP_KEY *, const uint16_t, const uint16_t, const uint16_t);
+typedef EC_BOOL (*CMCNP_DEGRADE_CALLBACK)(void *, const CMCNP_KEY *, const CMCNP_ITEM *, const uint16_t, const uint16_t, const uint16_t);
 
 typedef struct
 {

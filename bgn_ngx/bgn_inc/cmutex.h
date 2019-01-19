@@ -131,6 +131,7 @@ typedef struct
     }\
 }while(0)
 
+#if 0
 #define CMUTEX_PRINT_LOCATION(fp, fname, cmutex) do{\
     UINT32 __op__;\
     for(__op__ = 0; __op__ < CMUTEX_OP_END; __op__ ++)\
@@ -151,6 +152,14 @@ typedef struct
         CMUTEX_KIND(cmutex) \
         );\
 }while(0)
+#endif
+
+#if 1
+#define CMUTEX_PRINT_LOCATION(fp, fname, cmutex) do{}while(0)
+
+#define CMUTEX_PRINT_LOCK_INFO(fp, __op__, cmutex) do{}while(0)
+#endif
+
 
 #define CMUTEX_RESET(this_cmutex, flag)    do{\
     cmutex_init(this_cmutex, flag, CMUTEX_GET_LOCATION(this_cmutex, CMUTEX_OP_INIT));\

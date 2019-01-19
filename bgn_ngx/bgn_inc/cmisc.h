@@ -51,6 +51,8 @@ void c_log_init();
 
 void c_static_mem_init();
 
+void c_strerror_init();
+
 void c_env_init();
 const char *c_strerror_get(int err);
 EC_BOOL cmisc_init(UINT32 location);
@@ -333,9 +335,13 @@ int c_file_open(const char *pathname, const int flags, const mode_t mode);
 
 int c_file_close(int fd);
 
-int c_file_direct_on(int fd);
+int c_file_dio_on(int fd);
 
-int c_file_direct_off(int fd);
+int c_file_dio_off(int fd);
+
+int c_file_sync_on(int fd);
+
+int c_file_sync_off(int fd);
 
 struct tm *c_localtime_r(const time_t *timestamp);
 

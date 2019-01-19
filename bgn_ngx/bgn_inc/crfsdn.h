@@ -33,8 +33,6 @@ extern "C"{
 #include "cpgd.h"
 #include "cpgv.h"
 
-#include "camd.h"
-
 #define CRFSDN_DB_NAME      ((const char *)"dn_cfg.dat")
 #define CRFSDN_SSD_NAME     ((const char *)"ssd_cfg.dat")
 

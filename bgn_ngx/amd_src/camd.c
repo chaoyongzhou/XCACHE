@@ -16,6 +16,9 @@ extern "C"{
 #include "log.h"
 #include "cmisc.h"
 
+#include "task.h"
+#include "cepoll.h"
+#include "coroutine.h"
 #include "camd.h"
 
 #if (SWITCH_ON == CAMD_ASSERT_SWITCH)
@@ -25,8 +28,6 @@ extern "C"{
 #if (SWITCH_OFF == CAMD_ASSERT_SWITCH)
 #define CAMD_ASSERT(condition)   do{}while(0)
 #endif/*(SWITCH_OFF == CAMD_ASSERT_SWITCH)*/
-
-#define CAMD_PAGE_SHORTCUT_SWITCH   SWITCH_ON
 
 #if 0
 #define CAMD_CRC32(data, len)   c_crc32_long((data), (len))
@@ -59,51 +60,6 @@ STATIC_CAST const char *__camd_op_str(const UINT32 op)
     return ((const char *)"UNKNOWN");
 }
 
-/*----------------------------------- camd flow control interface -----------------------------------*/
-EC_BOOL camd_fc_init(CAMD_FC *camd_fc)
-{
-    CAMD_FC_NTIME_MS(camd_fc)       = 0;
-    CAMD_FC_TRAFFIC_NBYTES(camd_fc) = 0;
-    CAMD_FC_TRAFFIC_SPEED(camd_fc)  = 0;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL camd_fc_clean(CAMD_FC *camd_fc)
-{
-    CAMD_FC_NTIME_MS(camd_fc)       = 0;
-    CAMD_FC_TRAFFIC_NBYTES(camd_fc) = 0;
-    CAMD_FC_TRAFFIC_SPEED(camd_fc)  = 0;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL camd_fc_inc_traffic(CAMD_FC *camd_fc, const uint64_t traffic_nbytes)
-{
-    CAMD_FC_TRAFFIC_NBYTES(camd_fc) += traffic_nbytes;
-    return (EC_TRUE);
-}
-
-EC_BOOL camd_fc_calc_speed(CAMD_FC *camd_fc, const uint64_t cur_time_ms, const uint64_t interval_ms)
-{
-    if(cur_time_ms >= CAMD_FC_NTIME_MS(camd_fc) + interval_ms)
-    {
-        uint64_t    elapsed_ms;
-
-        elapsed_ms = (cur_time_ms - CAMD_FC_NTIME_MS(camd_fc));
-
-        CAMD_FC_TRAFFIC_SPEED(camd_fc)  = (CAMD_FC_TRAFFIC_NBYTES(camd_fc) * 8 * 1000) / (elapsed_ms);
-        CAMD_FC_TRAFFIC_NBYTES(camd_fc) = 0;
-        CAMD_FC_NTIME_MS(camd_fc)       = cur_time_ms + interval_ms;
-    }
-
-    return (EC_TRUE);
-}
-
-uint64_t camd_fc_get_speed(const CAMD_FC *camd_fc)
-{
-    return CAMD_FC_TRAFFIC_SPEED(camd_fc);
-}
 
 /*----------------------------------- camd mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_camd_mem_cache_counter = 0;
@@ -193,11 +149,14 @@ EC_BOOL camd_page_init(CAMD_PAGE *camd_page)
 
     CAMD_PAGE_TIMEOUT_NSEC(camd_page)       = 0;
 
-    CAMD_PAGE_DIRTY_FLAG(camd_page)         = BIT_FALSE;
-    CAMD_PAGE_SATA_LOADED_FLAG(camd_page)   = BIT_FALSE;
+    CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)     = BIT_FALSE;
     CAMD_PAGE_SSD_LOADED_FLAG(camd_page)    = BIT_FALSE;
-    CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_FALSE;
     CAMD_PAGE_SSD_LOADING_FLAG(camd_page)   = BIT_FALSE;
+
+    CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)    = BIT_FALSE;
+    CAMD_PAGE_SATA_LOADED_FLAG(camd_page)   = BIT_FALSE;
+    CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_FALSE;
+
     CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)   = BIT_FALSE;
     CAMD_PAGE_MEM_CACHE_FLAG(camd_page)     = BIT_FALSE;
 
@@ -250,11 +209,14 @@ EC_BOOL camd_page_clean(CAMD_PAGE *camd_page)
 
         CAMD_PAGE_TIMEOUT_NSEC(camd_page)       = 0;
 
-        CAMD_PAGE_DIRTY_FLAG(camd_page)         = BIT_FALSE;
-        CAMD_PAGE_SATA_LOADED_FLAG(camd_page)   = BIT_FALSE;
+        CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)     = BIT_FALSE;
         CAMD_PAGE_SSD_LOADED_FLAG(camd_page)    = BIT_FALSE;
-        CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_FALSE;
         CAMD_PAGE_SSD_LOADING_FLAG(camd_page)   = BIT_FALSE;
+
+        CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)    = BIT_FALSE;
+        CAMD_PAGE_SATA_LOADED_FLAG(camd_page)   = BIT_FALSE;
+        CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_FALSE;
+
         CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)   = BIT_FALSE;
         CAMD_PAGE_MEM_CACHE_FLAG(camd_page)     = BIT_FALSE;
 
@@ -276,22 +238,22 @@ EC_BOOL camd_page_free(CAMD_PAGE *camd_page)
 
 void camd_page_print(LOG *log, const CAMD_PAGE *camd_page)
 {
-    sys_log(log, "camd_page_print: camd_page %p: page range [%ld, %ld), dirty %s, "
-                 "sata loaded %s, sata loading %s, "
-                 "ssd loaded %s, ssd loading %s, "
-                 "ssd flushed %s, "
-                 "mem cache page %s,"
+    sys_log(log, "camd_page_print: camd_page %p: page range [%ld, %ld), "
+                 "ssd dirty %u, ssd loaded %u, ssd loading %u, "
+                 "sata dirty %u, sata loaded %u, sata loading %u, "
+                 "mem flushed %u, mem cache page %u,"
                  "m_cache %p, mounted pages %p, mounted page tree %lx, "
                  "timeout %ld seconds\n",
                  camd_page,
                  CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_DIRTY_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_SATA_LOADED_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_SATA_LOADING_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_SSD_LOADED_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_SSD_LOADING_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)),
-                 (const char *)c_bit_bool_str(CAMD_PAGE_MEM_CACHE_FLAG(camd_page)),
+                 CAMD_PAGE_SSD_DIRTY_FLAG(camd_page),
+                 CAMD_PAGE_SSD_LOADED_FLAG(camd_page),
+                 CAMD_PAGE_SSD_LOADING_FLAG(camd_page),
+                 CAMD_PAGE_SATA_DIRTY_FLAG(camd_page),
+                 CAMD_PAGE_SATA_LOADED_FLAG(camd_page),
+                 CAMD_PAGE_SATA_LOADING_FLAG(camd_page),
+                 CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page),
+                 CAMD_PAGE_MEM_CACHE_FLAG(camd_page),
                  CAMD_PAGE_M_CACHE(camd_page),
                  CAMD_PAGE_MOUNTED_PAGES(camd_page),
                  CAMD_PAGE_MOUNTED_TREE_IDX(camd_page),
@@ -527,6 +489,9 @@ EC_BOOL camd_page_complete(CAMD_PAGE *camd_page)
 EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx)
 {
     CAMD_NODE       *camd_node;
+    uint32_t         page_dirty_flag;
+
+    page_dirty_flag = BIT_FALSE;/*init*/
 
     while(NULL_PTR != (camd_node = camd_page_pop_node_front(camd_page)))
     {
@@ -586,7 +551,7 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
 
             camd_node_complete(camd_node);
 
-            CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_TRUE; /*set dirty*/
+            page_dirty_flag = BIT_TRUE;
         }
         else
         {
@@ -609,6 +574,20 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
         }
     }
 
+    if(BIT_TRUE == page_dirty_flag)
+    {
+        CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+        CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_TRUE;
+    }
+    else
+    {
+        if(BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+        {
+            /*if loaded from sata, then flush to ssd*/
+            CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+        }
+    }
+
     if(EC_FALSE == camd_page_notify_timeout(camd_page))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
@@ -620,35 +599,9 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
         return (EC_FALSE);
     }
 
-#if 0
-    /*page loaded from ssd => purge it if dirty*/
-    if(BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page))
-    {
-        if(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page))
-        {
-            if(EC_FALSE == camd_page_purge_ssd(camd_page)) /*warning: if page is flushing, purge would trigger issue*/
-            {
-                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
-                                 "purge page [%ld, %ld) from ssd cache failed\n",
-                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-                camd_page_terminate(camd_page);
-                camd_page_free(camd_page);
-                return (EC_FALSE);
-            }
-
-            CAMD_PAGE_SSD_LOADED_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-            dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                             "purge page [%ld, %ld) from ssd cache done\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-        }
-    }
-#endif
-
-    /*flush sata or dirty page to mem cache*/
-    /*if dirty || (not flushed mem && (loaded from sata || loaded from ssd)), then flush mem*/
-    while(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page)
+    /*flush sata or ssd or dirty page to mem cache*/
+    while(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)
+    || BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)
     || (BIT_FALSE == CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)
     && (BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page)
     || BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page))))
@@ -668,29 +621,13 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
             break; /*fall through*/
         }
 
+        /*exception*/
+
+        camd_page_purge_ssd(camd_page); /*purge from ssd*/
+
         /*if flush mem failed, try to flush sata directly*/
-#if 0
-        if(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page))
-        {
-            if(EC_TRUE == camd_page_flush_sata_aio(camd_page))/*aio*/
-            {
-                dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                                 "flush page [%ld, %ld) to mem cache failed => flush sata aio done\n",
-                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-                CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-                return (EC_TRUE);
-            }
-
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
-                             "flush page [%ld, %ld) to mem cache failed => flush sata aio failed\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-        }
-#endif
-#if 1
-        if(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page))
+        if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)
+        || BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
         {
             if(EC_TRUE == camd_page_flush_sata_dio(camd_page))/*dio*/
             {
@@ -698,7 +635,8 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
                                  "flush page [%ld, %ld) to mem cache failed => flush sata dio done\n",
                                  CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
-                CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
+                CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_FALSE; /*clear flag*/
+                CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
 
                 break;/*fall through*/
             }
@@ -708,7 +646,7 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
         }
-#endif
+
         /*if both flush mem and flush sata failed, retry later*/
 
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
@@ -724,140 +662,6 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
 
         return (EC_FALSE);
     }
-
-    /*page loaded from sata => do nothing*/
-    //if(BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
-    //{
-    //    CAMD_PAGE_SATA_LOADED_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-    //}
-
-#if (SWITCH_ON == CAMD_SYNC_SATA_SWITCH)
-    /*flush dirty page to sata*/
-    if(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page)
-    && NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_MD_CAIO_MD(CAMD_PAGE_CAMD_MD(camd_page)))
-    {
-        CAMD_MD     *camd_md;
-
-        camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-
-        if(BIT_FALSE == CAMD_MD_FORCE_DIO_FLAG(camd_md))
-        {
-            if(EC_FALSE == camd_page_flush_sata_aio(camd_page))
-            {
-                /*page cannot be accessed again => do not output log*/
-                return (EC_FALSE);
-            }
-
-            CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-            dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                             "submit flushing page [%ld, %ld) to sata done\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-            /*page would be free later*/
-            return (EC_TRUE);
-        }
-
-        /*dio*/
-
-        if(EC_FALSE == camd_page_flush_sata_dio(camd_page))
-        {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
-                             "dio flush page [%ld, %ld) to sata failed\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-            camd_page_terminate(camd_page);
-            camd_page_free(camd_page);
-            return (EC_FALSE);
-        }
-
-        CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-        dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                         "dio flush page [%ld, %ld) to sata done\n",
-                         CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-        camd_page_complete(camd_page);
-        camd_page_free(camd_page);
-        return (EC_TRUE);
-    }
-#endif/*(SWITCH_ON == CAMD_SYNC_SATA_SWITCH)*/
-
-#if (SWITCH_ON == CAMD_SYNC_SSD_SWITCH)
-    /*flush dirty page to ssd*/
-    if((BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page)
-    || BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
-    && NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_MD_CDC_MD(CAMD_PAGE_CAMD_MD(camd_page)))
-    {
-        CAMD_MD     *camd_md;
-
-        camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-
-        if(BIT_FALSE == CAMD_MD_FORCE_DIO_FLAG(camd_md))
-        {
-            if(EC_FALSE == camd_page_flush_ssd_aio(camd_page))
-            {
-                /*page cannot be accessed again => do not output log*/
-                return (EC_FALSE);
-            }
-
-            CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-            dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                             "submit flushing page [%ld, %ld) to ssd done\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-            /*page would be free later*/
-            return (EC_TRUE);
-        }
-
-        /*dio*/
-
-        if(EC_FALSE == camd_page_flush_ssd_dio(camd_page))
-        {
-            CMC_MD          *cmc_md;
-            UINT32           offset;
-
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                             "dio flush page [%ld, %ld) to ssd failed\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-            cmc_md = CAMD_MD_CMC_MD(camd_md);
-
-            offset = CAMD_PAGE_F_S_OFFSET(camd_page);
-
-            /*let cmc flush this page to ssd later*/
-            if(EC_FALSE == cmc_file_set_ssd_flush(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
-            {
-                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "warn:camd_page_process: "
-                                 "set ssd flush page [%ld, %ld) failed\n",
-                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-                /*ignore error*/
-            }
-            else
-            {
-                dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                                 "set ssd flush page [%ld, %ld) done\n",
-                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-            }
-            camd_page_free(camd_page);
-            return (EC_FALSE);
-        }
-
-        CAMD_PAGE_DIRTY_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-        dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                         "dio flush page [%ld, %ld) to ssd done\n",
-                         CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-        camd_page_free(camd_page);
-        return (EC_TRUE);
-    }
-
-#endif/*(SWITCH_ON == CAMD_SYNC_SSD_SWITCH)*/
 
     dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
                      "process page [%ld, %ld) done\n",
@@ -958,6 +762,7 @@ EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page)
 
     CAMD_PAGE_SATA_LOADED_FLAG(camd_page)  = BIT_TRUE;  /*set sata loaded*/
     CAMD_PAGE_SATA_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
+    CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)   = BIT_FALSE; /*clear flag*/
 
     /*free camd page determined by process*/
     camd_page_process(camd_page, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md));
@@ -1195,10 +1000,10 @@ EC_BOOL camd_page_flush_ssd_aio_timeout(CAMD_PAGE *camd_page)
         offset = CAMD_PAGE_F_S_OFFSET(camd_page);
 
         /*let cmc flush this page to ssd later*/
-        if(EC_FALSE == cmc_file_set_ssd_flush(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
+        if(EC_FALSE == cmc_file_set_ssd_dirty(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "warn:camd_page_flush_ssd_aio_timeout: "
-                             "set ssd flush page [%ld, %ld) failed\n",
+                             "set ssd dirty page [%ld, %ld) failed\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
             /*ignore error*/
@@ -1206,7 +1011,7 @@ EC_BOOL camd_page_flush_ssd_aio_timeout(CAMD_PAGE *camd_page)
         else
         {
             dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_ssd_aio_timeout: "
-                             "set ssd flush page [%ld, %ld) done\n",
+                             "set ssd dirty page [%ld, %ld) done\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
         }
     }
@@ -1239,10 +1044,10 @@ EC_BOOL camd_page_flush_ssd_aio_terminate(CAMD_PAGE *camd_page)
         offset = CAMD_PAGE_F_S_OFFSET(camd_page);
 
         /*let cmc flush this page to ssd later*/
-        if(EC_FALSE == cmc_file_set_ssd_flush(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
+        if(EC_FALSE == cmc_file_set_ssd_dirty(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "warn:camd_page_flush_ssd_aio_terminate: "
-                             "set ssd flush page [%ld, %ld) failed\n",
+                             "set ssd dirty page [%ld, %ld) failed\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
             /*ignore error*/
@@ -1250,7 +1055,7 @@ EC_BOOL camd_page_flush_ssd_aio_terminate(CAMD_PAGE *camd_page)
         else
         {
             dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_ssd_aio_terminate: "
-                             "set ssd flush page [%ld, %ld) done\n",
+                             "set ssd dirty page [%ld, %ld) done\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
         }
     }
@@ -1277,7 +1082,8 @@ EC_BOOL camd_page_flush_ssd_aio_complete(CAMD_PAGE *camd_page)
     camd_md = CAMD_PAGE_CAMD_MD(camd_page);
 
     /*make sure cmc would not flush the page to ssd*/
-    if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+    if(NULL_PTR != CAMD_MD_CMC_MD(camd_md)
+    && BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
     {
         CMC_MD          *cmc_md;
         UINT32           offset;
@@ -1287,10 +1093,10 @@ EC_BOOL camd_page_flush_ssd_aio_complete(CAMD_PAGE *camd_page)
         offset = CAMD_PAGE_F_S_OFFSET(camd_page);
 
         /*let cmc not flush this page to ssd*/
-        if(EC_FALSE == cmc_file_set_ssd_not_flush(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
+        if(EC_FALSE == cmc_file_set_ssd_not_dirty(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "warn:camd_page_flush_ssd_aio_complete: "
-                             "set ssd not flush page [%ld, %ld) failed\n",
+                             "set ssd not dirty page [%ld, %ld) failed\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
             /*ignore error*/
@@ -1298,7 +1104,7 @@ EC_BOOL camd_page_flush_ssd_aio_complete(CAMD_PAGE *camd_page)
         else
         {
             dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_flush_ssd_aio_complete: "
-                             "set ssd not flush page [%ld, %ld) done\n",
+                             "set ssd not dirty page [%ld, %ld) done\n",
                              CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
         }
     }
@@ -1361,6 +1167,7 @@ EC_BOOL camd_page_flush_ssd_aio(CAMD_PAGE *camd_page)
                     &CAMD_PAGE_F_T_OFFSET(camd_page),
                     CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page),
                     CAMD_PAGE_M_CACHE(camd_page),
+                    BIT_TRUE, /*default sata dirty flag*/
                     &caio_cb))
     {
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_ssd_aio: "
@@ -1479,40 +1286,49 @@ EC_BOOL camd_page_flush_mem(CAMD_PAGE *camd_page)
         /*return (EC_TRUE);*/
     }
 
-    /*set flush ssd flag if need*/
+    /*set ssd dirty flag and sata dirty flag if need*/
     if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
     {
         CMC_MD          *cmc_md;
-        UINT32           offset;
+        CMCNP_KEY        cmcnp_key;
+        CMCNP_ITEM      *cmcnp_item;
 
         cmc_md = CAMD_MD_CMC_MD(camd_md);
 
-        offset = CAMD_PAGE_F_S_OFFSET(camd_page);
+        CAMD_ASSERT(CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES == CAMD_PAGE_F_E_OFFSET(camd_page));
 
-        /***********************************************************
-         * file is dirty => flush to ssd
-         * file is loaded from sata => flush to ssd
-         * file is loaded from ssd and dirty => flush to ssd
-         * otherwise, do not flush to ssd
-        ***********************************************************/
-        if(BIT_TRUE == CAMD_PAGE_DIRTY_FLAG(camd_page)
-        || BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+        CMCNP_KEY_S_PAGE(&cmcnp_key) = (uint32_t)(CAMD_PAGE_F_S_OFFSET(camd_page) >> CMCPGB_PAGE_SIZE_NBITS);
+        CMCNP_KEY_E_PAGE(&cmcnp_key) = (uint32_t)(CAMD_PAGE_F_E_OFFSET(camd_page) >> CMCPGB_PAGE_SIZE_NBITS);
+
+        cmcnp_item = cmc_find(cmc_md, &cmcnp_key);
+        if(NULL_PTR != cmcnp_item)
         {
-            if(EC_FALSE == cmc_file_set_ssd_flush(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES))
+            if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page))
             {
-                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "warn:camd_page_flush_mem: "
-                                 "set ssd flush page [%ld, %ld) failed\n",
-                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-                return (EC_TRUE); /*ignore error*/
+                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_TRUE;
             }
+            /*else, do not change ssd dirty flag of item*/
 
-            camd_fc_inc_traffic(CAMD_MD_MEM_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
+            if(BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
+            {
+                CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item) = BIT_TRUE;
+                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_TRUE;
+            }
+            /*else, do not change sata dirty flag of item*/
 
             dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_mem: "
-                             "set ssd flush page [%ld, %ld) done\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+                             "page [%ld, %ld) set ssd dirty %u, sata dirty %u done\n",
+                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page),
+                             CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item),
+                             CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item));
         }
+
+        if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)
+        || BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
+        {
+            cfc_inc_traffic(CAMD_MD_MEM_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
+        }
+
         return (EC_TRUE);
     }
 
@@ -1550,8 +1366,7 @@ EC_BOOL camd_page_purge_ssd(CAMD_PAGE *camd_page)
 
 EC_BOOL camd_page_load_ssd_aio_timeout(CAMD_PAGE *camd_page)
 {
-#if 1
-    dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_load_ssd_aio_timeout: "
+   dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_load_ssd_aio_timeout: "
                      "load page [%ld, %ld) timeout\n",
                      CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
@@ -1569,40 +1384,6 @@ EC_BOOL camd_page_load_ssd_aio_timeout(CAMD_PAGE *camd_page)
 
     camd_page_timeout(camd_page);
     camd_page_free(camd_page);
-#endif
-#if 0
-    CAMD_MD     *camd_md;
-
-    dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_load_ssd_aio_timeout: "
-                     "ssd load page [%ld, %ld) timeout => sata loading\n",
-                     CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-    CAMD_PAGE_SSD_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
-
-    CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
-    camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-
-    /*load page from sata to mem cache*/
-    if(EC_FALSE == camd_page_load_sata_aio(camd_page))
-    {
-        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_load_ssd_aio_timeout: "
-                                             "submit sata loading page [%ld, %ld) failed\n",
-                                             CAMD_PAGE_F_S_OFFSET(camd_page),
-                                             CAMD_PAGE_F_E_OFFSET(camd_page));
-
-        camd_page_free(camd_page);
-        return (EC_FALSE);
-    }
-
-    /*add page to active page tree*/
-    camd_add_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), camd_page);
-    CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
-
-    dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_load_ssd_aio_timeout: "
-                                         "submit sata loading page [%ld, %ld) done\n",
-                                         CAMD_PAGE_F_S_OFFSET(camd_page),
-                                         CAMD_PAGE_F_E_OFFSET(camd_page));
-#endif
     return (EC_TRUE);
 }
 
@@ -1625,6 +1406,8 @@ EC_BOOL camd_page_load_ssd_aio_terminate(CAMD_PAGE *camd_page)
         /*page cannot be accessed again => do not output log*/
         return (EC_FALSE);
     }
+
+    cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
 
     /*add page to active page tree*/
     camd_add_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), camd_page);
@@ -2840,21 +2623,6 @@ EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
     CAMD_PAGE_TIMEOUT_NSEC(camd_page)   = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
     CAMD_PAGE_CAMD_MD(camd_page)        = CAMD_NODE_CAMD_MD(camd_node);
 
-#if (SWITCH_OFF == CAMD_PAGE_SHORTCUT_SWITCH)
-    /*scenario: not shortcut to mem cache*/
-    CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES);
-    if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
-    {
-        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_req_dispatch_node: "
-                         "new mem cache for page [%ld, %ld) failed\n",
-                         CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
-
-
-        camd_page_free(camd_page);
-        return (EC_FALSE);
-    }
-#endif /*(SWITCH_OFF == CAMD_PAGE_SHORTCUT_SWITCH)*/
-
     /*add page to camd module*/
     if(EC_FALSE == camd_add_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), camd_page))
     {
@@ -2965,7 +2733,7 @@ CAMD_MD *camd_start(const int sata_disk_fd, const UINT32 sata_disk_size /*in byt
 
     if(ERR_FD != sata_disk_fd && 0 != sata_disk_size)
     {
-        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, (UINT32)CAMD_SATA_AIO_REQ_MAX_NUM);
+        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, &CAMD_SATA_AIO_REQ_MAX_NUM_RAW);
     }
 
     if(0 != mem_disk_size)
@@ -3022,7 +2790,7 @@ CAMD_MD *camd_start(const int sata_disk_fd, const UINT32 sata_disk_size /*in byt
                 return (NULL_PTR);
             }
 
-            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, (UINT32)CAMD_SSD_AIO_REQ_MAX_NUM);
+            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, &CAMD_SSD_AIO_REQ_MAX_NUM_RAW);
 
             if(SWITCH_ON == CDC_BIND_AIO_SWITCH)
             {
@@ -3041,13 +2809,28 @@ CAMD_MD *camd_start(const int sata_disk_fd, const UINT32 sata_disk_size /*in byt
         cdc_set_degrade_callback(CAMD_MD_CDC_MD(camd_md),
                                  (CDCNP_DEGRADE_CALLBACK)camd_sata_flush, (void *)camd_md);
     }
+    else /*no ssd cache*/
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: "
+                                             "no ssd cache\n");
+
+        if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+        {
+            /*set degrade callback*/
+            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md),
+                                    (CMCNP_DEGRADE_CALLBACK)camd_sata_degrade, (void *)camd_md);
+        }
+    }
 
     CAMD_MD_FORCE_DIO_FLAG(camd_md) = BIT_FALSE;
+    CAMD_MD_SATA_DISK_FD(camd_md)   = sata_disk_fd;
 
-    camd_fc_init(CAMD_MD_SSD_FC(camd_md));
-    camd_fc_init(CAMD_MD_MEM_FC(camd_md));
-    camd_fc_init(CAMD_MD_READ_FC(camd_md));
-    camd_fc_init(CAMD_MD_WRITE_FC(camd_md));
+    cfc_init(CAMD_MD_SATA_READ_FC(camd_md));
+    cfc_init(CAMD_MD_SATA_WRITE_FC(camd_md));
+    cfc_init(CAMD_MD_SSD_FC(camd_md));
+    cfc_init(CAMD_MD_MEM_FC(camd_md));
+    cfc_init(CAMD_MD_AMD_READ_FC(camd_md));
+    cfc_init(CAMD_MD_AMD_WRITE_FC(camd_md));
 
     dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_start: start camd module %p\n", camd_md);
 
@@ -3098,11 +2881,14 @@ void camd_end(CAMD_MD *camd_md)
         CAMD_MD_SEQ_NO(camd_md) = 0;
 
         CAMD_MD_FORCE_DIO_FLAG(camd_md) = BIT_FALSE;
+        CAMD_MD_SATA_DISK_FD(camd_md)   = ERR_FD;
 
-        camd_fc_clean(CAMD_MD_SSD_FC(camd_md));
-        camd_fc_clean(CAMD_MD_MEM_FC(camd_md));
-        camd_fc_clean(CAMD_MD_READ_FC(camd_md));
-        camd_fc_clean(CAMD_MD_WRITE_FC(camd_md));
+        cfc_clean(CAMD_MD_SATA_READ_FC(camd_md));
+        cfc_clean(CAMD_MD_SATA_WRITE_FC(camd_md));
+        cfc_clean(CAMD_MD_SSD_FC(camd_md));
+        cfc_clean(CAMD_MD_MEM_FC(camd_md));
+        cfc_clean(CAMD_MD_AMD_READ_FC(camd_md));
+        cfc_clean(CAMD_MD_AMD_WRITE_FC(camd_md));
 
         safe_free(camd_md, LOC_CAMD_0012);
     }
@@ -3306,7 +3092,7 @@ EC_BOOL camd_poll(CAMD_MD *camd_md)
     if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
     {
         /*not need poll, process only*/
-        cmc_process(CAMD_MD_CMC_MD(camd_md), (uint64_t)0);
+        cmc_process(CAMD_MD_CMC_MD(camd_md), (uint64_t)0, (uint64_t)~0, (uint64_t)~0);
     }
 
     if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
@@ -3317,12 +3103,39 @@ EC_BOOL camd_poll(CAMD_MD *camd_md)
     return (EC_TRUE);
 }
 
+/*for debug only!*/
+EC_BOOL camd_poll_debug(CAMD_MD *camd_md)
+{
+    camd_process_pages(camd_md);
+    camd_process_events(camd_md);
+    camd_process_reqs(camd_md);
+
+    if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
+    {
+        caio_poll(CAMD_MD_CAIO_MD(camd_md));
+    }
+
+    if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+    {
+        /*not need poll, process only*/
+        //cmc_process(CAMD_MD_CMC_MD(camd_md), (uint64_t)0, (uint64_t)~0, (uint64_t)~0);
+    }
+
+    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    {
+        cdc_poll_debug(CAMD_MD_CDC_MD(camd_md));
+    }
+
+    return (EC_TRUE);
+}
 void camd_process(CAMD_MD *camd_md)
 {
-    uint64_t    ssd_traffic_speed_bps;
-    uint64_t    mem_traffic_speed_bps;
-    uint64_t    read_traffic_speed_bps;
-    uint64_t    write_traffic_speed_bps;
+    uint64_t    ssd_traffic_bps;
+    uint64_t    mem_traffic_bps;
+    uint64_t    amd_read_traffic_bps;
+    uint64_t    amd_write_traffic_bps;
+    uint64_t    sata_read_traffic_bps;
+    uint64_t    sata_write_traffic_bps;
 
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)); /*for debug checking*/
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CMC_MD(camd_md));  /*for debug checking*/
@@ -3334,17 +3147,21 @@ void camd_process(CAMD_MD *camd_md)
 
     if(BIT_FALSE == CAMD_MD_FORCE_DIO_FLAG(camd_md))
     {
-        ssd_traffic_speed_bps   = camd_fc_get_speed(CAMD_MD_SSD_FC(camd_md));
-        mem_traffic_speed_bps   = camd_fc_get_speed(CAMD_MD_MEM_FC(camd_md));
-        read_traffic_speed_bps  = camd_fc_get_speed(CAMD_MD_READ_FC(camd_md));
-        write_traffic_speed_bps = camd_fc_get_speed(CAMD_MD_WRITE_FC(camd_md));
+        ssd_traffic_bps        = cfc_get_speed(CAMD_MD_SSD_FC(camd_md));
+        mem_traffic_bps        = cfc_get_speed(CAMD_MD_MEM_FC(camd_md));
+        amd_read_traffic_bps   = cfc_get_speed(CAMD_MD_AMD_READ_FC(camd_md));
+        amd_write_traffic_bps  = cfc_get_speed(CAMD_MD_AMD_WRITE_FC(camd_md));
+        sata_read_traffic_bps  = cfc_get_speed(CAMD_MD_SATA_READ_FC(camd_md));
+        sata_write_traffic_bps = cfc_get_speed(CAMD_MD_SATA_WRITE_FC(camd_md));
     }
     else
     {
-        ssd_traffic_speed_bps   = ((uint64_t)~0);
-        mem_traffic_speed_bps   = ((uint64_t)~0);
-        read_traffic_speed_bps  = ((uint64_t)~0);
-        write_traffic_speed_bps = ((uint64_t)~0);
+        ssd_traffic_bps        = ((uint64_t)~0);
+        mem_traffic_bps        = ((uint64_t)~0);
+        amd_read_traffic_bps   = ((uint64_t) 0); /*no read*/
+        amd_write_traffic_bps  = ((uint64_t) 0); /*no write*/
+        sata_read_traffic_bps  = ((uint64_t) 0); /*no read*/
+        sata_write_traffic_bps = ((uint64_t) 0); /*no write*/
     }
 
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
@@ -3354,26 +3171,29 @@ void camd_process(CAMD_MD *camd_md)
 
     if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
     {
-        if(0 == read_traffic_speed_bps)
+        if(0 == amd_read_traffic_bps)
         {
-            if(0 < mem_traffic_speed_bps)
+            if(0 < mem_traffic_bps)
             {
-                mem_traffic_speed_bps = DMAX(mem_traffic_speed_bps, CMC_DEGRADE_TRAFFIC_30M);
+                mem_traffic_bps = DMAX(mem_traffic_bps, CMC_DEGRADE_TRAFFIC_30MB);
             }
 
-            /*else mem_traffic_speed_bps is 0*/
+            /*else mem_traffic_bps is 0*/
         }
 
-        cmc_process(CAMD_MD_CMC_MD(camd_md), mem_traffic_speed_bps);
+        cmc_process(CAMD_MD_CMC_MD(camd_md), mem_traffic_bps,
+                    amd_read_traffic_bps, amd_write_traffic_bps);
     }
 
     if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
     {
-        if(write_traffic_speed_bps < CDC_DEGRADE_TRAFFIC_10M)
+        if(amd_write_traffic_bps < CDC_DEGRADE_TRAFFIC_10MB)
         {
-            ssd_traffic_speed_bps = DMAX(ssd_traffic_speed_bps, CDC_DEGRADE_TRAFFIC_20M);
+            ssd_traffic_bps = DMAX(ssd_traffic_bps, CDC_DEGRADE_TRAFFIC_20MB);
         }
-        cdc_process(CAMD_MD_CDC_MD(camd_md), ssd_traffic_speed_bps);
+        cdc_process(CAMD_MD_CDC_MD(camd_md), ssd_traffic_bps,
+                    amd_read_traffic_bps, amd_write_traffic_bps,
+                    sata_read_traffic_bps, sata_write_traffic_bps);
     }
 
     if(1)
@@ -3406,10 +3226,12 @@ void camd_process(CAMD_MD *camd_md)
 
         /*flow control*/
         time_msec_interval = CAMD_FLOW_CONTROL_NSEC * 1000;
-        camd_fc_calc_speed(CAMD_MD_SSD_FC(camd_md), time_msec_cur, time_msec_interval);
-        camd_fc_calc_speed(CAMD_MD_MEM_FC(camd_md), time_msec_cur, time_msec_interval);
-        camd_fc_calc_speed(CAMD_MD_READ_FC(camd_md), time_msec_cur, time_msec_interval);
-        camd_fc_calc_speed(CAMD_MD_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_SATA_READ_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_SATA_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_SSD_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_MEM_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_AMD_READ_FC(camd_md), time_msec_cur, time_msec_interval);
+        cfc_calc_speed(CAMD_MD_AMD_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
     }
 
     return;
@@ -3542,7 +3364,6 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         /*load page from mem cache*/
         offset = CAMD_PAGE_F_S_OFFSET(camd_page);
 
-#if (SWITCH_ON == CAMD_PAGE_SHORTCUT_SWITCH)
         if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
         {
             /*scenario: shortcut to mem cache page*/
@@ -3593,41 +3414,6 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                                                  CAMD_CRC32(CAMD_PAGE_M_CACHE(camd_page), CMCPGB_PAGE_SIZE_NBYTES),
                                                  CAMD_PAGE_M_CACHE(camd_page));
         }
-#endif /*(SWITCH_ON == CAMD_PAGE_SHORTCUT_SWITCH)*/
-
-#if (SWITCH_OFF == CAMD_PAGE_SHORTCUT_SWITCH)
-        if(EC_FALSE == cmc_file_read(cmc_md, &offset, CMCPGB_PAGE_SIZE_NBYTES, CAMD_PAGE_M_CACHE(camd_page)))
-        {
-            dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_process_page: "
-                                                 "mem hit page [%ld, %ld) "
-                                                 "but read failed\n",
-                                                 CAMD_PAGE_F_S_OFFSET(camd_page),
-                                                 CAMD_PAGE_F_E_OFFSET(camd_page));
-
-            /*fall through to aio*/
-            break;
-        }
-
-        if(CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES != offset)
-        {
-            dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_process_page: "
-                                                 "mem hit page [%ld, %ld) "
-                                                 "but expected offset %ld != %ld\n",
-                                                 CAMD_PAGE_F_S_OFFSET(camd_page),
-                                                 CAMD_PAGE_F_E_OFFSET(camd_page),
-                                                 CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES,
-                                                 offset);
-
-            /*fall through to aio*/
-            break;
-        }
-
-        dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_page: "
-                                             "mem hit page [%ld, %ld) [crc %u]\n",
-                                             CAMD_PAGE_F_S_OFFSET(camd_page),
-                                             CAMD_PAGE_F_E_OFFSET(camd_page),
-                                             CAMD_CRC32(CAMD_PAGE_M_CACHE(camd_page), CMCPGB_PAGE_SIZE_NBYTES));
-#endif /*(SWITCH_OFF == CAMD_PAGE_SHORTCUT_SWITCH)*/
 
         /*page life cycle is determined by process => not need to free page*/
         if(EC_FALSE == camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)))
@@ -3643,7 +3429,6 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         return;
     }
 
-#if (SWITCH_ON == CAMD_PAGE_SHORTCUT_SWITCH)
     if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
     {
         CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES);
@@ -3658,7 +3443,6 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             return;
         }
     }
-#endif/*(SWITCH_ON == CAMD_PAGE_SHORTCUT_SWITCH)*/
 
     /*optimize: reduce ssd or sata loading*/
     if(CAMD_OP_WR == CAMD_PAGE_OP(camd_page)
@@ -3790,6 +3574,8 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             return;
         }
 
+        cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
+
         /*add page to standby page tree temporarily*/
         camd_add_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md), camd_page);
         CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
@@ -3807,6 +3593,8 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         CAMD_PAGE_F_T_OFFSET(camd_page) = CAMD_PAGE_F_S_OFFSET(camd_page);
 
         CAMD_ASSERT(CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES == CAMD_PAGE_F_E_OFFSET(camd_page));
+
+        cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
 
         if(EC_TRUE == c_file_pread(CAMD_PAGE_FD(camd_page),
                                   &CAMD_PAGE_F_T_OFFSET(camd_page),
@@ -4363,7 +4151,7 @@ EC_BOOL camd_ssd_flush_timeout(CAMD_SSD *camd_ssd)
     //CAMD_MD     *camd_md;
     //CMC_MD      *cmc_md;
 
-    dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "fata error:camd_ssd_flush_timeout: "
+    dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "fatal error:camd_ssd_flush_timeout: "
                      "flush page [%ld, %ld) timeout\n",
                      CAMD_SSD_F_S_OFFSET(camd_ssd), CAMD_SSD_F_E_OFFSET(camd_ssd));
 
@@ -4400,28 +4188,19 @@ EC_BOOL camd_ssd_flush_terminate(CAMD_SSD *camd_ssd)
 /*flush mem cache page to ssd complete*/
 EC_BOOL camd_ssd_flush_complete(CAMD_SSD *camd_ssd)
 {
-    //CAMD_MD     *camd_md;
-    //CDC_MD      *cdc_md;
-
-    //CDCNP_KEY    cdcnp_key;
-    //CMCNP_KEY   *cmcnp_key;
-
     dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_ssd_flush_complete: "
                      "flush page [%ld, %ld) completed\n",
                      CAMD_SSD_F_S_OFFSET(camd_ssd), CAMD_SSD_F_E_OFFSET(camd_ssd));
 
-    //CAMD_ASSERT(NULL_PTR != CAMD_SSD_CAMD_MD(camd_ssd));
-    //camd_md = CAMD_SSD_CAMD_MD(camd_ssd);
-
-    //CAMD_ASSERT(NULL_PTR != CAMD_MD_CDC_MD(camd_md));
-    //cdc_md = CAMD_MD_CDC_MD(camd_md);
-
-    //cmcnp_key = CAMD_SSD_CMCNP_KEY(camd_ssd);
-    //CDCNP_KEY_S_PAGE(&cdcnp_key) = CMCNP_KEY_S_PAGE(cmcnp_key);
-    //CDCNP_KEY_E_PAGE(&cdcnp_key) = CMCNP_KEY_E_PAGE(cmcnp_key);
-
-    /*set flag*/
-    //cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), &cdcnp_key);
+    /*
+    * note:
+    *
+    *   when aio flush from cmc to cdc,
+    *   data and sata dirty flag should be transfered to cdc in atomic operation
+    *
+    *   thus it is not necessary to set cdc sata dirty flag afer flush
+    *
+    */
 
     camd_ssd_free(camd_ssd);
 
@@ -4429,8 +4208,8 @@ EC_BOOL camd_ssd_flush_complete(CAMD_SSD *camd_ssd)
 }
 
 
-/*flush one page when cmc scan deg list*/
-EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
+/*flush one page to ssd when cmc scan deg list*/
+EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
                             const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
 {
     CMC_MD          *cmc_md;
@@ -4498,7 +4277,10 @@ EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
     offset     = (f_s_offset);
     wsize      = (f_e_offset - f_s_offset);
 
-    camd_fc_inc_traffic(CAMD_MD_SSD_FC(camd_md), wsize);
+    if(BIT_TRUE == CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item)) /*xxx*/
+    {
+        cfc_inc_traffic(CAMD_MD_SSD_FC(camd_md), wsize);
+    }
 
     if(BIT_TRUE == CAMD_MD_FORCE_DIO_FLAG(camd_md))
     {
@@ -4511,8 +4293,11 @@ EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
             return (EC_FALSE);
         }
 
-        offset = (f_s_offset); /*reset*/
-        cdc_file_set_ssd_dirty(cdc_md, &offset, wsize);
+        if(BIT_TRUE == CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item))
+        {
+            offset = (f_s_offset); /*reset*/
+            cdc_file_set_sata_dirty(cdc_md, &offset, wsize);
+        }
 
         dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_ssd_flush: "
                                              "dio flush page [%ld, %ld) to ssd done\n",
@@ -4532,10 +4317,10 @@ EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
         }
 
         /*init*/
-        CAMD_SSD_F_S_OFFSET(camd_ssd)     = f_s_offset;
-        CAMD_SSD_F_E_OFFSET(camd_ssd)     = f_e_offset;
-        CAMD_SSD_TIMEOUT_NSEC(camd_ssd)   = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
-        CAMD_SSD_CAMD_MD(camd_ssd)        = camd_md;
+        CAMD_SSD_F_S_OFFSET(camd_ssd)       = f_s_offset;
+        CAMD_SSD_F_E_OFFSET(camd_ssd)       = f_e_offset;
+        CAMD_SSD_TIMEOUT_NSEC(camd_ssd)     = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
+        CAMD_SSD_CAMD_MD(camd_ssd)          = camd_md;
 
         cmcnp_key_clone(cmcnp_key, CAMD_SSD_CMCNP_KEY(camd_ssd));
 
@@ -4548,7 +4333,8 @@ EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
         caio_cb_set_complete_handler(&caio_cb,
                                     (CAIO_CALLBACK)camd_ssd_flush_complete, (void *)camd_ssd);
 
-        if(EC_FALSE == cdc_file_write_aio(cdc_md, &offset, wsize, buff, &caio_cb))
+        if(EC_FALSE == cdc_file_write_aio(cdc_md, &offset, wsize, buff,
+                                          CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item), &caio_cb))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_ssd_flush: "
                                                  "aio flush page [%ld, %ld) to ssd failed\n",
@@ -4572,8 +4358,11 @@ EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
             return (EC_FALSE);
         }
 
-        offset = (f_s_offset); /*reset*/
-        cdc_file_set_ssd_dirty(cdc_md, &offset, wsize);
+        if(BIT_TRUE == CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item))
+        {
+            offset = (f_s_offset); /*reset*/
+            cdc_file_set_sata_dirty(cdc_md, &offset, wsize);
+        }
 
         dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_ssd_flush: "
                                              "flush page [%ld, %ld) [crc %u] to ssd done\n",
@@ -4693,6 +4482,7 @@ EC_BOOL camd_sata_flush_timeout(CAMD_SATA *camd_sata)
 
     /*restore flag*/
     cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
+    cdcnp_set_sata_dirty(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
     camd_sata_free(camd_sata);
     return (EC_TRUE);
@@ -4720,6 +4510,7 @@ EC_BOOL camd_sata_flush_terminate(CAMD_SATA *camd_sata)
 
     /*restore flag*/
     cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
+    cdcnp_set_sata_dirty(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
     camd_sata_free(camd_sata);
     return (EC_TRUE);
@@ -4745,7 +4536,7 @@ EC_BOOL camd_sata_flush_complete(CAMD_SATA *camd_sata)
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CDC_MD(camd_md));
     cdc_md = CAMD_MD_CDC_MD(camd_md);
 
-    /*restore flag*/
+    /*set flag*/
     cdcnp_set_sata_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
     camd_sata_free(camd_sata);
@@ -4771,6 +4562,7 @@ EC_BOOL camd_ssd_load_timeout(CAMD_SATA *camd_sata)
 
     /*restore flag*/
     cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
+    cdcnp_set_sata_dirty(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
     camd_sata_free(camd_sata);
     return (EC_TRUE);
@@ -4794,6 +4586,7 @@ EC_BOOL camd_ssd_load_terminate(CAMD_SATA *camd_sata)
 
     /*restore flag*/
     cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
+    cdcnp_set_sata_dirty(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
     camd_sata_free(camd_sata);
     return (EC_TRUE);
@@ -4829,8 +4622,9 @@ EC_BOOL camd_ssd_load_complete(CAMD_SATA *camd_sata)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_ssd_load_complete: sata fd is null\n");
 
-        /*restore flag*/
+       /*restore flag*/
         cdcnp_set_sata_not_flushed(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
+        cdcnp_set_sata_dirty(CDC_MD_NP(cdc_md), CAMD_SATA_CDCNP_KEY(camd_sata));
 
         camd_sata_free(camd_sata);
         return (EC_FALSE);
@@ -5130,6 +4924,193 @@ EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key)
     return (EC_TRUE);
 }
 
+/*flush mem cache page to sata timeout*/
+EC_BOOL camd_sata_degrade_timeout(CAMD_SATA *camd_sata)
+{
+    dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "fata error:camd_sata_degrade_timeout: "
+                     "flush page [%ld, %ld) timeout\n",
+                     CAMD_SATA_F_S_OFFSET(camd_sata), CAMD_SATA_F_E_OFFSET(camd_sata));
+
+    camd_sata_free(camd_sata);
+    return (EC_TRUE);
+}
+
+/*flush mem cache page to sata terminate*/
+EC_BOOL camd_sata_degrade_terminate(CAMD_SATA *camd_sata)
+{
+    dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "fatal error:camd_sata_degrade_terminate: "
+                     "flush page [%ld, %ld) terminated\n",
+                     CAMD_SATA_F_S_OFFSET(camd_sata), CAMD_SATA_F_E_OFFSET(camd_sata));
+
+    camd_sata_free(camd_sata);
+    return (EC_TRUE);
+}
+
+/*flush mem cache page to sata complete*/
+EC_BOOL camd_sata_degrade_complete(CAMD_SATA *camd_sata)
+{
+    dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_sata_degrade_complete: "
+                     "flush page [%ld, %ld) completed\n",
+                     CAMD_SATA_F_S_OFFSET(camd_sata), CAMD_SATA_F_E_OFFSET(camd_sata));
+
+    camd_sata_free(camd_sata);
+
+    return (EC_TRUE);
+}
+
+
+/*flush one page to sata when cmc scan deg list*/
+EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
+                            const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    CMC_MD          *cmc_md;
+
+    UINT8           *buff;
+    UINT32           f_s_offset;
+    UINT32           f_e_offset;
+    UINT32           offset;
+    UINT32           wsize;
+
+    int              sata_disk_fd;
+
+    if(ERR_FD == CAMD_MD_SATA_DISK_FD(camd_md))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: no sata disk fd\n");
+        return (EC_FALSE);
+    }
+    sata_disk_fd = CAMD_MD_SATA_DISK_FD(camd_md);
+
+    /*check cmc validity*/
+    if(NULL_PTR == CAMD_MD_CMC_MD(camd_md))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: cmc is null\n");
+        return (EC_FALSE);
+    }
+
+    cmc_md = CAMD_MD_CMC_MD(camd_md);
+    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: cmc np is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: cmc dn is null\n");
+        return (EC_FALSE);
+    }
+
+    buff = cmcdn_node_locate(CMC_MD_DN(cmc_md), disk_no, block_no, page_no);
+    if(NULL_PTR == buff)
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                             "locate mem (disk %u, block %u, page %u) failed\n",
+                                             disk_no, block_no, page_no);
+        return (EC_FALSE);
+    }
+
+    CAMD_ASSERT(CMCNP_KEY_S_PAGE(cmcnp_key) + 1 == CMCNP_KEY_E_PAGE(cmcnp_key));
+
+    f_s_offset = (((UINT32)CMCNP_KEY_S_PAGE(cmcnp_key)) << ((UINT32)CDCPGB_PAGE_SIZE_NBITS));
+    f_e_offset = (((UINT32)CMCNP_KEY_E_PAGE(cmcnp_key)) << ((UINT32)CDCPGB_PAGE_SIZE_NBITS));
+    offset     = (f_s_offset);
+    wsize      = (f_e_offset - f_s_offset);
+
+    cfc_inc_traffic(CAMD_MD_SATA_WRITE_FC(camd_md), wsize);
+
+    if(BIT_TRUE == CAMD_MD_FORCE_DIO_FLAG(camd_md))
+    {
+        if(EC_FALSE == c_file_pwrite(sata_disk_fd, &offset, wsize, buff))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                                 "dio flush page [%ld, %ld) to sata failed\n",
+                                                 f_s_offset, f_e_offset);
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_sata_degrade: "
+                                             "dio flush page [%ld, %ld) to sata done\n",
+                                             f_s_offset, f_e_offset);
+    }
+    else if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
+    {
+        CAIO_MD          *caio_md;
+        CAMD_SATA        *camd_sata;
+        CAIO_CB           caio_cb;
+        UINT8            *m_buff;
+
+        caio_md = CAMD_MD_CAIO_MD(camd_md);
+
+        m_buff = __camd_mem_cache_new(wsize);
+        if(NULL_PTR == m_buff)
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                                 "new %ld bytes failed\n",
+                                                 wsize);
+            return (EC_FALSE);
+        }
+        FCOPY(buff, m_buff, wsize); /*clone*/
+
+        camd_sata = camd_sata_new();
+        if(NULL_PTR == camd_sata)
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                                 "new camd_sata failed\n");
+            __camd_mem_cache_free(m_buff);
+            return (EC_FALSE);
+        }
+
+        /*init*/
+        CAMD_SATA_FD(camd_sata)             = sata_disk_fd;
+        CAMD_SATA_F_S_OFFSET(camd_sata)     = f_s_offset;
+        CAMD_SATA_F_E_OFFSET(camd_sata)     = f_e_offset;
+        CAMD_SATA_M_BUFF(camd_sata)         = m_buff;
+        CAMD_SATA_TIMEOUT_NSEC(camd_sata)   = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
+        CAMD_SATA_CAMD_MD(camd_sata)        = camd_md;
+
+        caio_cb_init(&caio_cb);
+        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_SATA_TIMEOUT_NSEC(camd_sata),
+                                    (CAIO_CALLBACK)camd_sata_degrade_timeout, (void *)camd_sata);
+
+        caio_cb_set_terminate_handler(&caio_cb,
+                                    (CAIO_CALLBACK)camd_sata_degrade_terminate, (void *)camd_sata);
+        caio_cb_set_complete_handler(&caio_cb,
+                                    (CAIO_CALLBACK)camd_sata_degrade_complete, (void *)camd_sata);
+
+        if(EC_FALSE == caio_file_write(caio_md, sata_disk_fd, &offset, wsize, m_buff, &caio_cb))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                                 "aio flush page [%ld, %ld) to sata failed\n",
+                                                 f_s_offset, f_e_offset);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_sata_degrade: "
+                                             "aio flush page [%ld, %ld) [crc %u] to sata done\n",
+                                             f_s_offset, f_e_offset,
+                                             CAMD_CRC32(m_buff, wsize));
+    }
+    else
+    {
+        if(EC_FALSE == c_file_pwrite(sata_disk_fd, &offset, wsize, buff))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
+                                                 "flush page [%ld, %ld) to sata failed\n",
+                                                 f_s_offset, f_e_offset);
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_sata_degrade: "
+                                             "flush page [%ld, %ld) [crc %u] to sata done\n",
+                                             f_s_offset, f_e_offset,
+                                             CAMD_CRC32(buff, wsize));
+    }
+
+    return (EC_TRUE);
+}
+
 /*----------------------------------- camd external interface -----------------------------------*/
 
 EC_BOOL camd_file_read_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff, CAIO_CB *caio_cb)
@@ -5182,7 +5163,7 @@ EC_BOOL camd_file_read_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT3
         return (EC_FALSE);
     }
 
-    camd_fc_inc_traffic(CAMD_MD_READ_FC(camd_md), rsize);
+    cfc_inc_traffic(CAMD_MD_AMD_READ_FC(camd_md), rsize);
 
     dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_file_read_aio: "
                                          "submit req %ld, op %s, fd %d, file range [%ld, %ld) done\n",
@@ -5247,7 +5228,7 @@ EC_BOOL camd_file_write_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT
         return (EC_FALSE);
     }
 
-    camd_fc_inc_traffic(CAMD_MD_WRITE_FC(camd_md), wsize);
+    cfc_inc_traffic(CAMD_MD_AMD_WRITE_FC(camd_md), wsize);
 
     dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_file_write_aio: "
                                          "submit req %ld, op %s, fd %d, file range [%ld, %ld) done\n",
@@ -5294,7 +5275,6 @@ EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize)
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_file_delete: "
                                              "mem delete from offset %ld, size %ld done\n",
                                              s_offset, dsize);
-
     }
 
     /*delete from ssd cache*/
@@ -5325,12 +5305,209 @@ EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize)
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_file_delete: "
                                              "ssd delete from offset %ld, size %ld done\n",
                                              s_offset, dsize);
-
     }
 
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __camd_file_read_timeout(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0017);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __camd_file_read_terminate(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0018);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __camd_file_read_complete(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0019);
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+{
+    CAIO_CB              caio_cb;
+    COROUTINE_COND       coroutine_cond;
+
+    CAMD_REQ            *camd_req;
+
+    CAMD_ASSERT(NULL_PTR != offset);
+
+    caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
+                                (CAIO_CALLBACK)__camd_file_read_timeout, (void *)&coroutine_cond);
+
+    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_terminate, (void *)&coroutine_cond);
+    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_complete, (void *)&coroutine_cond);
+
+    camd_req = camd_req_new();
+    if(NULL_PTR == camd_req)
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: new camd_req failed\n");
+
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == caio_cb_clone(&caio_cb, CAMD_REQ_CAIO_CB(camd_req)))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: clone caio_cb to camd_req failed\n");
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    }
+
+    CAMD_REQ_S_MSEC(camd_req) = c_get_cur_time_msec();
+
+    CAMD_REQ_SEQ_NO(camd_req)       = ++ CAMD_MD_SEQ_NO(camd_md);
+    CAMD_REQ_OP(camd_req)           = CAMD_OP_RD;
+
+    CAMD_REQ_CAMD_MD(camd_req)      = camd_md;
+    CAMD_REQ_FD(camd_req)           = fd;
+    CAMD_REQ_M_BUFF(camd_req)       = buff;
+    CAMD_REQ_M_CACHE(camd_req)      = NULL_PTR;
+    CAMD_REQ_OFFSET(camd_req)       = offset;
+    CAMD_REQ_F_S_OFFSET(camd_req)   = (*offset);
+    CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + rsize;
+    CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
+    CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(&caio_cb);
+    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(&caio_cb) * 1000;
+
+    if(EC_FALSE == camd_submit_req(camd_md, camd_req))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: submit req %ld failed\n",
+                                             CAMD_REQ_SEQ_NO(camd_req));
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    }
+
+    coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0020);
+    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0021);
+    coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0022);
+
+    __COROUTINE_IF_EXCEPTION() {/*exception*/
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
+                                             "submit req %ld but coroutine was cancelled\n",
+                                             CAMD_REQ_SEQ_NO(camd_req));
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    } else { /*normal*/
+        /*do nothing*/
+    }
+
+    dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_file_read: submit req %ld done\n",
+                                         CAMD_REQ_SEQ_NO(camd_req));
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __camd_file_write_timeout(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0023);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __camd_file_write_terminate(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0024);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __camd_file_write_complete(COROUTINE_COND *coroutine_cond)
+{
+    coroutine_cond_release(coroutine_cond, LOC_CAMD_0025);
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+{
+    CAIO_CB              caio_cb;
+    COROUTINE_COND       coroutine_cond;
+
+    CAMD_REQ            *camd_req;
+
+    CAMD_ASSERT(NULL_PTR != offset);
+
+    caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
+                                (CAIO_CALLBACK)__camd_file_write_timeout, (void *)&coroutine_cond);
+
+    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_terminate, (void *)&coroutine_cond);
+    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_complete, (void *)&coroutine_cond);
+
+    camd_req = camd_req_new();
+    if(NULL_PTR == camd_req)
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: new camd_req failed\n");
+
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == caio_cb_clone(&caio_cb, CAMD_REQ_CAIO_CB(camd_req)))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: clone caio_cb to camd_req failed\n");
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    }
+
+    CAMD_REQ_S_MSEC(camd_req) = c_get_cur_time_msec();
+
+    CAMD_REQ_SEQ_NO(camd_req)       = ++ CAMD_MD_SEQ_NO(camd_md);
+    CAMD_REQ_OP(camd_req)           = CAMD_OP_WR;
+
+    CAMD_REQ_CAMD_MD(camd_req)      = camd_md;
+    CAMD_REQ_FD(camd_req)           = fd;
+    CAMD_REQ_M_BUFF(camd_req)       = (UINT8 *)buff;
+    CAMD_REQ_M_CACHE(camd_req)      = NULL_PTR;
+    CAMD_REQ_OFFSET(camd_req)       = offset;
+    CAMD_REQ_F_S_OFFSET(camd_req)   = (*offset);
+    CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + wsize;
+    CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
+    CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(&caio_cb);
+    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(&caio_cb) * 1000;
+
+    if(EC_FALSE == camd_submit_req(camd_md, camd_req))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: submit req %ld failed\n",
+                                             CAMD_REQ_SEQ_NO(camd_req));
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    }
+
+    cfc_inc_traffic(CAMD_MD_AMD_WRITE_FC(camd_md), wsize);
+
+    dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_file_write: "
+                                         "submit req %ld, op %s, fd %d, file range [%ld, %ld) done\n",
+                                         CAMD_REQ_SEQ_NO(camd_req),
+                                         __camd_op_str(CAMD_REQ_OP(camd_req)),
+                                         CAMD_REQ_FD(camd_req),
+                                         CAMD_REQ_F_S_OFFSET(camd_req), CAMD_REQ_F_E_OFFSET(camd_req));
+
+    coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0026);
+    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0027);
+    coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0028);
+
+    __COROUTINE_IF_EXCEPTION() {/*exception*/
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
+                                             "submit req %ld but coroutine was cancelled\n",
+                                             CAMD_REQ_SEQ_NO(camd_req));
+
+        camd_req_free(camd_req);
+        return (EC_FALSE);
+    } else { /*normal*/
+        /*do nothing*/
+    }
+
+    dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_file_write: submit req %ld done\n",
+                                         CAMD_REQ_SEQ_NO(camd_req));
+
+    return (EC_TRUE);
+}
 
 #ifdef __cplusplus
 }

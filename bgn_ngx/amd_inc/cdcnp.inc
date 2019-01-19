@@ -146,11 +146,12 @@ typedef struct
     /*4B*/
     uint32_t        used_flag         :1;  /* item status: not used, used */
     uint32_t        dir_flag          :2;  /* directory or regular file */
-    uint32_t        ssd_locked_flag   :1;  /*locked for ssd loading or flushing*/
-    uint32_t        ssd_dirty_flag    :1;  /*file content dirty flag */
-    uint32_t        sata_flushing_flag:1;  /*file content is flushing to sata if set*/
-    uint32_t        sata_flushed_flag :1;  /*file content is flushed to sata if set */
-    uint32_t        rsvd01            :25;
+    uint32_t        ssd_locked_flag   :1;  /* locked for ssd loading or flushing */
+    uint32_t        sata_dirty_flag   :1;  /* file content should be flushed to sata if set */
+    uint32_t        sata_flushing_flag:1;  /* file content is flushing to sata if set */
+    uint32_t        sata_flushed_flag :1;  /* file content is flushed to sata if set */
+    uint32_t        deg_times         :7;  /* max times try to degrade up to 128 (2^7) times*/
+    uint32_t        rsvd01            :18;
 
     /*4B*/
     uint32_t        parent_pos;/*parent directory*/
@@ -178,10 +179,10 @@ typedef struct
 #define CDCNP_ITEM_DIR_FLAG(cdcnp_item)                  ((cdcnp_item)->dir_flag)
 #define CDCNP_ITEM_USED_FLAG(cdcnp_item)                 ((cdcnp_item)->used_flag)
 #define CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item)           ((cdcnp_item)->ssd_locked_flag)
-#define CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)            ((cdcnp_item)->ssd_dirty_flag)
+#define CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item)           ((cdcnp_item)->sata_dirty_flag)
 #define CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item)        ((cdcnp_item)->sata_flushing_flag)
 #define CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)         ((cdcnp_item)->sata_flushed_flag)
-
+#define CDCNP_ITEM_DEG_TIMES(cdcnp_item)                 ((cdcnp_item)->deg_times)
 #define CDCNP_ITEM_PARENT_POS(cdcnp_item)                ((cdcnp_item)->parent_pos)
 #define CDCNP_ITEM_FNODE(cdcnp_item)                     (&((cdcnp_item)->u.fnode))
 #define CDCNP_ITEM_DNODE(cdcnp_item)                     (&((cdcnp_item)->u.dnode))

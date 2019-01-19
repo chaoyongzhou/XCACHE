@@ -229,7 +229,7 @@ extern "C"{
 #define                   MM_CRFSCONHASH    ((UINT32)157)
 #define             MM_CRFSCONHASH_RNODE    ((UINT32)158)
 #define             MM_CRFSCONHASH_VNODE    ((UINT32)159)
-#define                     MM_XXXXXX_02    ((UINT32)160)
+#define                      MM_CDEQUEUE    ((UINT32)160)
 #define                MM_CRFSCHTTP_NODE    ((UINT32)161)
 #define                   MM_CEXPAT_ATTR    ((UINT32)162)
 #define                   MM_CEXPAT_NODE    ((UINT32)163)

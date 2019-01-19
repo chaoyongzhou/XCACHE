@@ -152,7 +152,7 @@ typedef struct
     int         fd;
     int         rsvd;
 
-    UINT32      max_req_num;
+    UINT32     *max_req_num;
     UINT32      cur_req_num;
 }CAIO_DISK;
 
@@ -600,7 +600,7 @@ EC_BOOL caio_cleanup_post_event_reqs(CAIO_MD *caio_md);
 
 CAIO_REQ *caio_search_req(CAIO_MD *caio_md, const UINT32 seq_no);
 
-EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, const UINT32 max_req_num);
+EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, UINT32 *max_req_num);
 
 EC_BOOL caio_del_disk(CAIO_MD *caio_md, const int fd);
 

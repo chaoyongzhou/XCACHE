@@ -115,7 +115,7 @@ STATIC_CAST EC_BOOL __caio_setup(unsigned nr_reqs, aio_context_t *ctx)
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_setup:"
                                                  "unknown errno = %d, errstr = %s\n",
-                                                 err, c_strerror(err));
+                                                 err, strerror(err));
             break;
         }
     }
@@ -168,7 +168,7 @@ STATIC_CAST EC_BOOL __caio_destroy(aio_context_t ctx)
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_destroy: "
                                                  "unknown errno = %d, errstr = %s\n",
-                                                 err, c_strerror(err));
+                                                 err, strerror(err));
             break;
         }
     }
@@ -229,7 +229,7 @@ STATIC_CAST EC_BOOL __caio_getevents(aio_context_t ctx, long min_nr, long nr, st
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_getevents: "
                                                  "unknown errno = %d, errstr = %s\n",
-                                                 err, c_strerror(err));
+                                                 err, strerror(err));
             break;
         }
     }
@@ -338,7 +338,7 @@ STATIC_CAST EC_BOOL __caio_submit(aio_context_t ctx, long nr, long *succ_nr, str
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_submit: "
                                                  "unknown errno = %d, errstr = %s\n",
-                                                 err, c_strerror(err));
+                                                 err, strerror(err));
             break;
         }
     }
@@ -395,7 +395,7 @@ STATIC_CAST EC_BOOL __caio_cancel(aio_context_t ctx, struct iocb *iocb, struct i
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_cancel: "
                                                  "unknown errno = %d, errstr = %s\n",
-                                                 err, c_strerror(err));
+                                                 err, strerror(err));
             break;
         }
     }
@@ -757,7 +757,7 @@ CAIO_DISK *caio_disk_new()
 EC_BOOL caio_disk_init(CAIO_DISK *caio_disk)
 {
     CAIO_DISK_FD(caio_disk)             = ERR_FD;
-    CAIO_DISK_MAX_REQ_NUM(caio_disk)    = 0;
+    CAIO_DISK_MAX_REQ_NUM(caio_disk)    = NULL_PTR;
     CAIO_DISK_CUR_REQ_NUM(caio_disk)    = 0;
 
     return (EC_TRUE);
@@ -768,7 +768,7 @@ EC_BOOL caio_disk_clean(CAIO_DISK *caio_disk)
     if(NULL_PTR != caio_disk)
     {
         CAIO_DISK_FD(caio_disk)             = ERR_FD;
-        CAIO_DISK_MAX_REQ_NUM(caio_disk)    = 0;
+        CAIO_DISK_MAX_REQ_NUM(caio_disk)    = NULL_PTR;
         CAIO_DISK_CUR_REQ_NUM(caio_disk)    = 0;
     }
 
@@ -790,7 +790,7 @@ void caio_disk_print(LOG *log, const CAIO_DISK *caio_disk)
     sys_log(log, "caio_disk_print: caio_disk %p: fd %d, max req num %ld, cur req num %ld\n",
                  caio_disk,
                  CAIO_DISK_FD(caio_disk),
-                 CAIO_DISK_MAX_REQ_NUM(caio_disk),
+                 NULL_PTR != CAIO_DISK_MAX_REQ_NUM(caio_disk) ? *(CAIO_DISK_MAX_REQ_NUM(caio_disk)): (UINT32)-1,
                  CAIO_DISK_CUR_REQ_NUM(caio_disk));
 
     return;
@@ -2487,7 +2487,7 @@ CAIO_MD *caio_start(const UINT32 model)
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_start: "
                                              "get eventfd failed, errno = %d, errstr = %s\n",
-                                             errno, c_strerror(errno));
+                                             errno, strerror(errno));
 
         caio_end(caio_md);
         return (NULL_PTR);
@@ -2717,7 +2717,7 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
                 err = (int)(-event[ idx ].res);
                 dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
                                                      "errno = %d, errstr = %s\n",
-                                                     err, c_strerror(err));
+                                                     err, strerror(err));
 
                 caio_page_terminate(caio_page);
             }
@@ -3015,7 +3015,8 @@ void caio_process_pages(CAIO_MD *caio_md)
 
         if(BIT_TRUE == CAIO_PAGE_WORKING_FLAG(caio_page)
         || CAIO_REQ_MAX_NUM <= aio_req_num
-        || CAIO_DISK_MAX_REQ_NUM(caio_disk) <= CAIO_DISK_CUR_REQ_NUM(caio_disk))
+        || (NULL_PTR != CAIO_DISK_MAX_REQ_NUM(caio_disk) && (*CAIO_DISK_MAX_REQ_NUM(caio_disk)) <= CAIO_DISK_CUR_REQ_NUM(caio_disk))
+        )
         {
             /*add to standby page list temporarily*/
             caio_add_page(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md), caio_page);
@@ -3649,7 +3650,7 @@ CAIO_REQ *caio_search_req(CAIO_MD *caio_md, const UINT32 seq_no)
     return (caio_req);
 }
 
-EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, const UINT32 max_req_num)
+EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, UINT32 *max_req_num)
 {
     CAIO_DISK   *caio_disk;
 

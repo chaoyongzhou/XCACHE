@@ -35,12 +35,18 @@ extern "C"{
 #define CMC_RETIRE_LO_RATIO                (0.80) /*80%*/
 #endif
 
-#define CMC_DEGRADE_TRAFFIC_10M            (((uint64_t)10) << 23) /*10Mbps*/
-#define CMC_DEGRADE_TRAFFIC_20M            (((uint64_t)20) << 23) /*20Mbps*/
-#define CMC_DEGRADE_TRAFFIC_30M            (((uint64_t)30) << 23) /*30Mbps*/
-#define CMC_DEGRADE_TRAFFIC_40M            (((uint64_t)40) << 23) /*40Mbps*/
-#define CMC_DEGRADE_TRAFFIC_60M            (((uint64_t)60) << 23) /*60Mbps*/
-#define CMC_DEGRADE_TRAFFIC_80M            (((uint64_t)80) << 23) /*80Mbps*/
+#define CMC_DEGRADE_TRAFFIC_10MB           (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_DEGRADE_TRAFFIC_20MB           (((uint64_t)20) << 23) /*20Mbps*/
+#define CMC_DEGRADE_TRAFFIC_30MB           (((uint64_t)30) << 23) /*30Mbps*/
+#define CMC_DEGRADE_TRAFFIC_40MB           (((uint64_t)40) << 23) /*40Mbps*/
+#define CMC_DEGRADE_TRAFFIC_60MB           (((uint64_t)60) << 23) /*60Mbps*/
+#define CMC_DEGRADE_TRAFFIC_80MB           (((uint64_t)80) << 23) /*80Mbps*/
+
+#define CMC_READ_TRAFFIC_05MB              (((uint64_t) 5) << 23) /* 5Mbps*/
+#define CMC_READ_TRAFFIC_10MB              (((uint64_t)10) << 23) /*10Mbps*/
+
+#define CMC_WRITE_TRAFFIC_05MB             (((uint64_t) 5) << 23) /* 5Mbps*/
+#define CMC_WRITE_TRAFFIC_10MB             (((uint64_t)10) << 23) /*10Mbps*/
 
 typedef struct
 {
@@ -104,7 +110,7 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md);
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps);
+void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, const uint64_t read_traffic_bps, const uint64_t write_traffic_bps);
 
 /**
 *
@@ -153,18 +159,10 @@ EC_BOOL cmc_close_dn(CMC_MD *cmc_md);
 
 /**
 *
-*  find intersected range
+*  find item
 *
 **/
-EC_BOOL cmc_find_intersected(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key);
-
-/**
-*
-*  find closest range
-*
-**/
-EC_BOOL cmc_find_closest(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, CMCNP_KEY *cmcnp_key_closest);
-
+CMCNP_ITEM *cmc_find(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key);
 
 /**
 *
@@ -210,17 +208,17 @@ EC_BOOL cmc_file_delete(CMC_MD *cmc_md, UINT32 *offset, const UINT32 dsize);
 
 /**
 *
-*  set file ssd flush flag which means flush it to ssd later
+*  set file ssd dirty flag which means flush it to ssd later
 *
 **/
-EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
+EC_BOOL cmc_file_set_ssd_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
 
 /**
 *
-*  set file ssd not flush flag which means cmc should not flush it to ssd
+*  unset file ssd dirty flag which means cmc should not flush it to ssd
 *
 **/
-EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
+EC_BOOL cmc_file_set_ssd_not_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize);
 
 /**
 *
@@ -296,13 +294,6 @@ EC_BOOL cmc_read_e_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode, UINT32 *of
 
 /**
 *
-*  delete all intersected file
-*
-**/
-EC_BOOL cmc_delete_intersected(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key);
-
-/**
-*
 *  delete a page
 *
 **/
@@ -372,6 +363,13 @@ EC_BOOL cmc_recycle(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
 *
 **/
 EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
+
+/**
+*
+*  degrade files
+*
+**/
+EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
 
 EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, CMCNP_DEGRADE_CALLBACK func, void *arg);
 

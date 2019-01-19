@@ -182,7 +182,19 @@ void cmcnpdeg_node_move_head(CMCNP *cmcnp, CMCNPDEG_NODE *node, const uint32_t n
         cmcnpdeg_node_add_head(cmcnp, node, node_pos);
 
         dbg_log(SEC_0189_CMCNPDEG, 9)(LOGSTDOUT, "[DEBUG] cmcnpdeg_node_move_head: node %p, pos %u\n", node, node_pos);
+        return;
     }
+
+    if(CMCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
+    && CMCNPDEG_ROOT_POS != CMCNPDEG_NODE_PREV_POS(node) /*ensure prev node is not root node*/
+    && node_pos == CMCNPDEG_NODE_NEXT_POS(node) /*ensure node not in list*/
+    && node_pos == CMCNPDEG_NODE_PREV_POS(node) /*ensure node not in list*/
+    )
+    {
+        cmcnpdeg_node_add_head(cmcnp, node, node_pos);
+        return;
+    }
+
     return;
 }
 
@@ -214,7 +226,19 @@ void cmcnpdeg_node_move_tail(CMCNP *cmcnp, CMCNPDEG_NODE *node, const uint32_t n
         cmcnpdeg_node_add_tail(cmcnp, node, node_pos);
 
         dbg_log(SEC_0189_CMCNPDEG, 9)(LOGSTDOUT, "[DEBUG] cmcnpdeg_node_move_tail: node %p, pos %u\n", node, node_pos);
+        return;
     }
+
+    if(CMCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
+    && CMCNPDEG_ROOT_POS != CMCNPDEG_NODE_NEXT_POS(node) /*ensure next node is not root node*/
+    && node_pos == CMCNPDEG_NODE_NEXT_POS(node) /*ensure node not in list*/
+    && node_pos == CMCNPDEG_NODE_PREV_POS(node) /*ensure node not in list*/
+    )
+    {
+        cmcnpdeg_node_add_tail(cmcnp, node, node_pos);
+        return;
+    }
+
     return;
 }
 

@@ -53,10 +53,19 @@ extern "C"{
 #define CDC_RETIRE_MD_RATIO                            (0.7) /*70%*/
 #define CDC_RETIRE_LO_RATIO                            (0.5) /*50%*/
 #endif
-#define CDC_DEGRADE_TRAFFIC_10M                        (((uint64_t)10) << 23) /*10Mbps*/
-#define CDC_DEGRADE_TRAFFIC_20M                        (((uint64_t)20) << 23) /*20Mbps*/
-#define CDC_DEGRADE_TRAFFIC_30M                        (((uint64_t)30) << 23) /*30Mbps*/
-#define CDC_DEGRADE_TRAFFIC_40M                        (((uint64_t)40) << 23) /*40Mbps*/
+#define CDC_DEGRADE_TRAFFIC_10MB                       (((uint64_t)10) << 23) /*10MBps*/
+#define CDC_DEGRADE_TRAFFIC_20MB                       (((uint64_t)20) << 23) /*20MBps*/
+#define CDC_DEGRADE_TRAFFIC_30MB                       (((uint64_t)30) << 23) /*30MBps*/
+#define CDC_DEGRADE_TRAFFIC_40MB                       (((uint64_t)40) << 23) /*40MBps*/
+
+#define CDC_READ_TRAFFIC_05MB                          (((uint64_t) 5) << 23) /* 5MBps*/
+#define CDC_READ_TRAFFIC_10MB                          (((uint64_t)10) << 23) /*10MBps*/
+#define CDC_READ_TRAFFIC_15MB                          (((uint64_t)15) << 23) /*15MBps*/
+
+#define CDC_WRITE_TRAFFIC_05MB                         (((uint64_t) 5) << 23) /* 5MBps*/
+#define CDC_WRITE_TRAFFIC_10MB                         (((uint64_t)10) << 23) /*10MBps*/
+#define CDC_WRITE_TRAFFIC_15MB                         (((uint64_t)15) << 23) /*15MBps*/
+
 
 #define CDC_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
 
@@ -140,7 +149,8 @@ typedef struct
     uint32_t                ssd_loading_flag :1;    /*page is loading from ssd*/
     uint32_t                ssd_flushing_flag:1;    /*page is flushing to ssd */
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
-    uint32_t                rsvd02           :27;
+    uint32_t                sata_dirty_flag  :1;    /*inherited from cdc node*/
+    uint32_t                rsvd02           :26;
 
     uint32_t                fail_counter;
 
@@ -175,6 +185,7 @@ typedef struct
 #define CDC_PAGE_SSD_LOADING_FLAG(cdc_page)           ((cdc_page)->ssd_loading_flag)
 #define CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page)          ((cdc_page)->ssd_flushing_flag)
 #define CDC_PAGE_MEM_CACHE_FLAG(cdc_page)             ((cdc_page)->mem_cache_flag)
+#define CDC_PAGE_SATA_DIRTY_FLAG(cdc_page)            ((cdc_page)->sata_dirty_flag)
 
 #define CDC_PAGE_FAIL_COUNTER(cdc_page)               ((cdc_page)->fail_counter)
 
@@ -202,9 +213,10 @@ typedef struct
 
     CDC_MD                 *cdc_md;             /*shortcut: point to cdc module*/
     int                     fd;                 /*inherited from application*/
-    uint32_t                detached_flag:1;    /*write in detached model if set to 1*/
-    uint32_t                keep_lru_flag:1;    /*do not modify cdc np lru info if set to 1*/
-    uint32_t                rsvd01       :30;
+    uint32_t                detached_flag  :1;  /*write in detached model if set to 1*/
+    uint32_t                keep_lru_flag  :1;  /*do not modify cdc np lru info if set to 1*/
+    uint32_t                sata_dirty_flag:1;  /*inherited from application*/
+    uint32_t                rsvd01         :29;
     UINT8                  *m_cache;            /*inherited from cdc page. not used yet!*/
     UINT8                  *m_buff;             /*inherited from application*/
     UINT32                 *offset;             /*inherited from application*/
@@ -236,6 +248,7 @@ typedef struct
 #define CDC_REQ_FD(cdc_req)                           ((cdc_req)->fd)
 #define CDC_REQ_DETACHED_FLAG(cdc_req)                ((cdc_req)->detached_flag)
 #define CDC_REQ_KEEP_LRU_FLAG(cdc_req)                ((cdc_req)->keep_lru_flag)
+#define CDC_REQ_SATA_DIRTY_FLAG(cdc_req)              ((cdc_req)->sata_dirty_flag)
 #define CDC_REQ_M_CACHE(cdc_req)                      ((cdc_req)->m_cache)
 #define CDC_REQ_M_BUFF(cdc_req)                       ((cdc_req)->m_buff)
 #define CDC_REQ_OFFSET(cdc_req)                       ((cdc_req)->offset)
@@ -252,18 +265,19 @@ typedef struct
 
 typedef struct
 {
-    CDC_REQ                *cdc_req;           /*shortcut: point to parent request*/
-    CDC_PAGE               *cdc_page;          /*shortcut: point to owning page*/
+    CDC_REQ                *cdc_req;            /*shortcut: point to parent request*/
+    CDC_PAGE               *cdc_page;           /*shortcut: point to owning page*/
 
     UINT32                  seq_no;             /*inherited from cdc req*/
     UINT32                  sub_seq_no;         /*mark the order in cdc req*/
     UINT32                  sub_seq_num;        /*shortcut for debug purpose. inherited from cdc req*/
     UINT32                  op;                 /*reading or writing*/
 
-    CDC_MD                 *cdc_md;            /*shortcut: point to cdc module*/
+    CDC_MD                 *cdc_md;             /*shortcut: point to cdc module*/
     int                     fd;                 /*inherited from application*/
-    uint32_t                m_buf_flag:1;       /*m_buf should be free if set 1*/
-    uint32_t                rsvd01    :31;
+    uint32_t                m_buf_flag     :1;  /*m_buf should be free if set 1*/
+    uint32_t                sata_dirty_flag:1;  /*inherited from cdc req*/
+    uint32_t                rsvd01         :30;
     UINT8                  *m_cache;            /*inherited from cdc page*/
     UINT8                  *m_buff;             /*inherited from application*/
     UINT32                  f_s_offset;         /*start offset in file*/
@@ -289,6 +303,7 @@ typedef struct
 #define CDC_NODE_M_CACHE(cdc_node)                    ((cdc_node)->m_cache)
 #define CDC_NODE_M_BUFF(cdc_node)                     ((cdc_node)->m_buff)
 #define CDC_NODE_M_BUFF_FLAG(cdc_node)                ((cdc_node)->m_buf_flag)
+#define CDC_NODE_SATA_DIRTY_FLAG(cdc_node)            ((cdc_node)->sata_dirty_flag)
 #define CDC_NODE_F_S_OFFSET(cdc_node)                 ((cdc_node)->f_s_offset)
 #define CDC_NODE_F_E_OFFSET(cdc_node)                 ((cdc_node)->f_e_offset)
 #define CDC_NODE_B_S_OFFSET(cdc_node)                 ((cdc_node)->b_s_offset)
@@ -394,6 +409,9 @@ EC_BOOL cdc_flow_control_disable_max_speed(CDC_MD *cdc_md);
 /*for debug*/
 EC_BOOL cdc_poll(CDC_MD *cdc_md);
 
+/*for debug only!*/
+EC_BOOL cdc_poll_debug(CDC_MD *cdc_md);
+
 /**
 *
 *  create name node
@@ -474,6 +492,13 @@ EC_BOOL cdc_release_dn(CDC_MD *cdc_md, const CDCNP_FNODE *cdcnp_fnode);
 
 /**
 *
+*  find item
+*
+**/
+CDCNP_ITEM *cdc_find(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key);
+
+/**
+*
 *  read a file (POSIX style interface)
 *
 **/
@@ -495,10 +520,10 @@ EC_BOOL cdc_file_delete(CDC_MD *cdc_md, UINT32 *offset, const UINT32 dsize);
 
 /**
 *
-*  set file ssd dirty flag which means cdc should flush it to sata later
+*  set file sata dirty flag which means cdc should flush it to sata later
 *
 **/
-EC_BOOL cdc_file_set_ssd_dirty(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize);
+EC_BOOL cdc_file_set_sata_dirty(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize);
 
 /**
 *
@@ -513,6 +538,7 @@ EC_BOOL cdc_file_set_sata_flushed(CDC_MD *cdc_md, UINT32 *offset, const UINT32 w
 *
 **/
 EC_BOOL cdc_file_set_sata_not_flushed(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize);
+
 
 /**
 *
@@ -662,6 +688,13 @@ EC_BOOL cdc_recycle(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num);
 *
 **/
 EC_BOOL cdc_retire(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num);
+
+/**
+*
+*  degrade files
+*
+**/
+EC_BOOL cdc_degrade(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num);
 
 /**
 *
@@ -872,7 +905,9 @@ EC_BOOL cdc_req_cancel_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node);
 /*----------------------------------- cdc module interface -----------------------------------*/
 
 
-void cdc_process(CDC_MD *cdc_md, const uint64_t traffic_speed_bps);
+void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
+                 const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
+                 const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps);
 
 void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
 
@@ -956,7 +991,7 @@ EC_BOOL cdc_file_load_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 rsize, UI
 
 EC_BOOL cdc_file_read_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 rsize, UINT8 *buff, CAIO_CB *caio_cb);
 
-EC_BOOL cdc_file_write_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize, UINT8 *buff, CAIO_CB *caio_cb);
+EC_BOOL cdc_file_write_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize, UINT8 *buff, const uint32_t sata_dirty_flag, CAIO_CB *caio_cb);
 
 
 #endif /*_CDC_H*/

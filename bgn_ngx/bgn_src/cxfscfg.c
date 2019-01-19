@@ -37,6 +37,9 @@ EC_BOOL cxfscfg_init(CXFSCFG *cxfscfg)
     CXFSCFG_DN_E_OFFSET(cxfscfg)          = ERR_OFFSET;
     CXFSCFG_DN_SIZE(cxfscfg)              = 0;
 
+    CXFSCFG_SSD_DISK_SIZE(cxfscfg)        = 0;
+    CXFSCFG_SSD_DISK_OFFSET(cxfscfg)      = ERR_OFFSET;
+
     return (EC_TRUE);
 }
 
@@ -56,6 +59,9 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg)
     CXFSCFG_DN_S_OFFSET(cxfscfg)          = ERR_OFFSET;
     CXFSCFG_DN_E_OFFSET(cxfscfg)          = ERR_OFFSET;
     CXFSCFG_DN_SIZE(cxfscfg)              = 0;
+
+    CXFSCFG_SSD_DISK_SIZE(cxfscfg)        = 0;
+    CXFSCFG_SSD_DISK_OFFSET(cxfscfg)      = ERR_OFFSET;
 
     return (EC_TRUE);
 }
@@ -84,6 +90,12 @@ void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg)
                    cxfscfg,
                    CXFSCFG_DN_S_OFFSET(cxfscfg), CXFSCFG_DN_E_OFFSET(cxfscfg),
                    CXFSCFG_DN_SIZE(cxfscfg));
+
+    sys_print(log, "cxfscfg_print: cxfscfg %p, "
+                   "ssd: size %ld, offset %ld\n",
+                   cxfscfg,
+                   CXFSCFG_SSD_DISK_SIZE(cxfscfg),
+                   CXFSCFG_SSD_DISK_OFFSET(cxfscfg));
    return;
 }
 

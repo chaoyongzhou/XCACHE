@@ -27,6 +27,8 @@ extern "C"{
 #include "cmc.h"
 #include "cdc.h"
 
+#include "cfc.h"
+
 /*AMD: aio + mem cache + disk cache*/
 
 #define CAMD_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
@@ -51,17 +53,6 @@ extern "C"{
 
 #define CAMD_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
 
-/*flow control*/
-typedef struct
-{
-    uint64_t        next_time_ms;
-    uint64_t        traffic_nbytes;
-    uint64_t        traffic_speed;   /*bps*/
-}CAMD_FC;
-
-#define CAMD_FC_NTIME_MS(camd_fc)                       ((camd_fc)->next_time_ms)
-#define CAMD_FC_TRAFFIC_NBYTES(camd_fc)                 ((camd_fc)->traffic_nbytes)
-#define CAMD_FC_TRAFFIC_SPEED(camd_fc)                  ((camd_fc)->traffic_speed)
 
 typedef struct
 {
@@ -79,12 +70,14 @@ typedef struct
 
     uint32_t         force_dio_flag:1;
     uint32_t         rsvd01        :31;
-    uint32_t         rsvd02;
+    int              sata_disk_fd;
 
-    CAMD_FC          ssd_flow_control;
-    CAMD_FC          mem_flow_control;
-    CAMD_FC          read_flow_control;
-    CAMD_FC          write_flow_control;
+    CFC              sata_read_flow_control;      /*sata flush bps*/
+    CFC              sata_write_flow_control;     /*sata flush bps*/
+    CFC              ssd_flow_control;            /*ssd flush bps */
+    CFC              mem_flow_control;            /*mem flush bps */
+    CFC              amd_read_flow_control;       /*amd read bps  */
+    CFC              amd_write_flow_control;      /*amd write bps */
 }CAMD_MD;
 
 #define CAMD_MD_CAIO_MD(camd_md)                        ((camd_md)->caio_md)
@@ -97,10 +90,13 @@ typedef struct
 #define CAMD_MD_PAGE_TREE(camd_md, idx)                 (&((camd_md)->page_tree[ (idx) ]))
 #define CAMD_MD_POST_EVENT_REQS(camd_md)                (&((camd_md)->post_event_reqs))
 #define CAMD_MD_FORCE_DIO_FLAG(camd_md)                 ((camd_md)->force_dio_flag)
+#define CAMD_MD_SATA_DISK_FD(camd_md)                   ((camd_md)->sata_disk_fd)
+#define CAMD_MD_SATA_READ_FC(camd_md)                   (&((camd_md)->sata_read_flow_control))
+#define CAMD_MD_SATA_WRITE_FC(camd_md)                  (&((camd_md)->sata_write_flow_control))
 #define CAMD_MD_SSD_FC(camd_md)                         (&((camd_md)->ssd_flow_control))
 #define CAMD_MD_MEM_FC(camd_md)                         (&((camd_md)->mem_flow_control))
-#define CAMD_MD_READ_FC(camd_md)                        (&((camd_md)->read_flow_control))
-#define CAMD_MD_WRITE_FC(camd_md)                       (&((camd_md)->write_flow_control))
+#define CAMD_MD_AMD_READ_FC(camd_md)                    (&((camd_md)->amd_read_flow_control))
+#define CAMD_MD_AMD_WRITE_FC(camd_md)                   (&((camd_md)->amd_write_flow_control))
 
 #define CAMD_MD_SWITCH_PAGE_TREE(camd_md)               \
     do{                                                 \
@@ -122,14 +118,17 @@ typedef struct
 
     UINT32                  timeout_nsec;           /*timeout in seconds*/
 
-    uint32_t                dirty_flag       :1;    /*page was changed by writing op*/
-    uint32_t                sata_loaded_flag :1;    /*page was loaded from sata*/
+    uint32_t                ssd_dirty_flag   :1;    /*page should flush to ssd later*/
     uint32_t                ssd_loaded_flag  :1;    /*page was loaded from ssd*/
-    uint32_t                sata_loading_flag:1;    /*page is loading from sata*/
     uint32_t                ssd_loading_flag :1;    /*page is loading from ssd*/
+
+    uint32_t                sata_dirty_flag  :1;    /*page should flush to sata later*/
+    uint32_t                sata_loaded_flag :1;    /*page was loaded from sata*/
+    uint32_t                sata_loading_flag:1;    /*page is loading from sata*/
+
     uint32_t                mem_flushed_flag :1;    /*page is flushed to mem*/
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
-    uint32_t                rsvd02           :25;
+    uint32_t                rsvd02           :24;
     uint32_t                rsvd03;
 
     UINT8                  *m_cache;                /*cache for one page*/
@@ -153,11 +152,15 @@ typedef struct
 #define CAMD_PAGE_OP(camd_page)                         ((camd_page)->op)
 
 #define CAMD_PAGE_TIMEOUT_NSEC(camd_page)               ((camd_page)->timeout_nsec)
-#define CAMD_PAGE_DIRTY_FLAG(camd_page)                 ((camd_page)->dirty_flag)
-#define CAMD_PAGE_SATA_LOADED_FLAG(camd_page)           ((camd_page)->sata_loaded_flag)
+
+#define CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)             ((camd_page)->ssd_dirty_flag)
 #define CAMD_PAGE_SSD_LOADED_FLAG(camd_page)            ((camd_page)->ssd_loaded_flag)
-#define CAMD_PAGE_SATA_LOADING_FLAG(camd_page)          ((camd_page)->sata_loading_flag)
 #define CAMD_PAGE_SSD_LOADING_FLAG(camd_page)           ((camd_page)->ssd_loading_flag)
+
+#define CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)            ((camd_page)->sata_dirty_flag)
+#define CAMD_PAGE_SATA_LOADED_FLAG(camd_page)           ((camd_page)->sata_loaded_flag)
+#define CAMD_PAGE_SATA_LOADING_FLAG(camd_page)          ((camd_page)->sata_loading_flag)
+
 #define CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)           ((camd_page)->mem_flushed_flag)
 #define CAMD_PAGE_MEM_CACHE_FLAG(camd_page)             ((camd_page)->mem_cache_flag)
 
@@ -510,6 +513,9 @@ EC_BOOL camd_try_quit(CAMD_MD *camd_md);
 
 EC_BOOL camd_poll(CAMD_MD *camd_md);
 
+/*for debug only!*/
+EC_BOOL camd_poll_debug(CAMD_MD *camd_md);
+
 void camd_process(CAMD_MD *camd_md);
 
 void camd_process_reqs(CAMD_MD *camd_md);
@@ -585,7 +591,7 @@ EC_BOOL camd_ssd_flush_terminate(CAMD_SSD *camd_ssd);
 EC_BOOL camd_ssd_flush_complete(CAMD_SSD *camd_ssd);
 
 /*flush one page when cmc retire it*/
-EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key,
+EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
                             const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 CAMD_SATA *camd_sata_new();
@@ -610,6 +616,19 @@ EC_BOOL camd_sata_flush_complete(CAMD_SATA *camd_sata);
 /*flush ssd page to sata when cdc scan lru list before retire it*/
 EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key);
 
+/*flush mem cache page to sata timeout*/
+EC_BOOL camd_sata_degrade_timeout(CAMD_SATA *camd_sata);
+
+/*flush mem cache page to sata terminate*/
+EC_BOOL camd_sata_degrade_terminate(CAMD_SATA *camd_sata);
+
+/*flush mem cache page to sata complete*/
+EC_BOOL camd_sata_degrade_complete(CAMD_SATA *camd_sata);
+
+/*flush one page to sata when cmc scan deg list*/
+EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
+                            const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
 
 /*----------------------------------- camd external interface -----------------------------------*/
 
@@ -619,7 +638,9 @@ EC_BOOL camd_file_write_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT
 
 EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize);
 
+EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
+EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
 
 #endif /*_CAMD_H*/
 

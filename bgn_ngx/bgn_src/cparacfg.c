@@ -106,6 +106,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_HIGH_PRECISION_TIME_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_HTTP_SWITCH);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_RFS_SWITCH);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_XFS_SWITCH);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM);
@@ -278,6 +280,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
 
     sys_log(log, "CPARACFG_HIGH_PRECISION_TIME_SWITCH        = %s\n" ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_NGX_BGN_OVER_HTTP_SWITCH          = %s\n" ,  CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
+    sys_log(log, "CPARACFG_NGX_BGN_OVER_RFS_SWITCH           = %s\n" ,  CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
+    sys_log(log, "CPARACFG_NGX_BGN_OVER_XFS_SWITCH           = %s\n" ,  CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
 
     sys_log(log, "CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM         = %ld\n",  CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
     sys_log(log, "CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM        = %ld\n",  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
@@ -285,10 +289,10 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH        = %s\n" ,  CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
     sys_log(log, "CPARACFG_CRFSDN_CAMD_SWITCH                = %s\n" ,  CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(GB)    = %ld\n",  CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-    sys_log(log, "CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE (MB)    = %ld\n",  CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(B)    = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE (GB)    = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE        = %ld\n",  CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE         = %ld\n",  CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET       = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
+    sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE         = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
     sys_log(log, "CPARACFG_CRFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CRFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg));
@@ -300,10 +304,10 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH        = %s\n" ,  CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
     sys_log(log, "CPARACFG_CXFSDN_CAMD_SWITCH                = %s\n" ,  CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(GB)    = %ld\n",  CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-    sys_log(log, "CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE (MB)    = %ld\n",  CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(B)    = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE (GB)    = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE        = %ld\n",  CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE         = %ld\n",  CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
+    sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET       = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
+    sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE         = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
     sys_log(log, "CPARACFG_CXFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CXFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg));
@@ -331,29 +335,30 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-    sys_log(log, "CAMD_SATA_AIO_REQ_MAX_NUM      = %ld\n" ,  CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
 
-    sys_log(log, "CMC_TRY_RETIRE_MAX_NUM_NUM     = %ld\n" ,  CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
-    sys_log(log, "CMC_TRY_RECYCLE_MAX_NUM        = %ld\n" ,  CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));
-    sys_log(log, "CMC_SCAN_RETIRE_MAX_NUM        = %ld\n" ,  CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg));
+    sys_log(log, "CAMD_SATA_AIO_REQ_MAX_NUM                  = %ld\n" , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
 
-    sys_log(log, "CMC_PROCESS_DEGRADE_MAX_NUM    = %ld\n" ,  CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
-    sys_log(log, "CMC_SCAN_DEGRADE_MAX_NUM       = %ld\n" ,  CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg));
+    sys_log(log, "CMC_TRY_RETIRE_MAX_NUM_NUM                 = %ld\n" , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
+    sys_log(log, "CMC_TRY_RECYCLE_MAX_NUM                    = %ld\n" , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));
+    sys_log(log, "CMC_SCAN_RETIRE_MAX_NUM                    = %ld\n" , CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg));
 
-    sys_log(log, "CMC_DEGRADE_HI_RATIO           = %.2f\n",  CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg));
-    sys_log(log, "CMC_DEGRADE_MD_RATIO           = %.2f\n",  CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg));
-    sys_log(log, "CMC_DEGRADE_LO_RATIO           = %.2f\n",  CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg));
+    sys_log(log, "CMC_PROCESS_DEGRADE_MAX_NUM                = %ld\n" , CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
+    sys_log(log, "CMC_SCAN_DEGRADE_MAX_NUM                   = %ld\n" , CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg));
 
-    sys_log(log, "CDC_TRY_RETIRE_MAX_NUM_NUM     = %ld\n" ,  CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg));
-    sys_log(log, "CDC_TRY_RECYCLE_MAX_NUM        = %ld\n" ,  CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg));
-    sys_log(log, "CDC_SCAN_RETIRE_MAX_NUM        = %ld\n" ,  CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg));
+    sys_log(log, "CMC_DEGRADE_HI_RATIO                       = %.2f\n", CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg));
+    sys_log(log, "CMC_DEGRADE_MD_RATIO                       = %.2f\n", CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg));
+    sys_log(log, "CMC_DEGRADE_LO_RATIO                       = %.2f\n", CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg));
 
-    sys_log(log, "CDC_PROCESS_DEGRADE_MAX_NUM    = %ld\n" ,  CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
-    sys_log(log, "CDC_SCAN_DEGRADE_MAX_NUM       = %ld\n" ,  CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg));
+    sys_log(log, "CDC_TRY_RETIRE_MAX_NUM_NUM                 = %ld\n" , CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg));
+    sys_log(log, "CDC_TRY_RECYCLE_MAX_NUM                    = %ld\n" , CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg));
+    sys_log(log, "CDC_SCAN_RETIRE_MAX_NUM                    = %ld\n" , CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg));
 
-    sys_log(log, "CDC_DEGRADE_HI_RATIO           = %.2f\n",  CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg));
-    sys_log(log, "CDC_DEGRADE_MD_RATIO           = %.2f\n",  CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg));
-    sys_log(log, "CDC_DEGRADE_LO_RATIO           = %.2f\n",  CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg));
+    sys_log(log, "CDC_PROCESS_DEGRADE_MAX_NUM                = %ld\n" , CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg));
+    sys_log(log, "CDC_SCAN_DEGRADE_MAX_NUM                   = %ld\n" , CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg));
+
+    sys_log(log, "CDC_DEGRADE_HI_RATIO                       = %.2f\n", CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg));
+    sys_log(log, "CDC_DEGRADE_MD_RATIO                       = %.2f\n", CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg));
+    sys_log(log, "CDC_DEGRADE_LO_RATIO                       = %.2f\n", CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg));
     return;
 }
 

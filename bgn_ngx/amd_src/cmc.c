@@ -152,7 +152,7 @@ EC_BOOL cmc_try_quit(CMC_MD *cmc_md)
 
     cmc_recycle(cmc_md, (UINT32)~0, NULL_PTR);/*try to recycle all*/
 
-    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_40M,
+    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_40MB,
                          (UINT32)~0, /*try to degrade all*/
                          (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM, NULL_PTR);
 
@@ -231,67 +231,67 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md)
  *  cmc traffic flow has 3 categories: 10Mbps, 20Mbps, 30Mbps, or 40Mbps.
  *
  **/
-STATIC_CAST static void __cmc_flow_control(const uint64_t traffic_speed_bps, const REAL deg_ratio,
+STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_bps, const REAL deg_ratio,
                                                 uint64_t *degrade_traffic_bps)
 {
     if(CMC_DEGRADE_LO_RATIO > deg_ratio)
     {
-        if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_40M)
+        if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_40MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_30M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_30MB;
         }
-        else if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_30M)
+        else if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_30MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10MB;
         }
     }
     else if(CMC_DEGRADE_MD_RATIO > deg_ratio)
     {
-        if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_40M)
+        if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_40MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_30M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_30MB;
         }
-        else if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_30M)
+        else if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_30MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10MB;
         }
     }
     else if(CMC_DEGRADE_HI_RATIO > deg_ratio)
     {
-        if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_30M)
+        if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_30MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_60M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_60MB;
         }
-        else if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_20M)
+        else if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_20MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_40M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_40MB;
         }
-        else if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_10M)
+        else if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_10MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_10MB;
         }
     }
     else
     {
-         if(traffic_speed_bps >= CMC_DEGRADE_TRAFFIC_40M)
+         if(mem_traffic_bps >= CMC_DEGRADE_TRAFFIC_40MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_80M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_80MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_60M;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_60MB;
         }
     }
 
@@ -304,7 +304,7 @@ STATIC_CAST static void __cmc_flow_control(const uint64_t traffic_speed_bps, con
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps)
+void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, const uint64_t read_traffic_bps, const uint64_t write_traffic_bps)
 {
     uint64_t    degrade_traffic_bps;
 
@@ -326,14 +326,14 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps)
     retire_complete_num  = 0;
     recycle_complete_num = 0;
 
-    __cmc_flow_control(traffic_speed_bps,
+    __cmc_flow_control(mem_traffic_bps,
                        deg_ratio,
                       &degrade_traffic_bps);
 
     if(BIT_TRUE == CMC_MD_FC_MAX_SPEED_FLAG(cmc_md))
     {
         /*override*/
-        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_40M;
+        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_40MB;
     }
 
     cmc_process_degrades(cmc_md, degrade_traffic_bps,
@@ -346,6 +346,21 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps)
         cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM, &retire_complete_num);
     }
 
+    if(CMC_DEGRADE_HI_RATIO > deg_ratio)
+    {
+        /*speed up retire*/
+        if(CMC_READ_TRAFFIC_05MB >= read_traffic_bps
+        && CMC_WRITE_TRAFFIC_05MB >= write_traffic_bps)
+        {
+            cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 2, &retire_complete_num);
+        }
+        else if(CMC_READ_TRAFFIC_10MB >= read_traffic_bps
+             && CMC_WRITE_TRAFFIC_10MB >= write_traffic_bps)
+        {
+            cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 1, &retire_complete_num);
+        }
+    }
+
     cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, &recycle_complete_num);
 
     if(0 < degrade_complete_num
@@ -353,12 +368,15 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t traffic_speed_bps)
     || 0 < recycle_complete_num)
     {
         dbg_log(SEC_0118_CMC, 2)(LOGSTDOUT, "[DEBUG] cmc_process: "
-                                            "used %.2f, deg: %u, ratio %.2f, traffic %ld, "
-                                            "complete: degrade %ld, retire %ld, recycle %ld\n",
+                                            "used %.2f, r/w %ld/%ld MBps, "
+                                            "deg: %u, ratio %.2f, deg %ld MBps, "
+                                            "=> degrade %ld, retire %ld, recycle %ld\n",
                                             used_ratio,
+                                            read_traffic_bps >> 23,
+                                            write_traffic_bps >> 23,
                                             deg_num,
                                             deg_ratio,
-                                            degrade_traffic_bps,
+                                            degrade_traffic_bps >> 23,
                                             degrade_complete_num,
                                             retire_complete_num,
                                             recycle_complete_num);
@@ -404,7 +422,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 break; /*fall through*/
             }
 
-            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_10M) /*10MB/s*/
+            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_10MB) /*10MB/s*/
             {
                 /*
                 *
@@ -426,7 +444,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 25) << CMCPGB_PAGE_SIZE_NBITS) >> 18);
             }
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_20M) /*20MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_20MB) /*20MB/s*/
             {
                 /*
                 *
@@ -448,7 +466,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 25) << CMCPGB_PAGE_SIZE_NBITS) >> 19);
             }
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_30M)/*30MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_30MB)/*30MB/s*/
             {
                 /*
                 *
@@ -469,7 +487,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 33) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_40M)/*40MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_40MB)/*40MB/s*/
             {
                 /*
                 *
@@ -490,7 +508,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 25) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_60M)/*60MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_60MB)/*60MB/s*/
             {
                 /*
                 *
@@ -662,170 +680,39 @@ EC_BOOL cmc_close_dn(CMC_MD *cmc_md)
     return (EC_TRUE);
 }
 
-STATIC_CAST static void __cmc_find_intersected_print(const CMCNP_KEY *cmcnp_key, const CMCNP_KEY *cmcnp_key_intersected, const CMCNP_KEY *cmcnp_key_next)
-{
-    sys_log(LOGSTDOUT, "[DEBUG] __cmc_find_intersected_print: key [%u, %u), intersected [%u, %u), next [%u, %u)\n",
-                       CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key),
-                       CMCNP_KEY_S_PAGE(cmcnp_key_intersected), CMCNP_KEY_E_PAGE(cmcnp_key_intersected),
-                       CMCNP_KEY_S_PAGE(cmcnp_key_next), CMCNP_KEY_E_PAGE(cmcnp_key_next));
-}
 /**
 *
-*  find intersected range
+*  find item
 *
 **/
-EC_BOOL cmc_find_intersected(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
+CMCNP_ITEM *cmc_find(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 {
-    CMCNP_ITEM       *cmcnp_item_intersected;
-    CMCNP_KEY        *cmcnp_key_intersected;
-    uint32_t          node_pos_intersected;
+    uint32_t          node_pos;
 
-    if(EC_FALSE == cmcnp_key_is_valid(cmcnp_key))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_find_intersected: invalid key [%ld, %ld)\n",
-                        CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
-        return (EC_FALSE);
-    }
+    CMC_ASSERT(CMCNP_KEY_S_PAGE(cmcnp_key) + 1 == CMCNP_KEY_E_PAGE(cmcnp_key));
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_find_intersected: np was not open\n");
-        return (EC_FALSE);
+        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_find: np was not open\n");
+        return (NULL_PTR);
     }
 
-    node_pos_intersected = cmcnp_find_intersected(CMC_MD_NP(cmc_md), cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
-    if(CMCNPRB_ERR_POS == node_pos_intersected)
+    if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), cmcnp_key))
     {
-        return (EC_FALSE);
-    }
-
-    cmcnp_item_intersected = cmcnp_fetch(CMC_MD_NP(cmc_md), node_pos_intersected);
-    if(NULL_PTR == cmcnp_item_intersected)
-    {
-        return (EC_FALSE);
-    }
-
-    cmcnp_key_intersected = CMCNP_ITEM_KEY(cmcnp_item_intersected);
-
-    if(CMCNP_KEY_S_PAGE(cmcnp_key) >= CMCNP_KEY_S_PAGE(cmcnp_key_intersected))
-    {
-        if(CMCNP_KEY_E_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(cmcnp_key_intersected))
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-
-            if(CMCNP_KEY_S_PAGE(&cmcnp_key_next) < CMCNP_KEY_E_PAGE(&cmcnp_key_next))
-            {
-                __cmc_find_intersected_print(cmcnp_key, cmcnp_key_intersected, &cmcnp_key_next);
-
-                cmc_find_intersected(cmc_md, &cmcnp_key_next);
-            }
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key);
-
-            if(CMCNP_KEY_S_PAGE(&cmcnp_key_next) < CMCNP_KEY_E_PAGE(&cmcnp_key_next))
-            {
-                __cmc_find_intersected_print(cmcnp_key, cmcnp_key_intersected, &cmcnp_key_next);
-
-                cmc_find_intersected(cmc_md, &cmcnp_key_next);
-            }
-        }
-        else
-        {
-            /*no next*/
-        }
-    }
-    else
-    {
-        if(CMCNP_KEY_E_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(cmcnp_key_intersected))
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-
-            if(CMCNP_KEY_S_PAGE(&cmcnp_key_next) < CMCNP_KEY_E_PAGE(&cmcnp_key_next))
-            {
-                __cmc_find_intersected_print(cmcnp_key, cmcnp_key_intersected, &cmcnp_key_next);
-
-                cmc_find_intersected(cmc_md, &cmcnp_key_next);
-            }
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key);
-
-            if(CMCNP_KEY_S_PAGE(&cmcnp_key_next) < CMCNP_KEY_E_PAGE(&cmcnp_key_next))
-            {
-                __cmc_find_intersected_print(cmcnp_key, cmcnp_key_intersected, &cmcnp_key_next);
-
-                cmc_find_intersected(cmc_md, &cmcnp_key_next);
-            }
-        }
-        else
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-
-            if(CMCNP_KEY_S_PAGE(&cmcnp_key_next) < CMCNP_KEY_E_PAGE(&cmcnp_key_next))
-            {
-                __cmc_find_intersected_print(cmcnp_key, cmcnp_key_intersected, &cmcnp_key_next);
-
-                cmc_find_intersected(cmc_md, &cmcnp_key_next);
-            }
-        }
-    }
-
-    return (EC_TRUE);
-}
-
-/**
-*
-*  find closest range
-*
-**/
-EC_BOOL cmc_find_closest(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, CMCNP_KEY *cmcnp_key_closest)
-{
-    uint32_t          node_pos_closest;
-
-    if(EC_FALSE == cmcnp_key_is_valid(cmcnp_key))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_find_closest: invalid key [%ld, %ld)\n",
+        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:cmc_find: miss key [%ld, %ld)\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
-        return (EC_FALSE);
+        return (NULL_PTR);
     }
 
-    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    node_pos = cmcnp_search(CMC_MD_NP(cmc_md), cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
+    if(CMCNPRB_ERR_POS == node_pos)
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_find_closest: np was not open\n");
-        return (EC_FALSE);
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_find: search failed\n");
+        return (NULL_PTR);
     }
 
-    node_pos_closest = cmcnp_find_closest(CMC_MD_NP(cmc_md), cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
-    if(CMCNPRB_ERR_POS == node_pos_closest)
-    {
-        return (EC_FALSE);
-    }
-
-    if(NULL_PTR != cmcnp_key_closest)
-    {
-        const CMCNP_ITEM *cmcnp_item_closest;
-
-        cmcnp_item_closest = cmcnp_fetch(CMC_MD_NP(cmc_md), node_pos_closest);
-        if(NULL_PTR == cmcnp_item_closest)
-        {
-            return (EC_FALSE);
-        }
-        cmcnp_key_clone(CMCNP_ITEM_KEY(cmcnp_item_closest), cmcnp_key_closest);
-    }
-
-    return (EC_TRUE);
+    return cmcnp_fetch(CMC_MD_NP(cmc_md), node_pos);
 }
-
 
 /**
 *
@@ -1497,10 +1384,10 @@ EC_BOOL cmc_file_delete(CMC_MD *cmc_md, UINT32 *offset, const UINT32 dsize)
 
 /**
 *
-*  set file ssd flush flag which means flush it to ssd later
+*  set file ssd dirty flag which means flush it to ssd later
 *
 **/
-EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize)
+EC_BOOL cmc_file_set_ssd_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize)
 {
     UINT32      s_offset;
     UINT32      e_offset;
@@ -1513,7 +1400,7 @@ EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsiz
     s_page   = (s_offset >> CMCPGB_PAGE_SIZE_NBITS);
     e_page   = ((e_offset + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
 
-    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_flush: "
+    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_dirty: "
                                         "offset %ld, wsize %ld => offset [%ld, %ld) => page [%ld, %ld)\n",
                                         (*offset), wsize,
                                         s_offset, e_offset,
@@ -1538,22 +1425,22 @@ EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsiz
             /*check existing*/
             if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_flush: "
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_dirty: "
                                 "page %ld absent, offset %ld (%ld in page), len %ld\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            if(EC_FALSE == cmcnp_set_ssd_flush(CMC_MD_NP(cmc_md), &cmcnp_key))
+            if(EC_FALSE == cmcnp_set_ssd_dirty(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_flush: "
-                                "set ssd flush flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_dirty: "
+                                "set ssd dirty flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_flush: "
-                            "set ssd flush flag of page %ld, offset %ld (%ld in page), len %ld done\n",
+            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_dirty: "
+                            "set ssd dirty flag of page %ld, offset %ld (%ld in page), len %ld done\n",
                             s_page, s_offset, offset_t, max_len);
         }
         else
@@ -1561,22 +1448,22 @@ EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsiz
             /*check existing*/
             if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_flush: "
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_dirty: "
                                 "page %ld absent, offset %ld (%ld in page), len %ld\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            if(EC_FALSE == cmcnp_set_ssd_flush(CMC_MD_NP(cmc_md), &cmcnp_key))
+            if(EC_FALSE == cmcnp_set_ssd_dirty(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_flush: "
-                                "set ssd flush flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_dirty: "
+                                "set ssd dirty flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_flush: "
-                            "set ssd flush flag of page %ld, offset %ld (%ld in page), len %ld done\n",
+            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_dirty: "
+                            "set ssd dirty flag of page %ld, offset %ld (%ld in page), len %ld done\n",
                             s_page, s_offset, offset_t, max_len);
         }
 
@@ -1589,10 +1476,10 @@ EC_BOOL cmc_file_set_ssd_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsiz
 
 /**
 *
-*  set file ssd not flush flag which means cmc should not flush it to ssd
+*  unset file ssd dirty flag which means cmc should not flush it to ssd
 *
 **/
-EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize)
+EC_BOOL cmc_file_set_ssd_not_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize)
 {
     UINT32      s_offset;
     UINT32      e_offset;
@@ -1605,7 +1492,7 @@ EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 
     s_page   = (s_offset >> CMCPGB_PAGE_SIZE_NBITS);
     e_page   = ((e_offset + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
 
-    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_flush: "
+    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_dirty: "
                                         "offset %ld, wsize %ld => offset [%ld, %ld) => page [%ld, %ld)\n",
                                         (*offset), wsize,
                                         s_offset, e_offset,
@@ -1630,22 +1517,22 @@ EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 
             /*check existing*/
             if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_flush: "
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_dirty: "
                                 "page %ld absent, offset %ld (%ld in page), len %ld\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            if(EC_FALSE == cmcnp_set_ssd_not_flush(CMC_MD_NP(cmc_md), &cmcnp_key))
+            if(EC_FALSE == cmcnp_set_ssd_not_dirty(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_flush: "
-                                "set ssd not flush flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_dirty: "
+                                "set ssd not dirty flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_flush: "
-                            "set ssd not flush flag of page %ld, offset %ld (%ld in page), len %ld done\n",
+            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_dirty: "
+                            "set ssd not dirty flag of page %ld, offset %ld (%ld in page), len %ld done\n",
                             s_page, s_offset, offset_t, max_len);
         }
         else
@@ -1653,22 +1540,22 @@ EC_BOOL cmc_file_set_ssd_not_flush(CMC_MD *cmc_md, UINT32 *offset, const UINT32 
             /*check existing*/
             if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_flush: "
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_dirty: "
                                 "page %ld absent, offset %ld (%ld in page), len %ld\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            if(EC_FALSE == cmcnp_set_ssd_not_flush(CMC_MD_NP(cmc_md), &cmcnp_key))
+            if(EC_FALSE == cmcnp_set_ssd_not_dirty(CMC_MD_NP(cmc_md), &cmcnp_key))
             {
-                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_flush: "
-                                "set ssd not flush flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
+                dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_set_ssd_not_dirty: "
+                                "set ssd not dirty flag of page %ld, offset %ld (%ld in page), len %ld failed\n",
                                 s_page, s_offset, offset_t, max_len);
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_flush: "
-                            "set ssd not flush flag of page %ld, offset %ld (%ld in page), len %ld done\n",
+            dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_set_ssd_not_dirty: "
+                            "set ssd not dirty flag of page %ld, offset %ld (%ld in page), len %ld done\n",
                             s_page, s_offset, offset_t, max_len);
         }
 
@@ -2253,106 +2140,6 @@ EC_BOOL cmc_read_e_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode, UINT32 *of
 
 /**
 *
-*  delete all intersected file
-*
-**/
-EC_BOOL cmc_delete_intersected(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
-{
-    CMCNP_ITEM       *cmcnp_item_intersected;
-    CMCNP_KEY        *cmcnp_key_intersected;
-    uint32_t          node_pos_intersected;
-
-    if(EC_FALSE == cmcnp_key_is_valid(cmcnp_key))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_delete_intersected: invalid key [%ld, %ld)\n",
-                        CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
-        return (EC_FALSE);
-    }
-
-    if(NULL_PTR == CMC_MD_NP(cmc_md))
-    {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_delete_intersected: np was not open\n");
-        return (EC_FALSE);
-    }
-
-    node_pos_intersected = cmcnp_find_intersected(CMC_MD_NP(cmc_md), cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
-    if(CMCNPRB_ERR_POS == node_pos_intersected)
-    {
-        /*not found*/
-        return (EC_TRUE);
-    }
-
-    cmcnp_item_intersected = cmcnp_fetch(CMC_MD_NP(cmc_md), node_pos_intersected);
-    if(NULL_PTR == cmcnp_item_intersected)
-    {
-        return (EC_FALSE);
-    }
-
-    cmcnp_key_intersected = CMCNP_ITEM_KEY(cmcnp_item_intersected);
-
-    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_delete_intersected: key [%u, %u), intersected [%u, %u) => delete\n",
-                       CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key),
-                       CMCNP_KEY_S_PAGE(cmcnp_key_intersected), CMCNP_KEY_E_PAGE(cmcnp_key_intersected));
-
-    if(EC_FALSE == cmcnp_umount_item(CMC_MD_NP(cmc_md), node_pos_intersected))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_delete_intersected: umount failed\n");
-        return (EC_FALSE);
-    }
-
-    if(CMCNP_KEY_S_PAGE(cmcnp_key) >= CMCNP_KEY_S_PAGE(cmcnp_key_intersected))
-    {
-        if(CMCNP_KEY_E_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(cmcnp_key_intersected))
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-
-            cmc_delete_intersected(cmc_md, &cmcnp_key_next);
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key);
-
-            cmc_delete_intersected(cmc_md, &cmcnp_key_next);
-        }
-        else
-        {
-            /*no next*/
-        }
-    }
-    else
-    {
-        if(CMCNP_KEY_E_PAGE(cmcnp_key) >= CMCNP_KEY_E_PAGE(cmcnp_key_intersected))
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-
-            cmc_delete_intersected(cmc_md, &cmcnp_key_next);
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key_intersected);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_E_PAGE(cmcnp_key);
-
-            cmc_delete_intersected(cmc_md, &cmcnp_key_next);
-        }
-        else
-        {
-            CMCNP_KEY  cmcnp_key_next;
-
-            CMCNP_KEY_S_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key);
-            CMCNP_KEY_E_PAGE(&cmcnp_key_next) = CMCNP_KEY_S_PAGE(cmcnp_key_intersected);
-
-            cmc_delete_intersected(cmc_md, &cmcnp_key_next);
-        }
-    }
-
-    return (EC_TRUE);
-}
-
-/**
-*
 *  delete a page
 *
 **/
@@ -2619,7 +2406,7 @@ EC_BOOL cmc_recycle(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
     }
     if(NULL_PTR != complete_num)
     {
-        (*complete_num) = complete_recycle_num;
+        (*complete_num) += complete_recycle_num;
     }
     return (EC_TRUE);
 }
@@ -2651,7 +2438,41 @@ EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR != complete_num)
     {
-        (*complete_num) = complete_retire_num;
+        (*complete_num) += complete_retire_num;
+    }
+
+    return (EC_TRUE);
+}
+
+
+/**
+*
+*  degrade files
+*
+**/
+EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
+{
+    UINT32      complete_degrade_num;
+
+    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_degrade: np was not open\n");
+        return (EC_FALSE);
+    }
+
+    complete_degrade_num = 0;/*initialization*/
+
+    cmcnp_degrade(CMC_MD_NP(cmc_md), CMC_SCAN_DEGRADE_MAX_NUM, max_num, &complete_degrade_num);
+
+    if(0 < complete_degrade_num)
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "[DEBUG] cmc_degrade: degrade done where complete %ld\n",
+                                            complete_degrade_num);
+    }
+
+    if(NULL_PTR != complete_num)
+    {
+        (*complete_num) += complete_degrade_num;
     }
 
     return (EC_TRUE);

@@ -3223,7 +3223,7 @@ int c_fp_dup(int fd)
                                               "dup fd %d failed,"
                                               "errno = %d, errstr = %s\n",
                                               fd,
-                                              errno, c_strerror(errno));
+                                              errno, strerror(errno));
         return (ERR_FD);
     }
 
@@ -3564,7 +3564,7 @@ int c_file_close(int fd)
     return (0);
 }
 
-int c_file_direct_on(int fd)
+int c_file_dio_on(int fd)
 {
     int  flags;
 
@@ -3577,7 +3577,7 @@ int c_file_direct_on(int fd)
 
     if(0 > fcntl(fd, F_SETFL, flags | O_DIRECT))
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_direct_on: direct on fd %d failed, errno = %d, errstr = %s\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_dio_on: direct on fd %d failed, errno = %d, errstr = %s\n",
                            fd, errno, strerror(errno));
         return (-1);
     }
@@ -3585,7 +3585,7 @@ int c_file_direct_on(int fd)
     return (0);
 }
 
-int c_file_direct_off(int fd)
+int c_file_dio_off(int fd)
 {
     int  flags;
 
@@ -3598,13 +3598,56 @@ int c_file_direct_off(int fd)
 
     if(0 > fcntl(fd, F_SETFL, flags & (~O_DIRECT)))
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_direct_off: direct off fd %d failed, errno = %d, errstr = %s\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_dio_off: direct off fd %d failed, errno = %d, errstr = %s\n",
                            fd, errno, strerror(errno));
         return (-1);
     }
 
     return (0);
 }
+
+int c_file_sync_on(int fd)
+{
+    int  flags;
+
+    flags = fcntl(fd, F_GETFL);
+
+    if(-1 == flags)
+    {
+        return (-1);
+    }
+
+    if(0 > fcntl(fd, F_SETFL, flags | O_SYNC))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_sync_on: sync on fd %d failed, errno = %d, errstr = %s\n",
+                           fd, errno, strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
+int c_file_sync_off(int fd)
+{
+    int  flags;
+
+    flags = fcntl(fd, F_GETFL);
+
+    if(-1 == flags)
+    {
+        return (-1);
+    }
+
+    if(0 > fcntl(fd, F_SETFL, flags & (~O_SYNC)))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_sync_off: sync off fd %d failed, errno = %d, errstr = %s\n",
+                           fd, errno, strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
 
 CTM *c_localtime_r(const time_t *timestamp)
 {
@@ -5201,6 +5244,7 @@ uint64_t c_get_cur_time_msec()
                   + (((uint64_t)timev_cur.tv_usec) / 1000);
     return (time_msec_cur);
 }
+
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
 {
     TASKS_CFG         *detect_tasks_cfg;

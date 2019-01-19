@@ -130,7 +130,7 @@ UINT32 cxfs_free_module_static_mem(const UINT32 cxfs_md_id)
 * start CXFS module
 *
 **/
-UINT32 cxfs_start(const CSTRING *sata_disk_path)
+UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 {
     CXFS_MD    *cxfs_md;
     UINT32      cxfs_md_id;
@@ -140,7 +140,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
     CXFSCFG    *cxfscfg;
 
     UINT32      sata_disk_size;
+    UINT32      ssd_disk_size;
+
     int         sata_disk_fd;
+    int         ssd_disk_fd;
 
     cbc_md_reg(MD_CXFS, 32);
 
@@ -172,7 +175,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
     sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_SYNC, 0666);
     if(ERR_FD == sata_disk_fd)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open '%s' failed\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open sata '%s' failed\n",
                                              (char *)cstring_get_str(sata_disk_path));
 
         cbc_md_free(MD_CXFS, cxfs_md_id);
@@ -181,10 +184,32 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
 
     if(EC_FALSE == c_file_size(sata_disk_fd, &sata_disk_size))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: size of '%s' failed\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: size of sata '%s' failed\n",
                                              (char *)cstring_get_str(sata_disk_path));
 
         cbc_md_free(MD_CXFS, cxfs_md_id);
+        c_file_close(sata_disk_fd);
+        return (CMPI_ERROR_MODI);
+    }
+
+    ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_SYNC, 0666);
+    if(ERR_FD == ssd_disk_fd)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open ssd '%s' failed\n",
+                                             (char *)cstring_get_str(ssd_disk_path));
+
+        cbc_md_free(MD_CXFS, cxfs_md_id);
+        c_file_close(sata_disk_fd);
+        return (CMPI_ERROR_MODI);
+    }
+
+    if(EC_FALSE == c_file_size(ssd_disk_fd, &ssd_disk_size))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: size of ssd '%s' failed\n",
+                                             (char *)cstring_get_str(ssd_disk_path));
+
+        cbc_md_free(MD_CXFS, cxfs_md_id);
+        c_file_close(ssd_disk_fd);
         c_file_close(sata_disk_fd);
         return (CMPI_ERROR_MODI);
     }
@@ -197,6 +222,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
     init_static_mem();
 
     cstring_init(CXFS_MD_SATA_DISK_PATH(cxfs_md), NULL_PTR);
+    CXFS_MD_SATA_DISK_FD(cxfs_md) = ERR_FD;
+
+    cstring_init(CXFS_MD_SSD_DISK_PATH(cxfs_md), NULL_PTR);
+    CXFS_MD_SSD_DISK_FD(cxfs_md)  = ERR_FD;
 
     cxfscfg_init(CXFS_MD_CFG(cxfs_md));
 
@@ -212,8 +241,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
                     (CRB_DATA_FREE)cxfs_wait_file_free,
                     (CRB_DATA_PRINT)cxfs_wait_file_print);
 
-    CXFS_MD_DN(cxfs_md)         = NULL_PTR;
-    CXFS_MD_NPP(cxfs_md)        = NULL_PTR;
+    CXFS_MD_DN(cxfs_md)           = NULL_PTR;
+    CXFS_MD_NPP(cxfs_md)          = NULL_PTR;
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -221,12 +250,13 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: load cfg failed\n");
 
         cbc_md_free(MD_CXFS, cxfs_md_id);
+        c_file_close(ssd_disk_fd);
         c_file_close(sata_disk_fd);
-
         return (CMPI_ERROR_MODI);
     }
 
-    CXFS_MD_SATA_DISK_FD(cxfs_md)  = sata_disk_fd;
+    CXFS_MD_SATA_DISK_FD(cxfs_md) = sata_disk_fd;
+    CXFS_MD_SSD_DISK_FD(cxfs_md)  = ssd_disk_fd;
 
     cxfscfg = CXFS_MD_CFG(cxfs_md);
 
@@ -262,7 +292,9 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
 
         if(EC_TRUE == ret)
         {
-            CXFS_MD_DN(cxfs_md) = cxfsdn_open(CXFS_MD_SATA_DISK_FD(cxfs_md), cxfscfg);
+            CXFS_MD_DN(cxfs_md) = cxfsdn_open(cxfscfg,
+                                              CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                              CXFS_MD_SSD_DISK_FD(cxfs_md));
             if(NULL_PTR == CXFS_MD_DN(cxfs_md))
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open dn failed\n");
@@ -285,6 +317,12 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
             CXFS_MD_NPP(cxfs_md) = NULL_PTR;
         }
 
+        if(ERR_FD != CXFS_MD_SSD_DISK_FD(cxfs_md))
+        {
+            c_file_close(CXFS_MD_SSD_DISK_FD(cxfs_md));
+            CXFS_MD_SSD_DISK_FD(cxfs_md) = ERR_FD;
+        }
+
         if(ERR_FD != CXFS_MD_SATA_DISK_FD(cxfs_md))
         {
             c_file_close(CXFS_MD_SATA_DISK_FD(cxfs_md));
@@ -299,8 +337,11 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path)
     if(CXFSCFG_MAGIC_NUM != CXFSCFG_MAGIC(cxfscfg))
     {
         /*set basic info to config for fresh xfs*/
-        CXFSCFG_SATA_DISK_SIZE(cxfscfg) = sata_disk_size;
-        CXFSCFG_NP_S_OFFSET(cxfscfg)    = CXFSCFG_SIZE + 0;
+        CXFSCFG_SATA_DISK_SIZE(cxfscfg)     = sata_disk_size;
+        CXFSCFG_NP_S_OFFSET(cxfscfg)        = CXFSCFG_SIZE + 0;
+
+        CXFSCFG_SSD_DISK_SIZE(cxfscfg)      = ssd_disk_size;
+        CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET;
     }
 
     CXFS_MD_STATE(cxfs_md) = CXFS_WORK_STATE;
@@ -1696,8 +1737,12 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
     CXFSCFG_DN_S_OFFSET(cxfscfg) = CXFSCFG_NP_E_OFFSET(cxfscfg);
 
     cxfsdn = cxfsdn_create(CXFS_MD_SATA_DISK_FD(cxfs_md),
-                            CXFSCFG_SATA_DISK_SIZE(cxfscfg),
-                            CXFSCFG_DN_S_OFFSET(cxfscfg));
+                           CXFSCFG_SATA_DISK_SIZE(cxfscfg),
+                           CXFSCFG_DN_S_OFFSET(cxfscfg),
+                           CXFSDN_CAMD_MEM_DISK_SIZE,
+                           CXFS_MD_SSD_DISK_FD(cxfs_md),
+                           CXFSCFG_SSD_DISK_SIZE(cxfscfg),
+                           CXFSCFG_SSD_DISK_OFFSET(cxfscfg));
     if(NULL_PTR == cxfsdn)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_dn: create dn failed\n");
@@ -1910,12 +1955,15 @@ EC_BOOL cxfs_open_dn(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
-    CXFS_MD_DN(cxfs_md) = cxfsdn_open(CXFS_MD_SATA_DISK_FD(cxfs_md), CXFS_MD_CFG(cxfs_md));
+    CXFS_MD_DN(cxfs_md) = cxfsdn_open(CXFS_MD_CFG(cxfs_md),
+                                      CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                      CXFS_MD_SSD_DISK_FD(cxfs_md));
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_open_dn: open dn failed\n");
         return (EC_FALSE);
     }
+
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_open_dn: open dn done\n");
     return (EC_TRUE);
 }

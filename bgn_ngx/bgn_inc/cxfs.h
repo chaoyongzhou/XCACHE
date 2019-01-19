@@ -62,6 +62,10 @@ typedef struct
     int                  sata_disk_fd;
     int                  rsvd01;
 
+    CSTRING              ssd_disk_path;
+    int                  ssd_disk_fd;
+    int                  rsvd02;
+
     CXFSCFG              cxfscfg;
 
     CRB_TREE             locked_files; /*item is CXFS_LOCKED_FILE*/
@@ -78,6 +82,8 @@ typedef struct
 #define CXFS_MD_STATE(cxfs_md)             ((cxfs_md)->state)
 #define CXFS_MD_SATA_DISK_PATH(cxfs_md)    (&((cxfs_md)->sata_disk_path))
 #define CXFS_MD_SATA_DISK_FD(cxfs_md)      ((cxfs_md)->sata_disk_fd)
+#define CXFS_MD_SSD_DISK_PATH(cxfs_md)     (&((cxfs_md)->ssd_disk_path))
+#define CXFS_MD_SSD_DISK_FD(cxfs_md)       ((cxfs_md)->ssd_disk_fd)
 #define CXFS_MD_CFG(cxfs_md)               (&((cxfs_md)->cxfscfg))
 #define CXFS_MD_LOCKED_FILES(cxfs_md)      (&((cxfs_md)->locked_files))
 #define CXFS_MD_WAIT_FILES(cxfs_md)        (&((cxfs_md)->wait_files))
@@ -141,7 +147,7 @@ UINT32 cxfs_free_module_static_mem(const UINT32 cxfs_md_id);
 * start CXFS module
 *
 **/
-UINT32 cxfs_start(const CSTRING *cxfs_root_dir);
+UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path);
 
 /**
 *

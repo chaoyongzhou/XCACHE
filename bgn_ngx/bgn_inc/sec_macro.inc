@@ -214,6 +214,7 @@
 #define SEC_0204_CXFSPGRB                   ((UINT32)(    204)) /*cxfspgrb                        */
 #define SEC_0205_CXFSCFG                    ((UINT32)(    205)) /*cxfscfg                         */
 #define SEC_0206_CXFSMON                    ((UINT32)(    206)) /*cxfsmon                         */
+#define SEC_0207_CDEQUEUE                   ((UINT32)(    207)) /*cdequeue                        */
 
-#define SEC_NONE_END                        ((UINT32)(    207))
+#define SEC_NONE_END                        ((UINT32)(    208))
 #endif/*_SEC_MACRO_INC*/

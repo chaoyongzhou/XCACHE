@@ -35,6 +35,8 @@ extern "C"{
 #include "cxfspgd.h"
 #include "cxfspgv.h"
 
+#include "camd.h"
+
 #define CXFSDN_MEM_ALIGNMENT           (1 << 20)
 
 /**********************************************************************************
@@ -64,27 +66,34 @@ typedef struct
 {
     CXFSPGV           *cxfspgv;
 
-    int                fd;
-    int                rsvd01;
+    int                ssd_disk_fd;
+    int                sata_disk_fd;
+
 
     UINT32             offset;
     UINT32             size;
 
     UINT8             *mem_cache;
+
+    CAMD_MD           *camd_md;
 }CXFSDN;
 
 #define CXFSDN_CXFSPGV(cxfsdn)                             ((cxfsdn)->cxfspgv)
-#define CXFSDN_FD(cxfsdn)                                  ((cxfsdn)->fd)
+#define CXFSDN_SSD_DISK_FD(cxfsdn)                         ((cxfsdn)->ssd_disk_fd)
+#define CXFSDN_SATA_DISK_FD(cxfsdn)                        ((cxfsdn)->sata_disk_fd)
 #define CXFSDN_OFFSET(cxfsdn)                              ((cxfsdn)->offset)
 #define CXFSDN_SIZE(cxfsdn)                                ((cxfsdn)->size)
 #define CXFSDN_MEM_CACHE(cxfsdn)                           ((cxfsdn)->mem_cache)
+#define CXFSDN_CAMD_MD(cxfsdn)                             ((cxfsdn)->camd_md)
 
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset);
 
 EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *offset);
 
-CXFSDN *cxfsdn_create(const int cxfsdn_dev_fd, const UINT32 cxfsdn_dev_size, const UINT32 cxfsdn_dev_offset);
+CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, const UINT32 cxfsdn_sata_offset,
+                         const UINT32 cxfsdn_mem_size,
+                         const int cxfsdn_ssd_fd, const UINT32 cxfsdn_ssd_size, const UINT32 cxfsdn_ssd_offset);
 
 EC_BOOL cxfsdn_add_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
@@ -108,9 +117,12 @@ EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn);
 
-EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg);
+EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
+                       const int cxfsdn_sata_fd,
+                       const UINT32 cxfsdn_mem_size,
+                       const int cxfsdn_ssd_fd);
 
-CXFSDN *cxfsdn_open(const int cxfsdn_dev_fd, const CXFSCFG *cxfscfg);
+CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int cxfsdn_ssd_fd);
 
 EC_BOOL cxfsdn_close(CXFSDN *cxfsdn);
 

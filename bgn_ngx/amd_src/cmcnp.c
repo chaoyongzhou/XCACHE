@@ -527,7 +527,12 @@ EC_BOOL cmcnp_item_init(CMCNP_ITEM *cmcnp_item)
 {
     CMCNP_ITEM_DIR_FLAG(cmcnp_item)         = CMCNP_ITEM_FILE_IS_ERR;
     CMCNP_ITEM_USED_FLAG(cmcnp_item)        = CMCNP_ITEM_IS_NOT_USED;
-    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item)   = BIT_FALSE;
+
+    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)   = BIT_FALSE;
+    CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item)  = BIT_FALSE;
+
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item)        = 0;
+
     CMCNP_ITEM_PARENT_POS(cmcnp_item)       = CMCNPRB_ERR_POS;/*fix*/
 
     cmcnp_fnode_init(CMCNP_ITEM_FNODE(cmcnp_item));
@@ -541,7 +546,12 @@ EC_BOOL cmcnp_item_clean(CMCNP_ITEM *cmcnp_item)
 {
     CMCNP_ITEM_DIR_FLAG(cmcnp_item)         = CMCNP_ITEM_FILE_IS_ERR;
     CMCNP_ITEM_USED_FLAG(cmcnp_item)        = CMCNP_ITEM_IS_NOT_USED;
-    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item)   = BIT_FALSE;
+
+    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)   = BIT_FALSE;
+    CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item)  = BIT_FALSE;
+
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item)        = 0;
+
     CMCNP_ITEM_PARENT_POS(cmcnp_item)       = CMCNPRB_ERR_POS;/*fix bug: break pointer to parent*/
 
     /*note:do nothing on rb_node*/
@@ -563,10 +573,15 @@ EC_BOOL cmcnp_item_clone(const CMCNP_ITEM *cmcnp_item_src, CMCNP_ITEM *cmcnp_ite
         return (EC_FALSE);
     }
 
-    CMCNP_ITEM_USED_FLAG(cmcnp_item_des)      =  CMCNP_ITEM_USED_FLAG(cmcnp_item_src);
-    CMCNP_ITEM_DIR_FLAG(cmcnp_item_des)       =  CMCNP_ITEM_DIR_FLAG(cmcnp_item_src);
-    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item_des) = CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item_src);
-    CMCNP_ITEM_PARENT_POS(cmcnp_item_des)     = CMCNP_ITEM_PARENT_POS(cmcnp_item_src);
+    CMCNP_ITEM_USED_FLAG(cmcnp_item_des)       =  CMCNP_ITEM_USED_FLAG(cmcnp_item_src);
+    CMCNP_ITEM_DIR_FLAG(cmcnp_item_des)        =  CMCNP_ITEM_DIR_FLAG(cmcnp_item_src);
+
+    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item_des)  = CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item_src);
+    CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item_des) = CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item_src);
+
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item_des)       = CMCNP_ITEM_DEG_TIMES(cmcnp_item_src);
+
+    CMCNP_ITEM_PARENT_POS(cmcnp_item_des)      = CMCNP_ITEM_PARENT_POS(cmcnp_item_src);
 
     cmcnplru_node_clone(CMCNP_ITEM_LRU_NODE(cmcnp_item_src), CMCNP_ITEM_LRU_NODE(cmcnp_item_des));
     cmcnpdel_node_clone(CMCNP_ITEM_DEL_NODE(cmcnp_item_src), CMCNP_ITEM_DEL_NODE(cmcnp_item_des));
@@ -620,12 +635,16 @@ void cmcnp_item_print(LOG *log, const CMCNP_ITEM *cmcnp_item)
 {
     uint16_t pos;
 
-    sys_print(log, "cmcnp_item %p: flag 0x%x [%s], stat %u, ssd flush flag %u, "
+    sys_print(log, "cmcnp_item %p: flag 0x%x [%s], stat %u, "
+                   "ssd dirty flag %u, sata dirty flag %u, "
+                   "deg times %u, "
                    "parent %u, lru node (%u, %u), del node (%u, %u), deg node (%u, %u)\n",
                     cmcnp_item,
                     CMCNP_ITEM_DIR_FLAG(cmcnp_item), __cmcnp_item_dir_flag_str(CMCNP_ITEM_DIR_FLAG(cmcnp_item)),
                     CMCNP_ITEM_USED_FLAG(cmcnp_item),
-                    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item),
+                    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item),
+                    CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item),
+                    CMCNP_ITEM_DEG_TIMES(cmcnp_item),
                     CMCNP_ITEM_PARENT_POS(cmcnp_item),
                     CMCNPLRU_NODE_PREV_POS(CMCNP_ITEM_LRU_NODE(cmcnp_item)),
                     CMCNPLRU_NODE_NEXT_POS(CMCNP_ITEM_LRU_NODE(cmcnp_item)),
@@ -672,12 +691,15 @@ void cmcnp_item_and_key_print(LOG *log, const CMCNP_ITEM *cmcnp_item)
 {
     uint16_t pos;
 
-    sys_print(log, "cmcnp_item %p: flag 0x%x [%s], stat %u, ssd flush flag %u, \n",
-                    cmcnp_item,
-                    CMCNP_ITEM_DIR_FLAG(cmcnp_item), __cmcnp_item_dir_flag_str(CMCNP_ITEM_DIR_FLAG(cmcnp_item)),
-                    CMCNP_ITEM_USED_FLAG(cmcnp_item),
-                    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item)
-                    );
+    sys_print(log, "cmcnp_item %p: flag 0x%x [%s], stat %u, "
+                   "ssd dirty flag %u, sata dirty flag %u, deg times %u\n",
+                   cmcnp_item,
+                   CMCNP_ITEM_DIR_FLAG(cmcnp_item), __cmcnp_item_dir_flag_str(CMCNP_ITEM_DIR_FLAG(cmcnp_item)),
+                   CMCNP_ITEM_USED_FLAG(cmcnp_item),
+                   CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item),
+                   CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item),
+                   CMCNP_ITEM_DEG_TIMES(cmcnp_item)
+                   );
 
     sys_log(log, "key: [%u, %u)\n",
                  CMCNP_ITEM_S_PAGE(cmcnp_item),
@@ -1514,6 +1536,7 @@ uint32_t cmcnp_dnode_insert(CMCNP *cmcnp, const uint32_t parent_pos, const CMCNP
     }
 
     CMCNP_ITEM_USED_FLAG(cmcnp_item_insert) = CMCNP_ITEM_IS_USED;
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item_insert) = 0;
 
     CMCNP_DNODE_ROOT_POS(cmcnp_dnode_parent) = root_pos;
     CMCNP_DNODE_FILE_NUM(cmcnp_dnode_parent) ++;
@@ -1638,38 +1661,6 @@ void cmcnp_walk(CMCNP *cmcnp, void (*walker)(void *, const void *, const uint32_
     cmcnp_dnode_walk(cmcnp, CMCNP_ITEM_DNODE(cmcnp_item), walker, arg);
 
     return;
-}
-
-uint32_t cmcnp_find_intersected(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag)
-{
-    CMCNP_ITEM  *cmcnp_item;
-    uint32_t     node_pos;
-
-    CMCNP_ASSERT(CMCNP_ITEM_FILE_IS_REG == dflag);
-
-    /*root item*/
-    cmcnp_item = cmcnp_fetch(cmcnp, CMCNPRB_ROOT_POS);
-    CMCNP_ASSERT(CMCNP_ITEM_FILE_IS_DIR == CMCNP_ITEM_DIR_FLAG(cmcnp_item));
-
-    node_pos = cmcnp_dnode_find_intersected(cmcnp, CMCNP_ITEM_DNODE(cmcnp_item), cmcnp_key);
-
-    return (node_pos);
-}
-
-uint32_t cmcnp_find_closest(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t dflag)
-{
-    CMCNP_ITEM  *cmcnp_item;
-    uint32_t     node_pos;
-
-    CMCNP_ASSERT(CMCNP_ITEM_FILE_IS_REG == dflag);
-
-    /*root item*/
-    cmcnp_item = cmcnp_fetch(cmcnp, CMCNPRB_ROOT_POS);
-    CMCNP_ASSERT(CMCNP_ITEM_FILE_IS_DIR == CMCNP_ITEM_DIR_FLAG(cmcnp_item));
-
-    node_pos = cmcnp_dnode_find_closest(cmcnp, CMCNP_ITEM_DNODE(cmcnp_item), cmcnp_key);
-
-    return (node_pos);
 }
 
 /**
@@ -2120,7 +2111,7 @@ EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t df
     return (EC_TRUE);
 }
 
-EC_BOOL cmcnp_set_ssd_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
+EC_BOOL cmcnp_set_ssd_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
     uint32_t node_pos;
 
@@ -2131,7 +2122,7 @@ EC_BOOL cmcnp_set_ssd_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
         cmcnp_item  = cmcnp_fetch(cmcnp, node_pos);
 
-        CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item) = BIT_TRUE;
+        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_TRUE;
 
         cmcnpdeg_node_add_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
 
@@ -2140,7 +2131,7 @@ EC_BOOL cmcnp_set_ssd_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
     return (EC_FALSE);
 }
 
-EC_BOOL cmcnp_set_ssd_not_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
+EC_BOOL cmcnp_set_ssd_not_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
     uint32_t node_pos;
 
@@ -2151,7 +2142,7 @@ EC_BOOL cmcnp_set_ssd_not_flush(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
         cmcnp_item  = cmcnp_fetch(cmcnp, node_pos);
 
-        CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item) = BIT_FALSE;
+        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE;
 
         cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
 
@@ -2247,7 +2238,7 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
     cmcnp_fnode = CMCNP_ITEM_FNODE(cmcnp_item);
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
 
-    if(BIT_FALSE == CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item))
+    if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
     {
         dbg_log(SEC_0111_CMCNP, 7)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
                                               "degrade callback at key [%u, %u), "
@@ -2262,9 +2253,27 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
         return (EC_FALSE);/*xxx*/
     }
 
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item) ++;
+    if(0 == CMCNP_ITEM_DEG_TIMES(cmcnp_item)) /*exception*/
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "fatal error:cmcnp_exec_degrade_callback:"
+                                              "degrade callback at key [%u, %u), "
+                                              "disk %u, block %u, page %u => deg reach max times!\n",
+                                              CMCNP_KEY_S_PAGE(cmcnp_key),
+                                              CMCNP_KEY_E_PAGE(cmcnp_key),
+                                              CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                              CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                              CMCNP_INODE_PAGE_NO(cmcnp_inode));
+
+        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*force to clear flag!*/
+        cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        return (EC_FALSE);/*xxx*/
+    }
+
     if(EC_FALSE == CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)(
                                   CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb),
                                   cmcnp_key,
+                                  cmcnp_item,
                                   CMCNP_INODE_DISK_NO(cmcnp_inode),
                                   CMCNP_INODE_BLOCK_NO(cmcnp_inode),
                                   CMCNP_INODE_PAGE_NO(cmcnp_inode)))
@@ -2280,7 +2289,8 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
         return (EC_FALSE);
     }
 
-    CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item) = BIT_FALSE; /*set flag*/
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item)      = 0;         /*reset counter*/
+    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*clear flag*/
     cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
 
     dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
@@ -2323,7 +2333,7 @@ EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expe
             continue;
         }
 
-        if(BIT_FALSE == CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item))
+        if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
         {
             cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
             continue;
@@ -2379,7 +2389,7 @@ EC_BOOL cmcnp_degrade_all(CMCNP *cmcnp, UINT32 *complete_degrade_num)
             continue;
         }
 
-        if(BIT_FALSE == CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item))
+        if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
         {
             cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
             continue;
@@ -2512,7 +2522,7 @@ EC_BOOL cmcnp_exec_retire_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, con
     cmcnp_fnode = CMCNP_ITEM_FNODE(cmcnp_item);
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
 
-    if(BIT_FALSE == CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item))
+    if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
     {
         cmcnpdeg_node_move_tail(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
         return (EC_TRUE);
@@ -2577,7 +2587,7 @@ EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expec
 
             cmcnp_key   = CMCNP_ITEM_KEY(cmcnp_item);
 
-            if(BIT_TRUE == CMCNP_ITEM_SSD_FLUSH_FLAG(cmcnp_item))
+            if(BIT_TRUE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
             {
                 dbg_log(SEC_0111_CMCNP, 7)(LOGSTDOUT, "warn:cmcnp_retire: np %u node_pos %d [REG] not flushed yet\n",
                                 CMCNP_ID(cmcnp), node_pos);
@@ -2799,6 +2809,7 @@ EC_BOOL cmcnp_create_root_item(CMCNP *cmcnp)
 
     CMCNP_ITEM_DIR_FLAG(cmcnp_item)       = CMCNP_ITEM_FILE_IS_DIR;
     CMCNP_ITEM_USED_FLAG(cmcnp_item)      = CMCNP_ITEM_IS_USED;
+    CMCNP_ITEM_DEG_TIMES(cmcnp_item)      = 0;
     CMCNP_ITEM_PARENT_POS(cmcnp_item)     = CMCNPRB_ERR_POS;
 
     CMCNP_ITEM_S_PAGE(cmcnp_item)         = CMCNP_KEY_S_PAGE_ERR;

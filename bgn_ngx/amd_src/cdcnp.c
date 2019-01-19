@@ -527,9 +527,11 @@ EC_BOOL cdcnp_item_init(CDCNP_ITEM *cdcnp_item)
     CDCNP_ITEM_PARENT_POS(cdcnp_item)           = CDCNPRB_ERR_POS;/*fix*/
 
     CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item)      = BIT_FALSE;
-    CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)       = BIT_FALSE;
+    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item)      = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item)   = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)    = BIT_FALSE;
+
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item)            = 0;
 
     cdcnp_fnode_init(CDCNP_ITEM_FNODE(cdcnp_item));
 
@@ -545,9 +547,11 @@ EC_BOOL cdcnp_item_clean(CDCNP_ITEM *cdcnp_item)
     CDCNP_ITEM_PARENT_POS(cdcnp_item)           = CDCNPRB_ERR_POS;/*fix bug: break pointer to parent*/
 
     CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item)      = BIT_FALSE;
-    CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)       = BIT_FALSE;
+    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item)      = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item)   = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)    = BIT_FALSE;
+
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item)            = 0;
     /*note:do nothing on rb_node*/
 
     return (EC_TRUE);
@@ -571,10 +575,12 @@ EC_BOOL cdcnp_item_clone(const CDCNP_ITEM *cdcnp_item_src, CDCNP_ITEM *cdcnp_ite
     CDCNP_ITEM_DIR_FLAG(cdcnp_item_des)             = CDCNP_ITEM_DIR_FLAG(cdcnp_item_src);
     CDCNP_ITEM_PARENT_POS(cdcnp_item_des)           = CDCNP_ITEM_PARENT_POS(cdcnp_item_src);
 
-    CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item_des)      = CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item_des);
-    CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item_des)       = CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item_des);
-    CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item_des)   = CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item_des);
-    CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item_des)    = CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item_des);
+    CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item_des)      = CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item_src);
+    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item_des)      = CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item_src);
+    CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item_des)   = CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item_src);
+    CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item_des)    = CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item_src);
+
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item_des)            = CDCNP_ITEM_DEG_TIMES(cdcnp_item_src);
 
     cdcnplru_node_clone(CDCNP_ITEM_LRU_NODE(cdcnp_item_src), CDCNP_ITEM_LRU_NODE(cdcnp_item_des));
     cdcnpdel_node_clone(CDCNP_ITEM_DEL_NODE(cdcnp_item_src), CDCNP_ITEM_DEL_NODE(cdcnp_item_des));
@@ -629,16 +635,18 @@ void cdcnp_item_print(LOG *log, const CDCNP_ITEM *cdcnp_item)
     uint16_t pos;
 
     sys_print(log, "cdcnp_item %p: flag 0x%x [%s], stat %u, "
-                   "ssd locked flag %u, ssd dirty flag %u, "
-                   "sata flushing flag %u, sata flushed flag %u, "
+                   "ssd locked flag %u, "
+                   "sata dirty flag %u, sata flushing flag %u, sata flushed flag %u, "
+                   "deg times %u, "
                    "parent %u, lru node (%u, %u), del node (%u, %u), deg node (%u, %u)\n",
                     cdcnp_item,
                     CDCNP_ITEM_DIR_FLAG(cdcnp_item), __cdcnp_item_dir_flag_str(CDCNP_ITEM_DIR_FLAG(cdcnp_item)),
                     CDCNP_ITEM_USED_FLAG(cdcnp_item),
                     CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item),
-                    CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item),
+                    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item),
                     CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item),
                     CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item),
+                    CDCNP_ITEM_DEG_TIMES(cdcnp_item),
                     CDCNP_ITEM_PARENT_POS(cdcnp_item),
                     CDCNPLRU_NODE_PREV_POS(CDCNP_ITEM_LRU_NODE(cdcnp_item)),
                     CDCNPLRU_NODE_NEXT_POS(CDCNP_ITEM_LRU_NODE(cdcnp_item)),
@@ -686,16 +694,16 @@ void cdcnp_item_and_key_print(LOG *log, const CDCNP_ITEM *cdcnp_item)
     uint16_t pos;
 
     sys_print(log, "cdcnp_item %p: flag 0x%x [%s], stat %u, "
-                   "ssd locked flag %u, ssd dirty flag %u, "
-                   "sata flushing flag %u, sata flushed flag %u, ",
+                   "ssd locked flag %u, "
+                   "sata dirty flag %u, sata flushing flag %u, sata flushed flag %u, deg times %u, ",
                    cdcnp_item,
                    CDCNP_ITEM_DIR_FLAG(cdcnp_item), __cdcnp_item_dir_flag_str(CDCNP_ITEM_DIR_FLAG(cdcnp_item)),
                    CDCNP_ITEM_USED_FLAG(cdcnp_item),
                    CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item),
-                   CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item),
+                   CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item),
                    CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item),
-                   CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)
-                   );
+                   CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item),
+                   CDCNP_ITEM_DEG_TIMES(cdcnp_item));
 
     sys_log(log, "key: [%u, %u)\n",
                  CDCNP_ITEM_S_PAGE(cdcnp_item),
@@ -1325,28 +1333,6 @@ void cdcnp_dnode_walk(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, void (
     return;
 }
 
-uint32_t cdcnp_dnode_find_intersected(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, const CDCNP_KEY *cdcnp_key)
-{
-    const CDCNPRB_POOL *pool;
-    uint32_t root_pos;
-
-    pool     = CDCNP_ITEMS_POOL(cdcnp);
-    root_pos = CDCNP_DNODE_ROOT_POS(cdcnp_dnode);
-
-    return cdcnprb_tree_find_intersected_data(pool, root_pos, cdcnp_key);
-}
-
-uint32_t cdcnp_dnode_find_closest(const CDCNP *cdcnp, const CDCNP_DNODE *cdcnp_dnode, const CDCNP_KEY *cdcnp_key)
-{
-    const CDCNPRB_POOL *pool;
-    uint32_t root_pos;
-
-    pool     = CDCNP_ITEMS_POOL(cdcnp);
-    root_pos = CDCNP_DNODE_ROOT_POS(cdcnp_dnode);
-
-    return cdcnprb_tree_find_closest_data(pool, root_pos, cdcnp_key);
-}
-
 uint32_t cdcnp_dnode_insert(CDCNP *cdcnp, const uint32_t parent_pos, const CDCNP_KEY *cdcnp_key, const uint32_t dir_flag)
 {
     uint32_t insert_offset;
@@ -1416,9 +1402,10 @@ uint32_t cdcnp_dnode_insert(CDCNP *cdcnp, const uint32_t parent_pos, const CDCNP
 
     CDCNP_ITEM_USED_FLAG(cdcnp_item_insert)             = CDCNP_ITEM_IS_USED;
     CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item_insert)       = BIT_FALSE;
-    CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item_insert)        = BIT_FALSE;
+    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item_insert)       = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item_insert)    = BIT_FALSE;
     CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item_insert)     = BIT_FALSE;
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item_insert)             = 0;
 
     CDCNP_DNODE_ROOT_POS(cdcnp_dnode_parent) = root_pos;
     CDCNP_DNODE_FILE_NUM(cdcnp_dnode_parent) ++;
@@ -1543,38 +1530,6 @@ void cdcnp_walk(CDCNP *cdcnp, void (*walker)(void *, const void *, const uint32_
     cdcnp_dnode_walk(cdcnp, CDCNP_ITEM_DNODE(cdcnp_item), walker, arg);
 
     return;
-}
-
-uint32_t cdcnp_find_intersected(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag)
-{
-    CDCNP_ITEM  *cdcnp_item;
-    uint32_t     node_pos;
-
-    CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_REG == dflag);
-
-    /*root item*/
-    cdcnp_item = cdcnp_fetch(cdcnp, CDCNPRB_ROOT_POS);
-    CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_DIR == CDCNP_ITEM_DIR_FLAG(cdcnp_item));
-
-    node_pos = cdcnp_dnode_find_intersected(cdcnp, CDCNP_ITEM_DNODE(cdcnp_item), cdcnp_key);
-
-    return (node_pos);
-}
-
-uint32_t cdcnp_find_closest(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag)
-{
-    CDCNP_ITEM  *cdcnp_item;
-    uint32_t     node_pos;
-
-    CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_REG == dflag);
-
-    /*root item*/
-    cdcnp_item = cdcnp_fetch(cdcnp, CDCNPRB_ROOT_POS);
-    CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_DIR == CDCNP_ITEM_DIR_FLAG(cdcnp_item));
-
-    node_pos = cdcnp_dnode_find_closest(cdcnp, CDCNP_ITEM_DNODE(cdcnp_item), cdcnp_key);
-
-    return (node_pos);
 }
 
 /**
@@ -1880,7 +1835,7 @@ EC_BOOL cdcnp_clear_key(const CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
     return cdcnp_bitmap_clear(CDCNP_BITMAP(cdcnp), CDCNP_KEY_S_PAGE(cdcnp_key));
 }
 
-EC_BOOL cdcnp_set_ssd_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
+EC_BOOL cdcnp_set_sata_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
 {
     uint32_t node_pos;
 
@@ -1891,7 +1846,10 @@ EC_BOOL cdcnp_set_ssd_dirty(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
 
         cdcnp_item  = cdcnp_fetch(cdcnp, node_pos);
 
-        CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item) = BIT_TRUE;/*set ssd dirty*/
+        CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item) = BIT_TRUE;/*set sata dirty*/
+
+        /*add cdc DEG list*/
+        cdcnpdeg_node_add_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
 
         return (EC_TRUE);
     }
@@ -1911,18 +1869,22 @@ EC_BOOL cdcnp_set_sata_flushed(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
 
         CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item) = BIT_FALSE;/*set not flushing*/
 
-        if(BIT_FALSE == CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item))
+        if(BIT_FALSE == CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item))
         {
             CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_TRUE; /*set flushed*/
+
+            /*degrade already, remove it from DEG list*/
+            cdcnpdeg_node_rmv(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
         }
         else
         {
-            CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)     = BIT_FALSE;
+            /*if sata dirty flag is set during flushing to sata, */
+            /*then do not clear dirty flag and clear flushed flag to trigger degrading once more*/
             CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE; /*set not flushed*/
-        }
 
-        /*degrade already, remove it from DEG list*/
-        cdcnpdeg_node_rmv(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+            /*add cdc DEG list again*/
+            cdcnpdeg_node_add_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+        }
 
         return (EC_TRUE);
     }
@@ -1942,6 +1904,8 @@ EC_BOOL cdcnp_set_sata_not_flushed(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
 
         CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item) = BIT_FALSE; /*set no flushing*/
         CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE; /*set not flushed*/
+
+        /*keep sata dirty flag unchanged*/
         return (EC_TRUE);
     }
     return (EC_FALSE);
@@ -2260,6 +2224,23 @@ EC_BOOL cdcnp_exec_degrade_callback(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, co
         return (EC_FALSE);/*xxx*/
     }
 
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item) ++;
+    if(0 == CDCNP_ITEM_DEG_TIMES(cdcnp_item)) /*exception*/
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "fatal error:cdcnp_exec_degrade_callback:"
+                                              "degrade callback at key [%u, %u), "
+                                              "disk %u, block %u, page %u => deg reach max times!\n",
+                                              CDCNP_KEY_S_PAGE(cdcnp_key),
+                                              CDCNP_KEY_E_PAGE(cdcnp_key),
+                                              CDCNP_INODE_DISK_NO(cdcnp_inode),
+                                              CDCNP_INODE_BLOCK_NO(cdcnp_inode),
+                                              CDCNP_INODE_PAGE_NO(cdcnp_inode));
+
+        CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item) = BIT_FALSE; /*force to clear dirty flag!*/
+        cdcnpdeg_node_rmv(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+        return (EC_FALSE);/*xxx*/
+    }
+
     if(EC_FALSE == CDCNP_DEGRADE_CB_FUNC(cdcnp_degrade_cb)(
                                   CDCNP_DEGRADE_CB_ARG(cdcnp_degrade_cb),
                                   cdcnp_key))
@@ -2275,7 +2256,9 @@ EC_BOOL cdcnp_exec_degrade_callback(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, co
         return (EC_FALSE);
     }
 
-    CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item) = BIT_TRUE;
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item)          = 0;          /*reset counter*/
+    CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item) = BIT_TRUE;   /*set flushing flag*/
+    CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item)    = BIT_FALSE;  /*clear dirty flag*/
     cdcnpdeg_node_move_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
 
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_exec_degrade_callback:"
@@ -2302,10 +2285,17 @@ EC_BOOL cdcnp_degrade(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expe
         scan_num ++)
     {
         CDCNP_ITEM      *cdcnp_item;
+        CDCNP_KEY       *cdcnp_key; /*for debug*/
+        UINT32           f_s_offset;
+        UINT32           f_e_offset;
         uint32_t         node_pos;
 
         node_pos      = CDCNPDEG_NODE_PREV_POS(&cdcnpdeg_node);
         cdcnp_item    = cdcnp_fetch(cdcnp, node_pos);
+
+        cdcnp_key = CDCNP_ITEM_KEY(cdcnp_item);
+        f_s_offset = (((UINT32)CDCNP_KEY_S_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
+        f_e_offset = (((UINT32)CDCNP_KEY_E_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
 
         /*cloned and saved for safe reason*/
         cdcnpdeg_node_clone(CDCNP_ITEM_DEG_NODE(cdcnp_item), &cdcnpdeg_node);
@@ -2320,49 +2310,52 @@ EC_BOOL cdcnp_degrade(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expe
 
         if(BIT_TRUE == CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item))
         {
-            dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: np %u node_pos %d [REG] is locked\n",
-                            CDCNP_ID(cdcnp), node_pos);
+            dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: "
+                            "np %u node_pos %d [REG] [%ld, %ld) is locked\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
+            continue;
+        }
+
+        if(BIT_FALSE == CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item))
+        {
+            dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: "
+                            "np %u node_pos %d [REG] [%ld, %ld) is not diry\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
+
+            /*degrade ignored, remove it from DEG list*/
+            cdcnpdeg_node_rmv(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
             continue;
         }
 
         if(BIT_TRUE == CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item))
         {
-            dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: np %u node_pos %d [REG] is flushing\n",
-                            CDCNP_ID(cdcnp), node_pos);
+            dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: "
+                            "np %u node_pos %d [REG] [%ld, %ld) is flushing\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
             continue;
-        }
-
-        if(BIT_TRUE == CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item))
-        {
-            dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: np %u node_pos %d [REG] is dirty\n",
-                            CDCNP_ID(cdcnp), node_pos);
-
-            CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)     = BIT_FALSE;
-            CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE; /*set not flushed*/
-
-            /*continue;*/
-            /*fall through*/
         }
 
         if(BIT_TRUE == CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item))
         {
-            dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: np %u node_pos %d [REG] is flushed\n",
-                            CDCNP_ID(cdcnp), node_pos);
+            dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: "
+                            "np %u node_pos %d [REG] [%ld, %ld) dirty & flushed => not flushed\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
 
-            /*degrade already, remove it from DEG list*/
-            cdcnpdeg_node_rmv(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
-            continue;
+            CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE; /*reset not flushed*/
+            /*fall through*/
         }
 
         if(EC_FALSE == cdcnp_exec_degrade_callback(cdcnp, CDCNP_ITEM_KEY(cdcnp_item), node_pos))
         {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_degrade: np %u node_pos %d [REG] failed\n",
-                            CDCNP_ID(cdcnp), node_pos);
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_degrade: "
+                            "np %u node_pos %d [REG] [%ld, %ld) failed\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
             continue;
         }
 
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: np %u node_pos %d [REG] done\n",
-                        CDCNP_ID(cdcnp), node_pos);
+        dbg_log(SEC_0129_CDCNP, 6)(LOGSTDOUT, "[DEBUG] cdcnp_degrade: "
+                        "np %u node_pos %d [REG] [%ld, %ld) degrade done\n",
+                        CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
 
         degrade_num ++;
     }
@@ -2400,14 +2393,20 @@ EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expec
 
         if(CDCNP_ITEM_FILE_IS_REG == CDCNP_ITEM_DIR_FLAG(cdcnp_item))
         {
-            CDCNP_KEY       *cdcnp_key;
+            CDCNP_KEY      *cdcnp_key; /*for debug*/
+            UINT32          f_s_offset;
+            UINT32          f_e_offset;
 
-            cdcnp_key   = CDCNP_ITEM_KEY(cdcnp_item);
+            cdcnp_key = CDCNP_ITEM_KEY(cdcnp_item);
 
-            if(BIT_FALSE == CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item))
+            f_s_offset = (((UINT32)CDCNP_KEY_S_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
+            f_e_offset = (((UINT32)CDCNP_KEY_E_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
+
+            if(BIT_TRUE == CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item))
             {
-                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: np %u node_pos %d [REG] not flushed yet\n",
-                                CDCNP_ID(cdcnp), node_pos);
+                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: "
+                                "np %u node_pos %d [REG] [%ld, %ld) is dirty yet\n",
+                                CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
 
                 /*speed up degrade*/
                 cdcnpdeg_node_move_tail(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
@@ -2416,36 +2415,32 @@ EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expec
 
             if(BIT_TRUE == CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item))
             {
-                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: np %u node_pos %d [REG] locked yet\n",
-                                CDCNP_ID(cdcnp), node_pos);
+                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: "
+                                "np %u node_pos %d [REG] [%ld, %ld) locked yet\n",
+                                CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
                 continue;
             }
 
-            if(BIT_TRUE == CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item))
+            if(BIT_TRUE == CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item))
             {
-                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: np %u node_pos %d [REG] dirty yet\n",
-                                CDCNP_ID(cdcnp), node_pos);
-
-                CDCNP_ITEM_SSD_DIRTY_FLAG(cdcnp_item)     = BIT_FALSE;
-                CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE; /*set not flushed*/
-
+                dbg_log(SEC_0129_CDCNP, 7)(LOGSTDOUT, "warn:cdcnp_retire: "
+                                "np %u node_pos %d [REG] [%ld, %ld) is flushing yet\n",
+                                CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
                 continue;
             }
 
             /*retire file*/
             if(EC_FALSE == cdcnp_umount_item(cdcnp, node_pos))
             {
-                dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retire: np %u node_pos %d [REG] failed\n",
-                                CDCNP_ID(cdcnp), node_pos);
+                dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retire: "
+                                "np %u node_pos %d [REG] [%ld, %ld) failed\n",
+                                CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0129_CDCNP, 6)(LOGSTDOUT, "[DEBUG] cdcnp_retire: retire [%ld, %ld) done\n",
-                            ((UINT32)CDCNP_KEY_S_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS,
-                            ((UINT32)CDCNP_KEY_E_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
-
-            dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retire: np %u node_pos %d [REG] done\n",
-                            CDCNP_ID(cdcnp), node_pos);
+            dbg_log(SEC_0129_CDCNP, 6)(LOGSTDOUT, "[DEBUG] cdcnp_retire: "
+                            "np %u node_pos %d [REG] [%ld, %ld) retire done\n",
+                            CDCNP_ID(cdcnp), node_pos, f_s_offset, f_e_offset);
             retire_num ++;
             continue;
         }
@@ -2644,6 +2639,7 @@ EC_BOOL cdcnp_create_root_item(CDCNP *cdcnp)
 
     CDCNP_ITEM_DIR_FLAG(cdcnp_item)       = CDCNP_ITEM_FILE_IS_DIR;
     CDCNP_ITEM_USED_FLAG(cdcnp_item)      = CDCNP_ITEM_IS_USED;
+    CDCNP_ITEM_DEG_TIMES(cdcnp_item)      = 0;
     CDCNP_ITEM_PARENT_POS(cdcnp_item)     = CDCNPRB_ERR_POS;
 
     CDCNP_ITEM_S_PAGE(cdcnp_item)         = CDCNP_KEY_S_PAGE_ERR;

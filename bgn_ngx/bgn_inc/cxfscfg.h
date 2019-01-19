@@ -25,7 +25,7 @@ typedef struct
 {
     UINT32           magic;                     /*magic number*/
 
-    UINT32           sata_disk_size;
+    UINT32           sata_disk_size;            /*sata disk size in bytes*/
 
     UINT32           np_s_offset;               /*np start offset on sata disk*/
     UINT32           np_e_offset;               /*np end offset on sata disk*/
@@ -39,6 +39,9 @@ typedef struct
     UINT32           dn_s_offset;               /*dn start offset on sata disk*/
     UINT32           dn_e_offset;               /*dn end offset on sata disk*/
     UINT32           dn_size;                   /*dn size*/
+
+    UINT32           ssd_disk_size;             /*ssd disk size in bytes*/
+    UINT32           ssd_disk_offset;           /*ssd cache start offset in ssd disk*/
 }CXFSCFG;
 
 #define CXFSCFG_MAGIC(cxfscfg)                         ((cxfscfg)->magic)
@@ -57,6 +60,8 @@ typedef struct
 #define CXFSCFG_DN_E_OFFSET(cxfscfg)                   ((cxfscfg)->dn_e_offset)
 #define CXFSCFG_DN_SIZE(cxfscfg)                       ((cxfscfg)->dn_size)
 
+#define CXFSCFG_SSD_DISK_SIZE(cxfscfg)                 ((cxfscfg)->ssd_disk_size)
+#define CXFSCFG_SSD_DISK_OFFSET(cxfscfg)               ((cxfscfg)->ssd_disk_offset)
 
 EC_BOOL cxfscfg_init(CXFSCFG *cxfscfg);
 

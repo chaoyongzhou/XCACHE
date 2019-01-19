@@ -13,7 +13,7 @@ extern "C"{
 
 #if 0
 #define KV_FREE_DEBUG(Node, Index) do{\
-    dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"### try to free key %s, size %d at %s:%d\n", (Node)->keys[(Index)], (Node)->keySizes[(Index)], LOC_BTREE_0059);\
+    dbg_log(SEC_0130_BTREE, 5)(LOGSTDOUT,"### try to free key %s, size %d at %s:%d\n", (Node)->keys[(Index)], (Node)->keySizes[(Index)], LOC_BTREE_0037);\
 }while(0)
 #endif
 
@@ -32,23 +32,23 @@ __removeKey(BTree *tree, BTreeNode *rootNode, const uint8_t *key,
          i++)
         ;
 
-    btreeDebug(tree, LOC_BTREE_0060);
+    btreeDebug(tree, LOC_BTREE_0038);
     if (BTREE_IS_LEAF(rootNode) && i < rootNode->keyCount &&
         keyCmp(rootNode->keys[i], key) == 0)
     {
         *filePos = rootNode->children[i];
 
         KV_FREE_DEBUG(rootNode, i);
-        keyFree(rootNode->keys[i], LOC_BTREE_0061);
+        keyFree(rootNode->keys[i], LOC_BTREE_0039);
 
-        btreeDebug(tree, LOC_BTREE_0062);
+        btreeDebug(tree, LOC_BTREE_0040);
         for (; i < rootNode->keyCount - 1; i++)
         {
             rootNode->keys[i]     = rootNode->keys[i + 1];
             rootNode->keySizes[i] = rootNode->keySizes[i + 1];
             rootNode->children[i] = rootNode->children[i + 1];
         }
-        btreeDebug(tree, LOC_BTREE_0063);
+        btreeDebug(tree, LOC_BTREE_0041);
 
         rootNode->keys[i]         = NULL;
         rootNode->keySizes[i]     = 0;
@@ -59,13 +59,13 @@ __removeKey(BTree *tree, BTreeNode *rootNode, const uint8_t *key,
 
         GDB_SET_DIRTY(rootNode->block);
 
-        btreeDebug(tree, LOC_BTREE_0064);
+        btreeDebug(tree, LOC_BTREE_0042);
         btreeWriteNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0065);
+        btreeDebug(tree, LOC_BTREE_0043);
 
         return 1;
     }
-    btreeDebug(tree, LOC_BTREE_0066);
+    btreeDebug(tree, LOC_BTREE_0044);
     return 0;
 }
 
@@ -75,15 +75,15 @@ __removeKey2(BTree *tree, BTreeNode *rootNode, uint8_t index)
     uint8_t i;
 
     KV_FREE_DEBUG(rootNode, index);
-    keyFree(rootNode->keys[index], LOC_BTREE_0067);
-    btreeDebug(tree, LOC_BTREE_0068);
+    keyFree(rootNode->keys[index], LOC_BTREE_0045);
+    btreeDebug(tree, LOC_BTREE_0046);
     for (i = index; i < rootNode->keyCount - 1; i++)
     {
         rootNode->keys[i]     = rootNode->keys[i + 1];
         rootNode->keySizes[i] = rootNode->keySizes[i + 1];
         rootNode->children[i] = rootNode->children[i + 1];
     }
-    btreeDebug(tree, LOC_BTREE_0069);
+    btreeDebug(tree, LOC_BTREE_0047);
 
     rootNode->keys[i]         = NULL;
     rootNode->keySizes[i]     = 0;
@@ -93,9 +93,9 @@ __removeKey2(BTree *tree, BTreeNode *rootNode, uint8_t index)
     rootNode->keyCount--;
 
     GDB_SET_DIRTY(rootNode->block);
-    btreeDebug(tree, LOC_BTREE_0070);
+    btreeDebug(tree, LOC_BTREE_0048);
     btreeWriteNode(rootNode);
-    btreeDebug(tree, LOC_BTREE_0071);
+    btreeDebug(tree, LOC_BTREE_0049);
 }
 
 static uint8_t
@@ -108,62 +108,62 @@ __borrowRight(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div
         return 0;
     }
 
-    btreeDebug(tree, LOC_BTREE_0072);
+    btreeDebug(tree, LOC_BTREE_0050);
     node = btreeReadNode(tree, prevNode->children[div + 1]);
     if(NULL == node)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowRight: read node of child %d of previous node %p failed\n", div + 1, prevNode);
         return (0);
     }
-    btreeDebug(tree, LOC_BTREE_0073);
+    btreeDebug(tree, LOC_BTREE_0051);
 
     if (BTREE_IS_LEAF(node) && node->keyCount > tree->minLeaf)
     {
         rootNode->children[rootNode->keyCount + 1] =
             rootNode->children[rootNode->keyCount];
 
-        rootNode->keys[rootNode->keyCount]     = keyDup(node->keys[0], LOC_BTREE_0074);
+        rootNode->keys[rootNode->keyCount]     = keyDup(node->keys[0], LOC_BTREE_0052);
         rootNode->keySizes[rootNode->keyCount] = node->keySizes[0];
         rootNode->children[rootNode->keyCount] = node->children[0];
 
         KV_FREE_DEBUG(prevNode, div);
-        keyFree(prevNode->keys[div], LOC_BTREE_0075);
+        keyFree(prevNode->keys[div], LOC_BTREE_0053);
 
-        prevNode->keys[div] = keyDup(rootNode->keys[rootNode->keyCount], LOC_BTREE_0076);
+        prevNode->keys[div] = keyDup(rootNode->keys[rootNode->keyCount], LOC_BTREE_0054);
         prevNode->keySizes[div] = rootNode->keySizes[rootNode->keyCount];
     }
     else if (!BTREE_IS_LEAF(node) && node->keyCount > tree->minInt)
     {
-        rootNode->keys[rootNode->keyCount] = keyDup(prevNode->keys[div], LOC_BTREE_0077);
+        rootNode->keys[rootNode->keyCount] = keyDup(prevNode->keys[div], LOC_BTREE_0055);
         rootNode->keySizes[rootNode->keyCount] = prevNode->keySizes[div];
 
         KV_FREE_DEBUG(prevNode, div);
-        keyFree(prevNode->keys[div], LOC_BTREE_0078);
+        keyFree(prevNode->keys[div], LOC_BTREE_0056);
 
-        prevNode->keys[div]     = keyDup(node->keys[0], LOC_BTREE_0079);
+        prevNode->keys[div]     = keyDup(node->keys[0], LOC_BTREE_0057);
         prevNode->keySizes[div] = node->keySizes[0];
 
         rootNode->children[rootNode->keyCount + 1] = node->children[0];
     }
     else
     {
-        btreeDebug(tree, LOC_BTREE_0080);
+        btreeDebug(tree, LOC_BTREE_0058);
         btreeDestroyNode(node);
-        btreeDebug(tree, LOC_BTREE_0081);
+        btreeDebug(tree, LOC_BTREE_0059);
 
         return 0;
     }
 
-    btreeDebug(tree, LOC_BTREE_0082);
+    btreeDebug(tree, LOC_BTREE_0060);
     GDB_SET_DIRTY(rootNode->block);
     GDB_SET_DIRTY(prevNode->block);
 
     rootNode->keyCount++;
-    btreeDebug(tree, LOC_BTREE_0083);
+    btreeDebug(tree, LOC_BTREE_0061);
     __removeKey2(tree, node, 0);
-    btreeDebug(tree, LOC_BTREE_0084);
+    btreeDebug(tree, LOC_BTREE_0062);
     btreeDestroyNode(node);
-    btreeDebug(tree, LOC_BTREE_0085);
+    btreeDebug(tree, LOC_BTREE_0063);
 
     return 1;
 }
@@ -178,36 +178,36 @@ __borrowLeft(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
     {
         return 0;
     }
-    btreeDebug(tree, LOC_BTREE_0086);
+    btreeDebug(tree, LOC_BTREE_0064);
     node = btreeReadNode(tree, prevNode->children[div - 1]);
     if(NULL == node)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__borrowLeft: read node of child %d of previous node %p failed\n", div - 1, prevNode);
         return (0);
     }
-    btreeDebug(tree, LOC_BTREE_0087);
+    btreeDebug(tree, LOC_BTREE_0065);
 
     if (BTREE_IS_LEAF(node) && node->keyCount > tree->minLeaf)
     {
-        btreeDebug(tree, LOC_BTREE_0088);
+        btreeDebug(tree, LOC_BTREE_0066);
         for (i = rootNode->keyCount; i > 0; i--)
         {
             rootNode->keys[i]         = rootNode->keys[i - 1];
             rootNode->keySizes[i]     = rootNode->keySizes[i - 1];
             rootNode->children[i + 1] = rootNode->children[i];
         }
-        btreeDebug(tree, LOC_BTREE_0089);
+        btreeDebug(tree, LOC_BTREE_0067);
 
         rootNode->children[1] = rootNode->children[0];
-        rootNode->keys[0]     = keyDup(node->keys[node->keyCount - 1], LOC_BTREE_0090);
+        rootNode->keys[0]     = keyDup(node->keys[node->keyCount - 1], LOC_BTREE_0068);
         rootNode->keySizes[0] = node->keySizes[node->keyCount - 1];
         rootNode->children[0] = node->children[node->keyCount - 1];
 
         rootNode->keyCount++;
 
         KV_FREE_DEBUG(prevNode, div - 1);
-        keyFree(prevNode->keys[div - 1], LOC_BTREE_0091);
-        prevNode->keys[div - 1]     = keyDup(node->keys[node->keyCount - 2], LOC_BTREE_0092);
+        keyFree(prevNode->keys[div - 1], LOC_BTREE_0069);
+        prevNode->keys[div - 1]     = keyDup(node->keys[node->keyCount - 2], LOC_BTREE_0070);
         prevNode->keySizes[div - 1] = node->keySizes[node->keyCount - 2];
 
         node->children[node->keyCount - 1] =
@@ -216,45 +216,45 @@ __borrowLeft(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
         node->children[node->keyCount] = 0;
 
         KV_FREE_DEBUG(node, node->keyCount - 1);
-        keyFree(node->keys[node->keyCount - 1], LOC_BTREE_0093);
+        keyFree(node->keys[node->keyCount - 1], LOC_BTREE_0071);
         node->keys[node->keyCount - 1]     = NULL;
         node->keySizes[node->keyCount - 1] = 0;
     }
     else if (!BTREE_IS_LEAF(node) && node->keyCount > tree->minInt)
     {
-        btreeDebug(tree, LOC_BTREE_0094);
+        btreeDebug(tree, LOC_BTREE_0072);
         for (i = rootNode->keyCount; i > 0; i--)
         {
             rootNode->keys[i]         = rootNode->keys[i - 1];
             rootNode->keySizes[i]     = rootNode->keySizes[i - 1];
             rootNode->children[i + 1] = rootNode->children[i];
         }
-        btreeDebug(tree, LOC_BTREE_0095);
+        btreeDebug(tree, LOC_BTREE_0073);
 
         rootNode->children[1] = rootNode->children[0];
-        rootNode->keys[0]     = keyDup(prevNode->keys[div - 1], LOC_BTREE_0096);
+        rootNode->keys[0]     = keyDup(prevNode->keys[div - 1], LOC_BTREE_0074);
         rootNode->keySizes[0] = prevNode->keySizes[div - 1];
         rootNode->children[0] = node->children[node->keyCount];
 
         rootNode->keyCount++;
 
         KV_FREE_DEBUG(prevNode, div - 1);
-        keyFree(prevNode->keys[div - 1], LOC_BTREE_0097);
-        prevNode->keys[div - 1]     = keyDup(node->keys[node->keyCount - 1], LOC_BTREE_0098);
+        keyFree(prevNode->keys[div - 1], LOC_BTREE_0075);
+        prevNode->keys[div - 1]     = keyDup(node->keys[node->keyCount - 1], LOC_BTREE_0076);
         prevNode->keySizes[div - 1] = node->keySizes[node->keyCount - 1];
 
         node->children[node->keyCount] = 0;
 
         KV_FREE_DEBUG(node, node->keyCount - 1);
-        keyFree(node->keys[node->keyCount - 1], LOC_BTREE_0099);
+        keyFree(node->keys[node->keyCount - 1], LOC_BTREE_0077);
         node->keys[node->keyCount - 1]     = NULL;
         node->keySizes[node->keyCount - 1] = 0;
     }
     else
     {
-        btreeDebug(tree, LOC_BTREE_0100);
+        btreeDebug(tree, LOC_BTREE_0078);
         btreeDestroyNode(node);
-        btreeDebug(tree, LOC_BTREE_0101);
+        btreeDebug(tree, LOC_BTREE_0079);
 
         return 0;
     }
@@ -265,11 +265,11 @@ __borrowLeft(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
     GDB_SET_DIRTY(prevNode->block);
     GDB_SET_DIRTY(node->block);
 
-    btreeDebug(tree, LOC_BTREE_0102);
+    btreeDebug(tree, LOC_BTREE_0080);
     btreeWriteNode(node);
-    btreeDebug(tree, LOC_BTREE_0103);
+    btreeDebug(tree, LOC_BTREE_0081);
     btreeDestroyNode(node);
-    btreeDebug(tree, LOC_BTREE_0104);
+    btreeDebug(tree, LOC_BTREE_0082);
 
     return 1;
 }
@@ -283,87 +283,87 @@ __mergeNode(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
     /* Try to merge the node with its left sibling. */
     if (div > 0)
     {
-        btreeDebug(tree, LOC_BTREE_0105);
+        btreeDebug(tree, LOC_BTREE_0083);
         node = btreeReadNode(tree, prevNode->children[div - 1]);
         if(NULL == node)
         {
             dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %p failed\n", div - 1, prevNode);
             return (0);
         }
-        btreeDebug(tree, LOC_BTREE_0106);
+        btreeDebug(tree, LOC_BTREE_0084);
         i    = node->keyCount;
 
         if (!BTREE_IS_LEAF(rootNode))
         {
-            node->keys[i]     = keyDup(prevNode->keys[div - 1], LOC_BTREE_0107);
+            node->keys[i]     = keyDup(prevNode->keys[div - 1], LOC_BTREE_0085);
             node->keySizes[i] = prevNode->keySizes[div - 1];
             node->keyCount++;
 
             i++;
         }
 
-        btreeDebug(tree, LOC_BTREE_0108);
+        btreeDebug(tree, LOC_BTREE_0086);
         for (j = 0; j < rootNode->keyCount; j++, i++)
         {
             KV_FREE_DEBUG(node, i);
-            //keyFree(node->keys[i], LOC_BTREE_0109);
+            //keyFree(node->keys[i], LOC_BTREE_0087);
 
-            node->keys[i]     = keyDup(rootNode->keys[j], LOC_BTREE_0110);
+            node->keys[i]     = keyDup(rootNode->keys[j], LOC_BTREE_0088);
             node->keySizes[i] = rootNode->keySizes[j];
             node->children[i] = rootNode->children[j];
             node->keyCount++;
         }
-        btreeDebug(tree, LOC_BTREE_0111);
+        btreeDebug(tree, LOC_BTREE_0089);
 
         node->children[i] = rootNode->children[j];
 
         GDB_SET_DIRTY(node->block);
 
-        btreeDebug(tree, LOC_BTREE_0112);
+        btreeDebug(tree, LOC_BTREE_0090);
         btreeWriteNode(node);
-        btreeDebug(tree, LOC_BTREE_0113);
+        btreeDebug(tree, LOC_BTREE_0091);
 
         prevNode->children[div] = node->block->offset;
 
         GDB_SET_DIRTY(prevNode->block);
 
-        btreeDebug(tree, LOC_BTREE_0114);
+        btreeDebug(tree, LOC_BTREE_0092);
         btreeEraseNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0115);
+        btreeDebug(tree, LOC_BTREE_0093);
         __removeKey2(tree, prevNode, div - 1);
-        btreeDebug(tree, LOC_BTREE_0116);
+        btreeDebug(tree, LOC_BTREE_0094);
     }
     else
     {
         /* Must merge the node with its right sibling. */
-        btreeDebug(tree, LOC_BTREE_0117);
+        btreeDebug(tree, LOC_BTREE_0095);
         node = btreeReadNode(tree, prevNode->children[div + 1]);
         if(NULL == node)
         {
             dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__mergeNode: read node of child %d of previous node %p failed\n", div + 1, prevNode);
             return (0);
         }
-        btreeDebug(tree, LOC_BTREE_0118);
+        btreeDebug(tree, LOC_BTREE_0096);
         i    = rootNode->keyCount;
 
         if (!BTREE_IS_LEAF(rootNode))
         {
-            rootNode->keys[i]     = keyDup(prevNode->keys[div], LOC_BTREE_0119);
+            rootNode->keys[i]     = keyDup(prevNode->keys[div], LOC_BTREE_0097);
             rootNode->keySizes[i] = prevNode->keySizes[div];
             rootNode->keyCount++;
 
             i++;
         }
 
-        btreeDebug(tree, LOC_BTREE_0120);
+        btreeDebug(tree, LOC_BTREE_0098);
         for (j = 0; j < node->keyCount; j++, i++)
         {
-            rootNode->keys[i]     = keyDup(node->keys[j], LOC_BTREE_0121);
+            rootNode->keys[i]     = keyDup(node->keys[j], LOC_BTREE_0099);
             rootNode->keySizes[i] = node->keySizes[j];
             rootNode->children[i] = node->children[j];
             rootNode->keyCount++;
         }
-        btreeDebug(tree, LOC_BTREE_0122);
+        btreeDebug(tree, LOC_BTREE_0100);
 
         rootNode->children[i]       = node->children[j];
         prevNode->children[div + 1] = rootNode->block->offset;
@@ -371,27 +371,27 @@ __mergeNode(BTree *tree, BTreeNode *rootNode, BTreeNode *prevNode, uint8_t div)
         GDB_SET_DIRTY(rootNode->block);
         GDB_SET_DIRTY(prevNode->block);
 
-        btreeDebug(tree, LOC_BTREE_0123);
+        btreeDebug(tree, LOC_BTREE_0101);
 
         btreeEraseNode(node);
 
-        btreeDebug(tree, LOC_BTREE_0124);
+        btreeDebug(tree, LOC_BTREE_0102);
 
         __removeKey2(tree, prevNode, div);
 
-        btreeDebug(tree, LOC_BTREE_0125);
+        btreeDebug(tree, LOC_BTREE_0103);
     }
 
-    btreeDebug(tree, LOC_BTREE_0126);
+    btreeDebug(tree, LOC_BTREE_0104);
     btreeWriteNode(node);
-    btreeDebug(tree, LOC_BTREE_0127);
+    btreeDebug(tree, LOC_BTREE_0105);
     btreeWriteNode(prevNode);
-    btreeDebug(tree, LOC_BTREE_0128);
+    btreeDebug(tree, LOC_BTREE_0106);
     btreeWriteNode(rootNode);
-    btreeDebug(tree, LOC_BTREE_0129);
+    btreeDebug(tree, LOC_BTREE_0107);
 
     btreeDestroyNode(node);
-    btreeDebug(tree, LOC_BTREE_0130);
+    btreeDebug(tree, LOC_BTREE_0108);
 
     return 1;
 }
@@ -403,14 +403,14 @@ __delete(BTree *tree, offset_t rootOffset, BTreeNode *prevNode,
     uint8_t success = 0;
     BTreeNode *rootNode;
 
-    btreeDebug(tree, LOC_BTREE_0131);
+    btreeDebug(tree, LOC_BTREE_0109);
     rootNode = btreeReadNode(tree, rootOffset);
     if(NULL == rootNode)
     {
         dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:__delete: read root node from offset %d failed\n", rootOffset);
         return (0);
     }
-    btreeDebug(tree, LOC_BTREE_0132);
+    btreeDebug(tree, LOC_BTREE_0110);
 
     if (BTREE_IS_LEAF(rootNode))
     {
@@ -425,16 +425,16 @@ __delete(BTree *tree, offset_t rootOffset, BTreeNode *prevNode,
              i++)
             ;
 
-        btreeDebug(tree, LOC_BTREE_0133);
+        btreeDebug(tree, LOC_BTREE_0111);
         success = __delete(tree, rootNode->children[i], rootNode, key, i, filePos, merged);
-        btreeDebug(tree, LOC_BTREE_0134);
+        btreeDebug(tree, LOC_BTREE_0112);
     }
 
     if (success == 0)
     {
-        btreeDebug(tree, LOC_BTREE_0135);
+        btreeDebug(tree, LOC_BTREE_0113);
         btreeDestroyNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0136);
+        btreeDebug(tree, LOC_BTREE_0114);
 
         return 0;
     }
@@ -442,9 +442,9 @@ __delete(BTree *tree, offset_t rootOffset, BTreeNode *prevNode,
              (BTREE_IS_LEAF(rootNode)  && rootNode->keyCount >= tree->minLeaf) ||
              (!BTREE_IS_LEAF(rootNode) && rootNode->keyCount >= tree->minInt))
     {
-        btreeDebug(tree, LOC_BTREE_0137);
+        btreeDebug(tree, LOC_BTREE_0115);
         btreeDestroyNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0138);
+        btreeDebug(tree, LOC_BTREE_0116);
 
         return 1;
     }
@@ -458,21 +458,21 @@ __delete(BTree *tree, offset_t rootOffset, BTreeNode *prevNode,
         else
         {
             *merged = 1;
-            btreeDebug(tree, LOC_BTREE_0139);
+            btreeDebug(tree, LOC_BTREE_0117);
             __mergeNode(tree, rootNode, prevNode, index);
-            btreeDebug(tree, LOC_BTREE_0140);
+            btreeDebug(tree, LOC_BTREE_0118);
         }
 
-        btreeDebug(tree, LOC_BTREE_0141);
+        btreeDebug(tree, LOC_BTREE_0119);
         btreeWriteNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0142);
+        btreeDebug(tree, LOC_BTREE_0120);
         btreeWriteNode(prevNode);
-        btreeDebug(tree, LOC_BTREE_0143);
+        btreeDebug(tree, LOC_BTREE_0121);
     }
 
-    btreeDebug(tree, LOC_BTREE_0144);
+    btreeDebug(tree, LOC_BTREE_0122);
     btreeDestroyNode(rootNode);
-    btreeDebug(tree, LOC_BTREE_0145);
+    btreeDebug(tree, LOC_BTREE_0123);
 
     return 1;
 }
@@ -496,7 +496,7 @@ btreeDelete(BTree *tree, const uint8_t *key)
         return btreeSearch(tree, key, keyCmp);
     }
 
-    btreeDebug(tree, LOC_BTREE_0146);
+    btreeDebug(tree, LOC_BTREE_0124);
 
     filePos = 0;
     merged  = 0;
@@ -515,7 +515,7 @@ btreeDelete(BTree *tree, const uint8_t *key)
         return (0);
     }
 
-    btreeDebug(tree, LOC_BTREE_0147);
+    btreeDebug(tree, LOC_BTREE_0125);
 
     for (i = 0;
          i < rootNode->keyCount && keyCmp(rootNode->keys[i], key) < 0;
@@ -526,32 +526,32 @@ btreeDelete(BTree *tree, const uint8_t *key)
 
     if (success == 0)
     {
-        btreeDebug(tree, LOC_BTREE_0148);
+        btreeDebug(tree, LOC_BTREE_0126);
         btreeDestroyNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0149);
+        btreeDebug(tree, LOC_BTREE_0127);
         return 0;
     }
 
-    btreeDebug(tree, LOC_BTREE_0150);
+    btreeDebug(tree, LOC_BTREE_0128);
 
     btreeSetTreeSize(tree, tree->size - 1);
-    btreeDebug(tree, LOC_BTREE_0151);
+    btreeDebug(tree, LOC_BTREE_0129);
 
     if (BTREE_IS_LEAF(rootNode) && rootNode->keyCount == 0)
     {
-        btreeDebug(tree, LOC_BTREE_0152);
+        btreeDebug(tree, LOC_BTREE_0130);
         btreeSetRootNode(tree, 0);
-        btreeDebug(tree, LOC_BTREE_0153);
+        btreeDebug(tree, LOC_BTREE_0131);
         btreeEraseNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0154);
+        btreeDebug(tree, LOC_BTREE_0132);
     }
     else if (merged == 1 && rootNode->keyCount == 0)
     {
         BTreeNode *tempNode;
 
-        btreeDebug(tree, LOC_BTREE_0155);
+        btreeDebug(tree, LOC_BTREE_0133);
         btreeSetRootNode(tree, rootNode->children[0]);
-        btreeDebug(tree, LOC_BTREE_0156);
+        btreeDebug(tree, LOC_BTREE_0134);
 
         tempNode = btreeReadNode(tree, tree->root);
         if(NULL == tempNode)
@@ -559,21 +559,21 @@ btreeDelete(BTree *tree, const uint8_t *key)
             dbg_log(SEC_0130_BTREE, 0)(LOGSTDOUT, "error:btreeDelete: [2] read root node from offset %d failed\n", tree->root);
             return (0);
         }
-        btreeDebug(tree, LOC_BTREE_0157);
+        btreeDebug(tree, LOC_BTREE_0135);
         GDB_SET_DIRTY(tempNode->block);
 
         btreeWriteNode(tempNode);
-        btreeDebug(tree, LOC_BTREE_0158);
+        btreeDebug(tree, LOC_BTREE_0136);
         btreeDestroyNode(tempNode);
-        btreeDebug(tree, LOC_BTREE_0159);
+        btreeDebug(tree, LOC_BTREE_0137);
 
         btreeEraseNode(rootNode);
-        btreeDebug(tree, LOC_BTREE_0160);
+        btreeDebug(tree, LOC_BTREE_0138);
     }
 
-    btreeDebug(tree, LOC_BTREE_0161);
+    btreeDebug(tree, LOC_BTREE_0139);
     btreeDestroyNode(rootNode);
-    btreeDebug(tree, LOC_BTREE_0162);
+    btreeDebug(tree, LOC_BTREE_0140);
 
     return filePos;
 }
