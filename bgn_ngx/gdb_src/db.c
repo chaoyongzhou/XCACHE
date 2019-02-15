@@ -33,7 +33,7 @@ __setupDatabase(GDatabase *db)
     db->openBlockCount = 0;
     db->openBlockSize  = 10;
 
-    MEM_CHECK(db->openBlocks = (GdbBlock **)SAFE_MALLOC(db->openBlockSize * sizeof(GdbBlock *), LOC_DB_0078));
+    MEM_CHECK(db->openBlocks = (GdbBlock **)SAFE_MALLOC(db->openBlockSize * sizeof(GdbBlock *), LOC_DB_0009));
     memset(db->openBlocks, 0, db->openBlockSize * sizeof(GdbBlock *));
 }
 
@@ -43,7 +43,7 @@ STATIC_CAST static uint8_t *__genIdxFileName(const uint8_t *root_path, const wor
     uint32_t len;
 
     len = strlen((char *)root_path) + strlen("/idx/raw.idx") + 32;
-    MEM_CHECK(fidx_name = (uint8_t *)SAFE_MALLOC(len, LOC_DB_0079));
+    MEM_CHECK(fidx_name = (uint8_t *)SAFE_MALLOC(len, LOC_DB_0010));
     memset(fidx_name, 0, len);
 
     snprintf((char *)fidx_name, len, "%s/idx/%ld/%ld/%ld/%ld/raw.idx",
@@ -63,7 +63,7 @@ STATIC_CAST static uint8_t *__genDatFileName(const uint8_t *root_path, const wor
     uint32_t len;
 
     len = strlen((char *)root_path) + strlen("/dat/raw.dat") + 32;
-    MEM_CHECK(fdat_name = (uint8_t *)SAFE_MALLOC(len, LOC_DB_0080));
+    MEM_CHECK(fdat_name = (uint8_t *)SAFE_MALLOC(len, LOC_DB_0011));
     memset(fdat_name, 0, len);
 
     snprintf((char *)fdat_name, len, "%s/dat/%ld/%ld/%ld/%ld/raw.dat",
@@ -80,7 +80,7 @@ STATIC_CAST static uint8_t *__genDatFileName(const uint8_t *root_path, const wor
 STATIC_CAST static uint8_t *__dupFileName(const uint8_t *root_path)
 {
     uint8_t *file_name;
-    MEM_CHECK(file_name = (uint8_t *)SAFE_MALLOC(strlen((char *)root_path) + 1, LOC_DB_0081));
+    MEM_CHECK(file_name = (uint8_t *)SAFE_MALLOC(strlen((char *)root_path) + 1, LOC_DB_0012));
     sprintf((char *)file_name, "%s", (char *)root_path);
     return (file_name);
 }
@@ -122,15 +122,15 @@ gdbMake(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_id
     MEM_CHECK(fidx_name = __genIdxFileName(root_path, table_id));
     MEM_CHECK(fdat_name = __genDatFileName(root_path, table_id));
 
-    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0082));
+    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0013));
     memset(db, 0, sizeof(GDatabase));
-    gdbInitlockFreeBlockList(db, LOC_DB_0083);
+    gdbInitlockFreeBlockList(db, LOC_DB_0014);
 
     MEM_CHECK(db->idxRawFile = rawFileNew(fidx_name, idx_fd, O_RDWR, RAW_IDX_FILE_MAX_SIZE , cdfs_md_id));
     MEM_CHECK(db->datRawFile = rawFileNew(fdat_name, dat_fd, O_RDWR, RAW_DATA_FILE_MAX_SIZE, cdfs_md_id));
 
-    SAFE_FREE(fidx_name, LOC_DB_0084);
-    SAFE_FREE(fdat_name, LOC_DB_0085);
+    SAFE_FREE(fidx_name, LOC_DB_0015);
+    SAFE_FREE(fdat_name, LOC_DB_0016);
 
     db->table_id = table_id;
     db->type     = GDB_INDEX_FILE;
@@ -168,7 +168,7 @@ gdbOpen(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_id
     {
         MEM_CHECK(fidx_name = __genIdxFileName(root_path, table_id));
         idxRawFile = rawFileOpen(fidx_name, O_RDWR, RAW_IDX_FILE_MAX_SIZE, cdfs_md_id);
-        SAFE_FREE(fidx_name, LOC_DB_0086);
+        SAFE_FREE(fidx_name, LOC_DB_0017);
     }
 
     if (idxRawFile == NULL)
@@ -184,9 +184,9 @@ gdbOpen(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_id
         }
     }
 
-    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0087));
+    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0018));
     memset(db, 0, sizeof(GDatabase));
-    gdbInitlockFreeBlockList(db, LOC_DB_0088);
+    gdbInitlockFreeBlockList(db, LOC_DB_0019);
 
     db->idxRawFile = idxRawFile;
 
@@ -194,7 +194,7 @@ gdbOpen(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_id
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbOpen: read header of table %ld failed\n", table_id);
         rawFileClose(db->idxRawFile);
-        SAFE_FREE(db, LOC_DB_0089);
+        SAFE_FREE(db, LOC_DB_0020);
         return NULL;
     }
 
@@ -202,13 +202,13 @@ gdbOpen(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_id
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbOpen: read header of table %ld failed due to invalid db type %d\n", table_id, db->type);
         rawFileClose(db->idxRawFile);
-        SAFE_FREE(db, LOC_DB_0090);
+        SAFE_FREE(db, LOC_DB_0021);
         return NULL;
     }
 
     MEM_CHECK(fdat_name = __genDatFileName(root_path, table_id));
     MEM_CHECK(db->datRawFile = rawFileOpen(fdat_name, O_RDWR, RAW_DATA_FILE_MAX_SIZE, cdfs_md_id));
-    SAFE_FREE(fdat_name, LOC_DB_0091);
+    SAFE_FREE(fdat_name, LOC_DB_0022);
 
     __setupDatabase(db);
 
@@ -320,10 +320,10 @@ gdbCreate(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbCreate: Unable to create idx %s for table %ld\n",
                             (char *)fidx_name, table_id);
-        SAFE_FREE(fidx_name, LOC_DB_0092);
+        SAFE_FREE(fidx_name, LOC_DB_0023);
         return NULL;
     }
-    SAFE_FREE(fidx_name, LOC_DB_0093);
+    SAFE_FREE(fidx_name, LOC_DB_0024);
 
     MEM_CHECK(fdat_name = __genDatFileName(root_path, table_id));
     datRawFile = rawFileCreate(fdat_name, RAW_DATA_FILE_MAX_SIZE, cdfs_md_id);
@@ -331,15 +331,15 @@ gdbCreate(const uint8_t *root_path, const word_t table_id, const word_t cdfs_md_
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbCreate: Unable to create dat %s for table %ld\n",
                             (char *)fdat_name, table_id);
-        SAFE_FREE(fdat_name, LOC_DB_0094);
+        SAFE_FREE(fdat_name, LOC_DB_0025);
         rawFileClose(idxRawFile);
         return NULL;
     }
-    SAFE_FREE(fdat_name, LOC_DB_0095);
+    SAFE_FREE(fdat_name, LOC_DB_0026);
 
-    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0096));
+    MEM_CHECK(db = (GDatabase *)SAFE_MALLOC(sizeof(GDatabase), LOC_DB_0027));
     memset(db, 0, sizeof(GDatabase));
-    gdbInitlockFreeBlockList(db, LOC_DB_0097);
+    gdbInitlockFreeBlockList(db, LOC_DB_0028);
 
     __setupDatabase(db);
 
@@ -367,9 +367,9 @@ gdbDestroy(GDatabase *db)
 {
     cxReturnValueUnless(db != NULL, NULL);
 
-    SAFE_FREE(db->openBlocks, LOC_DB_0098);
-    SAFE_FREE(db->filename, LOC_DB_0099);
-    SAFE_FREE(db, LOC_DB_0100);
+    SAFE_FREE(db->openBlocks, LOC_DB_0029);
+    SAFE_FREE(db->filename, LOC_DB_0030);
+    SAFE_FREE(db, LOC_DB_0031);
 
     return NULL;
 }
@@ -406,8 +406,8 @@ gdbUnlink(const uint8_t *root_path, const word_t table_id)
     dbg_log(SEC_0131_DB, 9)(LOGSTDOUT, "[DEBUG] gdbUnlink: unlink dat file: %s\n", (char *)fdat_name);
     unlink((char *)fdat_name);
 
-    SAFE_FREE(fidx_name, LOC_DB_0101);
-    SAFE_FREE(fdat_name, LOC_DB_0102);
+    SAFE_FREE(fidx_name, LOC_DB_0032);
+    SAFE_FREE(fdat_name, LOC_DB_0033);
 
     return GDB_SUCCESS;
 }
@@ -526,7 +526,7 @@ gdbInsertKeyValue(GDatabase *db, const KeyValue *keyValue, const uint8_t replace
         uint8_t *kv;
         uint16_t tlen;
 
-        MEM_CHECK(kv  = kvNewHs(keyValue, LOC_DB_0103));
+        MEM_CHECK(kv  = kvNewHs(keyValue, LOC_DB_0034));
         kvPutHs(kv, keyValue);
 
         tlen = keyValueGettLenHs(keyValue);
@@ -536,7 +536,7 @@ gdbInsertKeyValue(GDatabase *db, const KeyValue *keyValue, const uint8_t replace
             dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbInsertKeyValue: insert kv failed where kv is ");
             kvPrintHs(LOGSTDOUT, kv);
         }
-        kvFreeHs(kv, LOC_DB_0104);
+        kvFreeHs(kv, LOC_DB_0035);
     }
 
     /*insert idx file*/
@@ -547,14 +547,14 @@ gdbInsertKeyValue(GDatabase *db, const KeyValue *keyValue, const uint8_t replace
 
         klen = keyValueGetkLenHs(keyValue);
 
-        MEM_CHECK(key = keyNewHs(klen, LOC_DB_0105));
+        MEM_CHECK(key = keyNewHs(klen, LOC_DB_0036));
         keyValuePutKeyHs(key, keyValue);
         //__print_chars(key, keyValue->klen);
 
         status = btreeInsert(db->mainTree, key, offset, replaceDup);
         //print_kv_status(key, status);
 
-        keyFreeHs(key, LOC_DB_0106);
+        keyFreeHs(key, LOC_DB_0037);
     }
 
     return status;
@@ -606,9 +606,9 @@ gdbDeleteKey(GDatabase *db, const uint8_t *key, int(* keyCompare)(const uint8_t 
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbDeleteKey: db %p is null or btree %p is null\n", db, db->mainTree);
         return GDB_ERROR;
     }
-    BTREE_CRWLOCK_WRLOCK(db->mainTree, LOC_DB_0107);
+    BTREE_CRWLOCK_WRLOCK(db->mainTree, LOC_DB_0038);
     (*offset) = btreeDelete(db->mainTree, key);
-    BTREE_CRWLOCK_UNLOCK(db->mainTree, LOC_DB_0108);
+    BTREE_CRWLOCK_UNLOCK(db->mainTree, LOC_DB_0039);
     if(0 == (*offset))
     {
         return GDB_ERROR;
@@ -692,7 +692,7 @@ gdbFetchKey(const GDatabase *db, const offset_t offset, uint8_t **key, uint16_t 
 
     tlen = klen + KV_FORMAT_KLEN + KV_FORMAT_VLEN;
 
-    (*key) = (uint8_t *)SAFE_MALLOC(tlen, LOC_DB_0109);
+    (*key) = (uint8_t *)SAFE_MALLOC(tlen, LOC_DB_0040);
     if(NULL == (*key))
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchKey: alloc %d bytes failed\n", tlen);
@@ -705,7 +705,7 @@ gdbFetchKey(const GDatabase *db, const offset_t offset, uint8_t **key, uint16_t 
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchKey: read key %d bytes at offset %d failed where _tlen = %d\n",
                           tlen, cur_offset, _tlen);
 
-        SAFE_FREE((*key), LOC_DB_0110);
+        SAFE_FREE((*key), LOC_DB_0041);
         (*key) = NULL;
         (*key_len) = 0;
         return GDB_ERROR;
@@ -750,7 +750,7 @@ gdbFetchValue(const GDatabase *db, const offset_t offset, uint8_t **val, uint32_
 
     cur_offset += klen;/*skip key*/
 
-    (*val) = (uint8_t *)SAFE_MALLOC(vlen, LOC_DB_0111);
+    (*val) = (uint8_t *)SAFE_MALLOC(vlen, LOC_DB_0042);
     if(NULL == (*val))
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchValue: alloc %d bytes failed\n", vlen);
@@ -762,7 +762,7 @@ gdbFetchValue(const GDatabase *db, const offset_t offset, uint8_t **val, uint32_
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchValue: read value %d bytes at offset %d failed where val_len = %d\n",
                 vlen, cur_offset, *val_len);
 
-        SAFE_FREE((*val), LOC_DB_0112);
+        SAFE_FREE((*val), LOC_DB_0043);
         (*val) = NULL;
         (*val_len) = 0;
         return GDB_ERROR;
@@ -790,7 +790,7 @@ gdbFetchKV(const GDatabase *db, const offset_t offset, uint8_t **kv, uint32_t *k
     }
     cur_offset += sizeof(uint32_t);
 
-    (*kv) = (uint8_t *)SAFE_MALLOC(dlen, LOC_DB_0113);
+    (*kv) = (uint8_t *)SAFE_MALLOC(dlen, LOC_DB_0044);
     if(NULL == (*kv))
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchKV: alloc %d bytes failed\n", dlen);
@@ -802,7 +802,7 @@ gdbFetchKV(const GDatabase *db, const offset_t offset, uint8_t **kv, uint32_t *k
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT,"error:gdbFetchKV: read kv %d bytes at offset %d failed where kv_len = %d\n",
                 dlen, cur_offset, *kv_len);
 
-        SAFE_FREE((*kv), LOC_DB_0114);
+        SAFE_FREE((*kv), LOC_DB_0045);
         (*kv) = NULL;
         (*kv_len) = 0;
         return GDB_ERROR;
@@ -1063,7 +1063,7 @@ gdbKeyRegexScanKV(const GDatabase *db, int (*key_regex)(const uint8_t *, pcre *,
             if(NULL == kv_bytes)
             {
                 dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbKeyRegexScanKV: new kv cbytes failed\n");
-                SAFE_FREE(kv, LOC_DB_0115);
+                SAFE_FREE(kv, LOC_DB_0046);
                 return (GDB_ERROR);
             }
 
@@ -1072,7 +1072,7 @@ gdbKeyRegexScanKV(const GDatabase *db, int (*key_regex)(const uint8_t *, pcre *,
             continue;
         }
 
-        SAFE_FREE(kv, LOC_DB_0116);
+        SAFE_FREE(kv, LOC_DB_0047);
     }
 
     btreeDestroyTraversal(trav);
@@ -1120,18 +1120,18 @@ gdbKeyRegexScanKVOffset(const GDatabase *db, int (*key_regex)(const uint8_t *, p
             if(NULL == kv_bytes)
             {
                 dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbKeyRegexScanKVOffset: new kv cbytes failed\n");
-                SAFE_FREE(kv, LOC_DB_0117);
+                SAFE_FREE(kv, LOC_DB_0048);
                 return (GDB_ERROR);
             }
 
             cbytes_mount(kv_bytes, (UINT32)kv_len, (UINT8 *)kv);
 
             offset_word = offset;
-            cmap_add(kvoffset_map, (void *)offset_word, (void *)kv_bytes, LOC_DB_0118);
+            cmap_add(kvoffset_map, (void *)offset_word, (void *)kv_bytes, LOC_DB_0049);
             continue;
         }
 
-        SAFE_FREE(kv, LOC_DB_0119);
+        SAFE_FREE(kv, LOC_DB_0050);
     }
 
     btreeDestroyTraversal(trav);
@@ -1178,7 +1178,7 @@ gdbKVRegexScanKV(const GDatabase *db, int (*kv_regex)(const uint8_t *, pcre *, p
             if(NULL == kv_bytes)
             {
                 dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbKVRegexScanKV: new kv cbytes failed\n");
-                SAFE_FREE(kv, LOC_DB_0120);
+                SAFE_FREE(kv, LOC_DB_0051);
                 return (GDB_ERROR);
             }
 
@@ -1187,7 +1187,7 @@ gdbKVRegexScanKV(const GDatabase *db, int (*kv_regex)(const uint8_t *, pcre *, p
             continue;
         }
 
-        SAFE_FREE(kv, LOC_DB_0121);
+        SAFE_FREE(kv, LOC_DB_0052);
     }
 
     btreeDestroyTraversal(trav);
@@ -1235,18 +1235,18 @@ gdbKVRegexScanKVOffset(const GDatabase *db, int (*kv_regex)(const uint8_t *, pcr
             if(NULL == kv_bytes)
             {
                 dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbKVRegexScanKVOffset: new kv cbytes failed\n");
-                SAFE_FREE(kv, LOC_DB_0122);
+                SAFE_FREE(kv, LOC_DB_0053);
                 return (GDB_ERROR);
             }
 
             cbytes_mount(kv_bytes, (UINT32)kv_len, (UINT8 *)kv);
 
             offset_word = offset;
-            cmap_add(kvoffset_map, (void *)offset_word, (void *)kv_bytes, LOC_DB_0123);
+            cmap_add(kvoffset_map, (void *)offset_word, (void *)kv_bytes, LOC_DB_0054);
             continue;
         }
 
-        SAFE_FREE(kv, LOC_DB_0124);
+        SAFE_FREE(kv, LOC_DB_0055);
     }
 
     btreeDestroyTraversal(trav);

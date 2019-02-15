@@ -9,6 +9,7 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+#include <sys/time.h>
 #include <errno.h>
 
 #include "type.h"
@@ -756,10 +757,9 @@ CAIO_DISK *caio_disk_new()
 
 EC_BOOL caio_disk_init(CAIO_DISK *caio_disk)
 {
-    CAIO_DISK_FD(caio_disk)             = ERR_FD;
-    CAIO_DISK_MAX_REQ_NUM(caio_disk)    = NULL_PTR;
-    CAIO_DISK_CUR_REQ_NUM(caio_disk)    = 0;
-
+    CAIO_DISK_FD(caio_disk)                 = ERR_FD;
+    CAIO_DISK_MAX_REQ_NUM(caio_disk)        = NULL_PTR;
+    CAIO_DISK_CUR_REQ_NUM(caio_disk)        = 0;
     return (EC_TRUE);
 }
 
@@ -767,9 +767,9 @@ EC_BOOL caio_disk_clean(CAIO_DISK *caio_disk)
 {
     if(NULL_PTR != caio_disk)
     {
-        CAIO_DISK_FD(caio_disk)             = ERR_FD;
-        CAIO_DISK_MAX_REQ_NUM(caio_disk)    = NULL_PTR;
-        CAIO_DISK_CUR_REQ_NUM(caio_disk)    = 0;
+        CAIO_DISK_FD(caio_disk)                 = ERR_FD;
+        CAIO_DISK_MAX_REQ_NUM(caio_disk)        = NULL_PTR;
+        CAIO_DISK_CUR_REQ_NUM(caio_disk)        = 0;
     }
 
     return (EC_TRUE);
@@ -3092,9 +3092,9 @@ void caio_process_pages(CAIO_MD *caio_md)
 
     if(0 <= aio_succ_nr)
     {
-        UINT32  req_idx;
-        UINT32  req_succ_num;
-        UINT32  req_fail_num;
+        UINT32          req_idx;
+        UINT32          req_succ_num;
+        UINT32          req_fail_num;
 
         req_succ_num = (UINT32)(aio_succ_nr);
         req_fail_num = (UINT32)(aio_total_nr - aio_succ_nr);

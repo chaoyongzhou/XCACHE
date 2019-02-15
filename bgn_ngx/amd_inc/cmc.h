@@ -35,12 +35,19 @@ extern "C"{
 #define CMC_RETIRE_LO_RATIO                (0.80) /*80%*/
 #endif
 
+#define CMC_TRAFFIC_10MB                   (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_TRAFFIC_20MB                   (((uint64_t)20) << 23) /*20Mbps*/
+#define CMC_TRAFFIC_30MB                   (((uint64_t)30) << 23) /*30Mbps*/
+#define CMC_TRAFFIC_40MB                   (((uint64_t)40) << 23) /*40Mbps*/
+
 #define CMC_DEGRADE_TRAFFIC_10MB           (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_DEGRADE_TRAFFIC_15MB           (((uint64_t)15) << 23) /*15Mbps*/
 #define CMC_DEGRADE_TRAFFIC_20MB           (((uint64_t)20) << 23) /*20Mbps*/
+#define CMC_DEGRADE_TRAFFIC_25MB           (((uint64_t)25) << 23) /*25Mbps*/
 #define CMC_DEGRADE_TRAFFIC_30MB           (((uint64_t)30) << 23) /*30Mbps*/
+#define CMC_DEGRADE_TRAFFIC_32MB           (((uint64_t)32) << 23) /*32Mbps*/
+#define CMC_DEGRADE_TRAFFIC_36MB           (((uint64_t)36) << 23) /*36Mbps*/
 #define CMC_DEGRADE_TRAFFIC_40MB           (((uint64_t)40) << 23) /*40Mbps*/
-#define CMC_DEGRADE_TRAFFIC_60MB           (((uint64_t)60) << 23) /*60Mbps*/
-#define CMC_DEGRADE_TRAFFIC_80MB           (((uint64_t)80) << 23) /*80Mbps*/
 
 #define CMC_READ_TRAFFIC_05MB              (((uint64_t) 5) << 23) /* 5Mbps*/
 #define CMC_READ_TRAFFIC_10MB              (((uint64_t)10) << 23) /*10Mbps*/
@@ -110,7 +117,8 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md);
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, const uint64_t read_traffic_bps, const uint64_t write_traffic_bps);
+void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_ratio,
+                     const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps);
 
 /**
 *

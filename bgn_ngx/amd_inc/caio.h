@@ -26,6 +26,8 @@ extern "C"{
 #include "clist.h"
 #include "crb.h"
 
+#include "cfc.h"
+
 #define CAIO_001K_MODEL   ((uint8_t) 0)
 #define CAIO_002K_MODEL   ((uint8_t) 1)
 #define CAIO_004K_MODEL   ((uint8_t) 2)
@@ -172,7 +174,7 @@ typedef struct
     int              rsvd01;
     aio_context_t    aio_context;       /*8B*/
 
-    CLIST            disk_list;
+    CLIST            disk_list;         /*item is CAIO_DISK*/
 
     CLIST            req_list;          /*item is CAIO_REQ. reading & writing request list in order*/
     CLIST            page_list[2];      /*item is CAIO_PAGE. working page tree*/

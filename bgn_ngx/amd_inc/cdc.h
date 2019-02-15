@@ -53,9 +53,16 @@ extern "C"{
 #define CDC_RETIRE_MD_RATIO                            (0.7) /*70%*/
 #define CDC_RETIRE_LO_RATIO                            (0.5) /*50%*/
 #endif
+#define CDC_DEGRADE_TRAFFIC_08MB                       (((uint64_t) 8) << 23) /* 8MBps*/
 #define CDC_DEGRADE_TRAFFIC_10MB                       (((uint64_t)10) << 23) /*10MBps*/
+#define CDC_DEGRADE_TRAFFIC_15MB                       (((uint64_t)15) << 23) /*15MBps*/
+#define CDC_DEGRADE_TRAFFIC_16MB                       (((uint64_t)16) << 23) /*16MBps*/
 #define CDC_DEGRADE_TRAFFIC_20MB                       (((uint64_t)20) << 23) /*20MBps*/
+#define CDC_DEGRADE_TRAFFIC_24MB                       (((uint64_t)24) << 23) /*24MBps*/
+#define CDC_DEGRADE_TRAFFIC_25MB                       (((uint64_t)25) << 23) /*25MBps*/
 #define CDC_DEGRADE_TRAFFIC_30MB                       (((uint64_t)30) << 23) /*30MBps*/
+#define CDC_DEGRADE_TRAFFIC_32MB                       (((uint64_t)32) << 23) /*32MBps*/
+#define CDC_DEGRADE_TRAFFIC_36MB                       (((uint64_t)36) << 23) /*36MBps*/
 #define CDC_DEGRADE_TRAFFIC_40MB                       (((uint64_t)40) << 23) /*40MBps*/
 
 #define CDC_READ_TRAFFIC_05MB                          (((uint64_t) 5) << 23) /* 5MBps*/
@@ -905,7 +912,7 @@ EC_BOOL cdc_req_cancel_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node);
 /*----------------------------------- cdc module interface -----------------------------------*/
 
 
-void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
+void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_hit_ratio,
                  const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
                  const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps);
 

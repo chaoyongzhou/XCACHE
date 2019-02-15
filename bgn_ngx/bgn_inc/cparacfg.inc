@@ -141,6 +141,7 @@ typedef struct
     UINT32    camd_ssd_aio_req_max_num;    /*default: 8*/
     UINT32    camd_sata_aio_req_max_num;   /*default: 8*/
 
+    UINT32    camd_sata_degrade_ssd_switch;/*default: on*/
     UINT32    cmc_try_retire_max_num;      /*default: 8*/
     UINT32    cmc_try_recycle_max_num;     /*default: 128*/
     UINT32    cmc_scan_retire_max_num;     /*default: 256*/
@@ -278,6 +279,7 @@ typedef struct
 
 #define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)                 ((cparacfg)->camd_ssd_aio_req_max_num)
 #define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)                ((cparacfg)->camd_sata_aio_req_max_num)
+#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)             ((cparacfg)->camd_sata_degrade_ssd_switch)
 
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cmc_try_retire_max_num)
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_try_recycle_max_num)
@@ -342,6 +344,7 @@ typedef struct
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
 
 #define CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)))
+#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)))
 
 
 #define MEM_BUFF_128B ( 128      )
@@ -507,6 +510,7 @@ typedef struct
 
 #define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    8
 #define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   8
+#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_DEF                SWITCH_ON
 
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM_DEF                     128
@@ -650,7 +654,7 @@ typedef struct
 
 #define    CAMD_SSD_AIO_REQ_MAX_NUM_RAW                  CPARACFG_DEFAULT_RAW_MAP(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM)
 #define    CAMD_SATA_AIO_REQ_MAX_NUM_RAW                 CPARACFG_DEFAULT_RAW_MAP(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM)
-
+#define    CAMD_SATA_DEGRADE_SSD_SWITCH                  CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH)
 #define    CMC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RETIRE_MAX_NUM)
 #define    CMC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM)
 #define    CMC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM)

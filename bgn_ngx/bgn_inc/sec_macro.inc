@@ -215,6 +215,6 @@
 #define SEC_0205_CXFSCFG                    ((UINT32)(    205)) /*cxfscfg                         */
 #define SEC_0206_CXFSMON                    ((UINT32)(    206)) /*cxfsmon                         */
 #define SEC_0207_CDEQUEUE                   ((UINT32)(    207)) /*cdequeue                        */
-
-#define SEC_NONE_END                        ((UINT32)(    208))
+#define SEC_0208_CFC                        ((UINT32)(    208)) /*cfc                             */
+#define SEC_NONE_END                        ((UINT32)(    209))
 #endif/*_SEC_MACRO_INC*/

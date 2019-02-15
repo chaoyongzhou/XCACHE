@@ -581,7 +581,8 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
     }
     else
     {
-        if(BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+        if(SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
+        && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
         {
             /*if loaded from sata, then flush to ssd*/
             CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
@@ -2832,6 +2833,9 @@ CAMD_MD *camd_start(const int sata_disk_fd, const UINT32 sata_disk_size /*in byt
     cfc_init(CAMD_MD_AMD_READ_FC(camd_md));
     cfc_init(CAMD_MD_AMD_WRITE_FC(camd_md));
 
+    ciostat_init(CAMD_MD_MEM_IOSTAT(camd_md));
+    ciostat_init(CAMD_MD_SSD_IOSTAT(camd_md));
+
     dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_start: start camd module %p\n", camd_md);
 
     return (camd_md);
@@ -2889,6 +2893,9 @@ void camd_end(CAMD_MD *camd_md)
         cfc_clean(CAMD_MD_MEM_FC(camd_md));
         cfc_clean(CAMD_MD_AMD_READ_FC(camd_md));
         cfc_clean(CAMD_MD_AMD_WRITE_FC(camd_md));
+
+        ciostat_clean(CAMD_MD_MEM_IOSTAT(camd_md));
+        ciostat_clean(CAMD_MD_SSD_IOSTAT(camd_md));
 
         safe_free(camd_md, LOC_CAMD_0012);
     }
@@ -3092,7 +3099,7 @@ EC_BOOL camd_poll(CAMD_MD *camd_md)
     if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
     {
         /*not need poll, process only*/
-        cmc_process(CAMD_MD_CMC_MD(camd_md), (uint64_t)0, (uint64_t)~0, (uint64_t)~0);
+        cmc_process(CAMD_MD_CMC_MD(camd_md), (uint64_t)0, (REAL)0.0, (uint64_t)~0, (uint64_t)~0);
     }
 
     if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
@@ -3136,6 +3143,8 @@ void camd_process(CAMD_MD *camd_md)
     uint64_t    amd_write_traffic_bps;
     uint64_t    sata_read_traffic_bps;
     uint64_t    sata_write_traffic_bps;
+    REAL        mem_hit_ratio;
+    REAL        ssd_hit_ratio;
 
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)); /*for debug checking*/
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CMC_MD(camd_md));  /*for debug checking*/
@@ -3153,6 +3162,9 @@ void camd_process(CAMD_MD *camd_md)
         amd_write_traffic_bps  = cfc_get_speed(CAMD_MD_AMD_WRITE_FC(camd_md));
         sata_read_traffic_bps  = cfc_get_speed(CAMD_MD_SATA_READ_FC(camd_md));
         sata_write_traffic_bps = cfc_get_speed(CAMD_MD_SATA_WRITE_FC(camd_md));
+
+        mem_hit_ratio          = ciostat_get_io_hit_ratio(CAMD_MD_MEM_IOSTAT(camd_md));
+        ssd_hit_ratio          = ciostat_get_io_hit_ratio(CAMD_MD_SSD_IOSTAT(camd_md));
     }
     else
     {
@@ -3162,6 +3174,9 @@ void camd_process(CAMD_MD *camd_md)
         amd_write_traffic_bps  = ((uint64_t) 0); /*no write*/
         sata_read_traffic_bps  = ((uint64_t) 0); /*no read*/
         sata_write_traffic_bps = ((uint64_t) 0); /*no write*/
+
+        mem_hit_ratio          = ((REAL) 0.0);
+        ssd_hit_ratio          = ((REAL) 0.0);
     }
 
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
@@ -3175,13 +3190,13 @@ void camd_process(CAMD_MD *camd_md)
         {
             if(0 < mem_traffic_bps)
             {
-                mem_traffic_bps = DMAX(mem_traffic_bps, CMC_DEGRADE_TRAFFIC_30MB);
+                mem_traffic_bps = DMAX(mem_traffic_bps, CMC_DEGRADE_TRAFFIC_32MB);
             }
 
             /*else mem_traffic_bps is 0*/
         }
 
-        cmc_process(CAMD_MD_CMC_MD(camd_md), mem_traffic_bps,
+        cmc_process(CAMD_MD_CMC_MD(camd_md), mem_traffic_bps, mem_hit_ratio,
                     amd_read_traffic_bps, amd_write_traffic_bps);
     }
 
@@ -3191,7 +3206,7 @@ void camd_process(CAMD_MD *camd_md)
         {
             ssd_traffic_bps = DMAX(ssd_traffic_bps, CDC_DEGRADE_TRAFFIC_20MB);
         }
-        cdc_process(CAMD_MD_CDC_MD(camd_md), ssd_traffic_bps,
+        cdc_process(CAMD_MD_CDC_MD(camd_md), ssd_traffic_bps, ssd_hit_ratio,
                     amd_read_traffic_bps, amd_write_traffic_bps,
                     sata_read_traffic_bps, sata_write_traffic_bps);
     }
@@ -3232,6 +3247,9 @@ void camd_process(CAMD_MD *camd_md)
         cfc_calc_speed(CAMD_MD_MEM_FC(camd_md), time_msec_cur, time_msec_interval);
         cfc_calc_speed(CAMD_MD_AMD_READ_FC(camd_md), time_msec_cur, time_msec_interval);
         cfc_calc_speed(CAMD_MD_AMD_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+
+        ciostat_calc_io_ratio(CAMD_MD_MEM_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
+        ciostat_calc_io_ratio(CAMD_MD_SSD_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
     }
 
     return;
@@ -3357,9 +3375,13 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                                                  CAMD_PAGE_F_S_OFFSET(camd_page),
                                                  CAMD_PAGE_F_E_OFFSET(camd_page));
 
+            ciostat_inc_io_miss(CAMD_MD_MEM_IOSTAT(camd_md));
+
             /*fall through to aio*/
             break;
         }
+
+        ciostat_inc_io_hit(CAMD_MD_MEM_IOSTAT(camd_md));
 
         /*load page from mem cache*/
         offset = CAMD_PAGE_F_S_OFFSET(camd_page);
@@ -3484,6 +3506,9 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                                                  CAMD_PAGE_F_S_OFFSET(camd_page),
                                                  CAMD_PAGE_F_E_OFFSET(camd_page));
 
+            ciostat_inc_io_miss(CAMD_MD_SSD_IOSTAT(camd_md));
+
+
             /*fall through to aio*/
             break;
         }
@@ -3492,6 +3517,8 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                                              "ssd hit page [%ld, %ld)\n",
                                              CAMD_PAGE_F_S_OFFSET(camd_page),
                                              CAMD_PAGE_F_E_OFFSET(camd_page));
+
+        ciostat_inc_io_hit(CAMD_MD_SSD_IOSTAT(camd_md));
 
         /*aio load page from ssd*/
         if(NULL_PTR != CDC_MD_CAIO_MD(cdc_md)
@@ -4134,7 +4161,7 @@ EC_BOOL camd_ssd_free(CAMD_SSD *camd_ssd)
 void camd_ssd_print(LOG *log, const CAMD_SSD *camd_ssd)
 {
     sys_log(log, "camd_ssd_print: camd_ssd %p: file range [%ld, %ld), "
-                 "key [%u, %u), "
+                 "key [%u, %u),  "
                  "timeout %ld seconds\n",
                  camd_ssd,
                  CAMD_SSD_F_S_OFFSET(camd_ssd), CAMD_SSD_F_E_OFFSET(camd_ssd),

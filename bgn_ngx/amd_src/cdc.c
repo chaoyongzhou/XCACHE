@@ -551,7 +551,7 @@ EC_BOOL cdc_try_quit(CDC_MD *cdc_md)
 
     static UINT32  warning_counter = 0; /*suppress warning report*/
 
-    cdc_process(cdc_md, CDC_DEGRADE_TRAFFIC_40MB,
+    cdc_process(cdc_md, CDC_DEGRADE_TRAFFIC_40MB, (REAL)0.0,
                 CDC_READ_TRAFFIC_05MB, CDC_WRITE_TRAFFIC_05MB,
                 CDC_READ_TRAFFIC_05MB, CDC_WRITE_TRAFFIC_05MB); /*process once*/
 
@@ -571,22 +571,7 @@ EC_BOOL cdc_try_quit(CDC_MD *cdc_md)
     }
 
     tree_idx = 1;
-    if(EC_TRUE == cdc_has_page(cdc_md, (UINT32)1))
-    {
-        if(0 == (warning_counter % 1000))
-        {
-            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_try_quit: "
-                                                "page tree %ld# is not empty\n",
-                                                tree_idx);
-        }
-
-        warning_counter ++;
-
-        return (EC_FALSE);
-    }
-
-    tree_idx = 2;
-    if(EC_TRUE == cdc_has_page(cdc_md, (UINT32)0))
+    if(EC_TRUE == cdc_has_page(cdc_md, tree_idx))
     {
         if(0 == (warning_counter % 1000))
         {
@@ -680,58 +665,58 @@ STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const
 {
     if(CDC_DEGRADE_LO_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_30MB)
+        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_10MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
     }
     else if(CDC_DEGRADE_MD_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_30MB)
+        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_30MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_24MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_20MB)
+        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_10MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
     }
     else if(CDC_DEGRADE_HI_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_30MB)
+        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_30MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_20MB)
+        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_10MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
     }
     else
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_30MB)
+        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_30MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_20MB)
+        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_10MB;
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
     }
 
@@ -745,7 +730,7 @@ STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const
 * 2, process CAIO
 *
 **/
-void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
+void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_hit_ratio,
                  const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
                  const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps)
 {
@@ -788,13 +773,13 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
         && CDC_WRITE_TRAFFIC_05MB >= amd_write_traffic_bps)
         {
             /*override*/
-            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_30MB;
+            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_20MB;
         }
         else if(CDC_READ_TRAFFIC_10MB  >= amd_read_traffic_bps
              && CDC_WRITE_TRAFFIC_10MB >= amd_write_traffic_bps)
         {
             /*override*/
-            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_20MB;
+            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_15MB;
         }
         else if(CDC_READ_TRAFFIC_15MB  <= sata_read_traffic_bps
              && CDC_WRITE_TRAFFIC_15MB <= sata_write_traffic_bps
@@ -802,11 +787,8 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
              && CDC_DEGRADE_LO_RATIO  >= deg_ratio
              && CDC_DEGRADE_TRAFFIC_10MB < degrade_traffic_bps)
         {
-            dbg_log(SEC_0182_CDC, 2)(LOGSTDOUT, "[DEBUG] cdc_process: "
-                                                "deg %ld => 10 MBps\n",
-                                                degrade_traffic_bps >> 23);
             /*override*/
-            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_10MB;
+            degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_10MB; /*speed down*/
         }
     }
 
@@ -886,12 +868,13 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps,
     || 0 < recycle_complete_num)
     {
         dbg_log(SEC_0182_CDC, 2)(LOGSTDOUT, "[DEBUG] cdc_process: "
-                                            "used %.2f, r/w %ld/%ld MBps, "
-                                            "deg: %u, ratio %.2f, deg %ld MBps, "
+                                            "used %.2f, r/w %ld/%ld MBps, hit %.2f, "
+                                            "deg: %u, %.2f, %ld MBps, "
                                             "=> degrade %ld, retire %ld, recycle %ld\n",
                                             used_ratio,
                                             amd_read_traffic_bps >> 23,
                                             amd_write_traffic_bps >> 23,
+                                            ssd_hit_ratio,
                                             deg_num,
                                             deg_ratio,
                                             degrade_traffic_bps >> 23,
@@ -5821,12 +5804,9 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
 
     if(NULL_PTR != CDC_MD_NP(cdc_md))
     {
-        CTMV        timev_cur;
         uint64_t    time_msec_cur;
 
-        gettimeofday(&timev_cur, NULL_PTR);
-
-        time_msec_cur = (timev_cur.tv_sec * 1000) + (timev_cur.tv_usec / 1000);
+        time_msec_cur = c_get_cur_time_msec();
 
         /*flow control: degrade 20MB/s at most to sata*/
         while(time_msec_cur >= time_msec_next)
@@ -5841,7 +5821,29 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                 break; /*fall through*/
             }
 
-            if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_10MB) /*10MB/s*/
+            if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_08MB) /*8MB/s*/
+            {
+                /*
+                *
+                * if flow control is 8MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (8MB/s)
+                *                = ((n * 2^m * 125) / (2^20)) ms
+                *                = (((n * 125) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 500
+                * if n = 8 , time cost msec = 250
+                * if n = 4 , time cost msec = 125
+                * if n = 2 , time cost msec = 62
+                * if n = 1 , time cost msec = 31
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 125) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_10MB) /*10MB/s*/
             {
                 /*
                 *
@@ -5850,7 +5852,6 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (10MB/s)
                 *                = ((n * 2^m * 100) / (2^20)) ms
                 *                = (((n * 100) << m) >> 20) ms
-                *                = (((n * 25) << m) >> 18) ms
                 * where 2^m is cdc page size in bytes.
                 * e.g.,
                 * when cdc page size = 256KB, m = 18, now
@@ -5861,7 +5862,51 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                 * if n = 1 , time cost msec = 25
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 25) << CDCPGB_PAGE_SIZE_NBITS) >> 18);
+                time_msec_cost = (((complete_degrade_num_t * 100) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_15MB) /*15MB/s*/
+            {
+                /*
+                *
+                * if flow control is 15MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (15MB/s)
+                *                = ((n * 2^m * 67) / (2^20)) ms
+                *                = (((n * 67) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 268
+                * if n = 8 , time cost msec = 134
+                * if n = 4 , time cost msec = 67
+                * if n = 2 , time cost msec = 34
+                * if n = 1 , time cost msec = 17
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 67) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_16MB) /*16MB/s*/
+            {
+                /*
+                *
+                * if flow control is 16MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (16MB/s)
+                *                = ((n * 2^m * 62) / (2^20)) ms
+                *                = (((n * 62) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 248
+                * if n = 8 , time cost msec = 124
+                * if n = 4 , time cost msec = 62
+                * if n = 2 , time cost msec = 31
+                * if n = 1 , time cost msec = 15
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 62) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
             else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_20MB) /*20MB/s*/
@@ -5884,8 +5929,53 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                 * if n = 1 , time cost msec = 12
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 25) << CDCPGB_PAGE_SIZE_NBITS) >> 19);
+                time_msec_cost = (((complete_degrade_num_t * 50) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
             }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_24MB) /*24MB/s*/
+            {
+                /*
+                *
+                * if flow control is 24MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (24MB/s)
+                *                = ((n * 2^m * 41) / (2^20)) ms
+                *                = (((n * 41) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 164
+                * if n = 8 , time cost msec = 82
+                * if n = 4 , time cost msec = 41
+                * if n = 2 , time cost msec = 20
+                * if n = 1 , time cost msec = 10
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 41) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_25MB) /*25MB/s*/
+            {
+                /*
+                *
+                * if flow control is 25MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (25MB/s)
+                *                = ((n * 2^m * 40) / (2^20)) ms
+                *                = (((n * 40) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 160
+                * if n = 8 , time cost msec = 80
+                * if n = 4 , time cost msec = 40
+                * if n = 2 , time cost msec = 20
+                * if n = 1 , time cost msec = 10
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 40) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
             else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_30MB)/*30MB/s*/
             {
                 /*
@@ -5907,6 +5997,50 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 33) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
             }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_32MB)/*32MB/s*/
+            {
+                /*
+                *
+                * if flow control is 32MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (32MB/s)
+                *        (about) = ((n * 2^m * 31) / (2^20)) ms
+                *                = (((n * 31) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 124
+                * if n = 8 , time cost msec = 62
+                * if n = 4 , time cost msec = 31
+                * if n = 2 , time cost msec = 15
+                * if n = 1 , time cost msec = 7
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 31) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_36MB)/*36MB/s*/
+            {
+                /*
+                *
+                * if flow control is 36MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (36MB/s)
+                *                = ((n * 2^m * 28) / (2^20)) ms
+                *                = (((n * 28) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 112
+                * if n = 8 , time cost msec = 56
+                * if n = 4 , time cost msec = 28
+                * if n = 2 , time cost msec = 14
+                * if n = 1 , time cost msec = 7
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 28) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
             else /*40MB/s*/
             {
                 /*

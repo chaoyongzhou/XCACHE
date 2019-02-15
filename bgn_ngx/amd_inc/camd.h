@@ -78,6 +78,9 @@ typedef struct
     CFC              mem_flow_control;            /*mem flush bps */
     CFC              amd_read_flow_control;       /*amd read bps  */
     CFC              amd_write_flow_control;      /*amd write bps */
+
+    CIOSTAT          mem_iostat;
+    CIOSTAT          ssd_iostat;
 }CAMD_MD;
 
 #define CAMD_MD_CAIO_MD(camd_md)                        ((camd_md)->caio_md)
@@ -97,6 +100,9 @@ typedef struct
 #define CAMD_MD_MEM_FC(camd_md)                         (&((camd_md)->mem_flow_control))
 #define CAMD_MD_AMD_READ_FC(camd_md)                    (&((camd_md)->amd_read_flow_control))
 #define CAMD_MD_AMD_WRITE_FC(camd_md)                   (&((camd_md)->amd_write_flow_control))
+
+#define CAMD_MD_MEM_IOSTAT(camd_md)                     (&((camd_md)->mem_iostat))
+#define CAMD_MD_SSD_IOSTAT(camd_md)                     (&((camd_md)->ssd_iostat))
 
 #define CAMD_MD_SWITCH_PAGE_TREE(camd_md)               \
     do{                                                 \
@@ -193,7 +199,7 @@ typedef struct
     UINT32                  f_s_offset;         /*start offset in file*/
     UINT32                  f_e_offset;         /*end offset in file*/
     UINT32                  timeout_nsec;       /*timeout in seconds*/
-    uint64_t                next_access_ms;   /*next access in msec*/
+    uint64_t                next_access_ms;     /*next access in msec*/
 
     uint64_t                s_msec;             /*start time in msec*/
     uint64_t                e_msec;             /*end time in msec*/
@@ -204,7 +210,7 @@ typedef struct
     CLIST                   nodes;              /*item is CAMD_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_reqs;      /*mount point in req list of camd module*/
+    CLIST_DATA             *mounted_reqs;       /*mount point in req list of camd module*/
 }CAMD_REQ;
 
 #define CAMD_REQ_CAIO_CB(camd_req)                      (&((camd_req)->caio_cb))
@@ -641,6 +647,7 @@ EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize);
 EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
 EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
+
 
 #endif /*_CAMD_H*/
 
