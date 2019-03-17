@@ -26,6 +26,8 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
+#include "cbadbitmap.h"
+
 #include "cxfscfg.h"
 #include "cxfsnp.h"
 #include "cxfsdn.h"
@@ -38,12 +40,13 @@ extern "C"{
 
 #define CXFS_MAX_REPLICA_NUM                ((UINT32) 1)
 
-#define CXFS_FILE_PAD_CHAR                  (0x00)
-//#define CXFS_FILE_PAD_CHAR                  ((uint8_t)'.')
-
 #define CXFS_MEM_ALIGNMENT                  (1 << 20) /*1MB*/
 
 #define CXFS_RECYCLE_MAX_NUM                ((UINT32)~0)
+
+#define CXFS_SATA_BAD_BITMAP_SIZE_NBYTES    ((uint32_t)(16 << 20)) /*16MB, up to 16T SATA for 256K-page*/
+#define CXFS_SATA_BAD_BITMAP_SIZE_NBITS     ((CXFS_SATA_BAD_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
+#define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (256 << 10) /*align to 256KB*/
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
@@ -75,7 +78,7 @@ typedef struct
     CXFSDN              *cxfsdn;
     CXFSNP_MGR          *cxfsnpmgr;    /*namespace pool*/
 
-
+    CBAD_BITMAP         *sata_bad_bitmap;
 }CXFS_MD;
 
 #define CXFS_MD_TERMINATE_FLAG(cxfs_md)    ((cxfs_md)->terminate_flag)
@@ -89,6 +92,7 @@ typedef struct
 #define CXFS_MD_WAIT_FILES(cxfs_md)        (&((cxfs_md)->wait_files))
 #define CXFS_MD_DN(cxfs_md)                ((cxfs_md)->cxfsdn)
 #define CXFS_MD_NPP(cxfs_md)               ((cxfs_md)->cxfsnpmgr)
+#define CXFS_MD_SATA_BAD_BITMAP(cxfs_md)   ((cxfs_md)->sata_bad_bitmap)
 
 
 typedef struct
@@ -162,6 +166,12 @@ void cxfs_end(const UINT32 cxfs_md_id);
 *
 **/
 EC_BOOL cxfs_flush(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md);
+
+EC_BOOL cxfs_flush_sata_bad_bitmap(CXFS_MD *cxfs_md);
+
+EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
 CXFSNP_FNODE *cxfs_fnode_new(const UINT32 cxfs_md_id);
 
@@ -277,6 +287,71 @@ EC_BOOL cxfs_is_npp_and_dn(const UINT32 cxfs_md_id);
 *
 **/
 EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id, const UINT32 cxfsnp_model, const UINT32 cxfsnp_max_num, const UINT32 cxfsnp_2nd_chash_algo_id);
+
+/**
+*
+*  create sata bad bitmap
+*
+**/
+EC_BOOL cxfs_create_sata_bad_bitmap(const UINT32 cxfs_md_id);
+
+/**
+*  for debug only !
+*  set sata bad page
+*
+**/
+EC_BOOL cxfs_set_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*  for debug only !
+*  unset sata bad page
+*
+**/
+EC_BOOL cxfs_unset_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*
+*  check sata bad pag
+*
+**/
+EC_BOOL cxfs_check_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*
+*  show sata bad pag
+*
+**/
+void cxfs_show_sata_bad_pages(const UINT32 cxfs_md_id, LOG *log);
+
+/**
+*  for debug only !
+*  set ssd bad page
+*
+**/
+EC_BOOL cxfs_set_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*  for debug only !
+*  unset ssd bad page
+*
+**/
+EC_BOOL cxfs_unset_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*
+*  check ssd bad pag
+*
+**/
+EC_BOOL cxfs_check_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no);
+
+/**
+*
+*  show ssd bad pag
+*
+**/
+void cxfs_show_ssd_bad_pages(const UINT32 cxfs_md_id, LOG *log);
+
+
 /**
 *
 *  check existing of a dir

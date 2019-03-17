@@ -410,6 +410,15 @@ EC_BOOL api_cmd_ui_crfsc_show_dt(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cxfs_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_create_dn(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_create_sata_bad_bitmap(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_set_sata_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_unset_sata_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_check_sata_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_sata_bad_pages(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_set_ssd_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_unset_ssd_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_check_ssd_bad_page(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_ssd_bad_pages(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_add_disk(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_del_disk(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_mount_disk(CMD_PARA_VEC * param);

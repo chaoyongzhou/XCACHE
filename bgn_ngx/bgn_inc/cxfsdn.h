@@ -29,6 +29,8 @@ extern "C"{
 #include "cmutex.h"
 #include "crb.h"
 
+#include "cbadbitmap.h"
+
 #include "cxfscfg.h"
 #include "cxfspgrb.h"
 #include "cxfspgb.h"
@@ -38,6 +40,113 @@ extern "C"{
 #include "camd.h"
 
 #define CXFSDN_MEM_ALIGNMENT           (1 << 20)
+
+#define CXFSDN_002K_BAD_PAGE      ( 1)
+#define CXFSDN_004K_BAD_PAGE      ( 2)
+#define CXFSDN_008K_BAD_PAGE      ( 3)
+#define CXFSDN_016K_BAD_PAGE      ( 4)
+#define CXFSDN_032K_BAD_PAGE      ( 5)
+#define CXFSDN_064K_BAD_PAGE      ( 6)
+#define CXFSDN_128K_BAD_PAGE      ( 7)
+#define CXFSDN_256K_BAD_PAGE      ( 8)
+#define CXFSDN_512K_BAD_PAGE      ( 9)
+#define CXFSDN_001M_BAD_PAGE      (10)
+#define CXFSDN_002M_BAD_PAGE      (11)
+#define CXFSDN_004M_BAD_PAGE      (12)
+#define CXFSDN_008M_BAD_PAGE      (13)
+#define CXFSDN_016M_BAD_PAGE      (14)
+#define CXFSDN_032M_BAD_PAGE      (15)
+
+#if (CXFSDN_002K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)11)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("2K-page")
+#endif/*(CXFSDN_002K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_004K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)12)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("4K-page")
+#endif/*(CXFSDN_004K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_008K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)13)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("8K-page")
+#endif/*(CXFSDN_008K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_016K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)14)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("16K-page")
+#endif/*(CXFSDN_016K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_032K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)15)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("32K-page")
+#endif/*(CXFSDN_032K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_064K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)16)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("64K-page")
+#endif/*(CXFSDN_064K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_128K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)17)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("128K-page")
+#endif/*(CXFSDN_128K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_256K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)18)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("256K-page")
+#endif/*(CXFSDN_256K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_512K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)19)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("512K-page")
+#endif/*(CXFSDN_512K_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_001M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)20)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("1M-page")
+#endif/*(CXFSDN_001M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_002M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)21)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("2M-page")
+#endif/*(CXFSDN_002M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_004M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)22)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("4M-page")
+#endif/*(CXFSDN_004M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_008M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)23)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("8M-page")
+#endif/*(CXFSDN_008M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_016M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)24)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("16M-page")
+#endif/*(CXFSDN_016M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
+
+#if (CXFSDN_032M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)
+#define CXFSDN_BAD_PAGE_SIZE_NBITS           ((uint32_t)25)
+#define CXFSDN_BAD_PAGE_SIZE_NBYTES          ((uint32_t)(1 << CXFSDN_BAD_PAGE_SIZE_NBITS))
+#define CXFSDN_BAD_PAGE_DESC                 ("32M-page")
+#endif/*(CXFSDN_032M_BAD_PAGE == CXFSDN_BAD_PAGE_CHOICE)*/
 
 /**********************************************************************************
 *   node_id bits (for 1 virtual disk = 1 TB)
@@ -69,13 +178,14 @@ typedef struct
     int                ssd_disk_fd;
     int                sata_disk_fd;
 
-
     UINT32             offset;
     UINT32             size;
 
     UINT8             *mem_cache;
 
     CAMD_MD           *camd_md;
+
+    CBAD_BITMAP       *sata_bad_bitmap;
 }CXFSDN;
 
 #define CXFSDN_CXFSPGV(cxfsdn)                             ((cxfsdn)->cxfspgv)
@@ -85,6 +195,7 @@ typedef struct
 #define CXFSDN_SIZE(cxfsdn)                                ((cxfsdn)->size)
 #define CXFSDN_MEM_CACHE(cxfsdn)                           ((cxfsdn)->mem_cache)
 #define CXFSDN_CAMD_MD(cxfsdn)                             ((cxfsdn)->camd_md)
+#define CXFSDN_SATA_BAD_BITMAP(cxfsdn)                     ((cxfsdn)->sata_bad_bitmap)
 
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset);
@@ -102,6 +213,14 @@ EC_BOOL cxfsdn_del_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 EC_BOOL cxfsdn_mount_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
 EC_BOOL cxfsdn_umount_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
+
+EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap);
+
+EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+EC_BOOL cxfsdn_discard_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 CXFSDN *cxfsdn_new();
 

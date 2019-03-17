@@ -442,6 +442,8 @@ EC_BOOL c_munmap_aligned(void *address, const UINT32 size);
 
 void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align);
 
+void *c_mremap_aligned(void *old_addr, const UINT32 old_size, const UINT32 new_size, const UINT32 align);
+
 EC_BOOL c_open_dev_null();
 
 EC_BOOL c_close_dev_null();
@@ -462,9 +464,48 @@ EC_BOOL c_mlock(void *addr, const UINT32 size);
 
 EC_BOOL c_munlock(void *addr, const UINT32 size);
 
+EC_BOOL c_munlock_all();
+
+EC_BOOL c_mdiscard(void *addr, const UINT32 size);
+
+EC_BOOL c_mdontdump(void *addr, const UINT32 size);
+
 uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size);
 
 const char *c_strerror(int err);
+
+EC_BOOL c_shm_dir_exist(const char *pathname);
+
+EC_BOOL c_shm_dir_remove(const char *pathname);
+
+EC_BOOL c_shm_file_exist(const char *pathname);
+
+int c_shm_file_create(const char *pathname, const UINT32 size, const int flags, const mode_t mode);
+
+int c_shm_file_open(const char *pathname, const int flags, const mode_t mode);
+
+int c_shm_file_close(int fd);
+
+EC_BOOL c_shm_file_size(int fd, UINT32 *fsize);
+
+EC_BOOL c_shm_file_remove(const char *filename);
+
+EC_BOOL c_shm_file_truncate(int fd, const UINT32 fsize);
+
+EC_BOOL c_shm_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
+
+EC_BOOL c_shm_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
+
+void *c_shm_file_mmap(int fd, const UINT32 offset, const UINT32 size, const UINT32 align,
+                            const int prot, const int flags);
+
+void *c_shm_file_open_and_mmap(const char *fname, const UINT32 size, const UINT32 align,
+                            const int prot, const int flags);
+
+void *c_shm_file_create_and_mmap(const char *fname, const UINT32 size, const UINT32 align,
+                            const int prot, const int flags);
+
+EC_BOOL c_shm_file_munmap(void *data, const UINT32 size);
 
 #endif /*_CMISC_H*/
 

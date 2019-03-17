@@ -14,6 +14,7 @@ extern "C"{
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ftw.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -295,7 +296,7 @@ UINT32 c_chars_to_word(const char *chars, const UINT32 len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n",
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_word: str %.*s found not digit char at pos %ld\n",
                                 (uint32_t)len, chars, pos);
             return ((UINT32)0);
         }
@@ -331,7 +332,7 @@ UINT32 c_str_to_word(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_word: str %s found not digit char at pos %ld\n", str, pos);
             return ((UINT32)0);
         }
         total = 10 * total + (c - '0');
@@ -380,7 +381,7 @@ int c_str_to_int(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_word: str %s found not digit char at pos %d\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_word: str %s found not digit char at pos %d\n", str, pos);
             return ((int)0);
         }
         total = 10 * total + (c - '0');
@@ -495,7 +496,7 @@ UINT32 c_ipv4_to_word(const char *ipv4_str)
     len = strlen(ipv4_str);
     if(16 <= len)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: ipv4_str %s len %d overflow\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_to_word: ipv4_str %s len %ld overflow\n",
                         ipv4_str, len);
         return (0);
     }
@@ -605,7 +606,7 @@ uint32_t c_chars_to_uint32_t(const char *str, const uint32_t len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_chars_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_chars_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }
         total = 10 * total + (c - '0');
@@ -642,7 +643,7 @@ uint32_t c_str_to_uint32_t(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_uint32_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }
         total = 10 * total + (c - '0');
@@ -693,7 +694,7 @@ uint32_t c_str_to_uint32_t_ireplace(const char *str, const char src_ch, const ui
 
         if(ch < '0' || ch > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %u\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_uint32_t_ireplace: str %s found not digit char at pos %u\n", str, pos);
             return ((uint32_t)0);
         }
 
@@ -747,7 +748,7 @@ uint16_t c_str_to_uint16_t(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint16_t: str %s found not digit char at pos %u\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_uint16_t: str %s found not digit char at pos %u\n", str, pos);
             return ((uint16_t)0);
         }
         total = 10 * total + (c - '0');
@@ -920,7 +921,7 @@ uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_chars_to_uint64_t: str %.*s found not digit char at pos %ld\n", len, str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_chars_to_uint64_t: str %.*s found not digit char at pos %ld\n", len, str, pos);
             return ((UINT32)0);
         }
         total = 10 * total + (c - '0');
@@ -969,7 +970,7 @@ uint64_t c_str_to_uint64_t(const char *str)
 
         if(c < '0' || c > '9')
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_str_to_uint64_t: str %s found not digit char at pos %ld\n", str, pos);
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_to_uint64_t: str %s found not digit char at pos %ld\n", str, pos);
             return ((uint64_t)0);
         }
         total = 10 * total + (c - '0');
@@ -1037,7 +1038,7 @@ int c_long_to_str_buf(const long num, char *buf)
     val = num;
     len = 1;
 
-    if (0 > val)
+    if(0 > val)
     {
         len++;
         *(buf++) = '-';
@@ -1045,7 +1046,7 @@ int c_long_to_str_buf(const long num, char *buf)
     }
 
     end = buf;
-    while (9 < val)
+    while(9 < val)
     {
         *(end++) = '0' + (val % 10);
         val = val / 10;
@@ -1054,7 +1055,7 @@ int c_long_to_str_buf(const long num, char *buf)
     *(end + 1) = '\0';
     len += end - buf;
 
-    while (buf < end)
+    while(buf < end)
     {
         swap = *end;
         *end = *buf;
@@ -1482,11 +1483,11 @@ UINT32 c_str_split (char *string, const char *delim, char **fields, const UINT32
 
     idx = 0;
     saveptr = string;
-    while ((fields[ idx ] = strtok_r(NULL_PTR, delim, &saveptr)) != NULL_PTR)
+    while((fields[ idx ] = strtok_r(NULL_PTR, delim, &saveptr)) != NULL_PTR)
     {
         idx ++;
 
-        if (idx >= size)
+        if(idx >= size)
         {
             break;
         }
@@ -2027,12 +2028,12 @@ char *c_str_seperate (char **stringp, const char *delim)
 
     start = *stringp;
 
-    if (NULL_PTR == start)
+    if(NULL_PTR == start)
     {
         return (NULL_PTR);
     }
 
-    if (NULL_PTR == *delim)
+    if(NULL_PTR == *delim)
     {
         ptr = start + strlen (start);
     }
@@ -2044,7 +2045,7 @@ char *c_str_seperate (char **stringp, const char *delim)
          *   matches 'one' of the characters in accept, or NULL if no such character is found.
          **/
         ptr = strpbrk (start, delim);
-        if (NULL_PTR == ptr)
+        if(NULL_PTR == ptr)
         {
             *stringp = NULL_PTR;
             return (start);
@@ -2403,6 +2404,18 @@ EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len)
     return (EC_TRUE);
 }
 
+STATIC_CAST static int __c_file_unlink_func(const char *path, const struct stat *sb, int type_flag, struct FTW *ftw)
+{
+    if(0 != remove(path))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_unlink_func: "
+                                              "unlink %s failed, errno = %d, errstr = %s\n",
+                                              path, errno, strerror(errno));
+    }
+
+    return 0; /* just continue */
+}
+
 char *c_dirname(const char *path_name)
 {
     char        *dir_name;
@@ -2597,17 +2610,14 @@ EC_BOOL c_dir_exist(const char *pathname)
 /*if pathname is a file, call unlink; if pathname is a dir, call rmdir*/
 EC_BOOL c_dir_remove(const char *pathname)
 {
-    if (NULL_PTR == pathname)
-    {
-        return (EC_FALSE);
-    }
+    int nopenfd = 64;/*the maximum number of directories */
+                     /*that nftw() will hold open simultaneously*/
 
-    if(0 != remove(pathname))
+    if(0 != nftw(pathname, __c_file_unlink_func, nopenfd, FTW_DEPTH | FTW_PHYS))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dir_remove: "
-                                              "remove '%s' failed, errno = %d, errstr = %s\n",
-                                              pathname, errno, strerror(errno));
-
+                                              "remove '%s' failed\n",
+                                              pathname);
         return (EC_FALSE);
     }
 
@@ -2886,8 +2896,8 @@ CBYTES *c_file_load_whole(const char *file_name)
     if(NULL_PTR == file_content)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_load_whole: "
-                                             "new cbytes with size %ld failed\n",
-                                             file_size);
+                                              "new cbytes with size %ld failed\n",
+                                              file_size);
         c_file_close(file_fd);
         return (NULL_PTR);
     }
@@ -3010,7 +3020,6 @@ EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
 
     (*offset) += csize;
 
-    //dbg_log(SEC_0013_CMISC, 5)(LOGSTDOUT, "cdfsnp_buff_load: load %ld bytes\n", rsize);
     return (EC_TRUE);
 }
 
@@ -3157,7 +3166,7 @@ EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
 
 EC_BOOL c_file_unlink(const char *filename)
 {
-    if (NULL_PTR == filename)
+    if(NULL_PTR == filename)
     {
         return (EC_FALSE);
     }
@@ -3176,7 +3185,7 @@ EC_BOOL c_file_unlink(const char *filename)
 /*if filename is a file, call unlink; if filename is a dir, call rmdir*/
 EC_BOOL c_file_remove(const char *filename)
 {
-    if (NULL_PTR == filename)
+    if(NULL_PTR == filename)
     {
         return (EC_FALSE);
     }
@@ -3195,7 +3204,7 @@ EC_BOOL c_file_remove(const char *filename)
 
 EC_BOOL c_file_rename(const char *src_filename, const char *des_filename)
 {
-    if (NULL_PTR == src_filename || NULL_PTR == des_filename)
+    if(NULL_PTR == src_filename || NULL_PTR == des_filename)
     {
         return (EC_FALSE);
     }
@@ -3460,7 +3469,7 @@ EC_BOOL c_isdigit(int c)
 
 EC_BOOL c_isxdigit(int c)
 {
-    if (EC_TRUE == c_isdigit(c))
+    if(EC_TRUE == c_isdigit(c))
     {
         return (EC_TRUE);
     }
@@ -3683,7 +3692,7 @@ ctime_t c_time(ctime_t *timestamp)
         }
 
         /*error happen*/
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDERR, "error:c_time: time return %d, errno = %d, errstr = %s\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_time: time return %d, errno = %d, errstr = %s\n",
                             (uint32_t)t, errno, strerror(errno));
     }
     return (ctime_t)(-1);
@@ -4747,7 +4756,7 @@ uint32_t c_crc32_short(uint8_t *p, size_t len)
 
     crc = 0xffffffff;
 
-    while (len--)
+    while(len--)
     {
         c = *p++;
         crc = g_crc32_table_short[(crc ^ (c & 0xf)) & 0xf] ^ (crc >> 4);
@@ -4763,7 +4772,7 @@ uint32_t c_crc32_long(uint8_t *p, size_t len)
 
     crc = 0xffffffff;
 
-    while (len--)
+    while(len--)
     {
         crc = g_crc32_table256[(crc ^ *p++) & 0xff] ^ (crc >> 8);
     }
@@ -4777,7 +4786,7 @@ void c_crc32_update(uint32_t *crc, uint8_t *p, size_t len)
 
     c = *crc;
 
-    while (len--) {
+    while(len--) {
         c = g_crc32_table256[(c ^ *p++) & 0xff] ^ (c >> 8);
     }
 
@@ -4807,40 +4816,40 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
     //year = 2038;
 
     for (p = value; p < end; p++) {
-        if (*p == ',') {
+        if(*p == ',') {
             break;
         }
 
-        if (*p == ' ') {
+        if(*p == ' ') {
             fmt = isoc;
             break;
         }
     }
 
     for (p++; p < end; p++)
-        if (*p != ' ') {
+        if(*p != ' ') {
             break;
         }
 
-    if (end - p < 18) {
+    if(end - p < 18) {
         return ((time_t) -1);
         }
 
-    if (fmt != isoc) {
-        if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
+    if(fmt != isoc) {
+        if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
             return ((time_t) -1);
         }
 
         day = (*p - '0') * 10 + *(p + 1) - '0';
         p += 2;
 
-        if (*p == ' ') {
-            if (end - p < 18) {
+        if(*p == ' ') {
+            if(end - p < 18) {
                 return ((time_t) -1);
             }
             fmt = rfc822;
 
-        } else if (*p == '-') {
+        } else if(*p == '-') {
             fmt = rfc850;
 
         } else {
@@ -4890,14 +4899,14 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
 
     p += 3;
 
-    if ((fmt == rfc822 && *p != ' ') || (fmt == rfc850 && *p != '-')) {
+    if((fmt == rfc822 && *p != ' ') || (fmt == rfc850 && *p != '-')) {
         return ((time_t) -1);
     }
 
     p++;
 
-    if (fmt == rfc822) {
-        if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9'
+    if(fmt == rfc822) {
+        if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9'
             || *(p + 2) < '0' || *(p + 2) > '9'
             || *(p + 3) < '0' || *(p + 3) > '9')
         {
@@ -4908,8 +4917,8 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
                + (*(p + 2) - '0') * 10 + *(p + 3) - '0';
         p += 4;
 
-    } else if (fmt == rfc850) {
-        if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
+    } else if(fmt == rfc850) {
+        if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
             return ((time_t) -1);
         }
 
@@ -4918,70 +4927,70 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
         p += 2;
     }
 
-    if (fmt == isoc) {
-        if (*p == ' ') {
+    if(fmt == isoc) {
+        if(*p == ' ') {
             p++;
         }
 
-        if (*p < '0' || *p > '9') {
+        if(*p < '0' || *p > '9') {
             return ((time_t) -1);
         }
 
         day = *p++ - '0';
 
-        if (*p != ' ') {
-            if (*p < '0' || *p > '9') {
+        if(*p != ' ') {
+            if(*p < '0' || *p > '9') {
                 return ((time_t) -1);
             }
 
             day = day * 10 + *p++ - '0';
         }
 
-        if (end - p < 14) {
+        if(end - p < 14) {
             return ((time_t) -1);
         }
     }
 
-    if (*p++ != ' ') {
+    if(*p++ != ' ') {
         return ((time_t) -1);
     }
 
-    if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
+    if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
         return ((time_t) -1);
     }
 
     hour = (*p - '0') * 10 + *(p + 1) - '0';
     p += 2;
 
-    if (*p++ != ':') {
+    if(*p++ != ':') {
         return ((time_t) -1);
     }
 
-    if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
+    if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
         return ((time_t) -1);
     }
 
     min = (*p - '0') * 10 + *(p + 1) - '0';
     p += 2;
 
-    if (*p++ != ':') {
+    if(*p++ != ':') {
         return ((time_t) -1);
     }
 
-    if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
+    if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9') {
         return ((time_t) -1);
     }
 
     sec = (*p - '0') * 10 + *(p + 1) - '0';
 
-    if (fmt == isoc) {
+    if(fmt == isoc) {
         p += 2;
 
-        if (*p++ != ' ') {
+        if(*p++ != ' ') {
             return ((time_t) -1);
         }
 
-        if (*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9'
+        if(*p < '0' || *p > '9' || *(p + 1) < '0' || *(p + 1) > '9'
             || *(p + 2) < '0' || *(p + 2) > '9'
             || *(p + 3) < '0' || *(p + 3) > '9')
         {
@@ -4992,16 +5001,16 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
                + (*(p + 2) - '0') * 10 + *(p + 3) - '0';
     }
 
-    if (hour > 23 || min > 59 || sec > 59) {
+    if(hour > 23 || min > 59 || sec > 59) {
         return ((time_t) -1);
     }
 
-    if (day == 29 && month == 1) {
-        if ((year & 3) || ((year % 100 == 0) && (year % 400) != 0)) {
+    if(day == 29 && month == 1) {
+        if((year & 3) || ((year % 100 == 0) && (year % 400) != 0)) {
             return ((time_t) -1);
         }
 
-    } else if (day > g_mday[month]) {
+    } else if(day > g_mday[month]) {
         return ((time_t) -1);
     }
 
@@ -5010,7 +5019,7 @@ time_t c_parse_http_time(uint8_t *value, size_t len)
      * it is needed for Gauss' formula
      */
 
-    if (--month <= 0) {
+    if(--month <= 0) {
         month += 12;
         year -= 1;
     }
@@ -5081,7 +5090,7 @@ void c_gmtime(time_t t, CTM *tp)
 
     yday = days - (365 * year + year / 4 - year / 100 + year / 400);
 
-    if (yday < 0) {
+    if(yday < 0) {
         leap = (year % 4 == 0) && (year % 100 || (year % 400 == 0));
         yday = 365 + leap + yday;
         year--;
@@ -5101,7 +5110,7 @@ void c_gmtime(time_t t, CTM *tp)
 
     mday = yday - (367 * mon / 12 - 30) + 1;
 
-    if (yday >= 306) {
+    if(yday >= 306) {
 
         year++;
         mon -= 10;
@@ -5957,11 +5966,16 @@ void *c_mmap_aligned(const UINT32 size, const UINT32 align, const int protect, c
             /*discard head space*/
             munmap(address, (size_t)head_space);
 
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_mmap_aligned: "
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_mmap_aligned: "
                                "mmap size %ld, align %ld, align address %p => %p\n",
                                size, align, address, address + head_space);
             /*move to final address*/
             address += head_space;
+        }
+        else
+        {
+            /*discard tail space*/
+            munmap(address + size, (size_t)align);
         }
     }
 
@@ -6002,6 +6016,64 @@ void *c_mmap_aligned_addr(const UINT32 size, const UINT32 align)
     }
 
     return (address);
+}
+
+void *c_mremap_aligned(void *old_addr, const UINT32 old_size, const UINT32 new_size, const UINT32 align)
+{
+    void       *new_addr;
+
+    new_addr = mremap(old_addr, old_size, new_size + align, MREMAP_MAYMOVE);
+    if(MAP_FAILED == new_addr)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mremap_aligned: "
+                            "mremap old %p, old size %ld to size %ld (%ld + %ld) failed, "
+                            "errno = %d, errstr = %s\n",
+                            old_addr, old_size,
+                            new_size + align, new_size, align,
+                            errno, strerror(errno));
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_mremap_aligned: "
+                        "mremap [%p, %p), %ld => [%p, %p), %ld\n",
+                        old_addr, old_addr + old_size, old_size,
+                        new_addr, new_addr + new_size + align, new_size + align);
+
+    if(0 < align)
+    {
+        void          *address;
+        UINT32         head_space;
+        UINT32         tail_space;
+
+        address    = new_addr;
+        tail_space = (((UINT32)address) % align);
+        head_space = align - tail_space;
+
+        if(0 != tail_space)
+        {
+            /*relocate final address*/
+            new_addr = address + head_space;
+
+            memmove(new_addr, address, old_size);
+
+            /*discard tail space*/
+            munmap(address + new_size + align - tail_space, (size_t)tail_space);
+
+            /*discard head space*/
+            munmap(address, (size_t)head_space);
+
+            dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_mremap_aligned: "
+                               "align address %p => %p\n",
+                               address, new_addr);
+        }
+        else
+        {
+            /*discard tail space*/
+            munmap(address + new_size, (size_t)align);
+        }
+    }
+
+    return (new_addr);
 }
 
 /*use /dev/null to compute lenght of output string with unspecific format*/
@@ -6258,6 +6330,48 @@ EC_BOOL c_munlock(void *addr, const UINT32 size)
     return (EC_TRUE);
 }
 
+EC_BOOL c_munlock_all()
+{
+    if(0 != munlockall())
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_munlock_all: "
+                                              "munlockall ailed,"
+                                              "errno = %d, errstr = %s\n",
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_mdiscard(void *addr, const UINT32 size)
+{
+    if(0 != posix_madvise(addr, size, POSIX_MADV_DONTNEED))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mdiscard: "
+                                              "discard %p, len %ld failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              addr, size,
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL c_mdontdump(void *addr, const UINT32 size)
+{
+    if(0 != madvise(addr, size, MADV_DONTDUMP)) /*note: posix not support*/
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_mdontdump: "
+                                              "set do not dump %p, len %ld failed,"
+                                              "errno = %d, errstr = %s\n",
+                                              addr, size,
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
 uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size)
 {
     uint32_t   idx;
@@ -6278,6 +6392,472 @@ const char *c_strerror(int err)
 {
     return c_strerror_get(err);
 }
+
+EC_BOOL c_shm_dir_exist(const char *pathname)
+{
+    struct stat filestat;
+
+    if(0 != stat(pathname, &filestat))
+    {
+        return (EC_FALSE);
+    }
+
+    /************************************************************
+       S_ISREG(m)  is it a regular file?
+
+       S_ISDIR(m)  directory?
+
+       S_ISCHR(m)  character device?
+
+       S_ISBLK(m)  block device?
+
+       S_ISFIFO(m) FIFO (named pipe)?
+
+       S_ISLNK(m)  symbolic link? (Not in POSIX.1-1996.)
+
+       S_ISSOCK(m) socket? (Not in POSIX.1-1996.)
+    ************************************************************/
+    if(S_ISDIR(filestat.st_mode))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/*if pathname is a file, call unlink; if pathname is a dir, call rmdir*/
+EC_BOOL c_shm_dir_remove(const char *pathname)
+{
+    int nopenfd = 64;/*the maximum number of directories */
+                     /*that nftw() will hold open simultaneously*/
+
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != nftw(pathname, __c_file_unlink_func, nopenfd, FTW_DEPTH | FTW_PHYS))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_dir_remove: "
+                                              "remove '%s' failed\n",
+                                              pathname);
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL c_shm_file_exist(const char *pathname)
+{
+    struct stat filestat;
+
+    if(0 != stat(pathname, &filestat))
+    {
+        return (EC_FALSE);
+    }
+
+    /************************************************************
+       S_ISREG(m)  is it a regular file?
+
+       S_ISDIR(m)  directory?
+
+       S_ISCHR(m)  character device?
+
+       S_ISBLK(m)  block device?
+
+       S_ISFIFO(m) FIFO (named pipe)?
+
+       S_ISLNK(m)  symbolic link? (Not in POSIX.1-1996.)
+
+       S_ISSOCK(m) socket? (Not in POSIX.1-1996.)
+    ************************************************************/
+    if(S_ISREG(filestat.st_mode))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+int c_shm_file_create(const char *pathname, const UINT32 size, const int flags, const mode_t mode)
+{
+    int     fd;
+
+    if(EC_TRUE == c_shm_file_exist(pathname))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create: "
+                                              "file '%s' already exists\n",
+                                              pathname);
+        return (ERR_FD);
+    }
+
+    fd = c_shm_file_open(pathname, flags, mode);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create: "
+                                              "create '%s' failed\n",
+                                              pathname);
+
+        return (ERR_FD);
+    }
+
+    if(0 < size)
+    {
+        if(EC_FALSE == c_shm_file_truncate(fd, size))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create: "
+                                                  "truncate '%s' to size %ld failed\n",
+                                                  pathname, size);
+            c_shm_file_close(fd);
+            return (ERR_FD);
+        }
+    }
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_shm_file_create: "
+                                          "create '%s' with size %ld done\n",
+                                          pathname, size);
+    return (fd);
+}
+
+int c_shm_file_open(const char *pathname, const int flags, const mode_t mode)
+{
+    int fd;
+
+    if(flags & O_CREAT)
+    {
+        if(EC_FALSE == c_basedir_create(pathname))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_open: create basedir of file %s failed\n", pathname);
+            return (ERR_FD);
+        }
+    }
+
+    fd = open(pathname, flags, mode);
+    if(-1 == fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT,"error:c_shm_file_open: open %s failed, errno = %d, errstr = %s\n",
+                             pathname, errno, strerror(errno));
+        return (ERR_FD);
+    }
+
+    if(1)
+    {
+        if( 0 > fcntl(fd, F_SETFD, FD_CLOEXEC))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_open: set fd %d to FD_CLOEXEC failed, errno = %d, errstr = %s\n",
+                               fd, errno, strerror(errno));
+            close(fd);
+            return (ERR_FD);
+        }
+    }
+    return (fd);
+}
+
+int c_shm_file_close(int fd)
+{
+    if(-1 != fd)
+    {
+        return close(fd);
+    }
+    return (0);
+}
+
+EC_BOOL c_shm_file_size(int fd, UINT32 *fsize)
+{
+    (*fsize) = lseek(fd, 0, SEEK_END);
+    if(((UINT32)-1) == (*fsize))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+/*if filename is a file, call unlink; if filename is a dir, call rmdir*/
+EC_BOOL c_shm_file_remove(const char *filename)
+{
+    if(NULL_PTR == filename)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != remove(filename))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_remove: "
+                                              "remove '%s' failed, errno = %d, errstr = %s\n",
+                                              filename, errno, strerror(errno));
+
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_shm_file_truncate(int fd, const UINT32 fsize)
+{
+    /**
+        -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+        will enable 32bit os support file size more than 2G due to off_t extented from 4B to 8B
+    **/
+    if(0 != ftruncate(fd, fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_truncate: fd %d truncate %ld bytes failed where , errno %d, errstr %s\n",
+                            fd, fsize, errno, strerror(errno));
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL c_shm_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+{
+    UINT32 csize;/*read completed size*/
+    UINT32 osize;/*read once size*/
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_shm_file_pread: fd %d, offset %ld, rsize %ld\n",
+                        fd, (*offset), rsize);
+
+    for(csize = 0, osize = CMISC_READ_ONCE_MAX_BYTES; csize < rsize; csize += osize)
+    {
+        if(csize + osize > rsize)
+        {
+            osize = rsize - csize;
+        }
+
+        if((ssize_t)osize != pread(fd, buff + csize, osize, (*offset) + csize))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_pread: load buff from offset %ld failed where "
+                               "rsize %ld, csize %ld, osize %ld, errno %d, errstr %s\n",
+                                (*offset), rsize, csize, osize, errno, strerror(errno));
+            /*(*offset) += csize;*//*give up offset adjustment*/
+            return (EC_FALSE);
+        }
+    }
+
+    ASSERT(csize == rsize);
+
+    (*offset) += csize;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_shm_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+{
+    UINT32 csize;/*write completed size*/
+    UINT32 osize;/*write once size*/
+
+    for(csize = 0, osize = CMISC_WRITE_ONCE_MAX_BYTES; csize < wsize; csize += osize)
+    {
+        if(csize + osize > wsize)
+        {
+            osize = wsize - csize;
+        }
+
+        if((ssize_t)osize != pwrite(fd, buff + csize, osize, (*offset) + csize))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_pwrite: flush buff to offset %ld failed where "
+                               "wsize %ld, csize %ld, osize %ld, errno %d, errstr %s\n",
+                                (*offset), wsize, csize, osize, errno, strerror(errno));
+            /*(*offset) += csize;*//*give up offset adjustment*/
+            return (EC_FALSE);
+        }
+    }
+
+    ASSERT(csize == wsize);
+
+    (*offset) += csize;
+    return (EC_TRUE);
+}
+
+void *c_shm_file_mmap(int fd, const UINT32 offset, const UINT32 size, const UINT32 align, const int prot, const int flags)
+{
+    void    *data;
+
+    if(0 != align)
+    {
+        void    *address;
+
+        address = c_mmap_aligned_addr(size, align);
+        if(NULL_PTR == address)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_mmap: "
+                                                  "fetch aligned addr of size %ld, align %ld failed\n",
+                                                  size, align);
+            return (NULL_PTR);
+        }
+
+        data = mmap(address, size, prot, flags, fd, offset);
+        if(MAP_FAILED == data)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_mmap: "
+                                                  "mmap fd %d size %ld offset %ld to address %p failed, "
+                                                  "errno = %d, errstr = %s\n",
+                                                  fd, size, offset, address,
+                                                  errno, strerror(errno));
+            return (NULL_PTR);
+        }
+
+        ASSERT(data == address);
+    }
+    else
+    {
+        data = mmap(NULL_PTR, size, prot, flags, fd, offset);
+        if(MAP_FAILED == data)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_mmap: "
+                                                  "mmap fd %d size %ld offset %ld failed, "
+                                                  "errno = %d, errstr = %s\n",
+                                                  fd, size, offset,
+                                                  errno, strerror(errno));
+            return (NULL_PTR);
+        }
+    }
+#if 1
+    if(EC_FALSE == c_mlock(data, size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_mmap: "
+                                              "mlock %p, size %ld failed\n",
+                                              data, size);
+
+        munmap(data, size);
+        return (NULL_PTR);
+    }
+#endif
+    return (data);
+}
+
+void *c_shm_file_open_and_mmap(const char *fname, const UINT32 size, const UINT32 align, const int prot, const int flags)
+{
+    void   *data;
+    int     fd;
+
+    if(EC_FALSE == c_shm_file_exist(fname))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_open_and_mmap: "
+                                              "file '%s' not exists\n",
+                                              fname);
+        return (NULL_PTR);
+    }
+
+    fd = c_shm_file_open(fname, O_RDWR | O_EXCL, S_IRUSR | S_IWUSR);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_open_and_mmap: "
+                                              "open '%s' failed\n",
+                                              fname);
+
+        return (NULL_PTR);
+    }
+
+    data = c_shm_file_mmap(fd, (UINT32)0/*offset*/, size, align, prot, flags);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_open_and_mmap: "
+                                              "mmap '%s' size %ld, align %ld failed\n",
+                                              fname, size, align);
+        c_shm_file_close(fd);
+        return (NULL_PTR);
+    }
+
+    c_shm_file_close(fd);
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_shm_file_open_and_mmap: "
+                                          "mmap '%s' size %ld, align %ld, addr range [%p, %p) done\n",
+                                          fname, size, align,
+                                          data, data + size);
+    return (data);
+}
+
+void *c_shm_file_create_and_mmap(const char *fname, const UINT32 size, const UINT32 align, const int prot, const int flags)
+{
+    void   *data;
+    int     fd;
+
+    if(EC_TRUE == c_shm_file_exist(fname))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create_and_mmap: "
+                                              "file '%s' already exists\n",
+                                              fname);
+        return (NULL_PTR);
+    }
+
+    fd = c_shm_file_open(fname, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create_and_mmap: "
+                                              "create '%s' failed\n",
+                                              fname);
+
+        return (NULL_PTR);
+    }
+
+    if(EC_FALSE == c_shm_file_truncate(fd, size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create_and_mmap: "
+                                              "truncate '%s' to size %ld failed\n",
+                                              fname, size);
+        c_shm_file_close(fd);
+        return (NULL_PTR);
+    }
+
+    data = c_shm_file_mmap(fd, (UINT32)0/*offset*/, size, align, prot, flags);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_create_and_mmap: "
+                                              "mmap '%s' size %ld, align %ld failed\n",
+                                              fname, size, align);
+        c_shm_file_close(fd);
+        return (NULL_PTR);
+    }
+
+    c_shm_file_close(fd);
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_shm_file_create_and_mmap: "
+                                          "mmap '%s' size %ld, align %ld, addr range [%p, %p)\n",
+                                          fname, size, align,
+                                          data, data + size);
+
+    return (data);
+}
+
+EC_BOOL c_shm_file_munmap(void *data, const UINT32 size)
+{
+    if(NULL_PTR == data || 0 == size)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_munmap: "
+                                              "invalid data %p or size %ld\n",
+                                              data, size);
+        return (EC_FALSE);
+    }
+#if 1
+    if(EC_FALSE == c_munlock(data, size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_munmap: "
+                                              "munlock %p, size %ld failed\n",
+                                              data, size);
+    }
+#endif
+    if(0 != msync(data, size, MS_SYNC))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "warn:c_shm_file_munmap: "
+                                              "sync %p, size %ld failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              data, size, errno, strerror(errno));
+    }
+
+    if(0 != munmap(data, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_munmap: "
+                                              "munmap %p, size %ld failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              data, size,
+                                              errno, strerror(errno));
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_shm_file_munmap: "
+                                          "munmap [%p, %p), size %ld done\n",
+                                          data, data + size,
+                                          size);
+    return (EC_TRUE);
+}
+
 
 #ifdef __cplusplus
 }

@@ -37,6 +37,8 @@ extern "C"{
 
 #include "cmpie.h"
 
+#include "cbadbitmap.h"
+
 #include "crb.h"
 #include "chttp.h"
 #include "chttps.h"
@@ -172,7 +174,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         return (CMPI_ERROR_MODI);
     }
 
-    sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_SYNC, 0666);
+    sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
     if(ERR_FD == sata_disk_fd)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open sata '%s' failed\n",
@@ -192,7 +194,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         return (CMPI_ERROR_MODI);
     }
 
-    ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_SYNC, 0666);
+    ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
     if(ERR_FD == ssd_disk_fd)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open ssd '%s' failed\n",
@@ -241,8 +243,9 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                     (CRB_DATA_FREE)cxfs_wait_file_free,
                     (CRB_DATA_PRINT)cxfs_wait_file_print);
 
-    CXFS_MD_DN(cxfs_md)           = NULL_PTR;
-    CXFS_MD_NPP(cxfs_md)          = NULL_PTR;
+    CXFS_MD_DN(cxfs_md)                 = NULL_PTR;
+    CXFS_MD_NPP(cxfs_md)                = NULL_PTR;
+    CXFS_MD_SATA_BAD_BITMAP(cxfs_md)    = NULL_PTR;
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -266,6 +269,15 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: cxfscfg is\n");
         cxfscfg_print(LOGSTDOUT, cxfscfg);
+
+        if(EC_TRUE == ret)
+        {
+            if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: load sata bad bitmap failed\n");
+                ret = EC_FALSE;
+            }
+        }
 
         if(EC_TRUE == ret)
         {
@@ -301,6 +313,11 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                 ret = EC_FALSE;
             }
         }
+
+        if(EC_TRUE == ret && NULL_PTR != CXFS_MD_DN(cxfs_md) && NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+        {
+            cxfsdn_mount_sata_bad_bitmap(CXFS_MD_DN(cxfs_md), CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        }
     }
 
     if(EC_FALSE == ret)
@@ -315,6 +332,12 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         {
             cxfsnp_mgr_close(CXFS_MD_NPP(cxfs_md));
             CXFS_MD_NPP(cxfs_md) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+        {
+            cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+            CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
         }
 
         if(ERR_FD != CXFS_MD_SSD_DISK_FD(cxfs_md))
@@ -336,12 +359,14 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
     if(CXFSCFG_MAGIC_NUM != CXFSCFG_MAGIC(cxfscfg))
     {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: magic mismatched\n");
+
         /*set basic info to config for fresh xfs*/
         CXFSCFG_SATA_DISK_SIZE(cxfscfg)     = sata_disk_size;
-        CXFSCFG_NP_S_OFFSET(cxfscfg)        = CXFSCFG_SIZE + 0;
+        CXFSCFG_NP_S_OFFSET(cxfscfg)        = CXFSCFG_SIZE + CXFS_SATA_BAD_BITMAP_SIZE_NBYTES;
 
         CXFSCFG_SSD_DISK_SIZE(cxfscfg)      = ssd_disk_size;
-        CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET;
+        CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET + 0;
     }
 
     CXFS_MD_STATE(cxfs_md) = CXFS_WORK_STATE;
@@ -353,7 +378,6 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cxfs_end, cxfs_md_id);
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: start CXFS module #%ld\n", cxfs_md_id);
-
 
     if(SWITCH_ON == CXFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
@@ -392,7 +416,6 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             chttps_rest_list_push((const char *)CXFSHTTPS_REST_API_NAME, cxfshttps_commit_request);
         }
 #endif
-
     }
 
     return ( cxfs_md_id );
@@ -443,6 +466,14 @@ void cxfs_end(const UINT32 cxfs_md_id)
         CXFS_MD_NPP(cxfs_md) = NULL_PTR;
     }
 
+    if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        cxfs_flush_sata_bad_bitmap(cxfs_md);
+
+        cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
+    }
+
     if(ERR_FD != CXFS_MD_SATA_DISK_FD(cxfs_md))
     {
         cxfscfg_flush(CXFS_MD_CFG(cxfs_md), CXFS_MD_SATA_DISK_FD(cxfs_md));
@@ -467,15 +498,16 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
     cxfs_md->usedcounter = 0;
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "cxfs_end: stop CXFS module #%ld\n", cxfs_md_id);
     cbc_md_free(MD_CXFS, cxfs_md_id);
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_end: stop CXFS module #%ld\n", cxfs_md_id);
 
     return ;
 }
 
 EC_BOOL cxfs_flush(const UINT32 cxfs_md_id)
 {
-    //CXFS_MD  *cxfs_md;
+    CXFS_MD  *cxfs_md;
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -488,7 +520,7 @@ EC_BOOL cxfs_flush(const UINT32 cxfs_md_id)
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    //cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     if(EC_FALSE == cxfs_flush_npp(cxfs_md_id))
     {
@@ -502,7 +534,122 @@ EC_BOOL cxfs_flush(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
+    if(EC_FALSE == cxfs_flush_sata_bad_bitmap(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_flush: flush bad bitmap failed!\n");
+        return (EC_FALSE);
+    }
+
     dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_flush: flush done\n");
+    return (EC_TRUE);
+}
+
+/*load bad bitmap from sata disk*/
+EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md)
+{
+    CXFSCFG    *cxfscfg;
+    UINT32      offset;
+    UINT32      offset_saved;
+
+    if(ERR_FD == CXFS_MD_SATA_DISK_FD(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_load_sata_bad_bitmap: "
+                                             "xfs has no sata fd\n");
+        return (EC_FALSE);
+    }
+
+    cxfscfg = CXFS_MD_CFG(cxfs_md);
+
+    if(CXFSCFG_SATA_DISK_SIZE(cxfscfg) < CXFSCFG_SIZE
+                                       + CXFS_SATA_BAD_BITMAP_SIZE_NBYTES)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_load_sata_bad_bitmap: "
+                                             "invalid sata disk size %ld\n",
+                                             CXFSCFG_SATA_DISK_SIZE(cxfscfg));
+        return (EC_FALSE);
+    }
+
+    offset = CXFSCFG_SIZE;
+    offset_saved = offset;
+
+    CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cbad_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
+                                                       CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
+                                                       CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_load_sata_bad_bitmap: "
+                                             "new sata bad bitmap failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_pread(CXFS_MD_SATA_DISK_FD(cxfs_md), &offset, CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
+                                (UINT8 *)CXFS_MD_SATA_BAD_BITMAP(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_load_sata_bad_bitmap: "
+                                             "load sata bad bitmap from fd %d, offset %ld failed\n",
+                                             CXFS_MD_SATA_DISK_FD(cxfs_md), offset_saved);
+
+        cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_load_sata_bad_bitmap: "
+                                         "load sata bad bitmap done\n");
+
+    return (EC_TRUE);
+}
+
+/*flush bad bitmap to sata disk*/
+EC_BOOL cxfs_flush_sata_bad_bitmap(CXFS_MD *cxfs_md)
+{
+    if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md)
+    && ERR_FD != CXFS_MD_SATA_DISK_FD(cxfs_md))
+    {
+        UINT32   sata_bad_bitmap_offset;
+        UINT32   sata_bad_bitmap_offset_saved;
+        UINT32   sata_bad_bitmap_size;
+
+        sata_bad_bitmap_offset  = CXFSCFG_SIZE;
+        sata_bad_bitmap_size    = CXFS_SATA_BAD_BITMAP_SIZE_NBYTES;
+
+        sata_bad_bitmap_offset_saved = sata_bad_bitmap_offset;
+
+        if(EC_FALSE == c_file_pwrite(CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                     &sata_bad_bitmap_offset,
+                                     sata_bad_bitmap_size,
+                                     (const UINT8 *)CXFS_MD_SATA_BAD_BITMAP(cxfs_md)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_flush_sata_bad_bitmap: "
+                                                 "flush sata bad bitmap to fd %d "
+                                                 "with offset %ld, size %ld failed\n",
+                                                 CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                                 sata_bad_bitmap_offset_saved,
+                                                 sata_bad_bitmap_size);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_flush_sata_bad_bitmap: "
+                                             "flush sata bad bitmap to fd %d "
+                                             "with offset %ld, size %ld done\n",
+                                             CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                             sata_bad_bitmap_offset_saved,
+                                             sata_bad_bitmap_size);
+    }
+
+    return (EC_TRUE);
+}
+
+/*close bad bitmap without flushing*/
+EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md)
+{
+    if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+       cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+       CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
+    }
+
     return (EC_TRUE);
 }
 
@@ -820,7 +967,7 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    cxfs_md  = CXFS_MD_GET(cxfs_md_id);
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
     cxfscfg = CXFS_MD_CFG(cxfs_md);
 
     if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
@@ -883,6 +1030,390 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
     CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr;
 
     return (EC_TRUE);
+}
+
+/**
+*
+*  create sata bad bitmap
+*
+**/
+EC_BOOL cxfs_create_sata_bad_bitmap(const UINT32 cxfs_md_id)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_create_sata_bad_bitmap: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cbad_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
+                                                           CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
+                                                           CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
+        if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_sata_bad_bitmap: "
+                                                 "create sata bad bitmap failed\n");
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md))
+        {
+            cxfsdn_mount_sata_bad_bitmap(CXFS_MD_DN(cxfs_md), CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+
+            dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_create_sata_bad_bitmap: "
+                                                 "mount sata bad bitmap to dn done\n");
+        }
+
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_create_sata_bad_bitmap: "
+                                             "create sata bad bitmap done\n");
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*  for debug only !
+*  set sata bad page
+*
+**/
+EC_BOOL cxfs_set_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_set_sata_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_sata_bad_page: "
+                                             "sata bad bitmap is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_sata_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_sata_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_set_sata_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*  for debug only !
+*  unset sata bad page
+*
+**/
+EC_BOOL cxfs_unset_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_unset_sata_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_sata_bad_page: "
+                                             "sata bad bitmap is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_sata_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_sata_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_clear_sata_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*
+*  check sata bad pag
+*
+**/
+EC_BOOL cxfs_check_sata_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_check_sata_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_sata_bad_page: "
+                                             "sata bad bitmap is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_sata_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_sata_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_is_sata_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*
+*  show sata bad pag
+*
+**/
+void cxfs_show_sata_bad_pages(const UINT32 cxfs_md_id, LOG *log)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_show_sata_bad_pages: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_sata_bad_pages: "
+                                             "sata bad bitmap is null\n");
+        return;
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_sata_bad_pages: "
+                                             "dn is null\n");
+        return;
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_sata_bad_pages: "
+                                             "camd is null\n");
+        return;
+    }
+
+    cbad_bitmap_print(log, CAMD_MD_SATA_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
+
+    return;
+}
+
+/**
+*  for debug only !
+*  set ssd bad page
+*
+**/
+EC_BOOL cxfs_set_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_set_ssd_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_ssd_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_ssd_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_set_ssd_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*  for debug only !
+*  unset ssd bad page
+*
+**/
+EC_BOOL cxfs_unset_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_unset_ssd_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_ssd_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_ssd_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_clear_ssd_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*
+*  check ssd bad pag
+*
+**/
+EC_BOOL cxfs_check_ssd_bad_page(const UINT32 cxfs_md_id, const UINT32 page_no)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_check_ssd_bad_page: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_ssd_bad_page: "
+                                             "dn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_ssd_bad_page: "
+                                             "camd is null\n");
+        return (EC_FALSE);
+    }
+
+    return camd_is_ssd_bad_page(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)), (uint32_t)page_no);
+}
+
+/**
+*
+*  show ssd bad pag
+*
+**/
+void cxfs_show_ssd_bad_pages(const UINT32 cxfs_md_id, LOG *log)
+{
+    CXFS_MD     *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_show_ssd_bad_pages: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_ssd_bad_pages: "
+                                             "dn is null\n");
+        return;
+    }
+
+    if(NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_ssd_bad_pages: "
+                                             "camd is null\n");
+        return;
+    }
+
+    cbad_bitmap_print(log, CAMD_MD_SSD_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
+
+    return;
 }
 
 /**
@@ -1106,16 +1637,65 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_hash_dn(const UINT32 cxfs_md_id, const
     fail_tries = 0;
     for(;;)
     {
+        EC_BOOL     result;
+
         size    = (uint32_t)(data_len);
         disk_no = (uint16_t)(path_hash % CXFSPGV_DISK_NUM(cxfspgv));
 
-        if(EC_TRUE == cxfspgv_new_space_from_disk(cxfspgv, size, disk_no, &block_no, &page_no))
+        result  = EC_FALSE; /*init*/
+
+        while(EC_FALSE == result)
         {
-            break;/*fall through*/
+            if(EC_TRUE == cxfspgv_is_full(cxfspgv))
+            {
+                break;/*fail and fall through*/
+            }
+
+            if(EC_FALSE == cxfspgv_new_space_from_disk(cxfspgv, size, disk_no, &block_no, &page_no))
+            {
+                break;/*fail and fall through*/
+            }
+
+            if(EC_FALSE == cxfsdn_cover_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no))
+            {
+                result = EC_TRUE;
+                break;/*succ and fall through*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] __cxfs_reserve_hash_dn: "
+                                                 "(disk %u, block %u, page %u), size %u cover bad page\n",
+                                                 disk_no, block_no, page_no, size);
+
+            cxfsdn_discard_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no);
         }
 
         /*try again*/
-        if(EC_TRUE == cxfspgv_new_space(cxfspgv, size, &disk_no, &block_no, &page_no))
+        while(EC_FALSE == result)
+        {
+            if(EC_TRUE == cxfspgv_is_full(cxfspgv))
+            {
+                break;/*fail and fall through*/
+            }
+
+            if(EC_FALSE == cxfspgv_new_space(cxfspgv, size, &disk_no, &block_no, &page_no))
+            {
+                break;/*fail and fall through*/
+            }
+
+            if(EC_FALSE == cxfsdn_cover_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no))
+            {
+                result = EC_TRUE;
+                break;/*succ and fall through*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] __cxfs_reserve_hash_dn: "
+                                                 "(disk %u, block %u, page %u), size %u cover bad page\n",
+                                                 disk_no, block_no, page_no, size);
+
+            cxfsdn_discard_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no);
+        }
+
+        if(EC_TRUE == result)
         {
             break;/*fall through*/
         }
@@ -1192,10 +1772,29 @@ EC_BOOL cxfs_reserve_dn(const UINT32 cxfs_md_id, const UINT32 data_len, CXFSNP_F
 
     size = (uint32_t)(data_len);
 
-    if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(CXFS_MD_DN(cxfs_md)), size, &disk_no, &block_no, &page_no))
+    for(;;)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
-        return (EC_FALSE);
+        if(EC_TRUE == cxfspgv_is_full(CXFSDN_CXFSPGV(CXFS_MD_DN(cxfs_md))))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfs_reserve_dn: vol is full\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(CXFS_MD_DN(cxfs_md)), size, &disk_no, &block_no, &page_no))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reserve_dn: new %ld bytes space from vol failed\n", data_len);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfsdn_cover_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no))
+        {
+            break;
+        }
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_reserve_dn: (disk %u, block %u, page %u), size %u cover bad page\n",
+                                             disk_no, block_no, page_no, size);
+
+        cxfsdn_discard_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no);
     }
 
     cxfsnp_fnode_init(cxfsnp_fnode);
@@ -1747,6 +2346,12 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_dn: create dn failed\n");
         return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+    {
+        cxfsdn_mount_sata_bad_bitmap(cxfsdn, CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_create_dn: mount sata bad bitmap to dn done\n");
     }
 
     CXFS_MD_DN(cxfs_md) = cxfsdn;

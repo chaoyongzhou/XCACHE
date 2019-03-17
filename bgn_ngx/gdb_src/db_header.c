@@ -29,7 +29,7 @@ gdbReadHeader(GDatabase *db)
     }
 
     rawFileSeek(db->idxRawFile, 0, SEEK_SET);
-    if (rawFileRead(db->idxRawFile, 0, buffer, DB_HEADER_DATA_SIZE, 1, LOC_DB_0113) != 1)
+    if (rawFileRead(db->idxRawFile, 0, buffer, DB_HEADER_DATA_SIZE, 1, LOC_DB_0001) != 1)
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbReadHeader: Truncated database.\n");
         return 0;
@@ -47,7 +47,7 @@ gdbReadHeader(GDatabase *db)
     }
 
     /* Check the magic string. */
-    if (0 != __safe_strncmp(buffer + DB_OFFSET_MAGIC, (const uint8_t *)DB_MAGIC, 8, LOC_DB_0114))
+    if (0 != __safe_strncmp(buffer + DB_OFFSET_MAGIC, (const uint8_t *)DB_MAGIC, 8, LOC_DB_0002))
     {
         dbg_log(SEC_0131_DB, 0)(LOGSTDOUT, "error:gdbReadHeader: Invalid database signature.\n");
         return 0;
@@ -103,10 +103,10 @@ gdbWriteHeader(GDatabase *db)
     rawFilePuts(db->idxRawFile, offset, DB_MAGIC);
     offset += strlen(DB_MAGIC);
 
-    rawFileWrite(db->idxRawFile, offset, version, sizeof(uint8_t), 2, LOC_DB_0115);
+    rawFileWrite(db->idxRawFile, offset, version, sizeof(uint8_t), 2, LOC_DB_0003);
     offset += (sizeof(uint8_t) * 2);
 
-    rawFileWrite(db->idxRawFile, offset, &type,   sizeof(uint8_t), 1, LOC_DB_0116);
+    rawFileWrite(db->idxRawFile, offset, &type,   sizeof(uint8_t), 1, LOC_DB_0004);
     offset += sizeof(uint8_t);
 
     if (DB_HEADER_BLOCK_SIZE > DB_HEADER_DATA_SIZE)

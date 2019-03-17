@@ -140,6 +140,8 @@ extern "C"{
 
 #include "caio.h"
 #include "camd.h"
+#include "cfc.h"
+#include "cmmap.h"
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #include "cngx.h"
@@ -559,7 +561,9 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CDC_PAGE                     ,"MM_CDC_PAGE                     ",256       , sizeof(CDC_PAGE)                     , LOC_MM_0258);
     MM_MGR_DEF(MM_CDC_REQ                      ,"MM_CDC_REQ                      ",256       , sizeof(CDC_REQ)                      , LOC_MM_0259);
     MM_MGR_DEF(MM_CDC_NODE                     ,"MM_CDC_NODE                     ",256       , sizeof(CDC_NODE)                     , LOC_MM_0260);
-    MM_MGR_DEF(MM_CFC                          ,"MM_CFC                          ",4         , sizeof(CFC)                          , LOC_MM_0261);
+    MM_MGR_DEF(MM_CFC                          ,"MM_CFC                          ",4         , sizeof(CFC)                          , LOC_MM_0068);
+
+    MM_MGR_DEF(MM_CMMAP_NODE                   ,"MM_CMMAP_NODE                   ",4         , sizeof(CMMAP_NODE)                   , LOC_MM_0069);
     MM_MGR_DEF(MM_CXFSPGB                      ,"MM_CXFSPGB                      ",1        , CXFSPGB_SIZE                        , LOC_MM_0262);
     MM_MGR_DEF(MM_CXFSPGD                      ,"MM_CXFSPGD                      ",256      , sizeof(CXFSPGD)                     , LOC_MM_0263);
     MM_MGR_DEF(MM_CXFSPGV                      ,"MM_CXFSPGV                      ",64       , sizeof(CXFSPGV)                     , LOC_MM_0264);
@@ -626,6 +630,8 @@ UINT32 init_static_mem()
     g_mem_init_flag = EC_TRUE;
 
     init_mem_manager();
+
+    dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"[DEBUG] init_static_mem: init done\n");
 
     return ( 0 );
 }

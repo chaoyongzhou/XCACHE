@@ -36,6 +36,8 @@ extern "C"{
 
 #include "crb.h"
 
+#include "cbadbitmap.h"
+
 #include "cxfsdn.h"
 
 /*Random File System Data Node*/
@@ -286,7 +288,7 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
         ssd_disk_offset = cxfsdn_ssd_offset;
         ssd_disk_size   = cxfsdn_ssd_size;
 
-        camd_md = camd_start(sata_disk_fd, sata_disk_size,
+        camd_md = camd_start(NULL_PTR, sata_disk_fd, sata_disk_size,
                              mem_disk_size,
                              ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
         if(NULL_PTR == camd_md)
@@ -371,6 +373,106 @@ EC_BOOL cxfsdn_umount_disk(CXFSDN *cxfsdn, const uint16_t disk_no)
     return (EC_TRUE);
 }
 
+EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap)
+{
+    if(NULL_PTR == CXFSDN_SATA_BAD_BITMAP(cxfsdn)
+    && NULL_PTR != cbad_bitmap)
+    {
+        CXFSDN_SATA_BAD_BITMAP(cxfsdn) = cbad_bitmap;
+
+        if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
+        {
+            camd_mount_sata_bad_bitmap(CXFSDN_CAMD_MD(cxfsdn), CXFSDN_SATA_BAD_BITMAP(cxfsdn));
+        }
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn)
+{
+    if(NULL_PTR != CXFSDN_SATA_BAD_BITMAP(cxfsdn))
+    {
+        CXFSDN_SATA_BAD_BITMAP(cxfsdn) = NULL_PTR;
+
+        if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
+        {
+            camd_umount_sata_bad_bitmap(CXFSDN_CAMD_MD(cxfsdn));
+        }
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    if(NULL_PTR != CXFSDN_SATA_BAD_BITMAP(cxfsdn))
+    {
+        UINT32       node_id;
+
+        UINT32       offset_b; /*real base offset of block in physical file*/
+        UINT32       offset_r; /*real offset in physical file*/
+        uint32_t     s_page;   /*start bad page*/
+        uint32_t     e_page;   /*end bad page*/
+
+        node_id  = CXFSDN_NODE_ID_MAKE(disk_no, block_no);
+        offset_b = CXFSDN_OFFSET(cxfsdn) + CXFSDN_SIZE(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
+        offset_r = offset_b + (((UINT32)(page_no)) << (CXFSPGB_PAGE_BIT_SIZE));
+
+        s_page   = (uint32_t)((offset_r +    0) >> CXFSDN_BAD_PAGE_SIZE_NBITS);
+        e_page   = (uint32_t)((offset_r + size) >> CXFSDN_BAD_PAGE_SIZE_NBITS);
+
+        for(; s_page <= e_page; s_page ++)
+        {
+            if(EC_TRUE == cbad_bitmap_is(CXFSDN_SATA_BAD_BITMAP(cxfsdn), s_page, (uint8_t)1))
+            {
+                dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_cover_sata_bad_page: "
+                                                       "(disk %u, block %u, page %u), size %u => [%ld, %ld) "
+                                                       "cover bad page %u\n",
+                                                       disk_no, block_no, page_no, size,
+                                                       offset_r, offset_r + size,
+                                                       s_page);
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_discard_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    ASSERT(CXFSPGB_CACHE_MAX_BYTE_SIZE >= size);
+
+    if(NULL_PTR != CXFSDN_SATA_BAD_BITMAP(cxfsdn))
+    {
+        uint16_t    s_page_no; /*start cxfs page*/
+        uint16_t    e_page_no; /*end cxfs page*/
+        uint32_t    page_size; /*cxfs page size*/
+
+        s_page_no = page_no;
+        e_page_no = page_no + ((uint16_t)(size + CXFSPGB_PAGE_BYTE_SIZE - 1) >> CXFSPGB_PAGE_BIT_SIZE);
+        page_size = CXFSPGB_PAGE_BYTE_SIZE;
+
+        for(; s_page_no < e_page_no; s_page_no ++)
+        {
+            if(EC_TRUE == cxfsdn_cover_sata_bad_page(cxfsdn, page_size, disk_no, block_no, s_page_no))
+            {
+                dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_discard_sata_bad_page: "
+                                                       "discard (disk %u, block %u, page %u)\n",
+                                                       disk_no, block_no, s_page_no);
+                /*discard bad page by not free it*/
+                continue;
+            }
+
+            cxfspgv_free_space(CXFSDN_CXFSPGV(cxfsdn), disk_no, block_no, s_page_no, page_size);
+        }
+    }
+
+    return (EC_TRUE);
+}
 
 CXFSDN *cxfsdn_new()
 {
@@ -387,17 +489,19 @@ CXFSDN *cxfsdn_new()
 
 EC_BOOL cxfsdn_init(CXFSDN *cxfsdn)
 {
-    CXFSDN_CXFSPGV(cxfsdn)      = NULL_PTR;
+    CXFSDN_CXFSPGV(cxfsdn)          = NULL_PTR;
 
-    CXFSDN_SSD_DISK_FD(cxfsdn)  = ERR_FD;
+    CXFSDN_SSD_DISK_FD(cxfsdn)      = ERR_FD;
 
-    CXFSDN_SATA_DISK_FD(cxfsdn) = ERR_FD;
-    CXFSDN_OFFSET(cxfsdn)       = ERR_OFFSET;
-    CXFSDN_SIZE(cxfsdn)         = 0;
+    CXFSDN_SATA_DISK_FD(cxfsdn)     = ERR_FD;
+    CXFSDN_OFFSET(cxfsdn)           = ERR_OFFSET;
+    CXFSDN_SIZE(cxfsdn)             = 0;
 
-    CXFSDN_MEM_CACHE(cxfsdn)    = NULL_PTR;
+    CXFSDN_MEM_CACHE(cxfsdn)        = NULL_PTR;
 
-    CXFSDN_CAMD_MD(cxfsdn)      = NULL_PTR;
+    CXFSDN_CAMD_MD(cxfsdn)          = NULL_PTR;
+
+    CXFSDN_SATA_BAD_BITMAP(cxfsdn)  = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -448,11 +552,13 @@ EC_BOOL cxfsdn_clean(CXFSDN *cxfsdn)
         CXFSDN_CAMD_MD(cxfsdn) = NULL_PTR;
     }
 
-    CXFSDN_SSD_DISK_FD(cxfsdn)  = ERR_FD;
+    CXFSDN_SATA_BAD_BITMAP(cxfsdn)  = NULL_PTR;
 
-    CXFSDN_SATA_DISK_FD(cxfsdn) = ERR_FD;
-    CXFSDN_OFFSET(cxfsdn)       = ERR_OFFSET;
-    CXFSDN_SIZE(cxfsdn)         = 0;
+    CXFSDN_SSD_DISK_FD(cxfsdn)      = ERR_FD;
+
+    CXFSDN_SATA_DISK_FD(cxfsdn)     = ERR_FD;
+    CXFSDN_OFFSET(cxfsdn)           = ERR_OFFSET;
+    CXFSDN_SIZE(cxfsdn)             = 0;
 
     return (EC_TRUE);
 }
@@ -665,7 +771,7 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
         ssd_disk_offset = CXFSCFG_SSD_DISK_OFFSET(cxfscfg);
         ssd_disk_size   = CXFSCFG_SSD_DISK_SIZE(cxfscfg);
 
-        camd_md = camd_start(sata_disk_fd, sata_disk_size,
+        camd_md = camd_start(NULL_PTR, sata_disk_fd, sata_disk_size,
                              mem_disk_size,
                              ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
         if(NULL_PTR == camd_md)
@@ -676,9 +782,11 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
 
         if(EC_FALSE == camd_load(camd_md))
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load:load cdc failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load:load camd failed\n");
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load:load camd done\n");
 
         if(ERR_FD != camd_get_eventfd(camd_md)
         && NULL_PTR != task_brd_default_get_cepoll())
@@ -723,7 +831,7 @@ CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int 
         return (NULL_PTR);
     }
 
-    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_open: load cxfsdn done\n");
+    dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_open: load cxfsdn done\n");
 
     return (cxfsdn);
 }
@@ -915,12 +1023,32 @@ EC_BOOL cxfsdn_write_b(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
 
     size = CXFSPGB_CACHE_MAX_BYTE_SIZE;
 
-    if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(cxfsdn), size, disk_no, block_no, &page_no))
+    for(;;)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_b: new %ld bytes space from vol failed\n", data_max_len);
-        return (EC_FALSE);
+        if(EC_TRUE == cxfspgv_is_full(CXFSDN_CXFSPGV(cxfsdn)))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_b: vol is full\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(cxfsdn), size, disk_no, block_no, &page_no))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_b: new %ld bytes space from vol failed\n", data_max_len);
+            return (EC_FALSE);
+        }
+        ASSERT(0 == page_no);
+
+        if(EC_FALSE == cxfsdn_cover_sata_bad_page(cxfsdn, size, *disk_no, *block_no, page_no))
+        {
+            break;
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_write_b: "
+                                               "(disk %u, block %u, page %u), size %u cover bad page\n",
+                                               *disk_no, *block_no, page_no, size);
+
+        cxfsdn_discard_sata_bad_page(cxfsdn, size, *disk_no, *block_no, page_no);
     }
-    ASSERT(0 == page_no);
 
     if(EC_FALSE == cxfsdn_write_o(cxfsdn, data_max_len, data_buff, *disk_no, *block_no, offset))
     {
@@ -1028,10 +1156,30 @@ EC_BOOL cxfsdn_write_p(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
 
     size = (uint32_t)(data_max_len);
 
-    if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(cxfsdn), size, disk_no, block_no,  page_no))
+    for(;;)
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_p: new %ld bytes space from vol failed\n", data_max_len);
-        return (EC_FALSE);
+        if(EC_TRUE == cxfspgv_is_full(CXFSDN_CXFSPGV(cxfsdn)))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_p: vol is full\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfspgv_new_space(CXFSDN_CXFSPGV(cxfsdn), size, disk_no, block_no,  page_no))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_p: new %ld bytes space from vol failed\n", data_max_len);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfsdn_cover_sata_bad_page(cxfsdn, size, *disk_no, *block_no, *page_no))
+        {
+            break;
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_write_p: "
+                                               "(disk %u, block %u, page %u), size %u cover bad page\n",
+                                               (*disk_no), (*block_no), (*page_no), size);
+
+        cxfsdn_discard_sata_bad_page(cxfsdn, size, *disk_no, *block_no, *page_no);
     }
 
     offset  = (((UINT32)(*page_no)) << (CXFSPGB_PAGE_BIT_SIZE));
@@ -1044,6 +1192,7 @@ EC_BOOL cxfsdn_write_p(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
         cxfspgv_free_space(CXFSDN_CXFSPGV(cxfsdn), *disk_no, *block_no, *page_no, size);
         return (EC_FALSE);
     }
+
     dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_write_p: write %ld bytes to disk %u block %u page %u done\n",
                         data_max_len, (*disk_no), (*block_no), (*page_no));
 
