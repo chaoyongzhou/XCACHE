@@ -103,6 +103,36 @@ EC_BOOL cxfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_flush_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_flush_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttp_is_http_get_setreadonly(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_setreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_setreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_setreadonly_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_setreadonly_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cxfshttp_is_http_get_unsetreadonly(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_unsetreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_unsetreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_unsetreadonly_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_unsetreadonly_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cxfshttp_is_http_get_isreadonly(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_isreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_isreadonly_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cxfshttp_is_http_get_sync(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_sync_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_sync_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_sync_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_sync_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cxfshttp_is_http_get_replayop(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_replayop_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_replayop_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_replayop_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_replayop_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttp_is_http_get_getsmf(const CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_getsmf_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node);

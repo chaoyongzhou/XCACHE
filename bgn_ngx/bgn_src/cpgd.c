@@ -898,7 +898,7 @@ EC_BOOL cpgd_add_block(CPGD *cpgd, const uint16_t block_no, const uint16_t page_
 EC_BOOL cpgd_del_block(CPGD *cpgd, const uint16_t block_no, const uint16_t page_model)
 {
     /*del block_no from rbtree*/
-    if(CPGRB_ERR_POS == cpgrb_tree_delete_data(CPGD_PAGE_BLOCK_CPGRB_POOL(cpgd), &(CPGD_PAGE_MODEL_BLOCK_CPGRB_ROOT_POS(cpgd, page_model)), block_no))
+    if(EC_FALSE == cpgrb_tree_delete_data(CPGD_PAGE_BLOCK_CPGRB_POOL(cpgd), &(CPGD_PAGE_MODEL_BLOCK_CPGRB_ROOT_POS(cpgd, page_model)), block_no))
     {
         dbg_log(SEC_0041_CPGD, 0)(LOGSTDERR, "error:cpgd_del_block: del block_no %u from rbtree of page model %u failed\n", block_no, page_model);
         return (EC_FALSE);

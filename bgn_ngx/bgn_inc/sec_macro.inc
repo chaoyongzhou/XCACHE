@@ -218,5 +218,8 @@
 #define SEC_0208_CFC                        ((UINT32)(    208)) /*cfc                             */
 #define SEC_0209_CMMAP                      ((UINT32)(    209)) /*cmmap                           */
 #define SEC_0210_CBADBITMAP                 ((UINT32)(    210)) /*cbadbitmap                      */
-#define SEC_NONE_END                        ((UINT32)(    211))
+#define SEC_0211_CDIO                       ((UINT32)(    211)) /*cdio                            */
+#define SEC_0212_CMSYNC                     ((UINT32)(    212)) /*cmsync                          */
+#define SEC_0213_CXFSOP                     ((UINT32)(    213)) /*cxfsop                          */
+#define SEC_NONE_END                        ((UINT32)(    214))
 #endif/*_SEC_MACRO_INC*/

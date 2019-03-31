@@ -26,13 +26,15 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
+#include "real.h"
+
 #include "cbadbitmap.h"
 
 #include "cxfscfg.h"
 #include "cxfsnp.h"
 #include "cxfsdn.h"
 #include "cxfsnpmgr.h"
-
+#include "cxfsop.h"
 
 #define CXFS_MAX_MODI                       ((UINT32)32)
 
@@ -48,6 +50,14 @@ extern "C"{
 #define CXFS_SATA_BAD_BITMAP_SIZE_NBITS     ((CXFS_SATA_BAD_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
 #define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (256 << 10) /*align to 256KB*/
 
+/*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
+#define CXFS_OP_TABLE_SIZE_NBYTES           (((uint64_t)100) << 30)/*100GB*/
+#define CXFS_OP_SEG_ZONE_SIZE_NBYTES        (((uint64_t)  1) << 30)/*1GB. split op table into several op seg zones*/
+#define CXFS_OP_TABLE_USED_NBYTES_THREAD    (((uint64_t) 99) << 30)/*99GB*/
+#define CXFS_OP_MCACHE_SIZE_NBYTES          (((uint32_t) 10) << 20)/*8MB*/
+#define CXFS_OP_DUMP_USED_RATIO_THREAD      ((REAL) 0.2)            /*1.6MB*/
+#define CXFS_OP_DUMP_IDLE_NSEC_THREAD       (60)                    /*idle seconds at most before next dump*/
+
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
 #define CXFS_SYNC_STATE                     ((UINT32)  2)
@@ -58,16 +68,23 @@ typedef struct
 {
     /* used counter >= 0 */
     UINT32               usedcounter;
-    EC_BOOL              terminate_flag;
+    uint32_t             read_only_flag:1;
+    uint32_t             sync_flag     :1;
+    uint32_t             np_sync_flag  :1;
+    uint32_t             dn_sync_flag  :1;
+    uint32_t             op_dump_flag  :1;
+    uint32_t             op_replay_flag:1;
+    uint32_t             rsvd01        :26;
+    uint32_t             rsvd02;
     UINT32               state;
 
     CSTRING              sata_disk_path;
     int                  sata_disk_fd;
-    int                  rsvd01;
+    int                  rsvd03;
 
     CSTRING              ssd_disk_path;
     int                  ssd_disk_fd;
-    int                  rsvd02;
+    int                  rsvd04;
 
     CXFSCFG              cxfscfg;
 
@@ -79,21 +96,37 @@ typedef struct
     CXFSNP_MGR          *cxfsnpmgr;    /*namespace pool*/
 
     CBAD_BITMAP         *sata_bad_bitmap;
+    uint32_t             sata_bad_page_num; /*save prev num of sata bad pages*/
+    uint32_t             rsvd05;
+    uint64_t             time_msec_next;    /*next time to sync sata bad bitmap*/
+
+    CXFSOP_MGR          *cxfsop_mgr;
+    UINT32               cxfsop_dump_offset;/*relative offset in op table*/
 }CXFS_MD;
 
-#define CXFS_MD_TERMINATE_FLAG(cxfs_md)    ((cxfs_md)->terminate_flag)
-#define CXFS_MD_STATE(cxfs_md)             ((cxfs_md)->state)
-#define CXFS_MD_SATA_DISK_PATH(cxfs_md)    (&((cxfs_md)->sata_disk_path))
-#define CXFS_MD_SATA_DISK_FD(cxfs_md)      ((cxfs_md)->sata_disk_fd)
-#define CXFS_MD_SSD_DISK_PATH(cxfs_md)     (&((cxfs_md)->ssd_disk_path))
-#define CXFS_MD_SSD_DISK_FD(cxfs_md)       ((cxfs_md)->ssd_disk_fd)
-#define CXFS_MD_CFG(cxfs_md)               (&((cxfs_md)->cxfscfg))
-#define CXFS_MD_LOCKED_FILES(cxfs_md)      (&((cxfs_md)->locked_files))
-#define CXFS_MD_WAIT_FILES(cxfs_md)        (&((cxfs_md)->wait_files))
-#define CXFS_MD_DN(cxfs_md)                ((cxfs_md)->cxfsdn)
-#define CXFS_MD_NPP(cxfs_md)               ((cxfs_md)->cxfsnpmgr)
-#define CXFS_MD_SATA_BAD_BITMAP(cxfs_md)   ((cxfs_md)->sata_bad_bitmap)
-
+#define CXFS_MD_READ_ONLY_FLAG(cxfs_md)                 ((cxfs_md)->read_only_flag)
+#define CXFS_MD_SYNC_FLAG(cxfs_md)                      ((cxfs_md)->sync_flag)
+#define CXFS_MD_NP_SYNC_FLAG(cxfs_md)                   ((cxfs_md)->np_sync_flag)
+#define CXFS_MD_DN_SYNC_FLAG(cxfs_md)                   ((cxfs_md)->dn_sync_flag)
+#define CXFS_MD_OP_DUMP_FLAG(cxfs_md)                   ((cxfs_md)->op_dump_flag)
+#define CXFS_MD_OP_REPLAY_FLAG(cxfs_md)                 ((cxfs_md)->op_replay_flag)
+#define CXFS_MD_STATE(cxfs_md)                          ((cxfs_md)->state)
+#define CXFS_MD_SATA_DISK_PATH(cxfs_md)                 (&((cxfs_md)->sata_disk_path))
+#define CXFS_MD_SATA_DISK_FD(cxfs_md)                   ((cxfs_md)->sata_disk_fd)
+#define CXFS_MD_SSD_DISK_PATH(cxfs_md)                  (&((cxfs_md)->ssd_disk_path))
+#define CXFS_MD_SSD_DISK_FD(cxfs_md)                    ((cxfs_md)->ssd_disk_fd)
+#define CXFS_MD_CFG(cxfs_md)                            (&((cxfs_md)->cxfscfg))
+#define CXFS_MD_LOCKED_FILES(cxfs_md)                   (&((cxfs_md)->locked_files))
+#define CXFS_MD_WAIT_FILES(cxfs_md)                     (&((cxfs_md)->wait_files))
+#define CXFS_MD_DN(cxfs_md)                             ((cxfs_md)->cxfsdn)
+#define CXFS_MD_NPP(cxfs_md)                            ((cxfs_md)->cxfsnpmgr)
+#define CXFS_MD_SATA_BAD_BITMAP(cxfs_md)                ((cxfs_md)->sata_bad_bitmap)
+#define CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md)              ((cxfs_md)->sata_bad_page_num)
+#define CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md)            ((cxfs_md)->time_msec_next)
+#define CXFS_MD_NP_MSYNC_NODE(cxfs_md)                  ((cxfs_md)->np_msync_node)
+#define CXFS_MD_DN_MSYNC_NODE(cxfs_md)                  ((cxfs_md)->dn_msync_node)
+#define CXFS_MD_OP_MGR(cxfs_md)                         ((cxfs_md)->cxfsop_mgr)
+#define CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 ((cxfs_md)->cxfsop_dump_offset)
 
 typedef struct
 {
@@ -155,10 +188,24 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path);
 
 /**
 *
+* retrieve CXFS module
+*
+**/
+UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path);
+
+/**
+*
 * end CXFS module
 *
 **/
 void cxfs_end(const UINT32 cxfs_md_id);
+
+/**
+*
+* sync CXFS to disk
+*
+**/
+EC_BOOL cxfs_sync(const UINT32 cxfs_md_id);
 
 /**
 *
@@ -170,6 +217,8 @@ EC_BOOL cxfs_flush(const UINT32 cxfs_md_id);
 EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
 EC_BOOL cxfs_flush_sata_bad_bitmap(CXFS_MD *cxfs_md);
+
+EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
 EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
@@ -228,6 +277,11 @@ EC_BOOL cxfs_set_state(const UINT32 cxfs_md_id, const UINT32 cxfs_state);
 UINT32  cxfs_get_state(const UINT32 cxfs_md_id);
 EC_BOOL cxfs_is_state(const UINT32 cxfs_md_id, const UINT32 cxfs_state);
 
+EC_BOOL cxfs_set_read_only(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_unset_read_only(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_is_read_only(const UINT32 cxfs_md_id);
 
 /**
 *
@@ -287,6 +341,13 @@ EC_BOOL cxfs_is_npp_and_dn(const UINT32 cxfs_md_id);
 *
 **/
 EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id, const UINT32 cxfsnp_model, const UINT32 cxfsnp_max_num, const UINT32 cxfsnp_2nd_chash_algo_id);
+
+/**
+*
+*  dump name node pool to sandby np zone
+*
+**/
+EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id);
 
 /**
 *
@@ -453,6 +514,13 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 *
 **/
 EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id);
+
+/**
+*
+*  dump data node to standby zone
+*
+**/
+EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id);
 
 /**
 *
@@ -884,6 +952,14 @@ EC_BOOL cxfs_show_path_depth(const UINT32 cxfs_md_id, const CSTRING *path, LOG *
 EC_BOOL cxfs_show_path(const UINT32 cxfs_md_id, const CSTRING *path, LOG *log);
 
 EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UINT32 *complete_retire_num);
+
+EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id);
+
+EC_BOOL cxfs_pop_op(const UINT32 cxfs_md_id, const UINT32 op_size);
 
 #endif /*_CXFS_H*/
 

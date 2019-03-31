@@ -147,6 +147,12 @@ EC_BOOL cxfsnp_free(CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_is_full(const CXFSNP *cxfsnp);
 
+EC_BOOL cxfsnp_set_read_only(CXFSNP *cxfsnp);
+
+EC_BOOL cxfsnp_unset_read_only(CXFSNP *cxfsnp);
+
+EC_BOOL cxfsnp_is_read_only(CXFSNP *cxfsnp);
+
 EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_del_list_is_empty(const CXFSNP *cxfsnp);

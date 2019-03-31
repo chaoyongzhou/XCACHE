@@ -156,7 +156,6 @@ STATIC_CAST static uint32_t cxfsnp_path_seg_len(const uint8_t *full_path, const 
 
 EC_BOOL cxfsnp_inode_init(CXFSNP_INODE *cxfsnp_inode)
 {
-    CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode) = CXFSDN_DATA_NOT_IN_CACHE;
     CXFSNP_INODE_DISK_NO(cxfsnp_inode)    = CXFSPGRB_ERR_POS;
     CXFSNP_INODE_BLOCK_NO(cxfsnp_inode)   = CXFSPGRB_ERR_POS;
     CXFSNP_INODE_PAGE_NO(cxfsnp_inode)    = CXFSPGRB_ERR_POS;
@@ -165,7 +164,6 @@ EC_BOOL cxfsnp_inode_init(CXFSNP_INODE *cxfsnp_inode)
 
 EC_BOOL cxfsnp_inode_clean(CXFSNP_INODE *cxfsnp_inode)
 {
-    CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode) = CXFSDN_DATA_NOT_IN_CACHE;
     CXFSNP_INODE_DISK_NO(cxfsnp_inode)    = CXFSPGRB_ERR_POS;
     CXFSNP_INODE_BLOCK_NO(cxfsnp_inode)   = CXFSPGRB_ERR_POS;
     CXFSNP_INODE_PAGE_NO(cxfsnp_inode)    = CXFSPGRB_ERR_POS;
@@ -174,7 +172,6 @@ EC_BOOL cxfsnp_inode_clean(CXFSNP_INODE *cxfsnp_inode)
 
 EC_BOOL cxfsnp_inode_clone(const CXFSNP_INODE *cxfsnp_inode_src, CXFSNP_INODE *cxfsnp_inode_des)
 {
-    CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode_des) = CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode_src);
     CXFSNP_INODE_DISK_NO(cxfsnp_inode_des)    = CXFSNP_INODE_DISK_NO(cxfsnp_inode_src);
     CXFSNP_INODE_BLOCK_NO(cxfsnp_inode_des)   = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode_src);
     CXFSNP_INODE_PAGE_NO(cxfsnp_inode_des)    = CXFSNP_INODE_PAGE_NO(cxfsnp_inode_src);
@@ -184,8 +181,7 @@ EC_BOOL cxfsnp_inode_clone(const CXFSNP_INODE *cxfsnp_inode_src, CXFSNP_INODE *c
 
 void cxfsnp_inode_print(LOG *log, const CXFSNP_INODE *cxfsnp_inode)
 {
-    sys_print(log, "(cache %u, disk %u, block %u, page %u)\n",
-                    CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode),
+    sys_print(log, "(disk %u, block %u, page %u)\n",
                     CXFSNP_INODE_DISK_NO(cxfsnp_inode),
                     CXFSNP_INODE_BLOCK_NO(cxfsnp_inode),
                     CXFSNP_INODE_PAGE_NO(cxfsnp_inode)
@@ -195,8 +191,7 @@ void cxfsnp_inode_print(LOG *log, const CXFSNP_INODE *cxfsnp_inode)
 
 void cxfsnp_inode_log_no_lock(LOG *log, const CXFSNP_INODE *cxfsnp_inode)
 {
-    sys_print_no_lock(log, "(cache %u, disk %u, block %u, page %u)\n",
-                    CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode),
+    sys_print_no_lock(log, "(disk %u, block %u, page %u)\n",
                     CXFSNP_INODE_DISK_NO(cxfsnp_inode),
                     CXFSNP_INODE_BLOCK_NO(cxfsnp_inode),
                     CXFSNP_INODE_PAGE_NO(cxfsnp_inode)
@@ -232,7 +227,6 @@ EC_BOOL cxfsnp_fnode_init(CXFSNP_FNODE *cxfsnp_fnode)
 
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = 0;
     CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = 0;
-    CXFSNP_FNODE_HASH(cxfsnp_fnode)   = 0;
 
     for(pos = 0; pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
     {
@@ -247,7 +241,6 @@ EC_BOOL cxfsnp_fnode_clean(CXFSNP_FNODE *cxfsnp_fnode)
 
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = 0;
     CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = 0;
-    CXFSNP_FNODE_HASH(cxfsnp_fnode)   = 0;
 
     for(pos = 0; pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
     {
@@ -272,7 +265,6 @@ EC_BOOL cxfsnp_fnode_clone(const CXFSNP_FNODE *cxfsnp_fnode_src, CXFSNP_FNODE *c
 
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des) = CXFSNP_FNODE_FILESZ(cxfsnp_fnode_src);
     CXFSNP_FNODE_REPNUM(cxfsnp_fnode_des) = CXFSNP_FNODE_REPNUM(cxfsnp_fnode_src);
-    CXFSNP_FNODE_HASH(cxfsnp_fnode_des)   = CXFSNP_FNODE_HASH(cxfsnp_fnode_src);
 
     for(pos = 0; pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode_src) && pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
     {
@@ -288,9 +280,7 @@ EC_BOOL cxfsnp_fnode_check_inode_exist(const CXFSNP_INODE *inode, const CXFSNP_F
 
     for(replica_pos = 0; replica_pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode); replica_pos ++)
     {
-        if(
-            CXFSNP_INODE_CACHE_FLAG(inode) == CXFSNP_FNODE_CACHE_FLAG(cxfsnp_fnode, replica_pos)
-         && CXFSNP_INODE_DISK_NO(inode)    == CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, replica_pos)
+        if( CXFSNP_INODE_DISK_NO(inode)    == CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, replica_pos)
          && CXFSNP_INODE_BLOCK_NO(inode)   == CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, replica_pos)
          && CXFSNP_INODE_PAGE_NO(inode)    == CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, replica_pos)
         )
@@ -321,11 +311,6 @@ EC_BOOL cxfsnp_fnode_cmp(const CXFSNP_FNODE *cxfsnp_fnode_1st, const CXFSNP_FNOD
     }
 
     if(CXFSNP_FNODE_FILESZ(cxfsnp_fnode_1st) != CXFSNP_FNODE_FILESZ(cxfsnp_fnode_2nd))
-    {
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_FNODE_HASH(cxfsnp_fnode_1st) != CXFSNP_FNODE_HASH(cxfsnp_fnode_2nd))
     {
         return (EC_FALSE);
     }
@@ -370,7 +355,6 @@ EC_BOOL cxfsnp_fnode_import(const CXFSNP_FNODE *cxfsnp_fnode_src, CXFSNP_FNODE *
 
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des) = CXFSNP_FNODE_FILESZ(cxfsnp_fnode_src);
     CXFSNP_FNODE_REPNUM(cxfsnp_fnode_des) = des_pos;
-    CXFSNP_FNODE_HASH(cxfsnp_fnode_des)   = CXFSNP_FNODE_HASH(cxfsnp_fnode_src);
     return (EC_TRUE);
 }
 
@@ -399,12 +383,10 @@ void cxfsnp_fnode_print(LOG *log, const CXFSNP_FNODE *cxfsnp_fnode)
 {
     uint32_t pos;
 
-    sys_log(log, "cxfsnp_fnode %p: file size %u, replica num %u, hash %x\n",
+    sys_log(log, "cxfsnp_fnode %p: file size %u, replica num %u\n",
                     cxfsnp_fnode,
                     CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
-                    CXFSNP_FNODE_REPNUM(cxfsnp_fnode),
-                    CXFSNP_FNODE_HASH(cxfsnp_fnode)
-                    );
+                    CXFSNP_FNODE_REPNUM(cxfsnp_fnode));
 
     for(pos = 0; pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
     {
@@ -417,11 +399,9 @@ void cxfsnp_fnode_log_no_lock(LOG *log, const CXFSNP_FNODE *cxfsnp_fnode)
 {
     uint32_t pos;
 
-    sys_print_no_lock(log, "size %u, replica %u, hash %x",
+    sys_print_no_lock(log, "size %u, replica %u",
                     CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
-                    CXFSNP_FNODE_REPNUM(cxfsnp_fnode),
-                    CXFSNP_FNODE_HASH(cxfsnp_fnode)
-                    );
+                    CXFSNP_FNODE_REPNUM(cxfsnp_fnode));
 
     for(pos = 0; pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
     {
@@ -685,11 +665,9 @@ void cxfsnp_item_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
         CXFSNP_FNODE *cxfsnp_fnode;
 
         cxfsnp_fnode = (CXFSNP_FNODE *)CXFSNP_ITEM_FNODE(cxfsnp_item);
-        sys_log(log, "file size %u, replica num %u, hash %x\n",
+        sys_log(log, "file size %u, replica num %u\n",
                         CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
-                        CXFSNP_FNODE_REPNUM(cxfsnp_fnode),
-                        CXFSNP_FNODE_HASH(cxfsnp_fnode)
-                        );
+                        CXFSNP_FNODE_REPNUM(cxfsnp_fnode));
         sys_log(log, "inode:\n");
         for(pos = 0; pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
         {
@@ -733,11 +711,9 @@ void cxfsnp_item_and_key_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
         CXFSNP_FNODE *cxfsnp_fnode;
 
         cxfsnp_fnode = (CXFSNP_FNODE *)CXFSNP_ITEM_FNODE(cxfsnp_item);
-        sys_log(log, "file size %u, replica num %u, hash %x\n",
+        sys_log(log, "file size %u, replica num %u\n",
                         CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
-                        CXFSNP_FNODE_REPNUM(cxfsnp_fnode),
-                        CXFSNP_FNODE_HASH(cxfsnp_fnode)
-                        );
+                        CXFSNP_FNODE_REPNUM(cxfsnp_fnode));
         for(pos = 0; pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && pos < CXFSNP_FILE_REPLICA_MAX_NUM; pos ++)
         {
             CXFSNP_INODE *cxfsnp_inode;
@@ -1072,6 +1048,7 @@ CXFSNP *cxfsnp_new()
 
 EC_BOOL cxfsnp_init(CXFSNP *cxfsnp)
 {
+    CXFSNP_READ_ONLY_FLAG(cxfsnp)  = BIT_FALSE;
     CXFSNP_FSIZE(cxfsnp)           = 0;
     CXFSNP_DEL_SIZE(cxfsnp)        = 0;
     CXFSNP_RECYCLE_SIZE(cxfsnp)    = 0;
@@ -1086,18 +1063,19 @@ EC_BOOL cxfsnp_init(CXFSNP *cxfsnp)
 
 EC_BOOL cxfsnp_clean(CXFSNP *cxfsnp)
 {
-    CXFSNP_HDR(cxfsnp)   = NULL_PTR;
+    CXFSNP_HDR(cxfsnp)             = NULL_PTR;
 
-    CXFSNP_FSIZE(cxfsnp) = 0;
+    CXFSNP_READ_ONLY_FLAG(cxfsnp)  = BIT_FALSE;
+    CXFSNP_FSIZE(cxfsnp)           = 0;
 
-    CXFSNP_DEL_SIZE(cxfsnp)     = 0;
-    CXFSNP_RECYCLE_SIZE(cxfsnp) = 0;
+    CXFSNP_DEL_SIZE(cxfsnp)        = 0;
+    CXFSNP_RECYCLE_SIZE(cxfsnp)    = 0;
 
-    CXFSNP_LRU_LIST(cxfsnp) = NULL_PTR;
-    CXFSNP_DEL_LIST(cxfsnp) = NULL_PTR;
-    CXFSNP_HDR(cxfsnp)      = NULL_PTR;
+    CXFSNP_LRU_LIST(cxfsnp)        = NULL_PTR;
+    CXFSNP_DEL_LIST(cxfsnp)        = NULL_PTR;
+    CXFSNP_HDR(cxfsnp)             = NULL_PTR;
 
-    CXFSNP_2ND_CHASH_ALGO(cxfsnp) = NULL_PTR;
+    CXFSNP_2ND_CHASH_ALGO(cxfsnp)  = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -1118,6 +1096,48 @@ EC_BOOL cxfsnp_is_full(const CXFSNP *cxfsnp)
 
     pool = CXFSNP_ITEMS_POOL(cxfsnp);
     return cxfsnprb_pool_is_full(pool);
+}
+
+EC_BOOL cxfsnp_set_read_only(CXFSNP *cxfsnp)
+{
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_set_read_only: "
+                                               "np is in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSNP_READ_ONLY_FLAG(cxfsnp) = BIT_TRUE;
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_set_read_only: "
+                                           "np set read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_unset_read_only(CXFSNP *cxfsnp)
+{
+    if(BIT_FALSE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_unset_read_only: "
+                                               "np is not in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSNP_READ_ONLY_FLAG(cxfsnp) = BIT_FALSE;
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_unset_read_only: "
+                                           "np unset read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_is_read_only(CXFSNP *cxfsnp)
+{
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
 }
 
 EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp)
@@ -1817,6 +1837,13 @@ uint32_t cxfsnp_insert(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *p
 {
     uint32_t node_pos;
 
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (CXFSNPRB_ERR_POS);
+    }
+
     node_pos = cxfsnp_insert_no_lock(cxfsnp, path_len, path, dflag);
 
     return (node_pos);
@@ -2141,6 +2168,13 @@ CXFSNP_ITEM *cxfsnp_set(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
     uint32_t     node_pos;
     CXFSNP_ITEM *cxfsnp_item;
 
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_set: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (NULL_PTR);
+    }
+
     node_pos = cxfsnp_insert(cxfsnp, path_len, path, dflag);
     cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
     if(NULL_PTR != cxfsnp_item)
@@ -2173,6 +2207,13 @@ EC_BOOL cxfsnp_delete(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 {
     CXFSNP_ITEM *cxfsnp_item;
     uint32_t node_pos;
+
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_delete: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
 
     if('/' != (*path))
     {
@@ -2275,6 +2316,13 @@ EC_BOOL cxfsnp_expire(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 {
     CXFSNP_ITEM *cxfsnp_item;
 
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_expire: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
+
     if('/' != (*path))
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_expire: np %u, invalid path %.*s\n", CXFSNP_ID(cxfsnp), path_len, (char *)path);
@@ -2312,6 +2360,13 @@ EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *co
 {
     CXFSNPLRU_NODE  *cxfsnplru_node_head;
     UINT32   retire_num;
+
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_retire: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
 
     cxfsnplru_node_head = CXFSNP_LRU_LIST(cxfsnp);
 
@@ -2785,6 +2840,13 @@ EC_BOOL cxfsnp_umount(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 {
     uint32_t node_pos;
 
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
+
     if('/' != (*path))
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount: np %u, invalid path %.*s\n", CXFSNP_ID(cxfsnp), path_len, (char *)path);
@@ -2816,6 +2878,13 @@ EC_BOOL cxfsnp_umount(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 EC_BOOL cxfsnp_umount_deep(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
 {
     uint32_t node_pos;
+
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount_deep: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
 
     if('/' != (*path))
     {
@@ -2851,6 +2920,13 @@ EC_BOOL cxfsnp_umount_wildcard(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 {
     uint32_t node_pos;
 
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount_wildcard: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
+
     if('/' != (*path))
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount_wildcard: np %u, invalid path %.*s\n", CXFSNP_ID(cxfsnp), path_len, (char *)path);
@@ -2882,6 +2958,13 @@ EC_BOOL cxfsnp_umount_wildcard(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 EC_BOOL cxfsnp_umount_wildcard_deep(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
 {
     uint32_t node_pos;
+
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount_wildcard_deep: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
 
     if('/' != (*path))
     {
@@ -3300,6 +3383,13 @@ EC_BOOL cxfsnp_file_size(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t 
 
 EC_BOOL cxfsnp_mkdirs(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path)
 {
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_mkdirs: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
+
     if(CXFSNPRB_ERR_POS == cxfsnp_insert(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_DIR))
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_mkdirs: mkdirs %.*s failed\n", path_len, (char *)path);
@@ -3449,6 +3539,8 @@ CXFSNP *cxfsnp_clone(CXFSNP *src_cxfsnp, UINT8 *base, const uint32_t des_np_id)
     CXFSNP_DEL_LIST(des_cxfsnp) = CXFSNP_ITEM_DEL_NODE(cxfsnp_fetch(des_cxfsnp, CXFSNPDEL_ROOT_POS));
 
     CXFSNP_2ND_CHASH_ALGO(des_cxfsnp) = chash_algo_fetch(CXFSNP_HEADER_2ND_CHASH_ALGO_ID(des_cxfsnp_header));
+
+    CXFSNP_READ_ONLY_FLAG(des_cxfsnp) = CXFSNP_READ_ONLY_FLAG(src_cxfsnp);
 
     CXFSNP_FSIZE(des_cxfsnp) = fsize;
 
@@ -4047,6 +4139,13 @@ EC_BOOL cxfsnp_recycle(CXFSNP *cxfsnp, const UINT32 max_num, CXFSNP_RECYCLE_NP *
     //CXFSNP_HEADER   *cxfsnp_header;
 
     uint32_t         left_num;
+
+    if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_recycle: np %u is read-only\n",
+                                               CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
 
     cxfsnpdel_node_head = CXFSNP_DEL_LIST(cxfsnp);
 

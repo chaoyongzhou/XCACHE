@@ -75,64 +75,64 @@ extern "C"{
 #if (CXFSPGD_004G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_004GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_004GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_004G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_008G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_008GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_008GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_008G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_016G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_016GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_016GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_016G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_032G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_032GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_032GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_032G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_064G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_064GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_064GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_064G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_128G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_128GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_128GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_128G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_256G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_256GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_256GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_256G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_512G_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_512GB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_512GB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_032G_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 #if (CXFSPGD_001T_DISK == CXFSPGD_DEBUG_CHOICE)
 #define CXFSPGD_SIZE_NBITS                  (CXFSPGD_001TB_SIZE_NBITS)
 #define CXFSPGD_MAX_BLOCK_NUM               (CXFSPGD_001TB_BLOCK_NUM)
-#define CXFSPGD_BLOCK_PAGE_MODEL            (CPGB_064MB_MODEL)
-#define CXFSPGD_BLOCK_PAGE_NUM              (CPGB_064MB_PAGE_NUM)
+#define CXFSPGD_BLOCK_PAGE_MODEL            (CXFSPGB_064MB_MODEL)
+#define CXFSPGD_BLOCK_PAGE_NUM              (CXFSPGB_064MB_PAGE_NUM)
 #endif/*(CXFSPGD_001T_DISK == CXFSPGD_DEBUG_CHOICE)*/
 
 
@@ -163,7 +163,7 @@ typedef struct
     uint32_t        pgd_page_used_num;/*used pages number*/
     uint64_t        pgd_actual_used_size;/*actual used bytes*/
 
-    uint16_t        pgd_block_rb_root_pos[ CPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
+    uint16_t        pgd_block_rb_root_pos[ CXFSPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
     uint16_t        rsvd2;
 
     CXFSPGRB_POOL   pgd_block_rb_pool;
@@ -231,6 +231,10 @@ EC_BOOL cxfspgd_del_block(CXFSPGD *cxfspgd, const uint16_t block_no, const uint1
 EC_BOOL cxfspgd_new_space(CXFSPGD *cxfspgd, const uint32_t size, uint16_t *block_no, uint16_t *page_no);
 
 EC_BOOL cxfspgd_free_space(CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
+
+EC_BOOL cxfspgd_reserve_space(CXFSPGD *cxfspgd, const uint32_t size, const uint16_t block_no, const uint16_t page_no);
+
+EC_BOOL cxfspgd_release_space(CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
 
 EC_BOOL cxfspgd_is_full(const CXFSPGD *cxfspgd);
 

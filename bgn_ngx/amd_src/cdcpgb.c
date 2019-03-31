@@ -450,7 +450,7 @@ EC_BOOL cdcpgb_init(CDCPGB *cdcpgb, const uint16_t page_model_target)
         cdcpgb_clean(cdcpgb);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0183_CDCPGB, 9)(LOGSTDOUT, "[DEBUG] cdcpgb_init: init cdcpgrb pool done "
+    dbg_log(SEC_0183_CDCPGB, 9)(LOGSTDNULL, "[DEBUG] cdcpgb_init: init cdcpgrb pool done "
                     "where page_max_num_t = %u derived from page_max_num %u\n",
                     page_max_num_t, page_max_num);
 

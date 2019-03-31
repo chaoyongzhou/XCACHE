@@ -420,14 +420,20 @@ typedef EC_BOOL (*TASK_BRD_EXTRA_CLEANER)(void *);
 
 typedef EC_BOOL (*TASK_BRD_CALLBACK)(void *);
 
+#define TASK_BRD_PROCESS_ERROR         ((UINT32) 0)
+#define TASK_BRD_PROCESS_LOOP          ((UINT32) 1)
+#define TASK_BRD_PROCESS_ONCE          ((UINT32) 2)
+
 typedef struct
 {
+    UINT32                   flag;
     TASK_BRD_CALLBACK        func;
     void                    *arg;
-}TASK_BRD_CB_HANDLER;
+}TASK_BRD_PROCESS_HANDLER;
 
-#define TASK_BRD_CB_HANDLER_FUNC(task_brd_cb_handler)           ((task_brd_cb_handler)->func)
-#define TASK_BRD_CB_HANDLER_ARG(task_brd_cb_handler)            ((task_brd_cb_handler)->arg)
+#define TASK_BRD_PROCESS_HANDLER_FLAG(task_brd_process_handler)           ((task_brd_process_handler)->flag)
+#define TASK_BRD_PROCESS_HANDLER_FUNC(task_brd_process_handler)           ((task_brd_process_handler)->func)
+#define TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler)            ((task_brd_process_handler)->arg)
 
 /*task board*/
 typedef struct _TASK_BRD
@@ -540,7 +546,7 @@ typedef struct _TASK_BRD
     CLIST        task_report_list; /*task report log cache which records info when a task come to end. item data type: TASK_REPORT_NODE*/
     CLIST        task_cbtimer_list;
 
-    CLIST        task_process_list;/*item is TASK_BRD_CB_HANDLER*/
+    CLIST        task_process_list;/*item is TASK_BRD_PROCESS_HANDLER*/
 
     EC_BOOL      enable_flag;      /*when enabled (== EC_TRUE), obtain actual load, when disabled (== EC_FALSE), obtain faked load(-1, the max int value)*/
     EC_BOOL      reset_flag;       /*when enabled (== EC_TRUE), reset do_slave thread if down, otherwise, not reset do_slave thread if down*/
@@ -1063,7 +1069,17 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_ENABLE_FLAG(task_brd)                       ((task_brd)->enable_flag)
 #define TASK_BRD_RESET_FLAG(task_brd)                        ((task_brd)->reset_flag)
 #define TASK_BRD_NGX_EXITING_FLAG(task_brd)                  ((task_brd)->ngx_exiting_flag)
-#define TASK_BRD_ABORT_FLAG(task_brd)                        (CPROC_ABORT_FLAG(TASK_BRD_CPROC(task_brd)))
+
+#define TASK_BRD_SET_ABORT(task_brd)                                         \
+    do{                                                                      \
+        if(NULL_PTR != (task_brd) && NULL_PTR != TASK_BRD_CPROC(task_brd)) { \
+            CPROC_ABORT_FLAG(TASK_BRD_CPROC(task_brd)) = CPROC_IS_ABORTED;   \
+        }                                                                    \
+    }while(0)
+
+#define TASK_BRD_IS_ABORT(task_brd)                                          \
+    (NULL_PTR != (task_brd) && NULL_PTR != TASK_BRD_CPROC(task_brd)        \
+     && CPROC_IS_ABORTED == (CPROC_ABORT_FLAG(TASK_BRD_CPROC(task_brd))))
 
 #endif /*_TASK_INC*/
 

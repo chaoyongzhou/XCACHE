@@ -1179,10 +1179,10 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRecycleMaxNum", &(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"xfsDnAmdSwitch"       , &(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSataDiskSize" , &(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
+    //__cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSataDiskSize" , &(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdMemDiskSize"  , &(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskOffset", &(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskSize"  , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
+    //__cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskSize"  , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
 
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
@@ -1241,7 +1241,7 @@ EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"cdnsTimeoutNsec"        , &(CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"highPrecisionTimeSwitch", &(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"tdnsResolveSwitch"      , &(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"tdnsResolveTimeoutNsec" , &(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"tdnsResolveTimeoutNsec" , &(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)));
 
     return (EC_TRUE);
 }
@@ -1258,6 +1258,7 @@ EC_BOOL cxml_parse_cparacfg_amd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_uint32(node, (const char *)"ssdAioReqMaxNum"   , &(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"sataAioReqMaxNum"  , &(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"sataDegradeSsdSwitch", &(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)));
 
     __cxml_parse_tag_uint32(node, (const char *)"cmcTryRetireMaxNum"  , &(CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"cmcTryRecycleMaxNum" , &(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)));

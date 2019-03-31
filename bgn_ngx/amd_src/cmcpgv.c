@@ -139,6 +139,41 @@ EC_BOOL cmcpgv_hdr_init(CMCPGV *cmcpgv)
     return (EC_TRUE);
 }
 
+EC_BOOL cmcpgv_hdr_clear(CMCPGV *cmcpgv)
+{
+    CMCPGV_HDR *cmcpgv_hdr;
+    uint16_t  page_model;
+
+    cmcpgv_hdr = CMCPGV_HEADER(cmcpgv);
+
+    for(page_model = 0; CMCPGB_MODEL_MAX_NUM > page_model; page_model ++)
+    {
+        CMCPGV_HDR_DISK_CMCPGRB_ROOT_POS(cmcpgv_hdr, page_model) = CMCPGRB_ERR_POS;
+    }
+
+    CMCPGV_HDR_ASSIGN_BITMAP(cmcpgv_hdr) = 0;
+
+    CMCPGV_HDR_PAGE_DISK_NUM(cmcpgv_hdr) = 0;
+
+    /*statistics*/
+    CMCPGV_HDR_PAGE_MAX_NUM(cmcpgv_hdr)          = 0;
+    CMCPGV_HDR_PAGE_USED_NUM(cmcpgv_hdr)         = 0;
+    CMCPGV_HDR_PAGE_ACTUAL_USED_SIZE(cmcpgv_hdr) = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcpgv_hdr_close(CMCPGV *cmcpgv)
+{
+    if(NULL_PTR != CMCPGV_HEADER(cmcpgv))
+    {
+        CMCPGV_HEADER(cmcpgv) = NULL_PTR;
+    }
+
+    /*cmcpgv_hdr cannot be accessed again*/
+    return (EC_TRUE);
+}
+
 REAL cmcpgv_hdr_used_ratio(const CMCPGV *cmcpgv)
 {
     if(NULL_PTR != CMCPGV_HEADER(cmcpgv))
@@ -269,6 +304,107 @@ void cmcpgv_clean(CMCPGV *cmcpgv)
     CMCPGV_HEADER(cmcpgv) = NULL_PTR;
 
     return;
+}
+
+CMCPGV *cmcpgv_create(CMMAP_NODE *cmmap_node)
+{
+    CMCPGV      *cmcpgv;
+    UINT32       cmcpgv_size;
+    CMCPGV_HDR  *cmcpgv_hdr;
+
+    cmcpgv_size = CMCPGV_HDR_SIZE;
+
+    alloc_static_mem(MM_CMCPGV, &cmcpgv, LOC_CMCPGV_0008);
+    if(NULL_PTR == cmcpgv)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_create: malloc cmcpgv failed\n");
+        return (NULL_PTR);
+    }
+
+    cmcpgv_init(cmcpgv);
+
+    cmcpgv_hdr = cmmap_node_alloc(cmmap_node, cmcpgv_size, CMCPGV_MEM_ALIGNMENT, "cmc pgv header");
+    if(NULL_PTR == cmcpgv_hdr)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_create: "
+                                               "create vol failed\n");
+
+        cmcpgv_close(cmcpgv);
+        return (NULL_PTR);
+    }
+    dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "[DEBUG] cmcpgv_create: "
+                                           "create vol done => pool %p\n",
+                                           CMCPGV_HDR_CMCPGRB_POOL(cmcpgv_hdr));
+
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_create: "
+                                           "create vol done\n");
+
+    CMCPGV_SIZE(cmcpgv)   = cmcpgv_size;
+    CMCPGV_HEADER(cmcpgv) = cmcpgv_hdr;
+
+    cmcpgv_hdr_init(cmcpgv); /*init*/
+
+    return (cmcpgv);
+}
+
+CMCPGV *cmcpgv_open(CMMAP_NODE *cmmap_node)
+{
+    CMCPGV      *cmcpgv;
+    UINT32       cmcpgv_size;
+    CMCPGV_HDR  *cmcpgv_hdr;
+
+    cmcpgv_size = CMCPGV_HDR_SIZE;
+
+    alloc_static_mem(MM_CMCPGV, &cmcpgv, LOC_CMCPGV_0009);
+    if(NULL_PTR == cmcpgv)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_open: malloc cmcpgv failed\n");
+        return (NULL_PTR);
+    }
+
+    cmcpgv_init(cmcpgv);
+
+    cmcpgv_hdr = cmmap_node_alloc(cmmap_node, cmcpgv_size, CMCPGV_MEM_ALIGNMENT, "cmc pgv header");
+    if(NULL_PTR == cmcpgv_hdr)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_open: "
+                                               "open vol failed\n");
+
+        cmcpgv_close(cmcpgv);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "[DEBUG] cmcpgv_open: "
+                                           "open vol done\n");
+
+    CMCPGV_SIZE(cmcpgv)   = cmcpgv_size;
+    CMCPGV_HEADER(cmcpgv) = cmcpgv_hdr;
+
+    return (cmcpgv);
+}
+
+EC_BOOL cmcpgv_close(CMCPGV *cmcpgv)
+{
+    if(NULL_PTR != cmcpgv)
+    {
+        uint16_t disk_no;
+
+        /*clean disks*/
+        for(disk_no = 0; disk_no < CMCPGV_MAX_DISK_NUM; disk_no ++)
+        {
+            if(NULL_PTR != CMCPGV_DISK_CMCPGD(cmcpgv, disk_no))
+            {
+                cmcpgd_close(CMCPGV_DISK_CMCPGD(cmcpgv, disk_no));
+                CMCPGV_DISK_CMCPGD(cmcpgv, disk_no) = NULL_PTR;
+            }
+        }
+
+        cmcpgv_hdr_close(cmcpgv);
+
+        return cmcpgv_free(cmcpgv);
+    }
+
+    return (EC_TRUE);
 }
 
 /*add one free disk into pool*/
@@ -476,6 +612,151 @@ EC_BOOL cmcpgv_del_disk(CMCPGV *cmcpgv, const uint16_t disk_no)
     CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv) -= CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd);
 
     cmcpgd_free(cmcpgd);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcpgv_create_disk(CMCPGV *cmcpgv, CMMAP_NODE *cmmap_node, const uint16_t disk_no)
+{
+    CMCPGD  *cmcpgd;
+
+    if(CMCPGV_MAX_DISK_NUM <= disk_no)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_create_disk: "
+                                               "disk %u overflow the max disk num %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CMCPGV_DISK_CMCPGD(cmcpgv, disk_no))
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_create_disk: "
+                                               "disk %u already exist\n",
+                                               disk_no);
+        return (EC_FALSE);
+    }
+
+    cmcpgd = cmcpgd_create(cmmap_node, CMCPGD_MAX_BLOCK_NUM);
+    if(NULL_PTR == cmcpgd)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_create_disk: "
+                                               "create disk %u failed\n",
+                                               disk_no);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_create_disk: "
+                                           "create disk %u done\n",
+                                           disk_no);
+
+    /*add disk to volume*/
+    CMCPGV_DISK_CMCPGD(cmcpgv, disk_no) = cmcpgd;
+    CMCPGV_PAGE_DISK_NUM(cmcpgv) ++;
+
+    /*statistics*/
+    CMCPGV_PAGE_MAX_NUM(cmcpgv)          += ((uint64_t)1) * CMCPGD_MAX_BLOCK_NUM * CMCPGD_BLOCK_PAGE_NUM;
+    CMCPGV_PAGE_USED_NUM(cmcpgv)         += 0;
+    CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv) += 0;
+
+    /*add one free disk into pool*/
+    return __cmcpgv_add_disk(cmcpgv, disk_no, CMCPGD_BLOCK_PAGE_MODEL);
+}
+
+EC_BOOL cmcpgv_open_disk(CMCPGV *cmcpgv, CMMAP_NODE *cmmap_node, const uint16_t disk_no)
+{
+    CMCPGD  *cmcpgd;
+
+    if(CMCPGV_MAX_DISK_NUM <= disk_no)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_open_disk: "
+                                               "disk %u overflow the max disk num %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CMCPGV_DISK_CMCPGD(cmcpgv, disk_no))
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_open_disk: "
+                                               "disk %u already exist\n",
+                                               disk_no);
+        return (EC_FALSE);
+    }
+
+    cmcpgd = cmcpgd_load(cmmap_node, CMCPGD_MAX_BLOCK_NUM);
+    if(NULL_PTR == cmcpgd)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_open_disk: "
+                                               "load disk %u failed\n",
+                                               disk_no);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0105_CMCPGV, 3)(LOGSTDOUT, "info:cmcpgv_open_disk: "
+                                           "load disk %u done\n",
+                                           disk_no);
+
+    /*add disk to volume*/
+    CMCPGV_DISK_CMCPGD(cmcpgv, disk_no) = cmcpgd;
+    //CMCPGV_PAGE_DISK_NUM(cmcpgv) ++;
+
+    /*statistics*/
+    //CMCPGV_PAGE_MAX_NUM(cmcpgv)          += ((uint64_t)1) * CMCPGD_MAX_BLOCK_NUM * CMCPGD_BLOCK_PAGE_NUM;
+    //CMCPGV_PAGE_USED_NUM(cmcpgv)         += 0;
+    //CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv) += 0;
+
+    /*add one free disk into pool*/
+    //return __cmcpgv_add_disk(cmcpgv, disk_no, CMCPGD_BLOCK_PAGE_MODEL);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcpgv_close_disk(CMCPGV *cmcpgv, const uint16_t disk_no)
+{
+    CMCPGD    *cmcpgd;
+    uint16_t   page_model;
+
+    if(CMCPGV_MAX_DISK_NUM <= disk_no)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_close_disk: "
+                                               "disk %u overflow the max disk num %u\n",
+                                               disk_no, CMCPGV_MAX_DISK_NUM);
+        return (EC_FALSE);
+    }
+
+    cmcpgd = CMCPGV_DISK_CMCPGD(cmcpgv, disk_no);
+    if(NULL_PTR == cmcpgd)
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_close_disk: "
+                                               "disk %u not exist\n",
+                                               disk_no);
+        return (EC_FALSE);
+    }
+
+    page_model = cmcpgd_page_model(cmcpgd);
+
+    dbg_log(SEC_0105_CMCPGV, 9)(LOGSTDOUT, "[DEBUG] cmcpgv_close_disk: "
+                                           "disk %u, page_model %u\n",
+                                           disk_no, page_model);
+
+    /*delete the disk from pool*/
+    if(EC_FALSE == __cmcpgv_del_disk(cmcpgv, disk_no, page_model))
+    {
+        dbg_log(SEC_0105_CMCPGV, 0)(LOGSTDOUT, "error:cmcpgv_close_disk: "
+                                               "del disk %u, page model %u failed\n",
+                                               disk_no, page_model);
+        return (EC_FALSE);
+    }
+
+    /*adjust cmcpgv statistics*/
+    CMCPGV_PAGE_DISK_NUM(cmcpgv) --;
+    CMCPGV_DISK_CMCPGD(cmcpgv, disk_no) = NULL_PTR;
+
+    /*statistics*/
+    CMCPGV_PAGE_MAX_NUM(cmcpgv)          -= ((uint64_t)1) * CMCPGD_MAX_BLOCK_NUM * CMCPGD_BLOCK_PAGE_NUM;;
+    CMCPGV_PAGE_USED_NUM(cmcpgv)         -= CMCPGD_PAGE_USED_NUM(cmcpgd);
+    CMCPGV_PAGE_ACTUAL_USED_SIZE(cmcpgv) -= CMCPGD_PAGE_ACTUAL_USED_SIZE(cmcpgd);
+
+    cmcpgd_close(cmcpgd);
 
     return (EC_TRUE);
 }

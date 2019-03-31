@@ -28,6 +28,8 @@ extern "C"{
 #include "cmcnprb.h"
 #include "cmcnp.inc"
 
+#include "cmmap.h"
+
 const char *cmcnp_model_str(const uint8_t cmcnp_model);
 
 uint8_t cmcnp_model_get(const char *model_str);
@@ -126,6 +128,12 @@ EC_BOOL cmcnp_bitmap_clean(CMCNP_BITMAP *cmcnp_bitmap);
 
 EC_BOOL cmcnp_bitmap_free(CMCNP_BITMAP *cmcnp_bitmap);
 
+CMCNP_BITMAP *cmcnp_bitmap_create(CMMAP_NODE *cmmap_node, const uint32_t np_id, const UINT32 nbits);
+
+CMCNP_BITMAP *cmcnp_bitmap_open(CMMAP_NODE *cmmap_node, const uint32_t np_id, const UINT32 nbits);
+
+EC_BOOL cmcnp_bitmap_close(CMCNP_BITMAP *cmcnp_bitmap);
+
 EC_BOOL cmcnp_bitmap_set(CMCNP_BITMAP *cmcnp_bitmap, const UINT32 bit_pos);
 
 EC_BOOL cmcnp_bitmap_clear(CMCNP_BITMAP *cmcnp_bitmap, const UINT32 bit_pos);
@@ -154,6 +162,8 @@ EC_BOOL cmcnp_init(CMCNP *cmcnp);
 EC_BOOL cmcnp_clean(CMCNP *cmcnp);
 
 EC_BOOL cmcnp_free(CMCNP *cmcnp);
+
+EC_BOOL cmcnp_close(CMCNP *cmcnp);
 
 EC_BOOL cmcnp_is_full(const CMCNP *cmcnp);
 
@@ -256,6 +266,12 @@ EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t df
 
 EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE *cmcnp_fnode);
 
+EC_BOOL cmcnp_set_read_only(CMCNP *cmcnp);
+
+EC_BOOL cmcnp_unset_read_only(CMCNP *cmcnp);
+
+EC_BOOL cmcnp_is_read_only(const CMCNP *cmcnp);
+
 EC_BOOL cmcnp_set_ssd_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
 
 EC_BOOL cmcnp_set_ssd_not_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key);
@@ -327,6 +343,9 @@ EC_BOOL cmcnp_create_root_item(CMCNP *cmcnp);
 
 CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 key_max_num);
 
+CMCNP *cmcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 key_max_num);
+
+CMCNP *cmcnp_open_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 key_max_num);
 
 #endif/* _CMCNP_H */
 

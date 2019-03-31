@@ -945,7 +945,8 @@ EC_BOOL cmcpgrb_pool_init(CMCPGRB_POOL *pool, const uint16_t node_num)
 
     CMCPGRB_ASSERT(CMCPGRB_POOL_MAX_SIZE >= node_num);
 
-    CMCPGRB_POOL_NODE_NUM(pool) = node_num;
+    CMCPGRB_POOL_NODE_NUM(pool)  = node_num;
+    CMCPGRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
 
     for(node_pos = 0; node_pos < node_num; node_pos ++)
     {
@@ -954,7 +955,6 @@ EC_BOOL cmcpgrb_pool_init(CMCPGRB_POOL *pool, const uint16_t node_num)
     }
     cmcpgrb_node_set_next(pool, node_num - 1, CMCPGRB_ERR_POS);
 
-    CMCPGRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
     return (EC_TRUE);
 }
 

@@ -20,6 +20,8 @@ extern "C"{
 #include "cmcnp.h"
 #include "cmcdn.h"
 
+#include "cmmap.h"
+
 #include "cparacfg.h"
 
 #if 0
@@ -35,40 +37,62 @@ extern "C"{
 #define CMC_RETIRE_LO_RATIO                (0.80) /*80%*/
 #endif
 
-#define CMC_TRAFFIC_10MB                   (((uint64_t)10) << 23) /*10Mbps*/
-#define CMC_TRAFFIC_20MB                   (((uint64_t)20) << 23) /*20Mbps*/
-#define CMC_TRAFFIC_30MB                   (((uint64_t)30) << 23) /*30Mbps*/
-#define CMC_TRAFFIC_40MB                   (((uint64_t)40) << 23) /*40Mbps*/
+#define CMC_TRAFFIC_08MB                   (((uint64_t) 8) << 23) /* 8Mbps*/
+#define CMC_TRAFFIC_16MB                   (((uint64_t)16) << 23) /*16Mbps*/
+#define CMC_TRAFFIC_24MB                   (((uint64_t)24) << 23) /*24Mbps*/
+#define CMC_TRAFFIC_32MB                   (((uint64_t)32) << 23) /*32Mbps*/
+#define CMC_TRAFFIC_36MB                   (((uint64_t)36) << 23) /*36Mbps*/
 
-#define CMC_DEGRADE_TRAFFIC_10MB           (((uint64_t)10) << 23) /*10Mbps*/
-#define CMC_DEGRADE_TRAFFIC_15MB           (((uint64_t)15) << 23) /*15Mbps*/
+#define CMC_DEGRADE_TRAFFIC_08MB           (((uint64_t) 8) << 23) /* 8Mbps*/
+#define CMC_DEGRADE_TRAFFIC_16MB           (((uint64_t)16) << 23) /*16Mbps*/
 #define CMC_DEGRADE_TRAFFIC_20MB           (((uint64_t)20) << 23) /*20Mbps*/
-#define CMC_DEGRADE_TRAFFIC_25MB           (((uint64_t)25) << 23) /*25Mbps*/
-#define CMC_DEGRADE_TRAFFIC_30MB           (((uint64_t)30) << 23) /*30Mbps*/
+#define CMC_DEGRADE_TRAFFIC_24MB           (((uint64_t)24) << 23) /*24Mbps*/
+#define CMC_DEGRADE_TRAFFIC_28MB           (((uint64_t)28) << 23) /*28Mbps*/
 #define CMC_DEGRADE_TRAFFIC_32MB           (((uint64_t)32) << 23) /*32Mbps*/
 #define CMC_DEGRADE_TRAFFIC_36MB           (((uint64_t)36) << 23) /*36Mbps*/
 #define CMC_DEGRADE_TRAFFIC_40MB           (((uint64_t)40) << 23) /*40Mbps*/
 
-#define CMC_READ_TRAFFIC_05MB              (((uint64_t) 5) << 23) /* 5Mbps*/
-#define CMC_READ_TRAFFIC_10MB              (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_READ_TRAFFIC_08MB              (((uint64_t) 8) << 23) /* 8Mbps*/
+#define CMC_READ_TRAFFIC_12MB              (((uint64_t)12) << 23) /*12Mbps*/
 
-#define CMC_WRITE_TRAFFIC_05MB             (((uint64_t) 5) << 23) /* 5Mbps*/
-#define CMC_WRITE_TRAFFIC_10MB             (((uint64_t)10) << 23) /*10Mbps*/
+#define CMC_WRITE_TRAFFIC_08MB             (((uint64_t) 8) << 23) /* 8Mbps*/
+#define CMC_WRITE_TRAFFIC_12MB             (((uint64_t)12) << 23) /*12Mbps*/
 
 typedef struct
 {
     CMCDN              *cmcdn;
     CMCNP              *cmcnp;
 
+    CMMAP_NODE         *cmmap_node;        /*mounted point. inheritted from camd*/
+
+    /*for degrade callback*/
+    CMCNP_DEGRADE_CB    np_degrade_cb;
+
     uint32_t            fc_max_speed_flag:1;/*enable flow control in max speed, */
                                             /*i.e., flush data from mem to ssd in max speed*/
-    uint32_t            rsvd01:31;
-    uint32_t            rsvd02;
+    uint32_t            shm_np_flag      :1;/*cmc np is in shared memory*/
+    uint32_t            shm_dn_flag      :1;/*cmc dn is in shared memory*/
+    uint32_t            read_only_flag   :1;/*cmc is read-only if set*/
+    uint32_t            rsvd01           :28;
+
+    uint8_t             rsvd02;
+    uint8_t             np_model;
+    uint16_t            vdisk_num;
+
+    UINT32              key_max_num;
 }CMC_MD;
 
-#define CMC_MD_DN(cmc_md)                ((cmc_md)->cmcdn)
-#define CMC_MD_NP(cmc_md)                ((cmc_md)->cmcnp)
-#define CMC_MD_FC_MAX_SPEED_FLAG(cmc_md) ((cmc_md)->fc_max_speed_flag)
+#define CMC_MD_DN(cmc_md)                             ((cmc_md)->cmcdn)
+#define CMC_MD_NP(cmc_md)                             ((cmc_md)->cmcnp)
+#define CMC_MD_CMMAP_NODE(cmc_md)                     ((cmc_md)->cmmap_node)
+#define CMC_MD_NP_DEGRADE_CB(cmc_md)                  (&((cmc_md)->np_degrade_cb))
+#define CMC_MD_FC_MAX_SPEED_FLAG(cmc_md)              ((cmc_md)->fc_max_speed_flag)
+#define CMC_MD_SHM_NP_FLAG(cmc_md)                    ((cmc_md)->shm_np_flag)
+#define CMC_MD_SHM_DN_FLAG(cmc_md)                    ((cmc_md)->shm_dn_flag)
+#define CMC_MD_RDONLY_FLAG(cmc_md)                    ((cmc_md)->read_only_flag)
+#define CMC_MD_NP_MODEL(cmc_md)                       ((cmc_md)->np_model)
+#define CMC_MD_VDISK_NUM(cmc_md)                      ((cmc_md)->vdisk_num)
+#define CMC_MD_KEY_MAX_NUM(cmc_md)                    ((cmc_md)->key_max_num)
 
 /**
 *
@@ -93,10 +117,55 @@ void cmc_print(LOG *log, const CMC_MD *cmc_md);
 
 /**
 *
+* cleanup cmc name node and data node
+*
+**/
+EC_BOOL cmc_clean(CMC_MD *cmc_md);
+
+/**
+*
+* create cmc name node and data node
+*
+**/
+EC_BOOL cmc_create(CMC_MD *cmc_md);
+
+/**
+*
+* create cmc name node and data node in shm
+*
+**/
+EC_BOOL cmc_create_shm(CMC_MD *cmc_md);
+
+/**
+*
+* open cmc name node and data node in shm
+*
+**/
+EC_BOOL cmc_open_shm(CMC_MD *cmc_md);
+
+/*mount mmap node*/
+EC_BOOL cmc_mount_mmap(CMC_MD *cmc_md, CMMAP_NODE *cmmap_node);
+
+/*umount mmap node*/
+EC_BOOL cmc_umount_mmap(CMC_MD *cmc_md);
+
+/*get mmap node*/
+CMMAP_NODE *cmc_get_mmap(CMC_MD *cmc_md);
+
+/**
+*
 * try to quit cmc
 *
 **/
 EC_BOOL cmc_try_quit(CMC_MD *cmc_md);
+
+EC_BOOL cmc_try_restart(CMC_MD *cmc_md);
+
+EC_BOOL cmc_set_read_only(CMC_MD *cmc_md);
+
+EC_BOOL cmc_unset_read_only(CMC_MD *cmc_md);
+
+EC_BOOL cmc_is_read_only(const CMC_MD *cmc_md);
 
 /**
 *
@@ -120,6 +189,8 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md);
 void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_ratio,
                      const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps);
 
+void cmc_process_no_degrade(CMC_MD *cmc_md);
+
 /**
 *
 *  degrade pages of cmc module
@@ -142,7 +213,21 @@ void cmc_process_all_degrades(CMC_MD *cmc_md);
 *  create name node
 *
 **/
-EC_BOOL cmc_create_np(CMC_MD *cmc_md, const UINT32 cmcnp_model, const UINT32 key_max_num);
+EC_BOOL cmc_create_np(CMC_MD *cmc_md);
+
+/**
+*
+*  create name node in shared memory
+*
+**/
+EC_BOOL cmc_create_np_shm(CMC_MD *cmc_md);
+
+/**
+*
+*  open name node in shared memory
+*
+**/
+EC_BOOL cmc_open_np_shm(CMC_MD *cmc_md);
 
 /**
 *
@@ -156,7 +241,21 @@ EC_BOOL cmc_close_np(CMC_MD *cmc_md);
 *  create data node
 *
 **/
-EC_BOOL cmc_create_dn(CMC_MD *cmc_md, const UINT32 disk_num);
+EC_BOOL cmc_create_dn(CMC_MD *cmc_md);
+
+/**
+*
+*  create data node in shared memory
+*
+**/
+EC_BOOL cmc_create_dn_shm(CMC_MD *cmc_md);
+
+/**
+*
+*  open data node in shared memory
+*
+**/
+EC_BOOL cmc_open_dn_shm(CMC_MD *cmc_md);
 
 /**
 *

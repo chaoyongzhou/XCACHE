@@ -27,6 +27,8 @@ extern "C"{
 #include "cbytes.h"
 #include "cmc.h"
 
+#include "cmmap.h"
+
 #if (SWITCH_ON == CMC_ASSERT_SWITCH)
 #define CMC_ASSERT(condition)   ASSERT(condition)
 #endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
@@ -51,6 +53,11 @@ CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk
     init_static_mem();
 
     cmcpgd_model_search(mem_disk_size, &vdisk_num);
+    if(EC_FALSE == c_check_is_uint16_t(vdisk_num))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_start: vdisk_num %ld is invalid\n", vdisk_num);
+        return (NULL_PTR);
+    }
 
     if(EC_FALSE == cmcnp_model_search(mem_disk_size, &np_model))
     {
@@ -61,7 +68,7 @@ CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk
 
     /*one key for one page in sata disk*/
     key_max_num = (sata_disk_size >> CMCPGB_PAGE_SIZE_NBITS);
-    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_start: sata disk %ld, page size %u => key max num %ld\n",
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_start: sata disk size %ld, page size %u => key max num %ld\n",
                     sata_disk_size, CMCPGB_PAGE_SIZE_NBYTES, key_max_num);
 
     /* create a new module node */
@@ -73,29 +80,21 @@ CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk
     }
 
     /* initialize new one CMC module */
-    CMC_MD_DN(cmc_md) = NULL_PTR;
-    CMC_MD_NP(cmc_md) = NULL_PTR;
+    CMC_MD_DN(cmc_md)         = NULL_PTR;
+    CMC_MD_NP(cmc_md)         = NULL_PTR;
+    CMC_MD_CMMAP_NODE(cmc_md) = NULL_PTR;
+
+    cmcnp_degrade_cb_init(CMC_MD_NP_DEGRADE_CB(cmc_md));
 
     CMC_MD_FC_MAX_SPEED_FLAG(cmc_md) = BIT_FALSE;
+    CMC_MD_SHM_NP_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_SHM_DN_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_RDONLY_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_NP_MODEL(cmc_md)          = np_model;
+    CMC_MD_VDISK_NUM(cmc_md)         = (uint16_t)vdisk_num;
+    CMC_MD_KEY_MAX_NUM(cmc_md)       = key_max_num;
 
-    if(EC_FALSE == cmc_create_np(cmc_md, (UINT32)np_model, key_max_num))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_start: CMC module %p create np failed\n", cmc_md);
-        safe_free(cmc_md, LOC_CMC_0002);
-        return (NULL_PTR);
-    }
-
-    if(EC_FALSE == cmc_create_dn(cmc_md, vdisk_num))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_start: CMC module %p create dn failed\n", cmc_md);
-
-        cmc_close_np(cmc_md);
-
-        safe_free(cmc_md, LOC_CMC_0003);
-        return (NULL_PTR);
-    }
-
-    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_start: start CMC module %p\n", cmc_md);
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_start: start cmc done\n");
 
     return (cmc_md);
 }
@@ -116,10 +115,22 @@ void cmc_end(CMC_MD *cmc_md)
     cmc_close_np(cmc_md);
     cmc_close_dn(cmc_md);
 
-    CMC_MD_FC_MAX_SPEED_FLAG(cmc_md) = BIT_FALSE;
+    cmcnp_degrade_cb_clean(CMC_MD_NP_DEGRADE_CB(cmc_md));
 
-    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "cmc_end: stop CMC module %p\n", cmc_md);
-    safe_free(cmc_md, LOC_CMC_0004);
+    CMC_MD_FC_MAX_SPEED_FLAG(cmc_md) = BIT_FALSE;
+    CMC_MD_SHM_NP_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_SHM_DN_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_RDONLY_FLAG(cmc_md)       = BIT_FALSE;
+
+    CMC_MD_NP_MODEL(cmc_md)          = CMCNP_ERR_MODEL;
+    CMC_MD_VDISK_NUM(cmc_md)         = 0;
+    CMC_MD_KEY_MAX_NUM(cmc_md)       = 0;
+
+    CMC_MD_CMMAP_NODE(cmc_md)        = NULL_PTR;
+
+    safe_free(cmc_md, LOC_CMC_0002);
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_end: stop cmc done\n");
 
     return ;
 }
@@ -139,6 +150,130 @@ void cmc_print(LOG *log, const CMC_MD *cmc_md)
 
 /**
 *
+* cleanup cmc name node and data node
+*
+**/
+EC_BOOL cmc_clean(CMC_MD *cmc_md)
+{
+    cmc_close_np(cmc_md);
+    cmc_close_dn(cmc_md);
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* create cmc name node and data node
+*
+**/
+EC_BOOL cmc_create(CMC_MD *cmc_md)
+{
+    if(EC_FALSE == cmc_create_np(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create: create np failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create: create np done\n");
+
+    if(EC_FALSE == cmc_create_dn(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create: create dn failed\n");
+
+        cmc_close_np(cmc_md);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create: create dn done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* create cmc name node and data node in shm
+*
+**/
+EC_BOOL cmc_create_shm(CMC_MD *cmc_md)
+{
+    if(EC_FALSE == cmc_create_np_shm(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_shm: create np failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_shm: create np done\n");
+
+    if(EC_FALSE == cmc_create_dn_shm(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_shm: create dn failed\n");
+
+        cmc_close_np(cmc_md);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_shm: create dn done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* open cmc name node and data node in shm
+*
+**/
+EC_BOOL cmc_open_shm(CMC_MD *cmc_md)
+{
+    if(EC_FALSE == cmc_open_np_shm(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_shm: open np in shm failed\n");
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_open_shm: open np in shm done\n");
+
+    if(EC_FALSE == cmc_open_dn_shm(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_shm: open dn in shm failed\n");
+
+        cmc_close_np(cmc_md);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_open_shm: open dn in shm done\n");
+
+    return (EC_TRUE);
+}
+
+/*mount mmap node*/
+EC_BOOL cmc_mount_mmap(CMC_MD *cmc_md, CMMAP_NODE *cmmap_node)
+{
+    if(NULL_PTR == CMC_MD_CMMAP_NODE(cmc_md))
+    {
+        CMC_MD_CMMAP_NODE(cmc_md) = cmmap_node;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/*umount mmap node*/
+EC_BOOL cmc_umount_mmap(CMC_MD *cmc_md)
+{
+    if(NULL_PTR != CMC_MD_CMMAP_NODE(cmc_md))
+    {
+        cmc_close_np(cmc_md);
+        cmc_close_dn(cmc_md);
+
+        CMC_MD_CMMAP_NODE(cmc_md) = NULL_PTR;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/*get mmap node*/
+CMMAP_NODE *cmc_get_mmap(CMC_MD *cmc_md)
+{
+    return CMC_MD_CMMAP_NODE(cmc_md);
+}
+
+/**
+*
 * try to quit cmc
 *
 **/
@@ -152,7 +287,7 @@ EC_BOOL cmc_try_quit(CMC_MD *cmc_md)
 
     cmc_recycle(cmc_md, (UINT32)~0, NULL_PTR);/*try to recycle all*/
 
-    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_30MB,
+    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_32MB,
                          (UINT32)~0, /*try to degrade all*/
                          (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM, NULL_PTR);
 
@@ -185,6 +320,88 @@ EC_BOOL cmc_try_quit(CMC_MD *cmc_md)
     }
 
     warning_counter = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmc_try_restart(CMC_MD *cmc_md)
+{
+    cmc_flow_control_enable_max_speed(cmc_md);
+
+    cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM, NULL_PTR); /*try to retire all*/
+
+    cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, NULL_PTR);/*try to recycle all*/
+
+    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_32MB,
+                         (UINT32)CMC_SCAN_DEGRADE_MAX_NUM,
+                         (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM,
+                         NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmc_set_read_only(CMC_MD *cmc_md)
+{
+    if(BIT_TRUE == CMC_MD_RDONLY_FLAG(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_set_read_only: "
+                                            "cmc is set already read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CMC_MD_NP(cmc_md))
+    {
+        cmcnp_set_read_only(CMC_MD_NP(cmc_md));
+    }
+
+    if(NULL_PTR != CMC_MD_DN(cmc_md))
+    {
+        cmcdn_set_read_only(CMC_MD_DN(cmc_md));
+    }
+
+    CMC_MD_RDONLY_FLAG(cmc_md) = BIT_TRUE;
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_set_read_only: "
+                                        "set cmc read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmc_unset_read_only(CMC_MD *cmc_md)
+{
+    if(BIT_FALSE == CMC_MD_RDONLY_FLAG(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_unset_read_only: "
+                                            "cmc was not set read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CMC_MD_NP(cmc_md))
+    {
+        cmcnp_unset_read_only(CMC_MD_NP(cmc_md));
+    }
+
+    if(NULL_PTR != CMC_MD_DN(cmc_md))
+    {
+        cmcdn_unset_read_only(CMC_MD_DN(cmc_md));
+    }
+
+    CMC_MD_RDONLY_FLAG(cmc_md) = BIT_FALSE;
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_unset_read_only: "
+                                        "unset cmc read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmc_is_read_only(const CMC_MD *cmc_md)
+{
+    if(BIT_FALSE == CMC_MD_RDONLY_FLAG(cmc_md))
+    {
+        return (EC_FALSE);
+    }
 
     return (EC_TRUE);
 }
@@ -236,56 +453,52 @@ STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_bps, const
 {
     if(CMC_DEGRADE_LO_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_40MB)
+        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_25MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_30MB)
+        else if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_15MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_08MB;
         }
     }
     else if(CMC_DEGRADE_MD_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_40MB)
+        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_30MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_30MB)
+        else if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_25MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_16MB;
         }
     }
     else if(CMC_DEGRADE_HI_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_30MB)
+        if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_36MB;
+        }
+        else if(mem_traffic_bps >= CMC_TRAFFIC_16MB)
         {
             (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_20MB)
-        {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_25MB;
-        }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_10MB)
-        {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_20MB;
-        }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_15MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
         }
     }
     else
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_40MB)
+        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
         {
             (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_40MB;
         }
@@ -308,7 +521,7 @@ STATIC_CAST static void __cmc_flow_control_02(const uint64_t mem_traffic_bps, co
     const uint64_t              degrade_traffic_min   = 10;   /*MB/s*/
     const uint64_t              degrade_traffic_max   = 60;   /*MB/s*/
 
-    static __thread uint64_t    time_msec_next        = 0;    /*init*/
+    static uint64_t             time_msec_next        = 0;    /*init*/
     const uint64_t              time_msec_interval    = 100;  /*ms*/
 
     uint64_t                    time_msec_cur;
@@ -410,7 +623,7 @@ STATIC_CAST static void __cmc_flow_control_03_obsolete(const uint64_t mem_traffi
     const uint64_t              degrade_traffic_min   = 10;   /*MB/s*/
     const uint64_t              degrade_traffic_max   = 60;   /*MB/s*/
 
-    static __thread uint64_t    time_msec_next        = 0;    /*init*/
+    static uint64_t             time_msec_next        = 0;    /*init*/
     const uint64_t              time_msec_interval    = 100;  /*ms*/
 
     uint64_t                    time_msec_cur;
@@ -488,7 +701,7 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
     if(BIT_TRUE == CMC_MD_FC_MAX_SPEED_FLAG(cmc_md))
     {
         /*override*/
-        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_30MB;
+        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_32MB;
     }
 
     cmc_process_degrades(cmc_md, degrade_traffic_bps,
@@ -500,22 +713,22 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
     {
         cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM, &retire_complete_num);
     }
-
+#if 0
     if(CMC_DEGRADE_HI_RATIO > deg_ratio)
     {
         /*speed up retire*/
-        if(CMC_READ_TRAFFIC_05MB >= amd_read_traffic_bps
-        && CMC_WRITE_TRAFFIC_05MB >= amd_write_traffic_bps)
+        if(CMC_READ_TRAFFIC_08MB >= amd_read_traffic_bps
+        && CMC_WRITE_TRAFFIC_08MB >= amd_write_traffic_bps)
         {
             cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 2, &retire_complete_num);
         }
-        else if(CMC_READ_TRAFFIC_10MB >= amd_read_traffic_bps
-             && CMC_WRITE_TRAFFIC_10MB >= amd_write_traffic_bps)
+        else if(CMC_READ_TRAFFIC_12MB >= amd_read_traffic_bps
+             && CMC_WRITE_TRAFFIC_12MB >= amd_write_traffic_bps)
         {
             cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 1, &retire_complete_num);
         }
     }
-
+#endif
     cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, &recycle_complete_num);
 
     if(0 < degrade_complete_num
@@ -534,6 +747,44 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
                                             deg_ratio,
                                             degrade_traffic_bps >> 23,
                                             degrade_complete_num,
+                                            retire_complete_num,
+                                            recycle_complete_num);
+    }
+
+    return;
+}
+
+void cmc_process_no_degrade(CMC_MD *cmc_md)
+{
+    UINT32      retire_complete_num;
+    UINT32      recycle_complete_num;
+
+    REAL        used_ratio;
+
+    REAL        deg_ratio;
+    uint32_t    deg_num;
+
+    used_ratio = cmc_used_ratio(cmc_md);
+
+    deg_ratio  = cmc_deg_ratio(cmc_md);
+    deg_num    = cmc_deg_num(cmc_md);
+
+    retire_complete_num  = 0;
+    recycle_complete_num = 0;
+
+    cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM, &retire_complete_num);
+    cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, &recycle_complete_num);
+
+    if(0 < retire_complete_num
+    || 0 < recycle_complete_num)
+    {
+        dbg_log(SEC_0118_CMC, 2)(LOGSTDOUT, "[DEBUG] cmc_process_no_degrade: "
+                                            "used %.2f, "
+                                            "deg: %u, %.2f "
+                                            "=> retire %ld, recycle %ld\n",
+                                            used_ratio,
+                                            deg_num,
+                                            deg_ratio,
                                             retire_complete_num,
                                             recycle_complete_num);
     }
@@ -574,48 +825,48 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 break; /*fall through*/
             }
 
-            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_10MB) /*10MB/s*/
+            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_08MB) /*8MB/s*/
             {
                 /*
                 *
-                * if flow control is 10MB/s
+                * if flow control is 8MB/s
                 *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (10MB/s)
-                *                = ((n * 2^m * 100) / (2^20)) ms
-                *                = (((n * 100) << m) >> 20) ms
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (8MB/s)
+                *                = ((n * 2^m * 125) / (2^20)) ms
+                *                = (((n * 125) << m) >> 20) ms
                 * where 2^m is cdc page size in bytes.
                 * e.g.,
                 * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 400
-                * if n = 8 , time cost msec = 200
-                * if n = 4 , time cost msec = 100
-                * if n = 2 , time cost msec = 50
-                * if n = 1 , time cost msec = 25
+                * if n = 16, time cost msec = 500
+                * if n = 8 , time cost msec = 250
+                * if n = 4 , time cost msec = 125
+                * if n = 2 , time cost msec = 62
+                * if n = 1 , time cost msec = 31
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 100) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+                time_msec_cost = (((complete_degrade_num_t * 125) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_15MB) /*15MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_16MB) /*16MB/s*/
             {
                 /*
                 *
-                * if flow control is 15MB/s
+                * if flow control is 16MB/s
                 *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (15MB/s)
-                *                = ((n * 2^m * 67) / (2^20)) ms
-                *                = (((n * 67) << m) >> 20) ms
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (16MB/s)
+                *                = ((n * 2^m * 62) / (2^20)) ms
+                *                = (((n * 62) << m) >> 20) ms
                 * where 2^m is cdc page size in bytes.
                 * e.g.,
                 * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 268
-                * if n = 8 , time cost msec = 134
-                * if n = 4 , time cost msec = 67
-                * if n = 2 , time cost msec = 34
-                * if n = 1 , time cost msec = 17
+                * if n = 16, time cost msec = 248
+                * if n = 8 , time cost msec = 124
+                * if n = 4 , time cost msec = 62
+                * if n = 2 , time cost msec = 31
+                * if n = 1 , time cost msec = 15
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 67) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+                time_msec_cost = (((complete_degrade_num_t * 62) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
             else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_20MB) /*20MB/s*/
@@ -640,48 +891,48 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 time_msec_cost = (((complete_degrade_num_t * 50) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_25MB) /*25MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_24MB) /*24MB/s*/
             {
                 /*
                 *
-                * if flow control is 25MB/s
+                * if flow control is 24MB/s
                 *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (25MB/s)
-                *                = ((n * 2^m * 40) / (2^20)) ms
-                *                = (((n * 40) << m) >> 20) ms
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (24MB/s)
+                *                = ((n * 2^m * 41) / (2^20)) ms
+                *                = (((n * 41) << m) >> 20) ms
                 * where 2^m is cdc page size in bytes.
                 * e.g.,
                 * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 160
-                * if n = 8 , time cost msec = 80
-                * if n = 4 , time cost msec = 40
+                * if n = 16, time cost msec = 164
+                * if n = 8 , time cost msec = 82
+                * if n = 4 , time cost msec = 41
                 * if n = 2 , time cost msec = 20
                 * if n = 1 , time cost msec = 10
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 40) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+                time_msec_cost = (((complete_degrade_num_t * 41) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_30MB) /*30MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_28MB) /*28MB/s*/
             {
                 /*
                 *
-                * if flow control is 30MB/s
+                * if flow control is 28MB/s
                 *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (30MB/s)
-                *        (about) = ((n * 2^m * 33) / (2^20)) ms
-                *                = (((n * 33) << m) >> 20) ms
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (28MB/s)
+                *                = ((n * 2^m * 36) / (2^20)) ms
+                *                = (((n * 36) << m) >> 20) ms
                 * where 2^m is cdc page size in bytes.
                 * e.g.,
                 * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 132
-                * if n = 8 , time cost msec = 66
-                * if n = 4 , time cost msec = 33
-                * if n = 2 , time cost msec = 16
-                * if n = 1 , time cost msec = 8
+                * if n = 16, time cost msec = 144
+                * if n = 8 , time cost msec = 72
+                * if n = 4 , time cost msec = 36
+                * if n = 2 , time cost msec = 18
+                * if n = 1 , time cost msec = 9
                 *
                 */
-                time_msec_cost = (((complete_degrade_num_t * 33) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+                time_msec_cost = (((complete_degrade_num_t * 36) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
             else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_32MB)/*32MB/s*/
@@ -800,7 +1051,7 @@ void cmc_process_degrades_02(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                                  const UINT32 expect_degrade_num,
                                  UINT32 *complete_degrade_num)
 {
-    static __thread uint64_t     time_msec_next = 0; /*init*/
+    static uint64_t  time_msec_next = 0; /*init*/
 
     UINT32      complete_degrade_num_t;
 
@@ -870,7 +1121,7 @@ void cmc_process_all_degrades(CMC_MD *cmc_md)
 *  create name node
 *
 **/
-EC_BOOL cmc_create_np(CMC_MD *cmc_md, const UINT32 cmcnp_model, const UINT32 key_max_num)
+EC_BOOL cmc_create_np(CMC_MD *cmc_md)
 {
     if(NULL_PTR != CMC_MD_NP(cmc_md))
     {
@@ -878,18 +1129,95 @@ EC_BOOL cmc_create_np(CMC_MD *cmc_md, const UINT32 cmcnp_model, const UINT32 key
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_check_is_uint8_t(cmcnp_model))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_np: cmcnp_model %ld is invalid\n", cmcnp_model);
-        return (EC_FALSE);
-    }
-
-    CMC_MD_NP(cmc_md) = cmcnp_create((uint32_t)0/*cmcnp_id*/, (uint8_t)cmcnp_model, key_max_num);
+    CMC_MD_NP(cmc_md) = cmcnp_create((uint32_t)0/*cmcnp_id*/,
+                                     CMC_MD_NP_MODEL(cmc_md),
+                                     CMC_MD_KEY_MAX_NUM(cmc_md));
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
         dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_np: create np failed\n");
         return (EC_FALSE);
     }
+
+    CMC_MD_SHM_NP_FLAG(cmc_md) = BIT_FALSE;
+
+    /*np inherit degrade callback from cmc module*/
+    cmcnp_degrade_cb_clone(CMC_MD_NP_DEGRADE_CB(cmc_md), CMCNP_DEGRADE_CB(CMC_MD_NP(cmc_md)));
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_np: create np done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  create name node in shared memory
+*
+**/
+EC_BOOL cmc_create_np_shm(CMC_MD *cmc_md)
+{
+    uint32_t        np_id;
+
+    if(NULL_PTR != CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_np_shm: np already exist\n");
+        return (EC_FALSE);
+    }
+
+    np_id = 0;
+
+    CMC_MD_NP(cmc_md) = cmcnp_create_shm(CMC_MD_CMMAP_NODE(cmc_md),
+                                        np_id,
+                                        CMC_MD_NP_MODEL(cmc_md),
+                                        CMC_MD_KEY_MAX_NUM(cmc_md));
+    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_np_shm: create np failed\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_SHM_NP_FLAG(cmc_md) = BIT_TRUE;
+
+    /*np inherit degrade callback from cmc module*/
+    cmcnp_degrade_cb_clone(CMC_MD_NP_DEGRADE_CB(cmc_md), CMCNP_DEGRADE_CB(CMC_MD_NP(cmc_md)));
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_np_shm: create np done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  open name node in shared memory
+*
+**/
+EC_BOOL cmc_open_np_shm(CMC_MD *cmc_md)
+{
+    uint32_t        np_id;
+
+    if(NULL_PTR != CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_np_shm: np already exist\n");
+        return (EC_FALSE);
+    }
+
+    np_id = 0;
+
+    CMC_MD_NP(cmc_md) = cmcnp_open_shm(CMC_MD_CMMAP_NODE(cmc_md),
+                                       np_id,
+                                       CMC_MD_NP_MODEL(cmc_md),
+                                       CMC_MD_KEY_MAX_NUM(cmc_md));
+    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_np_shm: open np failed\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_SHM_NP_FLAG(cmc_md) = BIT_TRUE;
+
+    /*np inherit degrade callback from cmc module*/
+    cmcnp_degrade_cb_clone(CMC_MD_NP_DEGRADE_CB(cmc_md), CMCNP_DEGRADE_CB(CMC_MD_NP(cmc_md)));
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_open_np_shm: open np done\n");
 
     return (EC_TRUE);
 }
@@ -903,7 +1231,15 @@ EC_BOOL cmc_close_np(CMC_MD *cmc_md)
 {
     if(NULL_PTR != CMC_MD_NP(cmc_md))
     {
-        cmcnp_free(CMC_MD_NP(cmc_md));
+        if(BIT_TRUE == CMC_MD_SHM_NP_FLAG(cmc_md))
+        {
+            cmcnp_close(CMC_MD_NP(cmc_md));
+        }
+        else
+        {
+            cmcnp_free(CMC_MD_NP(cmc_md));
+        }
+
         CMC_MD_NP(cmc_md) = NULL_PTR;
     }
 
@@ -916,7 +1252,7 @@ EC_BOOL cmc_close_np(CMC_MD *cmc_md)
 *  create data node
 *
 **/
-EC_BOOL cmc_create_dn(CMC_MD *cmc_md, const UINT32 disk_num)
+EC_BOOL cmc_create_dn(CMC_MD *cmc_md)
 {
     if(NULL_PTR != CMC_MD_DN(cmc_md))
     {
@@ -924,18 +1260,69 @@ EC_BOOL cmc_create_dn(CMC_MD *cmc_md, const UINT32 disk_num)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_check_is_uint16_t(disk_num))
-    {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_dn: disk_num %ld is invalid\n", disk_num);
-        return (EC_FALSE);
-    }
-
-    CMC_MD_DN(cmc_md) = cmcdn_create((uint16_t)disk_num);
+    CMC_MD_DN(cmc_md) = cmcdn_create(CMC_MD_VDISK_NUM(cmc_md));
     if(NULL_PTR == CMC_MD_DN(cmc_md))
     {
         dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_dn: create dn failed\n");
         return (EC_FALSE);
     }
+
+    CMC_MD_SHM_DN_FLAG(cmc_md) = BIT_FALSE;
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_dn: create dn done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  create data node in shared memory
+*
+**/
+EC_BOOL cmc_create_dn_shm(CMC_MD *cmc_md)
+{
+    if(NULL_PTR != CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_dn_shm: dn already exist\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_DN(cmc_md) = cmcdn_create_shm(CMC_MD_CMMAP_NODE(cmc_md), CMC_MD_VDISK_NUM(cmc_md));
+    if(NULL_PTR == CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_create_dn_shm: create dn failed\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_SHM_DN_FLAG(cmc_md) = BIT_TRUE;
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_create_dn_shm: create dn done\n");
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  open data node in shared memory
+*
+**/
+EC_BOOL cmc_open_dn_shm(CMC_MD *cmc_md)
+{
+    if(NULL_PTR != CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_dn_shm: dn already exist\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_DN(cmc_md) = cmcdn_open_shm(CMC_MD_CMMAP_NODE(cmc_md), CMC_MD_VDISK_NUM(cmc_md));
+    if(NULL_PTR == CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_open_dn_shm: open dn failed\n");
+        return (EC_FALSE);
+    }
+
+    CMC_MD_SHM_DN_FLAG(cmc_md) = BIT_TRUE;
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_open_dn_shm: open dn done\n");
 
     return (EC_TRUE);
 }
@@ -949,7 +1336,15 @@ EC_BOOL cmc_close_dn(CMC_MD *cmc_md)
 {
     if(NULL_PTR != CMC_MD_DN(cmc_md))
     {
-        cmcdn_free(CMC_MD_DN(cmc_md));
+        if(BIT_TRUE == CMC_MD_SHM_DN_FLAG(cmc_md))
+        {
+            cmcdn_close(CMC_MD_DN(cmc_md));
+        }
+        else
+        {
+            cmcdn_free(CMC_MD_DN(cmc_md));
+        }
+
         CMC_MD_DN(cmc_md) = NULL_PTR;
     }
 
@@ -975,7 +1370,7 @@ CMCNP_ITEM *cmc_find(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 
     if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), cmcnp_key))
     {
-        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:cmc_find: miss key [%ld, %ld)\n",
+        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:cmc_find: miss key [%u, %u)\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (NULL_PTR);
     }
@@ -1005,6 +1400,12 @@ STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const UINT32 da
     uint16_t block_no;
     uint16_t page_no;
     uint16_t fail_tries;
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:__cmc_reserve_hash_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
 
     if(CMCPGB_SIZE_NBYTES <= data_len)
     {
@@ -1100,6 +1501,12 @@ EC_BOOL cmc_reserve_dn(CMC_MD *cmc_md, const UINT32 data_len, CMCNP_FNODE *cmcnp
     uint16_t block_no;
     uint16_t page_no;
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_reserve_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CMCPGB_SIZE_NBYTES <= data_len)
     {
         dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_reserve_dn: data_len %ld overflow\n", data_len);
@@ -1154,6 +1561,12 @@ EC_BOOL cmc_release_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode)
         return (EC_FALSE);
     }
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_release_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     file_size   = (uint32_t)(((uint32_t)CMCNP_FNODE_PAGENUM(cmcnp_fnode)) << CMCPGB_PAGE_SIZE_NBITS);
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
 
@@ -1202,6 +1615,12 @@ STATIC_CAST static CMCNP_FNODE * __cmc_reserve_np(CMC_MD *cmc_md, const CMCNP_KE
         return (NULL_PTR);
     }
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:__cmc_reserve_np: cmc is read-only\n");
+        return (NULL_PTR);
+    }
+
     cmcnp_fnode = cmcnp_reserve(CMC_MD_NP(cmc_md), cmcnp_key);
     if(NULL_PTR == cmcnp_fnode)
     {
@@ -1240,6 +1659,12 @@ STATIC_CAST static EC_BOOL __cmc_release_np(CMC_MD *cmc_md, const CMCNP_KEY *cmc
     {
         dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_release_np: np was not open\n");
         return (NULL_PTR);
+    }
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:__cmc_release_np: cmc is read-only\n");
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == cmcnp_release(CMC_MD_NP(cmc_md), cmcnp_key))
@@ -1408,6 +1833,12 @@ EC_BOOL cmc_file_write(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsize, UINT8
     UINT32      e_page;
     UINT8      *m_buff;
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_file_write: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     s_offset = (*offset);
     e_offset = (*offset) + wsize;
     m_buff   = buff;
@@ -1499,6 +1930,12 @@ EC_BOOL cmc_file_delete(CMC_MD *cmc_md, UINT32 *offset, const UINT32 dsize)
     UINT32      e_offset;
     UINT32      s_page;
     UINT32      e_page;
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_file_delete: cmc is read-only\n");
+        return (EC_FALSE);
+    }
 
     s_offset = (*offset);
     e_offset = (*offset) + dsize;
@@ -1670,6 +2107,12 @@ EC_BOOL cmc_file_set_ssd_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 wsiz
     UINT32      s_page;
     UINT32      e_page;
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_file_set_ssd_dirty: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     s_offset = (*offset);
     e_offset = (*offset) + wsize;
 
@@ -1761,6 +2204,12 @@ EC_BOOL cmc_file_set_ssd_not_dirty(CMC_MD *cmc_md, UINT32 *offset, const UINT32 
     UINT32      e_offset;
     UINT32      s_page;
     UINT32      e_page;
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_file_set_ssd_not_dirty: cmc is read-only\n");
+        return (EC_FALSE);
+    }
 
     s_offset = (*offset);
     e_offset = (*offset) + wsize;
@@ -1896,6 +2345,12 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
 
     CMC_ASSERT(CMCNP_KEY_S_PAGE(cmcnp_key) + 1 == CMCNP_KEY_E_PAGE(cmcnp_key));
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_page_write: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     cmcnp_fnode = __cmc_reserve_np(cmc_md, cmcnp_key);
     if(NULL_PTR == cmcnp_fnode)
     {
@@ -2024,6 +2479,12 @@ EC_BOOL cmc_page_write_e(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, UINT32 *off
     uint16_t      file_old_page_num;
 
     CMC_ASSERT(CMCNP_KEY_S_PAGE(cmcnp_key) + 1 == CMCNP_KEY_E_PAGE(cmcnp_key));
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_page_write_e: cmc is read-only\n");
+        return (EC_FALSE);
+    }
 
     cmcnp_fnode_init(&cmcnp_fnode);
 
@@ -2170,6 +2631,12 @@ EC_BOOL cmc_write_dn(CMC_MD *cmc_md, const CBYTES *cbytes, CMCNP_FNODE *cmcnp_fn
     uint16_t block_no;
     uint16_t page_no;
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_write_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CMCPGB_SIZE_NBYTES <= CBYTES_LEN(cbytes))
     {
         dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_write_dn: buff len (or file size) %ld overflow\n", CBYTES_LEN(cbytes));
@@ -2242,9 +2709,9 @@ EC_BOOL cmc_read_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode, CBYTES *cbyt
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CMC_0005);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CMC_0003);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CMC_0006);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CMC_0004);
         CBYTES_LEN(cbytes) = 0;
     }
 
@@ -2274,14 +2741,20 @@ EC_BOOL cmc_write_e_dn(CMC_MD *cmc_md, CMCNP_FNODE *cmcnp_fnode, UINT32 *offset,
 {
     CMCNP_INODE *cmcnp_inode;
 
+    UINT32   max_len_t;
+
     uint32_t file_size;
     uint32_t file_max_size;
+    uint32_t offset_t;
     uint16_t disk_no;
     uint16_t block_no;
     uint16_t page_no;
-    uint32_t offset_t;
 
-    UINT32   max_len_t;
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_write_e_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
 
     if(CMCPGB_SIZE_NBYTES <= (*offset) + CBYTES_LEN(cbytes))
     {
@@ -2389,9 +2862,9 @@ EC_BOOL cmc_read_e_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode, UINT32 *of
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CMC_0007);
+            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CMC_0005);
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CMC_0008);
+        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CMC_0006);
         CBYTES_LEN(cbytes) = 0;
     }
 
@@ -2533,7 +3006,7 @@ EC_BOOL cmc_file_size(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, UINT32 *file_s
 {
     if(EC_FALSE == cmcnp_key_is_valid(cmcnp_key))
     {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_size: invalid key [%ld, %ld)\n",
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_size: invalid key [%u, %u)\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (EC_FALSE);
     }
@@ -2546,12 +3019,12 @@ EC_BOOL cmc_file_size(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, UINT32 *file_s
 
     if(EC_FALSE == cmcnp_file_size(CMC_MD_NP(cmc_md), cmcnp_key, file_size))
     {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_size: cmcnp mgr get size of key [%ld, %ld) failed\n",
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_file_size: cmcnp mgr get size of key [%u, %u) failed\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_size: key [%ld, %ld), size %ld\n",
+    dbg_log(SEC_0118_CMC, 9)(LOGSTDOUT, "[DEBUG] cmc_file_size: key [%u, %u), size %ld\n",
                     CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key), (*file_size));
     return (EC_TRUE);
 }
@@ -2621,7 +3094,7 @@ EC_BOOL cmc_search(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 {
     if(EC_FALSE == cmcnp_key_is_valid(cmcnp_key))
     {
-        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_search: invalid key [%ld, %ld)\n",
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_search: invalid key [%u, %u)\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (EC_FALSE);
     }
@@ -2634,7 +3107,7 @@ EC_BOOL cmc_search(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 
     if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), cmcnp_key))
     {
-        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:cmc_search: miss key [%ld, %ld)\n",
+        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:cmc_search: miss key [%u, %u)\n",
                         CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key));
         return (EC_FALSE);
     }
@@ -2661,6 +3134,12 @@ EC_BOOL cmc_recycle(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
         dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_recycle: np was not open\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_recycle: cmc is read-only\n");
         return (EC_FALSE);
     }
 
@@ -2702,6 +3181,12 @@ EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
         return (EC_FALSE);
     }
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_retire: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     complete_retire_num = 0;/*initialization*/
 
     cmcnp_retire(CMC_MD_NP(cmc_md), CMC_SCAN_RETIRE_MAX_NUM, max_num, &complete_retire_num);
@@ -2736,6 +3221,12 @@ EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
         return (EC_FALSE);
     }
 
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:cmc_degrade: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
     complete_degrade_num = 0;/*initialization*/
 
     cmcnp_degrade(CMC_MD_NP(cmc_md), CMC_SCAN_DEGRADE_MAX_NUM, max_num, &complete_degrade_num);
@@ -2756,13 +3247,12 @@ EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
 EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, CMCNP_DEGRADE_CALLBACK func, void *arg)
 {
-    if(NULL_PTR == CMC_MD_NP(cmc_md))
+    if(NULL_PTR != cmc_md)
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_set_degrade_callback: np was not open\n");
-        return (EC_FALSE);
+        cmcnp_degrade_cb_set(CMC_MD_NP_DEGRADE_CB(cmc_md), func, arg);
+        return (EC_TRUE);
     }
-
-    return cmcnp_set_degrade_callback(CMC_MD_NP(cmc_md), func, arg);
+    return (EC_FALSE);
 }
 
 

@@ -478,8 +478,8 @@ EC_BOOL task_fwd_direct_no_queue(TASK_BRD *task_brd, TASK_FWD *task_fwd);
 
 UINT32 task_brd_recving_node_handle_not_load_thread(TASK_BRD *task_brd, TASK_NODE *task_node);
 
-TASK_BRD_CB_HANDLER *task_brd_process_find(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *arg);
-EC_BOOL task_brd_process_add(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *arg);
+TASK_BRD_PROCESS_HANDLER *task_brd_process_find(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *arg);
+EC_BOOL task_brd_process_add(TASK_BRD *task_brd, const UINT32 flag, TASK_BRD_CALLBACK func, void *arg);
 EC_BOOL task_brd_process_del(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *arg);
 EC_BOOL task_brd_process_init(TASK_BRD *task_brd);
 EC_BOOL task_brd_process_clean(TASK_BRD *task_brd);

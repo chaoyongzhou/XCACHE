@@ -31,6 +31,10 @@ extern "C"{
 #include "cmcpgd.h"
 #include "cmcpgv.h"
 
+#include "cmmap.h"
+
+#define CMCDN_MEM_ALIGNMENT             (UINT32_ONE << 20) /*1MB alignment*/
+
 #define CMCDN_032M_NODE_SIZE_NBITS      (25)
 #define CMCDN_064M_NODE_SIZE_NBITS      (26)
 #define CMCDN_128M_NODE_SIZE_NBITS      (27)
@@ -104,6 +108,12 @@ extern "C"{
 
 typedef struct
 {
+    uint32_t           read_only_flag   :1;/*dn is read-only if set*/
+    uint32_t           rsvd01           :31;
+    uint32_t           rsvd02;
+
+    CMMAP_NODE        *cmmap_node;
+
     UINT32             node_num;
 
     void              *node_base_addr;
@@ -115,6 +125,8 @@ typedef struct
     CMCPGV            *cmcpgv;
 }CMCDN;
 
+#define CMCDN_RDONLY_FLAG(cmcdn)                         ((cmcdn)->read_only_flag)
+#define CMCDN_CMMAP_NODE(cmcdn)                          ((cmcdn)->cmmap_node)
 #define CMCDN_NODE_NUM(cmcdn)                            ((cmcdn)->node_num)
 #define CMCDN_NODE_BASE_ADDR(cmcdn)                      ((cmcdn)->node_base_addr)
 #define CMCDN_NODE_START_ADDR(cmcdn)                     ((cmcdn)->node_start_addr)
@@ -133,9 +145,19 @@ UINT8 *cmcdn_node_locate(CMCDN *cmcdn, const uint16_t disk_no, const uint16_t bl
 
 CMCDN *cmcdn_create(const uint16_t disk_num);
 
+CMCDN *cmcdn_create_shm(CMMAP_NODE *cmmap_node, const uint16_t disk_num);
+
+CMCDN *cmcdn_open_shm(CMMAP_NODE *cmmap_node, const uint16_t disk_num);
+
 EC_BOOL cmcdn_add_disk(CMCDN *cmcdn, const uint16_t disk_no);
 
 EC_BOOL cmcdn_del_disk(CMCDN *cmcdn, const uint16_t disk_no);
+
+EC_BOOL cmcdn_create_disk(CMCDN *cmcdn, const uint16_t disk_no);
+
+EC_BOOL cmcdn_open_disk(CMCDN *cmcdn, const uint16_t disk_no);
+
+EC_BOOL cmcdn_close_disk(CMCDN *cmcdn, const uint16_t disk_no);
 
 CMCDN *cmcdn_new();
 
@@ -144,6 +166,14 @@ EC_BOOL cmcdn_init(CMCDN *cmcdn);
 EC_BOOL cmcdn_clean(CMCDN *cmcdn);
 
 EC_BOOL cmcdn_free(CMCDN *cmcdn);
+
+EC_BOOL cmcdn_close(CMCDN *cmcdn);
+
+EC_BOOL cmcdn_set_read_only(CMCDN *cmcdn);
+
+EC_BOOL cmcdn_unset_read_only(CMCDN *cmcdn);
+
+EC_BOOL cmcdn_is_read_only(const CMCDN *cmcdn);
 
 void cmcdn_print(LOG *log, const CMCDN *cmcdn);
 

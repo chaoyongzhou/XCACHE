@@ -554,7 +554,7 @@ extern "C"{
 #endif/*(CDCPGB_032M_PAGE == CDCPGB_PAGE_CHOICE)*/
 
 #define CDCPGB_PAGE_SIZE_MASK            (CDCPGB_PAGE_SIZE_NBYTES - 1)
-#define CDCPGB_PAGE_NUM                  ((uint32_t)(1 << (CDCPGB_SIZE_NBITS - CDCPGB_PAGE_SIZE_NBITS)))
+#define CDCPGB_PAGE_NUM                  ((uint16_t)(1 << (CDCPGB_SIZE_NBITS - CDCPGB_PAGE_SIZE_NBITS)))
 
 /*--------------------------------------------------------------------------------------------*/
 
@@ -587,7 +587,7 @@ typedef struct
 #define CDCPGB_PAGE_ACTUAL_USED_SIZE(cdcpgb)                     ((cdcpgb)->pgb_actual_used_size)
 
 /*rb_node num = half of page num (enough!)*/
-#define CDCPGB_SIZE        (sizeof(CDCPGB) + sizeof(CDCPGRB_NODE) * ((CDCPGB_PAGE_NUM + 1) >> 1))
+#define CDCPGB_SIZE        (sizeof(CDCPGB) + sizeof(CDCPGRB_NODE) * ((uint32_t)((CDCPGB_PAGE_NUM + 1) >> 1)))
 
 typedef struct
 {

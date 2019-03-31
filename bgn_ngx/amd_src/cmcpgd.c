@@ -29,6 +29,8 @@ extern "C"{
 #include "cmcpgb.h"
 #include "cmcpgd.h"
 
+#include "cmmap.h"
+
 #if (SWITCH_ON == CMC_ASSERT_SWITCH)
 #define CMCPGD_ASSERT(cond)   ASSERT(cond)
 #endif/*(SWITCH_ON == CMC_ASSERT_SWITCH)*/
@@ -175,7 +177,7 @@ CMCPGD_HDR *cmcpgd_hdr_new(CMCPGD *cmcpgd, const uint16_t block_num)
 
     CMCPGD_HDR_ASSIGN_BITMAP(cmcpgd_hdr) = 0;
 
-    CMCPGD_HDR_PAGE_BLOCK_MAX_NUM(cmcpgd_hdr) = block_num;
+    CMCPGD_HDR_PAGE_BLOCK_MAX_NUM(cmcpgd_hdr)    = block_num;
 
     /*statistics*/
     CMCPGD_HDR_PAGE_MAX_NUM(cmcpgd_hdr)          = block_num * CMCPGD_BLOCK_PAGE_NUM;
@@ -196,6 +198,81 @@ EC_BOOL cmcpgd_hdr_free(CMCPGD *cmcpgd)
     /*cpgv_hdr cannot be accessed again*/
     return (EC_TRUE);
 }
+
+CMCPGD_HDR *cmcpgd_hdr_create(CMMAP_NODE *cmmap_node, CMCPGD *cmcpgd, const uint16_t block_num)
+{
+    CMCPGD_HDR  *cmcpgd_hdr;
+    uint16_t     page_model;
+
+    cmcpgd_hdr = cmmap_node_alloc(cmmap_node, CMCPGD_SIZE(cmcpgd), CMCPGD_MEM_ALIGNMENT, "cmc pgd header");
+    if(NULL_PTR == cmcpgd_hdr)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_hdr_create: "
+                                               "create disk failed\n");
+
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_hdr_create: "
+                                           "create disk done\n");
+    /*init*/
+
+    if(EC_FALSE == cmcpgrb_pool_init(CMCPGD_HDR_CMCPGRB_POOL(cmcpgd_hdr), block_num))
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_hdr_create: "
+                                               "init cmcpgrb pool failed where block_num = %u\n",
+                                               block_num);
+        return (NULL_PTR);
+    }
+
+    for(page_model = 0; CMCPGB_MODEL_MAX_NUM > page_model; page_model ++)
+    {
+        CMCPGD_HDR_BLOCK_CMCPGRB_ROOT_POS(cmcpgd_hdr, page_model) = CMCPGRB_ERR_POS;
+    }
+
+    CMCPGD_HDR_ASSIGN_BITMAP(cmcpgd_hdr) = 0;
+
+    CMCPGD_HDR_PAGE_BLOCK_MAX_NUM(cmcpgd_hdr)    = block_num;
+
+    /*statistics*/
+    CMCPGD_HDR_PAGE_MAX_NUM(cmcpgd_hdr)          = block_num * CMCPGD_BLOCK_PAGE_NUM;
+    CMCPGD_HDR_PAGE_USED_NUM(cmcpgd_hdr)         = 0;
+    CMCPGD_HDR_PAGE_ACTUAL_USED_SIZE(cmcpgd_hdr) = 0;
+
+    return (cmcpgd_hdr);
+}
+
+CMCPGD_HDR *cmcpgd_hdr_load(CMMAP_NODE *cmmap_node, CMCPGD *cmcpgd, const uint16_t block_num)
+{
+    CMCPGD_HDR  *cmcpgd_hdr;
+
+
+    cmcpgd_hdr = cmmap_node_alloc(cmmap_node, CMCPGD_SIZE(cmcpgd), CMCPGD_MEM_ALIGNMENT, "cmc pgd header");
+    if(NULL_PTR == cmcpgd_hdr)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_hdr_load: "
+                                               "load disk failed\n");
+
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "[DEBUG] cmcpgd_hdr_load: "
+                                           "load disk done\n");
+
+    return (cmcpgd_hdr);
+}
+
+EC_BOOL cmcpgd_hdr_close(CMCPGD *cmcpgd)
+{
+    if(NULL_PTR != CMCPGD_HEADER(cmcpgd))
+    {
+        CMCPGD_HEADER(cmcpgd) = NULL_PTR;
+    }
+
+    /*cpgd_hdr cannot be accessed again*/
+    return (EC_TRUE);
+}
+
 
 CMCPGD *cmcpgd_new(const uint16_t block_num)
 {
@@ -257,7 +334,15 @@ EC_BOOL cmcpgd_free(CMCPGD *cmcpgd)
         UINT32 block_no;
 
         /*clean blocks*/
-        block_num = CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd);
+        if(NULL_PTR != CMCPGD_HEADER(cmcpgd))
+        {
+            block_num = DMIN(CMCPGD_PAGE_BLOCK_MAX_NUM(cmcpgd), CMCPGD_MAX_BLOCK_NUM);
+        }
+        else
+        {
+            block_num = CMCPGD_MAX_BLOCK_NUM;
+        }
+
         for(block_no = 0; block_no < block_num; block_no ++)
         {
             CMCPGD_BLOCK_CMCPGB(cmcpgd, block_no) = NULL_PTR;
@@ -323,6 +408,121 @@ void cmcpgd_clean(CMCPGD *cmcpgd)
     CMCPGD_HEADER(cmcpgd) = NULL_PTR;
 
     return;
+}
+
+CMCPGD *cmcpgd_create(CMMAP_NODE *cmmap_node, const uint16_t block_num)
+{
+    CMCPGD      *cmcpgd;
+    uint16_t     block_no;
+
+    if(CMCPGD_MAX_BLOCK_NUM < block_num)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_create: block_num %u overflow\n", block_num);
+        return (NULL_PTR);
+    }
+
+    alloc_static_mem(MM_CMCPGD, &cmcpgd, LOC_CMCPGD_0008);
+    if(NULL_PTR == cmcpgd)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_create:malloc cmcpgd failed\n");
+        return (NULL_PTR);
+    }
+
+    cmcpgd_init(cmcpgd);
+
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_create: "
+                        "CMCPGD_HDR_SIZE %ld, block_num %u, CMCPGB_SIZE %ld, sizeof(off_t) = %ld\n",
+                        CMCPGD_HDR_SIZE, block_num, CMCPGB_SIZE, sizeof(off_t));
+
+    CMCPGD_SIZE(cmcpgd) = CMCPGD_HDR_SIZE + block_num * CMCPGB_SIZE;
+
+    CMCPGD_HEADER(cmcpgd) = cmcpgd_hdr_create(cmmap_node, cmcpgd, block_num);
+    if(NULL_PTR == CMCPGD_HEADER(cmcpgd))
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_create: new cmcpgd header failed\n");
+        cmcpgd_free(cmcpgd);
+        return (NULL_PTR);
+    }
+
+    /*init blocks*/
+    for(block_no = 0; block_no < block_num; block_no ++)
+    {
+        CMCPGD_BLOCK_CMCPGB(cmcpgd, block_no) = __cmcpgd_block(cmcpgd, block_no);
+        cmcpgb_init(CMCPGD_BLOCK_CMCPGB(cmcpgd, block_no), CMCPGD_BLOCK_PAGE_MODEL);
+        cmcpgd_add_block(cmcpgd, block_no, CMCPGD_BLOCK_PAGE_MODEL);
+
+        if(0 == ((block_no + 1) % 1000))
+        {
+            dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_create: init block %u - %u done\n",
+                                                   block_no - 999, block_no);
+        }
+    }
+    dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_create: init %u blocks done\n", block_num);
+
+    return (cmcpgd);
+}
+
+CMCPGD *cmcpgd_load(CMMAP_NODE *cmmap_node, const uint16_t block_num)
+{
+    CMCPGD      *cmcpgd;
+    uint16_t     block_no;
+
+    if(CMCPGD_MAX_BLOCK_NUM < block_num)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_load: block_num %u overflow\n", block_num);
+        return (NULL_PTR);
+    }
+
+    alloc_static_mem(MM_CMCPGD, &cmcpgd, LOC_CMCPGD_0009);
+    if(NULL_PTR == cmcpgd)
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_load:malloc cmcpgd failed\n");
+        return (NULL_PTR);
+    }
+
+    cmcpgd_init(cmcpgd);
+
+    dbg_log(SEC_0102_CMCPGD, 9)(LOGSTDOUT, "[DEBUG] cmcpgd_load: "
+                        "CMCPGD_HDR_SIZE %ld, block_num %u, CMCPGB_SIZE %ld, sizeof(off_t) = %ld\n",
+                        CMCPGD_HDR_SIZE, block_num, CMCPGB_SIZE, sizeof(off_t));
+
+    CMCPGD_SIZE(cmcpgd) = CMCPGD_HDR_SIZE + block_num * CMCPGB_SIZE;
+
+    CMCPGD_HEADER(cmcpgd) = cmcpgd_hdr_load(cmmap_node, cmcpgd, block_num);
+    if(NULL_PTR == CMCPGD_HEADER(cmcpgd))
+    {
+        dbg_log(SEC_0102_CMCPGD, 0)(LOGSTDOUT, "error:cmcpgd_load: new cmcpgd header failed\n");
+        cmcpgd_free(cmcpgd);
+        return (NULL_PTR);
+    }
+
+    /*init blocks*/
+    for(block_no = 0; block_no < block_num; block_no ++)
+    {
+        CMCPGD_BLOCK_CMCPGB(cmcpgd, block_no) = __cmcpgd_block(cmcpgd, block_no);
+
+        /*do not init block or add block to disk*/
+        if(0 == ((block_no + 1) % 1000))
+        {
+            dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_load: init block %u - %u done\n",
+                                                   block_no - 999, block_no);
+        }
+    }
+    dbg_log(SEC_0102_CMCPGD, 3)(LOGSTDOUT, "info:cmcpgd_load: init %u blocks done\n", block_num);
+
+    return (cmcpgd);
+}
+
+EC_BOOL cmcpgd_close(CMCPGD *cmcpgd)
+{
+    if(NULL_PTR != cmcpgd)
+    {
+        cmcpgd_hdr_close(cmcpgd);
+
+        return cmcpgd_free(cmcpgd);
+    }
+
+    return (EC_TRUE);
 }
 
 /*add one free block into pool*/

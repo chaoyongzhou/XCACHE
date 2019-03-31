@@ -35,6 +35,7 @@ extern "C"{
 #include "cmcnpdel.h"
 #include "cmcnpdeg.h"
 #include "cmcnp.h"
+#include "cmmap.h"
 
 #if (SWITCH_ON == CMC_ASSERT_SWITCH)
 #define CMCNP_ASSERT(condition)   ASSERT(condition)
@@ -892,6 +893,99 @@ EC_BOOL cmcnp_bitmap_free(CMCNP_BITMAP *cmcnp_bitmap)
     return (EC_TRUE);
 }
 
+CMCNP_BITMAP *cmcnp_bitmap_create(CMMAP_NODE *cmmap_node, const uint32_t np_id, const UINT32 nbits)
+{
+    CMCNP_BITMAP *cmcnp_bitmap;
+    void         *data;
+    UINT32        nbytes;
+
+    alloc_static_mem(MM_CMCNP_BITMAP, &cmcnp_bitmap, LOC_CMCNP_0016);
+    if(NULL_PTR == cmcnp_bitmap)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_bitmap_create: "
+                                              "malloc cmcnp_bitmap failed\n");
+        return (NULL_PTR);
+    }
+
+
+    nbytes = ((nbits + 7) / 8);
+
+    data = cmmap_node_alloc(cmmap_node, nbytes, CMCNP_MEM_ALIGNMENT, "cmc np bitmap");
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_bitmap_create: "
+                                              "create np %u bitmap failed\n",
+                                              np_id);
+        free_static_mem(MM_CMCNP_BITMAP, cmcnp_bitmap, LOC_CMCNP_0017);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_bitmap_create: "
+                                          "create np %u bitmap done\n",
+                                          np_id);
+
+    BSET(data, 0, nbytes);
+
+    CMCNP_BITMAP_DATA(cmcnp_bitmap) = data;
+    CMCNP_BITMAP_SIZE(cmcnp_bitmap) = nbytes;
+
+    return (cmcnp_bitmap);
+}
+
+CMCNP_BITMAP *cmcnp_bitmap_open(CMMAP_NODE *cmmap_node, const uint32_t np_id, const UINT32 nbits)
+{
+    CMCNP_BITMAP    *cmcnp_bitmap;
+    void            *data;
+    UINT32           nbytes;
+
+    alloc_static_mem(MM_CMCNP_BITMAP, &cmcnp_bitmap, LOC_CMCNP_0018);
+    if(NULL_PTR == cmcnp_bitmap)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_bitmap_open: "
+                                              "malloc cmcnp_bitmap failed\n");
+        return (NULL_PTR);
+    }
+
+    nbytes = ((nbits + 7) / 8);
+
+    data = cmmap_node_alloc(cmmap_node, nbytes, CMCNP_MEM_ALIGNMENT, "cmc np bitmap");
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_bitmap_open: "
+                                              "open np bitmap %u failed\n",
+                                              np_id);
+        free_static_mem(MM_CMCNP_BITMAP, cmcnp_bitmap, LOC_CMCNP_0019);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_bitmap_open: "
+                                          "open np bitmap %u done\n",
+                                          np_id);
+
+    /*not reset data*/
+
+    CMCNP_BITMAP_DATA(cmcnp_bitmap) = data;
+    CMCNP_BITMAP_SIZE(cmcnp_bitmap) = nbytes;
+
+    return (cmcnp_bitmap);
+}
+
+EC_BOOL cmcnp_bitmap_close(CMCNP_BITMAP *cmcnp_bitmap)
+{
+    if(NULL_PTR != cmcnp_bitmap)
+    {
+        if(NULL_PTR != CMCNP_BITMAP_DATA(cmcnp_bitmap))
+        {
+            CMCNP_BITMAP_DATA(cmcnp_bitmap) = NULL_PTR;
+        }
+        CMCNP_BITMAP_SIZE(cmcnp_bitmap) = 0;
+
+        cmcnp_bitmap_free(cmcnp_bitmap);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmcnp_bitmap_set(CMCNP_BITMAP *cmcnp_bitmap, const UINT32 bit_pos)
 {
     UINT32   byte_nth;
@@ -1054,59 +1148,93 @@ UINT32 cmcnp_bitmap_count_bits(const CMCNP_BITMAP *cmcnp_bitmap, const UINT32 s_
     return (bits_count);
 }
 
-STATIC_CAST static CMCNP_HEADER *__cmcnp_header_load(const uint32_t np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CMCNP_HEADER * __cmcnp_header_sync(CMCNP_HEADER *cmcnp_header, const uint32_t np_id, const UINT32 fsize, int fd)
 {
-    uint8_t *buff;
-    UINT32   offset;
-
-    buff = (uint8_t *)safe_malloc(fsize, LOC_CMCNP_0016);
-    if(NULL_PTR == buff)
+    if(NULL_PTR != cmcnp_header)
     {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_load: malloc %ld bytes failed for np %u, fd %d\n",
-                            fsize, np_id, fd);
-        return (NULL_PTR);
+        if(0 != msync(cmcnp_header, fsize, MS_SYNC))
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "warn:__cmcnp_header_sync: "
+                                "sync cmcnp_hdr of np %u %d with size %ld failed\n",
+                                np_id, fd, fsize);
+        }
+        else
+        {
+            dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] __cmcnp_header_sync: "
+                                "sync cmcnp_hdr of np %u %d with size %ld done\n",
+                                np_id, fd, fsize);
+        }
     }
-
-    if(EC_FALSE == c_mlock((void *)buff, fsize))
-    {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_load: mlock %p, size %ld failed\n",
-                            buff, fsize);
-
-        safe_free(buff, LOC_CMCNP_0017);
-        return (NULL_PTR);
-    }
-
-    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] __cmcnp_header_load: mlock %p, size %ld done\n",
-                        buff, fsize);
-
-    offset = 0;
-    if(EC_FALSE == c_file_load(fd, &offset, fsize, buff))
-    {
-        safe_free(buff, LOC_CMCNP_0018);
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_load: load %ld bytes failed for np %u, fd %d\n",
-                            fsize, np_id, fd);
-        return (NULL_PTR);
-    }
-
-    return ((CMCNP_HEADER *)buff);
+    return (cmcnp_header);
 }
 
-STATIC_CAST static CMCNP_HEADER *__cmcnp_header_dup(CMCNP_HEADER *src_cmcnp_header, const uint32_t des_np_id, const UINT32 fsize, int fd)
+STATIC_CAST static CMCNP_HEADER *__cmcnp_header_create(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 fsize)
 {
-    CMCNP_HEADER *des_cmcnp_header;
+    CMCNP_HEADER    *cmcnp_header;
+    uint32_t         node_max_num;
+    uint32_t         node_sizeof;
 
-    des_cmcnp_header = (CMCNP_HEADER *)safe_malloc(fsize, LOC_CMCNP_0019);
-    if(NULL_PTR == des_cmcnp_header)
+    cmcnp_header = cmmap_node_alloc(cmmap_node, fsize, CMCNP_MEM_ALIGNMENT, "cmc np header");
+    if(NULL_PTR == cmcnp_header)
     {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_dup: new header with %ld bytes for np %u fd %d failed\n",
-                           fsize, des_np_id, fd);
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_create: "
+                                              "create np %u header failed\n",
+                                              np_id);
         return (NULL_PTR);
     }
 
-    FCOPY(src_cmcnp_header, des_cmcnp_header, fsize);
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] __cmcnp_header_create: "
+                                          "create np %u header done\n",
+                                          np_id);
 
-    CMCNP_HEADER_NP_ID(des_cmcnp_header)  = des_np_id;
-    return (des_cmcnp_header);
+    CMCNP_HEADER_NP_ID(cmcnp_header)        = np_id;
+    CMCNP_HEADER_MODEL(cmcnp_header)        = np_model;
+    CMCNP_HEADER_DEG_NODE_NUM(cmcnp_header) = 0;
+
+    cmcnp_model_item_max_num(np_model, &node_max_num);
+    node_sizeof = sizeof(CMCNP_ITEM);
+
+    /*init RB Nodes*/
+    cmcnprb_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+
+    /*init LRU nodes*/
+    cmcnplru_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+
+    /*init DEL nodes*/
+    cmcnpdel_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+
+    /*init DEG nodes*/
+    cmcnpdeg_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+
+    return (cmcnp_header);
+}
+
+STATIC_CAST static CMCNP_HEADER *__cmcnp_header_open(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 fsize)
+{
+    CMCNP_HEADER    *cmcnp_header;
+
+    cmcnp_header = cmmap_node_alloc(cmmap_node, fsize, CMCNP_MEM_ALIGNMENT, "cmc np header");
+    if(NULL_PTR == cmcnp_header)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:__cmcnp_header_open: "
+                                              "load np %u failed\n",
+                                              np_id);
+
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] __cmcnp_header_open: "
+                                          "load np %u done\n",
+                                          np_id);
+    return (cmcnp_header);
+}
+
+STATIC_CAST static CMCNP_HEADER *__cmcnp_header_close(CMCNP_HEADER *cmcnp_header, const uint32_t np_id, const UINT32 fsize)
+{
+    /*do nothing*/
+
+    /*cmcnp_header cannot be accessed again*/
+    return (NULL_PTR);
 }
 
 STATIC_CAST static CMCNP_HEADER *__cmcnp_header_new(const uint32_t np_id, const UINT32 fsize, int fd, const uint8_t np_model)
@@ -1154,6 +1282,8 @@ STATIC_CAST static CMCNP_HEADER *__cmcnp_header_new(const uint32_t np_id, const 
     /*init DEG nodes*/
     cmcnpdeg_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
 
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] __cmcnp_header_new: np %u, model %u, size %ld, nodes %u\n",
+                                          np_id, np_model, fsize, node_max_num);
     return (cmcnp_header);
 }
 
@@ -1263,6 +1393,7 @@ CMCNP *cmcnp_new()
 
 EC_BOOL cmcnp_init(CMCNP *cmcnp)
 {
+    CMCNP_RDONLY_FLAG(cmcnp)     = BIT_FALSE;
     CMCNP_FD(cmcnp)              = ERR_FD;
     CMCNP_FSIZE(cmcnp)           = 0;
     CMCNP_FNAME(cmcnp)           = NULL_PTR;
@@ -1305,13 +1436,24 @@ EC_BOOL cmcnp_deg_list_is_empty(const CMCNP *cmcnp)
 
 EC_BOOL cmcnp_reserve_key(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
-    UINT32      page_no;
+    uint32_t      page_no;
 
     for(page_no = CMCNP_KEY_S_PAGE(cmcnp_key);
         page_no < CMCNP_KEY_E_PAGE(cmcnp_key);
         page_no ++)
     {
-        cmcnp_bitmap_set(CMCNP_BITMAP(cmcnp), page_no);
+        if(EC_FALSE == cmcnp_bitmap_set(CMCNP_BITMAP(cmcnp), page_no))
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_reserve_key: set page %u failed\n", page_no);
+
+            /*rollback*/
+            while(page_no -- > CMCNP_KEY_S_PAGE(cmcnp_key))
+            {
+                cmcnp_bitmap_clear(CMCNP_BITMAP(cmcnp), page_no);
+            }
+
+            return (EC_FALSE);
+        }
     }
 
     return (EC_TRUE);
@@ -1319,7 +1461,7 @@ EC_BOOL cmcnp_reserve_key(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
 EC_BOOL cmcnp_release_key(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
-    UINT32      page_no;
+    uint32_t      page_no;
 
     for(page_no = CMCNP_KEY_S_PAGE(cmcnp_key);
         page_no < CMCNP_KEY_E_PAGE(cmcnp_key);
@@ -1393,7 +1535,7 @@ void cmcnp_print_deg_list(LOG *log, const CMCNP *cmcnp)
 
 void cmcnp_print_bitmap(LOG *log, const CMCNP *cmcnp)
 {
-    sys_log(log, "cmcnp_print_del_list: cmcnp %p: bitmap: \n", cmcnp);
+    sys_log(log, "cmcnp_print_bitmap: cmcnp %p: bitmap: \n", cmcnp);
     cmcnp_bitmap_print(log, CMCNP_BITMAP(cmcnp));
     return;
 }
@@ -1863,13 +2005,20 @@ CMCNP_ITEM *cmcnp_set(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t d
     uint32_t     node_pos;
     CMCNP_ITEM  *cmcnp_item;
 
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_set: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (NULL_PTR);
+    }
+
     node_pos = cmcnp_insert(cmcnp, cmcnp_key, dflag);
     cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
     if(NULL_PTR != cmcnp_item)
     {
         if(EC_FALSE == cmcnp_key_cmp(cmcnp_key, CMCNP_ITEM_KEY(cmcnp_item)))
         {
-            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_set: mismatched key [%ld, %ld) ! = [%ld, %ld)=> not override\n",
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_set: mismatched key [%u, %u) ! = [%u, %u)=> not override\n",
                             CMCNP_KEY_S_PAGE(cmcnp_key), CMCNP_KEY_E_PAGE(cmcnp_key),
                             CMCNP_KEY_S_PAGE(CMCNP_ITEM_KEY(cmcnp_item)), CMCNP_KEY_E_PAGE(CMCNP_ITEM_KEY(cmcnp_item)));
             return (NULL_PTR);
@@ -1897,6 +2046,13 @@ CMCNP_FNODE *cmcnp_reserve(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
     CMCNP_ITEM *cmcnp_item;
 
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_reserve: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (NULL_PTR);
+    }
+
     cmcnp_item = cmcnp_set(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
     if(NULL_PTR == cmcnp_item)
     {
@@ -1906,7 +2062,14 @@ CMCNP_FNODE *cmcnp_reserve(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
     CMCNP_ASSERT(CMCNP_ITEM_FILE_IS_REG == CMCNP_ITEM_DIR_FLAG(cmcnp_item));
 
-    cmcnp_reserve_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item));
+    if(EC_FALSE == cmcnp_reserve_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item)))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_reserve: reserve [%u, %u) failed\n",
+                                              CMCNP_ITEM_S_PAGE(cmcnp_item), CMCNP_ITEM_E_PAGE(cmcnp_item));
+
+        cmcnp_delete(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
+        return (NULL_PTR);
+    }
 
     /*not import yet*/
     return CMCNP_ITEM_FNODE(cmcnp_item);
@@ -1914,6 +2077,13 @@ CMCNP_FNODE *cmcnp_reserve(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
 EC_BOOL cmcnp_release(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_release: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (EC_FALSE);
+    }
+
     if(EC_FALSE == cmcnp_delete(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_release: delete from np failed\n");
@@ -1956,10 +2126,14 @@ CMCNP_FNODE *cmcnp_locate(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
         CMCNP_ITEM    *cmcnp_item;
 
         cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
-        cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
 
-        /*move it if exist*/
-        cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        if(EC_FALSE == cmcnp_is_read_only(cmcnp))
+        {
+            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+
+            /*move it if exist*/
+            cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        }
 
         return (CMCNP_ITEM_FNODE(cmcnp_item));
     }
@@ -1976,10 +2150,14 @@ CMCNP_ITEM *cmcnp_map(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
         CMCNP_ITEM    *cmcnp_item;
 
         cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
-        cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
 
-        /*move it if exist*/
-        cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        if(EC_FALSE == cmcnp_is_read_only(cmcnp))
+        {
+            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+
+            /*move it if exist*/
+            cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        }
 
         return (cmcnp_item);
     }
@@ -2001,10 +2179,13 @@ EC_BOOL cmcnp_read(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, CMCNP_FNODE *cmcnp_
             cmcnp_fnode_import(CMCNP_ITEM_FNODE(cmcnp_item), cmcnp_fnode);
         }
 
-        cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+        if(EC_FALSE == cmcnp_is_read_only(cmcnp))
+        {
+            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
 
-        /*move it if exist*/
-        cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+            /*move it if exist*/
+            cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+        }
 
         return (EC_TRUE);
     }
@@ -2014,6 +2195,8 @@ EC_BOOL cmcnp_read(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, CMCNP_FNODE *cmcnp_
 EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE *cmcnp_fnode)
 {
     uint32_t node_pos;
+
+    CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
     node_pos = cmcnp_search(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
     if(CMCNPRB_ERR_POS != node_pos)
@@ -2111,9 +2294,58 @@ EC_BOOL cmcnp_delete(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t df
     return (EC_TRUE);
 }
 
+EC_BOOL cmcnp_set_read_only(CMCNP *cmcnp)
+{
+    if(BIT_TRUE == CMCNP_RDONLY_FLAG(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_set_read_only: "
+                                              "cmcnp is set already read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CMCNP_RDONLY_FLAG(cmcnp) = BIT_TRUE;
+
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_set_read_only: "
+                                          "set cmcnp read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcnp_unset_read_only(CMCNP *cmcnp)
+{
+    if(BIT_FALSE == CMCNP_RDONLY_FLAG(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_unset_read_only: "
+                                              "cmcnp was not set read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CMCNP_RDONLY_FLAG(cmcnp) = BIT_FALSE;
+
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_unset_read_only: "
+                                          "unset cmcnp read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcnp_is_read_only(const CMCNP *cmcnp)
+{
+    if(BIT_FALSE == CMCNP_RDONLY_FLAG(cmcnp))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+
 EC_BOOL cmcnp_set_ssd_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
     uint32_t node_pos;
+
+    CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
     node_pos = cmcnp_search(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
     if(CMCNPRB_ERR_POS != node_pos)
@@ -2134,6 +2366,8 @@ EC_BOOL cmcnp_set_ssd_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 EC_BOOL cmcnp_set_ssd_not_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 {
     uint32_t node_pos;
+
+    CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
     node_pos = cmcnp_search(cmcnp, cmcnp_key, CMCNP_ITEM_FILE_IS_REG);
     if(CMCNPRB_ERR_POS != node_pos)
@@ -2204,6 +2438,8 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
     CMCNP_FNODE         *cmcnp_fnode;
     CMCNP_INODE         *cmcnp_inode;
     CMCNP_DEGRADE_CB    *cmcnp_degrade_cb;
+
+    CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
     cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
     if(NULL_PTR == cmcnp_item)
@@ -2311,6 +2547,13 @@ EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expe
     UINT32          degrade_num;
     UINT32          scan_num;
 
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_degrade: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (EC_FALSE);
+    }
+
     for(scan_num = 0, degrade_num = 0, cmcnpdeg_node_clone(CMCNP_DEG_LIST(cmcnp), &cmcnpdeg_node);
         scan_num < scan_max_num && degrade_num < expect_degrade_num
      && CMCNPDEG_ROOT_POS != CMCNPDEG_NODE_PREV_POS(&cmcnpdeg_node);
@@ -2364,6 +2607,13 @@ EC_BOOL cmcnp_degrade_all(CMCNP *cmcnp, UINT32 *complete_degrade_num)
 {
     CMCNPDEG_NODE   cmcnpdeg_node;
     UINT32          degrade_num;
+
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_degrade_all: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (EC_FALSE);
+    }
 
     degrade_num   = 0;
 
@@ -2491,6 +2741,8 @@ EC_BOOL cmcnp_exec_retire_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, con
     CMCNP_INODE         *cmcnp_inode;
     CMCNP_RETIRE_CB     *cmcnp_retire_cb;
 
+    CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
+
     cmcnp_retire_cb = CMCNP_RETIRE_CB(cmcnp);
     if(NULL_PTR == CMCNP_RETIRE_CB_FUNC(cmcnp_retire_cb)
     || NULL_PTR == CMCNP_RETIRE_CB_ARG(cmcnp_retire_cb))
@@ -2563,6 +2815,13 @@ EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expec
     CMCNPLRU_NODE   cmcnplru_node;
     UINT32          retire_num;
     UINT32          scan_num;
+
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_retire: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (EC_FALSE);
+    }
 
     for(scan_num = 0, retire_num = 0, cmcnplru_node_clone(CMCNP_LRU_LIST(cmcnp), &cmcnplru_node);
         scan_num < scan_max_num && retire_num < expect_retire_num
@@ -2663,6 +2922,8 @@ EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos)
 
                 cmcnp_exec_retire_callback(cmcnp, CMCNP_ITEM_KEY(cmcnp_item), node_pos);
 
+                CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
+
                 cmcnp_release_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item));
                 cmcnplru_node_rmv(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
                 cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
@@ -2679,6 +2940,8 @@ EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos)
         else
         {
             cmcnp_exec_retire_callback(cmcnp, CMCNP_ITEM_KEY(cmcnp_item), node_pos);
+
+            CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
             cmcnp_release_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item));
             cmcnplru_node_rmv(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
@@ -2977,6 +3240,13 @@ EC_BOOL cmcnp_recycle(CMCNP *cmcnp, const UINT32 max_num, CMCNP_RECYCLE_NP *cmcn
 
     uint32_t         left_num;
 
+    if(EC_TRUE == cmcnp_is_read_only(cmcnp))
+    {
+        dbg_log(SEC_0111_CMCNP, 3)(LOGSTDOUT, "error:cmcnp_recycle: np %u is read-only\n",
+                                              CMCNP_ID(cmcnp));
+        return (EC_FALSE);
+    }
+
     cmcnpdel_node_head = CMCNP_DEL_LIST(cmcnp);
 
     //cmcnp_header = CMCNP_HDR(cmcnp);
@@ -3032,7 +3302,6 @@ CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 k
     CMCNP_HEADER    *cmcnp_header;
     int              fd;
     UINT32           fsize;
-    //uint32_t         item_max_num;
 
     fd = ERR_FD;
 
@@ -3041,13 +3310,7 @@ CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 k
         dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create: invalid np_model %u\n", np_model);
         return (NULL_PTR);
     }
-#if 0
-    if(EC_FALSE == cmcnp_model_item_max_num(np_model, &item_max_num))
-    {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create: invalid np_model %u\n", np_model);
-        return (NULL_PTR);
-    }
-#endif
+
     cmcnp_header = __cmcnp_header_new(np_id, fsize, fd, np_model);
     if(NULL_PTR == cmcnp_header)
     {
@@ -3062,6 +3325,7 @@ CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 k
         __cmcnp_header_free(cmcnp_header, np_id, fsize, fd);
         return (NULL_PTR);
     }
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_create: create cmcnp bitmap %ld nbits done\n", key_max_num);
 
     cmcnp = cmcnp_new();
     if(NULL_PTR == cmcnp)
@@ -3080,16 +3344,144 @@ CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 k
     CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
     CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
 
-    CMCNP_FD(cmcnp)    = fd;
-    CMCNP_FSIZE(cmcnp) = fsize;
-    CMCNP_FNAME(cmcnp) = NULL_PTR;
+    CMCNP_RDONLY_FLAG(cmcnp)    = BIT_FALSE;
+    CMCNP_FD(cmcnp)             = fd;
+    CMCNP_FSIZE(cmcnp)          = fsize;
+    CMCNP_FNAME(cmcnp)          = NULL_PTR;
 
     CMCNP_ASSERT(np_id == CMCNP_HEADER_NP_ID(cmcnp_header));
 
     /*create root item*/
     cmcnp_create_root_item(cmcnp);
 
-    dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_create: create np %u done\n", np_id);
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_create: create np %u done\n", np_id);
+
+    return (cmcnp);
+}
+
+CMCNP *cmcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 key_max_num)
+{
+    CMCNP           *cmcnp;
+    CMCNP_BITMAP    *cmcnp_bitmap;
+    CMCNP_HEADER    *cmcnp_header;
+    UINT32           fsize;
+
+    if(EC_FALSE == cmcnp_model_file_size(np_model, &fsize))
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create_shm: invalid np_model %u\n", np_model);
+        return (NULL_PTR);
+    }
+
+    cmcnp_header = __cmcnp_header_create(cmmap_node, np_id, np_model, fsize);
+    if(NULL_PTR == cmcnp_header)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create_shm: create header of np %u failed\n", np_id);
+        return (NULL_PTR);
+    }
+
+    cmcnp_bitmap = cmcnp_bitmap_create(cmmap_node, np_id, key_max_num);
+    if(NULL_PTR == cmcnp_bitmap)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create_shm: create bitmap of np %u failed\n", np_id);
+
+        __cmcnp_header_close(cmcnp_header, np_id, fsize);
+        return (NULL_PTR);
+    }
+
+    cmcnp = cmcnp_new();
+    if(NULL_PTR == cmcnp)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_create_shm: new cmcnp %u failed\n", np_id);
+
+        cmcnp_bitmap_close(cmcnp_bitmap);
+        __cmcnp_header_close(cmcnp_header, np_id, fsize);
+
+        return (NULL_PTR);
+    }
+    CMCNP_BITMAP(cmcnp)   = cmcnp_bitmap;
+    CMCNP_HDR(cmcnp)      = cmcnp_header;
+
+    CMCNP_RDONLY_FLAG(cmcnp)    = BIT_FALSE;
+    CMCNP_FD(cmcnp)             = ERR_FD;
+    CMCNP_FSIZE(cmcnp)          = fsize;
+    CMCNP_FNAME(cmcnp)          = NULL_PTR;
+
+    CMCNP_ASSERT(np_id == CMCNP_HEADER_NP_ID(cmcnp_header));
+
+    /*shortcut*/
+    CMCNP_LRU_LIST(cmcnp) = CMCNP_ITEM_LRU_NODE(cmcnp_fetch(cmcnp, CMCNPLRU_ROOT_POS));
+    CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
+    CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
+
+    ASSERT(0 == CMCNP_HEADER_ITEMS_USED_NUM(cmcnp_header));
+
+    /*create root item*/
+    cmcnp_create_root_item(cmcnp);
+
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_create_shm: create np %u done\n", np_id);
+
+    return (cmcnp);
+}
+
+CMCNP *cmcnp_open_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const UINT32 key_max_num)
+{
+    CMCNP           *cmcnp;
+    CMCNP_BITMAP    *cmcnp_bitmap;
+    CMCNP_HEADER    *cmcnp_header;
+    UINT32           fsize;
+
+    if(EC_FALSE == cmcnp_model_file_size(np_model, &fsize))
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_open_shm: invalid np_model %u\n", np_model);
+        return (NULL_PTR);
+    }
+
+    cmcnp_header = __cmcnp_header_open(cmmap_node, np_id, np_model, fsize);
+    if(NULL_PTR == cmcnp_header)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_open_shm: open header of np %u failed\n", np_id);
+        return (NULL_PTR);
+    }
+
+    cmcnp_bitmap = cmcnp_bitmap_open(cmmap_node, np_id, key_max_num);
+    if(NULL_PTR == cmcnp_bitmap)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_open_shm: open bitmap of np %u failed\n", np_id);
+        return (NULL_PTR);
+    }
+
+    cmcnp = cmcnp_new();
+    if(NULL_PTR == cmcnp)
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_open_shm: new cmcnp %u failed\n", np_id);
+
+        cmcnp_bitmap_close(cmcnp_bitmap);
+        __cmcnp_header_close(cmcnp_header, np_id, fsize);
+
+        return (NULL_PTR);
+    }
+    CMCNP_BITMAP(cmcnp)   = cmcnp_bitmap;
+    CMCNP_HDR(cmcnp)      = cmcnp_header;
+
+    CMCNP_RDONLY_FLAG(cmcnp)    = BIT_FALSE;
+    CMCNP_FD(cmcnp)             = ERR_FD;
+    CMCNP_FSIZE(cmcnp)          = fsize;
+    CMCNP_FNAME(cmcnp)          = NULL_PTR;
+
+    CMCNP_ASSERT(np_id == CMCNP_HEADER_NP_ID(cmcnp_header));
+
+    /*shortcut*/
+    CMCNP_LRU_LIST(cmcnp) = CMCNP_ITEM_LRU_NODE(cmcnp_fetch(cmcnp, CMCNPLRU_ROOT_POS));
+    CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
+    CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
+
+    if(do_log(SEC_0111_CMCNP, 0))
+    {
+        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_open_shm: np %u is\n", np_id);
+        cmcnp_print(LOGSTDOUT, cmcnp);
+    }
+
+    dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "[DEBUG] cmcnp_open_shm: open np %u done\n", np_id);
 
     return (cmcnp);
 }
@@ -3137,6 +3529,26 @@ EC_BOOL cmcnp_free(CMCNP *cmcnp)
     return (EC_TRUE);
 }
 
+EC_BOOL cmcnp_close(CMCNP *cmcnp)
+{
+    if(NULL_PTR != cmcnp)
+    {
+        if(NULL_PTR != CMCNP_BITMAP(cmcnp))
+        {
+            cmcnp_bitmap_close(CMCNP_BITMAP(cmcnp));
+            CMCNP_BITMAP(cmcnp) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CMCNP_HDR(cmcnp))
+        {
+            __cmcnp_header_close(CMCNP_HDR(cmcnp), CMCNP_ID(cmcnp), CMCNP_FSIZE(cmcnp));
+            CMCNP_HDR(cmcnp) = NULL_PTR;
+        }
+
+        return cmcnp_free(cmcnp);
+    }
+    return (EC_TRUE);
+}
 
 #ifdef __cplusplus
 }

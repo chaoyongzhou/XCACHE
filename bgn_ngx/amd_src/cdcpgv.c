@@ -116,7 +116,7 @@ EC_BOOL cdcpgv_hdr_new(CDCPGV *cdcpgv)
     if(NULL_PTR == cdcpgv_hdr)
     {
         dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:cdcpgv_hdr_new: "
-                                               "new mcache for cdcpgv_hdr with size %ld failed\n",
+                                               "new mcache for cdcpgv_hdr with size %u failed\n",
                                                CDCPGV_SIZE(cdcpgv));
         return (EC_FALSE);
     }
@@ -170,6 +170,18 @@ EC_BOOL cdcpgv_hdr_init(CDCPGV *cdcpgv)
 
     return (EC_TRUE);
 }
+
+EC_BOOL cdcpgv_hdr_close(CDCPGV *cdcpgv)
+{
+    if(NULL_PTR != CDCPGV_HEADER(cdcpgv))
+    {
+        CDCPGV_HEADER(cdcpgv) = NULL_PTR;
+    }
+
+    /*cdcpgv_hdr cannot be accessed again*/
+    return (EC_TRUE);
+}
+
 
 REAL cdcpgv_hdr_used_ratio(const CDCPGV *cdcpgv)
 {
@@ -230,6 +242,27 @@ CDCPGV *cdcpgv_new()
     //cdcpgv_print(LOGSTDOUT, cdcpgv);
 
     return (cdcpgv);
+}
+
+EC_BOOL cdcpgv_clear(CDCPGV *cdcpgv)
+{
+    if(NULL_PTR != cdcpgv)
+    {
+        uint16_t disk_no;
+
+        /*clean disks*/
+        for(disk_no = 0; disk_no < CDCPGV_MAX_DISK_NUM; disk_no ++)
+        {
+            if(NULL_PTR != CDCPGV_DISK_CDCPGD(cdcpgv, disk_no))
+            {
+                cdcpgd_clear(CDCPGV_DISK_CDCPGD(cdcpgv, disk_no));
+                cdcpgd_free(CDCPGV_DISK_CDCPGD(cdcpgv, disk_no));
+                CDCPGV_DISK_CDCPGD(cdcpgv, disk_no) = NULL_PTR;
+            }
+        }
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cdcpgv_free(CDCPGV *cdcpgv)
@@ -308,6 +341,36 @@ void cdcpgv_clean(CDCPGV *cdcpgv)
     CDCPGV_HEADER(cdcpgv) = NULL_PTR;
 
     return;
+}
+
+CDCPGV *cdcpgv_open()
+{
+    CDCPGV      *cdcpgv;
+
+    alloc_static_mem(MM_CDCPGV, &cdcpgv, LOC_CDCPGV_0005);
+    if(NULL_PTR == cdcpgv)
+    {
+        dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:cdcpgv_open: malloc cdcpgv failed\n");
+        return (NULL_PTR);
+    }
+
+    cdcpgv_init(cdcpgv);
+
+    CDCPGV_SIZE(cdcpgv) = CDCPGV_HDR_SIZE;
+
+    return (cdcpgv);
+}
+
+EC_BOOL cdcpgv_close(CDCPGV *cdcpgv)
+{
+    if(NULL_PTR != cdcpgv)
+    {
+        cdcpgv_hdr_close(cdcpgv);
+        cdcpgv_clear(cdcpgv);
+        cdcpgv_free(cdcpgv);
+    }
+
+    return (EC_TRUE);
 }
 
 /*add one free disk into pool*/

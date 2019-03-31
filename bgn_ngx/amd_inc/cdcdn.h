@@ -31,6 +31,10 @@ extern "C"{
 #include "cdcpgd.h"
 #include "cdcpgv.h"
 
+#include "cmmap.h"
+
+#define CDCDN_MEM_ALIGNMENT             (UINT32_ONE << 20) /*1MB alignment*/
+
 #define CDCDN_AIO_TIMEOUT_NSEC          (60) /*seconds*/
 #define CDCDN_FILE_AIO_TIMEOUT_NSEC     (30) /*seconds*/
 
@@ -109,7 +113,9 @@ extern "C"{
 typedef struct
 {
     int                fd;
-    int                rsvd01;
+    uint32_t           read_only_flag   :1;/*dn is read-only if set*/
+    uint32_t           dontdump_flag    :1;/*dn not flush or dump if set*/
+    uint32_t           rsvd01           :30;
 
     UINT32             node_num;
 
@@ -123,6 +129,8 @@ typedef struct
     CDCPGV            *cdcpgv;
 }CDCDN;
 
+#define CDCDN_RDONLY_FLAG(cdcdn)                         ((cdcdn)->read_only_flag)
+#define CDCDN_DONTDUMP_FLAG(cdcdn)                       ((cdcdn)->dontdump_flag)
 #define CDCDN_NODE_FD(cdcdn)                             ((cdcdn)->fd)
 #define CDCDN_NODE_NUM(cdcdn)                            ((cdcdn)->node_num)
 #define CDCDN_BASE_S_OFFSET(cdcdn)                       ((cdcdn)->base_s_offset)
@@ -143,6 +151,8 @@ EC_BOOL cdcdn_node_read(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_ma
 
 CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset);
 
+CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+
 EC_BOOL cdcdn_add_disk(CDCDN *cdcdn, const uint16_t disk_no, UINT8 *base, UINT32 *pos);
 
 EC_BOOL cdcdn_del_disk(CDCDN *cdcdn, const uint16_t disk_no);
@@ -154,6 +164,20 @@ EC_BOOL cdcdn_init(CDCDN *cdcdn);
 EC_BOOL cdcdn_clean(CDCDN *cdcdn);
 
 EC_BOOL cdcdn_free(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_close(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_set_read_only(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_unset_read_only(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_is_read_only(const CDCDN *cdcdn);
+
+EC_BOOL cdcdn_set_dontdump(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_unset_dontdump(CDCDN *cdcdn);
+
+EC_BOOL cdcdn_is_dontdump(const CDCDN *cdcdn);
 
 void cdcdn_print(LOG *log, const CDCDN *cdcdn);
 
@@ -182,6 +206,9 @@ EC_BOOL cdcdn_flush(CDCDN *cdcdn);
 
 EC_BOOL cdcdn_load(CDCDN *cdcdn, int fd, UINT32 *s_offset, const UINT32 e_offset);
 
+EC_BOOL cdcdn_load_shm(CDCDN *cdcdn, CMMAP_NODE *cmmap_node, int fd, UINT32 *s_offset, const UINT32 e_offset);
+
+EC_BOOL cdcdn_retrieve_shm(CDCDN *cdcdn, CMMAP_NODE *cmmap_node, int fd, UINT32 *s_offset, const UINT32 e_offset);
 
 #endif/* _CDCDN_H */
 

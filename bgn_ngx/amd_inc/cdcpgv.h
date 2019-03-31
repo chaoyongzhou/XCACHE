@@ -97,9 +97,13 @@ EC_BOOL cdcpgv_hdr_new(CDCPGV *cdcpgv);
 
 EC_BOOL cdcpgv_hdr_free(CDCPGV *cdcpgv);
 
+EC_BOOL cdcpgv_hdr_close(CDCPGV *cdcpgv);
+
 REAL cdcpgv_hdr_used_ratio(const CDCPGV *cdcpgv);
 
 EC_BOOL cdcpgv_hdr_max_size(UINT32 *size);
+
+CDCPGV *cdcpgv_new();
 
 EC_BOOL cdcpgv_free(CDCPGV *cdcpgv);
 
@@ -107,6 +111,12 @@ EC_BOOL cdcpgv_free(CDCPGV *cdcpgv);
 EC_BOOL cdcpgv_init(CDCPGV *cdcpgv);
 
 void cdcpgv_clean(CDCPGV *cdcpgv);
+
+EC_BOOL cdcpgv_clear(CDCPGV *cdcpgv);
+
+CDCPGV *cdcpgv_open();
+
+EC_BOOL cdcpgv_close(CDCPGV *cdcpgv);
 
 EC_BOOL cdcpgv_add_disk(CDCPGV *cdcpgv, const uint16_t disk_no, UINT8 *base, UINT32 *pos);
 
@@ -134,9 +144,6 @@ void cdcpgv_print(LOG *log, const CDCPGV *cdcpgv);
 
 REAL cdcpgv_used_ratio(const CDCPGV *cdcpgv);
 
-CDCPGV *cdcpgv_new();
-
-EC_BOOL cdcpgv_free(CDCPGV *cdcpgv);
 
 /* ---- debug ---- */
 EC_BOOL cdcpgv_debug_cmp(const CDCPGV *cdcpgv_1st, const CDCPGV *cdcpgv_2nd);

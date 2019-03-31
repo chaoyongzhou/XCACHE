@@ -23,11 +23,16 @@ extern "C"{
 
 #include "cparacfg.h"
 
+#include "cbadbitmap.h"
+
 #include "caio.h"
 #include "cmc.h"
 #include "cdc.h"
+#include "cdio.h"
 
 #include "cfc.h"
+
+#include "cmmap.h"
 
 /*AMD: aio + mem cache + disk cache*/
 
@@ -36,7 +41,20 @@ extern "C"{
 #define CAMD_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
 #define CAMD_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
-#define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (1 << 10) /*align to 1KB*/
+/*note: mmap max size >= 8713816128  B (i.e.,  8 GB, 118 MB, 146 KB,  64 B)*/
+/*      total of 8 AMDs: 69710529024 B (i.e., 64 GB, 945 MB, 144 KB, 512 B)*/
+/*      thus, tmpfs is suggested to 65GB or more                          */
+#define CAMD_MMAP_MAX_SIZE_NBYTES                       (((uint64_t)9) << 30) /*9GB*/
+#define CAMD_SHM_FILE_SIZE_NBYTES                       (((uint64_t)1) << 30) /*1GB*/
+
+#define CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES            ((uint32_t)(4 << 20))  /*4MB, up to 4T SSD for 256K-page*/
+#define CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS             ((CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
+
+#define CAMD_PATH_MAX_LEN                               (1024)  /*max len of file or dir path name*/
+
+#define CAMD_MEM_ALIGNMENT                              (UINT32_ONE << 20) /*1MB alignment*/
+
+#define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
 #define CAMD_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
@@ -53,12 +71,17 @@ extern "C"{
 
 #define CAMD_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
 
+#define CAMD_NOT_RETRIEVE_BAD_BITMAP                    ((UINT32)0)
+#define CAMD_RETRIEVE_BAD_BITMAP                        ((UINT32)1)
 
 typedef struct
 {
+    char            *camd_dir;
+
     CAIO_MD         *caio_md;
     CMC_MD          *cmc_md;
     CDC_MD          *cdc_md;
+    CDIO_MD         *cdio_md;
 
     UINT32           seq_no;            /*sequence number factory*/
 
@@ -68,9 +91,22 @@ typedef struct
 
     CLIST            post_event_reqs;   /*item is CAMD_REQ */
 
-    uint32_t         force_dio_flag:1;
-    uint32_t         rsvd01        :31;
+    uint32_t         force_dio_flag :1;
+    uint32_t         read_only_flag :1; /*camd is read-only if set*/
+    uint32_t         restart_flag   :1; /*camd is restarting if set*/
+    uint32_t         dontdump_flag  :1; /*camd not flush or dump if set*/
+    uint32_t         rsvd01         :28;
+    uint32_t         rsvd02;
+
     int              sata_disk_fd;
+    int              ssd_disk_fd;
+
+    CBAD_BITMAP     *ssd_bad_bitmap;    /*ssd bad aio-page bitmap*/
+    CBAD_BITMAP     *sata_bad_bitmap;   /*sata bad aio-page bitmap*/
+    uint32_t         ssd_bad_page_num;  /*save prev num of ssd bad pages*/
+    uint32_t         sata_bad_page_num; /*save prev num of sata bad pages*/
+
+    CMMAP_NODE      *cmmap_node;
 
     CFC              sata_read_flow_control;      /*sata flush bps*/
     CFC              sata_write_flow_control;     /*sata flush bps*/
@@ -83,9 +119,11 @@ typedef struct
     CIOSTAT          ssd_iostat;
 }CAMD_MD;
 
+#define CAMD_MD_DIR(camd_md)                            ((camd_md)->camd_dir)
 #define CAMD_MD_CAIO_MD(camd_md)                        ((camd_md)->caio_md)
 #define CAMD_MD_CMC_MD(camd_md)                         ((camd_md)->cmc_md)
 #define CAMD_MD_CDC_MD(camd_md)                         ((camd_md)->cdc_md)
+#define CAMD_MD_CDIO_MD(camd_md)                        ((camd_md)->cdio_md)
 #define CAMD_MD_SEQ_NO(camd_md)                         ((camd_md)->seq_no)
 #define CAMD_MD_REQ_LIST(camd_md)                       (&((camd_md)->req_list))
 #define CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md)           ((camd_md)->page_tree_idx)
@@ -93,7 +131,18 @@ typedef struct
 #define CAMD_MD_PAGE_TREE(camd_md, idx)                 (&((camd_md)->page_tree[ (idx) ]))
 #define CAMD_MD_POST_EVENT_REQS(camd_md)                (&((camd_md)->post_event_reqs))
 #define CAMD_MD_FORCE_DIO_FLAG(camd_md)                 ((camd_md)->force_dio_flag)
+#define CAMD_MD_RDONLY_FLAG(camd_md)                    ((camd_md)->read_only_flag)
+#define CAMD_MD_RESTART_FLAG(camd_md)                   ((camd_md)->restart_flag)
+#define CAMD_MD_DONTDUMP_FLAG(camd_md)                  ((camd_md)->dontdump_flag)
 #define CAMD_MD_SATA_DISK_FD(camd_md)                   ((camd_md)->sata_disk_fd)
+#define CAMD_MD_SSD_DISK_FD(camd_md)                    ((camd_md)->ssd_disk_fd)
+#define CAMD_MD_SSD_BAD_BITMAP(camd_md)                 ((camd_md)->ssd_bad_bitmap)
+#define CAMD_MD_SATA_BAD_BITMAP(camd_md)                ((camd_md)->sata_bad_bitmap)
+#define CAMD_MD_SSD_BAD_PAGE_NUM(camd_md)               ((camd_md)->ssd_bad_page_num)
+#define CAMD_MD_SATA_BAD_PAGE_NUM(camd_md)              ((camd_md)->sata_bad_page_num)
+
+#define CAMD_MD_CMMAP_NODE(camd_md)                     ((camd_md)->cmmap_node)
+
 #define CAMD_MD_SATA_READ_FC(camd_md)                   (&((camd_md)->sata_read_flow_control))
 #define CAMD_MD_SATA_WRITE_FC(camd_md)                  (&((camd_md)->sata_write_flow_control))
 #define CAMD_MD_SSD_FC(camd_md)                         (&((camd_md)->ssd_flow_control))
@@ -262,7 +311,7 @@ typedef struct
     UINT32                  b_s_offset;         /*start offset in page*/
     UINT32                  b_e_offset;         /*end offset in page*/
     UINT32                  timeout_nsec;       /*timeout in seconds*/
-    uint64_t                next_access_ms  ;   /*next access in msec*/
+    uint64_t                next_access_ms;     /*next access in msec*/
 
     /*shortcut*/
     CLIST_DATA             *mounted_nodes;      /*mount point in nodes of camd req*/
@@ -336,7 +385,6 @@ typedef struct
 #define CAMD_SSD_TIMEOUT_NSEC(camd_ssd)               ((camd_ssd)->timeout_nsec)
 #define CAMD_SSD_CMCNP_KEY(camd_ssd)                  (&((camd_ssd)->cmcnp_key))
 #define CAMD_SSD_CAMD_MD(camd_ssd)                    ((camd_ssd)->camd_md)
-
 
 /*----------------------------------- camd page interface -----------------------------------*/
 
@@ -493,15 +541,44 @@ EC_BOOL camd_req_cancel_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node);
 
 /*----------------------------------- camd module interface -----------------------------------*/
 
-CAMD_MD *camd_start(const int sata_disk_fd, const UINT32 sata_disk_size /*in byte*/,
+CAMD_MD *camd_start(const char *camd_shm_root_dir,
+                       const int sata_disk_fd, const UINT32 sata_disk_size /*in byte*/,
                        const UINT32 mem_disk_size /*in byte*/,
                        const int ssd_disk_fd, const UINT32 ssd_disk_offset, const UINT32 ssd_disk_size/*in byte*/);
 
 void camd_end(CAMD_MD *camd_md);
 
-EC_BOOL camd_create(const CAMD_MD *camd_md);
+void camd_restart(CAMD_MD *camd_md);
 
-EC_BOOL camd_load(const CAMD_MD *camd_md);
+EC_BOOL camd_set_read_only(CAMD_MD *camd_md);
+
+EC_BOOL camd_unset_read_only(CAMD_MD *camd_md);
+
+EC_BOOL camd_is_read_only(const CAMD_MD *camd_md);
+
+EC_BOOL camd_set_dontdump(CAMD_MD *camd_md);
+
+EC_BOOL camd_unset_dontdump(CAMD_MD *camd_md);
+
+EC_BOOL camd_is_dontdump(CAMD_MD *camd_md);
+
+EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag);
+
+EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag);
+
+EC_BOOL camd_load(CAMD_MD *camd_md);
+
+EC_BOOL camd_load_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_dump_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_restore_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const UINT32 disk_offset, const UINT32 disk_size);
+
+EC_BOOL camd_disable_dio(CAMD_MD *camd_md);
 
 void camd_print(LOG *log, const CAMD_MD *camd_md);
 
@@ -515,7 +592,15 @@ int camd_cdc_get_eventfd(CAMD_MD *camd_md);
 /*for cdc aio*/
 EC_BOOL camd_cdc_event_handler(CAMD_MD *camd_md);
 
+/*for cdio aio*/
+int camd_cdio_get_eventfd(CAMD_MD *camd_md);
+
+/*for cdio aio*/
+EC_BOOL camd_cdio_event_handler(CAMD_MD *camd_md);
+
 EC_BOOL camd_try_quit(CAMD_MD *camd_md);
+
+EC_BOOL camd_try_restart(CAMD_MD *camd_md);
 
 EC_BOOL camd_poll(CAMD_MD *camd_md);
 
@@ -523,6 +608,10 @@ EC_BOOL camd_poll(CAMD_MD *camd_md);
 EC_BOOL camd_poll_debug(CAMD_MD *camd_md);
 
 void camd_process(CAMD_MD *camd_md);
+
+void camd_process_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+void camd_process_no_degrade(CAMD_MD *camd_md);
 
 void camd_process_reqs(CAMD_MD *camd_md);
 
@@ -635,6 +724,49 @@ EC_BOOL camd_sata_degrade_complete(CAMD_SATA *camd_sata);
 EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
                             const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
+EC_BOOL camd_create_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_create_ssd_bad_bitmap_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_load_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_load_ssd_bad_bitmap_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_retrieve_ssd_bad_bitmap_shm(CAMD_MD *camd_md);
+
+EC_BOOL camd_flush_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_sync_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_close_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_revise_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_clean_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_free_ssd_bad_bitmap(CAMD_MD *camd_md);
+
+EC_BOOL camd_mount_sata_bad_bitmap(CAMD_MD *camd_md, CBAD_BITMAP *sata_bad_bitmap);
+
+EC_BOOL camd_umount_sata_bad_bitmap(CAMD_MD *camd_md);
+
+/*for debug only*/
+EC_BOOL camd_set_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*for debug only*/
+EC_BOOL camd_is_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*for debug only*/
+EC_BOOL camd_clear_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*for debug only*/
+EC_BOOL camd_set_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*for debug only*/
+EC_BOOL camd_is_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*for debug only*/
+EC_BOOL camd_clear_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
 
 /*----------------------------------- camd external interface -----------------------------------*/
 
@@ -642,12 +774,19 @@ EC_BOOL camd_file_read_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT3
 
 EC_BOOL camd_file_write_aio(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, UINT8 *buff, CAIO_CB *caio_cb);
 
-EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize);
+EC_BOOL camd_file_read_dio_aio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize, UINT8 *buff, CAIO_CB *caio_cb);
+
+EC_BOOL camd_file_write_dio_aio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize, UINT8 *buff, CAIO_CB *caio_cb);
 
 EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
 EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
 
+EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize);
+
+EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
+
+EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize, UINT8 *buff);
 
 #endif /*_CAMD_H*/
 

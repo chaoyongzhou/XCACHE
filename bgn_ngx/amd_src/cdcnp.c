@@ -35,6 +35,7 @@ extern "C"{
 #include "cdcnpdel.h"
 #include "cdcnpdeg.h"
 #include "cdcnp.h"
+#include "cmmap.h"
 
 #if (SWITCH_ON == CDC_ASSERT_SWITCH)
 #define CDCNP_ASSERT(condition)   ASSERT(condition)
@@ -839,7 +840,7 @@ EC_BOOL cdcnp_bitmap_set(CDCNP_BITMAP *cdcnp_bitmap, const uint32_t bit_pos)
 
     if(CDCNP_BITMAP_SIZE(cdcnp_bitmap) <= byte_nth)
     {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_set: overflow bit_pos %ld > %ld\n",
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_set: overflow bit_pos %u > %u\n",
                         bit_pos, CDCNP_BITMAP_SIZE(cdcnp_bitmap));
         return (EC_FALSE);
     }
@@ -859,14 +860,14 @@ EC_BOOL cdcnp_bitmap_clear(CDCNP_BITMAP *cdcnp_bitmap, const uint32_t bit_pos)
 
     if(CDCNP_BITMAP_SIZE(cdcnp_bitmap) <= byte_nth)
     {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_clear: overflow bit_pos %ld > %ld\n",
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_clear: overflow bit_pos %u > %u\n",
                         bit_pos, CDCNP_BITMAP_SIZE(cdcnp_bitmap));
         return (EC_FALSE);
     }
 
     if(0 == (CDCNP_BITMAP_DATA(cdcnp_bitmap)[ byte_nth ] & (uint8_t)(1 << bit_nth)))
     {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_clear: it_pos %ld was NOT set!\n",
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_clear: it_pos %u was NOT set!\n",
                         bit_pos);
         return (EC_FALSE);
     }
@@ -886,7 +887,7 @@ EC_BOOL cdcnp_bitmap_get(const CDCNP_BITMAP *cdcnp_bitmap, const uint32_t bit_po
 
     if(CDCNP_BITMAP_SIZE(cdcnp_bitmap) <= byte_nth)
     {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_get: overflow bit_pos %ld > %ld\n",
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_get: overflow bit_pos %u > %u\n",
                         bit_pos, CDCNP_BITMAP_SIZE(cdcnp_bitmap));
         return (EC_FALSE);
     }
@@ -914,7 +915,7 @@ EC_BOOL cdcnp_bitmap_is(const CDCNP_BITMAP *cdcnp_bitmap, const uint32_t bit_pos
 
     if(CDCNP_BITMAP_SIZE(cdcnp_bitmap) <= byte_nth)
     {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_is: overflow bit_pos %ld > %ld\n",
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_bitmap_is: overflow bit_pos %u > %u\n",
                         bit_pos, CDCNP_BITMAP_SIZE(cdcnp_bitmap));
         return (EC_FALSE);
     }
@@ -1039,6 +1040,14 @@ CDCNP_HEADER *cdcnp_header_free(CDCNP_HEADER *cdcnp_header)
     return (NULL_PTR);
 }
 
+CDCNP_HEADER *cdcnp_header_close(CDCNP_HEADER *cdcnp_header)
+{
+    /*do nothing*/
+
+    /*cdcnp_header cannot be accessed again*/
+    return (NULL_PTR);
+}
+
 EC_BOOL cdcnp_header_init(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, const uint8_t model)
 {
     CDCNP_HEADER_NP_ID(cdcnp_header)         = np_id;
@@ -1111,6 +1120,8 @@ CDCNP *cdcnp_new()
 
 EC_BOOL cdcnp_init(CDCNP *cdcnp)
 {
+    CDCNP_RDONLY_FLAG(cdcnp)     = BIT_FALSE;
+    CDCNP_DONTDUMP_FLAG(cdcnp)   = BIT_FALSE;
     CDCNP_FD(cdcnp)              = ERR_FD;
     CDCNP_S_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
     CDCNP_E_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
@@ -1135,20 +1146,22 @@ EC_BOOL cdcnp_clean(CDCNP *cdcnp)
         cdcnp_header_free(CDCNP_HDR(cdcnp));
         CDCNP_HDR(cdcnp) = NULL_PTR;
     }
-    CDCNP_BITMAP(cdcnp)       = NULL_PTR;
+    CDCNP_BITMAP(cdcnp)          = NULL_PTR;
 
-    CDCNP_FD(cdcnp)           = ERR_FD;
-    CDCNP_S_OFFSET(cdcnp)     = CDCNP_OFFSET_ERR;
-    CDCNP_E_OFFSET(cdcnp)     = CDCNP_OFFSET_ERR;
+    CDCNP_RDONLY_FLAG(cdcnp)     = BIT_FALSE;
+    CDCNP_DONTDUMP_FLAG(cdcnp)   = BIT_FALSE;
+    CDCNP_FD(cdcnp)              = ERR_FD;
+    CDCNP_S_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
+    CDCNP_E_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
 
     CDCNP_ASSERT(NULL_PTR == CDCNP_FNAME(cdcnp));
 
-    CDCNP_DEL_SIZE(cdcnp)     = 0;
-    CDCNP_RECYCLE_SIZE(cdcnp) = 0;
+    CDCNP_DEL_SIZE(cdcnp)        = 0;
+    CDCNP_RECYCLE_SIZE(cdcnp)    = 0;
 
-    CDCNP_LRU_LIST(cdcnp)     = NULL_PTR;
-    CDCNP_DEL_LIST(cdcnp)     = NULL_PTR;
-    CDCNP_DEG_LIST(cdcnp)     = NULL_PTR;
+    CDCNP_LRU_LIST(cdcnp)        = NULL_PTR;
+    CDCNP_DEL_LIST(cdcnp)        = NULL_PTR;
+    CDCNP_DEG_LIST(cdcnp)        = NULL_PTR;
 
     cdcnp_clean_degrade_callback(cdcnp);
 
@@ -1165,6 +1178,112 @@ EC_BOOL cdcnp_free(CDCNP *cdcnp)
     return (EC_TRUE);
 }
 
+EC_BOOL cdcnp_close(CDCNP *cdcnp)
+{
+    if(NULL_PTR != cdcnp)
+    {
+        if(NULL_PTR != CDCNP_HDR(cdcnp))
+        {
+            cdcnp_header_close(CDCNP_HDR(cdcnp));
+            CDCNP_HDR(cdcnp) = NULL_PTR;
+        }
+
+        return cdcnp_free(cdcnp);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_set_read_only(CDCNP *cdcnp)
+{
+    if(BIT_TRUE == CDCNP_RDONLY_FLAG(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_set_read_only: "
+                                              "cdcnp was already set already read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCNP_RDONLY_FLAG(cdcnp) = BIT_TRUE;
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_set_read_only: "
+                                          "set cdcnp read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_unset_read_only(CDCNP *cdcnp)
+{
+    if(BIT_FALSE == CDCNP_RDONLY_FLAG(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_unset_read_only: "
+                                              "cdcnp was not set read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCNP_RDONLY_FLAG(cdcnp) = BIT_FALSE;
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_unset_read_only: "
+                                          "unset cdcnp read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_is_read_only(const CDCNP *cdcnp)
+{
+    if(BIT_FALSE == CDCNP_RDONLY_FLAG(cdcnp))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_set_dontdump(CDCNP *cdcnp)
+{
+    if(BIT_TRUE == CDCNP_DONTDUMP_FLAG(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_set_dontdump: "
+                                              "cdcnp was already set do-no-dump\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCNP_DONTDUMP_FLAG(cdcnp) = BIT_TRUE;
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_set_dontdump: "
+                                          "set cdcnp do-no-dump\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_unset_dontdump(CDCNP *cdcnp)
+{
+    if(BIT_FALSE == CDCNP_DONTDUMP_FLAG(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_unset_dontdump: "
+                                              "cdcnp was not set do-no-dump\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCNP_DONTDUMP_FLAG(cdcnp) = BIT_FALSE;
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_unset_dontdump: "
+                                          "unset cdcnp do-no-dump\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_is_dontdump(const CDCNP *cdcnp)
+{
+    if(BIT_FALSE == CDCNP_DONTDUMP_FLAG(cdcnp))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
 
 EC_BOOL cdcnp_is_full(const CDCNP *cdcnp)
 {
@@ -1732,13 +1851,20 @@ CDCNP_ITEM *cdcnp_set(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t d
     uint32_t     node_pos;
     CDCNP_ITEM  *cdcnp_item;
 
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_set: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (NULL_PTR);
+    }
+
     node_pos = cdcnp_insert(cdcnp, cdcnp_key, dflag);
     cdcnp_item = cdcnp_fetch(cdcnp, node_pos);
     if(NULL_PTR != cdcnp_item)
     {
         if(EC_FALSE == cdcnp_key_cmp(cdcnp_key, CDCNP_ITEM_KEY(cdcnp_item)))
         {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_set: mismatched key [%ld, %ld) ! = [%ld, %ld)=> not override\n",
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_set: mismatched key [%u, %u) ! = [%u, %u)=> not override\n",
                             CDCNP_KEY_S_PAGE(cdcnp_key), CDCNP_KEY_E_PAGE(cdcnp_key),
                             CDCNP_KEY_S_PAGE(CDCNP_ITEM_KEY(cdcnp_item)), CDCNP_KEY_E_PAGE(CDCNP_ITEM_KEY(cdcnp_item)));
             return (NULL_PTR);
@@ -1788,6 +1914,13 @@ CDCNP_ITEM *cdcnp_reserve(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cd
 {
     CDCNP_ITEM *cdcnp_item;
 
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_reserve: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (NULL_PTR);
+    }
+
     cdcnp_item = cdcnp_set(cdcnp, cdcnp_key, CDCNP_ITEM_FILE_IS_REG, cdcnp_item_pos);
     if(NULL_PTR == cdcnp_item)
     {
@@ -1805,6 +1938,13 @@ CDCNP_ITEM *cdcnp_reserve(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cd
 
 EC_BOOL cdcnp_release(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key)
 {
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_release: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
+
     if(EC_FALSE == cdcnp_delete(cdcnp, cdcnp_key, CDCNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_release: delete from np failed\n");
@@ -1979,10 +2119,14 @@ CDCNP_ITEM *cdcnp_map(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, uint32_t *cdcnp_
         CDCNP_ITEM    *cdcnp_item;
 
         cdcnp_item = cdcnp_fetch(cdcnp, node_pos);
-        cdcnplru_node_move_head(cdcnp, CDCNP_ITEM_LRU_NODE(cdcnp_item), node_pos);
 
-        /*move it if exist*/
-        cdcnpdeg_node_move_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+        if(EC_FALSE == cdcnp_is_read_only(cdcnp))
+        {
+            cdcnplru_node_move_head(cdcnp, CDCNP_ITEM_LRU_NODE(cdcnp_item), node_pos);
+
+            /*move it if exist*/
+            cdcnpdeg_node_move_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+        }
 
         if(NULL_PTR != cdcnp_item_pos)
         {
@@ -2009,10 +2153,13 @@ EC_BOOL cdcnp_read(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, CDCNP_FNODE *cdcnp_
             cdcnp_fnode_import(CDCNP_ITEM_FNODE(cdcnp_item), cdcnp_fnode);
         }
 
-        cdcnplru_node_move_head(cdcnp, CDCNP_ITEM_LRU_NODE(cdcnp_item), node_pos);
+        if(EC_FALSE == cdcnp_is_read_only(cdcnp))
+        {
+            cdcnplru_node_move_head(cdcnp, CDCNP_ITEM_LRU_NODE(cdcnp_item), node_pos);
 
-        /*move it if exist*/
-        cdcnpdeg_node_move_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+            /*move it if exist*/
+            cdcnpdeg_node_move_head(cdcnp, CDCNP_ITEM_DEG_NODE(cdcnp_item), node_pos);
+        }
 
         return (EC_TRUE);
     }
@@ -2022,6 +2169,13 @@ EC_BOOL cdcnp_read(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, CDCNP_FNODE *cdcnp_
 EC_BOOL cdcnp_update(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const CDCNP_FNODE *cdcnp_fnode)
 {
     uint32_t node_pos;
+
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_update: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
 
     node_pos = cdcnp_search(cdcnp, cdcnp_key, CDCNP_ITEM_FILE_IS_REG);
     if(CDCNPRB_ERR_POS != node_pos)
@@ -2045,6 +2199,13 @@ EC_BOOL cdcnp_delete(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t df
     uint32_t node_pos;
 
     CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_REG == dflag);
+
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_delete: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
 
     node_pos = cdcnp_search(cdcnp, cdcnp_key, dflag);
     cdcnp_item = cdcnp_fetch(cdcnp, node_pos);
@@ -2279,6 +2440,13 @@ EC_BOOL cdcnp_degrade(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expe
     UINT32          degrade_num;
     UINT32          scan_num;
 
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_degrade: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
+
     for(scan_num = 0, degrade_num = 0, cdcnpdeg_node_clone(CDCNP_DEG_LIST(cdcnp), &cdcnpdeg_node);
         scan_num < scan_max_num && degrade_num < expect_degrade_num
      && CDCNPDEG_ROOT_POS != CDCNPDEG_NODE_PREV_POS(&cdcnpdeg_node);
@@ -2373,6 +2541,13 @@ EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expec
     CDCNPLRU_NODE   cdcnplru_node;
     UINT32          retire_num;
     UINT32          scan_num;
+
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_retire: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
 
     for(scan_num = 0, retire_num = 0, cdcnplru_node_clone(CDCNP_LRU_LIST(cdcnp), &cdcnplru_node);
         scan_num < scan_max_num && retire_num < expect_retire_num
@@ -2527,6 +2702,8 @@ EC_BOOL cdcnp_umount(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t df
     uint32_t node_pos;
 
     CDCNP_ASSERT(CDCNP_ITEM_FILE_IS_REG == dflag);
+
+    CDCNP_ASSERT(EC_FALSE == cdcnp_is_read_only(cdcnp));
 
     node_pos = cdcnp_search(cdcnp, cdcnp_key, dflag);
 
@@ -2813,6 +2990,13 @@ EC_BOOL cdcnp_recycle(CDCNP *cdcnp, const UINT32 max_num, CDCNP_RECYCLE_NP *cdcn
 
     uint32_t         left_num;
 
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_recycle: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
+
     cdcnpdel_node_head = CDCNP_DEL_LIST(cdcnp);
 
     //cdcnp_header = CDCNP_HDR(cdcnp);
@@ -2960,207 +3144,598 @@ EC_BOOL cdcnp_erase(CDCNP *cdcnp, const uint32_t np_id, int fd, const UINT32 s_o
     return (EC_TRUE);
 }
 
-EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset)
+EC_BOOL cdcnp_load_basic(CDCNP *cdcnp, int fd, const UINT32 offset,
+                              uint32_t *magic, uint32_t *np_id, uint8_t *np_model)
 {
-    if(NULL_PTR != cdcnp)
+    UINT8        *data;
+    UINT32        data_len;
+    UINT32        s_offset;
+
+    data_len = CDCPGB_PAGE_SIZE_NBYTES;
+    data = (UINT8 *)c_memalign_new(data_len, (UINT32)CDCPGB_PAGE_SIZE_NBYTES);
+    if(NULL_PTR == data)
     {
-        CDCNP_HEADER *cdcnp_header;
-        CDCNP_BITMAP *cdcnp_bitmap;
-        UINT32        f_s_offset;
-        UINT32        f_e_offset;
-
-        UINT32        offset;
-        UINT8        *data;
-        UINT32        data_len;
-
-        UINT32        np_size;
-        uint8_t       np_model;
-
-        if(ERR_FD == fd)
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: no fd\n");
-            return (EC_FALSE);
-        }
-
-        f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
-        f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
-
-        /*read np id and np model => file size => load whole*/
-        if(f_s_offset + 8 > f_e_offset)
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "[%ld, %ld) => invalid range [%ld, %ld)\n",
-                                                  (*s_offset), e_offset,
-                                                  f_s_offset, f_e_offset);
-            return (EC_FALSE);
-        }
-
-        data_len = CDCPGB_PAGE_SIZE_NBYTES;
-        data = (UINT8 *)c_memalign_new(data_len, (UINT32)CDCPGB_PAGE_SIZE_NBYTES);
-        if(NULL_PTR == data)
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "new %ld bytes for np %u failed\n",
-                                                  (UINT32)CDCPGB_PAGE_SIZE_NBYTES, np_id);
-            return (EC_FALSE);
-        }
-
-        offset = f_s_offset;
-        if(EC_FALSE == c_file_pread(fd, &offset, data_len, (UINT8 *)data))
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "load %ld bytes from fd %d, offset %ld failed\n",
-                                                  data_len, fd, f_s_offset);
-            c_memalign_free(data);
-            return (EC_FALSE);
-        }
-
-        /*trick: check np id*/
-        if(np_id != CDCNP_HEADER_NP_ID((CDCNP_HEADER *)data))
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "np id mismatched: given %u, stored %u "
-                                                  "from fd %d, offset %ld\n",
-                                                  np_id, CDCNP_HEADER_NP_ID((CDCNP_HEADER *)data),
-                                                  fd, f_s_offset);
-            c_memalign_free(data);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "np id %u matched "
-                                              "from fd %d, offset %ld\n",
-                                              np_id,
-                                              fd, f_s_offset);
-
-        /*trick: check magic number*/
-        if(CDCNP_MAGIC_NUM != CDCNP_HEADER_MAGIC((CDCNP_HEADER *)data))
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "np magic mismatched: stored %u != %u "
-                                                  "from fd %d, offset %ld\n",
-                                                  CDCNP_HEADER_MAGIC((CDCNP_HEADER *)data),
-                                                  CDCNP_MAGIC_NUM,
-                                                  fd, f_s_offset);
-            c_memalign_free(data);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "np magic %#x matched "
-                                              "from fd %d, offset %ld\n",
-                                              CDCNP_HEADER_MAGIC((CDCNP_HEADER *)data),
-                                              fd, f_s_offset);
-
-        np_model = CDCNP_HEADER_MODEL((CDCNP_HEADER *)data);
-
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "np_id %u, np_model %u from fd %d, offset %ld\n",
-                                              np_id, np_model, fd, f_s_offset);
-
-        if(EC_FALSE == cdcnp_model_file_size(np_model, &np_size))
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: invalid np_model %u\n", np_model);
-
-            c_memalign_free(data);
-            return (EC_FALSE);
-        }
-
-        c_memalign_free(data);
-
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "np_model %u, np_size %ld\n",
-                                              np_model, np_size);
-
-        CDCNP_ASSERT(0 == (np_size & ((UINT32)CDCPGB_PAGE_SIZE_MASK)));
-        np_size = VAL_ALIGN_NEXT(np_size, ((UINT32)CDCPGB_PAGE_SIZE_MASK));
-
-        offset = f_s_offset;
-
-        cdcnp_header = cdcnp_header_new(np_id, np_size, np_model);
-        if(NULL_PTR == cdcnp_header)
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "new header for np %u, size %ld, model %u failed\n",
-                                                  np_id, np_size, np_model);
-            return (EC_FALSE);
-        }
-
-        if(EC_FALSE == cdcnp_header_load(cdcnp_header, np_id, fd, &offset, np_size))
-        {
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                  "load np %u from fd %d, offset %ld failed\n",
-                                                  np_id, fd, f_s_offset);
-            cdcnp_header_free(cdcnp_header);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "load np %u from fd %d, offset %ld, size %ld done\n",
-                                              np_id, fd, f_s_offset, np_size);
-
-        CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
-        CDCNP_ASSERT(np_model == CDCNP_HEADER_MODEL(cdcnp_header));
-        CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
-        CDCNP_ASSERT(f_s_offset + np_size == offset);
-
-        cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
-
-        CDCNP_HDR(cdcnp)    = cdcnp_header;
-        CDCNP_BITMAP(cdcnp) = cdcnp_bitmap;
-
-        /*shortcut*/
-        CDCNP_LRU_LIST(cdcnp) = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, CDCNPLRU_ROOT_POS));
-        CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
-        CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
-
-        CDCNP_S_OFFSET(cdcnp) = f_s_offset;
-        CDCNP_E_OFFSET(cdcnp) = f_s_offset + np_size;
-        CDCNP_FNAME(cdcnp)    = NULL_PTR;
-
-        (*s_offset) = f_s_offset + np_size;
-
-        /*erase magic number which would be overrided after flush successfully*/
-        if(1)
-        {
-            UINT32        offset_erase;
-
-            offset_erase = f_s_offset;
-
-            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
-
-            /*alignment*/
-            data     = (UINT8 *)cdcnp_header;
-            data_len = CDCPGB_PAGE_SIZE_NBYTES;
-
-            if(EC_FALSE == c_file_pwrite(fd, &offset_erase, data_len, data))
-            {
-                dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                                      "erase np magic from fd %d, offset %ld failed\n",
-                                                      fd, offset_erase);
-
-                CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                                  "erase np magic temporarily from fd %d, offset %ld done\n",
-                                                  fd, offset_erase);
-
-            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
-        }
-
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
-                                              "load np %u, fsize %ld from fd %d, offset %ld => %ld done\n",
-                                              CDCNP_HEADER_NP_ID(cdcnp_header),
-                                              np_size, fd, f_s_offset, offset);
-
-        return (EC_TRUE);
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_basic: "
+                                              "new %ld bytes failed\n",
+                                              (UINT32)CDCPGB_PAGE_SIZE_NBYTES);
+        return (EC_FALSE);
     }
+
+    s_offset = offset;
+
+    if(EC_FALSE == c_file_pread(fd, &s_offset, data_len, (UINT8 *)data))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_basic: "
+                                              "load %ld bytes from fd %d, offset %ld failed\n",
+                                              data_len, fd, offset);
+        c_memalign_free(data);
+        return (EC_FALSE);
+    }
+
+    (*magic)    = CDCNP_HEADER_MAGIC((CDCNP_HEADER *)data);
+    (*np_id)    = CDCNP_HEADER_NP_ID((CDCNP_HEADER *)data);
+    (*np_model) = CDCNP_HEADER_MODEL((CDCNP_HEADER *)data);
+
+    c_memalign_free(data);
 
     return (EC_TRUE);
 }
 
+EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCNP_HEADER *cdcnp_header;
+    CDCNP_BITMAP *cdcnp_bitmap;
+    UINT32        f_s_offset;
+    UINT32        f_e_offset;
+
+    UINT32        offset;
+
+    UINT32        np_size;
+    uint32_t      magic_t;
+    uint32_t      np_id_t;
+    uint8_t       np_model_t;
+
+    CDCNP_ASSERT(NULL_PTR != cdcnp);
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: no fd\n");
+        return (EC_FALSE);
+    }
+
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+
+    /*read np id and np model => file size => load whole*/
+    if(f_s_offset + 8 > f_e_offset)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "[%ld, %ld) => invalid range [%ld, %ld)\n",
+                                              (*s_offset), e_offset,
+                                              f_s_offset, f_e_offset);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cdcnp_load_basic(cdcnp, fd, f_s_offset, &magic_t, &np_id_t, &np_model_t))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "load basic of np %u failed\n",
+                                              np_id);
+        return (EC_FALSE);
+    }
+
+    /*trick: check np id*/
+    if(np_id != np_id_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "np id mismatched: given %u, stored %u "
+                                              "from fd %d, offset %ld\n",
+                                              np_id, np_id_t,
+                                              fd, f_s_offset);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "np id %u matched "
+                                          "from fd %d, offset %ld\n",
+                                          np_id,
+                                          fd, f_s_offset);
+
+    /*trick: check magic number*/
+    if(CDCNP_MAGIC_NUM != magic_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "np magic mismatched: stored %u != %u "
+                                              "from fd %d, offset %ld\n",
+                                              magic_t,
+                                              CDCNP_MAGIC_NUM,
+                                              fd, f_s_offset);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "np magic %#x matched "
+                                          "from fd %d, offset %ld\n",
+                                          magic_t,
+                                          fd, f_s_offset);
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "np_id %u, np_model %u from fd %d, offset %ld\n",
+                                          np_id, np_model_t, fd, f_s_offset);
+
+    if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: invalid np_model_t %u\n", np_model_t);
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "np_model_t %u, np_size %ld\n",
+                                          np_model_t, np_size);
+
+    CDCNP_ASSERT(0 == (np_size & ((UINT32)CDCPGB_PAGE_SIZE_MASK)));
+    np_size = VAL_ALIGN_NEXT(np_size, ((UINT32)CDCPGB_PAGE_SIZE_MASK));
+
+    offset = f_s_offset;
+
+    cdcnp_header = cdcnp_header_new(np_id, np_size, np_model_t);
+    if(NULL_PTR == cdcnp_header)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "new header for np %u, size %ld, model %u failed\n",
+                                              np_id, np_size, np_model_t);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cdcnp_header_load(cdcnp_header, np_id, fd, &offset, np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                              "load np %u from fd %d, offset %ld failed\n",
+                                              np_id, fd, f_s_offset);
+        cdcnp_header_free(cdcnp_header);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "load np %u from fd %d, offset %ld, size %ld done\n",
+                                          np_id, fd, f_s_offset, np_size);
+
+    CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
+    CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+    CDCNP_ASSERT(f_s_offset + np_size == offset);
+
+    cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
+
+    CDCNP_HDR(cdcnp)    = cdcnp_header;
+    CDCNP_BITMAP(cdcnp) = cdcnp_bitmap;
+
+    /*shortcut*/
+    CDCNP_LRU_LIST(cdcnp) = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, CDCNPLRU_ROOT_POS));
+    CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
+    CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
+
+    CDCNP_S_OFFSET(cdcnp) = f_s_offset;
+    CDCNP_E_OFFSET(cdcnp) = f_s_offset + np_size;
+    CDCNP_FNAME(cdcnp)    = NULL_PTR;
+
+    (*s_offset) = f_s_offset + np_size;
+
+    /*erase magic number which would be overrided after flush successfully*/
+    if(1)
+    {
+        UINT32        offset_erase;
+        UINT8        *data;
+        UINT32        data_len;
+
+        offset_erase = f_s_offset;
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+
+        /*alignment*/
+        data     = (UINT8 *)cdcnp_header;
+        data_len = CDCPGB_PAGE_SIZE_NBYTES;
+
+        if(EC_FALSE == c_file_pwrite(fd, &offset_erase, data_len, data))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
+                                                  "erase np magic from fd %d, offset %ld failed\n",
+                                                  fd, offset_erase);
+
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                              "erase np magic temporarily from fd %d, offset %ld done\n",
+                                              fd, offset_erase);
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
+                                          "load np %u, fsize %ld from fd %d, offset %ld => %ld done\n",
+                                          CDCNP_HEADER_NP_ID(cdcnp_header),
+                                          np_size, fd, f_s_offset, offset);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_load_basic_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node,
+                              uint32_t *magic, uint32_t *np_id, uint8_t *np_model)
+{
+    UINT8        *data;
+    UINT32        data_len;
+
+    data_len = CDCPGB_PAGE_SIZE_NBYTES;
+    data = (UINT8 *)c_memalign_new(data_len, (UINT32)CDCPGB_PAGE_SIZE_NBYTES);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_basic_shm: "
+                                              "new %ld bytes failed\n",
+                                              (UINT32)CDCPGB_PAGE_SIZE_NBYTES);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cmmap_node_peek(cmmap_node, data_len, (UINT8 *)data))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_basic_shm: "
+                                              "load %ld bytes failed\n",
+                                              data_len);
+        c_memalign_free(data);
+        return (EC_FALSE);
+    }
+
+    (*magic)    = CDCNP_HEADER_MAGIC((CDCNP_HEADER *)data);
+    (*np_id)    = CDCNP_HEADER_NP_ID((CDCNP_HEADER *)data);
+    (*np_model) = CDCNP_HEADER_MODEL((CDCNP_HEADER *)data);
+
+    c_memalign_free(data);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCNP_HEADER *cdcnp_header;
+    CDCNP_BITMAP *cdcnp_bitmap;
+    UINT32        f_s_offset;
+    UINT32        f_e_offset;
+
+    UINT32        np_size;
+
+    uint32_t      magic_t;
+    uint32_t      np_id_t;
+    uint8_t       np_model_t;
+
+    CDCNP_ASSERT(NULL_PTR != cdcnp);
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: no fd\n");
+        return (EC_FALSE);
+    }
+
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+
+    /*read np id and np model => file size => load whole*/
+    if(f_s_offset + 8 > f_e_offset)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                              "[%ld, %ld) => invalid range [%ld, %ld)\n",
+                                              (*s_offset), e_offset,
+                                              f_s_offset, f_e_offset);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cdcnp_load_basic_shm(cdcnp, cmmap_node, &magic_t, &np_id_t, &np_model_t))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                              "load basic of np %u failed\n",
+                                              np_id);
+        return (EC_FALSE);
+    }
+
+    /*trick: check np id*/
+    if(np_id != np_id_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                              "np id mismatched: shm stored %u != %u\n",
+                                              np_id_t, np_id);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "np id %u matched\n",
+                                          np_id);
+
+    /*trick: check magic number*/
+    if(CDCNP_MAGIC_NUM != magic_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                              "np magic mismatched: shm stored %#x != %#x\n",
+                                              magic_t, CDCNP_MAGIC_NUM);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "np magic %#x matched\n",
+                                          magic_t);
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "np_id %u, np_model %u\n",
+                                          np_id_t, np_model_t);
+
+    if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: invalid np_model %u\n", np_model_t);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "np_model %u, np_size %ld\n",
+                                          np_model_t, np_size);
+
+    CDCNP_ASSERT(0 == (np_size & ((UINT32)CDCPGB_PAGE_SIZE_MASK)));
+    np_size = VAL_ALIGN_NEXT(np_size, ((UINT32)CDCPGB_PAGE_SIZE_MASK));
+
+
+    /*not truncate => map it*/
+    cdcnp_header = cmmap_node_alloc(cmmap_node, np_size, CDCNP_MEM_ALIGNMENT, "cdc np header");
+    if(NULL_PTR == cdcnp_header)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                              "mmap np %u failed\n",
+                                              np_id);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "load np %u done\n",
+                                          np_id);
+
+    CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
+    CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+
+    cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
+
+    CDCNP_HDR(cdcnp)    = cdcnp_header;
+    CDCNP_BITMAP(cdcnp) = cdcnp_bitmap;
+
+    /*shortcut*/
+    CDCNP_LRU_LIST(cdcnp) = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, CDCNPLRU_ROOT_POS));
+    CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
+    CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
+
+    CDCNP_S_OFFSET(cdcnp) = f_s_offset;
+    CDCNP_E_OFFSET(cdcnp) = f_s_offset + np_size;
+    CDCNP_FNAME(cdcnp)    = NULL_PTR;
+
+    sys_log(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: np is\n");
+    cdcnp_header_print(LOGSTDOUT, cdcnp);
+
+    (*s_offset) = f_s_offset + np_size;
+
+    /*erase magic number which would be overrided after flush successfully*/
+    if(1)
+    {
+        UINT32        offset_erase;
+        UINT8        *data;
+        UINT32        data_len;
+
+        offset_erase = f_s_offset;
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+
+        /*alignment*/
+        data     = (UINT8 *)cdcnp_header;
+        data_len = CDCPGB_PAGE_SIZE_NBYTES;
+
+        if(EC_FALSE == c_file_pwrite(fd, &offset_erase, data_len, data))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
+                                                  "erase np magic from fd %d, offset %ld failed\n",
+                                                  fd, offset_erase);
+
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                              "erase np magic temporarily from fd %d, offset %ld done\n",
+                                              fd, offset_erase);
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
+                                          "load np %u done\n",
+                                          CDCNP_HEADER_NP_ID(cdcnp_header));
+
+    return (EC_TRUE);
+}
+
+/*retrieve np from ssd*/
+EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCNP_HEADER *cdcnp_header;
+    CDCNP_BITMAP *cdcnp_bitmap;
+    UINT32        f_s_offset;
+    UINT32        f_e_offset;
+
+    UINT32        offset;
+
+    UINT32        np_size;
+
+    uint32_t      magic_t;
+    uint32_t      np_id_t;
+    uint8_t       np_model_t;
+
+    CDCNP_ASSERT(NULL_PTR != cdcnp);
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: no fd\n");
+        return (EC_FALSE);
+    }
+
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+
+    /*read np id and np model => file size => load whole*/
+    if(f_s_offset + 8 > f_e_offset)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "[%ld, %ld) => invalid range [%ld, %ld)\n",
+                                              (*s_offset), e_offset,
+                                              f_s_offset, f_e_offset);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cdcnp_load_basic(cdcnp, fd, f_s_offset, &magic_t, &np_id_t, &np_model_t))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "load basic of np %u failed\n",
+                                              np_id);
+        return (EC_FALSE);
+    }
+
+    /*trick: check np id*/
+    if(np_id != np_id_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "np id mismatched: shm stored %u != %u\n",
+                                              np_id_t, np_id);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "np id %u matched\n",
+                                          np_id);
+
+    /*trick: check magic number*/
+    if(CDCNP_MAGIC_NUM != magic_t)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "np magic mismatched: shm stored %#x != %#x\n",
+                                              magic_t, CDCNP_MAGIC_NUM);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "np magic %#x matched\n",
+                                          magic_t);
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "np_id %u, np_model %u\n",
+                                          np_id_t, np_model_t);
+
+    if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: invalid np_model %u\n", np_model_t);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "np_model %u, np_size %ld\n",
+                                          np_model_t, np_size);
+
+    CDCNP_ASSERT(0 == (np_size & ((UINT32)CDCPGB_PAGE_SIZE_MASK)));
+    np_size = VAL_ALIGN_NEXT(np_size, ((UINT32)CDCPGB_PAGE_SIZE_MASK));
+
+    /*not truncate => map it*/
+    cdcnp_header = cmmap_node_alloc(cmmap_node, np_size, CDCNP_MEM_ALIGNMENT, "cdc np header");
+    if(NULL_PTR == cdcnp_header)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "mmap np %u failed\n",
+                                              np_id);
+        return (EC_FALSE);
+    }
+
+    offset = f_s_offset;
+
+    if(EC_FALSE == cdcnp_header_load(cdcnp_header, np_id, fd, &offset, np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                              "load np %u from fd %d, offset %ld failed\n",
+                                              np_id, fd, f_s_offset);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "load np %u from fd %d, offset %ld, size %ld done\n",
+                                          np_id, fd, f_s_offset, np_size);
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "load np %u done\n",
+                                          np_id);
+
+    CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
+    CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+    CDCNP_ASSERT(f_s_offset + np_size == offset);
+
+    cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
+
+    CDCNP_HDR(cdcnp)    = cdcnp_header;
+    CDCNP_BITMAP(cdcnp) = cdcnp_bitmap;
+
+    /*shortcut*/
+    CDCNP_LRU_LIST(cdcnp) = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, CDCNPLRU_ROOT_POS));
+    CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
+    CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
+
+    CDCNP_S_OFFSET(cdcnp) = f_s_offset;
+    CDCNP_E_OFFSET(cdcnp) = f_s_offset + np_size;
+    CDCNP_FNAME(cdcnp)    = NULL_PTR;
+
+    sys_log(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: np is\n");
+    cdcnp_header_print(LOGSTDOUT, cdcnp);
+
+    (*s_offset) = f_s_offset + np_size;
+
+    /*erase magic number which would be overrided after flush successfully*/
+    if(1)
+    {
+        UINT32        offset_erase;
+        UINT8        *data;
+        UINT32        data_len;
+
+        offset_erase = f_s_offset;
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+
+        /*alignment*/
+        data     = (UINT8 *)cdcnp_header;
+        data_len = CDCPGB_PAGE_SIZE_NBYTES;
+
+        if(EC_FALSE == c_file_pwrite(fd, &offset_erase, data_len, data))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
+                                                  "erase np magic from fd %d, offset %ld failed\n",
+                                                  fd, offset_erase);
+
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                              "erase np magic temporarily from fd %d, offset %ld done\n",
+                                              fd, offset_erase);
+
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
+                                          "load np %u done\n",
+                                          CDCNP_HEADER_NP_ID(cdcnp_header));
+
+    return (EC_TRUE);
+}
 
 EC_BOOL cdcnp_flush(CDCNP *cdcnp)
 {
@@ -3180,6 +3755,13 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
         if(ERR_FD == CDCNP_FD(cdcnp))
         {
             dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_flush: no fd\n");
+            return (EC_FALSE);
+        }
+
+        if(BIT_TRUE == CDCNP_DONTDUMP_FLAG(cdcnp))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_flush: "
+                                                  "asked not to flush\n");
             return (EC_FALSE);
         }
 
@@ -3225,7 +3807,6 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
     UINT32           f_s_offset;
     UINT32           f_e_offset;
     UINT32           np_size;
-    //uint32_t         item_max_num;
 
     if(EC_FALSE == cdcnp_model_file_size(np_model, &np_size))
     {
@@ -3251,14 +3832,6 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
                                               f_s_offset, f_e_offset);
         return (NULL_PTR);
     }
-
-#if 0
-    if(EC_FALSE == cdcnp_model_item_max_num(np_model, &item_max_num))
-    {
-        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create: invalid np_model %u\n", np_model);
-        return (NULL_PTR);
-    }
-#endif
 
     cdcnp_header = cdcnp_header_new(np_id, np_size, np_model);
     if(NULL_PTR == cdcnp_header)
@@ -3307,6 +3880,125 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
     cdcnp_create_root_item(cdcnp);
 
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_create: create np %u done\n", np_id);
+
+    return (cdcnp);
+}
+
+CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const uint32_t key_max_num, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCNP           *cdcnp;
+    CDCNP_BITMAP    *cdcnp_bitmap;
+    CDCNP_HEADER    *cdcnp_header;
+    UINT32           f_s_offset;
+    UINT32           f_e_offset;
+    UINT32           np_size;
+    uint32_t         node_max_num;
+    uint32_t         node_sizeof;
+
+    if(EC_FALSE == cdcnp_model_file_size(np_model, &np_size))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: invalid np_model %u\n", np_model);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_create_shm: "
+                                          "np_model %u, np_size %ld\n",
+                                          np_model, np_size);
+
+    CDCNP_ASSERT(0 == (np_size & ((UINT32)CDCPGB_PAGE_SIZE_MASK)));
+    np_size = VAL_ALIGN_NEXT(np_size, ((UINT32)CDCPGB_PAGE_SIZE_MASK));      /*align to one page*/
+
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+
+    if(f_e_offset < f_s_offset + np_size)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: "
+                                              "model %u, np_size %ld => range [%ld, %ld) cannot accept np\n",
+                                              np_model, np_size,
+                                              f_s_offset, f_e_offset);
+        return (NULL_PTR);
+    }
+
+    cdcnp_model_item_max_num(np_model, &node_max_num);
+    node_sizeof = sizeof(CDCNP_ITEM);
+
+    if(0 == node_max_num)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: "
+                                              "np model %u => node max num = %u is invalid\n",
+                                              np_model, node_max_num);
+        return (NULL_PTR);
+    }
+
+
+    cdcnp_header = cmmap_node_alloc(cmmap_node, np_size, CDCNP_MEM_ALIGNMENT, "cdc np header");
+    if(NULL_PTR == cdcnp_header)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: "
+                                              "create np failed\n");
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_create_shm: "
+                                          "create header %p, size %ld done\n",
+                                          cdcnp_header, np_size);
+
+    CDCNP_HEADER_NP_ID(cdcnp_header)        = np_id;
+    CDCNP_HEADER_MODEL(cdcnp_header)        = np_model;
+    CDCNP_HEADER_DEG_NODE_NUM(cdcnp_header) = 0;
+
+    /*init RB Nodes*/
+    cdcnprb_pool_init(CDCNP_HEADER_ITEMS_POOL(cdcnp_header), node_max_num, node_sizeof);
+
+    /*init LRU nodes*/
+    cdcnplru_pool_init(CDCNP_HEADER_ITEMS_POOL(cdcnp_header), node_max_num, node_sizeof);
+
+    /*init DEL nodes*/
+    cdcnpdel_pool_init(CDCNP_HEADER_ITEMS_POOL(cdcnp_header), node_max_num, node_sizeof);
+
+    /*init DEG nodes*/
+    cdcnpdeg_pool_init(CDCNP_HEADER_ITEMS_POOL(cdcnp_header), node_max_num, node_sizeof);
+
+    CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM;
+
+    cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
+    if(EC_FALSE == cdcnp_bitmap_init(cdcnp_bitmap, key_max_num))
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: np %u init bitmap failed\n", np_id);
+
+        return (NULL_PTR);
+    }
+
+    cdcnp = cdcnp_new();
+    if(NULL_PTR == cdcnp)
+    {
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: new np %u failed\n", np_id);
+
+        return (NULL_PTR);
+    }
+    CDCNP_BITMAP(cdcnp) = cdcnp_bitmap;
+    CDCNP_HDR(cdcnp)    = cdcnp_header;
+
+    /*shortcut*/
+    CDCNP_LRU_LIST(cdcnp) = CDCNP_ITEM_LRU_NODE(cdcnp_fetch(cdcnp, CDCNPLRU_ROOT_POS));
+    CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
+    CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
+
+    CDCNP_FD(cdcnp)        = ERR_FD;
+    CDCNP_S_OFFSET(cdcnp)  = f_s_offset;
+    CDCNP_E_OFFSET(cdcnp)  = f_s_offset + np_size;
+    CDCNP_FNAME(cdcnp)     = NULL_PTR;
+
+    (*s_offset) = f_s_offset + np_size;
+
+    CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
+
+    /*create root item*/
+    cdcnp_create_root_item(cdcnp);
+
+    dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_create_shm: create np %u done\n", np_id);
+
 
     return (cdcnp);
 }

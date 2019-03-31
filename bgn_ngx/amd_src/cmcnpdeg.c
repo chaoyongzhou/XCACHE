@@ -276,7 +276,7 @@ EC_BOOL cmcnpdeg_pool_init(CMCNPRB_POOL *pool, const uint32_t node_max_num, cons
 
     if(CMCNPRB_POOL_MAX_SIZE < node_max_num)
     {
-        dbg_log(SEC_0189_CMCNPDEG, 0)(LOGSTDERR, "error:cmcnpdeg_pool_init: node_max_num %u overflow!\n", node_max_num);
+        dbg_log(SEC_0189_CMCNPDEG, 0)(LOGSTDOUT, "error:cmcnpdeg_pool_init: node_max_num %u overflow!\n", node_max_num);
         return (EC_FALSE);
     }
 

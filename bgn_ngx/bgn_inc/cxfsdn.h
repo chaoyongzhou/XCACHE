@@ -31,6 +31,8 @@ extern "C"{
 
 #include "cbadbitmap.h"
 
+#include "cmsync.h"
+
 #include "cxfscfg.h"
 #include "cxfspgrb.h"
 #include "cxfspgb.h"
@@ -40,6 +42,8 @@ extern "C"{
 #include "camd.h"
 
 #define CXFSDN_MEM_ALIGNMENT           (1 << 20)
+
+#define CXFSDN_MSYNC_SIZE              (256 << 10) /*256K*/
 
 #define CXFSDN_002K_BAD_PAGE      ( 1)
 #define CXFSDN_004K_BAD_PAGE      ( 2)
@@ -173,6 +177,11 @@ extern "C"{
 
 typedef struct
 {
+    uint32_t           read_only_flag:1;
+    uint32_t           rsvd01        :31;
+    uint16_t           writer_num;
+    uint16_t           reader_num;
+
     CXFSPGV           *cxfspgv;
 
     int                ssd_disk_fd;
@@ -186,8 +195,13 @@ typedef struct
     CAMD_MD           *camd_md;
 
     CBAD_BITMAP       *sata_bad_bitmap;
+
+    CMSYNC_NODE       *dn_msync_node;
 }CXFSDN;
 
+#define CXFSDN_READ_ONLY_FLAG(cxfsdn)                      ((cxfsdn)->read_only_flag)
+#define CXFSDN_WRITER_NUM(cxfsdn)                          ((cxfsdn)->writer_num)
+#define CXFSDN_READER_NUM(cxfsdn)                          ((cxfsdn)->reader_num)
 #define CXFSDN_CXFSPGV(cxfsdn)                             ((cxfsdn)->cxfspgv)
 #define CXFSDN_SSD_DISK_FD(cxfsdn)                         ((cxfsdn)->ssd_disk_fd)
 #define CXFSDN_SATA_DISK_FD(cxfsdn)                        ((cxfsdn)->sata_disk_fd)
@@ -196,7 +210,7 @@ typedef struct
 #define CXFSDN_MEM_CACHE(cxfsdn)                           ((cxfsdn)->mem_cache)
 #define CXFSDN_CAMD_MD(cxfsdn)                             ((cxfsdn)->camd_md)
 #define CXFSDN_SATA_BAD_BITMAP(cxfsdn)                     ((cxfsdn)->sata_bad_bitmap)
-
+#define CXFSDN_MSYNC_NODE(cxfsdn)                          ((cxfsdn)->dn_msync_node)
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset);
 
@@ -218,6 +232,8 @@ EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap);
 
 EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn);
 
+EC_BOOL cxfsdn_sync_sata_bad_bitmap(CXFSDN *cxfsdn, const UINT32 sata_bad_bitmap_offset, const UINT32 sata_bad_bitmap_size);
+
 EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 EC_BOOL cxfsdn_discard_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
@@ -234,6 +250,12 @@ void cxfsdn_print(LOG *log, const CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn);
 
+EC_BOOL cxfsdn_set_read_only(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_unset_read_only(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_is_read_only(CXFSDN *cxfsdn);
+
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
@@ -245,6 +267,17 @@ CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int 
 
 EC_BOOL cxfsdn_close(CXFSDN *cxfsdn);
 
+EC_BOOL cxfsdn_dump(CXFSDN *cxfsdn, const UINT32 cxfsdn_zone_s_offset);
+
+EC_BOOL cxfsdn_start_sync(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_end_sync(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_process_sync(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_is_sync(CXFSDN *cxfsdn);
+
+EC_BOOL cxfsdn_can_sync(CXFSDN *cxfsdn);
 
 /*random access for reading, the offset is for the whole 64M page-block */
 EC_BOOL cxfsdn_read_o(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const UINT32 offset, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *data_len);
@@ -270,6 +303,10 @@ EC_BOOL cxfsdn_read_e(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t blo
 EC_BOOL cxfsdn_write_e(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *data_buff, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t offset);
 
 EC_BOOL cxfsdn_remove(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const UINT32 data_max_len);
+
+EC_BOOL cxfsdn_reserve_space(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+EC_BOOL cxfsdn_release_space(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
 
 #endif/* _CXFSDN_H */
 

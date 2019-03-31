@@ -16,6 +16,10 @@ extern "C"{
 #include "cmcpgrb.h"
 #include "cmcpgb.h"
 
+#include "cmmap.h"
+
+#define CMCPGD_MEM_ALIGNMENT    (UINT32_ONE << 20) /*1MB alignment*/
+
 #define CMCPGD_032MB_SIZE_NBITS ((uint32_t) 25)
 #define CMCPGD_064MB_SIZE_NBITS ((uint32_t) 26)
 #define CMCPGD_128MB_SIZE_NBITS ((uint32_t) 27)
@@ -242,6 +246,12 @@ CMCPGD_HDR *cmcpgd_hdr_new(CMCPGD *cmcpgd, const uint16_t block_num);
 
 EC_BOOL cmcpgd_hdr_free(CMCPGD *cmcpgd);
 
+CMCPGD_HDR *cmcpgd_hdr_create(CMMAP_NODE *cmmap_node, CMCPGD *cmcpgd, const uint16_t block_num);
+
+CMCPGD_HDR *cmcpgd_hdr_load(CMMAP_NODE *cmmap_node, CMCPGD *cmcpgd, const uint16_t block_num);
+
+EC_BOOL cmcpgd_hdr_close(CMCPGD *cmcpgd);
+
 CMCPGD *cmcpgd_new(const uint16_t block_num);
 
 EC_BOOL cmcpgd_free(CMCPGD *cmcpgd);
@@ -250,6 +260,12 @@ EC_BOOL cmcpgd_free(CMCPGD *cmcpgd);
 EC_BOOL cmcpgd_init(CMCPGD *cmcpgd);
 
 void cmcpgd_clean(CMCPGD *cmcpgd);
+
+CMCPGD *cmcpgd_create(CMMAP_NODE *cmmap_node, const uint16_t block_num);
+
+CMCPGD *cmcpgd_load(CMMAP_NODE *cmmap_node, const uint16_t block_num);
+
+EC_BOOL cmcpgd_close(CMCPGD *cmcpgd);
 
 /*add one free block into pool*/
 EC_BOOL cmcpgd_add_block(CMCPGD *cmcpgd, const uint16_t block_no, const uint16_t page_model);

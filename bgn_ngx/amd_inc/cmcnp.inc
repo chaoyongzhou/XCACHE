@@ -37,6 +37,8 @@ extern "C"{
 #define CMCNP_KEY_MAX_SIZE             (CMCNP_KEY_SIZE_000B)
 #define CMCNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 
+#define CMCNP_MEM_ALIGNMENT            (UINT32_ONE << 20) /*1MB alignment*/
+
 #define CMCNP_001M_MODEL   ((uint8_t) 0)
 #define CMCNP_002M_MODEL   ((uint8_t) 1)
 #define CMCNP_004M_MODEL   ((uint8_t) 2)
@@ -378,9 +380,9 @@ typedef struct
 #define CMCNP_CFG_FILE_SIZE(cmcnp_cfg)              ((cmcnp_cfg)->file_size)
 #define CMCNP_CFG_ITEM_MAX_NUM(cmcnp_cfg)           ((cmcnp_cfg)->item_max_num)
 
-#define CMCNP_ERR_MODEL             ((uint32_t)0xF)  /*4 bits*/
+#define CMCNP_ERR_MODEL                             ((uint8_t)0xF)  /*4 bits*/
 
-#define CMCNP_ERR_ID                ((uint32_t)0xFFFFFFFF)
+#define CMCNP_ERR_ID                                ((uint32_t)0xFFFFFFFF)
 
 typedef struct
 {
@@ -450,7 +452,8 @@ typedef struct
 typedef struct
 {
     int                     fd;         /* memcache namespace fd  */
-    uint32_t                rsvd;
+    uint32_t                read_only_flag   :1;/*np is read-only if set*/
+    uint32_t                rsvd01           :31;
 
     UINT32                  fsize;
 
@@ -478,6 +481,7 @@ typedef struct
     CMCNP_DEGRADE_CB        degrade_cb;
 } CMCNP;
 
+#define CMCNP_RDONLY_FLAG(cmcnp)            ((cmcnp)->read_only_flag)
 #define CMCNP_FD(cmcnp)                     ((cmcnp)->fd)
 #define CMCNP_FSIZE(cmcnp)                  ((cmcnp)->fsize)
 #define CMCNP_FNAME(cmcnp)                  ((cmcnp)->fname)

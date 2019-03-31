@@ -40,7 +40,7 @@ extern "C"{
 
 #include "cxfsdn.h"
 
-/*Random File System Data Node*/
+/*X File System Data Node*/
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset)
 {
@@ -54,14 +54,21 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
     {
         ASSERT(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn));
 
+        CXFSDN_WRITER_NUM(cxfsdn) ++;
+
         if(EC_FALSE == camd_file_write(CXFSDN_CAMD_MD(cxfsdn),
                                        CXFSDN_SATA_DISK_FD(cxfsdn), &offset_r, data_max_len, data_buff))
         {
+            CXFSDN_WRITER_NUM(cxfsdn) --;
+
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_write: "
                                 "amd write %ld bytes to node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
+
             return (EC_FALSE);
         }
+
+        CXFSDN_WRITER_NUM(cxfsdn) --;
 
         dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_write: "
                             "amd write %ld bytes to node %ld at offset %ld done\n",
@@ -70,13 +77,20 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
     if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
     {
+        CXFSDN_WRITER_NUM(cxfsdn) ++;
+
         if(EC_FALSE == c_file_pwrite(CXFSDN_SATA_DISK_FD(cxfsdn), &offset_r, data_max_len, data_buff))
         {
+            CXFSDN_WRITER_NUM(cxfsdn) --;
+
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_write: "
                                 "flush %ld bytes to node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
+
             return (EC_FALSE);
         }
+
+        CXFSDN_WRITER_NUM(cxfsdn) --;
     }
 
     (*offset) = (offset_r - offset_b);
@@ -95,14 +109,20 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
     {
         ASSERT(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn));
 
+        CXFSDN_READER_NUM(cxfsdn) ++;
+
         if(EC_FALSE == camd_file_read(CXFSDN_CAMD_MD(cxfsdn),
                                       CXFSDN_SATA_DISK_FD(cxfsdn), &offset_r, data_max_len, data_buff))
         {
+            CXFSDN_READER_NUM(cxfsdn) --;
+
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_read: "
                                 "amd read %ld bytes from node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
             return (EC_FALSE);
         }
+
+        CXFSDN_READER_NUM(cxfsdn) --;
 
         dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_read: "
                             "amd read %ld bytes from node %ld at offset %ld done\n",
@@ -111,13 +131,18 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
 
     if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
     {
+        CXFSDN_READER_NUM(cxfsdn) ++;
         if(EC_FALSE == c_file_pread(CXFSDN_SATA_DISK_FD(cxfsdn), &offset_r, data_max_len, data_buff))
         {
+            CXFSDN_READER_NUM(cxfsdn) --;
+
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_read: "
                                 "load %ld bytes from node %ld at offset %ld failed\n",
                                 data_max_len, node_id, offset_r);
             return (EC_FALSE);
         }
+
+        CXFSDN_READER_NUM(cxfsdn) --;
     }
 
     (*offset) = (offset_r - offset_b);
@@ -129,6 +154,8 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
                          const int cxfsdn_ssd_fd, const UINT32 cxfsdn_ssd_size, const UINT32 cxfsdn_ssd_offset)
 {
     CXFSDN  *cxfsdn;
+
+    UINT32   sata_disk_size;
 
     UINT32   dn_size;
     UINT32   dn_mem_align;
@@ -143,8 +170,10 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
         return (NULL_PTR);
     }
 
-    disk_size     = (((UINT32)CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)CXFSPGB_CACHE_MAX_BYTE_SIZE));
-    disk_max_num  = (uint16_t)(cxfsdn_sata_size / disk_size);
+    sata_disk_size = cxfsdn_sata_size - cxfsdn_sata_offset; /*sata disk size for xfs data node*/
+
+    disk_size      = (((UINT32)CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)CXFSPGB_CACHE_MAX_BYTE_SIZE));
+    disk_max_num   = (uint16_t)(sata_disk_size / disk_size);
 
     for(;0 < disk_max_num; disk_max_num --)
     {
@@ -156,7 +185,7 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
         dn_size = (dn_size + mask) & (~mask);
 
         dn_total_size = dn_size + disk_size * ((UINT32)disk_max_num);
-        if(dn_total_size <= cxfsdn_sata_size)
+        if(dn_total_size <= sata_disk_size)
         {
             break;
         }
@@ -166,7 +195,7 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
                                                "sata size %ld, disk size %ld => invalid disk max num %u\n",
-                                               cxfsdn_sata_size, disk_size, disk_max_num);
+                                               sata_disk_size, disk_size, disk_max_num);
         return (NULL_PTR);
     }
 
@@ -180,7 +209,7 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
 
     dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_create: "
                                            "sata size %ld, disk size %ld => disk max num %u => dn size %ld\n",
-                                           cxfsdn_sata_size, disk_size, disk_max_num, dn_size);
+                                           sata_disk_size, disk_size, disk_max_num, dn_size);
 
     cxfsdn = cxfsdn_new();
     if(NULL_PTR == cxfsdn)
@@ -272,59 +301,83 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
     if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
     {
         CAMD_MD    *camd_md;
-        UINT32      sata_disk_size; /*in byte*/
-        UINT32      mem_disk_size;  /*in byte*/
-        UINT32      ssd_disk_offset;/*in byte*/
-        UINT32      ssd_disk_size;  /*in byte*/
+        UINT32      mem_disk_size;   /*in byte*/
+        UINT32      ssd_disk_offset; /*in byte*/
+        UINT32      ssd_disk_size;   /*in byte*/
         int         sata_disk_fd;
         int         ssd_disk_fd;
 
-        sata_disk_fd    = cxfsdn_sata_fd;
-        sata_disk_size  = cxfsdn_sata_size - cxfsdn_sata_offset;
+        sata_disk_fd     = cxfsdn_sata_fd;
 
-        mem_disk_size   = cxfsdn_mem_size;
+        mem_disk_size    = cxfsdn_mem_size;
 
-        ssd_disk_fd     = cxfsdn_ssd_fd;
-        ssd_disk_offset = cxfsdn_ssd_offset;
-        ssd_disk_size   = cxfsdn_ssd_size;
+        ssd_disk_fd      = cxfsdn_ssd_fd;
+        ssd_disk_offset  = cxfsdn_ssd_offset;
+        ssd_disk_size    = cxfsdn_ssd_size;
 
-        camd_md = camd_start(NULL_PTR, sata_disk_fd, sata_disk_size,
+        camd_md = camd_start(NULL_PTR, sata_disk_fd, cxfsdn_sata_size/*sata total disk size*/,
                              mem_disk_size,
                              ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
         if(NULL_PTR == camd_md)
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create:start camd failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: start camd failed\n");
             cxfsdn_free(cxfsdn);
             return (NULL_PTR);
         }
 
-        if(EC_FALSE == camd_create(camd_md))
+        if(EC_FALSE == camd_create(camd_md, CAMD_NOT_RETRIEVE_BAD_BITMAP))
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create:create cdc failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: create cdc failed\n");
             camd_end(camd_md);
             cxfsdn_free(cxfsdn);
             return (NULL_PTR);
         }
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: create cdc done\n");
 
-        if(ERR_FD != camd_get_eventfd(camd_md)
-        && NULL_PTR != task_brd_default_get_cepoll())
+        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, 0/*offset*/, cxfsdn_sata_offset/*size*/))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: enable dio failed\n");
+            camd_end(camd_md);
+            cxfsdn_free(cxfsdn);
+            return (NULL_PTR);
+        }
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: enable dio done\n");
+
+
+        if(NULL_PTR != task_brd_default_get())
         {
             task_brd_process_add(task_brd_default_get(),
-                                (TASK_BRD_CALLBACK)camd_process,
-                                (void *)camd_md);
+                        TASK_BRD_PROCESS_LOOP,
+                        (TASK_BRD_CALLBACK)camd_process,
+                        (void *)camd_md);
 
-            cepoll_set_event(task_brd_default_get_cepoll(),
-                              camd_get_eventfd(camd_md),
-                              CEPOLL_RD_EVENT,
-                              (const char *)"camd_event_handler",
-                              (CEPOLL_EVENT_HANDLER)camd_event_handler,
-                              (void *)camd_md);
+            if(NULL_PTR != task_brd_default_get_cepoll()
+            && ERR_FD != camd_get_eventfd(camd_md))
+            {
+                cepoll_set_event(task_brd_default_get_cepoll(),
+                                  camd_get_eventfd(camd_md),
+                                  CEPOLL_RD_EVENT,
+                                  (const char *)"camd_event_handler",
+                                  (CEPOLL_EVENT_HANDLER)camd_event_handler,
+                                  (void *)camd_md);
+            }
+
+            if(NULL_PTR != task_brd_default_get_cepoll()
+            && ERR_FD != camd_cdio_get_eventfd(camd_md))
+            {
+                cepoll_set_event(task_brd_default_get_cepoll(),
+                                  camd_cdio_get_eventfd(camd_md),
+                                  CEPOLL_RD_EVENT,
+                                  (const char *)"camd_cdio_event_handler",
+                                  (CEPOLL_EVENT_HANDLER)camd_cdio_event_handler,
+                                  (void *)camd_md);
+            }
         }
 
         CXFSDN_CAMD_MD(cxfsdn)     = camd_md;
         CXFSDN_SSD_DISK_FD(cxfsdn) = cxfsdn_ssd_fd;
 
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create:create cdc done\n");
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: create cdc done\n");
     }
 
     return (cxfsdn);
@@ -378,7 +431,7 @@ EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap)
     if(NULL_PTR == CXFSDN_SATA_BAD_BITMAP(cxfsdn)
     && NULL_PTR != cbad_bitmap)
     {
-        CXFSDN_SATA_BAD_BITMAP(cxfsdn) = cbad_bitmap;
+        CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = cbad_bitmap;
 
         if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
         {
@@ -394,7 +447,7 @@ EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn)
 {
     if(NULL_PTR != CXFSDN_SATA_BAD_BITMAP(cxfsdn))
     {
-        CXFSDN_SATA_BAD_BITMAP(cxfsdn) = NULL_PTR;
+        CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = NULL_PTR;
 
         if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
         {
@@ -404,6 +457,81 @@ EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn)
     }
 
     return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxfsdn_sync_sata_bad_bitmap_callback(void *data)
+{
+    if(NULL_PTR != data)
+    {
+        free_static_mem(MM_UINT32, data, LOC_CXFSDN_0001);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsdn_sync_sata_bad_bitmap(CXFSDN *cxfsdn, const UINT32 sata_bad_bitmap_offset, const UINT32 sata_bad_bitmap_size)
+{
+    CAMD_MD             *camd_md;
+    CBAD_BITMAP         *sata_bad_bitmap;
+    int                  sata_disk_fd;
+
+    camd_md         = CXFSDN_CAMD_MD(cxfsdn);
+    sata_bad_bitmap = CXFSDN_SATA_BAD_BITMAP(cxfsdn);
+    sata_disk_fd    = CXFSDN_SATA_DISK_FD(cxfsdn);
+
+    if(NULL_PTR != sata_bad_bitmap
+    && ERR_FD   != sata_disk_fd
+    && NULL_PTR != camd_md
+    && NULL_PTR != CAMD_MD_CDC_MD(camd_md)
+    && NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
+    {
+        UINT32  *sata_bad_bitmap_offset_t;
+        CAIO_CB  caio_cb;
+
+        alloc_static_mem(MM_UINT32, &sata_bad_bitmap_offset_t, LOC_CXFSDN_0002);
+        if(NULL_PTR == sata_bad_bitmap_offset_t)
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync_sata_bad_bitmap: "
+                                                   "alloc memory failed\n");
+            return (EC_FALSE);
+        }
+
+        (*sata_bad_bitmap_offset_t) = sata_bad_bitmap_offset;
+
+        caio_cb_init(&caio_cb);
+        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT,
+                                    (CAIO_CALLBACK)__cxfsdn_sync_sata_bad_bitmap_callback,
+                                    (void *)sata_bad_bitmap_offset_t);
+        caio_cb_set_terminate_handler(&caio_cb,
+                                    (CAIO_CALLBACK)__cxfsdn_sync_sata_bad_bitmap_callback,
+                                    (void *)sata_bad_bitmap_offset_t);
+        caio_cb_set_complete_handler(&caio_cb,
+                                    (CAIO_CALLBACK)__cxfsdn_sync_sata_bad_bitmap_callback,
+                                    (void *)sata_bad_bitmap_offset_t);
+
+        if(EC_FALSE == caio_file_write(CAMD_MD_CAIO_MD(camd_md),
+                                     sata_disk_fd, /*sync to sata*/
+                                     sata_bad_bitmap_offset_t,
+                                     sata_bad_bitmap_size,
+                                     (UINT8 *)sata_bad_bitmap,
+                                     &caio_cb))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync_sata_bad_bitmap: "
+                                 "sync sata bad bitmap to fd %d with offset %ld, size %ld failed\n",
+                                 sata_disk_fd,
+                                 sata_bad_bitmap_offset,
+                                 sata_bad_bitmap_size);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_sync_sata_bad_bitmap: "
+                                 "sync sata bad bitmap to fd %d with offset %ld, size %ld done\n",
+                                 sata_disk_fd,
+                                 sata_bad_bitmap_offset,
+                                 sata_bad_bitmap_size);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
@@ -478,7 +606,7 @@ CXFSDN *cxfsdn_new()
 {
     CXFSDN *cxfsdn;
 
-    alloc_static_mem(MM_CXFSDN, &cxfsdn, LOC_CXFSDN_0001);
+    alloc_static_mem(MM_CXFSDN, &cxfsdn, LOC_CXFSDN_0003);
     if(NULL_PTR != cxfsdn)
     {
         cxfsdn_init(cxfsdn);
@@ -489,20 +617,26 @@ CXFSDN *cxfsdn_new()
 
 EC_BOOL cxfsdn_init(CXFSDN *cxfsdn)
 {
-    CXFSDN_CXFSPGV(cxfsdn)          = NULL_PTR;
+    CXFSDN_READ_ONLY_FLAG(cxfsdn)       = BIT_FALSE;
 
-    CXFSDN_SSD_DISK_FD(cxfsdn)      = ERR_FD;
+    CXFSDN_WRITER_NUM(cxfsdn)           = 0;
+    CXFSDN_READER_NUM(cxfsdn)           = 0;
 
-    CXFSDN_SATA_DISK_FD(cxfsdn)     = ERR_FD;
-    CXFSDN_OFFSET(cxfsdn)           = ERR_OFFSET;
-    CXFSDN_SIZE(cxfsdn)             = 0;
+    CXFSDN_CXFSPGV(cxfsdn)              = NULL_PTR;
 
-    CXFSDN_MEM_CACHE(cxfsdn)        = NULL_PTR;
+    CXFSDN_SSD_DISK_FD(cxfsdn)          = ERR_FD;
 
-    CXFSDN_CAMD_MD(cxfsdn)          = NULL_PTR;
+    CXFSDN_SATA_DISK_FD(cxfsdn)         = ERR_FD;
+    CXFSDN_OFFSET(cxfsdn)               = ERR_OFFSET;
+    CXFSDN_SIZE(cxfsdn)                 = 0;
 
-    CXFSDN_SATA_BAD_BITMAP(cxfsdn)  = NULL_PTR;
+    CXFSDN_MEM_CACHE(cxfsdn)            = NULL_PTR;
 
+    CXFSDN_CAMD_MD(cxfsdn)              = NULL_PTR;
+
+    CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = NULL_PTR;
+
+    CXFSDN_MSYNC_NODE(cxfsdn)           = NULL_PTR;
     return (EC_TRUE);
 }
 
@@ -546,19 +680,30 @@ EC_BOOL cxfsdn_clean(CXFSDN *cxfsdn)
         CXFSDN_MEM_CACHE(cxfsdn) = NULL_PTR;
     }
 
+    if(NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
+    {
+        cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
+        CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
+    }
+
     if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
     {
         camd_end(CXFSDN_CAMD_MD(cxfsdn));
         CXFSDN_CAMD_MD(cxfsdn) = NULL_PTR;
     }
 
-    CXFSDN_SATA_BAD_BITMAP(cxfsdn)  = NULL_PTR;
+    CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = NULL_PTR;
 
-    CXFSDN_SSD_DISK_FD(cxfsdn)      = ERR_FD;
+    CXFSDN_SSD_DISK_FD(cxfsdn)          = ERR_FD;
 
-    CXFSDN_SATA_DISK_FD(cxfsdn)     = ERR_FD;
-    CXFSDN_OFFSET(cxfsdn)           = ERR_OFFSET;
-    CXFSDN_SIZE(cxfsdn)             = 0;
+    CXFSDN_SATA_DISK_FD(cxfsdn)         = ERR_FD;
+    CXFSDN_OFFSET(cxfsdn)               = ERR_OFFSET;
+    CXFSDN_SIZE(cxfsdn)                 = 0;
+
+    CXFSDN_READ_ONLY_FLAG(cxfsdn)       = BIT_FALSE;
+
+    CXFSDN_WRITER_NUM(cxfsdn)           = 0;
+    CXFSDN_READER_NUM(cxfsdn)           = 0;
 
     return (EC_TRUE);
 }
@@ -568,7 +713,7 @@ EC_BOOL cxfsdn_free(CXFSDN *cxfsdn)
     if(NULL_PTR != cxfsdn)
     {
         cxfsdn_clean(cxfsdn);
-        free_static_mem(MM_CXFSDN, cxfsdn, LOC_CXFSDN_0002);
+        free_static_mem(MM_CXFSDN, cxfsdn, LOC_CXFSDN_0004);
     }
     return (EC_TRUE);
 }
@@ -585,6 +730,48 @@ void cxfsdn_print(LOG *log, const CXFSDN *cxfsdn)
 EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn)
 {
     return cxfspgv_is_full(CXFSDN_CXFSPGV(cxfsdn));
+}
+
+EC_BOOL cxfsdn_set_read_only(CXFSDN *cxfsdn)
+{
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_set_read_only: "
+                                               "dn is in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSDN_READ_ONLY_FLAG(cxfsdn) = BIT_TRUE;
+
+    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_set_read_only: "
+                                           "dn set read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsdn_unset_read_only(CXFSDN *cxfsdn)
+{
+    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_unset_read_only: "
+                                               "dn is not in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSDN_READ_ONLY_FLAG(cxfsdn) = BIT_FALSE;
+
+    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_unset_read_only: "
+                                           "dn unset read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsdn_is_read_only(CXFSDN *cxfsdn)
+{
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
 }
 
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
@@ -655,12 +842,13 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
                        const UINT32 cxfsdn_mem_size,
                        const int cxfsdn_ssd_fd)
 {
-    CXFSPGV    *cxfspgv;
+    CXFSPGV          *cxfspgv;
 
-    UINT32      dn_offset;
-    UINT32      dn_mem_size;
-    UINT32      dn_mem_align;
-    UINT8      *dn_mem_cache;
+    UINT32            dn_offset;
+    UINT32            dn_mem_size;
+    UINT32            dn_mem_align;
+    UINT8            *dn_mem_cache;
+    const CXFSZONE   *cxfszone;
 
     if(NULL_PTR == cxfsdn)
     {
@@ -674,7 +862,10 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
         return (EC_FALSE);
     }
 
-    dn_mem_size  = CXFSCFG_DN_E_OFFSET(cxfscfg) - CXFSCFG_DN_S_OFFSET(cxfscfg);
+    /*active zone*/
+    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg));
+
+    dn_mem_size  = CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone);
     dn_mem_align = CXFSDN_MEM_ALIGNMENT;
     ASSERT(0 == (dn_mem_size & (CXFSDN_MEM_ALIGNMENT - 1)));
 
@@ -689,18 +880,25 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
             return (EC_FALSE);
         }
 
-        dn_offset = CXFSCFG_DN_S_OFFSET(cxfscfg);
+        dn_offset = CXFSZONE_S_OFFSET(cxfszone);
         if(EC_FALSE == c_file_pread(cxfsdn_sata_fd, &dn_offset, dn_mem_size, dn_mem_cache))
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: "
-                                                   "load %ld bytes from offset %ld failed\n",
+                                                   "load %ld bytes from active zone %ld, offset %ld failed\n",
                                                    dn_mem_size,
-                                                   CXFSCFG_DN_S_OFFSET(cxfscfg));
+                                                   CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg),
+                                                   CXFSZONE_S_OFFSET(cxfszone));
             c_memalign_free(dn_mem_cache);
             return (EC_FALSE);
         }
 
-        cxfspgv = cxfspgv_open(dn_mem_cache, cxfscfg);
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load: "
+                                               "load %ld bytes from active zone %ld, offset %ld done\n",
+                                               dn_mem_size,
+                                               CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg),
+                                               CXFSZONE_S_OFFSET(cxfszone));
+
+        cxfspgv = cxfspgv_open(dn_mem_cache, cxfszone);
         if(NULL_PTR == cxfspgv)
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load/open vol failed\n");
@@ -722,7 +920,7 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
             return (EC_FALSE);
         }
 
-        dn_offset = CXFSCFG_DN_S_OFFSET(cxfscfg);
+        dn_offset = CXFSZONE_S_OFFSET(cxfszone);
         dn_mem_cache = (UINT8 *)mmap(addr, dn_mem_size,
                                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
                                      cxfsdn_sata_fd, dn_offset);
@@ -734,7 +932,13 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
             return (EC_FALSE);
         }
 
-        cxfspgv = cxfspgv_open(dn_mem_cache, cxfscfg);
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load: "
+                                               "mmap %ld bytes from active zone %ld, offset %ld done\n",
+                                               dn_mem_size,
+                                               CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg),
+                                               CXFSZONE_S_OFFSET(cxfszone));
+
+        cxfspgv = cxfspgv_open(dn_mem_cache, cxfszone);
         if(NULL_PTR == cxfspgv)
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load/open vol failed\n");
@@ -755,52 +959,76 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
     {
         CAMD_MD     *camd_md;
 
-        UINT32       sata_disk_size;
         UINT32       mem_disk_size;
         UINT32       ssd_disk_offset;
         UINT32       ssd_disk_size;
         int          ssd_disk_fd;
         int          sata_disk_fd;
 
-        sata_disk_fd    = cxfsdn_sata_fd;
-        sata_disk_size  = CXFSCFG_SATA_DISK_SIZE(cxfscfg) - CXFSCFG_DN_S_OFFSET(cxfscfg);
+        sata_disk_fd     = cxfsdn_sata_fd;
 
-        mem_disk_size   = cxfsdn_mem_size;
+        mem_disk_size    = cxfsdn_mem_size;
 
-        ssd_disk_fd     = cxfsdn_ssd_fd;
-        ssd_disk_offset = CXFSCFG_SSD_DISK_OFFSET(cxfscfg);
-        ssd_disk_size   = CXFSCFG_SSD_DISK_SIZE(cxfscfg);
+        ssd_disk_fd      = cxfsdn_ssd_fd;
+        ssd_disk_offset  = CXFSCFG_SSD_DISK_OFFSET(cxfscfg);
+        ssd_disk_size    = CXFSCFG_SSD_DISK_SIZE(cxfscfg);
 
-        camd_md = camd_start(NULL_PTR, sata_disk_fd, sata_disk_size,
+        camd_md = camd_start(NULL_PTR, sata_disk_fd, CXFSCFG_SATA_DISK_SIZE(cxfscfg)/*sata total disk size*/,
                              mem_disk_size,
                              ssd_disk_fd, ssd_disk_offset, ssd_disk_size);
         if(NULL_PTR == camd_md)
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load:start camd failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: start camd failed\n");
             return (EC_FALSE);
         }
 
         if(EC_FALSE == camd_load(camd_md))
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load:load camd failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: load camd failed\n");
+            camd_end(camd_md);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load:load camd done\n");
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load: load camd done\n");
 
-        if(ERR_FD != camd_get_eventfd(camd_md)
-        && NULL_PTR != task_brd_default_get_cepoll())
+        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, 0/*offset*/, CXFSCFG_SATA_DISK_OFFSET(cxfscfg)/*size*/))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: enable dio failed\n");
+            camd_end(camd_md);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load: enable dio done\n");
+
+        if(NULL_PTR != task_brd_default_get())
         {
             task_brd_process_add(task_brd_default_get(),
+                                 TASK_BRD_PROCESS_LOOP,
                                 (TASK_BRD_CALLBACK)camd_process,
                                 (void *)camd_md);
 
-            cepoll_set_event(task_brd_default_get_cepoll(),
-                              camd_get_eventfd(camd_md),
-                              CEPOLL_RD_EVENT,
-                              (const char *)"camd_event_handler",
-                              (CEPOLL_EVENT_HANDLER)camd_event_handler,
-                              (void *)camd_md);
+            if(ERR_FD != camd_get_eventfd(camd_md)
+            && NULL_PTR != task_brd_default_get_cepoll())
+            {
+
+
+                cepoll_set_event(task_brd_default_get_cepoll(),
+                                  camd_get_eventfd(camd_md),
+                                  CEPOLL_RD_EVENT,
+                                  (const char *)"camd_event_handler",
+                                  (CEPOLL_EVENT_HANDLER)camd_event_handler,
+                                  (void *)camd_md);
+            }
+
+            if(ERR_FD != camd_cdio_get_eventfd(camd_md)
+            && NULL_PTR != task_brd_default_get_cepoll())
+            {
+                cepoll_set_event(task_brd_default_get_cepoll(),
+                                  camd_cdio_get_eventfd(camd_md),
+                                  CEPOLL_RD_EVENT,
+                                  (const char *)"camd_cdio_event_handler",
+                                  (CEPOLL_EVENT_HANDLER)camd_cdio_event_handler,
+                                  (void *)camd_md);
+            }
         }
 
         CXFSDN_CAMD_MD(cxfsdn)     = camd_md;
@@ -847,15 +1075,28 @@ EC_BOOL cxfsdn_close(CXFSDN *cxfsdn)
             camd_md = CXFSDN_CAMD_MD(cxfsdn);
 
             if(NULL_PTR != camd_md
-            && ERR_FD != camd_get_eventfd(camd_md)
-            && NULL_PTR != task_brd_default_get_cepoll())
+            && NULL_PTR != task_brd_default_get())
             {
                 task_brd_process_del(task_brd_default_get(),
                                     (TASK_BRD_CALLBACK)camd_process,
                                     (void *)camd_md);
+            }
 
+            if(NULL_PTR != camd_md
+            && ERR_FD != camd_get_eventfd(camd_md)
+            && NULL_PTR != task_brd_default_get_cepoll())
+            {
                 cepoll_del_event(task_brd_default_get_cepoll(),
                                   camd_get_eventfd(camd_md),
+                                  CEPOLL_RD_EVENT);
+            }
+
+            if(NULL_PTR != camd_md
+            && ERR_FD != camd_cdio_get_eventfd(camd_md)
+            && NULL_PTR != task_brd_default_get_cepoll())
+            {
+                cepoll_del_event(task_brd_default_get_cepoll(),
+                                  camd_cdio_get_eventfd(camd_md),
                                   CEPOLL_RD_EVENT);
             }
         }
@@ -864,6 +1105,218 @@ EC_BOOL cxfsdn_close(CXFSDN *cxfsdn)
         cxfsdn_free(cxfsdn);
     }
     return (EC_TRUE);
+}
+
+EC_BOOL cxfsdn_dump(CXFSDN *cxfsdn, const UINT32 cxfsdn_zone_s_offset)
+{
+    if(NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
+    {
+        UINT32      offset;
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        offset    = cxfsdn_zone_s_offset;
+        wsize     = CXFSDN_SIZE(cxfsdn);
+        mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
+
+        if(do_log(SEC_0191_CXFSDN, 0))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_dump: cxfspgv header is\n");
+            cxfspgv_hdr_print(LOGSTDOUT, (CXFSPGV_HDR *)mem_cache);
+        }
+
+        if(EC_FALSE == c_file_pwrite(CXFSDN_SATA_DISK_FD(cxfsdn), &offset, wsize, mem_cache))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_dump: "
+                                                   "dump %ld bytes to [%ld, %ld) failed\n",
+                                                   wsize,
+                                                   cxfsdn_zone_s_offset,
+                                                   cxfsdn_zone_s_offset + wsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_dump: "
+                                               "dump %ld bytes to [%ld, %ld) done\n",
+                                               wsize,
+                                               cxfsdn_zone_s_offset,
+                                               cxfsdn_zone_s_offset + wsize);
+        ASSERT(cxfsdn_zone_s_offset + wsize == offset);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_sync_v1(CXFSDN *cxfsdn)
+{
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
+    {
+        UINT8           *mcache;
+        UINT32           size;
+
+        mcache = CXFSDN_MEM_CACHE(cxfsdn);
+        size   = CXFSDN_SIZE(cxfsdn);
+
+        if(0 != msync(mcache, size, MS_SYNC))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: "
+                                                   "sync dn with size %ld failed, "
+                                                   "errno = %d, errstr = %s\n",
+                                                   size, errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_start_sync(CXFSDN *cxfsdn)
+{
+    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: dn is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
+    && NULL_PTR == CXFSDN_MSYNC_NODE(cxfsdn))
+    {
+        UINT8           *mcache;
+        UINT32           size;
+
+        mcache = CXFSDN_MEM_CACHE(cxfsdn);
+        size   = CXFSDN_SIZE(cxfsdn);
+
+        CXFSDN_MSYNC_NODE(cxfsdn) = cmsync_node_create(mcache, size);
+        if(NULL_PTR == CXFSDN_MSYNC_NODE(cxfsdn))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: "
+                                                   "create dn msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cmsync_node_start(CXFSDN_MSYNC_NODE(cxfsdn)))
+        {
+            cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
+            CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
+
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: "
+                                                   "start dn msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_start_sync: "
+                                               "start dn msync done\n");
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_end_sync(CXFSDN *cxfsdn)
+{
+    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_end_sync: dn is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
+    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
+    {
+
+        cmsync_node_end(CXFSDN_MSYNC_NODE(cxfsdn));
+
+        cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
+        CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_end_sync: "
+                                               "stop dn msync done\n");
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_process_sync(CXFSDN *cxfsdn)
+{
+    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_process_sync: dn is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
+    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
+    {
+        if(EC_FALSE == cmsync_node_process(CXFSDN_MSYNC_NODE(cxfsdn), CXFSDN_MSYNC_SIZE))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_process_sync: "
+                                                   "process dn msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_process_sync: "
+                                               "process dn msync node done\n");
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_is_sync(CXFSDN *cxfsdn)
+{
+    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_is_sync: dn is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
+    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
+    {
+        if(0 == cmsync_node_left(CXFSDN_MSYNC_NODE(cxfsdn)))
+        {
+            dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_is_sync: "
+                                                   "process dn msync completed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_is_sync: "
+                                               "process dn msync on-going\n");
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsdn_can_sync(CXFSDN *cxfsdn)
+{
+    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
+    && NULL_PTR != cxfsdn
+    && 0 == CXFSDN_WRITER_NUM(cxfsdn)
+    && 0 == CXFSDN_READER_NUM(cxfsdn))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
 }
 
 /*random access for reading, the offset is for the whole 64M page-block */
@@ -931,6 +1384,12 @@ EC_BOOL cxfsdn_write_o(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
     if(NULL_PTR == cxfsdn)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_o: cxfsdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_o: dn is read-only\n");
         return (EC_FALSE);
     }
 
@@ -1008,6 +1467,12 @@ EC_BOOL cxfsdn_write_b(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
         return (EC_FALSE);
     }
 
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_b: dn is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(NULL_PTR == data_buff)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_b: data_buff is null\n");
@@ -1069,6 +1534,12 @@ EC_BOOL cxfsdn_update_b(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *
     if(NULL_PTR == cxfsdn)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_update_b: cxfsdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_update_b: dn is read-only\n");
         return (EC_FALSE);
     }
 
@@ -1139,6 +1610,12 @@ EC_BOOL cxfsdn_write_p(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
     if(NULL_PTR == cxfsdn)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_p: cxfsdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_p: dn is read-only\n");
         return (EC_FALSE);
     }
 
@@ -1219,6 +1696,12 @@ EC_BOOL cxfsdn_write_e(CXFSDN *cxfsdn, const UINT32 data_max_len, const UINT8 *d
 {
     UINT32 offset_t;
 
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_write_e: dn is read-only\n");
+        return (EC_FALSE);
+    }
+
     offset_t  = (((UINT32)page_no) << (CXFSPGB_PAGE_BIT_SIZE)) + offset;
     if(EC_FALSE == cxfsdn_write_o(cxfsdn, data_max_len, data_buff, disk_no, block_no, &offset_t))
     {
@@ -1239,6 +1722,12 @@ EC_BOOL cxfsdn_remove(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t blo
         return (EC_FALSE);
     }
 
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_remove: dn is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CXFSPGB_CACHE_MAX_BYTE_SIZE < data_max_len)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_remove: data max len %ld overflow\n", data_max_len);
@@ -1256,6 +1745,64 @@ EC_BOOL cxfsdn_remove(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t blo
                         data_max_len, disk_no, block_no, page_no);
 
     return (EC_TRUE);
+}
+
+EC_BOOL cxfsdn_reserve_space(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    if(NULL_PTR == cxfsdn)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_reserve_space: cxfsdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_reserve_space: dn is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < size)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_reserve_space: size %ld overflow\n", size);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CXFSPGV(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_reserve_space: no vol\n");
+        return (EC_FALSE);
+    }
+
+    return cxfspgv_reserve_space(CXFSDN_CXFSPGV(cxfsdn), size, disk_no, block_no, page_no);
+}
+
+EC_BOOL cxfsdn_release_space(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size)
+{
+    if(NULL_PTR == cxfsdn)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_release_space: cxfsdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_release_space: dn is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < size)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_release_space: size %ld overflow\n", size);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFSDN_CXFSPGV(cxfsdn))
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_release_space: no vol\n");
+        return (EC_FALSE);
+    }
+
+    return cxfspgv_release_space(CXFSDN_CXFSPGV(cxfsdn), disk_no, block_no, page_no, size);
 }
 
 #ifdef __cplusplus

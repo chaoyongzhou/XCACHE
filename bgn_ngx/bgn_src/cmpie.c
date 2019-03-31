@@ -7421,7 +7421,6 @@ UINT32 cmpi_encode_cxfsnp_fnode(const UINT32 comm, const CXFSNP_FNODE *cxfsnp_fn
 
     cmpi_encode_uint32_t(comm, CXFSNP_FNODE_FILESZ(cxfsnp_fnode), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_FNODE_REPNUM(cxfsnp_fnode), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CXFSNP_FNODE_HASH(cxfsnp_fnode), out_buff, out_buff_max_len, position);
 
     for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < (CXFSNP_FNODE_REPNUM(cxfsnp_fnode)) && cxfsnp_inode_pos < CXFSNP_FILE_REPLICA_MAX_NUM; cxfsnp_inode_pos ++)
     {
@@ -7440,7 +7439,6 @@ UINT32 cmpi_encode_cxfsnp_fnode_size(const UINT32 comm, const CXFSNP_FNODE *cxfs
 
     cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_FILESZ(cxfsnp_fnode), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_REPNUM(cxfsnp_fnode), size);
-    cmpi_encode_uint32_t_size(comm, CXFSNP_FNODE_HASH(cxfsnp_fnode), size);
 
     for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode) && cxfsnp_inode_pos < CXFSNP_FILE_REPLICA_MAX_NUM; cxfsnp_inode_pos ++)
     {
@@ -7491,7 +7489,6 @@ UINT32 cmpi_decode_cxfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = (uint32_t)(file_size);
     CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = (uint32_t)(replica_num);
-    CXFSNP_FNODE_HASH(cxfsnp_fnode)   = (uint32_t)(hash);
 
     for(cxfsnp_inode_pos = 0; cxfsnp_inode_pos < CXFSNP_FNODE_REPNUM(cxfsnp_fnode); cxfsnp_inode_pos ++)
     {

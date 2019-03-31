@@ -1005,10 +1005,10 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " xfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
         sys_print(log, " xfsDnAmdSwitch=\"%s\""          , CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
-        sys_print(log, " xfsDnAmdSataDiskSize=\"%ld\""   , CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
+        //sys_print(log, " xfsDnAmdSataDiskSize=\"%ld\""   , CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
         sys_print(log, " xfsDnAmdMemDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
         sys_print(log, " xfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-        sys_print(log, " xfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
+        //sys_print(log, " xfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
@@ -1087,6 +1087,7 @@ void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
         sys_print(log, " ssdAioReqMaxNum=\"%ld\""        , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
         sys_print(log, " sataAioReqMaxNum=\"%ld\""       , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
+        sys_print(log, " sataDegradeSsdSwitch=\"%s\""    , CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg));
 
         sys_print(log, " cmcTryRetireMaxNum=\"%ld\""     , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
         sys_print(log, " cmcTryRecycleMaxNum=\"%ld\""    , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));

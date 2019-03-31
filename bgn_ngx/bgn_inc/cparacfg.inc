@@ -92,10 +92,10 @@ typedef struct
     UINT32    cxfsdn_cache_in_mem_switch    ; /* CXFSDN_CACHE_IN_MEM_SWITCH */
 
     UINT32    cxfsdn_camd_switch            ; /* CXFSDN_CAMD_SWITCH*/
-    UINT32    cxfsdn_camd_sata_disk_size    ; /* CXFSDN_CAMD_SATA_DISK_SIZE  */
+    //UINT32    cxfsdn_camd_sata_disk_size    ; /* CXFSDN_CAMD_SATA_DISK_SIZE  */
     UINT32    cxfsdn_camd_mem_disk_size     ; /* CXFSDN_CAMD_MEM_DISK_SIZE   */
     UINT32    cxfsdn_camd_ssd_disk_offset   ; /* CXFSDN_CAMD_SSD_DISK_OFFSET */
-    UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE   */
+    //UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE   */
 
     uint16_t  rsvd04;
     uint16_t  cxfsmon_conhash_replicas      ; /* CXFSMON_CONHASH_REPLICAS */
@@ -239,10 +239,10 @@ typedef struct
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsdn_cache_in_mem_switch)
 
 #define CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->cxfsdn_camd_switch)
-#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->cxfsdn_camd_sata_disk_size)
+//#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->cxfsdn_camd_sata_disk_size)
 #define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_mem_disk_size)
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->cxfsdn_camd_ssd_disk_offset)
-#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
+//#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
 
 #define CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->cxfsmon_conhash_switch)
 #define CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->cxfsmon_conhash_replicas)
@@ -470,10 +470,10 @@ typedef struct
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
 
 #define CPARACFG_CXFSDN_CAMD_SWITCH_DEF                          SWITCH_OFF
-#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
+//#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
 #define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE_DEF                   0
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
-#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
+//#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CXFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
 #define CPARACFG_CXFSMON_CONHASH_REPLICAS_DEF                    4096
@@ -508,8 +508,8 @@ typedef struct
 #define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_ON
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
-#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    8
-#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   8
+#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    4
+#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   4
 #define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_DEF                SWITCH_ON
 
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
@@ -611,10 +611,10 @@ typedef struct
 #define    CXFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH)
 
 #define    CXFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SWITCH)
-#define    CXFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE)
+//#define    CXFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE)
 #define    CXFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE)
 #define    CXFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET)
-#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
+//#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
 
 #define    CXFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_SWITCH)
 #define    CXFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_REPLICAS)

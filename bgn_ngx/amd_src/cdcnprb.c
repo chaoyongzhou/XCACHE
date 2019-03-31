@@ -39,13 +39,13 @@ uint32_t cdcnprb_node_new(CDCNPRB_POOL *pool)
     node_pos_t = CDCNPRB_POOL_FREE_HEAD(pool);
     if(CDCNPRB_ERR_POS == node_pos_t)
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_new: no free node in pool\n");
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_new: no free node in pool\n");
         return (CDCNPRB_ERR_POS);
     }
 
     if(CDCNPRB_POOL_FREE_HEAD(pool) >= CDCNPRB_POOL_NODE_MAX_NUM(pool))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_new: found conflict: free head %u >= max num %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_new: found conflict: free head %u >= max num %u\n",
                             CDCNPRB_POOL_FREE_HEAD(pool), CDCNPRB_POOL_NODE_MAX_NUM(pool));
         return (CDCNPRB_ERR_POS);
     }
@@ -1240,7 +1240,7 @@ EC_BOOL cdcnprb_pool_init(CDCNPRB_POOL *pool, const uint32_t node_max_num, const
 
     if(CDCNPRB_POOL_MAX_SIZE < node_max_num)
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_pool_init: node_max_num %u overflow!\n", node_max_num);
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_pool_init: node_max_num %u overflow!\n", node_max_num);
         return (EC_FALSE);
     }
 
@@ -1466,7 +1466,7 @@ EC_BOOL cdcnprb_node_debug_cmp(const CDCNPRB_NODE *node_1st, const CDCNPRB_NODE 
 {
     if(CDCNPRB_NODE_USED_FLAG(node_1st) != CDCNPRB_NODE_USED_FLAG(node_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_USED_FLAG: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_USED_FLAG: %u != %u\n",
                             CDCNPRB_NODE_USED_FLAG(node_1st), CDCNPRB_NODE_USED_FLAG(node_2nd));
         return (EC_FALSE);
     }
@@ -1479,28 +1479,28 @@ EC_BOOL cdcnprb_node_debug_cmp(const CDCNPRB_NODE *node_1st, const CDCNPRB_NODE 
 
     if(CDCNPRB_NODE_COLOR(node_1st) != CDCNPRB_NODE_COLOR(node_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_COLOR: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_COLOR: %u != %u\n",
                             CDCNPRB_NODE_COLOR(node_1st), CDCNPRB_NODE_COLOR(node_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_NODE_PARENT_POS(node_1st) != CDCNPRB_NODE_PARENT_POS(node_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_PARENT_POS: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_PARENT_POS: %u != %u\n",
                             CDCNPRB_NODE_PARENT_POS(node_1st), CDCNPRB_NODE_PARENT_POS(node_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_NODE_RIGHT_POS(node_1st) != CDCNPRB_NODE_RIGHT_POS(node_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_RIGHT_POS: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_RIGHT_POS: %u != %u\n",
                             CDCNPRB_NODE_RIGHT_POS(node_1st), CDCNPRB_NODE_RIGHT_POS(node_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_NODE_LEFT_POS(node_1st) != CDCNPRB_NODE_LEFT_POS(node_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_LEFT_POS: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_LEFT_POS: %u != %u\n",
                             CDCNPRB_NODE_LEFT_POS(node_1st), CDCNPRB_NODE_LEFT_POS(node_2nd));
         return (EC_FALSE);
     }
@@ -1509,7 +1509,7 @@ EC_BOOL cdcnprb_node_debug_cmp(const CDCNPRB_NODE *node_1st, const CDCNPRB_NODE 
     {
         if(0 != node_cmp_data(node_1st, node_2nd))
         {
-            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent data part\n");
+            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent data part\n");
             return (EC_FALSE);
         }
     }
@@ -1517,7 +1517,7 @@ EC_BOOL cdcnprb_node_debug_cmp(const CDCNPRB_NODE *node_1st, const CDCNPRB_NODE 
     {
         if(CDCNPRB_NODE_NEXT_POS(node_1st) != CDCNPRB_NODE_NEXT_POS(node_2nd))
         {
-            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_NEXT_POS: %u != %u\n",
+            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_node_debug_cmp: inconsistent CDCNPRB_NODE_NEXT_POS: %u != %u\n",
                                 CDCNPRB_NODE_NEXT_POS(node_1st), CDCNPRB_NODE_NEXT_POS(node_2nd));
             return (EC_FALSE);
         }
@@ -1532,28 +1532,28 @@ EC_BOOL cdcnprb_debug_cmp(const CDCNPRB_POOL *pool_1st, const CDCNPRB_POOL *pool
 
     if(CDCNPRB_POOL_FREE_HEAD(pool_1st) != CDCNPRB_POOL_FREE_HEAD(pool_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_FREE_HEAD: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_FREE_HEAD: %u != %u\n",
                             CDCNPRB_POOL_FREE_HEAD(pool_1st), CDCNPRB_POOL_FREE_HEAD(pool_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_POOL_NODE_MAX_NUM(pool_1st) != CDCNPRB_POOL_NODE_MAX_NUM(pool_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_MAX_NUM: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_MAX_NUM: %u != %u\n",
                             CDCNPRB_POOL_NODE_MAX_NUM(pool_1st), CDCNPRB_POOL_NODE_MAX_NUM(pool_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_POOL_NODE_USED_NUM(pool_1st) != CDCNPRB_POOL_NODE_USED_NUM(pool_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_USED_NUM: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_USED_NUM: %u != %u\n",
                             CDCNPRB_POOL_NODE_USED_NUM(pool_1st), CDCNPRB_POOL_NODE_USED_NUM(pool_2nd));
         return (EC_FALSE);
     }
 
     if(CDCNPRB_POOL_NODE_SIZEOF(pool_1st) != CDCNPRB_POOL_NODE_SIZEOF(pool_2nd))
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_SIZEOF: %u != %u\n",
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_debug_cmp: inconsistent CDCNPRB_POOL_NODE_SIZEOF: %u != %u\n",
                             CDCNPRB_POOL_NODE_SIZEOF(pool_1st), CDCNPRB_POOL_NODE_SIZEOF(pool_2nd));
         return (EC_FALSE);
     }
@@ -1569,7 +1569,7 @@ EC_BOOL cdcnprb_debug_cmp(const CDCNPRB_POOL *pool_1st, const CDCNPRB_POOL *pool
 
         if(EC_FALSE == cdcnprb_node_debug_cmp(node_1st, node_2nd, node_cmp_data))
         {
-            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDERR, "error:cdcnprb_debug_cmp: inconsistent node at pos %u\n", node_pos);
+            dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_debug_cmp: inconsistent node at pos %u\n", node_pos);
             return (EC_FALSE);
         }
     }

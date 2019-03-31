@@ -434,6 +434,26 @@ EC_BOOL cxfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cxfshttp_commit_retire_get_request(chttp_node);
     }
+    else if (EC_TRUE == cxfshttp_is_http_get_setreadonly(chttp_node))
+    {
+        ret = cxfshttp_commit_setreadonly_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttp_is_http_get_unsetreadonly(chttp_node))
+    {
+        ret = cxfshttp_commit_unsetreadonly_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttp_is_http_get_isreadonly(chttp_node))
+    {
+        ret = cxfshttp_commit_isreadonly_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttp_is_http_get_sync(chttp_node))
+    {
+        ret = cxfshttp_commit_sync_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttp_is_http_get_replayop(chttp_node))
+    {
+        ret = cxfshttp_commit_replayop_get_request(chttp_node);
+    }
     else if (EC_TRUE == cxfshttp_is_http_get_breathe(chttp_node))
     {
         ret = cxfshttp_commit_breathe_get_request(chttp_node);
@@ -2254,6 +2274,886 @@ EC_BOOL cxfshttp_commit_retire_get_response(CHTTP_NODE *chttp_node)
     return cxfshttp_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: setreadonly ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_setreadonly_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/setreadonly") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/setreadonly")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_setreadonly(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_setreadonly: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_setreadonly_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_setreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_setreadonly_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_setreadonly_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_setreadonly_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_setreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setreadonly");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setreadonly");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    if(EC_TRUE == __cxfshttp_uri_is_setreadonly_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_set_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setreadonly_get_request: cxfs setreadonly failed\n");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setreadonly_get_request: cxfs setreadonly failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setreadonly_get_request: cxfs setreadonly done\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_get_request: cxfs setreadonly done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_setreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_setreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: unsetreadonly ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_unsetreadonly_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/unsetreadonly") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/unsetreadonly")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_unsetreadonly(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_unsetreadonly: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_unsetreadonly_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_unsetreadonly_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_unsetreadonly_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_unsetreadonly_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unsetreadonly");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unsetreadonly");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    if(EC_TRUE == __cxfshttp_uri_is_unsetreadonly_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_unset_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly failed\n");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly done\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: isreadonly ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_isreadonly_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/isreadonly") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/isreadonly")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_isreadonly(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_isreadonly: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_isreadonly_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_isreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_isreadonly_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_isreadonly_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_isreadonly_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    CBYTES        *content_cbytes;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/isreadonly");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/isreadonly");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cxfshttp_uri_is_isreadonly_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_is_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is not read-only\n");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_isreadonly_get_request: cxfs is not read-only");
+
+            cbytes_append(content_cbytes, (const UINT8 *)"read-only:false", sizeof("read-only:false") - 1);
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is read-only\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is read-only");
+
+        cbytes_append(content_cbytes, (const UINT8 *)"read-only:true", sizeof("read-only:true") - 1);
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_isreadonly_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: sync ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_sync_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/sync") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/sync")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_sync(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_sync: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_sync_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_sync_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_sync_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_sync_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_sync_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_sync_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/sync");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sync");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    if(EC_TRUE == __cxfshttp_uri_is_sync_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_sync(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sync_get_request: cxfs sync failed\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_sync_get_request: cxfs sync failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sync_get_request: cxfs sync succ\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_get_request: cxfs sync succ");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_sync_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, 0))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_sync_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: replayop ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_replayop_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/replayop") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/replayop")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_replayop(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_replayop: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_replayop_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_replayop_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_replayop_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_replayop_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_replayop_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_replayop_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/replayop");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/replayop");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    if(EC_TRUE == __cxfshttp_uri_is_replayop_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_replay_op(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_replayop_get_request: cxfs replayop failed\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_replayop_get_request: cxfs replayop failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_replayop_get_request: cxfs replayop succ\n");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_get_request: cxfs replayop succ");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_replayop_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, 0))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_replayop_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: breathe ----------------------------------------*/
@@ -6112,25 +7012,7 @@ EC_BOOL cxfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         json_object_add_kv(cxfspgv_obj, "actual_used_size" , c_uint64_t_to_str(CXFSPGV_PAGE_ACTUAL_USED_SIZE(cxfspgv)));
         json_object_add_kv(cxfspgv_obj, "assign_bitmap"    , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
 
-        if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_4K_BIT_SIZE)
-        {
-            json_object_add_kv(cxfspgv_obj, "page_model"   , "4K-page");
-        }
-
-        if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_8K_BIT_SIZE)
-        {
-            json_object_add_kv(cxfspgv_obj, "page_model"   , "8K-page");
-        }
-
-        if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_16M_BIT_SIZE)
-        {
-            json_object_add_kv(cxfspgv_obj, "page_model"   , "16M-page");
-        }
-
-        if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_32M_BIT_SIZE)
-        {
-            json_object_add_kv(cxfspgv_obj, "page_model"   , "32M-page");
-        }
+        json_object_add_kv(cxfspgv_obj, "page_model"   , CXFSPCB_PAGE_DESC);
 
         cxfspgd_objs = json_object_new_array();
         json_object_add_obj(cxfspgv_obj, "disk", cxfspgd_objs);

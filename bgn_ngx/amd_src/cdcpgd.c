@@ -226,8 +226,33 @@ EC_BOOL cdcpgd_clean(CDCPGD *cdcpgd)
         UINT32 block_no;
 
         /*clean blocks*/
-        block_num = CDCPGD_PAGE_BLOCK_MAX_NUM(cdcpgd);
+        if(NULL_PTR != CDCPGD_HEADER(cdcpgd))
+        {
+            block_num = DMIN(CDCPGD_PAGE_BLOCK_MAX_NUM(cdcpgd), CDCPGD_MAX_BLOCK_NUM);
+        }
+        else
+        {
+            block_num = CDCPGD_MAX_BLOCK_NUM;
+        }
+
         for(block_no = 0; block_no < block_num; block_no ++)
+        {
+            CDCPGD_BLOCK_CDCPGB(cdcpgd, block_no) = NULL_PTR;
+        }
+
+        CDCPGD_HEADER(cdcpgd) = NULL_PTR;
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcpgd_clear(CDCPGD *cdcpgd)
+{
+    if(NULL_PTR != cdcpgd)
+    {
+        UINT32 block_no;
+
+        /*clean blocks*/
+        for(block_no = 0; block_no < CDCPGD_MAX_BLOCK_NUM; block_no ++)
         {
             CDCPGD_BLOCK_CDCPGB(cdcpgd, block_no) = NULL_PTR;
         }
@@ -287,7 +312,7 @@ CDCPGD *cdcpgd_make(const uint16_t disk_no, const uint16_t block_num, UINT8 *bas
 
     if(EC_FALSE == cdcpgd_hdr_init(cdcpgd_hdr, disk_no, block_num))
     {
-        dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "error:cdcpgd_make: "
+        dbg_log(SEC_0184_CDCPGD, 0)(LOGSTDOUT, "error:cdcpgd_make: "
                                                "init disk header failed\n");
 
         cdcpgd_free(cdcpgd);

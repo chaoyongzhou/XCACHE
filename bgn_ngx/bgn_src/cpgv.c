@@ -839,7 +839,7 @@ STATIC_CAST static EC_BOOL __cpgv_add_disk(CPGV *cpgv, const uint16_t disk_no, c
 STATIC_CAST static EC_BOOL __cpgv_del_disk(CPGV *cpgv, const uint16_t disk_no, const uint16_t page_model)
 {
     /*del disk_no from rbtree*/
-    if(CPGRB_ERR_POS == cpgrb_tree_delete_data(CPGV_PAGE_DISK_CPGRB_POOL(cpgv), &(CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS(cpgv, page_model)), disk_no))
+    if(EC_FALSE == cpgrb_tree_delete_data(CPGV_PAGE_DISK_CPGRB_POOL(cpgv), &(CPGV_PAGE_MODEL_DISK_CPGRB_ROOT_POS(cpgv, page_model)), disk_no))
     {
         dbg_log(SEC_0074_CPGV, 0)(LOGSTDERR, "error:__cpgv_del_disk: del disk_no %u from rbtree of page model %u failed\n", disk_no, page_model);
         return (EC_FALSE);

@@ -175,6 +175,84 @@ extern "C"{
 #define CXFSPGB_PAGE_8K_LO_BITS_MASK     ((uint16_t)0x1FFF)
 /*------------------8K-page end ------------------------*/
 
+/*------------------16K-page beg ------------------------*/
+#define CXFSPGB_064MB_PAGE_16K_NUM  ((uint16_t)(1 << 12))
+#define CXFSPGB_032MB_PAGE_16K_NUM  ((uint16_t)(1 << 11))
+#define CXFSPGB_016MB_PAGE_16K_NUM  ((uint16_t)(1 << 10))
+#define CXFSPGB_008MB_PAGE_16K_NUM  ((uint16_t)(1 <<  9))
+#define CXFSPGB_004MB_PAGE_16K_NUM  ((uint16_t)(1 <<  8))
+#define CXFSPGB_002MB_PAGE_16K_NUM  ((uint16_t)(1 <<  7))
+#define CXFSPGB_001MB_PAGE_16K_NUM  ((uint16_t)(1 <<  6))
+#define CXFSPGB_512KB_PAGE_16K_NUM  ((uint16_t)(1 <<  5))
+#define CXFSPGB_256KB_PAGE_16K_NUM  ((uint16_t)(1 <<  4))
+#define CXFSPGB_128KB_PAGE_16K_NUM  ((uint16_t)(1 <<  3))
+#define CXFSPGB_064KB_PAGE_16K_NUM  ((uint16_t)(1 <<  2))
+#define CXFSPGB_032KB_PAGE_16K_NUM  ((uint16_t)(1 <<  1))
+#define CXFSPGB_016KB_PAGE_16K_NUM  ((uint16_t)(1 <<  0))
+#define CXFSPGB_008KB_PAGE_16K_NUM  ((uint16_t)(0))
+#define CXFSPGB_004KB_PAGE_16K_NUM  ((uint16_t)(0))
+
+#define CXFSPGB_PAGE_16K_MODEL_MASK       ((uint16_t)0x1FFF)
+
+#define CXFSPGB_PAGE_16K_BIT_SIZE         ((uint32_t)14)
+#define CXFSPGB_PAGE_16K_BYTE_SIZE        ((uint32_t)(1 << CXFSPGB_PAGE_16K_BIT_SIZE))
+
+#define CXFSPGB_PAGE_16K_HI_BIT_MASK      ((uint16_t)0x1000)
+#define CXFSPGB_PAGE_16K_LO_BITS_MASK     ((uint16_t)0x0FFF)
+/*------------------16K-page end ------------------------*/
+
+/*------------------32K-page beg ------------------------*/
+#define CXFSPGB_064MB_PAGE_32K_NUM  ((uint16_t)(1 << 11))
+#define CXFSPGB_032MB_PAGE_32K_NUM  ((uint16_t)(1 << 10))
+#define CXFSPGB_016MB_PAGE_32K_NUM  ((uint16_t)(1 <<  9))
+#define CXFSPGB_008MB_PAGE_32K_NUM  ((uint16_t)(1 <<  8))
+#define CXFSPGB_004MB_PAGE_32K_NUM  ((uint16_t)(1 <<  7))
+#define CXFSPGB_002MB_PAGE_32K_NUM  ((uint16_t)(1 <<  6))
+#define CXFSPGB_001MB_PAGE_32K_NUM  ((uint16_t)(1 <<  5))
+#define CXFSPGB_512KB_PAGE_32K_NUM  ((uint16_t)(1 <<  4))
+#define CXFSPGB_256KB_PAGE_32K_NUM  ((uint16_t)(1 <<  3))
+#define CXFSPGB_128KB_PAGE_32K_NUM  ((uint16_t)(1 <<  2))
+#define CXFSPGB_064KB_PAGE_32K_NUM  ((uint16_t)(1 <<  1))
+#define CXFSPGB_032KB_PAGE_32K_NUM  ((uint16_t)(1 <<  0))
+#define CXFSPGB_016KB_PAGE_32K_NUM  ((uint16_t)(0))
+#define CXFSPGB_008KB_PAGE_32K_NUM  ((uint16_t)(0))
+#define CXFSPGB_004KB_PAGE_32K_NUM  ((uint16_t)(0))
+
+#define CXFSPGB_PAGE_32K_MODEL_MASK       ((uint16_t)0x0FFF)
+
+#define CXFSPGB_PAGE_32K_BIT_SIZE         ((uint32_t)15)
+#define CXFSPGB_PAGE_32K_BYTE_SIZE        ((uint32_t)(1 << CXFSPGB_PAGE_32K_BIT_SIZE))
+
+#define CXFSPGB_PAGE_32K_HI_BIT_MASK      ((uint16_t)0x0FFF)
+#define CXFSPGB_PAGE_32K_LO_BITS_MASK     ((uint16_t)0x07FF)
+/*------------------32K-page end ------------------------*/
+
+/*------------------64K-page beg ------------------------*/
+#define CXFSPGB_064MB_PAGE_64K_NUM  ((uint16_t)(1 << 10))
+#define CXFSPGB_032MB_PAGE_64K_NUM  ((uint16_t)(1 <<  9))
+#define CXFSPGB_016MB_PAGE_64K_NUM  ((uint16_t)(1 <<  8))
+#define CXFSPGB_008MB_PAGE_64K_NUM  ((uint16_t)(1 <<  7))
+#define CXFSPGB_004MB_PAGE_64K_NUM  ((uint16_t)(1 <<  6))
+#define CXFSPGB_002MB_PAGE_64K_NUM  ((uint16_t)(1 <<  5))
+#define CXFSPGB_001MB_PAGE_64K_NUM  ((uint16_t)(1 <<  4))
+#define CXFSPGB_512KB_PAGE_64K_NUM  ((uint16_t)(1 <<  3))
+#define CXFSPGB_256KB_PAGE_64K_NUM  ((uint16_t)(1 <<  2))
+#define CXFSPGB_128KB_PAGE_64K_NUM  ((uint16_t)(1 <<  1))
+#define CXFSPGB_064KB_PAGE_64K_NUM  ((uint16_t)(1 <<  0))
+#define CXFSPGB_032KB_PAGE_64K_NUM  ((uint16_t)(0))
+#define CXFSPGB_016KB_PAGE_64K_NUM  ((uint16_t)(0))
+#define CXFSPGB_008KB_PAGE_64K_NUM  ((uint16_t)(0))
+#define CXFSPGB_004KB_PAGE_64K_NUM  ((uint16_t)(0))
+
+#define CXFSPGB_PAGE_64K_MODEL_MASK       ((uint16_t)0x07FF)
+
+#define CXFSPGB_PAGE_64K_BIT_SIZE         ((uint32_t)16)
+#define CXFSPGB_PAGE_64K_BYTE_SIZE        ((uint32_t)(1 << CXFSPGB_PAGE_64K_BIT_SIZE))
+
+#define CXFSPGB_PAGE_64K_HI_BIT_MASK      ((uint16_t)0x07FF)
+#define CXFSPGB_PAGE_64K_LO_BITS_MASK     ((uint16_t)0x03FF)
+/*------------------64K-page end ------------------------*/
+
 /*for debug*/
 /*------------------16M-page beg ------------------------*/
 #define CXFSPGB_064MB_PAGE_16M_NUM  ((uint16_t)(1 << 2))
@@ -230,11 +308,16 @@ extern "C"{
 
 #define CXFSPGB_004K_PAGE_CHOICE         (1)
 #define CXFSPGB_008K_PAGE_CHOICE         (2)
-#define CXFSPGB_016M_PAGE_CHOICE         (3)
-#define CXFSPGB_032M_PAGE_CHOICE         (4)
+#define CXFSPGB_016K_PAGE_CHOICE         (3)
+#define CXFSPGB_032K_PAGE_CHOICE         (4)
+#define CXFSPGB_016M_PAGE_CHOICE         (5)
+#define CXFSPGB_032M_PAGE_CHOICE         (6)
 
 //#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_004K_PAGE_CHOICE)
-#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_008K_PAGE_CHOICE)
+//#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_008K_PAGE_CHOICE)
+#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_016K_PAGE_CHOICE)
+//#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_032K_PAGE_CHOICE)
+//#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_064K_PAGE_CHOICE)
 //#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_016M_PAGE_CHOICE)
 //#define CXFSPGB_PAGE_CHOICE              (CXFSPGB_032M_PAGE_CHOICE)
 
@@ -265,6 +348,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_004KB_MODEL + 1)/*15*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_4K_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("4K-page")
 #endif/*(CXFSPGB_004K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_008K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -293,8 +377,95 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_008KB_MODEL + 1)/*14*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_8K_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("8K-page")
 #endif/*(CXFSPGB_008K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
+#if (CXFSPGB_016K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
+#define CXFSPGB_064MB_PAGE_NUM           (CXFSPGB_064MB_PAGE_16K_NUM)
+#define CXFSPGB_032MB_PAGE_NUM           (CXFSPGB_032MB_PAGE_16K_NUM)
+#define CXFSPGB_016MB_PAGE_NUM           (CXFSPGB_016MB_PAGE_16K_NUM)
+#define CXFSPGB_008MB_PAGE_NUM           (CXFSPGB_008MB_PAGE_16K_NUM)
+#define CXFSPGB_004MB_PAGE_NUM           (CXFSPGB_004MB_PAGE_16K_NUM)
+#define CXFSPGB_002MB_PAGE_NUM           (CXFSPGB_002MB_PAGE_16K_NUM)
+#define CXFSPGB_001MB_PAGE_NUM           (CXFSPGB_001MB_PAGE_16K_NUM)
+#define CXFSPGB_512KB_PAGE_NUM           (CXFSPGB_512KB_PAGE_16K_NUM)
+#define CXFSPGB_256KB_PAGE_NUM           (CXFSPGB_256KB_PAGE_16K_NUM)
+#define CXFSPGB_128KB_PAGE_NUM           (CXFSPGB_128KB_PAGE_16K_NUM)
+#define CXFSPGB_064KB_PAGE_NUM           (CXFSPGB_064KB_PAGE_16K_NUM)
+#define CXFSPGB_032KB_PAGE_NUM           (CXFSPGB_032KB_PAGE_16K_NUM)
+#define CXFSPGB_016KB_PAGE_NUM           (CXFSPGB_016KB_PAGE_16K_NUM)
+#define CXFSPGB_008KB_PAGE_NUM           (CXFSPGB_008KB_PAGE_16K_NUM)
+#define CXFSPGB_004KB_PAGE_NUM           (CXFSPGB_004KB_PAGE_16K_NUM)
+
+#define CXFSPGB_PAGE_BIT_SIZE            (CXFSPGB_PAGE_16K_BIT_SIZE)
+#define CXFSPGB_PAGE_BYTE_SIZE           (CXFSPGB_PAGE_16K_BYTE_SIZE)
+
+#define CXFSPGB_PAGE_HI_BIT_MASK         (CXFSPGB_PAGE_16K_HI_BIT_MASK)
+#define CXFSPGB_PAGE_LO_BITS_MASK        (CXFSPGB_PAGE_16K_LO_BITS_MASK)
+
+/*actual used cxfspgb model num*/
+#define CXFSPGB_MODEL_NUM                (CXFSPGB_016KB_MODEL + 1)/*13*/
+#define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_16K_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("16K-page")
+#endif/*(CXFSPGB_016K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
+
+#if (CXFSPGB_032K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
+#define CXFSPGB_064MB_PAGE_NUM           (CXFSPGB_064MB_PAGE_32K_NUM)
+#define CXFSPGB_032MB_PAGE_NUM           (CXFSPGB_032MB_PAGE_32K_NUM)
+#define CXFSPGB_016MB_PAGE_NUM           (CXFSPGB_016MB_PAGE_32K_NUM)
+#define CXFSPGB_008MB_PAGE_NUM           (CXFSPGB_008MB_PAGE_32K_NUM)
+#define CXFSPGB_004MB_PAGE_NUM           (CXFSPGB_004MB_PAGE_32K_NUM)
+#define CXFSPGB_002MB_PAGE_NUM           (CXFSPGB_002MB_PAGE_32K_NUM)
+#define CXFSPGB_001MB_PAGE_NUM           (CXFSPGB_001MB_PAGE_32K_NUM)
+#define CXFSPGB_512KB_PAGE_NUM           (CXFSPGB_512KB_PAGE_32K_NUM)
+#define CXFSPGB_256KB_PAGE_NUM           (CXFSPGB_256KB_PAGE_32K_NUM)
+#define CXFSPGB_128KB_PAGE_NUM           (CXFSPGB_128KB_PAGE_32K_NUM)
+#define CXFSPGB_064KB_PAGE_NUM           (CXFSPGB_064KB_PAGE_32K_NUM)
+#define CXFSPGB_032KB_PAGE_NUM           (CXFSPGB_032KB_PAGE_32K_NUM)
+#define CXFSPGB_016KB_PAGE_NUM           (CXFSPGB_016KB_PAGE_32K_NUM)
+#define CXFSPGB_008KB_PAGE_NUM           (CXFSPGB_008KB_PAGE_32K_NUM)
+#define CXFSPGB_004KB_PAGE_NUM           (CXFSPGB_004KB_PAGE_32K_NUM)
+
+#define CXFSPGB_PAGE_BIT_SIZE            (CXFSPGB_PAGE_32K_BIT_SIZE)
+#define CXFSPGB_PAGE_BYTE_SIZE           (CXFSPGB_PAGE_32K_BYTE_SIZE)
+
+#define CXFSPGB_PAGE_HI_BIT_MASK         (CXFSPGB_PAGE_32K_HI_BIT_MASK)
+#define CXFSPGB_PAGE_LO_BITS_MASK        (CXFSPGB_PAGE_32K_LO_BITS_MASK)
+
+/*actual used cxfspgb model num*/
+#define CXFSPGB_MODEL_NUM                (CXFSPGB_032KB_MODEL + 1)/*12*/
+#define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_32K_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("32K-page")
+#endif/*(CXFSPGB_032K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
+
+#if (CXFSPGB_064K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
+#define CXFSPGB_064MB_PAGE_NUM           (CXFSPGB_064MB_PAGE_64K_NUM)
+#define CXFSPGB_032MB_PAGE_NUM           (CXFSPGB_032MB_PAGE_64K_NUM)
+#define CXFSPGB_016MB_PAGE_NUM           (CXFSPGB_016MB_PAGE_64K_NUM)
+#define CXFSPGB_008MB_PAGE_NUM           (CXFSPGB_008MB_PAGE_64K_NUM)
+#define CXFSPGB_004MB_PAGE_NUM           (CXFSPGB_004MB_PAGE_64K_NUM)
+#define CXFSPGB_002MB_PAGE_NUM           (CXFSPGB_002MB_PAGE_64K_NUM)
+#define CXFSPGB_001MB_PAGE_NUM           (CXFSPGB_001MB_PAGE_64K_NUM)
+#define CXFSPGB_512KB_PAGE_NUM           (CXFSPGB_512KB_PAGE_64K_NUM)
+#define CXFSPGB_256KB_PAGE_NUM           (CXFSPGB_256KB_PAGE_64K_NUM)
+#define CXFSPGB_128KB_PAGE_NUM           (CXFSPGB_128KB_PAGE_64K_NUM)
+#define CXFSPGB_064KB_PAGE_NUM           (CXFSPGB_064KB_PAGE_64K_NUM)
+#define CXFSPGB_032KB_PAGE_NUM           (CXFSPGB_032KB_PAGE_64K_NUM)
+#define CXFSPGB_016KB_PAGE_NUM           (CXFSPGB_016KB_PAGE_64K_NUM)
+#define CXFSPGB_008KB_PAGE_NUM           (CXFSPGB_008KB_PAGE_64K_NUM)
+#define CXFSPGB_004KB_PAGE_NUM           (CXFSPGB_004KB_PAGE_64K_NUM)
+
+#define CXFSPGB_PAGE_BIT_SIZE            (CXFSPGB_PAGE_64K_BIT_SIZE)
+#define CXFSPGB_PAGE_BYTE_SIZE           (CXFSPGB_PAGE_64K_BYTE_SIZE)
+
+#define CXFSPGB_PAGE_HI_BIT_MASK         (CXFSPGB_PAGE_64K_HI_BIT_MASK)
+#define CXFSPGB_PAGE_LO_BITS_MASK        (CXFSPGB_PAGE_64K_LO_BITS_MASK)
+
+/*actual used cxfspgb model num*/
+#define CXFSPGB_MODEL_NUM                (CXFSPGB_064KB_MODEL + 1)/*11*/
+#define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_64K_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("64K-page")
+#endif/*(CXFSPGB_064K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_016M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
 #define CXFSPGB_064MB_PAGE_NUM           (CXFSPGB_064MB_PAGE_16M_NUM)
@@ -322,6 +493,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_016MB_MODEL + 1)/*3*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_16M_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("16M-page")
 #endif/*(CXFSPGB_016M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_032M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -350,6 +522,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_032MB_MODEL + 1)/*2*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_32M_MODEL_MASK)
+#define CXFSPCB_PAGE_DESC                ("32M-page")
 #endif/*(CXFSPGB_032M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 
@@ -423,6 +596,12 @@ EC_BOOL cxfspgb_recycle_page(CXFSPGB *cxfspgb, const uint16_t page_model, const 
 EC_BOOL cxfspgb_new_space(CXFSPGB *cxfspgb, const uint32_t size, uint16_t *page_no);
 
 EC_BOOL cxfspgb_free_space(CXFSPGB *cxfspgb, const uint16_t page_start_no, const uint32_t size);
+
+EC_BOOL cxfspgb_extract_page(CXFSPGB *cxfspgb, const uint16_t page_model, const uint16_t page_no);
+
+EC_BOOL cxfspgb_reserve_page(CXFSPGB *cxfspgb, const uint32_t size, const uint16_t page_no);
+
+EC_BOOL cxfspgb_release_page(CXFSPGB *cxfspgb, const uint16_t page_no, const uint32_t size);
 
 /*return true if all pages in block are used, otherwise return false*/
 EC_BOOL cxfspgb_is_full(const CXFSPGB *cxfspgb);

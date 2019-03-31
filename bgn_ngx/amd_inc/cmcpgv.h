@@ -16,8 +16,13 @@ extern "C"{
 #include "cmcpgrb.h"
 #include "cmcpgd.h"
 
+#include "cmmap.h"
+
 
 #define CMCPGV_MAX_DISK_NUM               (12)
+
+#define CMCPGV_PATH_MAX_LEN               (1024)  /*max len of file or dir path name*/
+#define CMCPGV_MEM_ALIGNMENT              (UINT32_ONE << 20) /*1MB alignment*/
 
 typedef struct
 {
@@ -75,6 +80,10 @@ CMCPGV_HDR *cmcpgv_hdr_new(CMCPGV *cmcpgv);
 
 EC_BOOL cmcpgv_hdr_free(CMCPGV *cmcpgv);
 
+EC_BOOL cmcpgv_hdr_clear(CMCPGV *cmcpgv);
+
+EC_BOOL cmcpgv_hdr_close(CMCPGV *cmcpgv);
+
 REAL cmcpgv_hdr_used_ratio(const CMCPGV *cmcpgv);
 
 EC_BOOL cmcpgv_free(CMCPGV *cmcpgv);
@@ -84,9 +93,21 @@ EC_BOOL cmcpgv_init(CMCPGV *cmcpgv);
 
 void cmcpgv_clean(CMCPGV *cmcpgv);
 
+CMCPGV *cmcpgv_create(CMMAP_NODE *cmmap_node);
+
+CMCPGV *cmcpgv_open(CMMAP_NODE *cmmap_node);
+
+EC_BOOL cmcpgv_close(CMCPGV *cmcpgv);
+
 EC_BOOL cmcpgv_add_disk(CMCPGV *cmcpgv, const uint16_t disk_no);
 
 EC_BOOL cmcpgv_del_disk(CMCPGV *cmcpgv, const uint16_t disk_no);
+
+EC_BOOL cmcpgv_create_disk(CMCPGV *cmcpgv, CMMAP_NODE *cmmap_node, const uint16_t disk_no);
+
+EC_BOOL cmcpgv_open_disk(CMCPGV *cmcpgv, CMMAP_NODE *cmmap_node, const uint16_t disk_no);
+
+EC_BOOL cmcpgv_close_disk(CMCPGV *cmcpgv, const uint16_t disk_no);
 
 EC_BOOL cmcpgv_new_space_from_disk(CMCPGV *cmcpgv, const uint32_t size, const uint16_t disk_no, uint16_t *block_no, uint16_t *page_no);
 

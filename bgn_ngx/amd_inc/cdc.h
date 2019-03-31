@@ -17,10 +17,14 @@ extern "C"{
 
 #include "type.h"
 
+#include "cbadbitmap.h"
+
 #include "cdcnp.h"
 #include "cdcdn.h"
 
 #include "caio.h"
+
+#include "cmmap.h"
 
 #include "cparacfg.h"
 
@@ -33,12 +37,12 @@ extern "C"{
 
 #define CDC_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
 
-#define CDC_AIO_FAIL_MAX_NUM                           (60) /*max fail 60 times*/
+#define CDC_AIO_FAIL_MAX_NUM                           (3) /*max fail 3 times*/
 
 //#define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)4096) /*1GB for 256K-page*/
 #define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)~0) /*no limitation*/
 
-#define CDC_MEM_CACHE_ALIGN_SIZE_NBYTES                (1 << 10) /*align to 1KB*/
+#define CDC_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
 #define CDC_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #if 0
@@ -54,59 +58,68 @@ extern "C"{
 #define CDC_RETIRE_LO_RATIO                            (0.5) /*50%*/
 #endif
 #define CDC_DEGRADE_TRAFFIC_08MB                       (((uint64_t) 8) << 23) /* 8MBps*/
-#define CDC_DEGRADE_TRAFFIC_10MB                       (((uint64_t)10) << 23) /*10MBps*/
-#define CDC_DEGRADE_TRAFFIC_15MB                       (((uint64_t)15) << 23) /*15MBps*/
+#define CDC_DEGRADE_TRAFFIC_12MB                       (((uint64_t)12) << 23) /*12MBps*/
 #define CDC_DEGRADE_TRAFFIC_16MB                       (((uint64_t)16) << 23) /*16MBps*/
 #define CDC_DEGRADE_TRAFFIC_20MB                       (((uint64_t)20) << 23) /*20MBps*/
 #define CDC_DEGRADE_TRAFFIC_24MB                       (((uint64_t)24) << 23) /*24MBps*/
-#define CDC_DEGRADE_TRAFFIC_25MB                       (((uint64_t)25) << 23) /*25MBps*/
-#define CDC_DEGRADE_TRAFFIC_30MB                       (((uint64_t)30) << 23) /*30MBps*/
+#define CDC_DEGRADE_TRAFFIC_28MB                       (((uint64_t)28) << 23) /*28MBps*/
 #define CDC_DEGRADE_TRAFFIC_32MB                       (((uint64_t)32) << 23) /*32MBps*/
 #define CDC_DEGRADE_TRAFFIC_36MB                       (((uint64_t)36) << 23) /*36MBps*/
 #define CDC_DEGRADE_TRAFFIC_40MB                       (((uint64_t)40) << 23) /*40MBps*/
 
-#define CDC_READ_TRAFFIC_05MB                          (((uint64_t) 5) << 23) /* 5MBps*/
-#define CDC_READ_TRAFFIC_10MB                          (((uint64_t)10) << 23) /*10MBps*/
-#define CDC_READ_TRAFFIC_15MB                          (((uint64_t)15) << 23) /*15MBps*/
+#define CDC_READ_TRAFFIC_08MB                          (((uint64_t) 8) << 23) /* 8MBps*/
+#define CDC_READ_TRAFFIC_12MB                          (((uint64_t)12) << 23) /*12MBps*/
+#define CDC_READ_TRAFFIC_16MB                          (((uint64_t)16) << 23) /*16MBps*/
 
-#define CDC_WRITE_TRAFFIC_05MB                         (((uint64_t) 5) << 23) /* 5MBps*/
-#define CDC_WRITE_TRAFFIC_10MB                         (((uint64_t)10) << 23) /*10MBps*/
-#define CDC_WRITE_TRAFFIC_15MB                         (((uint64_t)15) << 23) /*15MBps*/
+#define CDC_WRITE_TRAFFIC_08MB                         (((uint64_t) 8) << 23) /* 8MBps*/
+#define CDC_WRITE_TRAFFIC_12MB                         (((uint64_t)12) << 23) /*12MBps*/
+#define CDC_WRITE_TRAFFIC_16MB                         (((uint64_t)16) << 23) /*16MBps*/
 
 
 #define CDC_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
 
 typedef struct
 {
-    int                 ssd_fd;
-    int                 sata_fd;
+    int                      ssd_fd;
+    int                      sata_fd;
 
-    UINT32              s_offset;
-    UINT32              e_offset;
-    UINT32              c_offset; /*temporary*/
+    UINT32                   s_offset;
+    UINT32                   e_offset;
+    UINT32                   c_offset; /*temporary*/
 
-    UINT32              key_max_num;
+    UINT32                   key_max_num;
+    UINT32                   locked_page_num;
 
-    CDCDN              *cdcdn;
-    CDCNP              *cdcnp;
+    CDCDN                   *cdcdn;
+    CDCNP                   *cdcnp;
 
-    CAIO_MD            *caio_md;
+    CBAD_BITMAP             *ssd_bad_bitmap;    /*mounted point. inheritted from camd*/
+    CBAD_BITMAP             *sata_bad_bitmap;   /*mounted point. inheritted from camd*/
 
-    UINT32              seq_no;            /*sequence number factory*/
+    CMMAP_NODE              *cmmap_node;        /*mounted point. inheritted from camd*/
 
-    CLIST               req_list;          /*item is CXC_REQ. reading & writing request list in order*/
-    CRB_TREE            page_tree[2];      /*item is CXC_PAGE. working page tree*/
-    UINT32              page_tree_idx;     /*page tree active index, range in [0, 1]*/
+    CAIO_MD                 *caio_md;
 
-    CLIST               post_event_reqs;   /*item is CXC_REQ */
+    UINT32                   seq_no;            /*sequence number factory*/
+
+    CLIST                    req_list;          /*item is CDC_REQ. reading & writing request list in order*/
+    CRB_TREE                 page_tree[2];      /*item is CDC_PAGE. working page tree*/
+    UINT32                   page_tree_idx;     /*page tree active index, range in [0, 1]*/
+
+    CLIST                    post_event_reqs;   /*item is CDC_REQ */
 
     /*for degrade callback*/
-    CDCNP_DEGRADE_CB    np_degrade_cb;
+    CDCNP_DEGRADE_CB         np_degrade_cb;
 
-    uint32_t            fc_max_speed_flag:1;/*enable flow control in max speed, */
-                                            /*i.e., flush data from ssd to sata in max speed*/
-    uint32_t            rsvd01:31;
-    uint32_t            rsvd02;
+    uint32_t                 fc_max_speed_flag:1;/*enable flow control in max speed, */
+                                                 /*i.e., flush data from ssd to sata in max speed*/
+    uint32_t                 shm_np_flag      :1;/*cdc np is in shared memory*/
+    uint32_t                 shm_dn_flag      :1;/*cdc dn is in shared memory*/
+    uint32_t                 read_only_flag   :1;/*cdc is read-only if set*/
+    uint32_t                 restart_flag     :1;/*cdc is restarting if set*/
+    uint32_t                 dontdump_flag    :1;/*cdc not flush or dump if set*/
+    uint32_t                 rsvd01           :26;
+    uint32_t                 rsvd02;
 
 }CDC_MD;
 
@@ -116,12 +129,23 @@ typedef struct
 #define CDC_MD_E_OFFSET(cdc_md)                       ((cdc_md)->e_offset)
 #define CDC_MD_C_OFFSET(cdc_md)                       ((cdc_md)->c_offset)
 #define CDC_MD_KEY_MAX_NUM(cdc_md)                    ((cdc_md)->key_max_num)
+#define CDC_MD_LOCKED_PAGE_NUM(cdc_md)                ((cdc_md)->locked_page_num)
 #define CDC_MD_DN(cdc_md)                             ((cdc_md)->cdcdn)
 #define CDC_MD_NP(cdc_md)                             ((cdc_md)->cdcnp)
 #define CDC_MD_NP_DEGRADE_CB(cdc_md)                  (&((cdc_md)->np_degrade_cb))
 #define CDC_MD_CAIO_MD(cdc_md)                        ((cdc_md)->caio_md)
 
+#define CDC_MD_SSD_BAD_BITMAP(cdc_md)                 ((cdc_md)->ssd_bad_bitmap)
+#define CDC_MD_SATA_BAD_BITMAP(cdc_md)                ((cdc_md)->sata_bad_bitmap)
+
+#define CDC_MD_CMMAP_NODE(cdc_md)                     ((cdc_md)->cmmap_node)
+
 #define CDC_MD_FC_MAX_SPEED_FLAG(cdc_md)              ((cdc_md)->fc_max_speed_flag)
+#define CDC_MD_SHM_NP_FLAG(cdc_md)                    ((cdc_md)->shm_np_flag)
+#define CDC_MD_SHM_DN_FLAG(cdc_md)                    ((cdc_md)->shm_dn_flag)
+#define CDC_MD_RDONLY_FLAG(cdc_md)                    ((cdc_md)->read_only_flag)
+#define CDC_MD_RESTART_FLAG(cdc_md)                   ((cdc_md)->restart_flag)
+#define CDC_MD_DONTDUMP_FLAG(cdc_md)                  ((cdc_md)->dontdump_flag)
 
 #define CDC_MD_SEQ_NO(cdc_md)                         ((cdc_md)->seq_no)
 #define CDC_MD_REQ_LIST(cdc_md)                       (&((cdc_md)->req_list))
@@ -157,7 +181,8 @@ typedef struct
     uint32_t                ssd_flushing_flag:1;    /*page is flushing to ssd */
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
     uint32_t                sata_dirty_flag  :1;    /*inherited from cdc node*/
-    uint32_t                rsvd02           :26;
+    uint32_t                sata_deg_flag    :1;    /*inherited from cdc node*/
+    uint32_t                rsvd02           :25;
 
     uint32_t                fail_counter;
 
@@ -193,6 +218,7 @@ typedef struct
 #define CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page)          ((cdc_page)->ssd_flushing_flag)
 #define CDC_PAGE_MEM_CACHE_FLAG(cdc_page)             ((cdc_page)->mem_cache_flag)
 #define CDC_PAGE_SATA_DIRTY_FLAG(cdc_page)            ((cdc_page)->sata_dirty_flag)
+#define CDC_PAGE_SATA_DEG_FLAG(cdc_page)              ((cdc_page)->sata_deg_flag)
 
 #define CDC_PAGE_FAIL_COUNTER(cdc_page)               ((cdc_page)->fail_counter)
 
@@ -223,7 +249,8 @@ typedef struct
     uint32_t                detached_flag  :1;  /*write in detached model if set to 1*/
     uint32_t                keep_lru_flag  :1;  /*do not modify cdc np lru info if set to 1*/
     uint32_t                sata_dirty_flag:1;  /*inherited from application*/
-    uint32_t                rsvd01         :29;
+    uint32_t                sata_deg_flag  :1;  /*set if application is degrading ssd data to sata*/
+    uint32_t                rsvd01         :28;
     UINT8                  *m_cache;            /*inherited from cdc page. not used yet!*/
     UINT8                  *m_buff;             /*inherited from application*/
     UINT32                 *offset;             /*inherited from application*/
@@ -238,7 +265,7 @@ typedef struct
     CLIST                   nodes;              /*item is CDC_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_reqs;      /*mount point in req list of cdc module*/
+    CLIST_DATA             *mounted_reqs;       /*mount point in req list of cdc module*/
 }CDC_REQ;
 
 #define CDC_REQ_CAIO_CB(cdc_req)                      (&((cdc_req)->caio_cb))
@@ -256,6 +283,7 @@ typedef struct
 #define CDC_REQ_DETACHED_FLAG(cdc_req)                ((cdc_req)->detached_flag)
 #define CDC_REQ_KEEP_LRU_FLAG(cdc_req)                ((cdc_req)->keep_lru_flag)
 #define CDC_REQ_SATA_DIRTY_FLAG(cdc_req)              ((cdc_req)->sata_dirty_flag)
+#define CDC_REQ_SATA_DEG_FLAG(cdc_req)                ((cdc_req)->sata_deg_flag)
 #define CDC_REQ_M_CACHE(cdc_req)                      ((cdc_req)->m_cache)
 #define CDC_REQ_M_BUFF(cdc_req)                       ((cdc_req)->m_buff)
 #define CDC_REQ_OFFSET(cdc_req)                       ((cdc_req)->offset)
@@ -284,7 +312,8 @@ typedef struct
     int                     fd;                 /*inherited from application*/
     uint32_t                m_buf_flag     :1;  /*m_buf should be free if set 1*/
     uint32_t                sata_dirty_flag:1;  /*inherited from cdc req*/
-    uint32_t                rsvd01         :30;
+    uint32_t                sata_deg_flag  :1;  /*inherited from cdc req*/
+    uint32_t                rsvd01         :29;
     UINT8                  *m_cache;            /*inherited from cdc page*/
     UINT8                  *m_buff;             /*inherited from application*/
     UINT32                  f_s_offset;         /*start offset in file*/
@@ -311,6 +340,7 @@ typedef struct
 #define CDC_NODE_M_BUFF(cdc_node)                     ((cdc_node)->m_buff)
 #define CDC_NODE_M_BUFF_FLAG(cdc_node)                ((cdc_node)->m_buf_flag)
 #define CDC_NODE_SATA_DIRTY_FLAG(cdc_node)            ((cdc_node)->sata_dirty_flag)
+#define CDC_NODE_SATA_DEG_FLAG(cdc_node)              ((cdc_node)->sata_deg_flag)
 #define CDC_NODE_F_S_OFFSET(cdc_node)                 ((cdc_node)->f_s_offset)
 #define CDC_NODE_F_E_OFFSET(cdc_node)                 ((cdc_node)->f_e_offset)
 #define CDC_NODE_B_S_OFFSET(cdc_node)                 ((cdc_node)->b_s_offset)
@@ -319,8 +349,6 @@ typedef struct
 #define CDC_NODE_NTIME_MS(cdc_node)                   ((cdc_node)->next_access_ms)
 #define CDC_NODE_MOUNTED_NODES(cdc_node)              ((cdc_node)->mounted_nodes)
 #define CDC_NODE_MOUNTED_OWNERS(cdc_node)             ((cdc_node)->mounted_owners)
-
-
 
 /**
 *
@@ -346,6 +374,13 @@ EC_BOOL cdc_erase(CDC_MD *cdc_md);
 
 /**
 *
+* cleanup CDC
+*
+**/
+EC_BOOL cdc_clean(CDC_MD *cdc_md);
+
+/**
+*
 * create CDC
 *
 **/
@@ -353,10 +388,31 @@ EC_BOOL cdc_create(CDC_MD *cdc_md);
 
 /**
 *
+* create CDC in shared memory
+*
+**/
+EC_BOOL cdc_create_shm(CDC_MD *cdc_md);
+
+/**
+*
 * load CDC
 *
 **/
 EC_BOOL cdc_load(CDC_MD *cdc_md);
+
+/**
+*
+* load CDC from shared memory
+*
+**/
+EC_BOOL cdc_load_shm(CDC_MD *cdc_md);
+
+/**
+*
+* retrieve CDC from ssd
+*
+**/
+EC_BOOL cdc_retrieve_shm(CDC_MD *cdc_md);
 
 /**
 *
@@ -371,6 +427,15 @@ EC_BOOL cdc_flush(CDC_MD *cdc_md);
 *
 **/
 void cdc_print(LOG *log, const CDC_MD *cdc_md);
+
+/*mount mmap node*/
+EC_BOOL cdc_mount_mmap(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node);
+
+/*umount mmap node*/
+EC_BOOL cdc_umount_mmap(CDC_MD *cdc_md);
+
+/*get mmap node*/
+CMMAP_NODE *cdc_get_mmap(CDC_MD *cdc_md);
 
 /**
 *
@@ -397,6 +462,20 @@ EC_BOOL cdc_event_handler(CDC_MD *cdc_md);
 *
 **/
 EC_BOOL cdc_try_quit(CDC_MD *cdc_md);
+
+EC_BOOL cdc_try_restart(CDC_MD *cdc_md);
+
+EC_BOOL cdc_set_read_only(CDC_MD *cdc_md);
+
+EC_BOOL cdc_unset_read_only(CDC_MD *cdc_md);
+
+EC_BOOL cdc_is_read_only(const CDC_MD *cdc_md);
+
+EC_BOOL cdc_set_dontdump(CDC_MD *cdc_md);
+
+EC_BOOL cdc_unset_dontdump(CDC_MD *cdc_md);
+
+EC_BOOL cdc_is_dontdump(const CDC_MD *cdc_md);
 
 /**
 *
@@ -428,6 +507,14 @@ EC_BOOL cdc_create_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset, c
 
 /**
 *
+*  create name node in shared memory
+*
+**/
+EC_BOOL cdc_create_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset, const UINT32 key_max_num);
+
+
+/**
+*
 *  erase name node
 *
 **/
@@ -449,6 +536,20 @@ EC_BOOL cdc_load_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset);
 
 /**
 *
+*  load name node from shared memory
+*
+**/
+EC_BOOL cdc_load_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+
+/**
+*
+*  retrieve name node from ssd
+*
+**/
+EC_BOOL cdc_retrieve_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+
+/**
+*
 *  flush name node to disk
 *
 **/
@@ -463,10 +564,31 @@ EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset);
 
 /**
 *
+*  create data node in shared memory
+*
+**/
+EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+
+/**
+*
 *  load data node from disk
 *
 **/
 EC_BOOL cdc_load_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset);
+
+/**
+*
+*  load data node from shared memory
+*
+**/
+EC_BOOL cdc_load_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+
+/**
+*
+*  retrieve data node from ssd
+*
+**/
+EC_BOOL cdc_retrieve_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
 
 /**
 *
@@ -560,6 +682,16 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
 *
 **/
 EC_BOOL cdc_page_release(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cdcnp_key);
+
+/**
+*
+*  discard a page (note: mark a ssd page as bad page)
+*
+*  release np but NOT release dn, thus dn would not be accessed again.
+*
+*
+**/
+EC_BOOL cdc_page_discard(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cdcnp_key);
 
 /**
 *
@@ -680,7 +812,7 @@ uint32_t cdc_deg_num(CDC_MD *cdc_md);
 *  search in current name node
 *
 **/
-EC_BOOL cdc_search(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key);
+EC_BOOL cdc_search(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, uint32_t *node_pos);
 
 /**
 *
@@ -802,6 +934,21 @@ CDC_NODE *cdc_page_pop_node_back(CDC_PAGE *cdc_page);
 /*process when page is in mem cache*/
 EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx);
 
+EC_BOOL cdc_page_purge_ssd(CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_page_purge_sata(CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_page_purge_both(CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_page_read_aio_timeout(CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_page_read_aio_terminate(CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_page_read_aio_complete(CDC_PAGE *cdc_page);
+
+/*async model: load page from disk to mem cache*/
+EC_BOOL cdc_page_read_aio(CDC_PAGE *cdc_page);
+
 EC_BOOL cdc_page_load_aio_timeout(CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_page_load_aio_terminate(CDC_PAGE *cdc_page);
@@ -916,6 +1063,8 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_
                  const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
                  const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps);
 
+void cdc_process_no_degrade(CDC_MD *cdc_md);
+
 void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
 
 void cdc_process_reqs(CDC_MD *cdc_md);
@@ -934,6 +1083,8 @@ EC_BOOL cdc_has_event(CDC_MD *cdc_md);
 
 EC_BOOL cdc_has_req(CDC_MD *cdc_md);
 
+EC_BOOL cdc_has_wr_req(CDC_MD *cdc_md);
+
 EC_BOOL cdc_lock_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_unlock_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
@@ -945,6 +1096,8 @@ EC_BOOL cdc_map_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
 EC_BOOL cdc_reserve_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_release_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
+
+EC_BOOL cdc_discard_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page);
 
 void cdc_show_pages(LOG *log, const CDC_MD *cdc_md);
 
@@ -970,11 +1123,15 @@ EC_BOOL cdc_dispatch_req(CDC_MD *cdc_md, CDC_REQ *cdc_req);
 
 EC_BOOL cdc_cancel_req(CDC_MD *cdc_md, CDC_REQ *cdc_req);
 
+EC_BOOL cdc_has_locked_page(CDC_MD *cdc_md);
+
 EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_del_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_has_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+
+EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
 
 CDC_PAGE *cdc_pop_first_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
 
@@ -991,6 +1148,28 @@ EC_BOOL cdc_cleanup_post_event_reqs(CDC_MD *cdc_md);
 EC_BOOL cdc_has_post_event_reqs(CDC_MD *cdc_md);
 
 CDC_REQ *cdc_search_req(CDC_MD *cdc_md, const UINT32 seq_no);
+
+EC_BOOL cdc_mount_ssd_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *ssd_bad_bitmap);
+
+EC_BOOL cdc_umount_ssd_bad_bitmap(CDC_MD *cdc_md);
+
+EC_BOOL cdc_is_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_set_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_clear_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_mount_sata_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *sata_bad_bitmap);
+
+EC_BOOL cdc_umount_sata_bad_bitmap(CDC_MD *cdc_md);
+
+EC_BOOL cdc_is_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_set_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_clear_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
+
+EC_BOOL cdc_check_ssd_bad_page(CDC_MD *cdc_md, const uint32_t node_pos);
 
 /*----------------------------------- cdc external interface -----------------------------------*/
 

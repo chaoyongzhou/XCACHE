@@ -261,6 +261,10 @@ EC_BOOL c_file_ppad(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 ch);
 
 EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
+EC_BOOL c_file_write_dio(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
+
+EC_BOOL c_file_read_dio(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
+
 EC_BOOL c_file_size(int fd, UINT32 *fsize);
 
 EC_BOOL c_file_size_b(int fd, uint64_t *fsize);
@@ -343,6 +347,10 @@ int c_file_sync_on(int fd);
 
 int c_file_sync_off(int fd);
 
+void *c_file_mmap(int fd, const UINT32 offset, const UINT32 size, const UINT32 align, const int prot, const int flags);
+
+EC_BOOL c_file_munmap(void *data, const UINT32 size);
+
 struct tm *c_localtime_r(const time_t *timestamp);
 
 ctime_t c_time(ctime_t *timestamp);
@@ -418,6 +426,8 @@ CTMV *c_get_day_time();
 char *c_get_day_time_str();
 
 uint64_t c_get_cur_time_msec();
+
+char *c_get_time_msec_str(const uint64_t time_msec);
 
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
 

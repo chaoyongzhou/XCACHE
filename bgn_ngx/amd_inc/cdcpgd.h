@@ -250,6 +250,8 @@ EC_BOOL cdcpgd_init(CDCPGD *cdcpgd);
 
 EC_BOOL cdcpgd_clean(CDCPGD *cdcpgd);
 
+EC_BOOL cdcpgd_clear(CDCPGD *cdcpgd);
+
 EC_BOOL cdcpgd_free(CDCPGD *cdcpgd);
 
 CDCPGD *cdcpgd_make(const uint16_t disk_no, const uint16_t block_num, UINT8 *base, UINT32 *pos);

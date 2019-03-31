@@ -945,7 +945,8 @@ EC_BOOL cdcpgrb_pool_init(CDCPGRB_POOL *pool, const uint16_t node_num)
 
     CDCPGRB_ASSERT(CDCPGRB_POOL_MAX_SIZE >= node_num);
 
-    CDCPGRB_POOL_NODE_NUM(pool) = node_num;
+    CDCPGRB_POOL_NODE_NUM(pool)  = node_num;
+    CDCPGRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
 
     for(node_pos = 0; node_pos < node_num; node_pos ++)
     {
@@ -954,7 +955,7 @@ EC_BOOL cdcpgrb_pool_init(CDCPGRB_POOL *pool, const uint16_t node_num)
     }
     cdcpgrb_node_set_next(pool, node_num - 1, CDCPGRB_ERR_POS);
 
-    CDCPGRB_POOL_FREE_HEAD(pool) = 0;/*the free nodes head*/
+
     return (EC_TRUE);
 }
 

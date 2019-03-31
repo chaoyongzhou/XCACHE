@@ -36,7 +36,6 @@ extern "C"{
 #include "cxfsnp.h"
 #include "cxfsnprb.h"
 #include "cxfsnplru.h"
-#include "cxfsnpdel.h"
 #include "cxfsnpmgr.h"
 #include "cxfscfg.h"
 
@@ -75,6 +74,8 @@ CXFSNP_MGR *cxfsnp_mgr_new()
 
 EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
 {
+    CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
+
     CXFSNP_MGR_FD(cxfsnp_mgr)                   = ERR_FD;
 
     CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)             = CXFSNP_ERR_MODEL;
@@ -87,6 +88,7 @@ EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
     CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)          = 0;
 
     CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)             = NULL_PTR;
+    CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)        = NULL_PTR;
 
     cvector_init(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), 0, MM_CXFSNP, CVECTOR_LOCK_ENABLE, LOC_CXFSNPMGR_0002);
 
@@ -126,6 +128,14 @@ EC_BOOL cxfsnp_mgr_clean(CXFSNP_MGR *cxfsnp_mgr)
 
         CXFSNP_MGR_NP_CACHE(cxfsnp_mgr) = NULL_PTR;
     }
+
+    if(NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+    {
+        cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
+        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
+    }
+
+    CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
 
     CXFSNP_MGR_FD(cxfsnp_mgr)                   = ERR_FD;
 
@@ -394,13 +404,17 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
 
 EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg)
 {
-    UINT32      np_offset;
-    UINT32      np_mem_size;
-    UINT32      np_mem_align;
-    UINT8      *np_mem_cache;
-    UINT32      cxfsnp_id;
+    UINT32            np_offset;
+    UINT32            np_mem_size;
+    UINT32            np_mem_align;
+    UINT8            *np_mem_cache;
+    UINT32            cxfsnp_id;
+    const CXFSZONE   *cxfszone;
 
-    np_mem_size  = CXFSCFG_NP_E_OFFSET(cxfscfg) - CXFSCFG_NP_S_OFFSET(cxfscfg);
+    /*active zone*/
+    cxfszone = CXFSCFG_NP_ZONE(cxfscfg, CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg));
+
+    np_mem_size  = CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone);
     np_mem_align = CXFSNP_MGR_MEM_ALIGNMENT;
 
     ASSERT(0 == (np_mem_size & (CXFSNP_MGR_MEM_ALIGNMENT - 1)));
@@ -416,21 +430,23 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
             return (EC_FALSE);
         }
 
-        np_offset = CXFSCFG_NP_S_OFFSET(cxfscfg);
+        np_offset = CXFSZONE_S_OFFSET(cxfszone);
         if(EC_FALSE == c_file_pread(cxfsnp_dev_fd, &np_offset, np_mem_size, np_mem_cache))
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
-                                                      "load %ld bytes from offset %ld failed\n",
+                                                      "load %ld bytes from active zone %ld, offset %ld failed\n",
                                                       np_mem_size,
-                                                      CXFSCFG_NP_S_OFFSET(cxfscfg));
+                                                      CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
+                                                      CXFSZONE_S_OFFSET(cxfszone));
             c_memalign_free(np_mem_cache);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
-                                                  "load %ld bytes from offset %ld done\n",
+                                                  "load %ld bytes from active zone %ld, offset %ld done\n",
                                                   np_mem_size,
-                                                  CXFSCFG_NP_S_OFFSET(cxfscfg));
+                                                  CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
+                                                  CXFSZONE_S_OFFSET(cxfszone));
     }
 
     if(SWITCH_ON == CXFS_NP_MMAP_SWITCH)
@@ -446,7 +462,7 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
             return (EC_FALSE);
         }
 
-        np_offset = CXFSCFG_NP_S_OFFSET(cxfscfg);
+        np_offset = CXFSZONE_S_OFFSET(cxfszone);
 
         np_mem_cache = (UINT8 *)mmap(addr, np_mem_size,
                                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
@@ -460,9 +476,10 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
         }
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
-                                                  "mmap %ld bytes from offset %ld done\n",
+                                                  "mmap %ld bytes from active zone %ld, offset %ld done\n",
                                                   np_mem_size,
-                                                  CXFSCFG_NP_S_OFFSET(cxfscfg));
+                                                  CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
+                                                  CXFSZONE_S_OFFSET(cxfszone));
     }
 
     /*init*/
@@ -471,8 +488,8 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
     CXFSNP_MGR_NP_ITEM_MAX_NUM(cxfsnp_mgr)       = CXFSCFG_NP_ITEM_MAX_NUM(cxfscfg);
     CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr)            = CXFSCFG_NP_MAX_NUM(cxfscfg);
     CXFSNP_MGR_NP_SIZE(cxfsnp_mgr)               = CXFSCFG_NP_SIZE(cxfscfg);
-    CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr)           = CXFSCFG_NP_S_OFFSET(cxfscfg);
-    CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)           = CXFSCFG_NP_E_OFFSET(cxfscfg);
+    CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr)           = CXFSZONE_S_OFFSET(cxfszone);
+    CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)           = CXFSZONE_E_OFFSET(cxfszone);
 
     CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)              = np_mem_cache;
 
@@ -929,6 +946,275 @@ EC_BOOL cxfsnp_mgr_close(CXFSNP_MGR *cxfsnp_mgr)
     return (EC_TRUE);
 }
 
+EC_BOOL cxfsnp_mgr_dump(CXFSNP_MGR *cxfsnp_mgr, const UINT32 cxfsnp_zone_s_offset)
+{
+    if(NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && ERR_FD != CXFSNP_MGR_FD(cxfsnp_mgr))
+    {
+        UINT32      offset;
+        UINT32      wsize;
+        UINT8      *mem_cache;
+
+        offset    = cxfsnp_zone_s_offset;
+        wsize     = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+        mem_cache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+
+        if(EC_FALSE == c_file_pwrite(CXFSNP_MGR_FD(cxfsnp_mgr), &offset, wsize, mem_cache))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_dump: "
+                                                      "dump %ld bytes to [%ld, %ld) failed\n",
+                                                      wsize,
+                                                      cxfsnp_zone_s_offset,
+                                                      cxfsnp_zone_s_offset + wsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_dump: "
+                                                  "dump %ld bytes to [%ld, %ld) done\n",
+                                                  wsize,
+                                                  cxfsnp_zone_s_offset,
+                                                  cxfsnp_zone_s_offset + wsize);
+        ASSERT(cxfsnp_zone_s_offset + wsize == offset);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_sync_v1(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
+    {
+        UINT8           *mcache;
+        UINT32           size;
+
+        mcache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+        size   = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+
+        if(0 != msync(mcache, size, MS_SYNC))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_sync: "
+                                                      "sync npp with size %ld failed, "
+                                                      "errno = %d, errstr = %s\n",
+                                                      size, errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_start_sync(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: npp is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && NULL_PTR == CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+    {
+        UINT8           *mcache;
+        UINT32           size;
+
+        mcache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+        size   = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+
+        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = cmsync_node_create(mcache, size);
+        if(NULL_PTR == CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: "
+                                                      "create np msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cmsync_node_start(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)))
+        {
+            cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
+            CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
+
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: "
+                                                      "start np msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_start_sync: "
+                                                  "start np msync done\n");
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_end_sync(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_end_sync: npp is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+    {
+        cmsync_node_end(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
+
+        cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
+        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_end_sync: "
+                                                  "stop np msync done\n");
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_process_sync(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_process_sync: npp is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+    {
+        if(EC_FALSE == cmsync_node_process(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr), CXFSNP_MGR_MSYNC_SIZE))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_process_sync: "
+                                                      "process np msync node failed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_process_sync: "
+                                                  "process np msync node done\n");
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_is_sync(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_is_sync: npp is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
+    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+    {
+        if(0 == cmsync_node_left(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_is_sync: "
+                                                      "process np msync completed\n");
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_is_sync: "
+                                                  "process np msync on-going\n");
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_set_read_only(CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_set_read_only: "
+                                                  "npp is in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_set_read_only(cxfsnp);
+    }
+
+    CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr) = BIT_TRUE;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_set_read_only: "
+                                              "npp set read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_unset_read_only(CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_unset_read_only: "
+                                                  "npp is not in read-only mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_unset_read_only(cxfsnp);
+    }
+
+    CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr) = BIT_FALSE;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_unset_read_only: "
+                                              "npp unset read-only done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_is_read_only(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path)
 {
     return __cxfsnp_mgr_search_dir(cxfsnp_mgr,
@@ -967,6 +1253,12 @@ CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_pat
     CXFSNP_ITEM *cxfsnp_item;
     uint32_t cxfsnp_id;
 
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_reserve: npp is read-only\n");
+        return (NULL_PTR);
+    }
+
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
@@ -1000,6 +1292,12 @@ EC_BOOL cxfsnp_mgr_release(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path)
     CXFSNP *cxfsnp;
     uint32_t cxfsnp_id;
 
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_release: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
@@ -1027,6 +1325,12 @@ EC_BOOL cxfsnp_mgr_retire_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, c
 {
     CXFSNP  *cxfsnp;
 
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_retire_np: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
@@ -1052,6 +1356,12 @@ EC_BOOL cxfsnp_mgr_write(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const
     CXFSNP *cxfsnp;
     CXFSNP_ITEM *cxfsnp_item;
     uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_write: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
@@ -1114,7 +1424,10 @@ EC_BOOL cxfsnp_mgr_read(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, CXFSNP
             cxfsnp_fnode_import(CXFSNP_ITEM_FNODE(cxfsnp_item), cxfsnp_fnode);
         }
 
-        cxfsnplru_node_move_head(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+        if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+        {
+            cxfsnplru_node_move_head(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+        }
 
         return (EC_TRUE);
     }
@@ -1126,6 +1439,12 @@ EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, cons
     CXFSNP *cxfsnp;
     uint32_t cxfsnp_id;
     uint32_t node_pos;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_update: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
@@ -1258,6 +1577,12 @@ STATIC_CAST static EC_BOOL __cxfsnp_mgr_umount_dir_deep(CXFSNP_MGR *cxfsnp_mgr, 
 
 EC_BOOL cxfsnp_mgr_umount(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_umount: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CXFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __cxfsnp_mgr_umount_file(cxfsnp_mgr, path, dflag);
@@ -1275,6 +1600,12 @@ EC_BOOL cxfsnp_mgr_umount(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UIN
 
 EC_BOOL cxfsnp_mgr_umount_deep(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_umount_deep: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CXFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __cxfsnp_mgr_umount_file_deep(cxfsnp_mgr, path, dflag);
@@ -1410,6 +1741,12 @@ STATIC_CAST static EC_BOOL __cxfsnp_mgr_umount_dir_wildcard_deep(CXFSNP_MGR *cxf
 
 EC_BOOL cxfsnp_mgr_umount_wildcard(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_umount_wildcard: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CXFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __cxfsnp_mgr_umount_file_wildcard(cxfsnp_mgr, path, dflag);
@@ -1427,6 +1764,12 @@ EC_BOOL cxfsnp_mgr_umount_wildcard(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
 
 EC_BOOL cxfsnp_mgr_umount_wildcard_deep(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
 {
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_umount_wildcard_deep: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     if(CXFSNP_ITEM_FILE_IS_REG == dflag)
     {
         return __cxfsnp_mgr_umount_file_wildcard_deep(cxfsnp_mgr, path, dflag);
@@ -1447,6 +1790,12 @@ EC_BOOL cxfsnp_mgr_mkdir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path)
     CXFSNP *cxfsnp;
     CXFSNP_ITEM *cxfsnp_item;
     uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_mkdir: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), &cxfsnp_id);;
     if(NULL_PTR == cxfsnp)
@@ -1771,6 +2120,12 @@ EC_BOOL cxfsnp_mgr_file_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
     uint32_t cxfsnp_id;
     uint32_t node_pos;
 
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_file_expire: npp is read-only\n");
+        return (EC_FALSE);
+    }
+
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
@@ -1791,6 +2146,12 @@ EC_BOOL cxfsnp_mgr_file_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
 EC_BOOL cxfsnp_mgr_dir_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
 {
     uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_dir_expire: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     for(cxfsnp_id = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
     {
@@ -1817,6 +2178,12 @@ EC_BOOL cxfsnp_mgr_dir_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
 EC_BOOL cxfsnp_mgr_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const uint32_t dflag)
 {
     uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_expire: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     for(cxfsnp_id = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
     {
@@ -2052,6 +2419,12 @@ EC_BOOL cxfsnp_mgr_get_first_fname_of_path(CXFSNP_MGR *cxfsnp_mgr, const uint32_
 EC_BOOL cxfsnp_mgr_recycle_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const UINT32 max_num, CXFSNP_RECYCLE_NP *cxfsnp_recycle_np, CXFSNP_RECYCLE_DN *cxfsnp_recycle_dn, UINT32 *complete_num)
 {
     CXFSNP  *cxfsnp;
+
+    if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_recycle_np: npp is read-only\n");
+        return (EC_FALSE);
+    }
 
     cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
     if(NULL_PTR == cxfsnp)

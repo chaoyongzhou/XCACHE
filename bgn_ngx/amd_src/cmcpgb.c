@@ -477,7 +477,7 @@ EC_BOOL cmcpgb_init(CMCPGB *cmcpgb, const uint16_t page_model_target)
         cmcpgb_clean(cmcpgb);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0098_CMCPGB, 9)(LOGSTDOUT, "[DEBUG] cmcpgb_init: "
+    dbg_log(SEC_0098_CMCPGB, 9)(LOGSTDNULL, "[DEBUG] cmcpgb_init: "
                                            "init cmcpgrb pool done "
                                            "where page_max_num_t = %u derived from page_max_num %u\n",
                                            page_max_num_t, page_max_num);

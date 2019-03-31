@@ -9446,7 +9446,10 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     chttp_node_set_socket_callback(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
     chttp_node_set_socket_epoll(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
 
-    CHTTP_STAT_S_SEND_LEN(chttp_stat) += chttp_node_send_len(chttp_node);
+    if(NULL_PTR != chttp_stat)
+    {
+        CHTTP_STAT_S_SEND_LEN(chttp_stat) += chttp_node_send_len(chttp_node);
+    }
     //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: croutine_cond %p reserved\n", croutine_cond);
 
     croutine_cond_reserve(croutine_cond, 1, LOC_CHTTP_0046);
@@ -9525,8 +9528,11 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     /*get and check body len/content-length*/
     /*rsp_body_len = chttp_node_recv_len(chttp_node);*/
-    CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_HEADER_PARSED_LEN(chttp_node);
-    CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
+    if(NULL_PTR != chttp_stat)
+    {
+        CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_HEADER_PARSED_LEN(chttp_node);
+        CHTTP_STAT_S_RECV_LEN(chttp_stat) += CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
+    }
     rsp_body_len = CHTTP_NODE_BODY_PARSED_LEN(chttp_node);
     if(0 < rsp_body_len && 0 < CHTTP_NODE_CONTENT_LENGTH(chttp_node))
     {

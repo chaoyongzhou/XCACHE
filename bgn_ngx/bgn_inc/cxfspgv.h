@@ -123,7 +123,7 @@ typedef struct
     uint64_t        pgv_page_used_num;/*used pages number*/
     uint64_t        pgv_actual_used_size;/*actual used bytes*/
 
-    uint16_t        pgv_disk_rb_root_pos[ CPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
+    uint16_t        pgv_disk_rb_root_pos[ CXFSPGB_MODEL_MAX_NUM ];/*root pos of rbtree*/
     uint16_t        rsvd2;
 
     CXFSPGRB_POOL   pgv_disk_rb_pool;
@@ -172,9 +172,11 @@ EC_BOOL cxfspgv_hdr_init(CXFSPGV *cxfspgv);
 
 CXFSPGV_HDR *cxfspgv_hdr_create(CXFSPGV *cxfspgv);
 
+void cxfspgv_hdr_print(LOG *log, const CXFSPGV_HDR *cxfspgv_hdr);
+
 EC_BOOL cxfspgv_free(CXFSPGV *cxfspgv);
 
-CXFSPGV *cxfspgv_open(UINT8 *base, const CXFSCFG *cxfscfg);
+CXFSPGV *cxfspgv_open(UINT8 *base, const CXFSZONE *cxfszone);
 
 EC_BOOL cxfspgv_close(CXFSPGV *cxfspgv);
 
@@ -193,6 +195,10 @@ EC_BOOL cxfspgv_new_space_from_disk(CXFSPGV *cxfspgv, const uint32_t size, const
 EC_BOOL cxfspgv_new_space(CXFSPGV *cxfspgv, const uint32_t size, uint16_t *disk_no, uint16_t *block_no, uint16_t *page_no);
 
 EC_BOOL cxfspgv_free_space(CXFSPGV *cxfspgv, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
+
+EC_BOOL cxfspgv_reserve_space(CXFSPGV *cxfspgv, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+EC_BOOL cxfspgv_release_space(CXFSPGV *cxfspgv, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
 
 EC_BOOL cxfspgv_is_full(const CXFSPGV *cxfspgv);
 

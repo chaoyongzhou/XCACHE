@@ -15,6 +15,7 @@ extern "C"{
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
@@ -33,6 +34,8 @@ extern "C"{
 #include "cdcpgb.h"
 #include "cdcpgd.h"
 #include "cdcpgv.h"
+
+#include "cmmap.h"
 
 #if (SWITCH_ON == CDC_ASSERT_SWITCH)
 #define CDCDN_ASSERT(condition)   ASSERT(condition)
@@ -89,6 +92,12 @@ EC_BOOL cdcdn_node_write(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_m
     UINT32       offset_b; /*base offset in block*/
     UINT32       offset_r; /*real offset in block*/
     UINT32       offset_f; /*real offset in file*/
+
+    if(EC_TRUE == cdcdn_is_read_only(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 3)(LOGSTDOUT, "error:cdcdn_node_write: dn is read-only\n");
+        return (EC_FALSE);
+    }
 
     offset_n = cdcdn_node_fetch(cdcdn, node_id);
     if(CDCDN_NODE_ERR_OFFSET == offset_n)
@@ -188,7 +197,7 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
                                               CDCPGV_MAX_DISK_NUM);
 
         dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
-                                              "CDCPGD_HDR_SIZE           = %u\n",
+                                              "CDCPGD_HDR_SIZE           = %ld\n",
                                               CDCPGD_HDR_SIZE);
 
         dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
@@ -196,7 +205,7 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
                                               CDCPGD_MAX_BLOCK_NUM);
 
         dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
-                                              "CDCPGB_SIZE               = %u\n",
+                                              "CDCPGB_SIZE               = %ld\n",
                                               CDCPGB_SIZE);
 
         dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
@@ -233,7 +242,7 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
                                           (*s_offset), e_offset,
                                           f_s_offset, f_e_offset);
 
-    /*calculate data node header size in storage*/
+    /*determine data node header size in storage*/
     cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
@@ -300,6 +309,8 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
         return (NULL_PTR);
     }
 
+    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
     CDCDN_NODE_FD(cdcdn)       = ERR_FD;
     CDCDN_NODE_NUM(cdcdn)      = node_num;
     CDCDN_BASE_S_OFFSET(cdcdn) = f_s_offset;
@@ -347,7 +358,7 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
 
     for(disk_no = 0; disk_no < disk_num; disk_no ++)
     {
-        dbg_log(SEC_0186_CDCPGV, 0)(LOGSTDOUT, "[DEBUG] cdcdn_create: add disk_no %u to pos %ld\n",
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_create: add disk_no %u to pos %ld\n",
                                                disk_no, pos);
 
         if(EC_FALSE == cdcdn_add_disk(cdcdn, disk_no, base, &pos))
@@ -362,6 +373,214 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
     (*s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: create vol done\n");
+
+    return (cdcdn);
+}
+
+CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCDN           *cdcdn;
+    CDCPGV_HDR      *cdcpgv_hdr;
+
+    UINT32           f_s_offset;
+    UINT32           f_e_offset;
+
+    UINT8           *base;
+    UINT32           pos;
+
+    UINT32           disk_max_size;
+    UINT32           block_max_num;
+
+    UINT32           cdcpgv_size;
+    UINT32           disk_size;
+    UINT32           node_num;
+    UINT32           block_num;
+    uint16_t         disk_num;
+
+    uint16_t         disk_no;
+
+    if(1)
+    {
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGV_HDR_SIZE           = %ld\n",
+                                              CDCPGV_HDR_SIZE);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGV_MAX_DISK_NUM       = %u\n",
+                                              CDCPGV_MAX_DISK_NUM);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGD_HDR_SIZE           = %ld\n",
+                                              CDCPGD_HDR_SIZE);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGD_MAX_BLOCK_NUM      = %u\n",
+                                              CDCPGD_MAX_BLOCK_NUM);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGB_SIZE               = %ld\n",
+                                              CDCPGB_SIZE);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGB_PAGE_SIZE_NBYTES   = %u\n",
+                                              CDCPGB_PAGE_SIZE_NBYTES);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGB_PAGE_NUM           = %u\n",
+                                              CDCPGB_PAGE_NUM);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGB_RB_BITMAP_SIZE     = %u\n",
+                                              CDCPGB_RB_BITMAP_SIZE);
+
+        dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                              "CDCPGB_RB_BITMAP_PAD_SIZE = %u\n",
+                                              CDCPGB_RB_BITMAP_PAD_SIZE);
+    }
+
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
+
+    if(f_s_offset >= f_e_offset)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
+                                              "range [%ld, %ld) aligned to invalid [%ld, %ld)\n",
+                                              (*s_offset), e_offset,
+                                              f_s_offset, f_e_offset);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                          "range [%ld, %ld) aligned to [%ld, %ld)\n",
+                                          (*s_offset), e_offset,
+                                          f_s_offset, f_e_offset);
+
+    /*determine data node header size in storage*/
+    cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                          "cdcpgv_size %ld\n",
+                                          cdcpgv_size);
+
+    //CDCDN_ASSERT(CDCPGB_SIZE_NBYTES >= cdcpgv_size);
+
+    if(f_s_offset + cdcpgv_size >= f_e_offset)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
+                                              "header size %ld >= range covers [%ld, %ld) "
+                                              "which is aligned from range [%ld, %ld)\n",
+                                              cdcpgv_size,
+                                              f_s_offset, f_e_offset,
+                                              (*s_offset), e_offset);
+        return (NULL_PTR);
+    }
+
+    disk_max_size = (f_e_offset - f_s_offset - cdcpgv_size);
+    block_max_num = (disk_max_size >> CDCPGB_SIZE_NBITS);
+
+    disk_num      = (uint16_t)(block_max_num / CDCPGD_MAX_BLOCK_NUM);
+    block_num     = ((UINT32)disk_num) * ((UINT32)CDCPGD_MAX_BLOCK_NUM);
+    node_num      = (block_num >> CDCDN_SEG_NO_NBITS);/*num of nodes.  one node = several continuous blocks*/
+
+    disk_size     = block_num * CDCPGB_SIZE_NBYTES;
+
+    if(0 == disk_num)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
+                                              "no enough space for one disk: "
+                                              "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
+                                              disk_max_size, block_max_num, disk_num);
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                          "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
+                                          disk_max_size, block_max_num, disk_num);
+
+    CDCDN_ASSERT(0 == (block_num % node_num));
+
+    base = cmmap_node_alloc(cmmap_node, cdcpgv_size, CDCDN_MEM_ALIGNMENT, "cdc dn");
+    if(NULL_PTR == base)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
+                                              "create dn failed\n");
+        return (NULL_PTR);
+    }
+
+    pos = 0; /*initialize*/
+
+    cdcdn = cdcdn_new();
+    if(NULL_PTR == cdcdn)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: new cdcdn failed\n");
+        return (NULL_PTR);
+    }
+
+    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
+    CDCDN_NODE_FD(cdcdn)       = ERR_FD;
+    CDCDN_NODE_NUM(cdcdn)      = node_num;
+    CDCDN_BASE_S_OFFSET(cdcdn) = f_s_offset;
+    CDCDN_BASE_E_OFFSET(cdcdn) = f_s_offset + cdcpgv_size;
+    CDCDN_NODE_S_OFFSET(cdcdn) = VAL_ALIGN_NEXT(CDCDN_BASE_E_OFFSET(cdcdn), ((UINT32)CDCPGB_SIZE_MASK));
+    CDCDN_NODE_E_OFFSET(cdcdn) = CDCDN_NODE_S_OFFSET(cdcdn) + disk_size;
+
+    CDCDN_ASSERT(f_e_offset >= CDCDN_NODE_E_OFFSET(cdcdn));
+
+    CDCDN_CDCPGV(cdcdn) = cdcpgv_open();
+    if(NULL_PTR == CDCDN_CDCPGV(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: new vol failed\n");
+
+        cdcdn_close(cdcdn);
+        return (NULL_PTR);
+    }
+
+    CDCPGV_HEADER(CDCDN_CDCPGV(cdcdn)) = (CDCPGV_HDR *)base;
+    if(EC_FALSE == cdcpgv_hdr_init(CDCDN_CDCPGV(cdcdn)))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: init hdr failed\n");
+
+        /*not need munmap base which was taken over by cdcpgv*/
+        cdcdn_close(cdcdn);
+        return (NULL_PTR);
+    }
+
+    /*cdcpgv header inherit data from data node where header would be flushed to disk*/
+    cdcpgv_hdr = CDCPGV_HEADER(CDCDN_CDCPGV(cdcdn));
+    CDCPGV_HDR_NODE_NUM(cdcpgv_hdr)      = CDCDN_NODE_NUM(cdcdn);
+    CDCPGV_HDR_BASE_S_OFFSET(cdcpgv_hdr) = CDCDN_BASE_S_OFFSET(cdcdn);
+    CDCPGV_HDR_BASE_E_OFFSET(cdcpgv_hdr) = CDCDN_BASE_E_OFFSET(cdcdn);
+    CDCPGV_HDR_NODE_S_OFFSET(cdcpgv_hdr) = CDCDN_NODE_S_OFFSET(cdcdn);
+    CDCPGV_HDR_NODE_E_OFFSET(cdcpgv_hdr) = CDCDN_NODE_E_OFFSET(cdcdn);
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
+                                          "cdcpgv nodes: %ld, offset: base %ld, start %ld, end %ld\n",
+                                          CDCPGV_HDR_NODE_NUM(cdcpgv_hdr),
+                                          CDCPGV_HDR_BASE_S_OFFSET(cdcpgv_hdr),
+                                          CDCPGV_HDR_NODE_S_OFFSET(cdcpgv_hdr),
+                                          CDCPGV_HDR_NODE_E_OFFSET(cdcpgv_hdr));
+
+    pos += CDCPGV_HDR_SIZE;
+
+    for(disk_no = 0; disk_no < disk_num; disk_no ++)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: add disk_no %u to pos %ld\n",
+                                               disk_no, pos);
+
+        if(EC_FALSE == cdcdn_add_disk(cdcdn, disk_no, base, &pos))
+        {
+            dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: add disk %u failed\n",
+                                                  disk_no);
+            /*not need munmap base which was taken over by cdcpgv*/
+            cdcdn_close(cdcdn);
+            return (NULL_PTR);
+        }
+    }
+
+    (*s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: create vol done\n");
 
     return (cdcdn);
 }
@@ -405,6 +624,8 @@ CDCDN *cdcdn_new()
 
 EC_BOOL cdcdn_init(CDCDN *cdcdn)
 {
+    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
     CDCDN_NODE_FD(cdcdn)       = ERR_FD;
 
     CDCDN_NODE_NUM(cdcdn)      = 0;
@@ -422,6 +643,8 @@ EC_BOOL cdcdn_init(CDCDN *cdcdn)
 
 EC_BOOL cdcdn_clean(CDCDN *cdcdn)
 {
+    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
     CDCDN_NODE_FD(cdcdn)       = ERR_FD;
 
     CDCDN_NODE_NUM(cdcdn)      = 0;
@@ -451,12 +674,120 @@ EC_BOOL cdcdn_free(CDCDN *cdcdn)
     return (EC_TRUE);
 }
 
+EC_BOOL cdcdn_close(CDCDN *cdcdn)
+{
+    if(NULL_PTR != cdcdn)
+    {
+        if(NULL_PTR != CDCDN_CDCPGV(cdcdn))
+        {
+            cdcpgv_close(CDCDN_CDCPGV(cdcdn));
+            CDCDN_CDCPGV(cdcdn) = NULL_PTR;
+        }
+
+        return cdcdn_free(cdcdn);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_set_read_only(CDCDN *cdcdn)
+{
+    if(BIT_TRUE == CDCDN_RDONLY_FLAG(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_set_read_only: "
+                                              "cdcdn was set already read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCDN_RDONLY_FLAG(cdcdn) = BIT_TRUE;
+
+    dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_set_read_only: "
+                                          "set cdcdn read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_unset_read_only(CDCDN *cdcdn)
+{
+    if(BIT_FALSE == CDCDN_RDONLY_FLAG(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_unset_read_only: "
+                                              "cdcdn was not set read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCDN_RDONLY_FLAG(cdcdn) = BIT_FALSE;
+
+    dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_unset_read_only: "
+                                          "unset cdcdn read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_is_read_only(const CDCDN *cdcdn)
+{
+    if(BIT_FALSE == CDCDN_RDONLY_FLAG(cdcdn))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_set_dontdump(CDCDN *cdcdn)
+{
+    if(BIT_TRUE == CDCDN_DONTDUMP_FLAG(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_set_dontdump: "
+                                              "cdcdn was set already do-not-dump\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_TRUE;
+
+    dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_set_dontdump: "
+                                          "set cdcdn do-not-dump\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_unset_dontdump(CDCDN *cdcdn)
+{
+    if(BIT_FALSE == CDCDN_DONTDUMP_FLAG(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_unset_dontdump: "
+                                              "cdcdn was not set do-not-dump\n");
+
+        return (EC_FALSE);
+    }
+
+    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
+
+    dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "[DEBUG] cdcdn_unset_dontdump: "
+                                          "unset cdcdn do-not-dump\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_is_dontdump(const CDCDN *cdcdn)
+{
+    if(BIT_FALSE == CDCDN_DONTDUMP_FLAG(cdcdn))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 void cdcdn_print(LOG *log, const CDCDN *cdcdn)
 {
     if(NULL_PTR != cdcdn)
     {
-        sys_log(log, "cdcdn_print: cdcdn %p: fd %d, node num %ld, base offset %ld, size %ld, range [%ld, %ld)\n",
+        sys_log(log, "cdcdn_print: cdcdn %p: read-only %u, fd %d, node num %ld, base offset %ld, size %ld, range [%ld, %ld)\n",
                      cdcdn,
+                     CDCDN_RDONLY_FLAG(cdcdn),
                      CDCDN_NODE_FD(cdcdn),
                      CDCDN_NODE_NUM(cdcdn),
                      CDCDN_BASE_S_OFFSET(cdcdn),
@@ -718,6 +1049,13 @@ EC_BOOL cdcdn_flush(CDCDN *cdcdn)
         return (EC_FALSE);
     }
 
+    if(BIT_TRUE == CDCDN_DONTDUMP_FLAG(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_flush: "
+                                              "asked not to flush\n");
+        return (EC_FALSE);
+    }
+
     cdcpgv     = CDCDN_CDCPGV(cdcdn);
     cdcpgv_hdr = CDCPGV_HEADER(cdcpgv);
 
@@ -894,6 +1232,258 @@ EC_BOOL cdcdn_load(CDCDN *cdcdn, int fd, UINT32 *s_offset, const UINT32 e_offset
     (*s_offset) = f_s_offset + cdcpgv_size;
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_load: load vol from %d, offset %ld done\n",
+                                          fd, f_s_offset);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdcdn_load_shm(CDCDN *cdcdn, CMMAP_NODE *cmmap_node, int fd, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCPGV      *cdcpgv;
+    CDCPGV_HDR  *cdcpgv_hdr;
+    UINT8       *base;
+    UINT32       f_s_offset;
+    UINT32       f_e_offset;
+    UINT32       cdcpgv_size;
+    //UINT32       cdcpgv_offset;
+    UINT32       pos;
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: no fd\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == cdcdn)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: cdcdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CDCDN_CDCPGV(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: cdcpgv is not null\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_load_shm: "
+                                          "enter: fd %d, s_offset %ld, e_offset %ld\n",
+                                          fd, (*s_offset), e_offset);
+
+    /*determine data node header size*/
+    cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
+
+    /*determine data node header offset in storage*/
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
+
+    if(f_s_offset + cdcpgv_size >= f_e_offset)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: "
+                                              "header size %ld >= range covers [%ld, %ld) "
+                                              "which is aligned from range [%ld, %ld)\n",
+                                              cdcpgv_size,
+                                              f_s_offset, f_e_offset,
+                                              (*s_offset), e_offset);
+        return (EC_FALSE);
+    }
+
+    //cdcpgv_offset = f_s_offset;
+
+    base = cmmap_node_alloc(cmmap_node, cdcpgv_size, CDCDN_MEM_ALIGNMENT, "cdc dn");
+    if(NULL_PTR == base)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: "
+                                              "mmap dn failed\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_load_shm: "
+                                          "mmap dn done\n");
+
+    //CDCDN_ASSERT(f_s_offset + cdcpgv_size == cdcpgv_offset);
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_load_shm: "
+                                          "cdcpgv node num: %ld, base [%ld, %ld), node [%ld, %ld)\n",
+                                          CDCPGV_HDR_NODE_NUM((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_BASE_S_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_NODE_S_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_NODE_E_OFFSET((CDCPGV_HDR *)base));
+
+    CDCDN_ASSERT(f_s_offset == CDCPGV_HDR_BASE_S_OFFSET((CDCPGV_HDR *)base));
+    CDCDN_ASSERT(f_s_offset + cdcpgv_size == CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base));
+    CDCDN_ASSERT(CDCPGV_HDR_NODE_S_OFFSET((CDCPGV_HDR *)base)
+            == VAL_ALIGN_NEXT(CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base), ((UINT32)CDCPGB_SIZE_MASK)));
+
+    cdcpgv = cdcpgv_new();
+    if(NULL_PTR == cdcpgv)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: new cdcpgv failed\n");
+
+        return (EC_FALSE);
+    }
+
+    pos = 0;
+
+    CDCPGV_HEADER(cdcpgv) = (CDCPGV_HDR *)base;
+    pos += CDCPGV_HDR_SIZE;
+
+    if(EC_FALSE == cdcpgv_load(cdcpgv, base, &pos))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_load_shm: load cdcpgv failed\n");
+
+        cdcpgv_close(cdcpgv);
+        return (EC_FALSE);
+    }
+    CDCPGV_SIZE(cdcpgv) = CDCPGV_HDR_SIZE;
+
+    cdcpgv_hdr = (CDCPGV_HDR *)CDCPGV_HEADER(cdcpgv);
+
+    CDCDN_CDCPGV(cdcdn)         = cdcpgv;
+
+    CDCDN_NODE_NUM(cdcdn)       = CDCPGV_HDR_NODE_NUM(cdcpgv_hdr);
+    CDCDN_BASE_S_OFFSET(cdcdn)  = CDCPGV_HDR_BASE_S_OFFSET(cdcpgv_hdr);
+    CDCDN_BASE_E_OFFSET(cdcdn)  = CDCPGV_HDR_BASE_E_OFFSET(cdcpgv_hdr);
+    CDCDN_NODE_S_OFFSET(cdcdn)  = CDCPGV_HDR_NODE_S_OFFSET(cdcpgv_hdr);
+    CDCDN_NODE_E_OFFSET(cdcdn)  = CDCPGV_HDR_NODE_E_OFFSET(cdcpgv_hdr);
+
+    (*s_offset) = f_s_offset + cdcpgv_size;
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_load_shm: load vol from %d, offset %ld done\n",
+                                          fd, f_s_offset);
+
+    return (EC_TRUE);
+}
+
+/*retrieve dn from ssd*/
+EC_BOOL cdcdn_retrieve_shm(CDCDN *cdcdn, CMMAP_NODE *cmmap_node, int fd, UINT32 *s_offset, const UINT32 e_offset)
+{
+    CDCPGV      *cdcpgv;
+    CDCPGV_HDR  *cdcpgv_hdr;
+    UINT8       *base;
+    UINT32       f_s_offset;
+    UINT32       f_e_offset;
+    UINT32       cdcpgv_size;
+    UINT32       cdcpgv_offset;
+    UINT32       pos;
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: no fd\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == cdcdn)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: cdcdn is null\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CDCDN_CDCPGV(cdcdn))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: cdcpgv is not null\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_retrieve_shm: "
+                                          "enter: fd %d, s_offset %ld, e_offset %ld\n",
+                                          fd, (*s_offset), e_offset);
+
+    /*determine data node header size*/
+    cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
+
+    /*determine data node header offset in storage*/
+    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
+
+    if(f_s_offset + cdcpgv_size >= f_e_offset)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: "
+                                              "header size %ld >= range covers [%ld, %ld) "
+                                              "which is aligned from range [%ld, %ld)\n",
+                                              cdcpgv_size,
+                                              f_s_offset, f_e_offset,
+                                              (*s_offset), e_offset);
+        return (EC_FALSE);
+    }
+
+    //cdcpgv_offset = f_s_offset;
+
+    base = cmmap_node_alloc(cmmap_node, cdcpgv_size, CDCDN_MEM_ALIGNMENT, "cdc dn");
+    if(NULL_PTR == base)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: "
+                                              "mmap dn failed\n");
+        return (EC_FALSE);
+    }
+
+    cdcpgv_offset = f_s_offset;
+
+    /*load data node header from storage*/
+    if(EC_FALSE == c_file_pread(fd, &cdcpgv_offset, cdcpgv_size, (UINT8 *)base))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: "
+                                              "load cdcpgv from fd %d, offset %ld, size %ld failed\n",
+                                              fd, f_s_offset, cdcpgv_size);
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_retrieve_shm: "
+                                          "load cdcpgv from fd %d, offset %ld => %ld, size %ld done\n",
+                                          fd, f_s_offset, cdcpgv_offset, cdcpgv_size);
+
+    //CDCDN_ASSERT(f_s_offset + cdcpgv_size == cdcpgv_offset);
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_retrieve_shm: "
+                                          "cdcpgv node num: %ld, base [%ld, %ld), node [%ld, %ld)\n",
+                                          CDCPGV_HDR_NODE_NUM((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_BASE_S_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_NODE_S_OFFSET((CDCPGV_HDR *)base),
+                                          CDCPGV_HDR_NODE_E_OFFSET((CDCPGV_HDR *)base));
+
+    CDCDN_ASSERT(f_s_offset == CDCPGV_HDR_BASE_S_OFFSET((CDCPGV_HDR *)base));
+    CDCDN_ASSERT(f_s_offset + cdcpgv_size == CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base));
+    CDCDN_ASSERT(CDCPGV_HDR_NODE_S_OFFSET((CDCPGV_HDR *)base)
+            == VAL_ALIGN_NEXT(CDCPGV_HDR_BASE_E_OFFSET((CDCPGV_HDR *)base), ((UINT32)CDCPGB_SIZE_MASK)));
+
+    cdcpgv = cdcpgv_new();
+    if(NULL_PTR == cdcpgv)
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: new cdcpgv failed\n");
+
+        return (EC_FALSE);
+    }
+
+    pos = 0;
+
+    CDCPGV_HEADER(cdcpgv) = (CDCPGV_HDR *)base;
+    pos += CDCPGV_HDR_SIZE;
+
+    if(EC_FALSE == cdcpgv_load(cdcpgv, base, &pos))
+    {
+        dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_retrieve_shm: load cdcpgv failed\n");
+
+        cdcpgv_close(cdcpgv);
+        return (EC_FALSE);
+    }
+    CDCPGV_SIZE(cdcpgv) = CDCPGV_HDR_SIZE;
+
+    cdcpgv_hdr = (CDCPGV_HDR *)CDCPGV_HEADER(cdcpgv);
+
+    CDCDN_CDCPGV(cdcdn)         = cdcpgv;
+
+    CDCDN_NODE_NUM(cdcdn)       = CDCPGV_HDR_NODE_NUM(cdcpgv_hdr);
+    CDCDN_BASE_S_OFFSET(cdcdn)  = CDCPGV_HDR_BASE_S_OFFSET(cdcpgv_hdr);
+    CDCDN_BASE_E_OFFSET(cdcdn)  = CDCPGV_HDR_BASE_E_OFFSET(cdcpgv_hdr);
+    CDCDN_NODE_S_OFFSET(cdcdn)  = CDCPGV_HDR_NODE_S_OFFSET(cdcpgv_hdr);
+    CDCDN_NODE_E_OFFSET(cdcdn)  = CDCPGV_HDR_NODE_E_OFFSET(cdcpgv_hdr);
+
+    (*s_offset) = f_s_offset + cdcpgv_size;
+
+    dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_retrieve_shm: load vol from %d, offset %ld done\n",
                                           fd, f_s_offset);
 
     return (EC_TRUE);

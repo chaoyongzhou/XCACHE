@@ -76,7 +76,7 @@ EC_BOOL tasks_srv_start(TASKS_CFG *tasks_cfg)
                       (CEPOLL_EVENT_HANDLER)tasks_srv_accept,
                       (void *)tasks_cfg);
 
-    dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "tasks_srv_start: start server %s:%ld:%d\n",
+    dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "[DEBUG] tasks_srv_start: start server %s:%ld:%d\n",
                     TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
                     TASKS_CFG_SRVPORT(tasks_cfg),
                     TASKS_CFG_SRVSOCKFD(tasks_cfg));

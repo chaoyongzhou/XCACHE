@@ -174,6 +174,7 @@ typedef UINT8 UUID[16];
 
 #define VAL_ALIGN_NEXT(value, mask) (((value) + (mask)) & (~(mask)))
 #define VAL_ALIGN_HEAD(value, mask) ((value) & (~mask))
+#define VAL_IS_ALIGN(value, mask)   (0 == ((value) & (mask)))
 
 #if 0
 netinet/in.h
@@ -290,6 +291,9 @@ netinet/in.h
 #define ERR_OFFSET   ((UINT32)-1)
 
 #define FILE_PAD_CHAR (0x00)
+
+#define DISK_SECTOR_SIZE_NBYTES  (512)
+#define DISK_SECTOR_SIZE_MASK    (DISK_SECTOR_SIZE_NBYTES - 1)
 
 #define BIT_TRUE    (1)
 #define BIT_FALSE   (0)

@@ -2579,6 +2579,11 @@ EC_BOOL c_dir_exist(const char *pathname)
 {
     struct stat filestat;
 
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
     if(0 != stat(pathname, &filestat))
     {
         return (EC_FALSE);
@@ -2612,6 +2617,11 @@ EC_BOOL c_dir_remove(const char *pathname)
 {
     int nopenfd = 64;/*the maximum number of directories */
                      /*that nftw() will hold open simultaneously*/
+
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
 
     if(0 != nftw(pathname, __c_file_unlink_func, nopenfd, FTW_DEPTH | FTW_PHYS))
     {
@@ -3023,6 +3033,238 @@ EC_BOOL c_file_pread(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     return (EC_TRUE);
 }
 
+EC_BOOL c_file_write_dio(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
+{
+    UINT32  f_s_offset;
+    UINT32  f_e_offset;
+    UINT32  f_c_offset;
+    UINT32  b_s_offset;
+    UINT8  *buff_t;
+
+    /*align range to sector size*/
+    f_s_offset = VAL_ALIGN_HEAD((*offset) +     0, DISK_SECTOR_SIZE_MASK);
+    f_e_offset = VAL_ALIGN_NEXT((*offset) + wsize, DISK_SECTOR_SIZE_MASK);
+
+    /*input are aligned*/
+    if(wsize == f_e_offset - f_s_offset
+    && VAL_IS_ALIGN((UINT32)buff, DISK_SECTOR_SIZE_MASK))
+    {
+        f_c_offset = f_s_offset;
+
+        if(EC_FALSE == c_file_pwrite(fd, &f_c_offset, f_e_offset - f_s_offset, buff))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write_dio: "
+                                                  "[shortcut] pwrite [%ld, %ld), size %ld, buff %p to fd %d failed\n",
+                                                  f_s_offset,
+                                                  f_e_offset,
+                                                  f_e_offset - f_s_offset,
+                                                  buff,
+                                                  fd);
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_write_dio: "
+                                              "[shortcut] pwrite [%ld, %ld), size %ld to fd %d done\n",
+                                              f_s_offset,
+                                              f_e_offset,
+                                              f_e_offset - f_s_offset,
+                                              fd);
+        return (EC_TRUE);
+    }
+
+    buff_t = (UINT8 *)c_memalign_new(f_e_offset - f_s_offset, DISK_SECTOR_SIZE_NBYTES);
+    if(NULL_PTR == buff_t)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write_dio: "
+                                              "new %ld bytes align %ld failed\n",
+                                              f_e_offset - f_s_offset,
+                                              (UINT32)DISK_SECTOR_SIZE_NBYTES);
+
+        return (EC_FALSE);
+    }
+
+    /*read head sector*/
+    if(f_s_offset < (*offset))
+    {
+        f_c_offset = f_s_offset;
+
+        if(EC_FALSE == c_file_pread(fd, &f_c_offset, DISK_SECTOR_SIZE_NBYTES, buff_t + 0))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write_dio: "
+                                                  "[head] pread [%ld, %ld), size %ld, buff %p from fd %d failed\n",
+                                                  f_s_offset,
+                                                  f_s_offset + DISK_SECTOR_SIZE_NBYTES,
+                                                  (UINT32)DISK_SECTOR_SIZE_NBYTES,
+                                                  buff_t + 0,
+                                                  fd);
+
+            c_memalign_free(buff_t);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_write_dio: "
+                                              "[head] pread [%ld, %ld), size %ld from fd %d done\n",
+                                              f_s_offset,
+                                              f_s_offset + DISK_SECTOR_SIZE_NBYTES,
+                                              (UINT32)DISK_SECTOR_SIZE_NBYTES,
+                                              fd);
+    }
+
+    /*read tail sector*/
+    if(f_e_offset > (*offset) + wsize)
+    {
+        f_c_offset = f_e_offset - DISK_SECTOR_SIZE_NBYTES;
+
+        if(EC_FALSE == c_file_pread(fd, &f_c_offset, DISK_SECTOR_SIZE_NBYTES, buff_t + f_c_offset))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write_dio: "
+                                                  "[tail] pread [%ld, %ld), size %ld, buff %p from fd %d failed\n",
+                                                  f_e_offset - DISK_SECTOR_SIZE_NBYTES,
+                                                  f_e_offset,
+                                                  (UINT32)DISK_SECTOR_SIZE_NBYTES,
+                                                  buff_t + f_c_offset,
+                                                  fd);
+
+            c_memalign_free(buff_t);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_write_dio: "
+                                              "[tail] pread [%ld, %ld), size %ld from fd %d done\n",
+                                              f_e_offset - DISK_SECTOR_SIZE_NBYTES,
+                                              f_e_offset,
+                                              (UINT32)DISK_SECTOR_SIZE_NBYTES,
+                                              fd);
+    }
+
+    b_s_offset = (*offset) & ((UINT32)DISK_SECTOR_SIZE_MASK);
+    BCOPY(buff, buff_t + b_s_offset, wsize);
+
+    f_c_offset = f_s_offset;
+
+    if(EC_FALSE == c_file_pwrite(fd, &f_c_offset, f_e_offset - f_s_offset, buff_t))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write_dio: "
+                                              "pwrite [%ld, %ld), size %ld, buff %p to fd %d failed\n",
+                                              f_s_offset,
+                                              f_e_offset,
+                                              f_e_offset - f_s_offset,
+                                              buff_t,
+                                              fd);
+
+        c_memalign_free(buff_t);
+        return (EC_FALSE);
+    }
+
+    c_memalign_free(buff_t);
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_write_dio: "
+                                          "pwrite [%ld, %ld), size %ld to fd %d done\n",
+                                          f_s_offset,
+                                          f_e_offset,
+                                          f_e_offset - f_s_offset,
+                                          fd);
+    (*offset) += wsize;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_file_read_dio(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
+{
+    UINT32  f_s_offset;
+    UINT32  f_e_offset;
+    UINT32  f_c_offset;
+    UINT32  b_s_offset;
+    UINT8  *buff_t;
+
+    /*align range to sector size*/
+    f_s_offset = VAL_ALIGN_HEAD((*offset) +     0, DISK_SECTOR_SIZE_MASK);
+    f_e_offset = VAL_ALIGN_NEXT((*offset) + rsize, DISK_SECTOR_SIZE_MASK);
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_read_dio: "
+                                          "align [%ld, %ld), size %ld to [%ld, %ld), size %ld\n",
+                                          (*offset),
+                                          (*offset) + rsize,
+                                          rsize,
+                                          f_s_offset,
+                                          f_e_offset,
+                                          f_e_offset - f_s_offset);
+
+    /*input are aligned*/
+    if(rsize == f_e_offset - f_s_offset
+    && VAL_IS_ALIGN((UINT32)buff, DISK_SECTOR_SIZE_MASK))
+    {
+        f_c_offset = f_s_offset;
+
+        if(EC_FALSE == c_file_pread(fd, &f_c_offset, f_e_offset - f_s_offset, buff))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_read_dio: "
+                                                  "[shortcut] pread [%ld, %ld), size %ld, buff %p from fd %d failed\n",
+                                                  f_s_offset,
+                                                  f_e_offset,
+                                                  f_e_offset - f_s_offset,
+                                                  buff,
+                                                  fd);
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_read_dio: "
+                                              "[shortcut] pread [%ld, %ld), size %ld from fd %d done\n",
+                                              f_s_offset,
+                                              f_e_offset,
+                                              f_e_offset - f_s_offset,
+                                              fd);
+        return (EC_TRUE);
+    }
+
+    buff_t = (UINT8 *)c_memalign_new(f_e_offset - f_s_offset, DISK_SECTOR_SIZE_NBYTES);
+    if(NULL_PTR == buff_t)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_read_dio: "
+                                              "new %ld bytes align %ld failed\n",
+                                              f_e_offset - f_s_offset,
+                                              (UINT32)DISK_SECTOR_SIZE_NBYTES);
+
+        return (EC_FALSE);
+    }
+
+    f_c_offset = f_s_offset;
+
+    if(EC_FALSE == c_file_pread(fd, &f_c_offset, f_e_offset - f_s_offset, buff_t))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_read_dio: "
+                                              "pread [%ld, %ld), size %ld, buff %p from fd %d failed\n",
+                                              f_s_offset,
+                                              f_e_offset,
+                                              f_e_offset - f_s_offset,
+                                              buff_t,
+                                              fd);
+
+        c_memalign_free(buff_t);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_read_dio: "
+                                          "pread [%ld, %ld), size %ld from fd %d done\n",
+                                          f_s_offset,
+                                          f_e_offset,
+                                          f_e_offset - f_s_offset,
+                                          fd);
+
+    b_s_offset = (*offset) & ((UINT32)DISK_SECTOR_SIZE_MASK);
+
+    BCOPY(buff_t + b_s_offset, buff, rsize);
+
+    c_memalign_free(buff_t);
+
+    (*offset) += rsize;
+
+    return (EC_TRUE);
+}
+
+
 EC_BOOL c_file_size(int fd, UINT32 *fsize)
 {
     (*fsize) = lseek(fd, 0, SEEK_END);
@@ -3067,6 +3309,11 @@ EC_BOOL c_file_exist(const char *pathname)
 {
     struct stat filestat;
 
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
     if(0 != stat(pathname, &filestat))
     {
         return (EC_FALSE);
@@ -3097,6 +3344,11 @@ EC_BOOL c_file_exist(const char *pathname)
 
 EC_BOOL c_file_access(const char *pathname, int mode)
 {
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
     if(0 != access(pathname, mode))
     {
         //dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_access: access %s with mode %d failed\n", pathname, mode);
@@ -3244,6 +3496,11 @@ int c_fp_dup(int fd)
 EC_BOOL c_dev_exist(const char *pathname)
 {
     struct stat filestat;
+
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
 
     if(0 != stat(pathname, &filestat))
     {
@@ -3657,6 +3914,85 @@ int c_file_sync_off(int fd)
     return (0);
 }
 
+void *c_file_mmap(int fd, const UINT32 offset, const UINT32 size, const UINT32 align, const int prot, const int flags)
+{
+    void    *data;
+
+    if(0 != align)
+    {
+        void    *address;
+
+        address = c_mmap_aligned_addr(size, align);
+        if(NULL_PTR == address)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_mmap: "
+                                                  "fetch aligned addr of size %ld, align %ld failed\n",
+                                                  size, align);
+            return (NULL_PTR);
+        }
+
+        data = mmap(address, size, prot, flags, fd, offset);
+        if(MAP_FAILED == data)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_mmap: "
+                                                  "mmap fd %d size %ld offset %ld to address %p failed, "
+                                                  "errno = %d, errstr = %s\n",
+                                                  fd, size, offset, address,
+                                                  errno, strerror(errno));
+            return (NULL_PTR);
+        }
+
+        ASSERT(data == address);
+    }
+    else
+    {
+        data = mmap(NULL_PTR, size, prot, flags, fd, offset);
+        if(MAP_FAILED == data)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_mmap: "
+                                                  "mmap fd %d size %ld offset %ld failed, "
+                                                  "errno = %d, errstr = %s\n",
+                                                  fd, size, offset,
+                                                  errno, strerror(errno));
+            return (NULL_PTR);
+        }
+    }
+    return (data);
+}
+
+EC_BOOL c_file_munmap(void *data, const UINT32 size)
+{
+    if(NULL_PTR == data || 0 == size)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_munmap: "
+                                              "invalid data %p or size %ld\n",
+                                              data, size);
+        return (EC_FALSE);
+    }
+
+    if(0 != msync(data, size, MS_SYNC))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "warn:c_file_munmap: "
+                                              "sync %p, size %ld failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              data, size, errno, strerror(errno));
+    }
+
+    if(0 != munmap(data, (size_t)size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_munmap: "
+                                              "munmap %p, size %ld failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              data, size,
+                                              errno, strerror(errno));
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "[DEBUG] c_file_munmap: "
+                                          "munmap [%p, %p), size %ld done\n",
+                                          data, data + size,
+                                          size);
+    return (EC_TRUE);
+}
 
 CTM *c_localtime_r(const time_t *timestamp)
 {
@@ -5254,6 +5590,30 @@ uint64_t c_get_cur_time_msec()
     return (time_msec_cur);
 }
 
+char *c_get_time_msec_str(const uint64_t time_msec)
+{
+    CTMV             timev;
+    CTM             *time;
+    char            *time_str;
+
+    int              tv_msec;
+
+    timev.tv_sec  = (time_msec / 1000);
+    timev.tv_usec = (time_msec % 1000) * 1000;
+
+    tv_msec = (int)(time_msec % 1000);
+
+    time = c_localtime_r(&(timev.tv_sec));
+
+    time_str = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+
+    snprintf(time_str, CMISC_BUFF_LEN, "%4d-%02d-%02d %02d:%02d:%02d.%03d",
+             TIME_IN_YMDHMS(time), tv_msec);
+
+    return (time_str);
+}
+
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4)
 {
     TASKS_CFG         *detect_tasks_cfg;
@@ -6397,6 +6757,11 @@ EC_BOOL c_shm_dir_exist(const char *pathname)
 {
     struct stat filestat;
 
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
+
     if(0 != stat(pathname, &filestat))
     {
         return (EC_FALSE);
@@ -6449,6 +6814,11 @@ EC_BOOL c_shm_dir_remove(const char *pathname)
 EC_BOOL c_shm_file_exist(const char *pathname)
 {
     struct stat filestat;
+
+    if(NULL_PTR == pathname)
+    {
+        return (EC_FALSE);
+    }
 
     if(0 != stat(pathname, &filestat))
     {

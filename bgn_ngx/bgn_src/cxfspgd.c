@@ -351,7 +351,7 @@ EC_BOOL cxfspgd_add_block(CXFSPGD *cxfspgd, const uint16_t block_no, const uint1
 EC_BOOL cxfspgd_del_block(CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_model)
 {
     /*del block_no from rbtree*/
-    if(CXFSPGRB_ERR_POS == cxfspgrb_tree_delete_data(CXFSPGD_PAGE_BLOCK_CXFSPGRB_POOL(cxfspgd), &(CXFSPGD_PAGE_MODEL_BLOCK_CXFSPGRB_ROOT_POS(cxfspgd, page_model)), block_no))
+    if(EC_FALSE == cxfspgrb_tree_delete_data(CXFSPGD_PAGE_BLOCK_CXFSPGRB_POOL(cxfspgd), &(CXFSPGD_PAGE_MODEL_BLOCK_CXFSPGRB_ROOT_POS(cxfspgd, page_model)), block_no))
     {
         dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:cxfspgd_del_block: del block_no %u from rbtree of page model %u failed\n", block_no, page_model);
         return (EC_FALSE);
@@ -625,6 +625,173 @@ EC_BOOL cxfspgd_free_space(CXFSPGD *cxfspgd, const uint16_t block_no, const uint
     return (EC_TRUE);
 }
 
+/*page_model is IN & OUT parameter*/
+STATIC_CAST static EC_BOOL __cxfspgd_extract_block(CXFSPGD *cxfspgd, uint16_t *page_model, const uint16_t block_no)
+{
+    uint16_t page_model_t;
+    uint16_t mask;
+
+    page_model_t = *page_model;
+
+    mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
+    if(0 == (CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd) & mask))
+    {
+        dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:__cxfspgd_extract_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+                           page_model_t, CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd), mask);
+        return (EC_FALSE);
+    }
+
+    while(CXFSPGB_MODEL_NUM > page_model_t
+       && (EC_TRUE == cxfspgrb_tree_is_empty(CXFSPGD_PAGE_BLOCK_CXFSPGRB_POOL(cxfspgd), CXFSPGD_PAGE_MODEL_BLOCK_CXFSPGRB_ROOT_POS(cxfspgd, page_model_t))
+       || CXFSPGRB_ERR_POS == cxfspgrb_tree_search_data(CXFSPGD_PAGE_BLOCK_CXFSPGRB_POOL(cxfspgd), CXFSPGD_PAGE_MODEL_BLOCK_CXFSPGRB_ROOT_POS(cxfspgd, page_model_t), block_no))
+       )
+    {
+        page_model_t --;
+    }
+
+    if(CXFSPGB_MODEL_NUM <= page_model_t)
+    {
+        dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:__cxfspgd_extract_block: no free block %u\n", block_no);
+        return (EC_FALSE);
+    }
+
+    (*page_model) = page_model_t;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfspgd_reserve_space(CXFSPGD *cxfspgd, const uint32_t size, const uint16_t block_no, const uint16_t page_no)
+{
+    CXFSPGB    *cxfspgb;
+
+    uint16_t page_num_need;
+    uint16_t page_model;
+
+    uint16_t e;
+    uint16_t t;
+
+    uint16_t pgb_assign_bitmap_old;
+    uint16_t pgb_assign_bitmap_new;
+
+    CXFSPGD_ASSERT(0 < size);
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < size)
+    {
+        dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:cxfspgd_reserve_space: the expected size %u overflow\n", size);
+        return (EC_FALSE);
+    }
+
+    page_num_need = (uint16_t)((size + CXFSPGB_PAGE_BYTE_SIZE - 1) >> CXFSPGB_PAGE_BIT_SIZE);
+    //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDNULL, "[DEBUG] cxfspgd_reserve_space: size = %u ==> page_num_need = %u\n", size, page_num_need);
+
+    /*find a page model which can accept the page_num_need pages */
+    /*and then split the left space into page model with smaller size  */
+
+    CXFSPGD_ASSERT(CXFSPGB_064MB_PAGE_NUM >= page_num_need);
+
+    /*check bits of page_num_need and determine the page_model*/
+    e = CXFSPGB_PAGE_HI_BIT_MASK;
+    for(t = page_num_need, page_model = 0; 0 == (t & e); t <<= 1, page_model ++)
+    {
+        /*do nothing*/
+    }
+    //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDNULL, "[DEBUG] cxfspgd_reserve_space: t = 0x%x, page_model = %u, e = 0x%x, t << 1 is 0x%x\n", t, page_model, e, (t << 1));
+
+    if(CXFSPGB_PAGE_LO_BITS_MASK & t)
+    {
+        page_model --;/*upgrade page_model one level*/
+    }
+
+    //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDNULL, "[DEBUG] cxfspgd_reserve_space: page_num_need = %u ==> page_model = %u (has %u pages )\n",
+    //                   page_num_need, page_model, (uint16_t)(1 << (CXFSPGB_MODEL_NUM - 1 - page_model)));
+
+    if(1)
+    {
+        uint16_t page_model_t;
+
+        page_model_t = page_model;
+
+        if(EC_FALSE == __cxfspgd_extract_block(cxfspgd, &page_model_t, block_no))
+        {
+            dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:cxfspgd_reserve_space: extract block %u from page model %u failed\n", block_no, page_model_t);
+            return (EC_FALSE);
+        }
+
+        cxfspgb = CXFSPGD_BLOCK_NODE(cxfspgd, block_no);
+        pgb_assign_bitmap_old = CXFSPGB_PAGE_MODEL_ASSIGN_BITMAP(cxfspgb);
+
+        if(EC_FALSE == cxfspgb_reserve_page(cxfspgb, size, page_no))
+        {
+            dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:cxfspgd_reserve_space: reserve size %u, page %u from block %u failed\n", size, page_no, block_no);
+            return (EC_FALSE);
+        }
+
+        page_model = page_model_t; /*re-init page_model*/
+    }
+
+    pgb_assign_bitmap_new = CXFSPGB_PAGE_MODEL_ASSIGN_BITMAP(cxfspgb);
+
+    //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: block_no_t %u: pgb bitmap %x => %x\n", block_no_t, pgb_assign_bitmap_old, pgb_assign_bitmap_new);
+
+    /*pgb_assign_bitmap changes may make pgd_assign_bitmap changes*/
+    if(pgb_assign_bitmap_new != pgb_assign_bitmap_old)
+    {
+        //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: before delete block_no_t %u: pgb bitmap %s, pgd assign bitmap %s\n",
+        //                    block_no_t,
+        //                    c_uint16_t_to_bin_str(CXFSPGB_PAGE_MODEL_ASSIGN_BITMAP(cxfspgb)),
+        //                    c_uint16_t_to_bin_str(CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd)));
+
+        cxfspgd_del_block(cxfspgd, block_no, page_model);
+
+        //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: after  delete block_no_t %u: pgb bitmap %s, pgd assign bitmap %s\n",
+        //                    block_no_t,
+        //                    c_uint16_t_to_bin_str(CXFSPGB_PAGE_MODEL_ASSIGN_BITMAP(cxfspgb)),
+        //                    c_uint16_t_to_bin_str(CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd)));
+
+        if(EC_FALSE == cxfspgb_is_full(cxfspgb))
+        {
+            uint16_t page_model_t;
+
+            page_model_t = page_model;
+            while(CXFSPGB_MODEL_NUM > page_model_t
+               && 0 == (pgb_assign_bitmap_new & (uint16_t)(1 << page_model_t))
+               )
+            {
+                 page_model_t ++;
+            }
+
+            CXFSPGD_ASSERT(CXFSPGB_MODEL_NUM > page_model_t);
+            //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: page_model %u, page_model_t %u\n", page_model, page_model_t);
+            cxfspgd_add_block(cxfspgd, block_no, page_model_t);
+            //dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: block_no_t %u: pgb bitmap %s, pgd assign bitmap %s\n",
+            //                    block_no_t,
+            //                    c_uint16_t_to_bin_str(CXFSPGB_PAGE_MODEL_ASSIGN_BITMAP(cxfspgb)),
+            //                    c_uint16_t_to_bin_str(CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd)));
+        }
+        else
+        {
+            /*do nothing*/
+        }
+    }
+
+    CXFSPGD_PAGE_USED_NUM(cxfspgd)         += page_num_need;
+    CXFSPGD_PAGE_ACTUAL_USED_SIZE(cxfspgd) += size;
+
+    CXFSPGD_ASSERT(EC_TRUE == cxfspgd_check(cxfspgd));
+
+    dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: pgd_page_used_num %u due to increment %u\n",
+                        CXFSPGD_PAGE_USED_NUM(cxfspgd), page_num_need);
+    dbg_log(SEC_0202_CXFSPGD, 9)(LOGSTDOUT, "[DEBUG] cxfspgd_reserve_space: pgd_actual_used_size %"PRId64" due to increment %u\n",
+                        CXFSPGD_PAGE_ACTUAL_USED_SIZE(cxfspgd), size);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfspgd_release_space(CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no, const uint32_t size)
+{
+    return cxfspgd_free_space(cxfspgd, block_no, page_no, size);
+}
+
 EC_BOOL cxfspgd_is_full(const CXFSPGD *cxfspgd)
 {
     if(CXFSPGD_PAGE_USED_NUM(cxfspgd) == CXFSPGD_PAGE_MAX_NUM(cxfspgd))
@@ -774,25 +941,8 @@ void cxfspgd_print(LOG *log, const CXFSPGD *cxfspgd)
 
     ratio_page    = ((0.0 + CXFSPGD_PAGE_USED_NUM(cxfspgd)) / (0.0 + CXFSPGD_PAGE_MAX_NUM(cxfspgd)));
 
-    if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_4K_BIT_SIZE)
-    {
-        page_desc = "4K-page";
-    }
+    page_desc     = CXFSPCB_PAGE_DESC;
 
-    if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_8K_BIT_SIZE)
-    {
-        page_desc = "8K-page";
-    }
-
-    if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_16M_BIT_SIZE)
-    {
-        page_desc = "16M-page";
-    }
-
-    if(CXFSPGB_PAGE_BIT_SIZE == CXFSPGB_PAGE_32M_BIT_SIZE)
-    {
-        page_desc = "32M-page";
-    }
 /*
     sys_log(log, "cxfspgd_print: cxfspgd %p, ratio %.2f\n",
                  cxfspgd,

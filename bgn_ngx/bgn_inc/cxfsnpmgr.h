@@ -30,11 +30,15 @@ extern "C"{
 
 #include "chashalgo.h"
 
+#include "cmsync.h"
+
 #include "cxfscfg.h"
 #include "cxfsnp.h"
 #include "cxfsnprb.h"
 
 #define CXFSNP_MGR_MEM_ALIGNMENT                    (1 << 20)
+
+#define CXFSNP_MGR_MSYNC_SIZE                       (256 << 10) /*256K*/
 
 typedef struct
 {
@@ -46,7 +50,8 @@ typedef struct
     uint16_t         rsvd2;
     uint32_t         cxfsnp_item_max_num;
     uint32_t         cxfsnp_max_num;                /*max np num*/
-    uint32_t         rsvd3;
+    uint32_t         read_only_flag:1;
+    uint32_t         rsvd3         :31;
 
     UINT32           cxfsnp_size;                   /*single np size*/
     UINT32           cxfsnp_s_offset;               /*np start offset*/
@@ -54,8 +59,11 @@ typedef struct
 
     UINT8           *np_cache;                      /*mem cache mounted point*/
     CVECTOR          cxfsnp_vec;                    /*item is CXFSNP*/
+
+    CMSYNC_NODE     *np_msync_node;
 }CXFSNP_MGR;
 
+#define CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)                  ((cxfsnp_mgr)->read_only_flag)
 #define CXFSNP_MGR_FD(cxfsnp_mgr)                              ((cxfsnp_mgr)->fd)
 #define CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)                        ((cxfsnp_mgr)->cxfsnp_model)
 #define CXFSNP_MGR_NP_2ND_CHASH_ALGO_ID(cxfsnp_mgr)            ((cxfsnp_mgr)->cxfsnp_2nd_chash_algo_id)
@@ -67,6 +75,7 @@ typedef struct
 #define CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)                        ((cxfsnp_mgr)->np_cache)
 #define CXFSNP_MGR_NP_VEC(cxfsnp_mgr)                          (&((cxfsnp_mgr)->cxfsnp_vec))
 #define CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id)                   ((CXFSNP *)cvector_get(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), cxfsnp_id))
+#define CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)                   ((cxfsnp_mgr)->np_msync_node)
 
 /*to reduce lock operation in name node*/
 #define CXFSNP_MGR_NP_GET_NO_LOCK(cxfsnp_mgr, cxfsnp_id) \
@@ -123,6 +132,22 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
 CXFSNP_MGR * cxfsnp_mgr_open(const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsnp_mgr_close(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_dump(CXFSNP_MGR *cxfsnp_mgr, const UINT32 cxfsnp_zone_s_offset);
+
+EC_BOOL cxfsnp_mgr_start_sync(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_end_sync(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_process_sync(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_is_sync(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_set_read_only(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_unset_read_only(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_is_read_only(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path);
 

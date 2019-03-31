@@ -26,22 +26,29 @@ extern "C"{
 #include "clist.h"
 #include "crb.h"
 
+#include "cbadbitmap.h"
+
 #include "cfc.h"
 
-#define CAIO_001K_MODEL   ((uint8_t) 0)
-#define CAIO_002K_MODEL   ((uint8_t) 1)
-#define CAIO_004K_MODEL   ((uint8_t) 2)
-#define CAIO_008K_MODEL   ((uint8_t) 3)
-#define CAIO_016K_MODEL   ((uint8_t) 4)
-#define CAIO_032K_MODEL   ((uint8_t) 5)
-#define CAIO_064K_MODEL   ((uint8_t) 6)
-#define CAIO_128K_MODEL   ((uint8_t) 7)
-#define CAIO_256K_MODEL   ((uint8_t) 8)
-#define CAIO_512K_MODEL   ((uint8_t) 9)
-#define CAIO_001M_MODEL   ((uint8_t)10)
+#define CAIO_512B_MODEL   ((uint8_t) 0)
+#define CAIO_001K_MODEL   ((uint8_t) 1)
+#define CAIO_002K_MODEL   ((uint8_t) 2)
+#define CAIO_004K_MODEL   ((uint8_t) 3)
+#define CAIO_008K_MODEL   ((uint8_t) 4)
+#define CAIO_016K_MODEL   ((uint8_t) 5)
+#define CAIO_032K_MODEL   ((uint8_t) 6)
+#define CAIO_064K_MODEL   ((uint8_t) 7)
+#define CAIO_128K_MODEL   ((uint8_t) 8)
+#define CAIO_256K_MODEL   ((uint8_t) 9)
+#define CAIO_512K_MODEL   ((uint8_t)10)
+#define CAIO_001M_MODEL   ((uint8_t)11)
 
 #define CAIO_MODEL_DEFAULT (CAIO_256K_MODEL)
 #define CAIO_MODEL_ERR     ((uint8_t)~0)
+
+#define CAIO_512B_BLOCK_SIZE_NBIT   ( 9)
+#define CAIO_512B_BLOCK_SIZE_NBYTE  (UINT32_ONE << CAIO_512B_BLOCK_SIZE_NBIT)
+#define CAIO_512B_BLOCK_SIZE_MASK   (CAIO_512B_BLOCK_SIZE_NBYTE - 1)
 
 #define CAIO_001K_BLOCK_SIZE_NBIT   (10)
 #define CAIO_001K_BLOCK_SIZE_NBYTE  (UINT32_ONE << CAIO_001K_BLOCK_SIZE_NBIT)
@@ -89,8 +96,6 @@ extern "C"{
 
 #define CAIO_REQ_MAX_NUM                (128)
 
-#define CAIO_SECTOR_SIZE_NBYTE          (512)
-
 #define CAIO_EVENT_MAX_NUM              (128)
 
 #define CAIO_PROCESS_EVENT_ONCE_NUM     (128)
@@ -103,12 +108,13 @@ extern "C"{
 #define CAIO_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
 #define CAIO_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
-#define CAIO_MEM_CACHE_ALIGN_SIZE_NBYTES                (1 << 10) /*align to 1KB*/
+#define CAIO_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
 #define CAIO_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (30) /*second*/
 
 #define CAIO_PAGE_LIST_IDX_ERR                          ((UINT32)~0)
+#define CAIO_PAGE_NO_ERR                                ((uint32_t)~0)
 
 typedef struct
 {
@@ -151,16 +157,19 @@ typedef struct
 
 typedef struct
 {
-    int         fd;
-    int         rsvd;
+    int                      fd;
+    int                      rsvd;
 
-    UINT32     *max_req_num;
-    UINT32      cur_req_num;
+    UINT32                  *max_req_num;
+    UINT32                   cur_req_num;
+
+    CBAD_BITMAP             *bad_bitmap; /*mounted point. inheritted from camd*/
 }CAIO_DISK;
 
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
 #define CAIO_DISK_MAX_REQ_NUM(caio_disk)                ((caio_disk)->max_req_num)
 #define CAIO_DISK_CUR_REQ_NUM(caio_disk)                ((caio_disk)->cur_req_num)
+#define CAIO_DISK_BAD_BITMAP(caio_disk)                 ((caio_disk)->bad_bitmap)
 
 typedef void (*CAIO_EVENT_HANDLER)(void *);
 
@@ -170,8 +179,10 @@ typedef struct
 
     UINT32           seq_no;            /*sequence number factory*/
 
+    uint32_t         read_only_flag:1;  /*caio is read-only if set*/
+    uint32_t         rsvd01:31;
+
     int              aio_eventfd;
-    int              rsvd01;
     aio_context_t    aio_context;       /*8B*/
 
     CLIST            disk_list;         /*item is CAIO_DISK*/
@@ -186,6 +197,8 @@ typedef struct
 #define CAIO_MD_MODEL(caio_md)                          ((caio_md)->model)
 
 #define CAIO_MD_SEQ_NO(caio_md)                         ((caio_md)->seq_no)
+
+#define CAIO_MD_RDONLY_FLAG(caio_md)                    ((caio_md)->read_only_flag)
 
 #define CAIO_MD_AIO_EVENTFD(caio_md)                    ((caio_md)->aio_eventfd)
 #define CAIO_MD_AIO_CONTEXT(caio_md)                    ((caio_md)->aio_context)
@@ -213,6 +226,8 @@ typedef struct
 
     UINT32                  f_s_offset;
     UINT32                  f_e_offset;
+    uint32_t                page_no;
+    uint32_t                rsvd02;
 
     UINT32                  op;                     /*reading or writing*/
 
@@ -239,6 +254,7 @@ typedef struct
 #define CAIO_PAGE_FD(caio_page)                         ((caio_page)->fd)
 #define CAIO_PAGE_F_S_OFFSET(caio_page)                 ((caio_page)->f_s_offset)
 #define CAIO_PAGE_F_E_OFFSET(caio_page)                 ((caio_page)->f_e_offset)
+#define CAIO_PAGE_NO(caio_page)                         ((caio_page)->page_no)
 
 #define CAIO_PAGE_OP(caio_page)                         ((caio_page)->op)
 #define CAIO_PAGE_AIOCB(caio_page)                      (&((caio_page)->aiocb))
@@ -362,7 +378,6 @@ typedef struct
 #define CAIO_NODE_MOUNTED_NODES(caio_node)              ((caio_node)->mounted_nodes)
 #define CAIO_NODE_MOUNTED_OWNERS(caio_node)             ((caio_node)->mounted_owners)
 
-
 /*----------------------------------- caio callback interface -----------------------------------*/
 void caio_mem_cache_counter_print(LOG *log);
 
@@ -411,6 +426,12 @@ EC_BOOL caio_disk_free(CAIO_DISK *caio_disk);
 void caio_disk_print(LOG *log, const CAIO_DISK *caio_disk);
 
 EC_BOOL caio_disk_is_fd(const CAIO_DISK *caio_disk, const int fd);
+
+EC_BOOL caio_disk_set_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no);
+
+EC_BOOL caio_disk_clear_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no);
+
+EC_BOOL caio_disk_check_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no);
 
 /*----------------------------------- caio page interface -----------------------------------*/
 
@@ -528,11 +549,28 @@ void caio_end(CAIO_MD *caio_md);
 
 void caio_print(LOG *log, const CAIO_MD *caio_md);
 
+/*for debug only*/
+UINT32 caio_block_size_nbytes(const CAIO_MD *caio_md);
+
+/*for debug only*/
+UINT32 caio_block_size_nbits(const CAIO_MD *caio_md);
+
+/*for debug only*/
+UINT32 caio_block_size_mask(const CAIO_MD *caio_md);
+
 EC_BOOL caio_event_handler(CAIO_MD *caio_md);
 
 int caio_get_eventfd(CAIO_MD *caio_md);
 
 EC_BOOL caio_try_quit(CAIO_MD *caio_md);
+
+EC_BOOL caio_try_restart(CAIO_MD *caio_md);
+
+EC_BOOL caio_set_read_only(CAIO_MD *caio_md);
+
+EC_BOOL caio_unset_read_only(CAIO_MD *caio_md);
+
+EC_BOOL caio_is_read_only(const CAIO_MD *caio_md);
 
 /*for debug*/
 EC_BOOL caio_poll(CAIO_MD *caio_md);
@@ -555,6 +593,8 @@ EC_BOOL caio_has_post_event_req(CAIO_MD *caio_md);
 EC_BOOL caio_has_event(CAIO_MD *caio_md);
 
 EC_BOOL caio_has_req(CAIO_MD *caio_md);
+
+EC_BOOL caio_has_wr_req(CAIO_MD *caio_md);
 
 void caio_show_pages(LOG *log, const CAIO_MD *caio_md);
 
@@ -588,6 +628,8 @@ EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *c
 
 EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
 
+EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_list_idx);
+
 CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
 
 CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
@@ -607,6 +649,16 @@ EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, UINT32 *max_req_num);
 EC_BOOL caio_del_disk(CAIO_MD *caio_md, const int fd);
 
 CAIO_DISK *caio_find_disk(CAIO_MD *caio_md, const int fd);
+
+EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CBAD_BITMAP *cbad_bitmap);
+
+EC_BOOL caio_umount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd);
+
+EC_BOOL caio_is_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t page_no);
+
+EC_BOOL caio_set_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t page_no);
+
+EC_BOOL caio_clear_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t page_no);
 
 UINT32 caio_count_req_num(CAIO_MD *caio_md);
 

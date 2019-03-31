@@ -1331,7 +1331,8 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
 
         //TASK_BRD_ENABLE_FLAG(task_brd) = EC_FALSE;
         TASK_BRD_RESET_FLAG(task_brd) = EC_FALSE; /*disable do_slave reset*/
-        TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+
+        TASK_BRD_SET_ABORT(task_brd);
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
         tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
@@ -1343,7 +1344,8 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
     {
         //TASK_BRD_ENABLE_FLAG(task_brd) = EC_FALSE;
         TASK_BRD_RESET_FLAG(task_brd) = EC_FALSE; /*disable do_slave reset*/
-        TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+
+        TASK_BRD_SET_ABORT(task_brd);
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
         tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
@@ -1355,7 +1357,8 @@ void super_shutdown_taskcomm(const UINT32 super_md_id)
 #if (SWITCH_OFF == NGX_BGN_SWITCH)  /*must not allow to shudown bgn server on ngx*/
         //TASK_BRD_ENABLE_FLAG(task_brd) = EC_FALSE;
         TASK_BRD_RESET_FLAG(task_brd) = EC_FALSE; /*disable do_slave reset*/
-        TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+
+        TASK_BRD_SET_ABORT(task_brd);
 
         /*when stop TASKC, all packets in forwarding process will be unreachable to remote*/
         tasks_srv_end(TASK_BRD_LOCAL_TASKS_CFG(task_brd));

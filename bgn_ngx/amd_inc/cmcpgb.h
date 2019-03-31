@@ -506,7 +506,7 @@ extern "C"{
 #endif/*(CMCPGB_032M_PAGE == CMCPGB_PAGE_CHOICE)*/
 
 #define CMCPGB_PAGE_SIZE_MASK            (CMCPGB_PAGE_SIZE_NBYTES - 1)
-#define CMCPGB_PAGE_NUM                  ((uint32_t)(1 << (CMCPGB_SIZE_NBITS - CMCPGB_PAGE_SIZE_NBITS)))
+#define CMCPGB_PAGE_NUM                  ((uint16_t)(1 << (CMCPGB_SIZE_NBITS - CMCPGB_PAGE_SIZE_NBITS)))
 
 /*--------------------------------------------------------------------------------------------*/
 
@@ -526,7 +526,7 @@ typedef struct
     uint32_t        pgb_actual_used_size;/*actual used bytes*/
 
     CMCPGRB_POOL    pgb_rb_pool;
-}CMCPGB;/*4k-alignment*/
+}CMCPGB;
 
 #define CMCPGB_CMCPGRB_POOL(cmcpgb)                              (&((cmcpgb)->pgb_rb_pool))
 #define CMCPGB_PAGE_MODEL_CMCPGRB_ROOT_POS_TBL(cmcpgb)           ((cmcpgb)->pgb_rb_root_pos)
@@ -539,7 +539,7 @@ typedef struct
 #define CMCPGB_PAGE_ACTUAL_USED_SIZE(cmcpgb)                     ((cmcpgb)->pgb_actual_used_size)
 
 /*rb_node num = half of page num (enough!)*/
-#define CMCPGB_SIZE        (sizeof(CMCPGB) + sizeof(CMCPGRB_NODE) * ((CMCPGB_PAGE_NUM + 1) >> 1))
+#define CMCPGB_SIZE        (sizeof(CMCPGB) + sizeof(CMCPGRB_NODE) * ((uint32_t)((CMCPGB_PAGE_NUM + 1) >> 1)))
 
 typedef struct
 {

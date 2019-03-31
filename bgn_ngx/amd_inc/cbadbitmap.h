@@ -48,6 +48,13 @@ EC_BOOL cbad_bitmap_is(const CBAD_BITMAP *cbad_bitmap, const uint32_t bit_pos, c
 
 void cbad_bitmap_print(LOG *log, const CBAD_BITMAP *cbad_bitmap);
 
+void cbad_bitmap_print_brief(LOG *log, const CBAD_BITMAP *cbad_bitmap);
+
+uint32_t cbad_bitmap_used(const CBAD_BITMAP *cbad_bitmap);
+
+uint32_t cbad_bitmap_count(const CBAD_BITMAP *cbad_bitmap, const uint32_t s_byte_nth, const uint32_t e_byte_nth);
+
+EC_BOOL cbad_bitmap_revise(CBAD_BITMAP *cbad_bitmap, const uint32_t nbits);
 
 #endif/*_CBADBITMAP_H*/
 

@@ -841,7 +841,7 @@ void csig_interrupt(int signo)
     csig_atexit_process_queue();/*Oops!*/
 
     task_brd = task_brd_default_get();
-    TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+    TASK_BRD_SET_ABORT(task_brd);
 
     //csig_register(signo, SIG_DFL);
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
@@ -858,7 +858,7 @@ void csig_stop(int signo)
     csig_atexit_process_queue();/*Oops!*/
 
     task_brd = task_brd_default_get();
-    TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+    TASK_BRD_SET_ABORT(task_brd);
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
     raise(signo);
@@ -876,7 +876,7 @@ void csig_terminate(int signo)
     csig_atexit_process_queue();/*Oops!*/
 
     task_brd = task_brd_default_get();
-    TASK_BRD_ABORT_FLAG(task_brd) = CPROC_IS_ABORTED;
+    TASK_BRD_SET_ABORT(task_brd);
 
     signal(signo, SIG_DFL);/*restore to OS default handler!*/
     raise(signo);

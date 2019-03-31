@@ -36,6 +36,7 @@ extern "C"{
 
 #define CDCNP_KEY_MAX_SIZE             (CDCNP_KEY_SIZE_000B)
 #define CDCNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
+#define CDCNP_MEM_ALIGNMENT            (UINT32_ONE << 20) /*1MB alignment*/
 
 #define CDCNP_HEADER_SIZE_NBYTES       ((UINT32)(UINT32_ONE << 23))  /*8MB = 2^23, support up to 16T sata disk*/
 #define CDCNP_HEADER_SIZE_MASK         (CDCNP_HEADER_SIZE_NBYTES - 1)
@@ -434,7 +435,9 @@ typedef struct
 typedef struct
 {
     int              fd;           /* memcache namespace fd */
-    uint32_t         rsvd;
+    uint32_t         read_only_flag   :1;/*np is read-only if set*/
+    uint32_t         dontdump_flag    :1;/*np not flush or dump if set*/
+    uint32_t         rsvd01           :30;
 
     UINT32           s_offset;     /* start offset of name node */
     UINT32           e_offset;     /* end offset of name node   */
@@ -459,6 +462,9 @@ typedef struct
     /*for degrade callback*/
     CDCNP_DEGRADE_CB  degrade_cb;
 } CDCNP;
+
+#define CDCNP_RDONLY_FLAG(cdcnp)            ((cdcnp)->read_only_flag)
+#define CDCNP_DONTDUMP_FLAG(cdcnp)          ((cdcnp)->dontdump_flag)
 
 #define CDCNP_FD(cdcnp)                     ((cdcnp)->fd)
 #define CDCNP_S_OFFSET(cdcnp)               ((cdcnp)->s_offset)

@@ -65,32 +65,24 @@ extern "C"{
 #define CXFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/
 #define CXFSNP_ITEM_IS_USED             ((uint32_t) 0x0001)
 
-#define CXFSDN_DATA_NOT_IN_CACHE        ((uint16_t) 0x0000)
-#define CXFSDN_DATA_IS_IN_CACHE         ((uint16_t) 0x0001)
-
 typedef struct
 {
-    uint16_t    cache_flag;     /*data is cached or not*/
+    uint16_t    rsvd;     /*data is cached or not*/
     uint16_t    disk_no;        /*local disk_no*/
     uint16_t    block_no;       /*block_no in above disk*/
     uint16_t    page_no;        /*page_no in above block*/
-}CXFSNP_INODE;
+}CXFSNP_INODE;/*8B*/
 
-//#define CXFSNP_INODE_TCID(cxfsnp_inode)              ((cxfsnp_inode)->tcid)
-#define CXFSNP_INODE_CACHE_FLAG(cxfsnp_inode)        ((cxfsnp_inode)->cache_flag)
 #define CXFSNP_INODE_DISK_NO(cxfsnp_inode)           ((cxfsnp_inode)->disk_no)
 #define CXFSNP_INODE_BLOCK_NO(cxfsnp_inode)          ((cxfsnp_inode)->block_no)
 #define CXFSNP_INODE_PAGE_NO(cxfsnp_inode)           ((cxfsnp_inode)->page_no)
-
-#define CXFSNP_FNODE_NO_MEM_CACHE_FLAG               ((uint32_t) 0)
-#define CXFSNP_FNODE_HAS_MEM_CACHE_FLAG              ((uint32_t) 1)
 
 typedef struct
 {
     /*8B*/
     uint32_t      file_size:28;    /*data/value length <= 64M = 2^26B*/
     uint32_t      file_replica_num:4;
-    uint32_t      file_path_hash;
+    uint32_t      rsvd;
 
     /*8B*/
     CXFSNP_INODE  inodes[ CXFSNP_FILE_REPLICA_MAX_NUM ];
@@ -98,11 +90,9 @@ typedef struct
 
 #define CXFSNP_FNODE_FILESZ(cxfsnp_fnode)        ((cxfsnp_fnode)->file_size)
 #define CXFSNP_FNODE_REPNUM(cxfsnp_fnode)        ((cxfsnp_fnode)->file_replica_num)
-#define CXFSNP_FNODE_HASH(cxfsnp_fnode)          ((cxfsnp_fnode)->file_path_hash)
 #define CXFSNP_FNODE_INODES(cxfsnp_fnode)        ((cxfsnp_fnode)->inodes)
 #define CXFSNP_FNODE_INODE(cxfsnp_fnode, idx)    (&((cxfsnp_fnode)->inodes[ (idx) ]))
 
-#define CXFSNP_FNODE_CACHE_FLAG(cxfsnp_fnode, idx)       CXFSNP_INODE_CACHE_FLAG(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 #define CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, idx)    CXFSNP_INODE_DISK_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 #define CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, idx)   CXFSNP_INODE_BLOCK_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 #define CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, idx)    CXFSNP_INODE_PAGE_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
@@ -368,6 +358,10 @@ typedef struct
 
 typedef struct
 {
+    uint32_t                read_only_flag:1;
+    uint32_t                rsvd01        :31;
+    uint32_t                rsvd02;
+
     UINT32                  fsize;
 
     uint64_t                del_size;     /* deleted but not recycled bytes*/
@@ -384,6 +378,7 @@ typedef struct
     CHASH_ALGO              chash_algo_2nd;/* hash algo for rbtree in the hash bucket: used to compute cxfsnprb_node hash data*/
 } CXFSNP;
 
+#define CXFSNP_READ_ONLY_FLAG(cxfsnp)         ((cxfsnp)->read_only_flag)
 #define CXFSNP_FSIZE(cxfsnp)                  ((cxfsnp)->fsize)
 #define CXFSNP_DEL_SIZE(cxfsnp)               ((cxfsnp)->del_size)
 #define CXFSNP_RECYCLE_SIZE(cxfsnp)           ((cxfsnp)->recycle_size)

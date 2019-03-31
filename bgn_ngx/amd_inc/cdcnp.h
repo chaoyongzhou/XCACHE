@@ -28,6 +28,8 @@ extern "C"{
 #include "cdcnprb.h"
 #include "cdcnp.inc"
 
+#include "cmmap.h"
+
 const char *cdcnp_model_str(const uint8_t cdcnp_model);
 
 uint8_t cdcnp_model_get(const char *model_str);
@@ -143,6 +145,8 @@ EC_BOOL cdcnp_header_clean(CDCNP_HEADER *cdcnp_header);
 
 CDCNP_HEADER *cdcnp_header_free(CDCNP_HEADER *cdcnp_header);
 
+CDCNP_HEADER *cdcnp_header_close(CDCNP_HEADER *cdcnp_header);
+
 REAL cdcnp_header_used_ratio(const CDCNP_HEADER *cdcnp_header);
 
 REAL cdcnp_header_deg_ratio(const CDCNP_HEADER *cdcnp_header);
@@ -154,6 +158,20 @@ EC_BOOL cdcnp_init(CDCNP *cdcnp);
 EC_BOOL cdcnp_clean(CDCNP *cdcnp);
 
 EC_BOOL cdcnp_free(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_close(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_set_read_only(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_unset_read_only(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_is_read_only(const CDCNP *cdcnp);
+
+EC_BOOL cdcnp_set_dontdump(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_unset_dontdump(CDCNP *cdcnp);
+
+EC_BOOL cdcnp_is_dontdump(const CDCNP *cdcnp);
 
 EC_BOOL cdcnp_is_full(const CDCNP *cdcnp);
 
@@ -313,12 +331,17 @@ EC_BOOL cdcnp_create_root_item(CDCNP *cdcnp);
 
 CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t key_max_num, UINT32 *s_offset, const UINT32 e_offset);
 
+CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_t np_model, const uint32_t key_max_num, UINT32 *s_offset, const UINT32 e_offset);
+
 EC_BOOL cdcnp_erase(CDCNP *cdcnp, const uint32_t np_id, int fd, const UINT32 s_offset, const UINT32 e_offset);
 
 EC_BOOL cdcnp_flush(CDCNP *cdcnp);
 
 EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset);
 
+EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset);
+
+EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_id, int fd, UINT32 *s_offset, const UINT32 e_offset);
 
 #endif/* _CDCNP_H */
 

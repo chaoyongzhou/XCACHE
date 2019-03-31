@@ -15,6 +15,7 @@ extern "C"{
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
@@ -33,6 +34,7 @@ extern "C"{
 #include "cmcpgb.h"
 #include "cmcpgd.h"
 #include "cmcpgv.h"
+#include "cmmap.h"
 
 #if (SWITCH_ON == CMC_ASSERT_SWITCH)
 #define CMCDN_ASSERT(condition)   ASSERT(condition)
@@ -62,6 +64,12 @@ EC_BOOL cmcdn_node_write(CMCDN *cmcdn, const UINT32 node_id, const UINT32 data_m
     void        *cmcdn_node;
     UINT32       offset_b; /*base offset in block*/
     UINT32       offset_r; /*real offset in block*/
+
+    if(EC_TRUE == cmcdn_is_read_only(cmcdn))
+    {
+        dbg_log(SEC_0110_CMCDN, 3)(LOGSTDOUT, "error:cmcdn_node_write: dn is read-only\n");
+        return (EC_FALSE);
+    }
 
     cmcdn_node = cmcdn_node_fetch(cmcdn, node_id);
     if(NULL_PTR == cmcdn_node)
@@ -128,6 +136,48 @@ UINT8 *cmcdn_node_locate(CMCDN *cmcdn, const uint16_t disk_no, const uint16_t bl
     return (cmcdn_node + offset_r);
 }
 
+STATIC_CAST void *__cmcdn_create(CMMAP_NODE *cmmap_node, const UINT32 size)
+{
+    void    *data;
+
+    data = cmmap_node_alloc(cmmap_node, size, CMCDN_MEM_ALIGNMENT, "cmc dn");
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:__cmcdn_create: "
+                                              "create dn failed\n");
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0110_CMCDN, 9)(LOGSTDOUT, "[DEBUG] __cmcdn_create: "
+                                          "create dn done\n");
+    return (data);
+}
+
+STATIC_CAST void *__cmcdn_open(CMMAP_NODE *cmmap_node, const UINT32 size)
+{
+    void    *data;
+
+    data = cmmap_node_alloc(cmmap_node, size, CMCDN_MEM_ALIGNMENT, "cmc dn");
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:__cmcdn_open: "
+                                              "open dn failed\n");
+        return (NULL_PTR);
+    }
+
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] __cmcdn_open: "
+                                          "open dn done\n");
+    return (data);
+}
+
+STATIC_CAST void *__cmcdn_close(void *data, const UINT32 size)
+{
+    /*do nothing*/
+
+    /*data cannot be accessed again*/
+
+    return (NULL_PTR);
+}
 
 CMCDN *cmcdn_create(const uint16_t disk_num)
 {
@@ -184,6 +234,7 @@ CMCDN *cmcdn_create(const uint16_t disk_num)
         return (NULL_PTR);
     }
 
+    CMCDN_RDONLY_FLAG(cmcdn)     = BIT_FALSE;
     CMCDN_NODE_NUM(cmcdn)        = node_num;
     CMCDN_NODE_BASE_ADDR(cmcdn)  = base;
     CMCDN_NODE_START_ADDR(cmcdn) = CMCDN_NODE_BASE_ADDR(cmcdn)  + 0;
@@ -201,13 +252,178 @@ CMCDN *cmcdn_create(const uint16_t disk_num)
     {
         if(EC_FALSE == cmcdn_add_disk(cmcdn, disk_no))
         {
-            dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create: add disk %u failed\n", disk_no);
+            dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create: add disk %u/%u failed\n",
+                                                  disk_no, disk_num);
             cmcdn_free(cmcdn);
             return (NULL_PTR);
         }
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create: add disk %u/%u done\n",
+                                              disk_no, disk_num);
     }
 
-    dbg_log(SEC_0110_CMCDN, 9)(LOGSTDOUT, "[DEBUG] cmcdn_create: vol was created\n");
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create: vol was created\n");
+
+    return (cmcdn);
+}
+
+CMCDN *cmcdn_create_shm(CMMAP_NODE *cmmap_node, const uint16_t disk_num)
+{
+    CMCDN   *cmcdn;
+    UINT32   block_num;
+    UINT32   node_num;
+    UINT32   size;
+    void    *base;
+
+    uint16_t disk_no;
+
+    block_num = ((UINT32)disk_num) * ((UINT32)CMCPGD_MAX_BLOCK_NUM);
+    node_num  = (block_num >> CMCDN_SEG_NO_NBITS); /*num of nodes.  one node = several continuous blocks*/
+
+    size      = block_num * CMCPGB_SIZE_NBYTES;
+
+    base = __cmcdn_create(cmmap_node, size);
+    if(NULL_PTR == base)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_shm: "
+                                              "create dn with size %ld failed\n",
+                                              size);
+        return (NULL_PTR);
+    }
+
+    /*do not dump cmc dn when exception happen*/
+    if(EC_FALSE == c_mdontdump(base, size))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_shm: "
+                                              "disable cmc dn dump failed\n");
+    }
+    else
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create_shm: "
+                                              "disable cmc dn dump done\n");
+    }
+
+    cmcdn = cmcdn_new();
+    if(NULL_PTR == cmcdn)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_shm: new cmcdn failed\n");
+        __cmcdn_close(base, size);
+        return (NULL_PTR);
+    }
+
+    CMCDN_CMMAP_NODE(cmcdn)      = cmmap_node;
+
+    CMCDN_RDONLY_FLAG(cmcdn)     = BIT_FALSE;
+    CMCDN_NODE_NUM(cmcdn)        = node_num;
+    CMCDN_NODE_BASE_ADDR(cmcdn)  = base;
+    CMCDN_NODE_START_ADDR(cmcdn) = CMCDN_NODE_BASE_ADDR(cmcdn)  + 0;
+    CMCDN_NODE_END_ADDR(cmcdn)   = CMCDN_NODE_START_ADDR(cmcdn) + size;
+
+    CMCDN_CMCPGV(cmcdn) = cmcpgv_create(CMCDN_CMMAP_NODE(cmcdn));
+    if(NULL_PTR == CMCDN_CMCPGV(cmcdn))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_shm: new vol failed\n");
+        cmcdn_close(cmcdn);
+        return (NULL_PTR);
+    }
+
+    for(disk_no = 0; disk_no < disk_num; disk_no ++)
+    {
+        if(EC_FALSE == cmcdn_create_disk(cmcdn, disk_no))
+        {
+            dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_shm: create disk %u/%u failed\n",
+                                                  disk_no, disk_num);
+            cmcdn_close(cmcdn);
+            return (NULL_PTR);
+        }
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create_shm: create disk %u/%u done\n",
+                                              disk_no, disk_num);
+    }
+
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_create_shm: done\n");
+
+    return (cmcdn);
+}
+
+CMCDN *cmcdn_open_shm(CMMAP_NODE *cmmap_node, const uint16_t disk_num)
+{
+    CMCDN   *cmcdn;
+    UINT32   block_num;
+    UINT32   node_num;
+    UINT32   size;
+    void    *base;
+
+    uint16_t disk_no;
+
+    block_num = ((UINT32)disk_num) * ((UINT32)CMCPGD_MAX_BLOCK_NUM);
+    node_num  = (block_num >> CMCDN_SEG_NO_NBITS); /*num of nodes.  one node = several continuous blocks*/
+
+    size      = block_num * CMCPGB_SIZE_NBYTES;
+
+    base = __cmcdn_open(cmmap_node, size);
+    if(NULL_PTR == base)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_shm: "
+                                              "open dn with size %ld failed\n",
+                                              size);
+        return (NULL_PTR);
+    }
+
+    /*do not dump cmc dn when exception happen*/
+    if(EC_FALSE == c_mdontdump(base, size))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_shm: "
+                                              "disable cmc dn dump failed\n");
+    }
+    else
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_open_shm: "
+                                              "disable cmc dn dump done\n");
+    }
+
+    cmcdn = cmcdn_new();
+    if(NULL_PTR == cmcdn)
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_shm: new cmcdn failed\n");
+        __cmcdn_close(base, size);
+        return (NULL_PTR);
+    }
+
+    CMCDN_CMMAP_NODE(cmcdn) = cmmap_node;
+
+    CMCDN_RDONLY_FLAG(cmcdn)     = BIT_FALSE;
+    CMCDN_NODE_NUM(cmcdn)        = node_num;
+    CMCDN_NODE_BASE_ADDR(cmcdn)  = base;
+    CMCDN_NODE_START_ADDR(cmcdn) = CMCDN_NODE_BASE_ADDR(cmcdn)  + 0;
+    CMCDN_NODE_END_ADDR(cmcdn)   = CMCDN_NODE_START_ADDR(cmcdn) + size;
+
+    CMCDN_CMCPGV(cmcdn) = cmcpgv_open(CMCDN_CMMAP_NODE(cmcdn));
+    if(NULL_PTR == CMCDN_CMCPGV(cmcdn))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_shm: new vol failed\n");
+        cmcdn_close(cmcdn);
+        return (NULL_PTR);
+    }
+
+    for(disk_no = 0; disk_no < disk_num; disk_no ++)
+    {
+        if(EC_FALSE == cmcdn_open_disk(cmcdn, disk_no))
+        {
+            dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_shm: open disk %u/%u failed\n",
+                                                  disk_no, disk_num);
+            cmcdn_close(cmcdn);
+            return (NULL_PTR);
+        }
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_open_shm: open disk %u/%u done\n",
+                                              disk_no, disk_num);
+    }
+
+    if(do_log(SEC_0110_CMCDN, 0))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_open_shm: cmcdn is\n");
+        cmcdn_print(LOGSTDOUT, cmcdn);
+    }
+
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_open_shm: done\n");
 
     return (cmcdn);
 }
@@ -234,6 +450,39 @@ EC_BOOL cmcdn_del_disk(CMCDN *cmcdn, const uint16_t disk_no)
     return (EC_TRUE);
 }
 
+EC_BOOL cmcdn_create_disk(CMCDN *cmcdn, const uint16_t disk_no)
+{
+    if(EC_FALSE == cmcpgv_create_disk(CMCDN_CMCPGV(cmcdn), CMCDN_CMMAP_NODE(cmcdn), disk_no))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_create_disk: cmcpgv create disk %u failed\n", disk_no);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcdn_open_disk(CMCDN *cmcdn, const uint16_t disk_no)
+{
+    if(EC_FALSE == cmcpgv_open_disk(CMCDN_CMCPGV(cmcdn), CMCDN_CMMAP_NODE(cmcdn), disk_no))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_open_disk: cmcpgv open disk %u failed\n", disk_no);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcdn_close_disk(CMCDN *cmcdn, const uint16_t disk_no)
+{
+    if(EC_FALSE == cmcpgv_close_disk(CMCDN_CMCPGV(cmcdn), disk_no))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_close_disk: cmcpgv close disk %u failed\n", disk_no);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 CMCDN *cmcdn_new()
 {
     CMCDN *cmcdn;
@@ -249,7 +498,9 @@ CMCDN *cmcdn_new()
 
 EC_BOOL cmcdn_init(CMCDN *cmcdn)
 {
-    CMCDN_NODE_NUM(cmcdn) = 0;
+    CMCDN_RDONLY_FLAG(cmcdn)     = BIT_FALSE;
+    CMCDN_CMMAP_NODE(cmcdn)      = NULL_PTR;
+    CMCDN_NODE_NUM(cmcdn)        = 0;
 
     CMCDN_NODE_BASE_ADDR(cmcdn)  = NULL_PTR;
     CMCDN_NODE_START_ADDR(cmcdn) = NULL_PTR;
@@ -297,6 +548,13 @@ EC_BOOL cmcdn_clean(CMCDN *cmcdn)
         CMCDN_CMCPGV(cmcdn) = NULL_PTR;
     }
 
+    if(NULL_PTR != CMCDN_CMMAP_NODE(cmcdn))
+    {
+        CMCDN_CMMAP_NODE(cmcdn) = NULL_PTR;
+    }
+
+    CMCDN_RDONLY_FLAG(cmcdn) = BIT_FALSE;
+
     return (EC_TRUE);
 }
 
@@ -307,6 +565,68 @@ EC_BOOL cmcdn_free(CMCDN *cmcdn)
         cmcdn_clean(cmcdn);
         free_static_mem(MM_CMCDN, cmcdn, LOC_CMCDN_0002);
     }
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcdn_close(CMCDN *cmcdn)
+{
+    if(NULL_PTR != CMCDN_CMCPGV(cmcdn))
+    {
+        cmcpgv_close(CMCDN_CMCPGV(cmcdn));
+        CMCDN_CMCPGV(cmcdn) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CMCDN_NODE_BASE_ADDR(cmcdn))
+    {
+        CMCDN_NODE_BASE_ADDR(cmcdn) = NULL_PTR;
+    }
+
+    return cmcdn_free(cmcdn);
+}
+
+EC_BOOL cmcdn_set_read_only(CMCDN *cmcdn)
+{
+    if(BIT_TRUE == CMCDN_RDONLY_FLAG(cmcdn))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_set_read_only: "
+                                              "cmcdn is set already read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CMCDN_RDONLY_FLAG(cmcdn) = BIT_TRUE;
+
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_set_read_only: "
+                                          "set cmcdn read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcdn_unset_read_only(CMCDN *cmcdn)
+{
+    if(BIT_FALSE == CMCDN_RDONLY_FLAG(cmcdn))
+    {
+        dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "error:cmcdn_unset_read_only: "
+                                              "cmcdn was not set read-only\n");
+
+        return (EC_FALSE);
+    }
+
+    CMCDN_RDONLY_FLAG(cmcdn) = BIT_FALSE;
+
+    dbg_log(SEC_0110_CMCDN, 0)(LOGSTDOUT, "[DEBUG] cmcdn_unset_read_only: "
+                                          "unset cmcdn read-only\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmcdn_is_read_only(const CMCDN *cmcdn)
+{
+    if(BIT_FALSE == CMCDN_RDONLY_FLAG(cmcdn))
+    {
+        return (EC_FALSE);
+    }
+
     return (EC_TRUE);
 }
 
