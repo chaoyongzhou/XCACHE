@@ -581,7 +581,7 @@ EC_BOOL cmcpgb_del_page(CMCPGB *cmcpgb, const uint16_t page_model, const uint16_
     }
 
     /*del page_no from rbtree*/
-    if(CMCPGRB_ERR_POS == cmcpgrb_tree_delete_data(CMCPGB_CMCPGRB_POOL(cmcpgb), &(CMCPGB_PAGE_MODEL_CMCPGRB_ROOT_POS(cmcpgb, page_model)), page_no))
+    if(EC_FALSE == cmcpgrb_tree_delete_data(CMCPGB_CMCPGRB_POOL(cmcpgb), &(CMCPGB_PAGE_MODEL_CMCPGRB_ROOT_POS(cmcpgb, page_model)), page_no))
     {
         dbg_log(SEC_0098_CMCPGB, 0)(LOGSTDOUT, "error:cmcpgb_del_page: "
                                                "del page_no %u from rbtree of page model %u failed\n",

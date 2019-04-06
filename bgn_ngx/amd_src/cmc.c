@@ -254,7 +254,8 @@ EC_BOOL cmc_mount_mmap(CMC_MD *cmc_md, CMMAP_NODE *cmmap_node)
 /*umount mmap node*/
 EC_BOOL cmc_umount_mmap(CMC_MD *cmc_md)
 {
-    if(NULL_PTR != CMC_MD_CMMAP_NODE(cmc_md))
+    if(NULL_PTR != cmc_md
+    && NULL_PTR != CMC_MD_CMMAP_NODE(cmc_md))
     {
         cmc_close_np(cmc_md);
         cmc_close_dn(cmc_md);
@@ -3245,11 +3246,25 @@ EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
     return (EC_TRUE);
 }
 
-EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, CMCNP_DEGRADE_CALLBACK func, void *arg)
+EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg)
 {
     if(NULL_PTR != cmc_md)
     {
-        cmcnp_degrade_cb_set(CMC_MD_NP_DEGRADE_CB(cmc_md), func, arg);
+        uint32_t    cmcnp_flags;
+
+        cmcnp_flags = 0;
+
+        if(CMC_DEGRADE_SSD & flags)
+        {
+            cmcnp_flags |= CMCNP_DEGRADE_SSD;
+        }
+
+        if(CMC_DEGRADE_SATA & flags)
+        {
+            cmcnp_flags |= CMCNP_DEGRADE_SATA;
+        }
+
+        cmcnp_degrade_cb_set(CMC_MD_NP_DEGRADE_CB(cmc_md), cmcnp_flags, func, arg);
         return (EC_TRUE);
     }
     return (EC_FALSE);

@@ -23,41 +23,61 @@ extern "C"{
 #include "cxfsnp.inc"
 #include "cxfsnprb.h"
 
+#include "cxfsop.h"
 #include "camd.h"
 
-#include "cxfsop.h"
-
-const char *cxfsop_mgr_np_op_str(const uint32_t op)
+const char *cxfsop_mgr_op_str(const uint32_t op)
 {
-    if(CXFSOP_NP_ADD_OP == op)
+    if(CXFSOP_NP_F_ADD_OP == op)
     {
-        return (const char *)"ADD";
+        return (const char *)"NP:F:ADD";
     }
 
-    if(CXFSOP_NP_DEL_OP == op)
+    if(CXFSOP_NP_F_DEL_OP == op)
     {
-        return (const char *)"DEL";
+        return (const char *)"NP:F:DEL";
     }
 
-    if(CXFSOP_NP_UPD_OP == op)
+    if(CXFSOP_NP_F_UPD_OP == op)
     {
-        return (const char *)"UPD";
+        return (const char *)"NP:F:UPD";
     }
 
-    return (const char *)"ERR";
-}
+    if(CXFSOP_NP_D_ADD_OP == op)
+    {
+        return (const char *)"NP:D:ADD";
+    }
 
-const char *cxfsop_mgr_dn_op_str(const uint32_t op)
-{
+    if(CXFSOP_NP_D_DEL_OP == op)
+    {
+        return (const char *)"NP:D:DEL";
+    }
+
+    if(CXFSOP_NP_I_RET_OP == op)
+    {
+        return (const char *)"NP:I:RET";
+    }
+
+    if(CXFSOP_NP_I_REC_OP == op)
+    {
+        return (const char *)"NP:I:REC";
+    }
+
     if(CXFSOP_DN_RSV_OP == op)
     {
-        return (const char *)"RSV";
+        return (const char *)"DN:RSV";
     }
 
     if(CXFSOP_DN_REL_OP == op)
     {
-        return (const char *)"REL";
+        return (const char *)"DN:REL";
     }
+
+    if(CXFSOP_DN_REC_OP == op)
+    {
+        return (const char *)"DN:REC";
+    }
+
     return (const char *)"ERR";
 }
 
@@ -249,121 +269,177 @@ void cxfsop_mgr_print(LOG *log, const CXFSOP_MGR *cxfsop_mgr)
 
             cur += CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr);
 
-            /*np*/
-            if(CXFSOP_CHOICE_NP == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
+            if(CXFSOP_NP_F_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_HDR       *cxfsop_np_hdr;
+                CXFSOP_NP_FNODE     *cxfsop_np_fnode;
+
+                cxfsop_np_hdr   = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
+                cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, wildcard %u, klen %u, key %.*s, "
+                             "(disk %u, block %u, page %u, size %u)\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
+                             CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
+                continue;
+            }
+
+            if(CXFSOP_NP_F_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_HDR       *cxfsop_np_hdr;
+
+                cxfsop_np_hdr   = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, wildcard %u, klen %u, key %.*s\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+                continue;
+            }
+
+            if(CXFSOP_NP_F_UPD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_HDR       *cxfsop_np_hdr;
+                CXFSOP_NP_FNODE     *cxfsop_np_fnode;
+
+                cxfsop_np_hdr   = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
+                cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, wildcard %u, klen %u, key %.*s, "
+                             "(disk %u, block %u, page %u, size %u)\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
+                             CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
+                             CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
+                continue;
+            }
+
+            if(CXFSOP_NP_D_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
             {
                 CXFSOP_NP_HDR   *cxfsop_np_hdr;
 
                 cxfsop_np_hdr = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
 
-                if(CXFSNP_ITEM_FILE_IS_DIR == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr))
-                {
-                    sys_log(log, "[DEBUG] cxfsop_mgr_print: [NP][D][%s] time %lu, wildcard %u, klen %u, key %.*s\n",
-                                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-
-                    continue;
-                }
-
-                if(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)
-                && CXFSOP_NP_ADD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-                {
-                    CXFSOP_NP_FNODE     *cxfsop_np_fnode;
-
-                    cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
-
-                    sys_log(log, "[DEBUG] cxfsop_mgr_print: [NP][F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                                 "(disk %u, block %u, page %u, size %u)\n",
-                                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
-                                 CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
-                    continue;
-                }
-
-                if(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)
-                && CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-                {
-                    sys_log(log, "[DEBUG] cxfsop_mgr_print: [NP][F][%s] time %lu, wildcard %u, klen %u, key %.*s\n",
-                                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-                    continue;
-                }
-
-                if(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)
-                && CXFSOP_NP_UPD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-                {
-                    CXFSOP_NP_FNODE     *cxfsop_np_fnode;
-
-                    cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
-
-                    sys_log(log, "[DEBUG] cxfsop_mgr_print: [NP][F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                                 "(disk %u, block %u, page %u, size %u)\n",
-                                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
-                                 CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
-                                 CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
-                    continue;
-                }
-
-                sys_log(log, "error:cxfsop_mgr_print: [NP] invalid dflag %u\n",
-                             CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr));
-                break; /*terminate*/
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, wildcard %u, klen %u, key %.*s\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+                continue;
             }
 
-            /*dn*/
-            if(CXFSOP_CHOICE_DN == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
+            if(CXFSOP_NP_D_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_HDR   *cxfsop_np_hdr;
+
+                cxfsop_np_hdr = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, wildcard %u, klen %u, key %.*s\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+                continue;
+            }
+
+            if(CXFSOP_NP_I_RET_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+                cxfsop_np_item = (CXFSOP_NP_ITEM *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, np %u, node %u\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                             CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                             CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                             CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+                continue;
+            }
+
+            if(CXFSOP_NP_I_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+                cxfsop_np_item = (CXFSOP_NP_ITEM *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_print: [%s] time %lu, np %u, node %u\n",
+                             cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                             CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                             CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                             CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+                continue;
+            }
+
+            if(CXFSOP_DN_RSV_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
             {
                 CXFSOP_DN_NODE      *cxfsop_dn_node;
 
                 cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
 
-                if(CXFSOP_DN_RSV_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
-                {
-                    sys_log(log, "[DEBUG] cxfsop_mgr_dn_print: [DN][RSV] time %lu, (disk %u, block %u, page %u, size %u)\n",
-                                 CXFSOP_DN_NODE_TIME(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+                sys_log(log, "[DEBUG] cxfsop_mgr_dn_print: [%s] time %lu, (disk %u, block %u, page %u, size %u)\n",
+                             cxfsop_mgr_op_str(CXFSOP_DN_NODE_OP(cxfsop_dn_node)),
+                             CXFSOP_DN_NODE_TIME(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
 
-                    continue;
-                }
-
-                if(CXFSOP_DN_REL_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
-                {
-                    sys_log(log, "[DEBUG] cxfsop_mgr_dn_print: [DN][REL] time %lu, (disk %u, block %u, page %u, size %u)\n",
-                                 CXFSOP_DN_NODE_TIME(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
-                                 CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
-
-                    continue;
-                }
-
-
-                sys_log(log, "error:cxfsop_mgr_dn_print: [DN] invalid op %u\n",
-                             CXFSOP_DN_NODE_OP(cxfsop_dn_node));
-                break; /*terminate*/
+                continue;
             }
+
+            if(CXFSOP_DN_REL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_DN_NODE      *cxfsop_dn_node;
+
+                cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_dn_print: [%s] time %lu, (disk %u, block %u, page %u, size %u)\n",
+                             cxfsop_mgr_op_str(CXFSOP_DN_NODE_OP(cxfsop_dn_node)),
+                             CXFSOP_DN_NODE_TIME(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+
+                continue;
+            }
+
+            if(CXFSOP_DN_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+            {
+                CXFSOP_DN_NODE      *cxfsop_dn_node;
+
+                cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
+
+                sys_log(log, "[DEBUG] cxfsop_mgr_dn_print: [%s] time %lu, (disk %u, block %u, page %u, size %u)\n",
+                             cxfsop_mgr_op_str(CXFSOP_DN_NODE_OP(cxfsop_dn_node)),
+                             CXFSOP_DN_NODE_TIME(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                             CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+
+                continue;
+            }
+
+            sys_log(log, "error:cxfsop_mgr_print: invalid op %u\n", CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr));
+
+            break; /*terminate*/
         }
     }
 
@@ -403,7 +479,7 @@ uint64_t cxfsop_mgr_room(const CXFSOP_MGR *cxfsop_mgr)
     return CXFSOP_MGR_SIZE(cxfsop_mgr) - CXFSOP_MGR_USED(cxfsop_mgr);
 }
 
-EC_BOOL cxfsop_mgr_mount_camd(CXFSOP_MGR *cxfsop_mgr, CAMD_MD *camd_md)
+EC_BOOL cxfsop_mgr_mount_camd(CXFSOP_MGR *cxfsop_mgr, void *camd_md)
 {
     if(NULL_PTR != CXFSOP_MGR_CAMD(cxfsop_mgr))
     {
@@ -429,8 +505,62 @@ EC_BOOL cxfsop_mgr_umount_camd(CXFSOP_MGR *cxfsop_mgr)
     return (EC_TRUE);
 }
 
+void *cxfsop_mgr_search(CXFSOP_MGR *cxfsop_mgr, void *cur, const uint64_t max_scope_len)
+{
+    void       *end;
+    void       *matched;
+    uint64_t    c_time_msec;
+    uint32_t    matched_num;
+
+    if(cur + max_scope_len < CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr))
+    {
+        end = cur + max_scope_len;
+    }
+    else
+    {
+        end = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
+    }
+
+    c_time_msec = c_get_cur_time_msec();
+    matched_num = 0;
+    matched     = NULL_PTR;
+
+    while(cur < end)
+    {
+        CXFSOP_COMM_HDR    *cxfsop_comm_hdr;
+
+        cxfsop_comm_hdr = (CXFSOP_COMM_HDR *)cur;
+
+        if(CXFSOP_MAGIC_NUM != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr)
+        || 0 == CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)
+        || c_time_msec < CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr))
+        {
+            cur ++;
+
+            matched_num = 0;        /*reset*/
+            matched     = NULL_PTR; /*reset*/
+            continue;
+        }
+
+        if(NULL_PTR == matched)
+        {
+            matched = cur;
+        }
+
+        matched_num ++;
+
+        if(3 <= matched_num) /*matched 3 times*/
+        {
+            return (matched);
+        }
+
+        cur += CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr);
+    }
+
+    return (NULL_PTR);
+}
+
 EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
-                             const uint64_t      op_seg_zone_size_nbytes,
                              uint64_t           *s_op_offset,   /*OUT*/
                              uint64_t           *e_op_offset,   /*OUT*/
                              uint64_t           *s_op_time_msec,/*IN & OUT*/
@@ -456,7 +586,7 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
     cur = CXFSOP_MGR_DATA(cxfsop_mgr);
     end = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
 
-    while(cur < end)
+    while(NULL_PTR != cur && cur < end)
     {
         CXFSOP_COMM_HDR    *cxfsop_comm_hdr;
 
@@ -464,26 +594,19 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
 
         dbg_log(SEC_0213_CXFSOP, 6)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_scan: "
                                                "offset %ld, time %lu (%s), magic %x, "
-                                               "choice %u, op %u, size %u\n",
+                                               "op %u, size %u\n",
                                                (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
                                                CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
                                                c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
                                                CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                               CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
                                                CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
                                                CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
 
         if(0 == CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr)
         && 0 == CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr))
         {
-            uint64_t         op_offset;   /*relative offset in op table*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
 
-            /*relative offset in op table*/
-            op_offset = (cur - CXFSOP_MGR_DATA(cxfsop_mgr));
-            op_offset = (op_offset + op_seg_zone_size_nbytes)
-                      - (op_offset % op_seg_zone_size_nbytes);
-
-            cur = CXFSOP_MGR_DATA(cxfsop_mgr) + op_offset; /*move forward to next op seg zone*/
             continue;
         }
 
@@ -493,7 +616,8 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
             dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "warn:cxfsop_mgr_scan: "
                                                    "invalid magic num %lx\n",
                                                    CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr));
-            break; /*return (EC_FALSE);*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
+            continue;
         }
 
         /*no create time*/
@@ -501,7 +625,8 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
         {
             dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "warn:cxfsop_mgr_scan: "
                                                    "no create time\n");
-            break; /*return (EC_FALSE);*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
+            continue;
         }
 
         /*invalid create time*/
@@ -511,7 +636,8 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
                                                    "create time %lu >= cur time %lu\n",
                                                    CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
                                                    c_time_msec);
-            break; /*return (EC_FALSE);*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
+            continue;
         }
 
         /*skip*/
@@ -560,88 +686,32 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
 
         cur += CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr);
 
-        /*np*/
-        if(CXFSOP_CHOICE_NP == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
+        if(CXFSOP_NP_F_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_F_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_F_UPD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_D_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_D_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_I_RET_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_NP_I_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_DN_RSV_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_DN_REL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr)
+        || CXFSOP_DN_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
         {
-            CXFSOP_NP_HDR   *cxfsop_np_hdr;
-
-            cxfsop_np_hdr = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
-
-            if(CXFSNP_ITEM_FILE_IS_DIR == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr))
-            {
-                if(CXFSOP_NP_ADD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-                || CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-                {
-                    dbg_log(SEC_0213_CXFSOP, 2)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_scan: "
-                                                           "offset %ld, time %lu (%s), magic %x, "
-                                                           "choice %u, op %u, size %u => OK\n",
-                                                           (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                                           CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                                           c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                                           CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                    continue;
-                }
-                dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_scan: "
-                                                       "[NP][D] invalid op %u\n",
-                                                       CXFSOP_NP_HDR_OP(cxfsop_np_hdr));
-                return (EC_FALSE);
-            }
-
-            if(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr))
-            {
-                if(CXFSOP_NP_ADD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-                || CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-                || CXFSOP_NP_UPD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-                {
-                    dbg_log(SEC_0213_CXFSOP, 2)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_scan: "
-                                                           "offset %ld, time %lu (%s), magic %x, "
-                                                           "choice %u, op %u, size %u => OK\n",
-                                                           (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                                           CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                                           c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                                           CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                                           CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                    continue;
-                }
-                dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_scan: "
-                                                       "[NP][F] invalid op %u\n",
-                                                       CXFSOP_NP_HDR_OP(cxfsop_np_hdr));
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_scan: "
-                                                   "[NP] invalid dflag %u\n",
-                                                   CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr));
-            return (EC_FALSE);
+            dbg_log(SEC_0213_CXFSOP, 2)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_scan: "
+                                                   "offset %ld, time %lu (%s), magic %x, "
+                                                   "op %u, size %u => OK\n",
+                                                   (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                                                   CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                                                   c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                                                   CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                                                   CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                                                   CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
         }
 
-        /*dn*/
-        if(CXFSOP_CHOICE_DN == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
-        {
-            CXFSOP_DN_NODE      *cxfsop_dn_node;
-
-            cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
-
-            if(CXFSOP_DN_RSV_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
-            {
-                continue;
-            }
-
-            if(CXFSOP_DN_REL_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
-            {
-                continue;
-            }
-
-            dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_scan: "
-                                                   "[DN] invalid op %u\n",
-                                                   CXFSOP_DN_NODE_OP(cxfsop_dn_node));
-            return (EC_FALSE);
-        }
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_scan: invalid op %u\n",
+                                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr));
+        return (EC_FALSE);
     }
 
     (*s_op_offset)    = s_offset;
@@ -674,7 +744,7 @@ EC_BOOL cxfsop_mgr_dump(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset)
 
     offset_t = (*offset);
 
-    if(EC_FALSE == camd_file_write_dio(CXFSOP_MGR_CAMD(cxfsop_mgr),
+    if(EC_FALSE == camd_file_write_dio((CAMD_MD *)CXFSOP_MGR_CAMD(cxfsop_mgr),
                                         &offset_t, used, (UINT8 *)data))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dump: "
@@ -717,7 +787,7 @@ EC_BOOL cxfsop_mgr_pad(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset, const UINT32 size
 
     offset_t = (*offset);
 
-    if(EC_FALSE == camd_file_write_dio(CXFSOP_MGR_CAMD(cxfsop_mgr),
+    if(EC_FALSE == camd_file_write_dio((CAMD_MD *)CXFSOP_MGR_CAMD(cxfsop_mgr),
                                         &offset_t, size, (UINT8 *)data))
     {
         safe_free(data, LOC_CXFSOP_0001);
@@ -740,8 +810,8 @@ EC_BOOL cxfsop_mgr_pad(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset, const UINT32 size
     return (EC_TRUE);
 }
 
-STATIC_CAST static uint32_t cxfsop_mgr_np_path_seg_len(const uint8_t  *full_path,
-                                                               const uint32_t  full_path_len,
+STATIC_CAST static uint16_t cxfsop_mgr_np_path_seg_len(const uint8_t  *full_path,
+                                                               const uint16_t  full_path_len,
                                                                const uint8_t  *path_seg_beg)
 {
     uint8_t *ptr;
@@ -756,14 +826,14 @@ STATIC_CAST static uint32_t cxfsop_mgr_np_path_seg_len(const uint8_t  *full_path
         /*do nothing*/
     }
 
-    return (ptr - path_seg_beg);
+    return (uint16_t)(ptr - path_seg_beg);
 }
 
-STATIC_CAST static uint32_t __cxfsop_mgr_np_path_copy(const uint32_t  src_path_len,
+STATIC_CAST static uint16_t __cxfsop_mgr_np_path_copy(const uint16_t  src_path_len,
                                                               const uint8_t   *src_path,
                                                               uint8_t         *des_path)
 {
-    uint32_t     src_path_seg_len;
+    uint16_t     src_path_seg_len;
     uint8_t     *src_path_seg_beg;
     uint8_t     *src_path_seg_end;
 
@@ -777,7 +847,7 @@ STATIC_CAST static uint32_t __cxfsop_mgr_np_path_copy(const uint32_t  src_path_l
     BCOPY(src_path_seg_beg, des_path_seg_cur, src_path_seg_len);
     des_path_seg_cur += src_path_seg_len;
 
-    while(src_path_len > (uint32_t)(src_path_seg_end - src_path))
+    while(src_path_len > (uint16_t)(src_path_seg_end - src_path))
     {
         *des_path_seg_cur ++ = '/';
 
@@ -804,11 +874,11 @@ STATIC_CAST static uint32_t __cxfsop_mgr_np_path_copy(const uint32_t  src_path_l
         }
     }
 
-    return ((uint32_t)(des_path_seg_cur - des_path));
+    return ((uint16_t)(des_path_seg_cur - des_path));
 }
 
 EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
-                                                const uint32_t      klen,
+                                                const uint16_t      klen,
                                                 const uint8_t      *key)
 {
     void             *data;
@@ -832,14 +902,31 @@ EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_ADD_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_ADD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_DIR;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_add_op: "
+                                               "[NP][D] [ADD] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned;
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_add_op: "
+                                               "[NP][D] [ADD] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     if(CXFSOP_MGR_USED(cxfsop_mgr) > CXFSOP_MGR_SIZE(cxfsop_mgr))
@@ -855,7 +942,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
-                                                   const uint32_t      klen,
+                                                   const uint16_t      klen,
                                                    const uint8_t      *key)
 {
     void             *data;
@@ -877,17 +964,33 @@ EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_DEL_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_DIR;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_delete_op: "
+                                               "[NP][D] [DEL] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned;
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_delete_op: "
+                                               "[NP][D] [DEL] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     if(CXFSOP_MGR_USED(cxfsop_mgr) > CXFSOP_MGR_SIZE(cxfsop_mgr))
@@ -902,7 +1005,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
-                                                              const uint32_t   klen,
+                                                              const uint16_t   klen,
                                                               const uint8_t   *key)
 {
     void             *data;
@@ -924,17 +1027,33 @@ EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_DEL_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_TRUE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_DIR;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_wildcard_delete_op: "
+                                               "[NP][D] [DEL] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned;
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_wildcard_delete_op: "
+                                               "[NP][D] [DEL] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     if(CXFSOP_MGR_USED(cxfsop_mgr) > CXFSOP_MGR_SIZE(cxfsop_mgr))
@@ -949,7 +1068,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
-                                                 const uint32_t   klen,
+                                                 const uint16_t   klen,
                                                  const uint8_t   *key,
                                                  const uint32_t   file_size,
                                                  const uint16_t   disk_no,
@@ -977,17 +1096,33 @@ EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_ADD_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_ADD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_REG;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_add_op: "
+                                               "[NP][F] [ADD] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned + sizeof(CXFSOP_NP_FNODE);
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_add_op: "
+                                               "[NP][F] [ADD] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr) - sizeof(CXFSOP_NP_FNODE);
@@ -1011,7 +1146,7 @@ EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
-                                                   const uint32_t     klen,
+                                                   const uint16_t     klen,
                                                    const uint8_t     *key)
 {
     void             *data;
@@ -1033,17 +1168,33 @@ EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_DEL_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_REG;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_delete_op: "
+                                               "[NP][F] [DEL] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned;
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_delete_op: "
+                                               "[NP][F] [DEL] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     if(CXFSOP_MGR_USED(cxfsop_mgr) > CXFSOP_MGR_SIZE(cxfsop_mgr))
@@ -1058,7 +1209,7 @@ EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
-                                                               const uint32_t   klen,
+                                                               const uint16_t   klen,
                                                                const uint8_t   *key)
 {
     void             *data;
@@ -1080,17 +1231,33 @@ EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_DEL_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_TRUE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_REG;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_wildcard_delete_op: "
+                                               "[NP][F] [DEL] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned;
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_wildcard_delete_op: "
+                                               "[NP][F] [DEL] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     if(CXFSOP_MGR_USED(cxfsop_mgr) > CXFSOP_MGR_SIZE(cxfsop_mgr))
@@ -1106,7 +1273,7 @@ EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
 }
 
 EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
-                                                    const uint32_t   klen,
+                                                    const uint16_t   klen,
                                                     const uint8_t   *key,
                                                     const uint32_t   file_size,
                                                     const uint16_t   disk_no,
@@ -1134,17 +1301,33 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
-    /*unit: ms, need low 32 bits only*/
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
     CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
-    CXFSOP_NP_HDR_CHOICE(cxfsop_np_hdr)   = CXFSOP_CHOICE_NP;
-    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_UPD_OP;
+    CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_UPD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
-    CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr)    = CXFSNP_ITEM_FILE_IS_REG;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+    if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_update_op: "
+                                               "[NP][F] [UPD] %.*s => klen %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                                               CXFSOP_KEY_MAX_LEN);
+        return (EC_FALSE);
+    }
 
     klen_aligned                          = VAL_ALIGN(CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), 8); /*align to 8B*/
     CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr)     = sizeof(CXFSOP_NP_HDR) + klen_aligned + sizeof(CXFSOP_NP_FNODE);
+    if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_update_op: "
+                                               "[NP][F] [UPD] %.*s => hdr size %u >= %u => overflow!\n",
+                                               klen, key,
+                                               CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
+                                               CXFSOP_HDR_MAX_LEN);
+        return (EC_FALSE);
+    }
+
     CXFSOP_MGR_USED(cxfsop_mgr)          += CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr);
 
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr) - sizeof(CXFSOP_NP_FNODE);
@@ -1164,6 +1347,70 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
                                            "[NP][F] [UPD] %.*s, (disk %u, block %u, page %u, size %u) => used %u\n",
                                            klen, key,
                                            disk_no, block_no, page_no, file_size, CXFSOP_MGR_USED(cxfsop_mgr));
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsop_mgr_np_push_item_retire(CXFSOP_MGR      *cxfsop_mgr,
+                                                const uint32_t   np_id,
+                                                const uint32_t   node_pos)
+{
+    void             *data;
+    CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+    if(CXFSOP_MGR_USED(cxfsop_mgr)
+       + sizeof(CXFSOP_NP_ITEM)
+       > CXFSOP_MGR_SIZE(cxfsop_mgr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_item_retire: "
+                                               "op mgr is full\n");
+        return (EC_FALSE);
+    }
+
+    data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
+    cxfsop_np_item = (CXFSOP_NP_ITEM *)data;
+
+    CXFSOP_NP_ITEM_TIME(cxfsop_np_item)       = c_get_cur_time_msec();
+    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_ITEM_OP(cxfsop_np_item)         = CXFSOP_NP_I_RET_OP;
+    CXFSOP_NP_ITEM_SIZE(cxfsop_np_item)       = sizeof(CXFSOP_NP_ITEM);
+
+    CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item)      = np_id;
+    CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item)   = node_pos;
+
+    CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_NP_ITEM_SIZE(cxfsop_np_item);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsop_mgr_np_push_item_recycle(CXFSOP_MGR      *cxfsop_mgr,
+                                                  const uint32_t   np_id,
+                                                  const uint32_t   node_pos)
+{
+    void             *data;
+    CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+    if(CXFSOP_MGR_USED(cxfsop_mgr)
+       + sizeof(CXFSOP_NP_ITEM)
+       > CXFSOP_MGR_SIZE(cxfsop_mgr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_item_recycle: "
+                                               "op mgr is full\n");
+        return (EC_FALSE);
+    }
+
+    data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
+    cxfsop_np_item = (CXFSOP_NP_ITEM *)data;
+
+    CXFSOP_NP_ITEM_TIME(cxfsop_np_item)       = c_get_cur_time_msec();
+    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_ITEM_OP(cxfsop_np_item)         = CXFSOP_NP_I_REC_OP;
+    CXFSOP_NP_ITEM_SIZE(cxfsop_np_item)       = sizeof(CXFSOP_NP_ITEM);
+
+    CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item)      = np_id;
+    CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item)   = node_pos;
+
+    CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_NP_ITEM_SIZE(cxfsop_np_item);
+
     return (EC_TRUE);
 }
 
@@ -1188,9 +1435,8 @@ EC_BOOL cxfsop_mgr_dn_push_reserve_op(CXFSOP_MGR      *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
 
-    CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec(); /*unit: ms, need low 32 bits only*/
+    CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
     CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
-    CXFSOP_DN_NODE_CHOICE(cxfsop_dn_node)     = CXFSOP_CHOICE_DN;
     CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_RSV_OP;
     CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
 
@@ -1225,10 +1471,45 @@ EC_BOOL cxfsop_mgr_dn_push_release_op(CXFSOP_MGR *cxfsop_mgr,
     data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
     cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
 
-    CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec(); /*unit: ms, need low 32 bits only*/
+    CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
     CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
-    CXFSOP_DN_NODE_CHOICE(cxfsop_dn_node)     = CXFSOP_CHOICE_DN;
     CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_REL_OP;
+    CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
+
+    CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node)    = disk_no;
+    CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node)   = block_no;
+    CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node)    = page_no;
+    CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node)   = data_size;
+
+    CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsop_mgr_dn_push_recycle_op(CXFSOP_MGR *cxfsop_mgr,
+                                                const uint32_t   data_size,
+                                                const uint16_t   disk_no,
+                                                const uint16_t   block_no,
+                                                const uint16_t   page_no)
+{
+    void             *data;
+    CXFSOP_DN_NODE   *cxfsop_dn_node;
+
+    if(CXFSOP_MGR_USED(cxfsop_mgr)
+       + sizeof(CXFSOP_DN_NODE)
+       > CXFSOP_MGR_SIZE(cxfsop_mgr))
+    {
+        dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dn_push_recycle_op: "
+                                               "op mgr is full\n");
+        return (EC_FALSE);
+    }
+
+    data = CXFSOP_MGR_DATA(cxfsop_mgr) + CXFSOP_MGR_USED(cxfsop_mgr);
+    cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
+
+    CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
+    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_REC_OP;
     CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
 
     CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node)    = disk_no;

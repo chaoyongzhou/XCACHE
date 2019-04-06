@@ -300,6 +300,8 @@ EC_BOOL cdcnp_degrade(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expe
 
 EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 
+EC_BOOL cdcnp_reset(CDCNP *cdcnp);
+
 EC_BOOL cdcnp_umount_item(CDCNP *cdcnp, const uint32_t node_pos);
 
 EC_BOOL cdcnp_umount(CDCNP *cdcnp, const CDCNP_KEY *cdcnp_key, const uint32_t dflag);

@@ -231,6 +231,10 @@ char *c_md5_sum_to_hex_str(const uint32_t data_len, const uint8_t *data);
 
 EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len);
 
+EC_BOOL c_sector_size(int fd, int *sector_size);
+
+EC_BOOL c_sector_num(int fd, size_t *sector_num);
+
 char   *c_dirname(const char *path_name);
 
 EC_BOOL c_dir_create(const char *dir_name);

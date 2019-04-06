@@ -2629,6 +2629,89 @@ EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expec
     return (EC_TRUE);
 }
 
+/*reset possible locked flag and flushing flag after retrieve*/
+EC_BOOL cdcnp_reset(CDCNP *cdcnp)
+{
+    CDCNPLRU_NODE  *cdcnplru_node;
+    UINT32          locked_num;
+    UINT32          flushing_num;
+    UINT32          degrading_num; /*incomplete degrade items num*/
+    uint32_t        node_pos;
+
+    if(EC_TRUE == cdcnp_is_read_only(cdcnp))
+    {
+        dbg_log(SEC_0129_CDCNP, 3)(LOGSTDOUT, "error:cdcnp_reset: np %u is read-only\n",
+                                              CDCNP_ID(cdcnp));
+        return (EC_FALSE);
+    }
+
+    locked_num      = 0;
+    flushing_num    = 0;
+    degrading_num   = 0;
+    node_pos        = CDCNPLRU_ROOT_POS;
+
+    do
+    {
+        CDCNP_ITEM *cdcnp_item;
+
+        cdcnp_item    = cdcnp_fetch(cdcnp, node_pos);
+        cdcnplru_node = CDCNP_ITEM_LRU_NODE(cdcnp_item);
+
+        if(EC_FALSE == cdcnprb_node_is_used(CDCNP_ITEMS_POOL(cdcnp), node_pos))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_reset: "
+                                                  "np %u node_pos %d, rb node is not used\n",
+                                                  CDCNP_ID(cdcnp), node_pos);
+            return (EC_FALSE);
+        }
+
+        if(CDCNP_ITEM_IS_NOT_USED == CDCNP_ITEM_USED_FLAG(cdcnp_item))
+        {
+            dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_reset: "
+                                                  "np %u node_pos %d, item is not used\n",
+                                                  CDCNP_ID(cdcnp), node_pos);
+            return (EC_FALSE);
+        }
+
+        if(CDCNP_ITEM_FILE_IS_REG == CDCNP_ITEM_DIR_FLAG(cdcnp_item))
+        {
+            if(BIT_TRUE == CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item))
+            {
+                locked_num ++;
+
+                CDCNP_ITEM_SSD_LOCKED_FLAG(cdcnp_item) = BIT_FALSE;
+            }
+
+            if(BIT_TRUE == CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item))
+            {
+                flushing_num ++;
+
+                CDCNP_ITEM_SATA_FLUSHING_FLAG(cdcnp_item) = BIT_FALSE;
+
+                CDCNP_ITEM_SATA_FLUSHED_FLAG(cdcnp_item)  = BIT_FALSE;
+
+                CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item)    = BIT_TRUE;
+            }
+
+            if(0 < CDCNP_ITEM_DEG_TIMES(cdcnp_item))
+            {
+                degrading_num ++;
+
+                CDCNP_ITEM_DEG_TIMES(cdcnp_item) = 0;
+            }
+        }
+
+        node_pos = CDCNPLRU_NODE_NEXT_POS(cdcnplru_node);
+
+    }while(CDCNPLRU_ROOT_POS != node_pos);
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_reset: "
+                                          "reset locked %ld, reset flushing %ld, reset degrading %ld\n",
+                                          locked_num, flushing_num, degrading_num);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cdcnp_umount_item(CDCNP *cdcnp, const uint32_t node_pos)
 {
     CDCNP_ITEM *cdcnp_item;

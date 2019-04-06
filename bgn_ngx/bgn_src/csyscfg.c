@@ -999,6 +999,9 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     {
         c_ident_print(log, level);
         sys_print(log, "<xfsConfig");
+        sys_print(log, " xfsNpMaxUsedRatio=\"%.3f\""     , CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg));
+        sys_print(log, " xfsDnMaxUsedRatio=\"%.3f\""     , CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg));
+
         sys_print(log, " xfsNpRetireMaxNum=\"%ld\""      , CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
         sys_print(log, " xfsNpRecycleMaxNum=\"%ld\""     , CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
         sys_print(log, " xfsNpCacheInMemSwitch=\"%s\""   , CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));

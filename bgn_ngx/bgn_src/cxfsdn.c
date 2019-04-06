@@ -47,8 +47,12 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
     UINT32       offset_b; /*real base offset of block in physical file*/
     UINT32       offset_r; /*real offset in physical file*/
 
-    offset_b = CXFSDN_OFFSET(cxfsdn) + CXFSDN_SIZE(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
+    offset_b = CXFSDN_OFFSET(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
     offset_r = offset_b + (*offset);
+
+    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_write: "
+                        "dn offset %ld, node id %ld, file offset in node %ld => offset %ld\n",
+                        CXFSDN_OFFSET(cxfsdn), node_id, (*offset), offset_r);
 
     if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
     {
@@ -63,7 +67,7 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_write: "
                                 "amd write %ld bytes to node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_r);
+                                data_max_len, node_id, offset_b + (*offset));
 
             return (EC_FALSE);
         }
@@ -72,7 +76,7 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
         dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_write: "
                             "amd write %ld bytes to node %ld at offset %ld done\n",
-                            data_max_len, node_id, offset_r);
+                            data_max_len, node_id, offset_b + (*offset));
     }
 
     if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
@@ -85,7 +89,7 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_write: "
                                 "flush %ld bytes to node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_r);
+                                data_max_len, node_id, offset_b + (*offset));
 
             return (EC_FALSE);
         }
@@ -102,8 +106,12 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
     UINT32       offset_b; /*real base offset of block in physical file*/
     UINT32       offset_r; /*real offset in physical file*/
 
-    offset_b = CXFSDN_OFFSET(cxfsdn) + CXFSDN_SIZE(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
+    offset_b = CXFSDN_OFFSET(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
     offset_r = offset_b + (*offset);
+
+    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_read: "
+                        "dn offset %ld, node id %ld, file offset in node %ld => offset %ld\n",
+                        CXFSDN_OFFSET(cxfsdn), node_id, (*offset), offset_r);
 
     if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
     {
@@ -118,7 +126,7 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_read: "
                                 "amd read %ld bytes from node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_r);
+                                data_max_len, node_id, offset_b + (*offset));
             return (EC_FALSE);
         }
 
@@ -126,7 +134,7 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
 
         dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_read: "
                             "amd read %ld bytes from node %ld at offset %ld done\n",
-                            data_max_len, node_id, offset_r);
+                            data_max_len, node_id, offset_b + (*offset));
     }
 
     if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
@@ -138,7 +146,7 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_read: "
                                 "load %ld bytes from node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_r);
+                                data_max_len, node_id, offset_b + (*offset));
             return (EC_FALSE);
         }
 
@@ -149,13 +157,88 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
     return (EC_TRUE);
 }
 
-CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, const UINT32 cxfsdn_sata_offset,
-                         const UINT32 cxfsdn_mem_size,
-                         const int cxfsdn_ssd_fd, const UINT32 cxfsdn_ssd_size, const UINT32 cxfsdn_ssd_offset)
+EC_BOOL cxfsdn_compute(const UINT32 cxfsdn_sata_size,   /*whole sata disk size*/
+                            const UINT32 cxfsdn_sata_offset, /*dn meta data start offset*/
+                            UINT32      *cxfsdn_disk_size,   /*dn virtaul disk size*/
+                            UINT32      *cxfsdn_zone_size)   /*dn meta data size*/
+{
+    UINT32   sata_disk_size;    /*upper limitation of dn data cache size*/
+
+    UINT32   dn_size;
+
+    UINT32   disk_size;
+    uint16_t disk_max_num;
+
+    /*estimate sata disk size for xfs data node*/
+    sata_disk_size = cxfsdn_sata_size - cxfsdn_sata_offset;
+
+    /*vdisk size and vdisk max num*/
+    disk_size      = (((UINT32)CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)CXFSPGB_CACHE_MAX_BYTE_SIZE));
+    disk_max_num   = (uint16_t)(sata_disk_size / disk_size);
+
+    for(;0 < disk_max_num; disk_max_num --)
+    {
+        UINT32      dn_total_size;
+        UINT32      mask;
+
+        dn_size = cxfspgv_size(disk_max_num); /*data node meta data size*/
+        mask    = (CXFSDN_MEM_ALIGNMENT - 1);
+        dn_size = VAL_ALIGN_NEXT(dn_size, mask);
+
+        dn_total_size = dn_size   * 2   /*active dn zone and standby dn zone*/
+                      + disk_size * ((UINT32)disk_max_num);
+
+        if(dn_total_size <= sata_disk_size)
+        {
+            break;
+        }
+    }
+
+    if(0 == disk_max_num)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_compute: "
+                                               "sata size %ld, disk size %ld => invalid disk max num %u\n",
+                                               sata_disk_size, disk_size, disk_max_num);
+        return (EC_FALSE);
+    }
+
+    if(CXFSPGV_MAX_DISK_NUM <= disk_max_num)
+    {
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_compute: "
+                                               "disk max num %u >= %u\n",
+                                               disk_max_num, CXFSPGV_MAX_DISK_NUM);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_compute: "
+                                           "sata size %ld, disk size %ld => disk max num %u => dn size %ld\n",
+                                           sata_disk_size, disk_size, disk_max_num, dn_size);
+
+    if(NULL_PTR != cxfsdn_disk_size)
+    {
+        (*cxfsdn_disk_size) = disk_size;
+    }
+
+    if(NULL_PTR != cxfsdn_zone_size)
+    {
+        (*cxfsdn_zone_size) = dn_size;
+    }
+
+    return (EC_TRUE);
+}
+
+CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,
+                         const int      cxfsdn_sata_fd,
+                         const UINT32   cxfsdn_mem_size,
+                         const int      cxfsdn_ssd_fd)
 {
     CXFSDN  *cxfsdn;
 
-    UINT32   sata_disk_size;
+    UINT32   cxfsdn_sata_size;   /*whole sata disk size*/
+    UINT32   cxfsdn_sata_offset; /*dn data cache start offset, not that of meta*/
+
+    UINT32   cxfsdn_ssd_size;
+    UINT32   cxfsdn_ssd_offset;
 
     UINT32   dn_size;
     UINT32   dn_mem_align;
@@ -170,32 +253,24 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
         return (NULL_PTR);
     }
 
-    sata_disk_size = cxfsdn_sata_size - cxfsdn_sata_offset; /*sata disk size for xfs data node*/
+    cxfsdn_sata_size    = CXFSCFG_SATA_DISK_SIZE(cxfscfg);
+    cxfsdn_sata_offset  = CXFSCFG_SATA_DISK_OFFSET(cxfscfg);
+
+    cxfsdn_ssd_size     = CXFSCFG_SSD_DISK_SIZE(cxfscfg);
+    cxfsdn_ssd_offset   = CXFSCFG_SSD_DISK_OFFSET(cxfscfg);
+
+    dn_size        = CXFSCFG_DN_ZONE_SIZE(cxfscfg);
 
     disk_size      = (((UINT32)CXFSPGD_MAX_BLOCK_NUM) * ((UINT32)CXFSPGB_CACHE_MAX_BYTE_SIZE));
-    disk_max_num   = (uint16_t)(sata_disk_size / disk_size);
-
-    for(;0 < disk_max_num; disk_max_num --)
-    {
-        UINT32      dn_total_size;
-        UINT32      mask;
-
-        dn_size = cxfspgv_size(disk_max_num); /*data node meta data size*/
-        mask    = (CXFSDN_MEM_ALIGNMENT - 1);
-        dn_size = (dn_size + mask) & (~mask);
-
-        dn_total_size = dn_size + disk_size * ((UINT32)disk_max_num);
-        if(dn_total_size <= sata_disk_size)
-        {
-            break;
-        }
-    }
+    disk_max_num   = (uint16_t)((cxfsdn_sata_size - cxfsdn_sata_offset) / disk_size);
 
     if(0 == disk_max_num)
     {
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
-                                               "sata size %ld, disk size %ld => invalid disk max num %u\n",
-                                               sata_disk_size, disk_size, disk_max_num);
+                                               "invalid disk max num %u, "
+                                               "where sata size %ld, sata offset %ld, disk size %ld\n",
+                                               disk_max_num,
+                                               cxfsdn_sata_size, cxfsdn_sata_offset, disk_size);
         return (NULL_PTR);
     }
 
@@ -206,10 +281,6 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
                                                disk_max_num, CXFSPGV_MAX_DISK_NUM);
         return (NULL_PTR);
     }
-
-    dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_create: "
-                                           "sata size %ld, disk size %ld => disk max num %u => dn size %ld\n",
-                                           sata_disk_size, disk_size, disk_max_num, dn_size);
 
     cxfsdn = cxfsdn_new();
     if(NULL_PTR == cxfsdn)
@@ -254,7 +325,13 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
 
     if(SWITCH_ON == CXFS_DN_MMAP_SWITCH)
     {
-        UINT8   *addr;
+        UINT8             *addr;
+        const CXFSZONE    *cxfszone;
+
+        /*active zone*/
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg));
+
+        ASSERT(dn_size == CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone));
 
         addr = c_mmap_aligned_addr(dn_size, dn_mem_align);
         if(NULL_PTR == addr)
@@ -268,15 +345,27 @@ CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, c
 
         dn_mem_cache = (UINT8 *)mmap(addr, dn_size,
                                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
-                                     cxfsdn_sata_fd, cxfsdn_sata_offset);
+                                     cxfsdn_sata_fd, CXFSZONE_S_OFFSET(cxfszone));
         if(MAP_FAILED == dn_mem_cache)
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: "
-                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
-                               cxfsdn_sata_fd, cxfsdn_sata_offset, dn_size, errno, strerror(errno));
+                                                   "mmap fd %d, [%ld, %ld) size %ld failed, "
+                                                   "errno = %d, errstr = %s\n",
+                                                   cxfsdn_sata_fd,
+                                                   CXFSZONE_S_OFFSET(cxfszone),
+                                                   CXFSZONE_S_OFFSET(cxfszone) + dn_size,
+                                                   dn_size,
+                                                   errno, strerror(errno));
             cxfsdn_free(cxfsdn);
             return (NULL_PTR);
         }
+
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: "
+                                               "mmap fd %d, [%ld, %ld) size %ld done\n",
+                                               cxfsdn_sata_fd,
+                                               CXFSZONE_S_OFFSET(cxfszone),
+                                               CXFSZONE_S_OFFSET(cxfszone) + dn_size,
+                                               dn_size);
 
         CXFSDN_SATA_DISK_FD(cxfsdn) = cxfsdn_sata_fd;
         CXFSDN_SIZE(cxfsdn)         = dn_size;
@@ -546,7 +635,7 @@ EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const ui
         uint32_t     e_page;   /*end bad page*/
 
         node_id  = CXFSDN_NODE_ID_MAKE(disk_no, block_no);
-        offset_b = CXFSDN_OFFSET(cxfsdn) + CXFSDN_SIZE(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
+        offset_b = CXFSDN_OFFSET(cxfsdn) + (node_id << CXFSPGB_CACHE_BIT_SIZE);
         offset_r = offset_b + (((UINT32)(page_no)) << (CXFSPGB_PAGE_BIT_SIZE));
 
         s_page   = (uint32_t)((offset_r +    0) >> CXFSDN_BAD_PAGE_SIZE_NBITS);
@@ -732,6 +821,11 @@ EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn)
     return cxfspgv_is_full(CXFSDN_CXFSPGV(cxfsdn));
 }
 
+REAL cxfsdn_used_ratio(const CXFSDN *cxfsdn)
+{
+    return cxfspgv_page_used_ratio(CXFSDN_CXFSPGV(cxfsdn));
+}
+
 EC_BOOL cxfsdn_set_read_only(CXFSDN *cxfsdn)
 {
     if(BIT_TRUE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
@@ -796,14 +890,18 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
         if(EC_FALSE == c_file_pwrite(CXFSDN_SATA_DISK_FD(cxfsdn), &offset, wsize, mem_cache))
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_flush: "
-                                                   "flush %ld bytes to offset %ld failed\n",
-                                                   wsize, CXFSDN_OFFSET(cxfsdn));
+                                                   "flush dn to [%ld, %ld), size %ld failed\n",
+                                                   CXFSDN_OFFSET(cxfsdn),
+                                                   CXFSDN_OFFSET(cxfsdn) + wsize,
+                                                   wsize);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
-                                               "flush %ld bytes to offset %ld done\n",
-                                               wsize, CXFSDN_OFFSET(cxfsdn));
+                                               "flush dn to [%ld, %ld), size %ld done\n",
+                                               CXFSDN_OFFSET(cxfsdn),
+                                               CXFSDN_OFFSET(cxfsdn) + wsize,
+                                               wsize);
     }
 
     if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
@@ -868,6 +966,7 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
     dn_mem_size  = CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone);
     dn_mem_align = CXFSDN_MEM_ALIGNMENT;
     ASSERT(0 == (dn_mem_size & (CXFSDN_MEM_ALIGNMENT - 1)));
+    ASSERT(dn_mem_size == CXFSCFG_DN_ZONE_SIZE(cxfscfg));
 
     if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH)
     {
@@ -947,9 +1046,11 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
         }
     }
 
+    ASSERT(CXFSCFG_DN_ZONE_SIZE(cxfscfg) == CXFSPGV_FSIZE(cxfspgv));
+
     CXFSDN_SATA_DISK_FD(cxfsdn) = cxfsdn_sata_fd;
-    CXFSDN_OFFSET(cxfsdn)       = CXFSPGV_OFFSET(cxfspgv);
-    CXFSDN_SIZE(cxfsdn)         = CXFSPGV_FSIZE(cxfspgv);
+    CXFSDN_OFFSET(cxfsdn)       = CXFSCFG_SATA_DISK_OFFSET(cxfscfg);
+    CXFSDN_SIZE(cxfsdn)         = CXFSCFG_DN_ZONE_SIZE(cxfscfg);
     CXFSDN_CXFSPGV(cxfsdn)      = cxfspgv;
     CXFSDN_MEM_CACHE(cxfsdn)    = dn_mem_cache;
 

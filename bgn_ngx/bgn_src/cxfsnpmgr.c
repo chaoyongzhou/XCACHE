@@ -29,6 +29,7 @@ extern "C"{
 #include "clist.h"
 #include "cstring.h"
 #include "cmisc.h"
+#include "real.h"
 
 #include "task.inc"
 #include "task.h"
@@ -38,6 +39,7 @@ extern "C"{
 #include "cxfsnplru.h"
 #include "cxfsnpmgr.h"
 #include "cxfscfg.h"
+#include "cxfsop.h"
 
 #include "chashalgo.h"
 #include "cmd5.h"
@@ -75,6 +77,7 @@ CXFSNP_MGR *cxfsnp_mgr_new()
 EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
 {
     CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
+    CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
 
     CXFSNP_MGR_FD(cxfsnp_mgr)                   = ERR_FD;
 
@@ -89,6 +92,7 @@ EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
 
     CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)             = NULL_PTR;
     CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)        = NULL_PTR;
+    CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)            = NULL_PTR;
 
     cvector_init(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), 0, MM_CXFSNP, CVECTOR_LOCK_ENABLE, LOC_CXFSNPMGR_0002);
 
@@ -135,7 +139,10 @@ EC_BOOL cxfsnp_mgr_clean(CXFSNP_MGR *cxfsnp_mgr)
         CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
     }
 
+    CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)            = NULL_PTR;
+
     CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
+    CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr)       = BIT_FALSE;
 
     CXFSNP_MGR_FD(cxfsnp_mgr)                   = ERR_FD;
 
@@ -364,16 +371,18 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
         if(EC_FALSE == c_file_pwrite(CXFSNP_MGR_FD(cxfsnp_mgr), &offset, wsize, mem_cache))
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_flush: "
-                                                      "flush %ld bytes to offset %ld failed\n",
-                                                      wsize,
-                                                      CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr));
+                                                      "flush npp to [%ld, %ld), size %ld failed\n",
+                                                      CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr),
+                                                      CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr),
+                                                      wsize);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
-                                                  "flush %ld bytes to offset %ld done\n",
-                                                  wsize,
-                                                  CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr));
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
+                                                  "flush npp to [%ld, %ld), size %ld done\n",
+                                                  CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr),
+                                                  CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr),
+                                                  wsize);
    }
 
     if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
@@ -825,15 +834,20 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
         if(MAP_FAILED == np_mem_cache)
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
-                               "mmap fd %d offset %ld size %ld, failed, errno = %d, errstr = %s\n",
-                               cxfsnp_dev_fd, cxfsnp_dev_offset, np_total_size, errno, strerror(errno));
+                               "mmap fd %d [%ld, %ld), size %ld failed, errno = %d, errstr = %s\n",
+                               cxfsnp_dev_fd,
+                               cxfsnp_dev_offset,
+                               cxfsnp_dev_offset + np_total_size,
+                               np_total_size,
+                               errno, strerror(errno));
             return (NULL_PTR);
         }
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
-                                                  "mmap %ld bytes from offset %ld done\n",
-                                                  np_total_size,
-                                                  cxfsnp_dev_offset);
+                                                  "mmap [%ld, %ld), size %ld done\n",
+                                                  cxfsnp_dev_offset,
+                                                  cxfsnp_dev_offset + np_total_size,
+                                                  np_total_size);
     }
 
     cxfsnp_mgr = cxfsnp_mgr_new();
@@ -1155,7 +1169,7 @@ EC_BOOL cxfsnp_mgr_set_read_only(CXFSNP_MGR *cxfsnp_mgr)
     {
         CXFSNP *cxfsnp;
 
-        cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
         if(NULL_PTR == cxfsnp)
         {
             continue;
@@ -1189,7 +1203,7 @@ EC_BOOL cxfsnp_mgr_unset_read_only(CXFSNP_MGR *cxfsnp_mgr)
     {
         CXFSNP *cxfsnp;
 
-        cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
         if(NULL_PTR == cxfsnp)
         {
             continue;
@@ -1213,6 +1227,184 @@ EC_BOOL cxfsnp_mgr_is_read_only(CXFSNP_MGR *cxfsnp_mgr)
     }
 
     return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_set_op_replay(CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(BIT_TRUE == CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_set_op_replay: "
+                                                  "npp is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_set_op_replay(cxfsnp);
+    }
+
+    CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr) = BIT_TRUE;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_set_op_replay: "
+                                              "npp set op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_unset_op_replay(CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(BIT_FALSE == CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_unset_op_replay: "
+                                                  "npp is not in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_unset_op_replay(cxfsnp);
+    }
+
+    CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr) = BIT_FALSE;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_unset_op_replay: "
+                                              "npp unset op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_is_op_replay(CXFSNP_MGR *cxfsnp_mgr)
+{
+    if(BIT_TRUE == CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_mount_op_mgr(CXFSNP_MGR *cxfsnp_mgr, CXFSOP_MGR *cxfsop_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(NULL_PTR != CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_mount_op_mgr: "
+                                                  "op mgr exists\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_mount_op_mgr(cxfsnp, cxfsop_mgr);
+    }
+
+    CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr) = cxfsop_mgr;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_mount_op_mgr: "
+                                              "npp mount op mgr %p done\n",
+                                              cxfsop_mgr);
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_umount_op_mgr(CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    if(NULL_PTR == CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_umount_op_mgr: "
+                                                  "op mgr not exist\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            continue;
+        }
+
+        cxfsnp_umount_op_mgr(cxfsnp);
+    }
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_mount_op_mgr: "
+                                              "npp umount op mgr %p done\n",
+                                              CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr));
+    CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr) = NULL_PTR;
+
+    return (EC_TRUE);
+}
+
+REAL cxfsnp_mgr_used_ratio(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+    REAL     used_ratio;
+
+    used_ratio = 0.0;
+    cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+        REAL    np_used_ratio;
+
+        cxfsnp = __cxfsnp_mgr_get_np_of_id((CXFSNP_MGR *)cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
+        {
+            break;
+        }
+
+        np_used_ratio = cxfsnp_used_ratio(cxfsnp);
+        if(used_ratio < np_used_ratio)
+        {
+            used_ratio = np_used_ratio;
+        }
+    }
+
+    return (used_ratio);
 }
 
 EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path)

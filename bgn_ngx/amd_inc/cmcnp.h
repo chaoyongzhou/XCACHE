@@ -282,13 +282,13 @@ EC_BOOL cmcnp_degrade_cb_clean(CMCNP_DEGRADE_CB *cmcnp_degrade_cb);
 
 EC_BOOL cmcnp_degrade_cb_clone(CMCNP_DEGRADE_CB *cmcnp_degrade_cb_src, CMCNP_DEGRADE_CB *cmcnp_degrade_cb_des);
 
-EC_BOOL cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB *cmcnp_degrade_cb, CMCNP_DEGRADE_CALLBACK func, void *arg);
+EC_BOOL cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB *cmcnp_degrade_cb, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg);
 
 EC_BOOL cmcnp_init_degrade_callback(CMCNP *cmcnp);
 
 EC_BOOL cmcnp_clean_degrade_callback(CMCNP *cmcnp);
 
-EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, CMCNP_DEGRADE_CALLBACK func, void *arg);
+EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg);
 
 EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t node_pos);
 

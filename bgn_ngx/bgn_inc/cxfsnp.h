@@ -24,6 +24,7 @@ extern "C"{
 
 #include "type.h"
 #include "log.h"
+#include "real.h"
 
 #include "cvector.h"
 #include "cmutex.h"
@@ -32,6 +33,7 @@ extern "C"{
 #include "chashalgo.h"
 #include "cxfsnprb.h"
 #include "cxfsnp.inc"
+#include "cxfsop.h"
 
 const char *cxfsnp_model_str(const uint8_t cxfsnp_model);
 
@@ -153,6 +155,16 @@ EC_BOOL cxfsnp_unset_read_only(CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_is_read_only(CXFSNP *cxfsnp);
 
+EC_BOOL cxfsnp_set_op_replay(CXFSNP *cxfsnp);
+
+EC_BOOL cxfsnp_unset_op_replay(CXFSNP *cxfsnp);
+
+EC_BOOL cxfsnp_is_op_replay(CXFSNP *cxfsnp);
+
+EC_BOOL cxfsnp_mount_op_mgr(CXFSNP *cxfsnp, CXFSOP_MGR *cxfsop_mgr);
+
+EC_BOOL cxfsnp_umount_op_mgr(CXFSNP *cxfsnp);
+
 EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_del_list_is_empty(const CXFSNP *cxfsnp);
@@ -237,6 +249,8 @@ CXFSNP_ITEM *cxfsnp_get(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
 EC_BOOL cxfsnp_delete(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 EC_BOOL cxfsnp_expire(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
+
+REAL cxfsnp_used_ratio(const CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 

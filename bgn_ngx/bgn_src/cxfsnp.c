@@ -25,6 +25,7 @@ extern "C"{
 #include "type.h"
 #include "mm.h"
 #include "log.h"
+#include "real.h"
 #include "cmpic.inc"
 #include "cmutex.h"
 #include "cstring.h"
@@ -47,6 +48,8 @@ extern "C"{
 #include "cxfsnpkey.h"
 #include "cxfsnp.h"
 #include "cxfsconhash.h"
+#include "cxfsop.h"
+
 #include "findex.inc"
 
 static CXFSNP_CFG g_cxfsnp_cfg_tbl[] = {
@@ -383,7 +386,7 @@ void cxfsnp_fnode_print(LOG *log, const CXFSNP_FNODE *cxfsnp_fnode)
 {
     uint32_t pos;
 
-    sys_log(log, "cxfsnp_fnode %p: file size %u, replica num %u\n",
+    sys_log(log, "[DEBUG] cxfsnp_fnode %p: file size %u, replica num %u, ",
                     cxfsnp_fnode,
                     CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
                     CXFSNP_FNODE_REPNUM(cxfsnp_fnode));
@@ -1049,12 +1052,16 @@ CXFSNP *cxfsnp_new()
 EC_BOOL cxfsnp_init(CXFSNP *cxfsnp)
 {
     CXFSNP_READ_ONLY_FLAG(cxfsnp)  = BIT_FALSE;
+    CXFSNP_OP_REPLAY_FLAG(cxfsnp)  = BIT_FALSE;
+
     CXFSNP_FSIZE(cxfsnp)           = 0;
     CXFSNP_DEL_SIZE(cxfsnp)        = 0;
     CXFSNP_RECYCLE_SIZE(cxfsnp)    = 0;
     CXFSNP_LRU_LIST(cxfsnp)        = NULL_PTR;
     CXFSNP_DEL_LIST(cxfsnp)        = NULL_PTR;
+
     CXFSNP_HDR(cxfsnp)             = NULL_PTR;
+    CXFSNP_OP_MGR(cxfsnp)          = NULL_PTR;
 
     CXFSNP_2ND_CHASH_ALGO(cxfsnp)  = NULL_PTR;
 
@@ -1064,8 +1071,10 @@ EC_BOOL cxfsnp_init(CXFSNP *cxfsnp)
 EC_BOOL cxfsnp_clean(CXFSNP *cxfsnp)
 {
     CXFSNP_HDR(cxfsnp)             = NULL_PTR;
+    CXFSNP_OP_MGR(cxfsnp)          = NULL_PTR;
 
     CXFSNP_READ_ONLY_FLAG(cxfsnp)  = BIT_FALSE;
+    CXFSNP_OP_REPLAY_FLAG(cxfsnp)  = BIT_FALSE;
     CXFSNP_FSIZE(cxfsnp)           = 0;
 
     CXFSNP_DEL_SIZE(cxfsnp)        = 0;
@@ -1138,6 +1147,83 @@ EC_BOOL cxfsnp_is_read_only(CXFSNP *cxfsnp)
     }
 
     return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_set_op_replay(CXFSNP *cxfsnp)
+{
+    if(BIT_TRUE == CXFSNP_OP_REPLAY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_set_op_replay: "
+                                               "np is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSNP_OP_REPLAY_FLAG(cxfsnp) = BIT_TRUE;
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_set_op_replay: "
+                                           "np set op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_unset_op_replay(CXFSNP *cxfsnp)
+{
+    if(BIT_FALSE == CXFSNP_OP_REPLAY_FLAG(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_unset_op_replay: "
+                                               "np is not in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    CXFSNP_OP_REPLAY_FLAG(cxfsnp) = BIT_FALSE;
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_unset_op_replay: "
+                                           "np unset op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_is_op_replay(CXFSNP *cxfsnp)
+{
+    if(BIT_TRUE == CXFSNP_OP_REPLAY_FLAG(cxfsnp))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mount_op_mgr(CXFSNP *cxfsnp, CXFSOP_MGR *cxfsop_mgr)
+{
+    if(NULL_PTR != CXFSNP_OP_MGR(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_mount_op_mgr: "
+                                               "op mgr exists\n");
+        return (EC_FALSE);
+    }
+
+    CXFSNP_OP_MGR(cxfsnp) = cxfsop_mgr;
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mount_op_mgr: "
+                                           "mount op mgr %p done\n",
+                                           cxfsop_mgr);
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_umount_op_mgr(CXFSNP *cxfsnp)
+{
+    if(NULL_PTR == CXFSNP_OP_MGR(cxfsnp))
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_umount_op_mgr: "
+                                               "op mgr not exist\n");
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_umount_op_mgr: "
+                                           "umount op mgr %p done\n",
+                                           CXFSNP_OP_MGR(cxfsnp));
+
+    CXFSNP_OP_MGR(cxfsnp) = NULL_PTR;
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp)
@@ -2356,6 +2442,22 @@ EC_BOOL cxfsnp_expire(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
     return (EC_TRUE);
 }
 
+REAL cxfsnp_used_ratio(const CXFSNP *cxfsnp)
+{
+    const CXFSNP_HEADER *cxfsnp_header;
+    REAL                 items_used_num;
+    REAL                 items_max_num;
+
+    cxfsnp_header = CXFSNP_HDR(cxfsnp);
+
+    ASSERT(0 < CXFSNP_HEADER_ITEMS_MAX_NUM(cxfsnp_header));
+
+    items_used_num = 0.0 + CXFSNP_HEADER_ITEMS_USED_NUM(cxfsnp_header);
+    items_max_num  = 0.0 + CXFSNP_HEADER_ITEMS_MAX_NUM(cxfsnp_header);
+
+    return (items_used_num) / (items_max_num);
+}
+
 EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *complete_retire_num)
 {
     CXFSNPLRU_NODE  *cxfsnplru_node_head;
@@ -2392,6 +2494,12 @@ EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *co
                 dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_retire: np %u node_pos %d [REG] failed\n",
                                 CXFSNP_ID(cxfsnp), node_pos);
                 return (EC_FALSE);
+            }
+
+            if(BIT_FALSE == CXFSNP_OP_REPLAY_FLAG(cxfsnp)
+            && NULL_PTR != CXFSNP_OP_MGR(cxfsnp))
+            {
+                cxfsop_mgr_np_push_item_retire(CXFSNP_OP_MGR(cxfsnp), CXFSNP_ID(cxfsnp), node_pos);
             }
 
             dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_retire: np %u node_pos %d [REG] done\n",
@@ -4184,6 +4292,12 @@ EC_BOOL cxfsnp_recycle(CXFSNP *cxfsnp, const UINT32 max_num, CXFSNP_RECYCLE_NP *
         cxfsnpdel_node_rmv(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
 
         cxfsnprb_node_free(CXFSNP_ITEMS_POOL(cxfsnp), node_pos);/*recycle rb node(item node)*/
+
+        if(BIT_FALSE == CXFSNP_OP_REPLAY_FLAG(cxfsnp)
+        && NULL_PTR != CXFSNP_OP_MGR(cxfsnp))
+        {
+            cxfsop_mgr_np_push_item_recycle(CXFSNP_OP_MGR(cxfsnp), CXFSNP_ID(cxfsnp), node_pos);
+        }
 
         (*complete_num) ++;
 

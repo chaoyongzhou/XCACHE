@@ -28,7 +28,7 @@ extern "C"{
 #include "clist.h"
 #include "cmutex.h"
 #include "crb.h"
-
+#include "real.h"
 #include "cbadbitmap.h"
 
 #include "cmsync.h"
@@ -216,9 +216,15 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
 EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *offset);
 
-CXFSDN *cxfsdn_create(const int cxfsdn_sata_fd, const UINT32 cxfsdn_sata_size, const UINT32 cxfsdn_sata_offset,
-                         const UINT32 cxfsdn_mem_size,
-                         const int cxfsdn_ssd_fd, const UINT32 cxfsdn_ssd_size, const UINT32 cxfsdn_ssd_offset);
+EC_BOOL cxfsdn_compute(const UINT32 cxfsdn_sata_size,   /*whole sata disk size*/
+                            const UINT32 cxfsdn_sata_offset, /*dn meta data start offset*/
+                            UINT32      *cxfsdn_disk_size,   /*dn virtaul disk size*/
+                            UINT32      *cxfsdn_zone_size);  /*dn meta data size*/
+
+CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,
+                         const int      cxfsdn_sata_fd,
+                         const UINT32   cxfsdn_mem_size,
+                         const int      cxfsdn_ssd_fd);
 
 EC_BOOL cxfsdn_add_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
@@ -249,6 +255,8 @@ EC_BOOL cxfsdn_free(CXFSDN *cxfsdn);
 void cxfsdn_print(LOG *log, const CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_is_full(CXFSDN *cxfsdn);
+
+REAL cxfsdn_used_ratio(const CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_set_read_only(CXFSDN *cxfsdn);
 

@@ -1175,6 +1175,9 @@ EC_BOOL cxml_parse_cparacfg_rfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
 EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
+    __cxml_parse_tag_real(node, (const char *)"xfsNpMaxUsedRatio" , &(CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)));
+    __cxml_parse_tag_real(node, (const char *)"xfsDnMaxUsedRatio" , &(CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)));
+
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRetireMaxNum" , &(CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRecycleMaxNum", &(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
 

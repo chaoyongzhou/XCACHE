@@ -2817,7 +2817,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
         if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
         {
             /*set degrade callback*/
-            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md),
+            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md), CMC_DEGRADE_SSD,
                                     (CMCNP_DEGRADE_CALLBACK)camd_ssd_flush, (void *)camd_md);
         }
 
@@ -2882,7 +2882,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
         if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
         {
             /*set degrade callback*/
-            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md),
+            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md), CMC_DEGRADE_SATA,
                                     (CMCNP_DEGRADE_CALLBACK)camd_sata_degrade, (void *)camd_md);
         }
     }
@@ -3637,7 +3637,7 @@ EC_BOOL camd_set_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:camd_set_ssd_bad_page: "
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] camd_set_ssd_bad_page: "
                                              "set ssd bad page: page %u\n",
                                              page_no);
 
@@ -3676,7 +3676,7 @@ EC_BOOL camd_set_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:camd_set_sata_bad_page: "
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] camd_set_sata_bad_page: "
                                              "set sata bad page: page %u\n",
                                              page_no);
 
@@ -4520,16 +4520,10 @@ EC_BOOL camd_dump_shm(CAMD_MD *camd_md)
     camd_close_ssd_bad_bitmap(camd_md);
 
     /*cmc*/
-    if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
-    {
-        cmc_umount_mmap(CAMD_MD_CMC_MD(camd_md));
-    }
+    cmc_umount_mmap(CAMD_MD_CMC_MD(camd_md));
 
     /*cdc*/
-    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
-    {
-        cdc_umount_mmap(CAMD_MD_CDC_MD(camd_md));
-    }
+    cdc_umount_mmap(CAMD_MD_CDC_MD(camd_md));
 
     /*caio*/
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
@@ -5171,8 +5165,6 @@ void camd_process(CAMD_MD *camd_md)
     REAL        ssd_hit_ratio;
 
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)); /*for debug checking*/
-    CAMD_ASSERT(NULL_PTR != CAMD_MD_CMC_MD(camd_md));  /*for debug checking*/
-    CAMD_ASSERT(NULL_PTR != CAMD_MD_CDC_MD(camd_md));  /*for debug checking*/
 
     camd_process_pages(camd_md);
     camd_process_events(camd_md);
@@ -5327,8 +5319,6 @@ void camd_process_no_degrade(CAMD_MD *camd_md)
     //REAL        ssd_hit_ratio;
 
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)); /*for debug checking*/
-    CAMD_ASSERT(NULL_PTR != CAMD_MD_CMC_MD(camd_md));  /*for debug checking*/
-    CAMD_ASSERT(NULL_PTR != CAMD_MD_CDC_MD(camd_md));  /*for debug checking*/
 
     camd_process_pages(camd_md);
     camd_process_events(camd_md);
@@ -5766,7 +5756,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         /*check ssd bad page*/
         if(EC_TRUE == cdc_check_ssd_bad_page(cdc_md, node_pos))
         {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_process_page: "
                                                  "ssd hit page [%ld, %ld) => ssd bad page\n",
                                                  CAMD_PAGE_F_S_OFFSET(camd_page),
                                                  CAMD_PAGE_F_E_OFFSET(camd_page));
@@ -5868,7 +5858,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         page_no = (uint32_t)(CAMD_PAGE_F_S_OFFSET(camd_page) >> CMCPGB_PAGE_SIZE_NBITS);
         if(EC_TRUE == camd_is_sata_bad_page(camd_md, page_no)) /*check sata bad page*/
         {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_process_page: "
                                                  "[aio] sata hit bad page [%ld, %ld), page no %u\n",
                                                  CAMD_PAGE_F_S_OFFSET(camd_page),
                                                  CAMD_PAGE_F_E_OFFSET(camd_page),
@@ -5906,7 +5896,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         page_no = (uint32_t)(CAMD_PAGE_F_S_OFFSET(camd_page) >> CMCPGB_PAGE_SIZE_NBITS);
         if(EC_TRUE == camd_is_sata_bad_page(camd_md, page_no))
         {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_process_page: "
                                                  "[dio] sata hit bad page [%ld, %ld), page no %u\n",
                                                  CAMD_PAGE_F_S_OFFSET(camd_page),
                                                  CAMD_PAGE_F_E_OFFSET(camd_page),
@@ -7703,29 +7693,97 @@ EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize)
     return (EC_TRUE);
 }
 
+/*------------------------ cmad cond interface ----------------------------*/
+
+CAMD_COND *camd_cond_new(const UINT32 timeout_msec, const UINT32 location)
+{
+    CAMD_COND *camd_cond;
+
+    alloc_static_mem(MM_CAMD_COND, &camd_cond, location);
+    if(NULL_PTR == camd_cond)
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_cond_new: alloc memory failed\n");
+        return (NULL_PTR);
+    }
+
+    camd_cond_init(camd_cond, timeout_msec, location);
+    return (camd_cond);
+}
+
+EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_msec, const UINT32 location)
+{
+    coroutine_cond_init(CAMD_COND_CCOND(camd_cond), timeout_msec, location);
+
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_ERROR;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_cond_clean(CAMD_COND *camd_cond, const UINT32 location)
+{
+    if(NULL_PTR != camd_cond)
+    {
+        coroutine_cond_clean(CAMD_COND_CCOND(camd_cond), location);
+
+        CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_ERROR;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_cond_free(CAMD_COND *camd_cond, const UINT32 location)
+{
+    if(NULL_PTR != camd_cond)
+    {
+        camd_cond_clean(camd_cond, location);
+        free_static_mem(MM_CAMD_COND, camd_cond, location);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_cond_reserve(CAMD_COND *camd_cond, const UINT32 counter, const UINT32 location)
+{
+    coroutine_cond_reserve(CAMD_COND_CCOND(camd_cond), counter, location);
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_cond_release(CAMD_COND *camd_cond, const UINT32 location)
+{
+    coroutine_cond_release(CAMD_COND_CCOND(camd_cond), location);
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_cond_wait(CAMD_COND *camd_cond, const UINT32 location)
+{
+    return coroutine_cond_wait(CAMD_COND_CCOND(camd_cond), location);
+}
+
 /*------------------------ coroutine interface ----------------------------*/
-STATIC_CAST static EC_BOOL __camd_file_read_timeout(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_timeout(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0019);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_read_terminate(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_terminate(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0020);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_read_complete(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_complete(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0021);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
 
 EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
 {
     CAIO_CB              caio_cb;
-    COROUTINE_COND       coroutine_cond;
+    CAMD_COND            camd_cond;
 
     CAMD_REQ            *camd_req;
     UINT32               req_seq_no;
@@ -7735,12 +7793,12 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
     CAMD_ASSERT(NULL_PTR != camd_md);
 
     caio_cb_init(&caio_cb);
-    coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0022);
+    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0022);
 
     caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
-                                (CAIO_CALLBACK)__camd_file_read_timeout, (void *)&coroutine_cond);
-    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_terminate, (void *)&coroutine_cond);
-    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_complete, (void *)&coroutine_cond);
+                                (CAIO_CALLBACK)__camd_file_read_timeout, (void *)&camd_cond);
+    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_terminate, (void *)&camd_cond);
+    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_complete, (void *)&camd_cond);
 
     camd_req = camd_req_new();
     if(NULL_PTR == camd_req)
@@ -7785,12 +7843,12 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
 
     req_seq_no = CAMD_REQ_SEQ_NO(camd_req); /*save it for debug info*/
 
-    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0023);
-    ret = coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0024);
+    camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0023);
+    ret = camd_cond_wait(&camd_cond, LOC_CAMD_0024);
 
     __COROUTINE_IF_EXCEPTION() {/*exception*/
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
-                                             "submit req %ld but coroutine was cancelled\n",
+                                             "submit req %ld but camd was cancelled\n",
                                              CAMD_REQ_SEQ_NO(camd_req));
 
         camd_req_free(camd_req);
@@ -7810,31 +7868,58 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
         return (EC_FALSE);
     }
 
+    if(CAMD_COND_RESULT_TIMEOUT == CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
+                                             "req %ld is timeout\n",
+                                             req_seq_no);
+        return (EC_FALSE);
+    }
+
+    if(CAMD_COND_RESULT_TERMINATE == CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
+                                             "req %ld is terminated\n",
+                                             req_seq_no);
+        return (EC_FALSE);
+    }
+
+    if(CAMD_COND_RESULT_COMPLETE != CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
+                                             "req %ld result %ld is unknown\n",
+                                             req_seq_no, CAMD_COND_RESULT(&camd_cond));
+        return (EC_FALSE);
+    }
+
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_timeout(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_timeout(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_terminate(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_terminate(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0026);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_complete(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_complete(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0027);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
 
 EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff)
 {
     CAIO_CB              caio_cb;
-    COROUTINE_COND       coroutine_cond;
+    CAMD_COND            camd_cond;
 
     CAMD_REQ            *camd_req;
     UINT32               req_seq_no;
@@ -7851,12 +7936,12 @@ EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 w
     }
 
     caio_cb_init(&caio_cb);
-    coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0028);
+    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0028);
 
     caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
-                                (CAIO_CALLBACK)__camd_file_write_timeout, (void *)&coroutine_cond);
-    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_terminate, (void *)&coroutine_cond);
-    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_complete, (void *)&coroutine_cond);
+                                (CAIO_CALLBACK)__camd_file_write_timeout, (void *)&camd_cond);
+    caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_terminate, (void *)&camd_cond);
+    caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_complete, (void *)&camd_cond);
 
     camd_req = camd_req_new();
     if(NULL_PTR == camd_req)
@@ -7910,8 +7995,8 @@ EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 w
 
     req_seq_no = CAMD_REQ_SEQ_NO(camd_req); /*save it for debug info*/
 
-    coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0029);
-    ret = coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0030);
+    camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0029);
+    ret = camd_cond_wait(&camd_cond, LOC_CAMD_0030);
 
     __COROUTINE_IF_EXCEPTION() {/*exception*/
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
@@ -7929,29 +8014,56 @@ EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 w
     if(EC_TIMEOUT == ret || EC_TERMINATE == ret)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
-                                             "req %ld is timeout or terminated\n",
+                                             "req %ld coroutine is timeout or terminated\n",
                                              req_seq_no);
+        return (EC_FALSE);
+    }
+
+    if(CAMD_COND_RESULT_TIMEOUT == CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
+                                             "req %ld is timeout\n",
+                                             req_seq_no);
+        return (EC_FALSE);
+    }
+
+    if(CAMD_COND_RESULT_TERMINATE == CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
+                                             "req %ld is terminated\n",
+                                             req_seq_no);
+        return (EC_FALSE);
+    }
+
+    if(CAMD_COND_RESULT_COMPLETE != CAMD_COND_RESULT(&camd_cond))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write: "
+                                             "req %ld result %ld is unknown\n",
+                                             req_seq_no, CAMD_COND_RESULT(&camd_cond));
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_read_dio_timeout(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_dio_timeout(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0031);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_read_dio_terminate(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_dio_terminate(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0032);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_read_dio_complete(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_read_dio_complete(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0033);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
 
@@ -7960,16 +8072,16 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
     if(NULL_PTR != CAMD_MD_CDIO_MD(camd_md))
     {
         CAIO_CB              caio_cb;
-        COROUTINE_COND       coroutine_cond;
+        CAMD_COND            camd_cond;
         EC_BOOL              ret;
 
         caio_cb_init(&caio_cb);
-        coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0034);
+        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0034);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
-                                    (CAIO_CALLBACK)__camd_file_read_dio_timeout, (void *)&coroutine_cond);
-        caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_terminate, (void *)&coroutine_cond);
-        caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_complete, (void *)&coroutine_cond);
+                                    (CAIO_CALLBACK)__camd_file_read_dio_timeout, (void *)&camd_cond);
+        caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_terminate, (void *)&camd_cond);
+        caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_complete, (void *)&camd_cond);
 
         if(EC_FALSE == cdio_file_read(CAMD_MD_CDIO_MD(camd_md), offset, rsize, buff, &caio_cb))
         {
@@ -7978,8 +8090,8 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
             return (EC_FALSE);
         }
 
-        coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0035);
-        ret = coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0036);
+        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0035);
+        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0036);
 
         __COROUTINE_IF_EXCEPTION() {/*exception*/
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
@@ -7993,7 +8105,29 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
         if(EC_TIMEOUT == ret || EC_TERMINATE == ret)
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
-                                                 "dio read is timeout or terminated\n");
+                                                 "dio read coroutine is timeout or terminated\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_TIMEOUT == CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
+                                                 "dio read is timeout\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_TERMINATE == CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
+                                                 "dio read is terminated\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_COMPLETE != CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
+                                                 "result %ld is unknown\n",
+                                                 CAMD_COND_RESULT(&camd_cond));
             return (EC_FALSE);
         }
 
@@ -8004,31 +8138,33 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
     return (EC_FALSE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_dio_timeout(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_dio_timeout(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0037);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_dio_terminate(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_dio_terminate(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0038);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_file_write_dio_complete(COROUTINE_COND *coroutine_cond)
+STATIC_CAST static EC_BOOL __camd_file_write_dio_complete(CAMD_COND *camd_cond)
 {
-    coroutine_cond_release(coroutine_cond, LOC_CAMD_0039);
+    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
-
 
 EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize, UINT8 *buff)
 {
     if(NULL_PTR != CAMD_MD_CDIO_MD(camd_md))
     {
         CAIO_CB              caio_cb;
-        COROUTINE_COND       coroutine_cond;
+        CAMD_COND            camd_cond;;
         EC_BOOL              ret;
 
         if(EC_TRUE == camd_is_read_only(camd_md))
@@ -8039,12 +8175,12 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
         }
 
         caio_cb_init(&caio_cb);
-        coroutine_cond_init(&coroutine_cond, 0 /*never timeout*/, LOC_CAMD_0040);
+        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0040);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
-                                    (CAIO_CALLBACK)__camd_file_write_dio_timeout, (void *)&coroutine_cond);
-        caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_terminate, (void *)&coroutine_cond);
-        caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_complete, (void *)&coroutine_cond);
+                                    (CAIO_CALLBACK)__camd_file_write_dio_timeout, (void *)&camd_cond);
+        caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_terminate, (void *)&camd_cond);
+        caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_complete, (void *)&camd_cond);
 
         if(EC_FALSE == cdio_file_write(CAMD_MD_CDIO_MD(camd_md), offset, wsize, buff, &caio_cb))
         {
@@ -8053,8 +8189,8 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
             return (EC_FALSE);
         }
 
-        coroutine_cond_reserve(&coroutine_cond, 1, LOC_CAMD_0041);
-        ret = coroutine_cond_wait(&coroutine_cond, LOC_CAMD_0042);
+        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0041);
+        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0042);
 
         __COROUTINE_IF_EXCEPTION() {/*exception*/
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "
@@ -8069,6 +8205,28 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "
                                                  "dio write is timeout or terminated\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_TIMEOUT == CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "
+                                                 "dio write is timeout\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_TERMINATE == CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "
+                                                 "dio write is terminated\n");
+            return (EC_FALSE);
+        }
+
+        if(CAMD_COND_RESULT_COMPLETE != CAMD_COND_RESULT(&camd_cond))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "
+                                                 "result %ld is unknown\n",
+                                                 CAMD_COND_RESULT(&camd_cond));
             return (EC_FALSE);
         }
 

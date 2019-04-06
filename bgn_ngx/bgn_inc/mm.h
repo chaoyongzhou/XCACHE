@@ -370,6 +370,7 @@ extern "C"{
 #define                     MM_CXFS_NODE    ((UINT32)281)
 #define                 MM_CXFS_HOT_PATH    ((UINT32)282)
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
+#define                     MM_CAMD_COND    ((UINT32)284)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

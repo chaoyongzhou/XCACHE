@@ -31,6 +31,8 @@ extern "C"{
 #include "cbtimer.h"
 #include "cmisc.h"
 
+#include "real.h"
+
 #include "task.h"
 
 #include "csocket.h"
@@ -49,6 +51,7 @@ extern "C"{
 #include "cxfscfg.h"
 
 #include "cxfsop.h"
+#include "cxfsnpdel.h"
 
 #include "cmd5.h"
 #include "cbase64code.h"
@@ -474,6 +477,13 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
             dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_start: mount camd to op mgr done\n");
         }
+
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
+        }
+
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: create op mcache done\n");
     }
 
@@ -489,6 +499,12 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                         (TASK_BRD_CALLBACK)cxfs_process_op,
                         (void *)cxfs_md_id);
 #endif
+
+    task_brd_process_add(task_brd_default_get(),
+                        TASK_BRD_PROCESS_LOOP,
+                        (TASK_BRD_CALLBACK)cxfs_process_space,
+                        (void *)cxfs_md_id);
+
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: start CXFS module #%ld\n", cxfs_md_id);
 
     if(SWITCH_ON == CXFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
@@ -858,6 +874,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
         cxfsop_mgr_mount_data(CXFS_MD_OP_MGR(cxfs_md), op_size, op_data);
 
+        cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
+
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: mount op data %p, size %ld\n",
                                              op_data, op_size);
 
@@ -867,6 +885,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
             cxfsop_mgr_umount_camd(CXFS_MD_OP_MGR(cxfs_md));
             cxfsop_mgr_umount_data(CXFS_MD_OP_MGR(cxfs_md), NULL_PTR, NULL_PTR);
+
+            cxfsnp_mgr_umount_op_mgr(CXFS_MD_NPP(cxfs_md));
 
             c_file_munmap(op_data, op_size);
 
@@ -879,6 +899,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
         cxfsop_mgr_umount_camd(CXFS_MD_OP_MGR(cxfs_md));
         cxfsop_mgr_umount_data(CXFS_MD_OP_MGR(cxfs_md), NULL_PTR, NULL_PTR);
+
+        cxfsnp_mgr_umount_op_mgr(CXFS_MD_NPP(cxfs_md));
 
         c_file_munmap(op_data, op_size);
 
@@ -904,6 +926,13 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
             dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: mount camd to op mgr done\n");
         }
+
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
+        }
+
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: create op mcache done\n");
     }
 
@@ -1025,12 +1054,6 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
     CXFS_MD_STATE(cxfs_md) = CXFS_ERR_STATE;
 
-    if(NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
-    {
-        cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
-        CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
-    }
-
     if(NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
         cxfsdn_close(CXFS_MD_DN(cxfs_md));
@@ -1041,6 +1064,12 @@ void cxfs_end(const UINT32 cxfs_md_id)
     {
         cxfsnp_mgr_close(CXFS_MD_NPP(cxfs_md));
         CXFS_MD_NPP(cxfs_md) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
+        CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
     }
 
     if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
@@ -1056,6 +1085,9 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
     if(ERR_FD != CXFS_MD_SATA_DISK_FD(cxfs_md))
     {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_end: cxfscfg is\n");
+        cxfscfg_print(LOGSTDOUT, CXFS_MD_CFG(cxfs_md));
+
         cxfscfg_flush(CXFS_MD_CFG(cxfs_md), CXFS_MD_SATA_DISK_FD(cxfs_md));
         cxfscfg_clean(CXFS_MD_CFG(cxfs_md));
     }
@@ -1200,6 +1232,11 @@ EC_BOOL cxfs_sync(const UINT32 cxfs_md_id)
 
             cxfs_unset_read_only(cxfs_md_id); /*unset read-only mode*/
 
+            task_brd_process_add(task_brd_default_get(),
+                                TASK_BRD_PROCESS_LOOP,
+                                (TASK_BRD_CALLBACK)cxfs_process_op,
+                                (void *)cxfs_md_id);
+
             return (EC_FALSE);
         }
 
@@ -1244,17 +1281,43 @@ EC_BOOL cxfs_sync(const UINT32 cxfs_md_id)
         && BIT_FALSE == CXFS_MD_NP_SYNC_FLAG(cxfs_md)
         && BIT_FALSE == CXFS_MD_DN_SYNC_FLAG(cxfs_md))
         {
+            MOD_NODE      mod_node;
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
+                                                 "trigger dump cfg\n");
+
+            MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
+            MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
+            MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
+            MOD_NODE_MODI(&mod_node) = cxfs_md_id;
+
+            task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                         &mod_node,
+                         NULL_PTR,
+                         FI_cxfs_dump_cfg, CMPI_ERROR_MODI);
+
+            /*fall through*/
+        }
+
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))
+        && BIT_FALSE == CXFS_MD_NP_SYNC_FLAG(cxfs_md)
+        && BIT_FALSE == CXFS_MD_DN_SYNC_FLAG(cxfs_md))
+        {
             CXFS_MD_OP_DUMP_OFFSET(cxfs_md) = 0;    /*rewind op dump offset*/
 
             CXFSCFG_OP_DUMP_TIME_MSEC(CXFS_MD_CFG(cxfs_md)) = c_get_cur_time_msec();
-
-            cxfscfg_dump(CXFS_MD_CFG(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
 
             cxfs_unset_read_only(cxfs_md_id);       /*unset read-only mode*/
             CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*unset sync mode*/
 
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
                                                  "npp and dn complete sync\n");
+
+            task_brd_process_add(task_brd_default_get(),
+                                TASK_BRD_PROCESS_LOOP,
+                                (TASK_BRD_CALLBACK)cxfs_process_op,
+                                (void *)cxfs_md_id);
         }
         else
         {
@@ -1745,6 +1808,13 @@ EC_BOOL cxfs_open_npp(const UINT32 cxfs_md_id)
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_open_npp: open npp failed\n");
         return (EC_FALSE);
     }
+
+    if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
+    }
+
     return (EC_TRUE);
 }
 
@@ -1884,6 +1954,7 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
     CXFSCFG     *cxfscfg;
     CXFSZONE    *cxfszone;
     CXFSNP_MGR  *cxfsnp_mgr;
+    UINT32       np_total_size;
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -1955,23 +2026,28 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
 
     CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg)    = 0;
 
+    np_total_size = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+
     cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 0);
-    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
-    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr);
+    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
 
 
     cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 1);
-    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr);
-    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)
-                                           + CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)
-                                           - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
 
-    CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
-    CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)
-                                           + CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)
-                                           - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+    CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+    CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
 
     CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr;
+
+    /*op mgr*/
+    if(NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsnp_mgr_mount_op_mgr(cxfsnp_mgr, CXFS_MD_OP_MGR(cxfs_md));
+    }
 
     return (EC_TRUE);
 }
@@ -2897,6 +2973,90 @@ EC_BOOL cxfs_release_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnod
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_release_dn: remove file fsize %u, disk %u, block %u, page %u done\n",
                        file_size, disk_no, block_no, page_no);
 
+    /*not push op*/
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  recycle space to dn
+*
+**/
+EC_BOOL cxfs_recycle_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode)
+{
+    CXFS_MD *cxfs_md;
+    const CXFSNP_INODE *cxfsnp_inode;
+
+    uint32_t file_size;
+    uint16_t disk_no;
+    uint16_t block_no;
+    uint16_t page_no;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_recycle_dn: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle_dn: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle_dn: no dn was open\n");
+        return (EC_FALSE);
+    }
+
+    file_size    = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
+    cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, 0);
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < file_size)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle_dn: file_size %u overflow\n", file_size);
+        return (EC_FALSE);
+    }
+
+    /*refer __cxfs_write: when file size is zero, only reserve npp but no dn space*/
+    if(0 == file_size)
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_recycle_dn: file_size is zero\n");
+        return (EC_TRUE);/*Jan 4,2017 modify it from EC_FALSE to EC_TRUE*/
+    }
+
+    disk_no  = CXFSNP_INODE_DISK_NO(cxfsnp_inode) ;
+    block_no = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode);
+    page_no  = CXFSNP_INODE_PAGE_NO(cxfsnp_inode) ;
+
+    if(EC_FALSE == cxfspgv_free_space(CXFSDN_CXFSPGV(CXFS_MD_DN(cxfs_md)), disk_no, block_no, page_no, file_size))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle_dn: free %u bytes to vol failed where disk %u, block %u, page %u\n",
+                            file_size, disk_no, block_no, page_no);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_recycle_dn: remove file fsize %u, disk %u, block %u, page %u done\n",
+                       file_size, disk_no, block_no, page_no);
+
+    if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsop_mgr_dn_push_recycle_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
+                                  (uint16_t )CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, 0));
+    }
+
     return (EC_TRUE);
 }
 
@@ -3163,7 +3323,7 @@ EC_BOOL cxfs_write_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, co
 **/
 EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    //CXFS_MD      *cxfs_md;
+    CXFS_MD      *cxfs_md;
     CXFSNP_FNODE  cxfsnp_fnode;
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
@@ -3176,9 +3336,16 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    cxfsnp_fnode_init(&cxfsnp_fnode);
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    //cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_safe: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_fnode_init(&cxfsnp_fnode);
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
     {
@@ -3216,7 +3383,7 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
 
 EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
-    //CXFS_MD      *cxfs_md;
+    CXFS_MD      *cxfs_md;
     CXFSNP_FNODE  cxfsnp_fnode;
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
@@ -3229,9 +3396,16 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    cxfsnp_fnode_init(&cxfsnp_fnode);
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    //cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_fnode_init(&cxfsnp_fnode);
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s start\n", (char *)cstring_get_str(file_path));
 
@@ -3242,6 +3416,13 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
     }
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s from npp done\n", (char *)cstring_get_str(file_path));
+
+    if(do_log(SEC_0192_CXFS, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s with size %ld done\n",
+                            (char *)cstring_get_str(file_path), cbytes_len(cbytes));
+        cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
+    }
 
     /*exception*/
     if(0 == CXFSNP_FNODE_FILESZ(&cxfsnp_fnode))
@@ -3257,12 +3438,6 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
         return (EC_FALSE);
     }
 
-    if(do_log(SEC_0192_CXFS, 9))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s with size %ld done\n",
-                            (char *)cstring_get_str(file_path), cbytes_len(cbytes));
-        cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
-    }
     return (EC_TRUE);
 }
 
@@ -3365,7 +3540,7 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
 **/
 EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
-    //CXFS_MD      *cxfs_md;
+    CXFS_MD      *cxfs_md;
     CXFSNP_FNODE  cxfsnp_fnode;
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
@@ -3378,7 +3553,14 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    //cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
 
     cxfsnp_fnode_init(&cxfsnp_fnode);
 
@@ -3416,6 +3598,36 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 
 /**
 *
+*  dump cfg
+*
+**/
+EC_BOOL cxfs_dump_cfg(const UINT32 cxfs_md_id)
+{
+    CXFS_MD   *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_create_dn: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+    && CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+    {
+        return cxfscfg_dump(CXFS_MD_CFG(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
 *  create data node
 *
 **/
@@ -3425,6 +3637,9 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
     CXFSCFG   *cxfscfg;
     CXFSZONE  *cxfszone;
     CXFSDN    *cxfsdn;
+
+    UINT32     cxfsdn_disk_size; /*cxfs dn virtual disk size*/
+    UINT32     cxfsdn_zone_size; /*cxfs dn meta data size*/
 
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -3452,13 +3667,65 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
 
     CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) = CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg);
 
-    cxfsdn = cxfsdn_create(CXFS_MD_SATA_DISK_FD(cxfs_md),
-                           CXFSCFG_SATA_DISK_SIZE(cxfscfg),
-                           CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg),
+    if(EC_FALSE == cxfsdn_compute(CXFSCFG_SATA_DISK_SIZE(cxfscfg),
+                                  CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg), /*now only know the start offset of dn zones*/
+                                  &cxfsdn_disk_size, /*virtual size*/
+                                  &cxfsdn_zone_size))/*dn data zone size*/
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_dn: compute dn size and vdisk num failed\n");
+        return (EC_FALSE);
+    }
+
+    CXFSCFG_DN_ZONE_SIZE(cxfscfg)       = cxfsdn_zone_size;
+
+    CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg) = 0;
+
+    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 0);
+    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * cxfsdn_zone_size;
+    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+
+    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 1);
+    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
+
+    CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
+
+    CXFSCFG_SATA_DISK_OFFSET(cxfscfg)   = CXFSCFG_SATA_DISK_SIZE(cxfscfg) % cxfsdn_disk_size;
+
+    while(CXFSCFG_SATA_DISK_OFFSET(cxfscfg) < CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_create_dn: "
+                                             "CXFSCFG_SATA_DISK_OFFSET %ld < CXFSCFG_DN_ZONE_E_OFFSET %ld, "
+                                             "update CXFSCFG_SATA_DISK_OFFSET to %ld, "
+                                             "where disk size %ld, dn zone size %ld\n",
+                                             CXFSCFG_SATA_DISK_OFFSET(cxfscfg),
+                                             CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg),
+                                             CXFSCFG_SATA_DISK_OFFSET(cxfscfg) + cxfsdn_disk_size,
+                                             CXFSCFG_SATA_DISK_SIZE(cxfscfg),
+                                             CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg));
+
+        /*skip one more vdisk*/
+        CXFSCFG_SATA_DISK_OFFSET(cxfscfg) += cxfsdn_disk_size;
+
+        if(CXFSCFG_SATA_DISK_OFFSET(cxfscfg) >= CXFSCFG_SATA_DISK_SIZE(cxfscfg))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_dn: "
+                                                 "CXFSCFG_SATA_DISK_OFFSET %ld < CXFSCFG_DN_ZONE_E_OFFSET %ld and overflow, "
+                                                 "where disk size %ld, dn size %ld\n",
+                                                 CXFSCFG_SATA_DISK_OFFSET(cxfscfg),
+                                                 CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg),
+                                                 CXFSCFG_SATA_DISK_SIZE(cxfscfg),
+                                                 CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg));
+            return (EC_FALSE);
+        }
+    }
+
+    CXFSCFG_MAGIC(cxfscfg)              = CXFSCFG_MAGIC_NUM;
+
+    cxfsdn = cxfsdn_create(cxfscfg,
+                          CXFS_MD_SATA_DISK_FD(cxfs_md),
                            CXFSDN_CAMD_MEM_DISK_SIZE,
-                           CXFS_MD_SSD_DISK_FD(cxfs_md),
-                           CXFSCFG_SSD_DISK_SIZE(cxfscfg),
-                           CXFSCFG_SSD_DISK_OFFSET(cxfscfg));
+                           CXFS_MD_SSD_DISK_FD(cxfs_md));
     if(NULL_PTR == cxfsdn)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_dn: create dn failed\n");
@@ -3491,24 +3758,6 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
     }
 
     CXFS_MD_DN(cxfs_md) = cxfsdn;
-
-    CXFSCFG_DN_SIZE(cxfscfg)     = CXFSDN_SIZE(cxfsdn);
-
-    CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg) = 0;
-
-    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 0);
-    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * CXFSDN_SIZE(cxfsdn);
-    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * CXFSDN_SIZE(cxfsdn);
-
-    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 1);
-    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * CXFSDN_SIZE(cxfsdn);
-    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * CXFSDN_SIZE(cxfsdn);
-
-    CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * CXFSDN_SIZE(cxfsdn);
-
-    CXFSCFG_SATA_DISK_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg);
-
-    CXFSCFG_MAGIC(cxfscfg)       = CXFSCFG_MAGIC_NUM;
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_create_dn: create dn done\n");
 
@@ -3975,6 +4224,13 @@ EC_BOOL cxfs_read_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode, 
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: dn is null\n");
@@ -4135,6 +4391,13 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
 #endif/*CXFS_DEBUG_SWITCH*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
 
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
@@ -4375,6 +4638,13 @@ EC_BOOL cxfs_read_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, CXFSNP_
 #endif/*CXFS_DEBUG_SWITCH*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_npp: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
 
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
@@ -6547,7 +6817,7 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle beg\n");
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle beg\n");
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
@@ -6575,15 +6845,96 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
     for(cxfsnp_id = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
     {
         __cxfs_recycle_of_np(cxfs_md_id, cxfsnp_id, max_num_per_np, &complete_recycle_num);
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle np %u done\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle np %u done\n", cxfsnp_id);
     }
 
-    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle end where complete %ld\n", complete_recycle_num);
+    if(0 < complete_recycle_num)
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle end where complete %ld\n", complete_recycle_num);
+    }
 
     if(NULL_PTR != complete_num)
     {
         (*complete_num) = complete_recycle_num;
     }
+    return (EC_TRUE);
+}
+
+/**
+*
+*  check and process retire & recycle if necessary
+*
+**/
+EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
+{
+    CXFS_MD      *cxfs_md;
+    REAL          npp_used_ratio;
+    REAL          dn_used_ratio;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_process_space: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    {
+        /*do not process*/
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        /*do not process*/
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: npp was not open\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: dn was not open\n");
+        return (EC_FALSE);
+    }
+
+    npp_used_ratio = cxfsnp_mgr_used_ratio(CXFS_MD_NPP(cxfs_md));
+    dn_used_ratio  = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
+
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+                                         "npp used ratio %.3f, dn used ratio %.3f\n",
+                                         npp_used_ratio, dn_used_ratio);
+
+    if(CXFSNP_MAX_USED_RATIO <= npp_used_ratio)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+                                             "npp used ratio %.3f >= %.3f => retire & recycle\n",
+                                             npp_used_ratio, CXFSNP_MAX_USED_RATIO);
+
+        cxfs_retire(cxfs_md_id , (UINT32)CXFSNP_TRY_RETIRE_MAX_NUM , NULL_PTR);
+        cxfs_recycle(cxfs_md_id, (UINT32)CXFSNP_TRY_RECYCLE_MAX_NUM, NULL_PTR);
+    }
+
+    dn_used_ratio = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
+    if(CXFSDN_MAX_USED_RATIO <= dn_used_ratio)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+                                             "dn used ratio %.3f >= %.3f => retire & recycle\n",
+                                             dn_used_ratio, CXFSDN_MAX_USED_RATIO);
+
+        cxfs_retire(cxfs_md_id , (UINT32)CXFSNP_TRY_RETIRE_MAX_NUM , NULL_PTR);
+        cxfs_recycle(cxfs_md_id, (UINT32)CXFSNP_TRY_RECYCLE_MAX_NUM, NULL_PTR);
+    }
+
     return (EC_TRUE);
 }
 
@@ -7170,8 +7521,10 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
         (*complete_retire_num) = total_num;
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire done where complete %ld\n", total_num);
-
+    if(0 < total_num)
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire done where complete %ld\n", total_num);
+    }
     return (EC_TRUE);
 }
 
@@ -8408,165 +8761,178 @@ EC_BOOL cxfs_file_unlock_notify(const UINT32 cxfs_md_id, const CSTRING *file_pat
 }
 
 /*------------------------------------------------ interface for replay ------------------------------------------------*/
+EC_BOOL cxfs_set_op_replay(CXFS_MD *cxfs_md)
+{
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_set_op_replay: "
+                                             "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
 
-STATIC_CAST static EC_BOOL __cxfs_replay_npop_dir(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr)
+    if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
+    {
+        cxfsnp_mgr_set_op_replay(CXFS_MD_NPP(cxfs_md));
+    }
+
+    CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_TRUE;
+
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_set_op_replay: "
+                                         "xfs set op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_unset_op_replay(CXFS_MD *cxfs_md)
+{
+    if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_unset_op_replay: "
+                                             "xfs is not in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
+    {
+        cxfsnp_mgr_unset_op_replay(CXFS_MD_NPP(cxfs_md));
+    }
+
+    CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_FALSE;
+
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_unset_op_replay: "
+                                         "xfs unset op-replay done\n");
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_is_op_replay(CXFS_MD *cxfs_md)
+{
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_add_dir(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr)
 {
     CSTRING          path;
-
-    ASSERT(CXFSNP_ITEM_FILE_IS_DIR == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr));
 
     cstring_init(&path, NULL_PTR);
     cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
 
     /*mkdir*/
-    if(CXFSOP_NP_ADD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
+    if(EC_FALSE == cxfs_mkdir(cxfs_md_id, &path))
     {
-        if(EC_FALSE == cxfs_mkdir(cxfs_md_id, &path))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_dir: "
-                         "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_dir: "
-                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
-                     cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_add_dir: "
+                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
                      CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
 
         cstring_clean(&path);
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
 
-    /*rm dir*/
-    if(CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-    && BIT_FALSE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
-    {
-        if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, &path))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_dir: "
-                         "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_dir: "
-                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
-                     cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-        cstring_clean(&path);
-        return (EC_TRUE);
-    }
-
-    /*rm dir with wildcard*/
-    if(CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-    && BIT_TRUE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
-    {
-        if(EC_FALSE == cxfs_delete_dir_wildcard(cxfs_md_id, &path))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_dir: "
-                         "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_dir: "
-                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
-                     cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-        cstring_clean(&path);
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_dir: "
-                 "[D][%s] time %lu, wildcard %u, klen %u, key %.*s "
-                 "=> should never reach here => replay failed\n",
-                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_add_dir: "
+                 "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
                  CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
 
     cstring_clean(&path);
-    return (EC_FALSE);
+    return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __cxfs_replay_npop_file(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr, CXFSOP_NP_FNODE *cxfsop_np_fnode)
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_del_dir(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr)
 {
     CSTRING          path;
 
-    ASSERT(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr));
+    cstring_init(&path, NULL_PTR);
+    cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
+
+    /*rm dir*/
+    if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, &path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_del_dir: "
+                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_del_dir: "
+                 "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+    cstring_clean(&path);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_del_wildcard_dir(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr)
+{
+    CSTRING          path;
+
+    cstring_init(&path, NULL_PTR);
+    cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
+
+    /*rm dir with wildcard*/
+    if(EC_FALSE == cxfs_delete_dir_wildcard(cxfs_md_id, &path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_del_wildcard_dir: "
+                     "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_del_wildcard_dir: "
+                 "[D][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+    cstring_clean(&path);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_add_file(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr, CXFSOP_NP_FNODE *cxfsop_np_fnode)
+{
+    CSTRING          path;
+    CXFSNP_FNODE    *cxfsnp_fnode;
+    CXFSNP_INODE    *cxfsnp_inode;
 
     cstring_init(&path, NULL_PTR);
     cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
 
     /*write file*/
-    if(CXFSOP_NP_ADD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
+
+    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, &path);
+    if(NULL_PTR == cxfsnp_fnode)
     {
-        CXFSNP_FNODE    *cxfsnp_fnode;
-        CXFSNP_INODE    *cxfsnp_inode;
-
-        cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, &path);
-        if(NULL_PTR == cxfsnp_fnode)
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_file: "
-                             "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                             "(disk %u, block %u, page %u, size %u) => replay failed\n",
-                             cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
-                             CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode);
-        CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = 1;
-
-        cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, 0);
-        CXFSNP_INODE_DISK_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode);
-        CXFSNP_INODE_BLOCK_NO(cxfsnp_inode) = CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode);
-        CXFSNP_INODE_PAGE_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode);
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_file: "
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_add_file: "
                          "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                         "(disk %u, block %u, page %u, size %u) => replay done\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                         "(disk %u, block %u, page %u, size %u) => replay failed\n",
+                         cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
                          CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
                          CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
                          CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
@@ -8577,132 +8943,308 @@ STATIC_CAST static EC_BOOL __cxfs_replay_npop_file(const UINT32 cxfs_md_id, CXFS
                          CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
 
         cstring_clean(&path);
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
+
+    CXFSNP_FNODE_FILESZ(cxfsnp_fnode) = CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode);
+    CXFSNP_FNODE_REPNUM(cxfsnp_fnode) = 1;
+
+    cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, 0);
+    CXFSNP_INODE_DISK_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode);
+    CXFSNP_INODE_BLOCK_NO(cxfsnp_inode) = CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode);
+    CXFSNP_INODE_PAGE_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode);
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_add_file: "
+                     "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
+                     "(disk %u, block %u, page %u, size %u) => replay done\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
+                     CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
+
+    cstring_clean(&path);
+    return (EC_TRUE);
+
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_del_file(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr, CXFSOP_NP_FNODE *cxfsop_np_fnode)
+{
+    CSTRING          path;
+
+    cstring_init(&path, NULL_PTR);
+    cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
 
     /*rm file*/
-    if(CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-    && BIT_FALSE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
+    if(EC_FALSE == cxfs_delete_file(cxfs_md_id, &path))
     {
-        if(EC_FALSE == cxfs_delete_file(cxfs_md_id, &path))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_file: "
-                        "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_file: "
-                    "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
-                     cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_del_file: "
+                    "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
                      CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
                      CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
 
         cstring_clean(&path);
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
 
-    /*rm file with wildcard*/
-    if(CXFSOP_NP_DEL_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr)
-    && BIT_TRUE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
-    {
-        if(EC_FALSE == cxfs_delete_file_wildcard(cxfs_md_id, &path))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_file: "
-                        "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_file: "
-                    "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
-                     cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
-
-        cstring_clean(&path);
-        return (EC_TRUE);
-    }
-
-    if(CXFSOP_NP_UPD_OP == CXFSOP_NP_HDR_OP(cxfsop_np_hdr))
-    {
-        CXFSNP_FNODE     cxfsnp_fnode;
-        CXFSNP_INODE    *cxfsnp_inode;
-
-        CXFSNP_FNODE_FILESZ(&cxfsnp_fnode) = CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode);
-        CXFSNP_FNODE_REPNUM(&cxfsnp_fnode) = 1;
-
-        cxfsnp_inode = CXFSNP_FNODE_INODE(&cxfsnp_fnode, 0);
-        CXFSNP_INODE_DISK_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode);
-        CXFSNP_INODE_BLOCK_NO(cxfsnp_inode) = CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode);
-        CXFSNP_INODE_PAGE_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode);
-
-        if(EC_FALSE == cxfs_update_npp(cxfs_md_id, &path, &cxfsnp_fnode))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_file: "
-                             "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                             "(disk %u, block %u, page %u, size %u) => replay failed\n",
-                             cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                             CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                             CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
-                             CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
-                             CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
-
-            cstring_clean(&path);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_npop_file: "
-                         "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
-                         "(disk %u, block %u, page %u, size %u) => replay done\n",
-                         cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
-                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
-                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
-                         CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
-                         CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
-                         CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
-                         CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
-
-        cstring_clean(&path);
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_npop_file: "
-                "[F][%s] time %lu, wildcard %u, klen %u, key %.*s "
-                "=> should never reach here => replay failed\n",
-                 cxfsop_mgr_np_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_del_file: "
+                "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
                  CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
                  CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
 
     cstring_clean(&path);
-    return (EC_FALSE);
+    return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __cxfs_replay_dnop_reserve(const UINT32 cxfs_md_id, CXFSOP_DN_NODE *cxfsop_dn_node)
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_del_wildcard_file(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr, CXFSOP_NP_FNODE *cxfsop_np_fnode)
+{
+    CSTRING          path;
+
+    cstring_init(&path, NULL_PTR);
+    cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
+
+    /*rm file with wildcard*/
+    if(EC_FALSE == cxfs_delete_file_wildcard(cxfs_md_id, &path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_del_wildcard_file: "
+                    "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_del_wildcard_file: "
+                "[F][%s] time %lu, wildcard %u, klen %u, key %.*s => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                 CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                 CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
+
+    cstring_clean(&path);
+    return (EC_TRUE);}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_update_file(const UINT32 cxfs_md_id, CXFSOP_NP_HDR *cxfsop_np_hdr, CXFSOP_NP_FNODE *cxfsop_np_fnode)
+{
+    CXFSNP_FNODE     cxfsnp_fnode;
+    CXFSNP_INODE    *cxfsnp_inode;
+    CSTRING          path;
+
+    cstring_init(&path, NULL_PTR);
+    cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
+
+    /*update file*/
+
+    CXFSNP_FNODE_FILESZ(&cxfsnp_fnode) = CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode);
+    CXFSNP_FNODE_REPNUM(&cxfsnp_fnode) = 1;
+
+    cxfsnp_inode = CXFSNP_FNODE_INODE(&cxfsnp_fnode, 0);
+    CXFSNP_INODE_DISK_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode);
+    CXFSNP_INODE_BLOCK_NO(cxfsnp_inode) = CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode);
+    CXFSNP_INODE_PAGE_NO(cxfsnp_inode)  = CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode);
+
+    if(EC_FALSE == cxfs_update_npp(cxfs_md_id, &path, &cxfsnp_fnode))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_update_file: "
+                         "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
+                         "(disk %u, block %u, page %u, size %u) => replay failed\n",
+                         cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                         CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                         CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                         CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
+                         CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
+                         CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
+                         CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
+                         CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
+
+        cstring_clean(&path);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_update_file: "
+                     "[F][%s] time %lu, wildcard %u, klen %u, key %.*s, "
+                     "(disk %u, block %u, page %u, size %u) => replay done\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_HDR_OP(cxfsop_np_hdr)),
+                     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
+                     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr), (char *)CXFSOP_NP_HDR_KEY(cxfsop_np_hdr),
+                     CXFSOP_NP_FNODE_DISK_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_BLOCK_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_PAGE_NO(cxfsop_np_fnode),
+                     CXFSOP_NP_FNODE_FILESZ(cxfsop_np_fnode));
+
+    cstring_clean(&path);
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_item_retire(const UINT32 cxfs_md_id, CXFSOP_NP_ITEM *cxfsop_np_item)
+{
+    CXFS_MD         *cxfs_md;
+    CXFSNP          *cxfsnp;
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_retire: "
+                                             "np npp\n");
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_retire: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+        return (EC_FALSE);
+    }
+
+    cxfsnp = cxfsnp_mgr_open_np(CXFS_MD_NPP(cxfs_md), CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item));
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_retire: "
+                                             "get np %u failed\n",
+                                             CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item));
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_retire: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+        return (EC_FALSE);
+    }
+
+    if(do_log(SEC_0192_CXFS, 3))
+    {
+        CXFSNP_ITEM     *cxfsnp_item;
+
+        cxfsnp_item = cxfsnp_fetch(cxfsnp, CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+        ASSERT(NULL_PTR != cxfsnp_item);
+        ASSERT(EC_TRUE == cxfsnprb_node_is_used(CXFSNP_ITEMS_POOL(cxfsnp), CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item)));
+        ASSERT(CXFSNP_ITEM_IS_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item));
+        ASSERT(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+    }
+
+    /*retire file*/
+    if(EC_FALSE == cxfsnp_umount_item_deep(cxfsnp, CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_retire: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_item_retire: "
+                 "[I][%s] time %lu, np %u, node %u => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                 CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                 CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                 CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_np_item_recycle(const UINT32 cxfs_md_id, CXFSOP_NP_ITEM *cxfsop_np_item)
+{
+    CXFS_MD             *cxfs_md;
+    CXFSNP              *cxfsnp;
+    CXFSNP_ITEM         *cxfsnp_item;
+    CXFSNP_RECYCLE_DN    cxfsnp_recycle_dn;
+    uint32_t             node_pos;
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: "
+                                             "np npp\n");
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+        return (EC_FALSE);
+    }
+
+    cxfsnp = cxfsnp_mgr_open_np(CXFS_MD_NPP(cxfs_md), CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item));
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: "
+                                             "get np %u failed\n",
+                                             CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item));
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+        return (EC_FALSE);
+    }
+
+    node_pos = CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item);
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+
+    ASSERT(CXFSNPRB_ERR_POS == CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+
+    CXFSNP_RECYCLE_DN_ARG1(&cxfsnp_recycle_dn)   = cxfs_md_id;
+    CXFSNP_RECYCLE_DN_FUNC(&cxfsnp_recycle_dn)   = cxfs_recycle_dn;
+
+    if(EC_FALSE == cxfsnp_recycle_item(cxfsnp, cxfsnp_item, node_pos, NULL_PTR, &cxfsnp_recycle_dn))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: recycle item %u # failed\n", node_pos);
+
+        /*should never reach here*/
+        cxfsnpdel_node_rmv(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
+
+        cxfsnprb_node_free(CXFSNP_ITEMS_POOL(cxfsnp), node_pos);/*recycle rb node(item node)*/
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_item_recycle: "
+                     "[I][%s] time %lu, np %u, node %u => replay failed\n",
+                     cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                     CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                     CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+
+        return (EC_FALSE);
+    }
+
+    cxfsnpdel_node_rmv(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
+
+    cxfsnprb_node_free(CXFSNP_ITEMS_POOL(cxfsnp), node_pos);/*recycle rb node(item node)*/
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_np_item_recycle: "
+                 "[I][%s] time %lu, np %u, node %u => replay done\n",
+                 cxfsop_mgr_op_str(CXFSOP_NP_ITEM_OP(cxfsop_np_item)),
+                 CXFSOP_NP_ITEM_TIME(cxfsop_np_item),
+                 CXFSOP_NP_ITEM_NP_ID(cxfsop_np_item),
+                 CXFSOP_NP_ITEM_NODE_POS(cxfsop_np_item));
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_reserve(const UINT32 cxfs_md_id, CXFSOP_DN_NODE *cxfsop_dn_node)
 {
     CXFS_MD            *cxfs_md;
 
@@ -8710,20 +9252,20 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_reserve(const UINT32 cxfs_md_id, C
 
     if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_reserve: cxfs is read-only\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_reserve: cxfs is read-only\n");
         return (EC_FALSE);
     }
 
     if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_reserve: data_len %ld overflow\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_reserve: data_len %ld overflow\n",
                                              CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
         return (EC_FALSE);
     }
 
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_reserve: no dn was open\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_reserve: no dn was open\n");
         return (EC_FALSE);
     }
 
@@ -8733,7 +9275,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_reserve(const UINT32 cxfs_md_id, C
                                         CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
                                         CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node)))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_reserve: "
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_reserve: "
                                              "reserved (disk %u, block %u, page %u, size %u) failed\n",
                                              CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
                                              CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
@@ -8742,7 +9284,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_reserve(const UINT32 cxfs_md_id, C
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_dnop_reserve: "
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_dn_reserve: "
                                          "reserve (disk %u, block %u, page %u, size %u) => replay done\n",
                                          CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
                                          CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
@@ -8752,7 +9294,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_reserve(const UINT32 cxfs_md_id, C
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __cxfs_replay_dnop_release(const UINT32 cxfs_md_id, CXFSOP_DN_NODE *cxfsop_dn_node)
+STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_release(const UINT32 cxfs_md_id, CXFSOP_DN_NODE *cxfsop_dn_node)
 {
     CXFS_MD            *cxfs_md;
 
@@ -8760,20 +9302,20 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_release(const UINT32 cxfs_md_id, C
 
     if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_release: cxfs is read-only\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_release: cxfs is read-only\n");
         return (EC_FALSE);
     }
 
     if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_release: data_len %ld overflow\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_release: data_len %ld overflow\n",
                                              CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
         return (EC_FALSE);
     }
 
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_release: no dn was open\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_release: no dn was open\n");
         return (EC_FALSE);
     }
 
@@ -8783,7 +9325,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_release(const UINT32 cxfs_md_id, C
                                         CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
                                         CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node)))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_dnop_release: "
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_release: "
                                              "release (disk %u, block %u, page %u, size %u) failed\n",
                                              CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
                                              CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
@@ -8792,7 +9334,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_release(const UINT32 cxfs_md_id, C
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_dnop_release: "
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_dn_release: "
                                          "release (disk %u, block %u, page %u, size %u) => replay done\n",
                                          CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
                                          CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
@@ -8802,6 +9344,55 @@ STATIC_CAST static EC_BOOL __cxfs_replay_dnop_release(const UINT32 cxfs_md_id, C
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_recycle(const UINT32 cxfs_md_id, CXFSOP_DN_NODE *cxfsop_dn_node)
+{
+    CXFS_MD            *cxfs_md;
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_recycle: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_recycle: data_len %ld overflow\n",
+                                             CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_recycle: no dn was open\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfsdn_release_space(CXFS_MD_DN(cxfs_md),
+                                        CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                                        CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                                        CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                                        CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_recycle: "
+                                             "recycle (disk %u, block %u, page %u, size %u) failed\n",
+                                             CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                                             CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                                             CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                                             CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op_dn_recycle: "
+                                         "recycle (disk %u, block %u, page %u, size %u) => replay done\n",
+                                         CXFSOP_DN_NODE_DISK_NO(cxfsop_dn_node),
+                                         CXFSOP_DN_NODE_BLOCK_NO(cxfsop_dn_node),
+                                         CXFSOP_DN_NODE_PAGE_NO(cxfsop_dn_node),
+                                         CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
+
+    return (EC_TRUE);
+}
 
 /**
 *
@@ -8833,7 +9424,26 @@ EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id)
     if(BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md)
     && CXFS_OP_TABLE_USED_NBYTES_THREAD <= CXFS_MD_OP_DUMP_OFFSET(cxfs_md))
     {
-        cxfs_sync(cxfs_md_id);
+        MOD_NODE      mod_node;
+
+        task_brd_process_del(task_brd_default_get(),
+                             (TASK_BRD_CALLBACK)cxfs_process_op,
+                             (void *)cxfs_md_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
+                                             "trigger sync\n");
+
+        MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&mod_node) = cxfs_md_id;
+
+        task_p2p_no_wait(cxfs_md_id, TASK_ALWAYS_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                     &mod_node,
+                     NULL_PTR,
+                     FI_cxfs_sync, CMPI_ERROR_MODI);
+
+        return (EC_TRUE);
     }
 
     if(BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)
@@ -8903,8 +9513,7 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
 
         uint64_t         s_op_offset;   /*relative offset in op table*/
         uint64_t         e_op_offset;   /*relative offset in op table*/
-        uint64_t         s_op_seg_zone_idx;
-        uint64_t         e_op_seg_zone_idx;
+        uint32_t         dump_retries;
 
         CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_TRUE; /*set flag as barrier*/
 
@@ -8919,40 +9528,46 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
             return (EC_FALSE);
         }
 
-        if(NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
         {
             cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
             dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
                                                  "[new] mount camd to op mgr done\n");
         }
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            cxfsnp_mgr_umount_op_mgr(CXFS_MD_NPP(cxfs_md));
+            cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
+        }
+
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
                                              "[new] create op mcache done\n");
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: start\n");
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: start\n");
 
         cxfscfg = CXFS_MD_CFG(cxfs_md);
+
+        /*absolute offset in disk*/
+        op_offset = (UINT32)(CXFSCFG_OP_S_OFFSET(cxfscfg) + CXFS_MD_OP_DUMP_OFFSET(cxfs_md));
 
         /*relative offset in op table*/
         s_op_offset = (CXFS_MD_OP_DUMP_OFFSET(cxfs_md));
         e_op_offset = (s_op_offset + cxfsop_mgr_used(cxfsop_mgr));
 
-        s_op_seg_zone_idx = (s_op_offset / CXFS_OP_SEG_ZONE_SIZE_NBYTES);
-        e_op_seg_zone_idx = (e_op_offset / CXFS_OP_SEG_ZONE_SIZE_NBYTES);
+        ASSERT(e_op_offset < CXFS_OP_TABLE_SIZE_NBYTES); /*should never reach the end of op table*/
 
-        /*absolute offset in disk*/
-        op_offset = (UINT32)(CXFSCFG_OP_S_OFFSET(cxfscfg) + CXFS_MD_OP_DUMP_OFFSET(cxfs_md));
-
-        if(s_op_seg_zone_idx != e_op_seg_zone_idx) /*cross seg zone*/
+        dump_retries = 0;
+        while(EC_FALSE == cxfsop_mgr_dump(cxfsop_mgr, &op_offset))
         {
-            UINT32      pad_size;
+            dump_retries ++;
 
-            pad_size = CXFS_OP_SEG_ZONE_SIZE_NBYTES - (s_op_offset % CXFS_OP_SEG_ZONE_SIZE_NBYTES);
-
-            if(EC_FALSE == cxfsop_mgr_pad(cxfsop_mgr, &op_offset, pad_size))
+            if(10 <= dump_retries) /*exception last for 300s*/
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "fatal error:cxfs_dump_op: "
-                                                     "pad op seg zone failed "
+                                                     "dump op to disk failed "
                                                      "=> stop xfs now and sync data to disk\n");
 
                 /*stop recording op by free op mgr of cxfs module*/
@@ -8968,37 +9583,10 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
                 return (EC_FALSE);
             }
 
-            ASSERT(0 == ((op_offset - CXFSCFG_OP_S_OFFSET(cxfscfg)) % CXFS_OP_SEG_ZONE_SIZE_NBYTES));
-
-            if(op_offset >= CXFSCFG_OP_E_OFFSET(cxfscfg))/*rewind*/
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
-                                                     "op_offset out of range [%ld, %ld) => rewind\n",
-                                                     CXFSCFG_OP_S_OFFSET(cxfscfg),
-                                                     CXFSCFG_OP_E_OFFSET(cxfscfg));
-
-                CXFS_MD_OP_DUMP_OFFSET(cxfs_md) = 0;
-                op_offset = CXFSCFG_OP_S_OFFSET(cxfscfg);
-            }
-        }
-
-        if(EC_FALSE == cxfsop_mgr_dump(cxfsop_mgr, &op_offset)) /*exception*/
-        {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "fatal error:cxfs_dump_op: "
-                                                 "dump op to disk failed "
-                                                 "=> stop xfs now and sync data to disk\n");
-
-            /*stop recording op by free op mgr of cxfs module*/
-            cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
-            CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
-
-            cxfsop_mgr_free(cxfsop_mgr);
-
-            CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_FALSE;    /*restore*/
-
-            cxfs_end(cxfs_md_id); /*stop xfs*/
-
-            return (EC_FALSE);
+                                                 "dump op to disk failed %u times "
+                                                 "=> retry\n",
+                                                 dump_retries);
         }
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
@@ -9012,7 +9600,7 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
 
         CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_FALSE;    /*restore*/
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: done\n");
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: done\n");
     }
 
     return (EC_TRUE);
@@ -9035,7 +9623,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
 
     cur_time_msec  = c_get_cur_time_msec();
 
-    while(cur < end)
+    while(NULL_PTR != cur && cur < end)
     {
         CXFSOP_COMM_HDR    *cxfsop_comm_hdr;
 
@@ -9044,14 +9632,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
         if(0 == CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr)
         && 0 == CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr))
         {
-            uint64_t         op_offset;   /*relative offset in op table*/
-
-            /*relative offset in op table*/
-            op_offset = (cur - CXFSOP_MGR_DATA(cxfsop_mgr));
-            op_offset = (op_offset + CXFS_OP_SEG_ZONE_SIZE_NBYTES)
-                      - (op_offset % CXFS_OP_SEG_ZONE_SIZE_NBYTES);
-
-            cur = CXFSOP_MGR_DATA(cxfsop_mgr) + op_offset; /*move forward to next op seg zone*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
             continue;
         }
 
@@ -9061,7 +9642,8 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:__cxfs_replay_op: "
                                                  "invalid magic num %lx\n",
                                                  CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr));
-            break; /*return (EC_FALSE);*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
+            continue;
         }
 
         /*no create time*/
@@ -9069,7 +9651,8 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:__cxfs_replay_op: "
                                                  "no create time\n");
-            break; /*return (EC_FALSE);*/
+            cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
+            continue;
         }
 
         /*invalid create time*/
@@ -9110,113 +9693,278 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
 
         cur += CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr);
 
-        /*np*/
-        if(CXFSOP_CHOICE_NP == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
+        if(CXFSOP_NP_F_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_HDR   *cxfsop_np_hdr;
+            CXFSOP_NP_FNODE *cxfsop_np_fnode;
+
+            cxfsop_np_hdr   = (CXFSOP_NP_HDR   *)cxfsop_comm_hdr;
+            cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
+
+            if(EC_FALSE == __cxfs_replay_op_np_add_file(cxfs_md_id, cxfsop_np_hdr, cxfsop_np_fnode))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_NP_F_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_HDR   *cxfsop_np_hdr;
+            CXFSOP_NP_FNODE *cxfsop_np_fnode;
+
+            cxfsop_np_hdr   = (CXFSOP_NP_HDR   *)cxfsop_comm_hdr;
+            cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
+
+            if(BIT_FALSE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
+            {
+                if(EC_FALSE == __cxfs_replay_op_np_del_file(cxfs_md_id, cxfsop_np_hdr, cxfsop_np_fnode))
+                {
+                    /*return (EC_FALSE);*/
+                    break;/*terminate*/
+                }
+            }
+            else
+            {
+                if(EC_FALSE == __cxfs_replay_op_np_del_wildcard_file(cxfs_md_id, cxfsop_np_hdr, cxfsop_np_fnode))
+                {
+                    /*return (EC_FALSE);*/
+                    break;/*terminate*/
+                }
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_NP_F_UPD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_HDR   *cxfsop_np_hdr;
+            CXFSOP_NP_FNODE *cxfsop_np_fnode;
+
+            cxfsop_np_hdr   = (CXFSOP_NP_HDR   *)cxfsop_comm_hdr;
+            cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
+
+            if(EC_FALSE == __cxfs_replay_op_np_update_file(cxfs_md_id, cxfsop_np_hdr, cxfsop_np_fnode))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_NP_D_ADD_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
         {
             CXFSOP_NP_HDR   *cxfsop_np_hdr;
 
-            cxfsop_np_hdr = (CXFSOP_NP_HDR *)cxfsop_comm_hdr;
+            cxfsop_np_hdr   = (CXFSOP_NP_HDR   *)cxfsop_comm_hdr;
 
-            if(CXFSNP_ITEM_FILE_IS_DIR == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr))
+            if(EC_FALSE == __cxfs_replay_op_np_add_dir(cxfs_md_id, cxfsop_np_hdr))
             {
-                if(EC_FALSE == __cxfs_replay_npop_dir(cxfs_md_id, cxfsop_np_hdr))
-                {
-                    return (EC_FALSE);
-                }
-
-                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
-                                   "offset %ld, time %lu (%s), magic %x, "
-                                   "choice %u, op %u, size %u => OK\n",
-                                   (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                   CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                   c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                   CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                continue;
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
             }
 
-            if(CXFSNP_ITEM_FILE_IS_REG == CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr))
-            {
-                CXFSOP_NP_FNODE *cxfsop_np_fnode;
-
-                cxfsop_np_fnode = (CXFSOP_NP_FNODE *)(cur - sizeof(CXFSOP_NP_FNODE));
-
-                if(EC_FALSE == __cxfs_replay_npop_file(cxfs_md_id, cxfsop_np_hdr, cxfsop_np_fnode))
-                {
-                    return (EC_FALSE);
-                }
-
-                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
-                                   "offset %ld, time %lu (%s), magic %x, "
-                                   "choice %u, op %u, size %u => OK\n",
-                                   (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                   CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                   c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                   CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                continue;
-            }
-
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op: [NP] invalid dflag %u\n",
-                                                 CXFSOP_NP_HDR_DFLAG(cxfsop_np_hdr));
-            return (EC_FALSE);
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
         }
 
-        /*dn*/
-        if(CXFSOP_CHOICE_DN == CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr))
+        if(CXFSOP_NP_D_DEL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_HDR   *cxfsop_np_hdr;
+
+            cxfsop_np_hdr   = (CXFSOP_NP_HDR   *)cxfsop_comm_hdr;
+
+            if(BIT_FALSE == CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr))
+            {
+                if(EC_FALSE == __cxfs_replay_op_np_del_dir(cxfs_md_id, cxfsop_np_hdr))
+                {
+                    /*return (EC_FALSE);*/
+                    break;/*terminate*/
+                }
+            }
+            else
+            {
+                if(EC_FALSE == __cxfs_replay_op_np_del_wildcard_dir(cxfs_md_id, cxfsop_np_hdr))
+                {
+                    /*return (EC_FALSE);*/
+                    break;/*terminate*/
+                }
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_NP_I_RET_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+            cxfsop_np_item = (CXFSOP_NP_ITEM *)cxfsop_comm_hdr;
+
+            if(EC_FALSE == __cxfs_replay_op_np_item_retire(cxfs_md_id, cxfsop_np_item))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_NP_I_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_NP_ITEM   *cxfsop_np_item;
+
+            cxfsop_np_item = (CXFSOP_NP_ITEM *)cxfsop_comm_hdr;
+
+            if(EC_FALSE == __cxfs_replay_op_np_item_recycle(cxfs_md_id, cxfsop_np_item))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_DN_RSV_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
         {
             CXFSOP_DN_NODE      *cxfsop_dn_node;
 
             cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
 
-            if(CXFSOP_DN_RSV_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
+            if(EC_FALSE == __cxfs_replay_op_dn_reserve(cxfs_md_id, cxfsop_dn_node))
             {
-                if(EC_FALSE == __cxfs_replay_dnop_reserve(cxfs_md_id, cxfsop_dn_node))
-                {
-                    return (EC_FALSE);
-                }
-
-                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
-                                   "offset %ld, time %lu (%s), magic %x, "
-                                   "choice %u, op %u, size %u => OK\n",
-                                   (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                   CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                   c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                   CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                continue;
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
             }
 
-            if(CXFSOP_DN_REL_OP == CXFSOP_DN_NODE_OP(cxfsop_dn_node))
-            {
-                if(EC_FALSE == __cxfs_replay_dnop_release(cxfs_md_id, cxfsop_dn_node))
-                {
-                    return (EC_FALSE);
-                }
-
-                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
-                                   "offset %ld, time %lu (%s), magic %x, "
-                                   "choice %u, op %u, size %u => OK\n",
-                                   (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
-                                   CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
-                                   c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
-                                   CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_CHOICE(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
-                                   CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
-                continue;
-            }
-
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op: [DN] invalid op %u\n",
-                                                 CXFSOP_DN_NODE_OP(cxfsop_dn_node));
-            return (EC_FALSE);
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
         }
+
+        if(CXFSOP_DN_REL_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_DN_NODE      *cxfsop_dn_node;
+
+            cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
+
+            if(EC_FALSE == __cxfs_replay_op_dn_release(cxfs_md_id, cxfsop_dn_node))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }
+
+        if(CXFSOP_DN_REC_OP == CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr))
+        {
+            CXFSOP_DN_NODE      *cxfsop_dn_node;
+
+            cxfsop_dn_node = (CXFSOP_DN_NODE *)cxfsop_comm_hdr;
+
+            if(EC_FALSE == __cxfs_replay_op_dn_recycle(cxfs_md_id, cxfsop_dn_node))
+            {
+                /*return (EC_FALSE);*/
+                break;/*terminate*/
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_replay_op: "
+                               "offset %ld, time %lu (%s), magic %x, "
+                               "op %u, size %u => OK\n",
+                               (UINT32)((void *)cxfsop_comm_hdr - CXFSOP_MGR_DATA(cxfsop_mgr)),
+                               CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr),
+                               c_get_time_msec_str(CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)),
+                               CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
+                               CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
+            continue;
+        }        
+
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op: invalid op %u\n",
+                                             CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr));
+        return (EC_FALSE);
     }
 
     return (EC_TRUE);
@@ -9257,7 +10005,7 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    if(EC_TRUE == cxfs_is_op_replay(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_replay_op: replay is on-going\n");
         return (EC_FALSE);
@@ -9267,7 +10015,6 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
     e_op_time_msec = c_get_cur_time_msec();
 
     if(EC_FALSE == cxfsop_mgr_scan(cxfsop_mgr,
-                                   CXFS_OP_SEG_ZONE_SIZE_NBYTES,
                                    &s_op_offset,
                                    &e_op_offset,
                                    &s_op_time_msec,
@@ -9283,7 +10030,7 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
         return (EC_TRUE);
     }
 
-    CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_TRUE;
+    cxfs_set_op_replay(cxfs_md);
 
     if(s_op_offset < e_op_offset)
     {
@@ -9304,7 +10051,8 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
                                                  end   - CXFSOP_MGR_DATA(cxfsop_mgr),
                                                  s_op_time_msec,
                                                  e_op_time_msec);
-            CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_FALSE;
+
+            cxfs_unset_op_replay(cxfs_md);
             return (EC_FALSE);
         }
 
@@ -9335,7 +10083,8 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
                                                  end   - CXFSOP_MGR_DATA(cxfsop_mgr),
                                                  s_op_time_msec,
                                                  e_op_time_msec);
-            CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_FALSE;
+
+            cxfs_unset_op_replay(cxfs_md);
             return (EC_FALSE);
         }
 
@@ -9357,7 +10106,8 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
                                                  end   - CXFSOP_MGR_DATA(cxfsop_mgr),
                                                  s_op_time_msec,
                                                  e_op_time_msec);
-            CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_FALSE;
+
+            cxfs_unset_op_replay(cxfs_md);
             return (EC_FALSE);
         }
 
@@ -9370,7 +10120,7 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
 
     }
 
-    CXFS_MD_OP_REPLAY_FLAG(cxfs_md) = BIT_FALSE;
+    cxfs_unset_op_replay(cxfs_md);
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_replay_op: done\n");
     return (EC_TRUE);

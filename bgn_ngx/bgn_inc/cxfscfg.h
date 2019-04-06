@@ -37,7 +37,7 @@ typedef struct
     UINT32           magic;                     /*magic number*/
 
     UINT32           sata_disk_size;            /*sata disk size in bytes*/
-    UINT32           sata_disk_offset;          /*sata cache start offset in sata disk*/
+    UINT32           sata_disk_offset;          /*sata data cache start offset in sata disk. align to 32G*/
 
     UINT32           np_size;                   /*size per np*/
     uint8_t          np_model;                  /*cxfsnp model, e.g, CXFSNP_001G_MODEL*/
@@ -46,10 +46,10 @@ typedef struct
     uint32_t         np_item_max_num;           /*item max num per np*/
     uint32_t         np_max_num;                /*max np num*/
 
-    UINT32           dn_size;                   /*dn size*/
+    UINT32           dn_zone_size;              /*dn zone size (meta data size)*/
 
-    UINT32           op_s_offset;             /*operation log start offset on sata disk*/
-    UINT32           op_e_offset;             /*operation log end offset on sata disk*/
+    UINT32           op_s_offset;               /*operation log start offset on sata disk*/
+    UINT32           op_e_offset;               /*operation log end offset on sata disk*/
 
     UINT32           np_zone_s_offset;          /*np zone start offset on sata disk, cover active np and standby np*/
     UINT32           np_zone_e_offset;          /*np zone end offset on sata disk, cover active np and standby np*/
@@ -79,7 +79,7 @@ typedef struct
 #define CXFSCFG_NP_ITEM_MAX_NUM(cxfscfg)               ((cxfscfg)->np_item_max_num)
 #define CXFSCFG_NP_MAX_NUM(cxfscfg)                    ((cxfscfg)->np_max_num)
 
-#define CXFSCFG_DN_SIZE(cxfscfg)                       ((cxfscfg)->dn_size)
+#define CXFSCFG_DN_ZONE_SIZE(cxfscfg)                  ((cxfscfg)->dn_zone_size)
 
 #define CXFSCFG_OP_S_OFFSET(cxfscfg)                   ((cxfscfg)->op_s_offset)
 #define CXFSCFG_OP_E_OFFSET(cxfscfg)                   ((cxfscfg)->op_e_offset)

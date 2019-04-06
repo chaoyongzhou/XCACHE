@@ -58,6 +58,9 @@ extern "C"{
 #define CMC_WRITE_TRAFFIC_08MB             (((uint64_t) 8) << 23) /* 8Mbps*/
 #define CMC_WRITE_TRAFFIC_12MB             (((uint64_t)12) << 23) /*12Mbps*/
 
+#define CMC_DEGRADE_SSD                    ((uint32_t)0x0001)
+#define CMC_DEGRADE_SATA                   ((uint32_t)0x0010)
+
 typedef struct
 {
     CMCDN              *cmcdn;
@@ -478,7 +481,7 @@ EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
 **/
 EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num);
 
-EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, CMCNP_DEGRADE_CALLBACK func, void *arg);
+EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg);
 
 EC_BOOL cmc_set_retire_callback(CMC_MD *cmc_md, CMCNP_RETIRE_CALLBACK func, void *arg);
 

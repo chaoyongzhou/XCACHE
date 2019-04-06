@@ -2387,30 +2387,57 @@ EC_BOOL cmcnp_set_ssd_not_dirty(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
 EC_BOOL cmcnp_degrade_cb_init(CMCNP_DEGRADE_CB *cmcnp_degrade_cb)
 {
-    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb) = NULL_PTR;
-    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)  = NULL_PTR;
+    CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb)     = BIT_FALSE;
+    CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb)    = BIT_FALSE;
+
+    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)         = NULL_PTR;
+    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)          = NULL_PTR;
 
     return (EC_TRUE);
 }
 
 EC_BOOL cmcnp_degrade_cb_clean(CMCNP_DEGRADE_CB *cmcnp_degrade_cb)
 {
-    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb) = NULL_PTR;
-    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)  = NULL_PTR;
+    CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb)     = BIT_FALSE;
+    CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb)    = BIT_FALSE;
+
+    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)         = NULL_PTR;
+    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)          = NULL_PTR;
 
     return (EC_TRUE);
 }
 
 EC_BOOL cmcnp_degrade_cb_clone(CMCNP_DEGRADE_CB *cmcnp_degrade_cb_src, CMCNP_DEGRADE_CB *cmcnp_degrade_cb_des)
 {
-    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb_des) = CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb_src);
-    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb_des)  = CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb_src);
+    CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb_des)     = CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb_src);
+    CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb_des)    = CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb_src);
+
+    CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb_des)         = CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb_src);
+    CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb_des)          = CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb_src);
 
     return (EC_TRUE);
 }
 
-EC_BOOL cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB *cmcnp_degrade_cb, CMCNP_DEGRADE_CALLBACK func, void *arg)
+EC_BOOL cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB *cmcnp_degrade_cb, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg)
 {
+    if(CMCNP_DEGRADE_SSD & flags)
+    {
+        CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb)     = BIT_TRUE;
+    }
+    else
+    {
+        CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb)     = BIT_FALSE;
+    }
+
+    if(CMCNP_DEGRADE_SATA & flags)
+    {
+        CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb)    = BIT_TRUE;
+    }
+    else
+    {
+        CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb)    = BIT_FALSE;
+    }
+
     CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb) = func;
     CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)  = arg;
 
@@ -2427,9 +2454,9 @@ EC_BOOL cmcnp_clean_degrade_callback(CMCNP *cmcnp)
     return cmcnp_degrade_cb_clean(CMCNP_DEGRADE_CB(cmcnp));
 }
 
-EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, CMCNP_DEGRADE_CALLBACK func, void *arg)
+EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, const uint32_t flags, CMCNP_DEGRADE_CALLBACK func, void *arg)
 {
-    return cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB(cmcnp), func, arg);
+    return cmcnp_degrade_cb_set(CMCNP_DEGRADE_CB(cmcnp), flags, func, arg);
 }
 
 EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t node_pos)
@@ -2474,69 +2501,148 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
     cmcnp_fnode = CMCNP_ITEM_FNODE(cmcnp_item);
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
 
-    if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
+    /*degrade to ssd*/
+    if(BIT_TRUE == CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb))
     {
-        dbg_log(SEC_0111_CMCNP, 7)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
-                                              "degrade callback at key [%u, %u), "
-                                              "disk %u, block %u, page %u was flushed\n",
-                                              CMCNP_KEY_S_PAGE(cmcnp_key),
-                                              CMCNP_KEY_E_PAGE(cmcnp_key),
-                                              CMCNP_INODE_DISK_NO(cmcnp_inode),
-                                              CMCNP_INODE_BLOCK_NO(cmcnp_inode),
-                                              CMCNP_INODE_PAGE_NO(cmcnp_inode));
+        if(BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
+        {
+            dbg_log(SEC_0111_CMCNP, 7)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
+                                                  "[ssd] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u was flushed\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
 
+            cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+            return (EC_FALSE);/*xxx*/
+        }
+
+        CMCNP_ITEM_DEG_TIMES(cmcnp_item) ++;
+        if(0 == CMCNP_ITEM_DEG_TIMES(cmcnp_item)) /*exception*/
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "fatal error:cmcnp_exec_degrade_callback:"
+                                                  "[ssd] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u => deg reach max times!\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
+
+            CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*force to clear flag!*/
+            cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+            return (EC_FALSE);/*xxx*/
+        }
+
+        if(EC_FALSE == CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)(
+                                      CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb),
+                                      cmcnp_key,
+                                      cmcnp_item,
+                                      CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                      CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                      CMCNP_INODE_PAGE_NO(cmcnp_inode)))
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_exec_degrade_callback:"
+                                                  "[ssd] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u failed\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
+            return (EC_FALSE);
+        }
+
+        CMCNP_ITEM_DEG_TIMES(cmcnp_item)      = 0;         /*reset counter*/
+        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*clear flag*/
         cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
-        return (EC_FALSE);/*xxx*/
-    }
 
-    CMCNP_ITEM_DEG_TIMES(cmcnp_item) ++;
-    if(0 == CMCNP_ITEM_DEG_TIMES(cmcnp_item)) /*exception*/
-    {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "fatal error:cmcnp_exec_degrade_callback:"
-                                              "degrade callback at key [%u, %u), "
-                                              "disk %u, block %u, page %u => deg reach max times!\n",
+        dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
+                                              "[ssd] degrade callback at key [%u, %u), "
+                                              "disk %u, block %u, page %u done\n",
                                               CMCNP_KEY_S_PAGE(cmcnp_key),
                                               CMCNP_KEY_E_PAGE(cmcnp_key),
                                               CMCNP_INODE_DISK_NO(cmcnp_inode),
                                               CMCNP_INODE_BLOCK_NO(cmcnp_inode),
                                               CMCNP_INODE_PAGE_NO(cmcnp_inode));
+    }
 
-        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*force to clear flag!*/
+    /*degrade to sata*/
+    else if(BIT_TRUE == CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb))
+    {
+        ASSERT(BIT_TRUE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item));
+
+        if(BIT_FALSE == CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item))
+        {
+            dbg_log(SEC_0111_CMCNP, 7)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
+                                                  "[sata] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u was flushed\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
+
+            CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*trick! following sata dirty flag!*/
+
+            cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+            return (EC_TRUE);/*xxx*/
+        }
+
+        CMCNP_ITEM_DEG_TIMES(cmcnp_item) ++;
+        if(0 == CMCNP_ITEM_DEG_TIMES(cmcnp_item)) /*exception*/
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "fatal error:cmcnp_exec_degrade_callback:"
+                                                  "[sata] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u => deg reach max times!\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
+
+            CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*force to clear flag!*/
+            CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_FALSE; /*trick! following sata dirty flag!*/
+
+            cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+            return (EC_FALSE);/*xxx*/
+        }
+
+        if(EC_FALSE == CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)(
+                                      CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb),
+                                      cmcnp_key,
+                                      cmcnp_item,
+                                      CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                      CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                      CMCNP_INODE_PAGE_NO(cmcnp_inode)))
+        {
+            dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_exec_degrade_callback:"
+                                                  "[sata] degrade callback at key [%u, %u), "
+                                                  "disk %u, block %u, page %u failed\n",
+                                                  CMCNP_KEY_S_PAGE(cmcnp_key),
+                                                  CMCNP_KEY_E_PAGE(cmcnp_key),
+                                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
+                                                  CMCNP_INODE_PAGE_NO(cmcnp_inode));
+            return (EC_FALSE);
+        }
+
+        CMCNP_ITEM_DEG_TIMES(cmcnp_item)       = 0;         /*reset counter*/
+        CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*clear flag*/
+        CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_FALSE; /*trick! following sata dirty flag!*/
         cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
-        return (EC_FALSE);/*xxx*/
-    }
 
-    if(EC_FALSE == CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)(
-                                  CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb),
-                                  cmcnp_key,
-                                  cmcnp_item,
-                                  CMCNP_INODE_DISK_NO(cmcnp_inode),
-                                  CMCNP_INODE_BLOCK_NO(cmcnp_inode),
-                                  CMCNP_INODE_PAGE_NO(cmcnp_inode)))
-    {
-        dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_exec_degrade_callback:"
-                                              "degrade callback at key [%u, %u), "
-                                              "disk %u, block %u, page %u failed\n",
+        dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
+                                              "[sata] degrade callback at key [%u, %u), "
+                                              "disk %u, block %u, page %u done\n",
                                               CMCNP_KEY_S_PAGE(cmcnp_key),
                                               CMCNP_KEY_E_PAGE(cmcnp_key),
                                               CMCNP_INODE_DISK_NO(cmcnp_inode),
                                               CMCNP_INODE_BLOCK_NO(cmcnp_inode),
                                               CMCNP_INODE_PAGE_NO(cmcnp_inode));
-        return (EC_FALSE);
     }
-
-    CMCNP_ITEM_DEG_TIMES(cmcnp_item)      = 0;         /*reset counter*/
-    CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE; /*clear flag*/
-    cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
-
-    dbg_log(SEC_0111_CMCNP, 9)(LOGSTDOUT, "[DEBUG] cmcnp_exec_degrade_callback:"
-                                          "degrade callback at key [%u, %u), "
-                                          "disk %u, block %u, page %u done\n",
-                                          CMCNP_KEY_S_PAGE(cmcnp_key),
-                                          CMCNP_KEY_E_PAGE(cmcnp_key),
-                                          CMCNP_INODE_DISK_NO(cmcnp_inode),
-                                          CMCNP_INODE_BLOCK_NO(cmcnp_inode),
-                                          CMCNP_INODE_PAGE_NO(cmcnp_inode));
 
     return (EC_TRUE);
 }

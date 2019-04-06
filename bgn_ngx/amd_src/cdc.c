@@ -619,7 +619,8 @@ EC_BOOL cdc_mount_mmap(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node)
 /*umount mmap node*/
 EC_BOOL cdc_umount_mmap(CDC_MD *cdc_md)
 {
-    if(NULL_PTR != CDC_MD_CMMAP_NODE(cdc_md))
+    if(NULL_PTR != cdc_md
+    && NULL_PTR != CDC_MD_CMMAP_NODE(cdc_md))
     {
         cdc_close_np(cdc_md);
         cdc_close_dn(cdc_md);
@@ -1578,6 +1579,14 @@ EC_BOOL cdc_load_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
         return (EC_FALSE);
     }
 
+    if(EC_FALSE == cdcnp_reset(cdcnp))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_np: reset np failed\n");
+
+        cdcnp_free(cdcnp);
+        return (EC_FALSE);
+    }
+
     /*inherit caio from cdc*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
 
@@ -1631,6 +1640,14 @@ EC_BOOL cdc_load_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset
         return (EC_FALSE);
     }
 
+    if(EC_FALSE == cdcnp_reset(cdcnp))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_np_shm: reset np failed\n");
+
+        cdcnp_close(cdcnp);
+        return (EC_FALSE);
+    }
+
     /*inherit caio from cdc*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
 
@@ -1673,6 +1690,14 @@ EC_BOOL cdc_retrieve_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_of
     if(EC_FALSE == cdcnp_retrieve_shm(cdcnp, cmmap_node, 0 /*np id*/, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_np_shm: retrieve np failed\n");
+
+        cdcnp_close(cdcnp);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cdcnp_reset(cdcnp))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_np_shm: reset np failed\n");
 
         cdcnp_close(cdcnp);
         return (EC_FALSE);
@@ -3073,7 +3098,7 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
 
             /*note: keep bad page reserved but not use it*/
 
-            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_reserve: "
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_page_reserve: "
                                                 "reserve ssd bad page [%ld, %ld), page no %u\n",
                                                 d_s_offset,
                                                 d_s_offset + CDCPGB_PAGE_SIZE_NBYTES,
@@ -8673,7 +8698,7 @@ EC_BOOL cdc_set_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:cdc_set_ssd_bad_page: "
+    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] cdc_set_ssd_bad_page: "
                                          "set ssd bad page: page %u\n",
                                          page_no);
 
@@ -8734,7 +8759,7 @@ EC_BOOL cdc_set_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:cdc_set_sata_bad_page: "
+    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] cdc_set_sata_bad_page: "
                                          "set sata bad page: page %u\n",
                                          page_no);
 

@@ -16,6 +16,8 @@ extern "C"{
 
 #include "type.h"
 
+#include "real.h"
+
 #include "cxfscfg.h"
 #include "cxfspgrb.h"
 #include "cxfspgd.h"
@@ -203,6 +205,8 @@ EC_BOOL cxfspgv_release_space(CXFSPGV *cxfspgv, const uint16_t disk_no, const ui
 EC_BOOL cxfspgv_is_full(const CXFSPGV *cxfspgv);
 
 EC_BOOL cxfspgv_is_empty(const CXFSPGV *cxfspgv);
+
+REAL cxfspgv_page_used_ratio(const CXFSPGV *cxfspgv);
 
 UINT32 cxfspgv_size(const uint16_t disk_num);
 

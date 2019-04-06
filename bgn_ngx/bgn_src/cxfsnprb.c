@@ -24,7 +24,7 @@ extern "C"{
 #include "db_internal.h"
 
 #include "cxfsnprb.h"
-#include "cxfsnp.h"
+#include "cxfsnp.inc"
 
 /*new a CXFSNPRB_NODE and return its position*/
 uint32_t cxfsnprb_node_new(CXFSNPRB_POOL *pool)

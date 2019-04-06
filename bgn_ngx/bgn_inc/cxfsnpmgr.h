@@ -27,6 +27,7 @@ extern "C"{
 #include "clist.h"
 #include "cmutex.h"
 #include "cstring.h"
+#include "real.h"
 
 #include "chashalgo.h"
 
@@ -35,6 +36,7 @@ extern "C"{
 #include "cxfscfg.h"
 #include "cxfsnp.h"
 #include "cxfsnprb.h"
+#include "cxfsop.h"
 
 #define CXFSNP_MGR_MEM_ALIGNMENT                    (1 << 20)
 
@@ -51,7 +53,8 @@ typedef struct
     uint32_t         cxfsnp_item_max_num;
     uint32_t         cxfsnp_max_num;                /*max np num*/
     uint32_t         read_only_flag:1;
-    uint32_t         rsvd3         :31;
+    uint32_t         op_replay_flag:1;
+    uint32_t         rsvd3         :30;
 
     UINT32           cxfsnp_size;                   /*single np size*/
     UINT32           cxfsnp_s_offset;               /*np start offset*/
@@ -61,9 +64,11 @@ typedef struct
     CVECTOR          cxfsnp_vec;                    /*item is CXFSNP*/
 
     CMSYNC_NODE     *np_msync_node;
+    CXFSOP_MGR      *np_op_mgr;
 }CXFSNP_MGR;
 
 #define CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr)                  ((cxfsnp_mgr)->read_only_flag)
+#define CXFSNP_MGR_OP_REPLAY_FLAG(cxfsnp_mgr)                  ((cxfsnp_mgr)->op_replay_flag)
 #define CXFSNP_MGR_FD(cxfsnp_mgr)                              ((cxfsnp_mgr)->fd)
 #define CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)                        ((cxfsnp_mgr)->cxfsnp_model)
 #define CXFSNP_MGR_NP_2ND_CHASH_ALGO_ID(cxfsnp_mgr)            ((cxfsnp_mgr)->cxfsnp_2nd_chash_algo_id)
@@ -76,6 +81,7 @@ typedef struct
 #define CXFSNP_MGR_NP_VEC(cxfsnp_mgr)                          (&((cxfsnp_mgr)->cxfsnp_vec))
 #define CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id)                   ((CXFSNP *)cvector_get(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), cxfsnp_id))
 #define CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)                   ((cxfsnp_mgr)->np_msync_node)
+#define CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)                       ((cxfsnp_mgr)->np_op_mgr)
 
 /*to reduce lock operation in name node*/
 #define CXFSNP_MGR_NP_GET_NO_LOCK(cxfsnp_mgr, cxfsnp_id) \
@@ -148,6 +154,18 @@ EC_BOOL cxfsnp_mgr_set_read_only(CXFSNP_MGR *cxfsnp_mgr);
 EC_BOOL cxfsnp_mgr_unset_read_only(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_is_read_only(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_set_op_replay(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_unset_op_replay(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_is_op_replay(CXFSNP_MGR *cxfsnp_mgr);
+
+EC_BOOL cxfsnp_mgr_mount_op_mgr(CXFSNP_MGR *cxfsnp_mgr, CXFSOP_MGR *cxfsop_mgr);
+
+EC_BOOL cxfsnp_mgr_umount_op_mgr(CXFSNP_MGR *cxfsnp_mgr);
+
+REAL cxfsnp_mgr_used_ratio(const CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path);
 

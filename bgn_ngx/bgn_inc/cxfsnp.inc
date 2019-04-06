@@ -37,6 +37,8 @@ extern "C"{
 #include "cxfsnprb.h"
 #include "cxfsnplru.inc"
 #include "cxfsnpdel.inc"
+#include "cxfsop.h"
+
 
 #define CXFSNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
 #define CXFSNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
@@ -359,13 +361,16 @@ typedef struct
 typedef struct
 {
     uint32_t                read_only_flag:1;
-    uint32_t                rsvd01        :31;
+    uint32_t                op_replay_flag:1;
+    uint32_t                rsvd01        :30;
     uint32_t                rsvd02;
 
     UINT32                  fsize;
 
     uint64_t                del_size;     /* deleted but not recycled bytes*/
     uint64_t                recycle_size; /* recycled bytes*/
+
+    CXFSOP_MGR             *cxfsop_mgr;
 
     CXFSNP_HEADER          *header;       /* hashdb header */
 
@@ -379,10 +384,15 @@ typedef struct
 } CXFSNP;
 
 #define CXFSNP_READ_ONLY_FLAG(cxfsnp)         ((cxfsnp)->read_only_flag)
+#define CXFSNP_OP_REPLAY_FLAG(cxfsnp)         ((cxfsnp)->op_replay_flag)
+
 #define CXFSNP_FSIZE(cxfsnp)                  ((cxfsnp)->fsize)
 #define CXFSNP_DEL_SIZE(cxfsnp)               ((cxfsnp)->del_size)
 #define CXFSNP_RECYCLE_SIZE(cxfsnp)           ((cxfsnp)->recycle_size)
+
 #define CXFSNP_HDR(cxfsnp)                    ((cxfsnp)->header)
+
+#define CXFSNP_OP_MGR(cxfsnp)                 ((cxfsnp)->cxfsop_mgr)
 
 #define CXFSNP_LRU_LIST(cxfsnp)               ((cxfsnp)->lru_list)
 #define CXFSNP_DEL_LIST(cxfsnp)               ((cxfsnp)->del_list)

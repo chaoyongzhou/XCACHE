@@ -52,11 +52,12 @@ extern "C"{
 
 /*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
 #define CXFS_OP_TABLE_SIZE_NBYTES           (((uint64_t)100) << 30)/*100GB*/
-#define CXFS_OP_SEG_ZONE_SIZE_NBYTES        (((uint64_t)  1) << 30)/*1GB. split op table into several op seg zones*/
 #define CXFS_OP_TABLE_USED_NBYTES_THREAD    (((uint64_t) 99) << 30)/*99GB*/
-#define CXFS_OP_MCACHE_SIZE_NBYTES          (((uint32_t) 10) << 20)/*8MB*/
+#define CXFS_OP_MCACHE_SIZE_NBYTES          (((uint32_t)  8) << 20)/*8MB*/
 #define CXFS_OP_DUMP_USED_RATIO_THREAD      ((REAL) 0.2)            /*1.6MB*/
 #define CXFS_OP_DUMP_IDLE_NSEC_THREAD       (60)                    /*idle seconds at most before next dump*/
+
+#define CXFS_NP_RETIRE_THREAD               (0.999) /*trigger retire when np used > 99.9%*/
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
@@ -471,6 +472,13 @@ EC_BOOL cxfs_release_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnod
 
 /**
 *
+*  recycle space to dn
+*
+**/
+EC_BOOL cxfs_recycle_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode);
+
+/**
+*
 *  write a file
 *
 **/
@@ -507,6 +515,13 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
 *
 **/
 EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes);
+
+/**
+*
+*  dump cfg
+*
+**/
+EC_BOOL cxfs_dump_cfg(const UINT32 cxfs_md_id);
 
 /**
 *
@@ -885,6 +900,13 @@ EC_BOOL cxfs_search(const UINT32 cxfs_md_id, const CSTRING *path_cstr, const UIN
 *
 **/
 EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT32 *complete_num);
+
+/**
+*
+*  check space and process retire & recycle if reach threadhold
+*
+**/
+EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id);
 
 /**
 *

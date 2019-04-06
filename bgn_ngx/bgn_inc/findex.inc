@@ -575,6 +575,8 @@
 #define                            FI_cxfs_pop_op  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 107))
 #define                        FI_cxfs_process_op  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 108))
 #define                           FI_cxfs_dump_op  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 109))
+#define                          FI_cxfs_dump_cfg  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 110))
+#define                     FI_cxfs_process_space  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 111))
 
 
 #define             FI_cxfsmon_print_module_status  ((UINT32) ((MD_CXFSMON << (WORDSIZE/2)) +  0))

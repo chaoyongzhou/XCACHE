@@ -545,7 +545,7 @@ EC_BOOL cdcpgb_del_page(CDCPGB *cdcpgb, const uint16_t page_model, const uint16_
     }
 
     /*del page_no from rbtree*/
-    if(CDCPGRB_ERR_POS == cdcpgrb_tree_delete_data(CDCPGB_CDCPGRB_POOL(cdcpgb), &(CDCPGB_PAGE_MODEL_CDCPGRB_ROOT_POS(cdcpgb, page_model)), page_no))
+    if(EC_FALSE == cdcpgrb_tree_delete_data(CDCPGB_CDCPGRB_POOL(cdcpgb), &(CDCPGB_PAGE_MODEL_CDCPGRB_ROOT_POS(cdcpgb, page_model)), page_no))
     {
         dbg_log(SEC_0183_CDCPGB, 0)(LOGSTDOUT, "error:cdcpgb_del_page: del page_no %u from rbtree of page model %u failed\n", page_no, page_model);
         return (EC_FALSE);

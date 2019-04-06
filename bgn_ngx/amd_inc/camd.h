@@ -23,6 +23,7 @@ extern "C"{
 
 #include "cparacfg.h"
 
+#include "coroutine.inc"
 #include "cbadbitmap.h"
 
 #include "caio.h"
@@ -385,6 +386,20 @@ typedef struct
 #define CAMD_SSD_TIMEOUT_NSEC(camd_ssd)               ((camd_ssd)->timeout_nsec)
 #define CAMD_SSD_CMCNP_KEY(camd_ssd)                  (&((camd_ssd)->cmcnp_key))
 #define CAMD_SSD_CAMD_MD(camd_ssd)                    ((camd_ssd)->camd_md)
+
+#define CAMD_COND_RESULT_ERROR                        ((UINT32)~0)
+#define CAMD_COND_RESULT_COMPLETE                     ((UINT32) 0)
+#define CAMD_COND_RESULT_TIMEOUT                      ((UINT32) 1)
+#define CAMD_COND_RESULT_TERMINATE                    ((UINT32) 2)
+
+typedef struct
+{
+    COROUTINE_COND         ccond;
+    UINT32                 result;
+}CAMD_COND;
+
+#define CAMD_COND_CCOND(camd_cond)                    (&((camd_cond)->ccond))
+#define CAMD_COND_RESULT(camd_cond)                   ((camd_cond)->result)
 
 /*----------------------------------- camd page interface -----------------------------------*/
 
@@ -767,6 +782,22 @@ EC_BOOL camd_is_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
 
 /*for debug only*/
 EC_BOOL camd_clear_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
+
+/*------------------------ cmad cond interface ----------------------------*/
+
+CAMD_COND *camd_cond_new(const UINT32 timeout_msec, const UINT32 location);
+
+EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_msec, const UINT32 location);
+
+EC_BOOL camd_cond_clean(CAMD_COND *camd_cond, const UINT32 location);
+
+EC_BOOL camd_cond_free(CAMD_COND *camd_cond, const UINT32 location);
+
+EC_BOOL camd_cond_reserve(CAMD_COND *camd_cond, const UINT32 counter, const UINT32 location);
+
+EC_BOOL camd_cond_release(CAMD_COND *camd_cond, const UINT32 location);
+
+EC_BOOL camd_cond_wait(CAMD_COND *camd_cond, const UINT32 location);
 
 /*----------------------------------- camd external interface -----------------------------------*/
 

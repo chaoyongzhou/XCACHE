@@ -86,6 +86,9 @@ typedef struct
     UINT32    crfsmon_conhash_switch        ; /* CRFSMON_CONHASH_SWITCH   */
     UINT32    crfsmon_hot_path_switch       ; /* CRFSMON_HOT_PATH_SWITCH  */
 
+    REAL      cxfsnp_max_used_ratio         ; /* CXFSNP_MAX_USED_RATIO    */
+    REAL      cxfsdn_max_used_ratio         ; /* CXFSDN_MAX_USED_RATIO    */
+
     UINT32    cxfsnp_try_retire_max_num     ; /* CXFSNP_TRY_RETIRE_MAX_NUM  */
     UINT32    cxfsnp_try_recycle_max_num    ; /* CXFSNP_TRY_RECYCLE_MAX_NUM */
     UINT32    cxfsnp_cache_in_mem_switch    ; /* CXFSNP_CACHE_IN_MEM_SWITCH */
@@ -232,6 +235,9 @@ typedef struct
 #define CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->crfsmon_conhash_switch)
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
+
+#define CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsnp_max_used_ratio)
+#define CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsdn_max_used_ratio)
 
 #define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->cxfsnp_try_retire_max_num)
 #define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->cxfsnp_try_recycle_max_num)
@@ -464,6 +470,9 @@ typedef struct
 #define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
 #define CPARACFG_CRFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
 
+#define CPARACFG_CXFSNP_MAX_USED_RATIO_DEF                       (0.999)
+#define CPARACFG_CXFSDN_MAX_USED_RATIO_DEF                       (0.999)
+
 #define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
 #define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
 #define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
@@ -604,6 +613,9 @@ typedef struct
 #define    CRFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_SWITCH)
 #define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
 #define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)
+
+#define    CXFSNP_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_MAX_USED_RATIO)
+#define    CXFSDN_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_MAX_USED_RATIO)
 
 #define    CXFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM)
 #define    CXFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM)

@@ -440,12 +440,22 @@ typedef struct
 
 typedef EC_BOOL (*CMCNP_DEGRADE_CALLBACK)(void *, const CMCNP_KEY *, const CMCNP_ITEM *, const uint16_t, const uint16_t, const uint16_t);
 
+#define CMCNP_DEGRADE_SSD           ((uint32_t)0x0001)
+#define CMCNP_DEGRADE_SATA          ((uint32_t)0x0010)
+
 typedef struct
 {
+    uint32_t                     ssd_flag :1;            /*degrade to ssd*/
+    uint32_t                     sata_flag:1;            /*degrade to sata*/
+    uint32_t                     rsvd01   :30;
+    uint32_t                     rsvd02;
+
     CMCNP_DEGRADE_CALLBACK       func;
     void                        *arg;
 }CMCNP_DEGRADE_CB;
 
+#define CMCNP_DEGRADE_CB_SSD_FLAG(cmcnp_degrade_cb)     ((cmcnp_degrade_cb)->ssd_flag)
+#define CMCNP_DEGRADE_CB_SATA_FLAG(cmcnp_degrade_cb)    ((cmcnp_degrade_cb)->sata_flag)
 #define CMCNP_DEGRADE_CB_FUNC(cmcnp_degrade_cb)         ((cmcnp_degrade_cb)->func)
 #define CMCNP_DEGRADE_CB_ARG(cmcnp_degrade_cb)          ((cmcnp_degrade_cb)->arg)
 

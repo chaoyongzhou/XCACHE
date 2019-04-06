@@ -11,14 +11,17 @@ extern "C"{
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <ftw.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
+#include <linux/fs.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -2404,6 +2407,38 @@ EC_BOOL c_md5_hex_chars_is_valid(const char *md5, const uint32_t len)
     return (EC_TRUE);
 }
 
+EC_BOOL c_sector_size(int fd, int *sector_size)
+{
+#ifdef BLKSSZGET
+    if(0 != ioctl(fd, BLKSSZGET, sector_size))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_sector_size: "
+                                              "fd %d ioctl(BLKSSZGET) failed, errno = %d, errstr = %s\n",
+                                              fd, errno, strerror(errno));
+        return (EC_FALSE);
+    }
+#else
+# error "Linux configuration error (BLKSSZGET)"
+#endif
+    return (EC_TRUE);
+}
+
+EC_BOOL c_sector_num(int fd, size_t *sector_num)
+{
+#ifdef BLKGETSIZE
+    if(0 != ioctl(fd, BLKGETSIZE, &sector_num))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_sector_num: "
+                                              "fd %d ioctl(BLKGETSIZE) failed, errno = %d, errstr = %s\n",
+                                              fd, errno, strerror(errno));
+        return (EC_FALSE);
+    }
+#else
+# error "Linux configuration error (BLKGETSIZE)"
+#endif
+    return (EC_TRUE);
+}
+
 STATIC_CAST static int __c_file_unlink_func(const char *path, const struct stat *sb, int type_flag, struct FTW *ftw)
 {
     if(0 != remove(path))
@@ -3267,22 +3302,124 @@ EC_BOOL c_file_read_dio(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
 
 EC_BOOL c_file_size(int fd, UINT32 *fsize)
 {
-    (*fsize) = lseek(fd, 0, SEEK_END);
-    if(((UINT32)-1) == (*fsize))
+    struct stat sb;
+
+    if(0 != fstat(fd, &sb))
     {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size: "
+                                              "fd %d fstat failed, "
+                                              "errno %d, errstr %s\n",
+                                              fd, errno, strerror(errno));
         return (EC_FALSE);
     }
-    return (EC_TRUE);
+
+    if(S_ISREG(sb.st_mode)) /*regular file*/
+    {
+        (*fsize) = sb.st_size;
+        return (EC_TRUE);
+    }
+
+    if(S_ISBLK(sb.st_mode))
+    {
+#ifdef BLKGETSIZE64
+        uint64_t    size;
+
+        if(0 == ioctl(fd, BLKGETSIZE64, &size))
+        {
+            (*fsize) = size;
+            return (EC_TRUE);
+        }
+        return (EC_TRUE);
+#elif BLKGETSIZE
+        size_t      sector_num;
+        int         sector_size;
+
+        if(EC_FALSE == c_sector_size(fd, &sector_size))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size: "
+                                                  "fd %d get sector size failed\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_sector_num(fd, &sector_num))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size: "
+                                                  "fd %d get sector num failed\n");
+            return (EC_FALSE);
+        }
+
+        (*fsize) = ((UINT32)sector_num) * ((UINT32)sector_size);
+        return (EC_TRUE);
+#else
+# error "Linux configuration error (BLKGETSIZE)"
+#endif
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size: "
+                                          "fd %d is not regular file or block device\n",
+                                          fd);
+    return (EC_FALSE);
 }
 
 EC_BOOL c_file_size_b(int fd, uint64_t *fsize)
 {
-    (*fsize) = lseek(fd, 0, SEEK_END);
-    if(((UINT32)-1) == (*fsize))
+    struct stat sb;
+
+    if(0 != fstat(fd, &sb))
     {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size_b: "
+                                              "fd %d fstat failed, "
+                                              "errno %d, errstr %s\n",
+                                              fd, errno, strerror(errno));
         return (EC_FALSE);
     }
-    return (EC_TRUE);
+
+    if(S_ISREG(sb.st_mode)) /*regular file*/
+    {
+        (*fsize) = sb.st_size;
+        return (EC_TRUE);
+    }
+
+    if(S_ISBLK(sb.st_mode))
+    {
+#ifdef BLKGETSIZE64
+        uint64_t    size;
+
+        if(0 == ioctl(fd, BLKGETSIZE64, &size))
+        {
+            (*fsize) = size;
+            return (EC_TRUE);
+        }
+        return (EC_TRUE);
+#elif BLKGETSIZE
+        size_t      sector_num;
+        int         sector_size;
+
+        if(EC_FALSE == c_sector_size(fd, &sector_size))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size_b: "
+                                                  "fd %d get sector size failed\n");
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_sector_num(fd, &sector_num))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size_b: "
+                                                  "fd %d get sector num failed\n");
+            return (EC_FALSE);
+        }
+
+        (*fsize) = ((UINT32)sector_num) * ((UINT32)sector_size);
+        return (EC_TRUE);
+#else
+# error "Linux configuration error (blkgetsize)"
+#endif
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_size_b: "
+                                          "fd %d is not regular file or block device\n",
+                                          fd);
+    return (EC_FALSE);
 }
 
 EC_BOOL c_file_pos(int fd, UINT32 *fpos)
@@ -3366,7 +3503,7 @@ EC_BOOL c_file_truncate(int fd, const UINT32 fsize)
     **/
     if(0 != ftruncate(fd, fsize))
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_truncate: fd %d truncate %ld bytes failed where , errno %d, errstr %s\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_truncate: fd %d truncate %ld bytes failed, errno %d, errstr %s\n",
                             fd, fsize, errno, strerror(errno));
         return (EC_FALSE);
     }
@@ -6933,12 +7070,27 @@ int c_shm_file_close(int fd)
 
 EC_BOOL c_shm_file_size(int fd, UINT32 *fsize)
 {
-    (*fsize) = lseek(fd, 0, SEEK_END);
-    if(((UINT32)-1) == (*fsize))
+    struct stat sb;
+
+    if(0 != fstat(fd, &sb))
     {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_size: "
+                                              "fd %d fstat failed, "
+                                              "errno %d, errstr %s\n",
+                                              fd, errno, strerror(errno));
         return (EC_FALSE);
     }
-    return (EC_TRUE);
+
+    if(S_ISREG(sb.st_mode)) /*regular file*/
+    {
+        (*fsize) = sb.st_size;
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_size: "
+                                          "fd %d is not regular file\n",
+                                          fd);
+    return (EC_FALSE);
 }
 
 /*if filename is a file, call unlink; if filename is a dir, call rmdir*/
@@ -6969,7 +7121,7 @@ EC_BOOL c_shm_file_truncate(int fd, const UINT32 fsize)
     **/
     if(0 != ftruncate(fd, fsize))
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_truncate: fd %d truncate %ld bytes failed where , errno %d, errstr %s\n",
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_shm_file_truncate: fd %d truncate %ld bytes failed, errno %d, errstr %s\n",
                             fd, fsize, errno, strerror(errno));
         return (EC_FALSE);
     }

@@ -61,7 +61,7 @@ EC_BOOL cxfscfg_init(CXFSCFG *cxfscfg)
     CXFSCFG_NP_ITEM_MAX_NUM(cxfscfg)      = 0;
     CXFSCFG_NP_MAX_NUM(cxfscfg)           = 0;
 
-    CXFSCFG_DN_SIZE(cxfscfg)              = 0;
+    CXFSCFG_DN_ZONE_SIZE(cxfscfg)         = 0;
 
     CXFSCFG_OP_S_OFFSET(cxfscfg)          = ERR_OFFSET;
     CXFSCFG_OP_E_OFFSET(cxfscfg)          = ERR_OFFSET;
@@ -98,7 +98,7 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg)
     CXFSCFG_NP_ITEM_MAX_NUM(cxfscfg)      = 0;
     CXFSCFG_NP_MAX_NUM(cxfscfg)           = 0;
 
-    CXFSCFG_DN_SIZE(cxfscfg)              = 0;
+    CXFSCFG_DN_ZONE_SIZE(cxfscfg)         = 0;
 
     CXFSCFG_OP_S_OFFSET(cxfscfg)          = ERR_OFFSET;
     CXFSCFG_OP_E_OFFSET(cxfscfg)          = ERR_OFFSET;
@@ -148,7 +148,7 @@ void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg)
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
                    "dn: size %ld\n",
                    cxfscfg,
-                   CXFSCFG_DN_SIZE(cxfscfg));
+                   CXFSCFG_DN_ZONE_SIZE(cxfscfg));
 
     /*op*/
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
