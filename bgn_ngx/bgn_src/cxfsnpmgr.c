@@ -34,6 +34,9 @@ extern "C"{
 #include "task.inc"
 #include "task.h"
 
+#include "cmmap.h"
+#include "camd.h"
+
 #include "cxfsnp.h"
 #include "cxfsnprb.h"
 #include "cxfsnplru.h"
@@ -91,7 +94,6 @@ EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr)
     CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)          = 0;
 
     CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)             = NULL_PTR;
-    CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)        = NULL_PTR;
     CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)            = NULL_PTR;
 
     cvector_init(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), 0, MM_CXFSNP, CVECTOR_LOCK_ENABLE, LOC_CXFSNPMGR_0002);
@@ -131,12 +133,6 @@ EC_BOOL cxfsnp_mgr_clean(CXFSNP_MGR *cxfsnp_mgr)
         }
 
         CXFSNP_MGR_NP_CACHE(cxfsnp_mgr) = NULL_PTR;
-    }
-
-    if(NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
-    {
-        cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
-        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
     }
 
     CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)            = NULL_PTR;
@@ -995,156 +991,106 @@ EC_BOOL cxfsnp_mgr_dump(CXFSNP_MGR *cxfsnp_mgr, const UINT32 cxfsnp_zone_s_offse
     return (EC_FALSE);
 }
 
-EC_BOOL cxfsnp_mgr_sync_v1(CXFSNP_MGR *cxfsnp_mgr)
+CMMAP_NODE *cxfsnp_mgr_create_cmmap_node(CXFSNP_MGR *cxfsnp_mgr)
 {
-    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
-    && NULL_PTR != cxfsnp_mgr
+    if(NULL_PTR != cxfsnp_mgr
     && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
     {
+        CMMAP_NODE      *cmmap_node;
         UINT8           *mcache;
         UINT32           size;
 
         mcache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
         size   = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
 
-        if(0 != msync(mcache, size, MS_SYNC))
+        cmmap_node = cmmap_node_create(size, CXFSNP_MGR_MEM_ALIGNMENT);
+        if(NULL_PTR == cmmap_node)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create_cmmap_node: "
+                                                      "create np cmmap node failed\n");
+            return (NULL_PTR);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create_cmmap_node: "
+                                                  "create np cmmap node done\n");
+
+        /*clone*/
+        if(EC_FALSE == cmmap_node_import(cmmap_node, mcache, size))
+        {
+            cmmap_node_free(cmmap_node);
+
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create_cmmap_node: "
+                                                      "import mcache %p, size %ld failed\n",
+                                                      mcache, size);
+            return (NULL_PTR);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create_cmmap_node: "
+                                                  "import mcache %p, size %ld done\n",
+                                                  mcache, size);
+
+        return (cmmap_node);
+    }
+
+    return (NULL_PTR);
+}
+
+EC_BOOL cxfsnp_mgr_sync(CXFSNP_MGR *cxfsnp_mgr, CAMD_MD *camd_md, CXFSCFG *cxfscfg)
+{
+    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_sync: npp is not read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != cxfsnp_mgr
+    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr))
+    {
+        CXFSZONE        *cxfszone;
+        CMMAP_NODE      *cmmap_node;
+        UINT8           *mcache;
+        UINT32           size;
+
+        mcache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
+        size   = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
+
+        cmmap_node = cmmap_node_create(size, CXFSNP_MGR_MEM_ALIGNMENT);
+        if(NULL_PTR == cmmap_node)
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_sync: "
-                                                      "sync npp with size %ld failed, "
-                                                      "errno = %d, errstr = %s\n",
-                                                      size, errno, strerror(errno));
+                                                      "create np cmmap node failed\n");
             return (EC_FALSE);
         }
 
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsnp_mgr_start_sync(CXFSNP_MGR *cxfsnp_mgr)
-{
-    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: npp is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
-    && NULL_PTR != cxfsnp_mgr
-    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
-    && NULL_PTR == CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
-    {
-        UINT8           *mcache;
-        UINT32           size;
-
-        mcache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
-        size   = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
-
-        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = cmsync_node_create(mcache, size);
-        if(NULL_PTR == CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
+        /*clone*/
+        if(EC_FALSE == cmmap_node_import(cmmap_node, mcache, size))
         {
-            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: "
-                                                      "create np msync node failed\n");
+            cmmap_node_free(cmmap_node);
+
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_sync: "
+                                                      "import mcache %p, size %ld failed\n",
+                                                      mcache, size);
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == cmsync_node_start(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)))
+        cxfszone = CXFSCFG_NP_ZONE(cxfscfg, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
+
+        /*sync*/
+        if(EC_FALSE == cmmap_node_sync(cmmap_node, camd_md, CXFSZONE_S_OFFSET(cxfszone)))
         {
-            cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
-            CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
+            cmmap_node_free(cmmap_node);
 
-            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_start_sync: "
-                                                      "start np msync node failed\n");
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_sync: "
+                                                      "sync mcache %p, size %ld to offset %ld failed\n",
+                                                      mcache, size, CXFSZONE_S_OFFSET(cxfszone));
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_start_sync: "
-                                                  "start np msync done\n");
-        return (EC_TRUE);
-    }
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_sync: "
+                                                  "sync mcache %p, size %ld to offset %ld done\n",
+                                                  mcache, size, CXFSZONE_S_OFFSET(cxfszone));
 
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsnp_mgr_end_sync(CXFSNP_MGR *cxfsnp_mgr)
-{
-    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_end_sync: npp is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
-    && NULL_PTR != cxfsnp_mgr
-    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
-    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
-    {
-        cmsync_node_end(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
-
-        cmsync_node_free(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr));
-        CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr) = NULL_PTR;
-
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_end_sync: "
-                                                  "stop np msync done\n");
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsnp_mgr_process_sync(CXFSNP_MGR *cxfsnp_mgr)
-{
-    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_process_sync: npp is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
-    && NULL_PTR != cxfsnp_mgr
-    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
-    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
-    {
-        if(EC_FALSE == cmsync_node_process(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr), CXFSNP_MGR_MSYNC_SIZE))
-        {
-            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_process_sync: "
-                                                      "process np msync node failed\n");
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_process_sync: "
-                                                  "process np msync node done\n");
-
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsnp_mgr_is_sync(CXFSNP_MGR *cxfsnp_mgr)
-{
-    if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_is_sync: npp is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_NP_MMAP_SWITCH
-    && NULL_PTR != cxfsnp_mgr
-    && NULL_PTR != CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)
-    && NULL_PTR != CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr))
-    {
-        if(0 == cmsync_node_left(CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)))
-        {
-            dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_is_sync: "
-                                                      "process np msync completed\n");
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_is_sync: "
-                                                  "process np msync on-going\n");
-
+        cmmap_node_free(cmmap_node);
         return (EC_TRUE);
     }
 

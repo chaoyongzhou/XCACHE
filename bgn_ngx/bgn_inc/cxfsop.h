@@ -37,6 +37,10 @@ extern "C"{
 #define CXFSOP_HDR_MAX_LEN      (((uint16_t) 4) << 10) /*4KB*/
 #define CXFSOP_SEARCH_MAX_LEN   (((uint64_t)16) << 10) /*16KB = 4 * 4KB*/
 
+#define CXFSOP_PAGE_SIZE_NBITS           ((uint64_t)18) /*256K*/
+#define CXFSOP_PAGE_SIZE_NBYTES          ((uint64_t)(1 << CXFSOP_PAGE_SIZE_NBITS))
+#define CXFSOP_PAGE_SIZE_MASK            (CXFSOP_PAGE_SIZE_NBYTES - 1)
+
 typedef struct
 {
     /*8B*/

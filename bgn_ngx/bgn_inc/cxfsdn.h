@@ -31,7 +31,7 @@ extern "C"{
 #include "real.h"
 #include "cbadbitmap.h"
 
-#include "cmsync.h"
+#include "cmmap.h"
 
 #include "cxfscfg.h"
 #include "cxfspgrb.h"
@@ -195,8 +195,6 @@ typedef struct
     CAMD_MD           *camd_md;
 
     CBAD_BITMAP       *sata_bad_bitmap;
-
-    CMSYNC_NODE       *dn_msync_node;
 }CXFSDN;
 
 #define CXFSDN_READ_ONLY_FLAG(cxfsdn)                      ((cxfsdn)->read_only_flag)
@@ -210,7 +208,6 @@ typedef struct
 #define CXFSDN_MEM_CACHE(cxfsdn)                           ((cxfsdn)->mem_cache)
 #define CXFSDN_CAMD_MD(cxfsdn)                             ((cxfsdn)->camd_md)
 #define CXFSDN_SATA_BAD_BITMAP(cxfsdn)                     ((cxfsdn)->sata_bad_bitmap)
-#define CXFSDN_MSYNC_NODE(cxfsdn)                          ((cxfsdn)->dn_msync_node)
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset);
 
@@ -277,13 +274,9 @@ EC_BOOL cxfsdn_close(CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_dump(CXFSDN *cxfsdn, const UINT32 cxfsdn_zone_s_offset);
 
-EC_BOOL cxfsdn_start_sync(CXFSDN *cxfsdn);
+CMMAP_NODE *cxfsdn_create_cmmap_node(CXFSDN *cxfsdn);
 
-EC_BOOL cxfsdn_end_sync(CXFSDN *cxfsdn);
-
-EC_BOOL cxfsdn_process_sync(CXFSDN *cxfsdn);
-
-EC_BOOL cxfsdn_is_sync(CXFSDN *cxfsdn);
+EC_BOOL cxfsdn_sync(CXFSDN *cxfsdn, CAMD_MD *camd_md, CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsdn_can_sync(CXFSDN *cxfsdn);
 

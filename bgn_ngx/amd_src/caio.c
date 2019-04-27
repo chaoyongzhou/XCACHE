@@ -497,13 +497,13 @@ STATIC_CAST const char *__caio_op_str(const UINT32 op)
 
 /*----------------------------------- caio mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_caio_mem_cache_counter = 0;
-STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size)
+STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_caio_mem_cache_counter < CAIO_MEM_CACHE_MAX_NUM)
     {
         UINT8    *mem_cache;
 
-        mem_cache = (UINT8 *)c_memalign_new(size, CAIO_MEM_CACHE_ALIGN_SIZE_NBYTES);
+        mem_cache = (UINT8 *)c_memalign_new(size, align);
         if(NULL_PTR == mem_cache)
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_mem_cache_new: alloc memory failed\n");
@@ -533,13 +533,13 @@ STATIC_CAST static EC_BOOL __caio_mem_cache_free(UINT8 *mem_cache)
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __caio_mem_cache_check(UINT8 *mem_cache)
+STATIC_CAST static EC_BOOL __caio_mem_cache_check(UINT8 *mem_cache, const UINT32 align)
 {
     UINT32      addr;
     UINT32      mask;
 
     addr = ((UINT32)mem_cache);
-    mask = (CAIO_MEM_CACHE_ALIGN_SIZE_NBYTES - 1);
+    mask = (align - 1);
 
     if(0 == (addr & mask))
     {
@@ -819,7 +819,7 @@ EC_BOOL caio_disk_set_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no)
     && NULL_PTR != CAIO_DISK_BAD_BITMAP(caio_disk)
     && CAIO_PAGE_NO_ERR != page_no)
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_disk_set_bad_page: "
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] caio_disk_set_bad_page: "
                                              "set disk bad page: fd %d, page %u\n",
                                              CAIO_DISK_FD(caio_disk), page_no);
 
@@ -2465,7 +2465,7 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
     }
 
     /*scenario: not shortcut to mem cache*/
-    CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes);
+    CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes, caio_block_size_nbytes);
     if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
@@ -4099,7 +4099,7 @@ EC_BOOL caio_set_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t pa
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_set_disk_bad_page: "
+    dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] caio_set_disk_bad_page: "
                                          "set disk bad page: fd %d, page %u\n",
                                          fd, page_no);
 

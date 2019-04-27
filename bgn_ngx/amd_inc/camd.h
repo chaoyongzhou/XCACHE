@@ -48,17 +48,23 @@ extern "C"{
 #define CAMD_MMAP_MAX_SIZE_NBYTES                       (((uint64_t)9) << 30) /*9GB*/
 #define CAMD_SHM_FILE_SIZE_NBYTES                       (((uint64_t)1) << 30) /*1GB*/
 
-#define CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES            ((uint32_t)(4 << 20))  /*4MB, up to 4T SSD for 256K-page*/
+/*ssd bad page size in bytes = ssd disk size in bytes / (8 * page size in bytges)*/
+#define CAMD_SSD_DISK_MAX_SIZE_NBITS                    ((uint32_t)43) /*up to 8T SSD*/
+#define CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES            ((uint32_t)(1 << (CAMD_SSD_DISK_MAX_SIZE_NBITS - CMCPGB_PAGE_SIZE_NBITS - 3)))
 #define CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS             ((CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
 
-#define CAMD_PATH_MAX_LEN                               (1024)  /*max len of file or dir path name*/
+/*sata bad page size in bytes = sata disk size in bytes / (8 * page size in bytges)*/
+#define CAMD_SATA_DISK_MAX_SIZE_NBITS                   ((uint32_t)45) /*up to 32T SATA*/
+#define CAMD_SATA_BAD_PAGE_BITMAP_SIZE_NBYTES           ((uint32_t)(1 << (CAMD_SATA_DISK_MAX_SIZE_NBITS - CMCPGB_PAGE_SIZE_NBITS - 3)))
+#define CAMD_SATA_BAD_PAGE_BITMAP_SIZE_NBITS            ((CAMD_SATA_BAD_PAGE_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
 
 #define CAMD_MEM_ALIGNMENT                              (UINT32_ONE << 20) /*1MB alignment*/
 
-#define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
+#define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (CMCPGB_PAGE_SIZE_NBYTES)
 #define CAMD_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
+#define CAMD_DIO_TIMEOUT_NSEC_DEFAULT                   (30)
 
 #if 0
 #define CAMD_SSD_AIO_REQ_MAX_NUM                        (8)

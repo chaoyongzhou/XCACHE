@@ -108,7 +108,6 @@ extern "C"{
 #define CAIO_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
 #define CAIO_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
-#define CAIO_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
 #define CAIO_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (30) /*second*/

@@ -76,13 +76,13 @@ STATIC_CAST const char *__cdc_op_str(const UINT32 op)
 
 /*----------------------------------- cdc mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_cdc_mem_cache_counter = 0;
-STATIC_CAST static UINT8 *__cdc_mem_cache_new(const UINT32 size)
+STATIC_CAST static UINT8 *__cdc_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_cdc_mem_cache_counter < CDC_MEM_CACHE_MAX_NUM)
     {
         UINT8    *mem_cache;
 
-        mem_cache = (UINT8 *)c_memalign_new(size, CDC_MEM_CACHE_ALIGN_SIZE_NBYTES);
+        mem_cache = (UINT8 *)c_memalign_new(size, align);
         if(NULL_PTR == mem_cache)
         {
             dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_mem_cache_new: alloc memory failed\n");
@@ -111,13 +111,13 @@ STATIC_CAST static EC_BOOL __cdc_mem_cache_free(UINT8 *mem_cache)
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __cdc_mem_cache_check(UINT8 *mem_cache)
+STATIC_CAST static EC_BOOL __cdc_mem_cache_check(UINT8 *mem_cache, const UINT32 align)
 {
     UINT32      addr;
     UINT32      mask;
 
     addr = ((UINT32)mem_cache);
-    mask = (CDC_MEM_CACHE_ALIGN_SIZE_NBYTES - 1);
+    mask = (align - 1);
 
     if(0 == (addr & mask))
     {
@@ -361,11 +361,14 @@ EC_BOOL cdc_erase(CDC_MD *cdc_md)
 **/
 EC_BOOL cdc_clean(CDC_MD *cdc_md)
 {
-    cdc_close_np(cdc_md);
-    cdc_close_dn(cdc_md);
+    if(NULL_PTR != cdc_md)
+    {
+        cdc_close_np(cdc_md);
+        cdc_close_dn(cdc_md);
 
-    cdc_umount_ssd_bad_bitmap(cdc_md);
-    cdc_umount_sata_bad_bitmap(cdc_md);
+        cdc_umount_ssd_bad_bitmap(cdc_md);
+        cdc_umount_sata_bad_bitmap(cdc_md);
+    }
 
     return (EC_TRUE);
 }
@@ -6688,7 +6691,7 @@ EC_BOOL cdc_req_make_write_op(CDC_REQ *cdc_req)
 
         if(BIT_TRUE == CDC_REQ_DETACHED_FLAG(cdc_req))
         {
-            CDC_NODE_M_BUFF(cdc_node) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES);
+            CDC_NODE_M_BUFF(cdc_node) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES);
             if(NULL_PTR == CDC_NODE_M_BUFF(cdc_node))
             {
                 dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_req_make_write_op: "
@@ -7219,7 +7222,7 @@ EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
 
     if(NULL_PTR == CDC_PAGE_M_CACHE(cdc_page))
     {
-        CDC_PAGE_M_CACHE(cdc_page) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES);
+        CDC_PAGE_M_CACHE(cdc_page) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES);
         if(NULL_PTR == CDC_PAGE_M_CACHE(cdc_page))
         {
             dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_req_dispatch_node: "

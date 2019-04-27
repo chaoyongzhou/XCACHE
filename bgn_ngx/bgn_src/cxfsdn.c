@@ -38,6 +38,8 @@ extern "C"{
 
 #include "cbadbitmap.h"
 
+#include "cmmap.h"
+
 #include "cxfsdn.h"
 
 /*X File System Data Node*/
@@ -436,7 +438,6 @@ CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,
         if(NULL_PTR != task_brd_default_get())
         {
             task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
                         (TASK_BRD_CALLBACK)camd_process,
                         (void *)camd_md);
 
@@ -725,7 +726,6 @@ EC_BOOL cxfsdn_init(CXFSDN *cxfsdn)
 
     CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = NULL_PTR;
 
-    CXFSDN_MSYNC_NODE(cxfsdn)           = NULL_PTR;
     return (EC_TRUE);
 }
 
@@ -767,12 +767,6 @@ EC_BOOL cxfsdn_clean(CXFSDN *cxfsdn)
         }
 
         CXFSDN_MEM_CACHE(cxfsdn) = NULL_PTR;
-    }
-
-    if(NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
-    {
-        cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
-        CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
     }
 
     if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
@@ -882,7 +876,7 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
         wsize     = CXFSDN_SIZE(cxfsdn);
         mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
 
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: [1]"
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
                                                "disk num %u, disk max num %u\n",
                                                CXFSPGV_DISK_NUM(CXFSDN_CXFSPGV(cxfsdn)),
                                                CXFSPGV_DISK_MAX_NUM(CXFSDN_CXFSPGV(cxfsdn)));
@@ -914,7 +908,7 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
         wsize     = CXFSDN_SIZE(cxfsdn);
         mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
 
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: [1]"
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
                                                "disk num %u, disk max num %u\n",
                                                CXFSPGV_DISK_NUM(CXFSDN_CXFSPGV(cxfsdn)),
                                                CXFSPGV_DISK_MAX_NUM(CXFSDN_CXFSPGV(cxfsdn)));
@@ -1103,7 +1097,6 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
         if(NULL_PTR != task_brd_default_get())
         {
             task_brd_process_add(task_brd_default_get(),
-                                 TASK_BRD_PROCESS_LOOP,
                                 (TASK_BRD_CALLBACK)camd_process,
                                 (void *)camd_md);
 
@@ -1276,131 +1269,98 @@ EC_BOOL cxfsdn_sync_v1(CXFSDN *cxfsdn)
     return (EC_FALSE);
 }
 
-EC_BOOL cxfsdn_start_sync(CXFSDN *cxfsdn)
+CMMAP_NODE *cxfsdn_create_cmmap_node(CXFSDN *cxfsdn)
 {
-    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
+    if(NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: dn is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
-    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
-    && NULL_PTR == CXFSDN_MSYNC_NODE(cxfsdn))
-    {
+        CMMAP_NODE      *cmmap_node;
         UINT8           *mcache;
         UINT32           size;
 
         mcache = CXFSDN_MEM_CACHE(cxfsdn);
         size   = CXFSDN_SIZE(cxfsdn);
 
-        CXFSDN_MSYNC_NODE(cxfsdn) = cmsync_node_create(mcache, size);
-        if(NULL_PTR == CXFSDN_MSYNC_NODE(cxfsdn))
+        cmmap_node = cmmap_node_create(size, CXFSDN_MEM_ALIGNMENT);
+        if(NULL_PTR == cmmap_node)
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: "
-                                                   "create dn msync node failed\n");
-            return (EC_FALSE);
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create_cmmap_node: "
+                                                   "create dn cmmap node failed\n");
+            return (NULL_PTR);
         }
 
-        if(EC_FALSE == cmsync_node_start(CXFSDN_MSYNC_NODE(cxfsdn)))
+        /*clone*/
+        if(EC_FALSE == cmmap_node_import(cmmap_node, mcache, size))
         {
-            cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
-            CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
+            cmmap_node_free(cmmap_node);
 
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_start_sync: "
-                                                   "start dn msync node failed\n");
-            return (EC_FALSE);
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create_cmmap_node: "
+                                                   "import mcache %p, size %ld failed\n",
+                                                   mcache, size);
+            return (NULL_PTR);
         }
-
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_start_sync: "
-                                               "start dn msync done\n");
-
-        return (EC_TRUE);
+        return (cmmap_node);
     }
 
-    return (EC_FALSE);
+    return (NULL_PTR);
 }
 
-EC_BOOL cxfsdn_end_sync(CXFSDN *cxfsdn)
+EC_BOOL cxfsdn_sync(CXFSDN *cxfsdn, CAMD_MD *camd_md, CXFSCFG *cxfscfg)
 {
     if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
     {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_end_sync: dn is not read-only\n");
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: dn is not read-only\n");
         return (EC_FALSE);
     }
 
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
-    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
-    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
+    if(NULL_PTR != cxfsdn
+    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
     {
+        CXFSZONE        *cxfszone;
+        CMMAP_NODE      *cmmap_node;
+        UINT8           *mcache;
+        UINT32           size;
 
-        cmsync_node_end(CXFSDN_MSYNC_NODE(cxfsdn));
+        mcache = CXFSDN_MEM_CACHE(cxfsdn);
+        size   = CXFSDN_SIZE(cxfsdn);
 
-        cmsync_node_free(CXFSDN_MSYNC_NODE(cxfsdn));
-        CXFSDN_MSYNC_NODE(cxfsdn) = NULL_PTR;
-
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_end_sync: "
-                                               "stop dn msync done\n");
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsdn_process_sync(CXFSDN *cxfsdn)
-{
-    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
-    {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_process_sync: dn is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
-    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
-    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
-    {
-        if(EC_FALSE == cmsync_node_process(CXFSDN_MSYNC_NODE(cxfsdn), CXFSDN_MSYNC_SIZE))
+        cmmap_node = cmmap_node_create(size, CXFSDN_MEM_ALIGNMENT);
+        if(NULL_PTR == cmmap_node)
         {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_process_sync: "
-                                                   "process dn msync node failed\n");
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: "
+                                                   "create dn cmmap node failed\n");
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_process_sync: "
-                                               "process dn msync node done\n");
-
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsdn_is_sync(CXFSDN *cxfsdn)
-{
-    if(BIT_FALSE == CXFSDN_READ_ONLY_FLAG(cxfsdn))
-    {
-        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_is_sync: dn is not read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
-    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn)
-    && NULL_PTR != CXFSDN_MSYNC_NODE(cxfsdn))
-    {
-        if(0 == cmsync_node_left(CXFSDN_MSYNC_NODE(cxfsdn)))
+        /*clone*/
+        if(EC_FALSE == cmmap_node_import(cmmap_node, mcache, size))
         {
-            dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_is_sync: "
-                                                   "process dn msync completed\n");
+            cmmap_node_free(cmmap_node);
+
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: "
+                                                   "import mcache %p, size %ld failed\n",
+                                                   mcache, size);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_is_sync: "
-                                               "process dn msync on-going\n");
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
 
+        /*sync*/
+        if(EC_FALSE == cmmap_node_sync(cmmap_node, camd_md, CXFSZONE_S_OFFSET(cxfszone)))
+        {
+            cmmap_node_free(cmmap_node);
+
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: "
+                                                   "sync mcache %p, size %ld to offset %ld failed\n",
+                                                   mcache, size, CXFSZONE_S_OFFSET(cxfszone));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_sync: "
+                                                  "sync mcache %p, size %ld to offset %ld done\n",
+                                                  mcache, size, CXFSZONE_S_OFFSET(cxfszone));
+
+        cmmap_node_free(cmmap_node);
         return (EC_TRUE);
     }
 
@@ -1409,8 +1369,7 @@ EC_BOOL cxfsdn_is_sync(CXFSDN *cxfsdn)
 
 EC_BOOL cxfsdn_can_sync(CXFSDN *cxfsdn)
 {
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
+    if(NULL_PTR != cxfsdn
     && 0 == CXFSDN_WRITER_NUM(cxfsdn)
     && 0 == CXFSDN_READER_NUM(cxfsdn))
     {

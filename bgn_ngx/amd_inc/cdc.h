@@ -42,7 +42,6 @@ extern "C"{
 //#define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)4096) /*1GB for 256K-page*/
 #define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)~0) /*no limitation*/
 
-#define CDC_MEM_CACHE_ALIGN_SIZE_NBYTES                (256 << 10) /*align to 256KB*/
 #define CDC_PROCESS_EVENT_ONCE_NUM                     (128)
 
 #if 0

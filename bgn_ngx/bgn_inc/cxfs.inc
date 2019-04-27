@@ -1691,7 +1691,21 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
-
+{
+/* -- EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_sync_do,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_sync_do",
+/*func index      */     FI_cxfs_sync_do,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cxfs_func_addr_list_len = sizeof(g_cxfs_func_addr_list)/sizeof(g_cxfs_func_addr_list[0]);

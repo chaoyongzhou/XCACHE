@@ -34,6 +34,7 @@ extern "C"{
 #include "real.h"
 
 #include "task.h"
+#include "coroutine.h"
 
 #include "csocket.h"
 
@@ -281,6 +282,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                     (CRB_DATA_FREE)cxfs_wait_file_free,
                     (CRB_DATA_PRINT)cxfs_wait_file_print);
 
+    clist_init(CXFS_MD_OP_MGR_LIST(cxfs_md), MM_CXFSOP_MGR, LOC_CXFS_0001);
+
     CXFS_MD_SYNC_FLAG(cxfs_md)              = BIT_FALSE;
     CXFS_MD_NP_SYNC_FLAG(cxfs_md)           = BIT_FALSE;
     CXFS_MD_DN_SYNC_FLAG(cxfs_md)           = BIT_FALSE;
@@ -293,6 +296,9 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md)    = 0;
     CXFS_MD_OP_MGR(cxfs_md)                 = NULL_PTR;
     CXFS_MD_OP_DUMP_OFFSET(cxfs_md)         = 0;
+    CXFS_MD_NP_CMMAP_NODE(cxfs_md)          = NULL_PTR;
+    CXFS_MD_DN_CMMAP_NODE(cxfs_md)          = NULL_PTR;
+
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -418,14 +424,14 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
         CXFSCFG_OP_E_OFFSET(cxfscfg)        = CXFSCFG_SIZE
                                             + CXFS_SATA_BAD_BITMAP_SIZE_NBYTES
-                                            + CXFS_OP_TABLE_SIZE_NBYTES;
+                                            + CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES;
 
 
         /*set basic info to config for fresh xfs*/
         CXFSCFG_SATA_DISK_SIZE(cxfscfg)     = sata_disk_size;
         CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)   = CXFSCFG_SIZE
                                             + CXFS_SATA_BAD_BITMAP_SIZE_NBYTES
-                                            + CXFS_OP_TABLE_SIZE_NBYTES;
+                                            + CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES;
 
         CXFSCFG_SSD_DISK_SIZE(cxfscfg)      = ssd_disk_size;
         CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET + 0;
@@ -462,10 +468,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     /*op mgr*/
     if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
     {
-        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_MCACHE_SIZE_NBYTES);
+        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES);
         if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: create op mcache failed\n");
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: create op mgr failed\n");
             cxfs_end(cxfs_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -484,24 +490,20 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
         }
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: create op mcache done\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: create op mgr done\n");
     }
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cxfs_end, cxfs_md_id);
 
     task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
                         (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
                         (void *)cxfs_md);
-#if 1
-    task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
-                        (TASK_BRD_CALLBACK)cxfs_process_op,
-                        (void *)cxfs_md_id);
-#endif
 
     task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
+                        (TASK_BRD_CALLBACK)cxfs_process_op,
+                        (void *)cxfs_md_id);
+
+    task_brd_process_add(task_brd_default_get(),
                         (TASK_BRD_CALLBACK)cxfs_process_space,
                         (void *)cxfs_md_id);
 
@@ -697,6 +699,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
                     (CRB_DATA_FREE)cxfs_wait_file_free,
                     (CRB_DATA_PRINT)cxfs_wait_file_print);
 
+    clist_init(CXFS_MD_OP_MGR_LIST(cxfs_md), MM_CXFSOP_MGR, LOC_CXFS_0001);
+
     CXFS_MD_SYNC_FLAG(cxfs_md)              = BIT_FALSE;
     CXFS_MD_NP_SYNC_FLAG(cxfs_md)           = BIT_FALSE;
     CXFS_MD_DN_SYNC_FLAG(cxfs_md)           = BIT_FALSE;
@@ -709,6 +713,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md)    = 0;
     CXFS_MD_OP_MGR(cxfs_md)                 = NULL_PTR;
     CXFS_MD_OP_DUMP_OFFSET(cxfs_md)         = 0;
+    CXFS_MD_NP_CMMAP_NODE(cxfs_md)          = NULL_PTR;
+    CXFS_MD_DN_CMMAP_NODE(cxfs_md)          = NULL_PTR;
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -911,10 +917,10 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     /*op mgr*/
     if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
     {
-        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_MCACHE_SIZE_NBYTES);
+        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES);
         if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: create op mcache failed\n");
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: create op mgr failed\n");
             cxfs_end(cxfs_md_id);
             return (CMPI_ERROR_MODI);
         }
@@ -933,7 +939,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
         }
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: create op mcache done\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: create op mgr done\n");
     }
 
     /*dump npp to standby zone*/
@@ -966,16 +972,16 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cxfs_end, cxfs_md_id);
 
     task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
                         (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
                         (void *)cxfs_md);
 
-#if 1
     task_brd_process_add(task_brd_default_get(),
-                        TASK_BRD_PROCESS_LOOP,
                         (TASK_BRD_CALLBACK)cxfs_process_op,
                         (void *)cxfs_md_id);
-#endif
+
+    task_brd_process_add(task_brd_default_get(),
+                        (TASK_BRD_CALLBACK)cxfs_process_space,
+                        (void *)cxfs_md_id);
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: start CXFS module #%ld\n", cxfs_md_id);
 
@@ -1054,6 +1060,18 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
     CXFS_MD_STATE(cxfs_md) = CXFS_ERR_STATE;
 
+    if(NULL_PTR != CXFS_MD_NP_CMMAP_NODE(cxfs_md))
+    {
+        cmmap_node_free(CXFS_MD_NP_CMMAP_NODE(cxfs_md));
+        CXFS_MD_NP_CMMAP_NODE(cxfs_md) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CXFS_MD_DN_CMMAP_NODE(cxfs_md))
+    {
+        cmmap_node_free(CXFS_MD_DN_CMMAP_NODE(cxfs_md));
+        CXFS_MD_DN_CMMAP_NODE(cxfs_md) = NULL_PTR;
+    }
+
     if(NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
         cxfsdn_close(CXFS_MD_DN(cxfs_md));
@@ -1071,6 +1089,8 @@ void cxfs_end(const UINT32 cxfs_md_id)
         cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
         CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
     }
+
+    clist_clean(CXFS_MD_OP_MGR_LIST(cxfs_md), (CLIST_DATA_DATA_CLEANER)cxfsop_mgr_free);
 
     if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
     {
@@ -1127,6 +1147,147 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
 /**
 *
+* wait sync bit flag cleared
+*
+**/
+EC_BOOL cxfs_sync_wait(const UINT32 cxfs_md_id)
+{
+    CXFS_MD  *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_sync_wait: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    {
+        uint64_t        wait_msec;
+
+        for(wait_msec = 0;
+            BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md) && wait_msec < CXFS_WAIT_SYNC_MAX_MSEC;
+            wait_msec ++)
+        {
+            coroutine_usleep(1 /*msec*/, LOC_CXFS_0001);
+        }
+
+        if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md)) /*wait sync completion failed*/
+        {
+            return (EC_FALSE);
+        }
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* process sync CXFS to disk
+*
+* warning: cannot rollback if failed
+*
+**/
+EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id)
+{
+    CXFS_MD  *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_sync_do: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+    && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))
+    && NULL_PTR != CXFS_MD_NP_CMMAP_NODE(cxfs_md)
+    && NULL_PTR != CXFS_MD_DN_CMMAP_NODE(cxfs_md))
+    {
+        CXFSCFG         *cxfscfg;
+        CXFSZONE        *np_zone;
+        CXFSZONE        *dn_zone;
+        CAMD_MD         *camd_md;
+        MOD_NODE         mod_node;
+
+        cxfscfg = CXFS_MD_CFG(cxfs_md);
+        np_zone = CXFSCFG_NP_ZONE(cxfscfg, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
+        dn_zone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
+        camd_md = CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md));
+
+        if(NULL_PTR != CXFS_MD_NP_CMMAP_NODE(cxfs_md))
+        {
+            if(EC_FALSE == cmmap_node_sync(CXFS_MD_NP_CMMAP_NODE(cxfs_md),
+                                            camd_md,
+                                            CXFSZONE_S_OFFSET(np_zone)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync_do: sync npp failed! => stop xfs\n");
+
+                cxfs_end(cxfs_md_id);
+                return (EC_FALSE);
+            }
+
+            cmmap_node_free(CXFS_MD_NP_CMMAP_NODE(cxfs_md));
+            CXFS_MD_NP_CMMAP_NODE(cxfs_md) = NULL_PTR;
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync_do: sync npp done\n");
+        }
+
+        if(NULL_PTR != CXFS_MD_DN_CMMAP_NODE(cxfs_md))
+        {
+            if(EC_FALSE == cmmap_node_sync(CXFS_MD_DN_CMMAP_NODE(cxfs_md),
+                                            camd_md,
+                                            CXFSZONE_S_OFFSET(dn_zone)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync_do: sync dn failed! => stop xfs\n");
+
+                cxfs_end(cxfs_md_id);
+                return (EC_FALSE);
+            }
+
+            cmmap_node_free(CXFS_MD_DN_CMMAP_NODE(cxfs_md));
+            CXFS_MD_DN_CMMAP_NODE(cxfs_md) = NULL_PTR;
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync_do: sync dn done\n");
+        }
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync_do: "
+                                             "trigger dump cfg\n");
+
+        MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&mod_node) = cxfs_md_id;
+
+        task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                         &mod_node,
+                         NULL_PTR,
+                         FI_cxfs_dump_cfg, CMPI_ERROR_MODI);
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync_do: invalid state => stop xfs\n");
+
+    cxfs_end(cxfs_md_id);
+
+    return (EC_FALSE);
+}
+
+/**
+*
 * sync CXFS to disk
 *
 **/
@@ -1147,186 +1308,111 @@ EC_BOOL cxfs_sync(const UINT32 cxfs_md_id)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
+    //ASSERT(BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md));
+#if 0
+    if(BIT_TRUE == CXFS_MD_OP_DUMP_FLAG(cxfs_md))
+    {
+        /*wait dump completed*/
+        task_brd_process_add(task_brd_default_get(),
+                             (TASK_BRD_CALLBACK)cxfs_sync,
+                             (void *)cxfs_md_id);
+
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
+                                             "add process to wait dump completed\n");
+
+        return (EC_TRUE);
+    }
+#endif
     if(BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md))
     {
         CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_TRUE; /*set sync mode*/
-
-        task_brd_process_add(task_brd_default_get(),
-                             TASK_BRD_PROCESS_ONCE,
-                             (TASK_BRD_CALLBACK)cxfs_sync,
-                             (void *)cxfs_md_id);
-
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
-                                             "add process\n");
-
-        /*fall through*/
     }
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md)
-    && BIT_FALSE == CXFS_MD_READ_ONLY_FLAG(cxfs_md)
-    && NULL_PTR != CXFS_MD_DN(cxfs_md)
-    && EC_FALSE == cxfsdn_can_sync(CXFS_MD_DN(cxfs_md)))
+    /*now in sync mode*/
+    if(EC_FALSE == cxfsdn_can_sync(CXFS_MD_DN(cxfs_md)))
     {
+        /*wait sync enabled*/
         task_brd_process_add(task_brd_default_get(),
-                             TASK_BRD_PROCESS_ONCE,
                              (TASK_BRD_CALLBACK)cxfs_sync,
                              (void *)cxfs_md_id);
 
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
-                                             "retry => add process\n");
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
+                                             "add process to wait sync enabled\n");
+
         return (EC_TRUE);
     }
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md)
-    && BIT_FALSE == CXFS_MD_READ_ONLY_FLAG(cxfs_md)
-    && NULL_PTR != CXFS_MD_DN(cxfs_md)
-    && EC_TRUE == cxfsdn_can_sync(CXFS_MD_DN(cxfs_md)))
+    if(NULL_PTR == CXFS_MD_DN(cxfs_md)
+    || NULL_PTR == CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
     {
-        EC_BOOL     ret;
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync: "
+                                             "dn or camd is null\n");
 
-        ret = EC_TRUE;
+        CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*quit sync mode*/
 
-        cxfs_set_read_only(cxfs_md_id); /*set read-only mode*/
-
-        if(NULL_PTR != CXFS_MD_NPP(cxfs_md) && EC_TRUE == ret)
-        {
-            if(EC_FALSE == cxfsnp_mgr_start_sync(CXFS_MD_NPP(cxfs_md)))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync: "
-                                                     "npp start sync failed\n");
-                ret = EC_FALSE;
-            }
-            else
-            {
-                CXFS_MD_NP_SYNC_FLAG(cxfs_md) = BIT_TRUE;
-            }
-        }
-
-        if(NULL_PTR != CXFS_MD_DN(cxfs_md) && EC_TRUE == ret)
-        {
-            if(EC_FALSE == cxfsdn_start_sync(CXFS_MD_DN(cxfs_md)))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync: "
-                                                     "dn start sync failed\n");
-                ret = EC_FALSE;
-            }
-            else
-            {
-                CXFS_MD_DN_SYNC_FLAG(cxfs_md) = BIT_TRUE;
-            }
-        }
-
-        if(EC_FALSE == ret)
-        {
-            if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
-            {
-                cxfsnp_mgr_end_sync(CXFS_MD_NPP(cxfs_md));
-                CXFS_MD_NP_SYNC_FLAG(cxfs_md) = BIT_FALSE;
-            }
-
-            if(NULL_PTR != CXFS_MD_DN(cxfs_md))
-            {
-                cxfsdn_end_sync(CXFS_MD_DN(cxfs_md));
-                CXFS_MD_DN_SYNC_FLAG(cxfs_md) = BIT_FALSE;
-            }
-
-            cxfs_unset_read_only(cxfs_md_id); /*unset read-only mode*/
-
-            task_brd_process_add(task_brd_default_get(),
-                                TASK_BRD_PROCESS_LOOP,
-                                (TASK_BRD_CALLBACK)cxfs_process_op,
-                                (void *)cxfs_md_id);
-
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
-                                             "npp and dn start sync done\n");
-        /*fall through*/
+        return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md)
-    && BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    if(NULL_PTR == CXFS_MD_NP_CMMAP_NODE(cxfs_md)
+    && NULL_PTR == CXFS_MD_DN_CMMAP_NODE(cxfs_md))
     {
-        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
-        && BIT_TRUE == CXFS_MD_NP_SYNC_FLAG(cxfs_md))
+        MOD_NODE            mod_node;
+
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
         {
-            if(EC_TRUE == cxfsnp_mgr_is_sync(CXFS_MD_NPP(cxfs_md)))
+            CXFS_MD_NP_CMMAP_NODE(cxfs_md) = cxfsnp_mgr_create_cmmap_node(CXFS_MD_NPP(cxfs_md));
+            if(NULL_PTR == CXFS_MD_NP_CMMAP_NODE(cxfs_md))
             {
-                cxfsnp_mgr_process_sync(CXFS_MD_NPP(cxfs_md));
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync: npp create cmmap_node failed\n");
+
+                CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*quit sync mode*/
+                return (EC_FALSE);
             }
-            else
-            {
-                cxfsnp_mgr_end_sync(CXFS_MD_NPP(cxfs_md));
-                CXFS_MD_NP_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*clear*/
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: npp create cmmap_node done\n");
         }
 
-        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
-        && BIT_TRUE == CXFS_MD_DN_SYNC_FLAG(cxfs_md))
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md))
         {
-            if(EC_TRUE == cxfsdn_is_sync(CXFS_MD_DN(cxfs_md)))
+            CXFS_MD_DN_CMMAP_NODE(cxfs_md) = cxfsdn_create_cmmap_node(CXFS_MD_DN(cxfs_md));
+            if(NULL_PTR == CXFS_MD_DN_CMMAP_NODE(cxfs_md))
             {
-                cxfsdn_process_sync(CXFS_MD_DN(cxfs_md));
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sync: dn create cmmap_node failed\n");
+
+                cmmap_node_free(CXFS_MD_NP_CMMAP_NODE(cxfs_md));
+                CXFS_MD_NP_CMMAP_NODE(cxfs_md) = NULL_PTR;
+
+                CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*quit sync mode*/
+                return (EC_FALSE);
             }
-            else
-            {
-                cxfsdn_end_sync(CXFS_MD_DN(cxfs_md));
-                CXFS_MD_DN_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*clear*/
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: dn create cmmap_node done\n");
         }
 
-        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
-        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))
-        && BIT_FALSE == CXFS_MD_NP_SYNC_FLAG(cxfs_md)
-        && BIT_FALSE == CXFS_MD_DN_SYNC_FLAG(cxfs_md))
-        {
-            MOD_NODE      mod_node;
+        /*cannot rollback from here*/
+        CXFS_MD_SYNC_FLAG(cxfs_md)                      = BIT_FALSE; /*unset sync mode*/
+        CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 = 0;         /*rewind op dump offset*/
+        CXFSCFG_OP_DUMP_TIME_MSEC(CXFS_MD_CFG(cxfs_md)) = c_get_cur_time_msec();
 
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
-                                                 "trigger dump cfg\n");
+        MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&mod_node) = cxfs_md_id;
 
-            MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
-            MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
-            MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
-            MOD_NODE_MODI(&mod_node) = cxfs_md_id;
-
-            task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+        task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                          &mod_node,
                          NULL_PTR,
-                         FI_cxfs_dump_cfg, CMPI_ERROR_MODI);
+                         FI_cxfs_sync_do, CMPI_ERROR_MODI);
 
-            /*fall through*/
-        }
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_op,
+                            (void *)cxfs_md_id);
 
-        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
-        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))
-        && BIT_FALSE == CXFS_MD_NP_SYNC_FLAG(cxfs_md)
-        && BIT_FALSE == CXFS_MD_DN_SYNC_FLAG(cxfs_md))
-        {
-            CXFS_MD_OP_DUMP_OFFSET(cxfs_md) = 0;    /*rewind op dump offset*/
-
-            CXFSCFG_OP_DUMP_TIME_MSEC(CXFS_MD_CFG(cxfs_md)) = c_get_cur_time_msec();
-
-            cxfs_unset_read_only(cxfs_md_id);       /*unset read-only mode*/
-            CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_FALSE; /*unset sync mode*/
-
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync: "
-                                                 "npp and dn complete sync\n");
-
-            task_brd_process_add(task_brd_default_get(),
-                                TASK_BRD_PROCESS_LOOP,
-                                (TASK_BRD_CALLBACK)cxfs_process_op,
-                                (void *)cxfs_md_id);
-        }
-        else
-        {
-            task_brd_process_add(task_brd_default_get(),
-                                 TASK_BRD_PROCESS_ONCE,
-                                 (TASK_BRD_CALLBACK)cxfs_sync,
-                                 (void *)cxfs_md_id);
-        }
+        return (EC_TRUE);
     }
+
+    /*wait previous sync completed*/
+    task_brd_process_add(task_brd_default_get(),
+                         (TASK_BRD_CALLBACK)cxfs_sync,
+                         (void *)cxfs_md_id);
 
     return (EC_TRUE);
 }
@@ -1504,6 +1590,11 @@ EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md)
                                                      "offset %ld, size %ld failed\n",
                                                      sata_bad_bitmap_offset,
                                                      sata_bad_bitmap_size);
+
+
+                task_brd_process_add(task_brd_default_get(),
+                                    (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
+                                    (void *)cxfs_md);
                 return (EC_FALSE);
             }
 
@@ -1517,10 +1608,16 @@ EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md)
 
             CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md) = time_msec_cur + 60 * 1000; /*60s later*/
 
+            task_brd_process_add(task_brd_default_get(),
+                                (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
+                                (void *)cxfs_md);
             return (EC_TRUE);
         }
     }
 
+    task_brd_process_add(task_brd_default_get(),
+                        (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
+                        (void *)cxfs_md);
     return (EC_FALSE);
 }
 
@@ -3270,9 +3367,9 @@ EC_BOOL cxfs_write(const UINT32 cxfs_md_id, const CSTRING *file_path, const CBYT
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -3301,9 +3398,9 @@ EC_BOOL cxfs_write_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, co
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_no_lock: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_no_lock: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -3342,6 +3439,12 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_safe: "
                                              "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_safe: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -3402,6 +3505,12 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read: "
                                              "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -3472,9 +3581,9 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -3559,6 +3668,12 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: "
                                              "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4154,9 +4269,9 @@ EC_BOOL cxfs_write_dn(const UINT32 cxfs_md_id, const CBYTES *cbytes, CXFSNP_FNOD
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_dn: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_dn: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4228,6 +4343,12 @@ EC_BOOL cxfs_read_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode, 
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: "
                                              "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4303,9 +4424,9 @@ EC_BOOL cxfs_write_e_dn(const UINT32 cxfs_md_id, CXFSNP_FNODE *cxfsnp_fnode, UIN
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e_dn: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e_dn: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4396,6 +4517,12 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: "
                                              "xfs is in op-replay mode\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4566,9 +4693,9 @@ EC_BOOL cxfs_write_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, const 
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_npp: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_npp: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4646,6 +4773,12 @@ EC_BOOL cxfs_read_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, CXFSNP_
         return (EC_FALSE);
     }
 
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_npp: wait syncing timeout\n");
+        return (EC_FALSE);
+    }
+
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_read_npp: npp was not open\n");
@@ -4682,9 +4815,9 @@ EC_BOOL cxfs_update_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, const
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_npp: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_npp: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4742,9 +4875,9 @@ EC_BOOL cxfs_renew(const UINT32 cxfs_md_id, const CSTRING *file_path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4789,9 +4922,9 @@ EC_BOOL cxfs_renew_http_header(const UINT32 cxfs_md_id, const CSTRING *file_path
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_header: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_header: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4880,9 +5013,9 @@ EC_BOOL cxfs_renew_http_headers(const UINT32 cxfs_md_id, const CSTRING *file_pat
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_headers: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_headers: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -4981,9 +5114,9 @@ EC_BOOL cxfs_renew_http_headers_with_token(const UINT32 cxfs_md_id, const CSTRIN
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_headers_with_token: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew_http_headers_with_token: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5250,9 +5383,9 @@ EC_BOOL cxfs_delete_dn(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, const CX
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5337,9 +5470,9 @@ EC_BOOL cxfs_delete_file(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5398,9 +5531,9 @@ EC_BOOL cxfs_delete_file_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file_no_lock: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file_no_lock: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5457,9 +5590,9 @@ EC_BOOL cxfs_delete_file_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file_wildcard: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file_wildcard: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5540,9 +5673,9 @@ EC_BOOL cxfs_delete_dir(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5598,9 +5731,9 @@ EC_BOOL cxfs_delete_dir_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_no_lock: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_no_lock: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5657,9 +5790,9 @@ EC_BOOL cxfs_delete_dir_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_wildcard: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_wildcard: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5731,9 +5864,9 @@ EC_BOOL cxfs_delete(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 d
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5783,9 +5916,9 @@ EC_BOOL cxfs_delete_no_lock(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5841,9 +5974,9 @@ EC_BOOL cxfs_update(const UINT32 cxfs_md_id, const CSTRING *file_path, const CBY
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5880,9 +6013,9 @@ EC_BOOL cxfs_update_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, c
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -5939,9 +6072,9 @@ EC_BOOL cxfs_update_with_token(const UINT32 cxfs_md_id, const CSTRING *file_path
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_with_token: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_with_token: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -6591,9 +6724,9 @@ EC_BOOL cxfs_file_expire(const UINT32 cxfs_md_id, const CSTRING *path_cstr)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_expire: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_expire: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -6693,9 +6826,9 @@ EC_BOOL cxfs_mkdir(const UINT32 cxfs_md_id, const CSTRING *path_cstr)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_mkdir: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_mkdir: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -6821,9 +6954,9 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_recycle: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -6885,12 +7018,20 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
 
     if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
     {
-        /*do not process*/
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_process_space: xfs in sync mode\n");
+
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_space,
+                            (void *)cxfs_md_id);
         return (EC_FALSE);
     }
 
     if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
     {
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_space,
+                            (void *)cxfs_md_id);
+
         /*do not process*/
         return (EC_FALSE);
     }
@@ -6898,12 +7039,21 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: npp was not open\n");
+
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_space,
+                            (void *)cxfs_md_id);
+
         return (EC_FALSE);
     }
 
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: dn was not open\n");
+
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_space,
+                            (void *)cxfs_md_id);
         return (EC_FALSE);
     }
 
@@ -6916,7 +7066,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
 
     if(CXFSNP_MAX_USED_RATIO <= npp_used_ratio)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "npp used ratio %.3f >= %.3f => retire & recycle\n",
                                              npp_used_ratio, CXFSNP_MAX_USED_RATIO);
 
@@ -6927,13 +7077,17 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
     dn_used_ratio = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
     if(CXFSDN_MAX_USED_RATIO <= dn_used_ratio)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "dn used ratio %.3f >= %.3f => retire & recycle\n",
                                              dn_used_ratio, CXFSDN_MAX_USED_RATIO);
 
         cxfs_retire(cxfs_md_id , (UINT32)CXFSNP_TRY_RETIRE_MAX_NUM , NULL_PTR);
         cxfs_recycle(cxfs_md_id, (UINT32)CXFSNP_TRY_RECYCLE_MAX_NUM, NULL_PTR);
     }
+
+    task_brd_process_add(task_brd_default_get(),
+                        (TASK_BRD_CALLBACK)cxfs_process_space,
+                        (void *)cxfs_md_id);
 
     return (EC_TRUE);
 }
@@ -7486,9 +7640,9 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(BIT_TRUE == CXFS_MD_SYNC_FLAG(cxfs_md))
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retire: cxfs is syncing\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retire: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
@@ -9404,8 +9558,6 @@ EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id)
     CXFS_MD         *cxfs_md;
     CXFSOP_MGR      *cxfsop_mgr;
 
-    static uint64_t  time_msec_next = 0; /*init*/
-
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
     {
@@ -9422,16 +9574,15 @@ EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id)
     cxfsop_mgr = CXFS_MD_OP_MGR(cxfs_md);
 
     if(BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md)
-    && CXFS_OP_TABLE_USED_NBYTES_THREAD <= CXFS_MD_OP_DUMP_OFFSET(cxfs_md))
+    && BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)
+    && CXFS_OP_TABLE_DISK_MAX_USED_NBYTES <= CXFS_MD_OP_DUMP_OFFSET(cxfs_md))
     {
         MOD_NODE      mod_node;
 
-        task_brd_process_del(task_brd_default_get(),
-                             (TASK_BRD_CALLBACK)cxfs_process_op,
-                             (void *)cxfs_md_id);
-
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
                                              "trigger sync\n");
+
+        CXFS_MD_SYNC_FLAG(cxfs_md) = BIT_TRUE; /*set sync mode*/
 
         MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
         MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
@@ -9443,38 +9594,78 @@ EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id)
                      NULL_PTR,
                      FI_cxfs_sync, CMPI_ERROR_MODI);
 
+        /*not process op during sync*/
+
         return (EC_TRUE);
     }
 
-    if(BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)
-    && NULL_PTR != cxfsop_mgr)
+    /*note: when sync flag is true, xfs is prepare for syncing and would rewind dump offset after that*/
+
+    if(1/*BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md)
+    && BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)*/
+    && NULL_PTR != cxfsop_mgr
+    && CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES < cxfsop_mgr_used(cxfsop_mgr))
     {
-        uint64_t         time_msec_cur;
-
-        time_msec_cur = c_get_cur_time_msec();
-
-        if(0 == time_msec_next)
+        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES);
+        if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
         {
-            time_msec_next = time_msec_cur + CXFS_OP_DUMP_IDLE_NSEC_THREAD * 1000; /*60s later*/
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_process_op: "
+                                                 "[new] create op mgr failed\n");
+
+            CXFS_MD_OP_MGR(cxfs_md)       = cxfsop_mgr; /*restore*/
+            return (EC_FALSE);
         }
 
-        if(CXFS_OP_DUMP_USED_RATIO_THREAD < cxfsop_mgr_used_ratio(cxfsop_mgr) /*used ratio reach thread*/
-        || (0 < cxfsop_mgr_used(cxfsop_mgr) && time_msec_cur >= time_msec_next))/*idle elapsed reach thread*/
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
         {
-            MOD_NODE      mod_node;
-
-            MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
-            MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
-            MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
-            MOD_NODE_MODI(&mod_node) = cxfs_md_id;
-
-            task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
-                         &mod_node,
-                         NULL_PTR,
-                         FI_cxfs_dump_op, CMPI_ERROR_MODI);
-
-            time_msec_next = time_msec_cur + CXFS_OP_DUMP_IDLE_NSEC_THREAD * 1000; /*60s later*/
+            cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
+            dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
+                                                 "[new] mount camd to op mgr done\n");
         }
+
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            cxfsnp_mgr_umount_op_mgr(CXFS_MD_NPP(cxfs_md));                         /*umount old*/
+            cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md)); /*mount new*/
+        }
+
+        clist_push_back(CXFS_MD_OP_MGR_LIST(cxfs_md), (void *)cxfsop_mgr);
+
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_process_op: "
+                                             "[new] create op mgr %p done => op mgrs %ld\n",
+                                             CXFS_MD_OP_MGR(cxfs_md),
+                                             clist_size(CXFS_MD_OP_MGR_LIST(cxfs_md)));
+    }
+
+    task_brd_process_add(task_brd_default_get(),
+                        (TASK_BRD_CALLBACK)cxfs_process_op,
+                        (void *)cxfs_md_id);
+
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDNULL, "[DEBUG] cxfs_process_op: "
+                                         "[check] op mgrs %ld, sync flag %u, op dump flag %u\n",
+                                         clist_size(CXFS_MD_OP_MGR_LIST(cxfs_md)),
+                                         CXFS_MD_SYNC_FLAG(cxfs_md),
+                                         CXFS_MD_OP_DUMP_FLAG(cxfs_md));
+
+    if(EC_FALSE == clist_is_empty(CXFS_MD_OP_MGR_LIST(cxfs_md))
+    && BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md)
+    && BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md))
+    {
+        MOD_NODE      mod_node;
+
+        CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_TRUE; /*set flag as barrier*/
+
+        MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&mod_node) = cxfs_md_id;
+
+        task_p2p_no_wait(cxfs_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                     &mod_node,
+                     NULL_PTR,
+                     FI_cxfs_dump_op, CMPI_ERROR_MODI);
     }
 
     return (EC_TRUE);
@@ -9503,50 +9694,24 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    cxfsop_mgr = CXFS_MD_OP_MGR(cxfs_md); /*save old*/
+    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
+                                         "[check] op mgrs %ld, sync flag %u, op dump flag %u\n",
+                                         clist_size(CXFS_MD_OP_MGR_LIST(cxfs_md)),
+                                         CXFS_MD_SYNC_FLAG(cxfs_md),
+                                         CXFS_MD_OP_DUMP_FLAG(cxfs_md));
 
-    if(BIT_FALSE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)
-    && NULL_PTR != cxfsop_mgr)
+    if(BIT_FALSE == CXFS_MD_SYNC_FLAG(cxfs_md)
+    && BIT_TRUE == CXFS_MD_OP_DUMP_FLAG(cxfs_md)
+    && NULL_PTR != (cxfsop_mgr = clist_pop_front(CXFS_MD_OP_MGR_LIST(cxfs_md))))
     {
         CXFSCFG         *cxfscfg;
         UINT32           op_offset;     /*absolute offset in disk*/
 
         uint64_t         s_op_offset;   /*relative offset in op table*/
         uint64_t         e_op_offset;   /*relative offset in op table*/
-        uint32_t         dump_retries;
+        void            *data;
 
-        CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_TRUE; /*set flag as barrier*/
-
-        CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_MCACHE_SIZE_NBYTES);
-        if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_op: "
-                                                 "[new] create op mcache failed\n");
-
-            CXFS_MD_OP_MGR(cxfs_md)       = cxfsop_mgr; /*restore*/
-            CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_FALSE;  /*restore*/
-            return (EC_FALSE);
-        }
-
-        if(NULL_PTR != CXFS_MD_DN(cxfs_md)
-        && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
-        {
-            cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
-            dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
-                                                 "[new] mount camd to op mgr done\n");
-        }
-
-        if(NULL_PTR != CXFS_MD_NPP(cxfs_md)
-        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
-        {
-            cxfsnp_mgr_umount_op_mgr(CXFS_MD_NPP(cxfs_md));
-            cxfsnp_mgr_mount_op_mgr(CXFS_MD_NPP(cxfs_md), CXFS_MD_OP_MGR(cxfs_md));
-        }
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
-                                             "[new] create op mcache done\n");
-
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: start\n");
+        //CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_TRUE; /*set barrier flag*/
 
         cxfscfg = CXFS_MD_CFG(cxfs_md);
 
@@ -9557,40 +9722,51 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
         s_op_offset = (CXFS_MD_OP_DUMP_OFFSET(cxfs_md));
         e_op_offset = (s_op_offset + cxfsop_mgr_used(cxfsop_mgr));
 
-        ASSERT(e_op_offset < CXFS_OP_TABLE_SIZE_NBYTES); /*should never reach the end of op table*/
+        ASSERT(e_op_offset < CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES); /*should never reach the end of op table*/
 
-        dump_retries = 0;
-        while(EC_FALSE == cxfsop_mgr_dump(cxfsop_mgr, &op_offset))
+        data = CXFSOP_MGR_DATA(cxfsop_mgr);
+
+        while(s_op_offset < e_op_offset)
         {
-            dump_retries ++;
+            UINT32    n_op_offset;
+            UINT32    data_len;
 
-            if(10 <= dump_retries) /*exception last for 300s*/
+            n_op_offset = (UINT32)VAL_ALIGN_NEXT(s_op_offset + CMCPGB_PAGE_SIZE_NBYTES, CMCPGB_PAGE_SIZE_NBYTES - 1);
+            n_op_offset = (UINT32)DMIN(n_op_offset, e_op_offset);
+            data_len    = (UINT32)(n_op_offset - s_op_offset);
+
+            dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
+                                                 "op mgr %p, dump data %p, "
+                                                 "data len %ld from offset %ld\n",
+                                                 cxfsop_mgr, data, data_len, op_offset);
+
+            if(EC_FALSE == camd_file_write_dio((CAMD_MD *)CXFSOP_MGR_CAMD(cxfsop_mgr),
+                                                &op_offset, data_len, (UINT8 *)data))
             {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "fatal error:cxfs_dump_op: "
-                                                     "dump op to disk failed "
-                                                     "=> stop xfs now and sync data to disk\n");
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_op: "
+                                                     "op mgr %p, dump data %p, "
+                                                     "data len %ld to offset %ld failed\n",
+                                                     cxfsop_mgr, data, data_len, op_offset);
 
-                /*stop recording op by free op mgr of cxfs module*/
-                cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
-                CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
-
-                cxfsop_mgr_free(cxfsop_mgr);
+                clist_push_front(CXFS_MD_OP_MGR_LIST(cxfs_md), (void *)cxfsop_mgr);
 
                 CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_FALSE;    /*restore*/
-
-                cxfs_end(cxfs_md_id); /*stop xfs*/
-
                 return (EC_FALSE);
             }
 
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "fatal error:cxfs_dump_op: "
-                                                 "dump op to disk failed %u times "
-                                                 "=> retry\n",
-                                                 dump_retries);
+            dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
+                                                 "op mgr %p, dump data %p, "
+                                                 "len %ld => offset %ld\n",
+                                                 cxfsop_mgr, data, data_len, op_offset);
+
+            /*move forward*/
+            s_op_offset = n_op_offset;
+            data       += data_len;
         }
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
-                                             "op dump offset %ld => %ld\n",
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
+                                             "op mgr %p dump offset %ld => %ld\n",
+                                             cxfsop_mgr,
                                              CXFS_MD_OP_DUMP_OFFSET(cxfs_md),
                                              op_offset - CXFSCFG_OP_S_OFFSET(cxfscfg));
 
@@ -9600,7 +9776,8 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
 
         CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_FALSE;    /*restore*/
 
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: done\n");
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: done => left %ld op mgrs\n",
+                                             clist_size(CXFS_MD_OP_MGR_LIST(cxfs_md)));
     }
 
     return (EC_TRUE);
@@ -9959,7 +10136,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
                                CXFSOP_COMM_HDR_OP(cxfsop_comm_hdr),
                                CXFSOP_COMM_HDR_SIZE(cxfsop_comm_hdr));
             continue;
-        }        
+        }
 
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op: invalid op %u\n",

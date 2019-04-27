@@ -31,7 +31,8 @@ extern "C"{
 
 #include "chashalgo.h"
 
-#include "cmsync.h"
+#include "camd.h"
+#include "cmmap.h"
 
 #include "cxfscfg.h"
 #include "cxfsnp.h"
@@ -63,7 +64,6 @@ typedef struct
     UINT8           *np_cache;                      /*mem cache mounted point*/
     CVECTOR          cxfsnp_vec;                    /*item is CXFSNP*/
 
-    CMSYNC_NODE     *np_msync_node;
     CXFSOP_MGR      *np_op_mgr;
 }CXFSNP_MGR;
 
@@ -80,7 +80,6 @@ typedef struct
 #define CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)                        ((cxfsnp_mgr)->np_cache)
 #define CXFSNP_MGR_NP_VEC(cxfsnp_mgr)                          (&((cxfsnp_mgr)->cxfsnp_vec))
 #define CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id)                   ((CXFSNP *)cvector_get(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), cxfsnp_id))
-#define CXFSNP_MGR_NP_MSYNC_NODE(cxfsnp_mgr)                   ((cxfsnp_mgr)->np_msync_node)
 #define CXFSNP_MGR_NP_OP_MGR(cxfsnp_mgr)                       ((cxfsnp_mgr)->np_op_mgr)
 
 /*to reduce lock operation in name node*/
@@ -141,13 +140,9 @@ EC_BOOL cxfsnp_mgr_close(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_dump(CXFSNP_MGR *cxfsnp_mgr, const UINT32 cxfsnp_zone_s_offset);
 
-EC_BOOL cxfsnp_mgr_start_sync(CXFSNP_MGR *cxfsnp_mgr);
+CMMAP_NODE *cxfsnp_mgr_create_cmmap_node(CXFSNP_MGR *cxfsnp_mgr);
 
-EC_BOOL cxfsnp_mgr_end_sync(CXFSNP_MGR *cxfsnp_mgr);
-
-EC_BOOL cxfsnp_mgr_process_sync(CXFSNP_MGR *cxfsnp_mgr);
-
-EC_BOOL cxfsnp_mgr_is_sync(CXFSNP_MGR *cxfsnp_mgr);
+EC_BOOL cxfsnp_mgr_sync(CXFSNP_MGR *cxfsnp_mgr, CAMD_MD *camd_md, CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsnp_mgr_set_read_only(CXFSNP_MGR *cxfsnp_mgr);
 

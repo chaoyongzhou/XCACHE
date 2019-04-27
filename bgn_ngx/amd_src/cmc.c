@@ -155,8 +155,11 @@ void cmc_print(LOG *log, const CMC_MD *cmc_md)
 **/
 EC_BOOL cmc_clean(CMC_MD *cmc_md)
 {
-    cmc_close_np(cmc_md);
-    cmc_close_dn(cmc_md);
+    if(NULL_PTR != cmc_md)
+    {
+        cmc_close_np(cmc_md);
+        cmc_close_dn(cmc_md);
+    }
 
     return (EC_TRUE);
 }

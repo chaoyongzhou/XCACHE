@@ -9427,14 +9427,8 @@ TASK_BRD_PROCESS_HANDLER *task_brd_process_find(TASK_BRD *task_brd, TASK_BRD_CAL
     return (NULL_PTR);
 }
 
-EC_BOOL task_brd_process_add(TASK_BRD *task_brd, const UINT32 flag, TASK_BRD_CALLBACK func, void *arg)
+EC_BOOL task_brd_process_add(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *arg)
 {
-    if(TASK_BRD_PROCESS_ONCE != flag
-    && TASK_BRD_PROCESS_LOOP != flag)
-    {
-        return (EC_FALSE);
-    }
-
     if(NULL_PTR == task_brd_process_find(task_brd, func, arg))
     {
         TASK_BRD_PROCESS_HANDLER     *task_brd_process_handler;
@@ -9445,7 +9439,6 @@ EC_BOOL task_brd_process_add(TASK_BRD *task_brd, const UINT32 flag, TASK_BRD_CAL
             return (EC_FALSE);
         }
 
-        TASK_BRD_PROCESS_HANDLER_FLAG(task_brd_process_handler) = flag;
         TASK_BRD_PROCESS_HANDLER_FUNC(task_brd_process_handler) = func;
         TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler)  = arg;
 
@@ -9498,57 +9491,28 @@ EC_BOOL task_brd_process_clean(TASK_BRD *task_brd)
 
 EC_BOOL task_brd_process_do(TASK_BRD *task_brd)
 {
-    CLIST_DATA      *clist_data;
+    CLIST                        *task_process_list;
+    TASK_BRD_PROCESS_HANDLER     *task_brd_process_handler;
 
     UINT32           num;
     UINT32           pos;
 
-    num = clist_size(TASK_BRD_PROCESS_LIST(task_brd));
-    pos = 0;
+    task_process_list = TASK_BRD_PROCESS_LIST(task_brd);
+    num = clist_size(task_process_list);
 
-    CLIST_LOOP_NEXT(TASK_BRD_PROCESS_LIST(task_brd), clist_data)
+    for(pos = 0; pos < num
+    && NULL_PTR != (task_brd_process_handler = clist_pop_front(task_process_list));
+    pos ++)
     {
-        CLIST_DATA                   *clist_data_del;
-        TASK_BRD_PROCESS_HANDLER     *task_brd_process_handler;
         TASK_BRD_CALLBACK             func;
         void                         *arg;
-
-        pos ++;
-        if(pos > num) /*prevent the deleted one from adding back to list*/
-        {
-            break;
-        }
-
-        task_brd_process_handler = CLIST_DATA_DATA(clist_data);
-        if(NULL_PTR == task_brd_process_handler)
-        {
-            clist_data_del = clist_data;
-            clist_data = CLIST_DATA_PREV(clist_data);
-
-            clist_erase(TASK_BRD_PROCESS_LIST(task_brd), clist_data_del);
-            continue;
-        }
 
         func = TASK_BRD_PROCESS_HANDLER_FUNC(task_brd_process_handler);
         arg  = TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler);
 
-        if(TASK_BRD_PROCESS_LOOP == TASK_BRD_PROCESS_HANDLER_FLAG(task_brd_process_handler))
-        {
-            func(arg);
-            continue;
-        }
-
-        clist_data_del = clist_data;
-        clist_data = CLIST_DATA_PREV(clist_data);
-
-        clist_erase(TASK_BRD_PROCESS_LIST(task_brd), clist_data_del);
-
-        if(TASK_BRD_PROCESS_ONCE == TASK_BRD_PROCESS_HANDLER_FLAG(task_brd_process_handler))
-        {
-            func(arg);
-        }
-
         safe_free((void *)task_brd_process_handler, LOC_TASK_0157);
+
+        func(arg);
     }
 
     return (EC_TRUE);

@@ -26,6 +26,9 @@ extern "C"{
 #include "cxfsop.h"
 #include "camd.h"
 
+#define CXFSOP_ASSERT(condition)           ASSERT(condition)
+//#define CXFSOP_ASSERT(condition)           do{}while(0)
+
 const char *cxfsop_mgr_op_str(const uint32_t op)
 {
     if(CXFSOP_NP_F_ADD_OP == op)
@@ -748,14 +751,16 @@ EC_BOOL cxfsop_mgr_dump(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset)
                                         &offset_t, used, (UINT8 *)data))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dump: "
-                                               "dump %lu bytes to offset %ld failed\n",
-                                               used, (*offset));
+                                               "op mgr %p, dump data %p, "
+                                               "used %lu to offset %ld failed\n",
+                                               cxfsop_mgr, data, used, (*offset));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dump: "
-                                           "dump %lu bytes to offset %ld (=> %ld) done\n",
-                                           used, (*offset), offset_t);
+                                           "op mgr %p, dump data %p, "
+                                           "used %lu to offset %ld (=> %ld) done\n",
+                                           cxfsop_mgr, data, used, (*offset), offset_t);
     ASSERT((*offset) + used == offset_t);
 
     (*offset) = offset_t;
@@ -893,7 +898,11 @@ EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_add_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -957,7 +966,11 @@ EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_delete_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1020,7 +1033,11 @@ EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_dir_wildcard_delete_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1089,7 +1106,11 @@ EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_add_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1161,7 +1182,11 @@ EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_delete_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1224,7 +1249,11 @@ EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_wildcard_delete_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1294,7 +1323,11 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_update_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1309,7 +1342,7 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     if(CXFSOP_KEY_MAX_LEN <= CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_update_op: "
-                                               "[NP][F] [UPD] %.*s => klen %u >= %u => overflow!\n",
+                                               "[NP][F][UPD] %.*s => klen %u >= %u => overflow!\n",
                                                klen, key,
                                                CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr),
                                                CXFSOP_KEY_MAX_LEN);
@@ -1321,7 +1354,7 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     if(CXFSOP_HDR_MAX_LEN <= CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_file_update_op: "
-                                               "[NP][F] [UPD] %.*s => hdr size %u >= %u => overflow!\n",
+                                               "[NP][F][UPD] %.*s => hdr size %u >= %u => overflow!\n",
                                                klen, key,
                                                CXFSOP_NP_HDR_SIZE(cxfsop_np_hdr),
                                                CXFSOP_HDR_MAX_LEN);
@@ -1344,7 +1377,7 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_file_update_op: "
-                                           "[NP][F] [UPD] %.*s, (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[NP][F][UPD] %.*s, (disk %u, block %u, page %u, size %u) => used %u\n",
                                            klen, key,
                                            disk_no, block_no, page_no, file_size, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
@@ -1362,7 +1395,11 @@ EC_BOOL cxfsop_mgr_np_push_item_retire(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_item_retire: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1379,6 +1416,12 @@ EC_BOOL cxfsop_mgr_np_push_item_retire(CXFSOP_MGR      *cxfsop_mgr,
 
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_NP_ITEM_SIZE(cxfsop_np_item);
 
+
+   dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_item_retire: "
+                                           "[NP][I][RET] np %u, node %u => used %u\n",
+                                           np_id, node_pos,
+                                           CXFSOP_MGR_USED(cxfsop_mgr));
+
     return (EC_TRUE);
 }
 
@@ -1394,7 +1437,11 @@ EC_BOOL cxfsop_mgr_np_push_item_recycle(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_np_push_item_recycle: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1411,6 +1458,11 @@ EC_BOOL cxfsop_mgr_np_push_item_recycle(CXFSOP_MGR      *cxfsop_mgr,
 
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_NP_ITEM_SIZE(cxfsop_np_item);
 
+
+   dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_item_recycle: "
+                                           "[NP][I][REC] np %u, node %u => used %u\n",
+                                           np_id, node_pos,
+                                           CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
 }
 
@@ -1428,7 +1480,11 @@ EC_BOOL cxfsop_mgr_dn_push_reserve_op(CXFSOP_MGR      *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dn_push_reserve_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1447,6 +1503,11 @@ EC_BOOL cxfsop_mgr_dn_push_reserve_op(CXFSOP_MGR      *cxfsop_mgr,
 
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
+    dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_reserve_op: "
+                                           "[DN][RSV] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           disk_no, block_no, page_no, data_size,
+                                           CXFSOP_MGR_USED(cxfsop_mgr));
+
     return (EC_TRUE);
 }
 
@@ -1464,7 +1525,11 @@ EC_BOOL cxfsop_mgr_dn_push_release_op(CXFSOP_MGR *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dn_push_release_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1483,6 +1548,11 @@ EC_BOOL cxfsop_mgr_dn_push_release_op(CXFSOP_MGR *cxfsop_mgr,
 
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
+    dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_release_op: "
+                                           "[DN][REL] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           disk_no, block_no, page_no, data_size,
+                                           CXFSOP_MGR_USED(cxfsop_mgr));
+
     return (EC_TRUE);
 }
 
@@ -1500,7 +1570,11 @@ EC_BOOL cxfsop_mgr_dn_push_recycle_op(CXFSOP_MGR *cxfsop_mgr,
        > CXFSOP_MGR_SIZE(cxfsop_mgr))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_dn_push_recycle_op: "
-                                               "op mgr is full\n");
+                                               "used %lu, size %lu => op mgr %p is full\n",
+                                               CXFSOP_MGR_USED(cxfsop_mgr),
+                                               CXFSOP_MGR_SIZE(cxfsop_mgr),
+                                               cxfsop_mgr);
+        CXFSOP_ASSERT(0);
         return (EC_FALSE);
     }
 
@@ -1519,6 +1593,10 @@ EC_BOOL cxfsop_mgr_dn_push_recycle_op(CXFSOP_MGR *cxfsop_mgr,
 
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
+    dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_release_op: "
+                                           "[DN][REC] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           disk_no, block_no, page_no, data_size,
+                                           CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
 }
 

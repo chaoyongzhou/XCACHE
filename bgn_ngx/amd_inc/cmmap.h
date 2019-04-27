@@ -28,13 +28,14 @@ extern "C"{
 #include "mm.h"
 #include "log.h"
 
-
 #define CMMAP_PROTO              (PROT_READ | PROT_WRITE)
 #define CMMAP_FLAGS              (/*MAP_SHARED | */MAP_PRIVATE | MAP_ANONYMOUS | MAP_LOCKED | MAP_NORESERVE)
 
 #define CMMAP_SHM_FNAME_MAX_LEN  (256)
 
 #define CMMAP_MEM_ALIGNMENT      (UINT32_ONE << 13) /*8K alignment*/
+
+#define CMMAP_SYNC_SIZE_NBYTES   (1 << 20) /*1M*/
 
 typedef struct
 {
@@ -76,6 +77,10 @@ UINT32 cmmap_node_used(const CMMAP_NODE *cmmap_node);
 EC_BOOL cmmap_node_dump_shm(CMMAP_NODE *cmmap_node, const char *shm_root_dir, const UINT32 shm_file_size);
 
 EC_BOOL cmmap_node_restore_shm(CMMAP_NODE *cmmap_node, const char *shm_root_dir, const UINT32 align);
+
+EC_BOOL cmmap_node_import(CMMAP_NODE *cmmap_node, const void *data, const UINT32 size);
+
+EC_BOOL cmmap_node_sync(CMMAP_NODE *cmmap_node, void *camd_md, const UINT32 offset);
 
 #endif /*_CMMAP_H*/
 

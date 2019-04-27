@@ -420,18 +420,13 @@ typedef EC_BOOL (*TASK_BRD_EXTRA_CLEANER)(void *);
 
 typedef EC_BOOL (*TASK_BRD_CALLBACK)(void *);
 
-#define TASK_BRD_PROCESS_ERROR         ((UINT32) 0)
-#define TASK_BRD_PROCESS_LOOP          ((UINT32) 1)
-#define TASK_BRD_PROCESS_ONCE          ((UINT32) 2)
 
 typedef struct
 {
-    UINT32                   flag;
     TASK_BRD_CALLBACK        func;
     void                    *arg;
 }TASK_BRD_PROCESS_HANDLER;
 
-#define TASK_BRD_PROCESS_HANDLER_FLAG(task_brd_process_handler)           ((task_brd_process_handler)->flag)
 #define TASK_BRD_PROCESS_HANDLER_FUNC(task_brd_process_handler)           ((task_brd_process_handler)->func)
 #define TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler)            ((task_brd_process_handler)->arg)
 

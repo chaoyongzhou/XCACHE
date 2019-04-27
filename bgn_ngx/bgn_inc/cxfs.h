@@ -29,7 +29,7 @@ extern "C"{
 #include "real.h"
 
 #include "cbadbitmap.h"
-
+#include "cmmap.h"
 #include "cxfscfg.h"
 #include "cxfsnp.h"
 #include "cxfsdn.h"
@@ -51,13 +51,14 @@ extern "C"{
 #define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (256 << 10) /*align to 256KB*/
 
 /*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
-#define CXFS_OP_TABLE_SIZE_NBYTES           (((uint64_t)100) << 30)/*100GB*/
-#define CXFS_OP_TABLE_USED_NBYTES_THREAD    (((uint64_t) 99) << 30)/*99GB*/
-#define CXFS_OP_MCACHE_SIZE_NBYTES          (((uint32_t)  8) << 20)/*8MB*/
-#define CXFS_OP_DUMP_USED_RATIO_THREAD      ((REAL) 0.2)            /*1.6MB*/
-#define CXFS_OP_DUMP_IDLE_NSEC_THREAD       (60)                    /*idle seconds at most before next dump*/
+#define CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES  (((uint64_t)100) << 30)/*100GB*/
+#define CXFS_OP_TABLE_DISK_MAX_USED_NBYTES  (((uint64_t) 80) << 30)/*80GB*/
 
-#define CXFS_NP_RETIRE_THREAD               (0.999) /*trigger retire when np used > 99.9%*/
+#define CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES (((uint32_t)  2) << 20)/*2MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  1) << 20)/*1MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (60)                   /*idle seconds at most before next dump*/
+
+#define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
@@ -102,7 +103,10 @@ typedef struct
     uint64_t             time_msec_next;    /*next time to sync sata bad bitmap*/
 
     CXFSOP_MGR          *cxfsop_mgr;
+    CLIST                cxfsop_mgr_list;   /*pending op mgrs to dump*/
     UINT32               cxfsop_dump_offset;/*relative offset in op table*/
+    CMMAP_NODE          *np_cmmap_node;
+    CMMAP_NODE          *dn_cmmap_node;
 }CXFS_MD;
 
 #define CXFS_MD_READ_ONLY_FLAG(cxfs_md)                 ((cxfs_md)->read_only_flag)
@@ -124,9 +128,10 @@ typedef struct
 #define CXFS_MD_SATA_BAD_BITMAP(cxfs_md)                ((cxfs_md)->sata_bad_bitmap)
 #define CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md)              ((cxfs_md)->sata_bad_page_num)
 #define CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md)            ((cxfs_md)->time_msec_next)
-#define CXFS_MD_NP_MSYNC_NODE(cxfs_md)                  ((cxfs_md)->np_msync_node)
-#define CXFS_MD_DN_MSYNC_NODE(cxfs_md)                  ((cxfs_md)->dn_msync_node)
+#define CXFS_MD_NP_CMMAP_NODE(cxfs_md)                  ((cxfs_md)->np_cmmap_node)
+#define CXFS_MD_DN_CMMAP_NODE(cxfs_md)                  ((cxfs_md)->dn_cmmap_node)
 #define CXFS_MD_OP_MGR(cxfs_md)                         ((cxfs_md)->cxfsop_mgr)
+#define CXFS_MD_OP_MGR_LIST(cxfs_md)                    (&((cxfs_md)->cxfsop_mgr_list))
 #define CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 ((cxfs_md)->cxfsop_dump_offset)
 
 typedef struct
@@ -200,6 +205,20 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 *
 **/
 void cxfs_end(const UINT32 cxfs_md_id);
+
+/**
+*
+* wait sync bit flag cleared
+*
+**/
+EC_BOOL cxfs_sync_wait(const UINT32 cxfs_md_id);
+
+/**
+*
+* process sync CXFS to disk
+*
+**/
+EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id);
 
 /**
 *

@@ -68,13 +68,13 @@ STATIC_CAST const char *__camd_op_str(const UINT32 op)
 
 /*----------------------------------- camd mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_camd_mem_cache_counter = 0;
-STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size)
+STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_camd_mem_cache_counter < CAMD_MEM_CACHE_MAX_NUM)
     {
         UINT8    *mem_cache;
 
-        mem_cache = (UINT8 *)c_memalign_new(size, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
+        mem_cache = (UINT8 *)c_memalign_new(size, align);
         if(NULL_PTR == mem_cache)
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:__camd_mem_cache_new: alloc memory failed\n");
@@ -104,13 +104,13 @@ STATIC_CAST static EC_BOOL __camd_mem_cache_free(UINT8 *mem_cache)
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __camd_mem_cache_check(UINT8 *mem_cache)
+STATIC_CAST static EC_BOOL __camd_mem_cache_check(UINT8 *mem_cache, const UINT32 align)
 {
     UINT32      addr;
     UINT32      mask;
 
     addr = ((UINT32)mem_cache);
-    mask = (CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES - 1);
+    mask = (align - 1);
 
     if(0 == (addr & mask))
     {
@@ -5278,6 +5278,9 @@ void camd_process(CAMD_MD *camd_md)
         ciostat_calc_io_ratio(CAMD_MD_SSD_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
     }
 
+    task_brd_process_add(task_brd_default_get(),
+                (TASK_BRD_CALLBACK)camd_process,
+                (void *)camd_md);
     return;
 }
 
@@ -5576,7 +5579,8 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                 return;
             }
 
-            CAMD_ASSERT(EC_TRUE == __camd_mem_cache_check(CAMD_PAGE_M_CACHE(camd_page)));
+            CAMD_ASSERT(EC_TRUE == __camd_mem_cache_check(CAMD_PAGE_M_CACHE(camd_page),
+                                                          CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES));
 
             CAMD_PAGE_MEM_CACHE_FLAG(camd_page) = BIT_TRUE;
 
@@ -5651,7 +5655,8 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
                 return;
             }
 
-            CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES);
+            CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES,
+                                                                CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
             if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
             {
                 dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
@@ -5691,7 +5696,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
 
     if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
     {
-        CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES);
+        CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
         if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
@@ -7051,7 +7056,7 @@ EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key)
             return (EC_FALSE);
         }
 
-        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize);
+        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
         if(NULL_PTR == CAMD_SATA_M_BUFF(camd_sata))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_flush: "
@@ -7133,7 +7138,7 @@ EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key)
         CAMD_SATA_CAMD_MD(camd_sata)        = camd_md;
         cdcnp_key_clone(cdcnp_key, CAMD_SATA_CDCNP_KEY(camd_sata));
 
-        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize);
+        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
         if(NULL_PTR == CAMD_SATA_M_BUFF(camd_sata))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_flush: "
@@ -7187,7 +7192,7 @@ EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key)
             return (EC_FALSE);
         }
 
-        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize);
+        CAMD_SATA_M_BUFF(camd_sata) = __camd_mem_cache_new(rsize, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
         if(NULL_PTR == CAMD_SATA_M_BUFF(camd_sata))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_flush: "
@@ -7379,7 +7384,7 @@ EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CM
 
         caio_md = CAMD_MD_CAIO_MD(camd_md);
 
-        m_buff = __camd_mem_cache_new(wsize);
+        m_buff = __camd_mem_cache_new(wsize, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
         if(NULL_PTR == m_buff)
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
@@ -8078,7 +8083,7 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
         caio_cb_init(&caio_cb);
         camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0034);
 
-        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
+        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_read_dio_timeout, (void *)&camd_cond);
         caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_terminate, (void *)&camd_cond);
         caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_read_dio_complete, (void *)&camd_cond);
@@ -8177,10 +8182,14 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
         caio_cb_init(&caio_cb);
         camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0040);
 
-        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
+        caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_write_dio_timeout, (void *)&camd_cond);
         caio_cb_set_terminate_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_terminate, (void *)&camd_cond);
         caio_cb_set_complete_handler(&caio_cb, (CAIO_CALLBACK)__camd_file_write_dio_complete, (void *)&camd_cond);
+
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_file_write_dio: "
+                                             "submit dio write wsize %ld, offset %ld, buff %p\n",
+                                             wsize, (*offset), buff);
 
         if(EC_FALSE == cdio_file_write(CAMD_MD_CDIO_MD(camd_md), offset, wsize, buff, &caio_cb))
         {

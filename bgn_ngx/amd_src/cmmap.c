@@ -14,6 +14,7 @@ extern "C"{
 #include "log.h"
 #include "cmisc.h"
 
+#include "camd.h"
 #include "cmmap.h"
 
 CMMAP_NODE *cmmap_node_new()
@@ -51,6 +52,10 @@ EC_BOOL cmmap_node_clean(CMMAP_NODE *cmmap_node)
             UINT32  size;
 
             size = CMMAP_NODE_E_ADDR(cmmap_node) - CMMAP_NODE_S_ADDR(cmmap_node);
+
+            c_munlock(CMMAP_NODE_S_ADDR(cmmap_node), size);
+
+            c_mdiscard(CMMAP_NODE_S_ADDR(cmmap_node), size);
 
             c_munmap_aligned(CMMAP_NODE_S_ADDR(cmmap_node), size);
         }
@@ -537,6 +542,93 @@ EC_BOOL cmmap_node_restore_shm(CMMAP_NODE *cmmap_node, const char *shm_root_dir,
 
     return (EC_TRUE);
 }
+
+EC_BOOL cmmap_node_import(CMMAP_NODE *cmmap_node, const void *data, const UINT32 size)
+{
+    if(CMMAP_NODE_S_ADDR(cmmap_node) + size != CMMAP_NODE_E_ADDR(cmmap_node))
+    {
+        dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "error:cmmap_node_import: "
+                                              "space %ld != size %ld\n",
+                                              CMMAP_NODE_E_ADDR(cmmap_node) - CMMAP_NODE_S_ADDR(cmmap_node),
+                                              size);
+        return (EC_FALSE);
+    }
+
+    BCOPY(data, CMMAP_NODE_S_ADDR(cmmap_node), size);
+
+    dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "[DEBUG] cmmap_node_import: "
+                                          "copy %ld bytes done\n",
+                                          size);
+    return (EC_TRUE);
+}
+
+EC_BOOL cmmap_node_sync(CMMAP_NODE *cmmap_node, void *camd_md, const UINT32 offset)
+{
+    UINT32           c_offset;
+
+    c_offset = offset;
+
+    while(CMMAP_NODE_S_ADDR(cmmap_node) < CMMAP_NODE_E_ADDR(cmmap_node))
+    {
+        UINT32           space;
+        UINT32           wsize;
+        UINT32           c_offset_saved;
+        void            *s_mmap_addr;
+
+        space           = CMMAP_NODE_E_ADDR(cmmap_node) - CMMAP_NODE_S_ADDR(cmmap_node);
+        wsize           = DMIN(space, CMMAP_SYNC_SIZE_NBYTES);
+        c_offset_saved  = c_offset;
+        s_mmap_addr     = CMMAP_NODE_S_ADDR(cmmap_node);
+
+        if(EC_FALSE == camd_file_write_dio((CAMD_MD *)camd_md, &c_offset, wsize, s_mmap_addr))
+        {
+            dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "error:cmmap_node_sync: "
+                                                  "sync %p, space %ld, wsize %ld to offset %ld failed\n",
+                                                  s_mmap_addr, space, wsize, c_offset_saved);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_munlock(s_mmap_addr, wsize))
+        {
+            dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "error:cmmap_node_sync: "
+                                                  "munlock %p, space %ld, wsize %ld failed\n",
+                                                  s_mmap_addr, space, wsize);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_mdiscard(s_mmap_addr, wsize))
+        {
+            dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "error:cmmap_node_sync: "
+                                                  "discard %p, space %ld, wsize %ld failed\n",
+                                                  s_mmap_addr, space, wsize);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_munmap_aligned(s_mmap_addr, wsize))
+        {
+            dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "error:cmmap_node_sync: "
+                                                  "munmap %p, space %ld, size %ld failed\n",
+                                                  s_mmap_addr, space, wsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "[DEBUG] cmmap_node_sync: "
+                                              "sync %p, space %ld, wsize %ld to offset %ld done\n",
+                                              s_mmap_addr, space, wsize, c_offset_saved);
+
+        CMMAP_NODE_S_ADDR(cmmap_node) += wsize;
+
+        if(CMMAP_NODE_C_ADDR(cmmap_node) < CMMAP_NODE_S_ADDR(cmmap_node))
+        {
+            CMMAP_NODE_C_ADDR(cmmap_node) = CMMAP_NODE_S_ADDR(cmmap_node);
+        }
+    }
+
+    dbg_log(SEC_0209_CMMAP, 0)(LOGSTDOUT, "[DEBUG] cmmap_node_sync: "
+                                          "sync done\n");
+    return (EC_TRUE);
+}
+
 
 #ifdef __cplusplus
 }
