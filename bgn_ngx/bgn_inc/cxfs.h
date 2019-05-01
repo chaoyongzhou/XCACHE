@@ -56,7 +56,7 @@ extern "C"{
 
 #define CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES (((uint32_t)  2) << 20)/*2MB*/
 #define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  1) << 20)/*1MB*/
-#define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (60)                   /*idle seconds at most before next dump*/
+#define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (1)                    /*idle seconds at most before next dump*/
 
 #define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
 

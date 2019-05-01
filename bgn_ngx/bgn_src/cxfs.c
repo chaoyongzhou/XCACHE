@@ -9711,6 +9711,9 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
         uint64_t         e_op_offset;   /*relative offset in op table*/
         void            *data;
 
+        uint64_t         page_size_nbytes;
+        uint64_t         page_size_mask;
+
         //CXFS_MD_OP_DUMP_FLAG(cxfs_md) = BIT_TRUE; /*set barrier flag*/
 
         cxfscfg = CXFS_MD_CFG(cxfs_md);
@@ -9724,6 +9727,9 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
 
         ASSERT(e_op_offset < CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES); /*should never reach the end of op table*/
 
+        page_size_nbytes = CMCPGB_PAGE_SIZE_NBYTES;
+        page_size_mask   = CMCPGB_PAGE_SIZE_NBYTES - 1;
+
         data = CXFSOP_MGR_DATA(cxfsop_mgr);
 
         while(s_op_offset < e_op_offset)
@@ -9731,14 +9737,16 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
             UINT32    n_op_offset;
             UINT32    data_len;
 
-            n_op_offset = (UINT32)VAL_ALIGN_NEXT(s_op_offset + CMCPGB_PAGE_SIZE_NBYTES, CMCPGB_PAGE_SIZE_NBYTES - 1);
+            n_op_offset = (UINT32)VAL_ALIGN_NEXT(s_op_offset + page_size_nbytes, page_size_mask);
             n_op_offset = (UINT32)DMIN(n_op_offset, e_op_offset);
             data_len    = (UINT32)(n_op_offset - s_op_offset);
 
             dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_dump_op: "
                                                  "op mgr %p, dump data %p, "
-                                                 "data len %ld from offset %ld\n",
-                                                 cxfsop_mgr, data, data_len, op_offset);
+                                                 "[%lu, %lu) => data len %ld to offset %ld\n",
+                                                 cxfsop_mgr, data,
+                                                 s_op_offset, e_op_offset,
+                                                 data_len, op_offset);
 
             if(EC_FALSE == camd_file_write_dio((CAMD_MD *)CXFSOP_MGR_CAMD(cxfsop_mgr),
                                                 &op_offset, data_len, (UINT8 *)data))
