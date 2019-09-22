@@ -35,14 +35,14 @@ extern "C"{
 #define CDC_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
 #define CDC_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
-#define CDC_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
+#define CDC_AIO_TIMEOUT_NSEC_DEFAULT                   (3600)
 
 #define CDC_AIO_FAIL_MAX_NUM                           (3) /*max fail 3 times*/
 
 //#define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)4096) /*1GB for 256K-page*/
 #define CDC_MEM_CACHE_MAX_NUM                          ((UINT32)~0) /*no limitation*/
 
-#define CDC_PROCESS_EVENT_ONCE_NUM                     (128)
+#define CDC_PROCESS_EVENT_ONCE_NUM                     (64)
 
 #if 0
 #define CDC_TRY_RETIRE_MAX_NUM                         (8)

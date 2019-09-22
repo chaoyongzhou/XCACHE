@@ -50,6 +50,7 @@ extern "C"{
 #define CXFS_SATA_BAD_BITMAP_SIZE_NBITS     ((CXFS_SATA_BAD_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
 #define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (256 << 10) /*align to 256KB*/
 
+#if 0
 /*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
 #define CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES  (((uint64_t)100) << 30)/*100GB*/
 #define CXFS_OP_TABLE_DISK_MAX_USED_NBYTES  (((uint64_t) 80) << 30)/*80GB*/
@@ -59,6 +60,28 @@ extern "C"{
 #define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (1)                    /*idle seconds at most before next dump*/
 
 #define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
+#endif
+#if 0
+#define CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES  (((uint64_t)128) << 20)/*128MB*/
+#define CXFS_OP_TABLE_DISK_MAX_USED_NBYTES  (((uint64_t) 32) << 20)/*32MB*/
+
+#define CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES (((uint32_t) 32) << 20)/*32MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  1) << 20)/*1MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (10)                   /*idle seconds at most before next dump*/
+
+#define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
+#endif
+#if 1
+#define CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES  (((uint64_t)  1) << 30)/*1GB*/
+#define CXFS_OP_TABLE_DISK_MAX_USED_NBYTES  (((uint64_t)256) << 20)/*256MB*/
+
+#define CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES (((uint32_t) 32) << 20)/*32MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  1) << 20)/*1MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (1)                    /*idle seconds at most before next dump*/
+
+#define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
+#endif
+
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)

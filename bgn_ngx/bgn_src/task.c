@@ -7777,7 +7777,35 @@ void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
 
     task_brd = task_brd_default_get();
 
-    for(;;)
+/***********************************************************************************************************************
+NAME
+       daemon - run in the background
+
+SYNOPSIS
+       #include <unistd.h>
+
+       int daemon(int nochdir, int noclose);
+
+   Feature Test Macro Requirements for glibc (see feature_test_macros(7)):
+
+       daemon(): _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE < 500)
+
+DESCRIPTION
+       The daemon() function is for programs wishing to detach themselves from the controlling terminal and run in the background as system daemons.
+
+       If  nochdir is zero, daemon() changes the calling process's current working directory to the root directory ("/"); otherwise, the current working directory
+       is left unchanged.
+
+       If noclose is zero, daemon() redirects standard input, standard output and standard error to /dev/null; otherwise,  no  changes  are  made  to  these  file
+       descriptors.
+
+RETURN VALUE
+       (This  function  forks,  and  if  the fork(2) succeeds, the parent calls _exit(2), so that further errors are seen by the child only.)  On success daemon()
+       returns zero.  If an error occurs, daemon() returns -1 and sets errno to any of the errors specified for the fork(2) and setsid(2).
+
+***********************************************************************************************************************/
+
+    while(0)
     {
         pid_t     pid;
         int      *sync_status;
@@ -7804,6 +7832,13 @@ void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
 
         if(0 == pid) /*child*/
         {
+            if(daemon(1, 0) < 0)
+            {
+                fprintf(stderr, "error:task_brd_launch_daemon: daemon failed\n");
+                fflush(stderr);
+                return;
+            }
+
             (*sync_status) = 1;
 
             munmap(sync_status, sizeof(int));
@@ -7843,7 +7878,7 @@ void task_brd_launch_daemon(const CSTRING *pid_path_cstr)
             //task_brd_write_pidfile((const char *)"/var/run/bgn.pid", pid);
         }
 
-        if(0)
+        if(1) /*1: master, 0: master supervisor*/
         {
             exit(0);/* parent must leave */
         }

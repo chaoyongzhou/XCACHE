@@ -174,6 +174,9 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH);
 
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RETIRE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RECYCLE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_SCAN_RETIRE_MAX_NUM);
@@ -344,9 +347,12 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
 
-    sys_log(log, "CAMD_SSD_AIO_REQ_MAX_NUM                   = %ld\n" ,  CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
+    sys_log(log, "CAMD_SSD_AIO_REQ_MAX_NUM                   = %ld\n" , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
     sys_log(log, "CAMD_SATA_AIO_REQ_MAX_NUM                  = %ld\n" , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
-    sys_log(log, "CAMD_SATA_DEGRADE_SSD_SWITCH               = %s\n"  ,  CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg));
+    sys_log(log, "CAMD_SATA_DEGRADE_SSD_SWITCH               = %s\n"  , CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg));
+
+    sys_log(log, "CAMD_SSD_UPGRADE_MEM_SWITCH                = %s\n"  ,  CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg));
+    sys_log(log, "CAMD_SATA_UPGRADE_MEM_SWITCH               = %s\n"  ,  CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg));
 
     sys_log(log, "CMC_TRY_RETIRE_MAX_NUM_NUM                 = %ld\n" , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
     sys_log(log, "CMC_TRY_RECYCLE_MAX_NUM                    = %ld\n" , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));

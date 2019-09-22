@@ -46,6 +46,27 @@ static const CAIO_CFG g_caio_cfg_tbl[] = {
 
 static const UINT32 g_caio_cfg_len = sizeof(g_caio_cfg_tbl)/sizeof(g_caio_cfg_tbl[ 0 ]);
 
+#define CAIO_STAT_DEBUG (SWITCH_ON)
+
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+static uint64_t g_caio_stat_tbl[ 12 ] = {
+    0, /* 0 ms */
+    0, /* 1 ms */
+    0, /* 2 ms */
+    0, /* 3 ms */
+    0, /* 4 ms */
+    0, /* 5 ms */
+    0, /* 6 ms */
+    0, /* 7 ms */
+    0, /* 8 ms */
+    0, /* 9 ms */
+    0, /* 10 ms */
+    0, /*>10 ms */
+};
+
+static uint64_t g_caio_stat_sum = 0;
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
+
 #if 0
 #define CAIO_CRC32(data, len)   c_crc32_long((data), (len))
 #else
@@ -497,6 +518,9 @@ STATIC_CAST const char *__caio_op_str(const UINT32 op)
 
 /*----------------------------------- caio mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_caio_mem_cache_counter = 0;
+static UINT8 *g_caio_mem_cache_tab[ CAIO_MEM_CACHE_MAX_NUM] = {NULL_PTR};
+
+#if 0
 STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_caio_mem_cache_counter < CAIO_MEM_CACHE_MAX_NUM)
@@ -532,6 +556,49 @@ STATIC_CAST static EC_BOOL __caio_mem_cache_free(UINT8 *mem_cache)
     }
     return (EC_TRUE);
 }
+#endif
+
+#if 1
+STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size, const UINT32 align)
+{
+    UINT8    *mem_cache;
+
+    if(0 < g_caio_mem_cache_counter)
+    {
+        mem_cache = g_caio_mem_cache_tab[ -- g_caio_mem_cache_counter ];
+
+        ASSERT(NULL_PTR != mem_cache);
+
+        return (mem_cache);
+    }
+
+    mem_cache = (UINT8 *)c_memalign_new(size, align);
+    if(NULL_PTR == mem_cache)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:__caio_mem_cache_new: alloc memory failed\n");
+
+        return (NULL_PTR);
+    }
+
+    return (mem_cache);
+}
+
+STATIC_CAST static EC_BOOL __caio_mem_cache_free(UINT8 *mem_cache)
+{
+    if(NULL_PTR != mem_cache)
+    {
+        if(CAIO_MEM_CACHE_MAX_NUM <= g_caio_mem_cache_counter)
+        {
+            c_memalign_free(mem_cache);
+        }
+        else
+        {
+            g_caio_mem_cache_tab[ g_caio_mem_cache_counter ++ ] = mem_cache;
+        }
+    }
+    return (EC_TRUE);
+}
+#endif
 
 STATIC_CAST static EC_BOOL __caio_mem_cache_check(UINT8 *mem_cache, const UINT32 align)
 {
@@ -914,6 +981,10 @@ EC_BOOL caio_page_clean(CAIO_PAGE *caio_page)
         if(NULL_PTR != CAIO_PAGE_M_CACHE(caio_page))
         {
             if(BIT_FALSE == CAIO_PAGE_MEM_CACHE_FLAG(caio_page))
+            {
+                c_memalign_free(CAIO_PAGE_M_CACHE(caio_page));
+            }
+            else
             {
                 __caio_mem_cache_free(CAIO_PAGE_M_CACHE(caio_page));
             }
@@ -1539,6 +1610,9 @@ EC_BOOL caio_req_init(CAIO_REQ *caio_req)
     CAIO_REQ_TIMEOUT_NSEC(caio_req)             = 0;
     CAIO_REQ_NTIME_MS(caio_req)                 = 0;
 
+    CAIO_REQ_S_MSEC(caio_req)                   = 0;
+    CAIO_REQ_E_MSEC(caio_req)                   = 0;
+
     CAIO_REQ_POST_EVENT_HANDLER(caio_req)       = NULL_PTR;
     CAIO_REQ_MOUNTED_POST_EVENT_REQS(caio_req)  = NULL_PTR;
 
@@ -1586,6 +1660,9 @@ EC_BOOL caio_req_clean(CAIO_REQ *caio_req)
         CAIO_REQ_F_E_OFFSET(caio_req)               = 0;
         CAIO_REQ_TIMEOUT_NSEC(caio_req)             = 0;
         CAIO_REQ_NTIME_MS(caio_req)                 = 0;
+
+        CAIO_REQ_S_MSEC(caio_req)                   = 0;
+        CAIO_REQ_E_MSEC(caio_req)                   = 0;
     }
 
     return (EC_TRUE);
@@ -1607,6 +1684,19 @@ EC_BOOL caio_req_exec_timeout_handler(CAIO_REQ *caio_req)
     {
         CAIO_CB     caio_cb;
 
+        CAIO_REQ_E_MSEC(caio_req) = c_get_cur_time_msec();
+
+        dbg_log(SEC_0093_CAIO, 1)(LOGSTDOUT, "[DEBUG] caio_req_exec_timeout_handler: "
+                                             "req %ld, op %s, fd %d, file range [%ld, %ld), "
+                                             "sub %ld, succ %ld, "
+                                             "elapsed %ld msec\n",
+                                             CAIO_REQ_SEQ_NO(caio_req),
+                                             __caio_op_str(CAIO_REQ_OP(caio_req)),
+                                             CAIO_REQ_FD(caio_req),
+                                             CAIO_REQ_F_S_OFFSET(caio_req), CAIO_REQ_F_E_OFFSET(caio_req),
+                                             CAIO_REQ_SUB_SEQ_NUM(caio_req), CAIO_REQ_SUCC_NUM(caio_req),
+                                             CAIO_REQ_E_MSEC(caio_req) - CAIO_REQ_S_MSEC(caio_req));
+
         caio_cb_clone(CAIO_REQ_CB(caio_req), &caio_cb);
         caio_req_free(caio_req);
 
@@ -1622,6 +1712,19 @@ EC_BOOL caio_req_exec_terminate_handler(CAIO_REQ *caio_req)
     {
         CAIO_CB     caio_cb;
 
+        CAIO_REQ_E_MSEC(caio_req) = c_get_cur_time_msec();
+
+        dbg_log(SEC_0093_CAIO, 1)(LOGSTDOUT, "[DEBUG] caio_req_exec_terminate_handler: "
+                                             "req %ld, op %s, fd %d, file range [%ld, %ld), "
+                                             "sub %ld, succ %ld, "
+                                             "elapsed %ld msec\n",
+                                             CAIO_REQ_SEQ_NO(caio_req),
+                                             __caio_op_str(CAIO_REQ_OP(caio_req)),
+                                             CAIO_REQ_FD(caio_req),
+                                             CAIO_REQ_F_S_OFFSET(caio_req), CAIO_REQ_F_E_OFFSET(caio_req),
+                                             CAIO_REQ_SUB_SEQ_NUM(caio_req), CAIO_REQ_SUCC_NUM(caio_req),
+                                             CAIO_REQ_E_MSEC(caio_req) - CAIO_REQ_S_MSEC(caio_req));
+
         caio_cb_clone(CAIO_REQ_CB(caio_req), &caio_cb);
         caio_req_free(caio_req);
 
@@ -1636,6 +1739,19 @@ EC_BOOL caio_req_exec_complete_handler(CAIO_REQ *caio_req)
     if(NULL_PTR != caio_req)
     {
         CAIO_CB     caio_cb;
+
+        CAIO_REQ_E_MSEC(caio_req) = c_get_cur_time_msec();
+
+        dbg_log(SEC_0093_CAIO, 1)(LOGSTDOUT, "[DEBUG] caio_req_exec_complete_handler: "
+                                             "req %ld, op %s, fd %d, file range [%ld, %ld), "
+                                             "sub %ld, succ %ld, "
+                                             "elapsed %ld msec\n",
+                                             CAIO_REQ_SEQ_NO(caio_req),
+                                             __caio_op_str(CAIO_REQ_OP(caio_req)),
+                                             CAIO_REQ_FD(caio_req),
+                                             CAIO_REQ_F_S_OFFSET(caio_req), CAIO_REQ_F_E_OFFSET(caio_req),
+                                             CAIO_REQ_SUB_SEQ_NUM(caio_req), CAIO_REQ_SUCC_NUM(caio_req),
+                                             CAIO_REQ_E_MSEC(caio_req) - CAIO_REQ_S_MSEC(caio_req));
 
         caio_cb_clone(CAIO_REQ_CB(caio_req), &caio_cb);
         caio_req_free(caio_req);
@@ -2464,17 +2580,36 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
         return (EC_FALSE);
     }
 
-    /*scenario: not shortcut to mem cache*/
-    CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes, caio_block_size_nbytes);
-    if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
+    if(CAIO_MODEL_CHOICE == CAIO_REQ_MODEL(caio_req))
     {
-        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
-                         "new mem cache for page [%ld, %ld), fd %d failed\n",
-                         CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
-                         CAIO_PAGE_FD(caio_page));
+        /*scenario: not shortcut to mem cache*/
+        CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes, caio_block_size_nbytes);
+        if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
+                             "new mem cache for page [%ld, %ld), fd %d failed\n",
+                             CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
+                             CAIO_PAGE_FD(caio_page));
 
-        caio_page_free(caio_page);
-        return (EC_FALSE);
+            caio_page_free(caio_page);
+            return (EC_FALSE);
+        }
+        CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_TRUE;
+    }
+    else
+    {
+        /*scenario: not shortcut to mem cache*/
+        CAIO_PAGE_M_CACHE(caio_page) = c_memalign_new(caio_block_size_nbytes, caio_block_size_nbytes);
+        if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
+                             "new mem cache for page [%ld, %ld), fd %d failed\n",
+                             CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
+                             CAIO_PAGE_FD(caio_page));
+
+            caio_page_free(caio_page);
+            return (EC_FALSE);
+        }
     }
 
     /*add page to caio module*/
@@ -2736,7 +2871,6 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
     int                 nevent;
     uint64_t            nready;
     struct io_event     event[ CAIO_EVENT_MAX_NUM ];
-    struct timespec     timeout;
 
     nread = read(CAIO_MD_AIO_EVENTFD(caio_md), &nready, sizeof(uint64_t));
 
@@ -2769,14 +2903,14 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
                                          "nready = %"PRId64"\n",
                                          nready);
 
-    timeout.tv_sec  = 0;
-    timeout.tv_nsec = 0;
-
     while(0 < nready)
     {
         int idx;
 
-        if(EC_FALSE == __caio_getevents(CAIO_MD_AIO_CONTEXT(caio_md), 1, CAIO_EVENT_MAX_NUM, event, &timeout, &nevent))
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+        uint64_t    cur_usec;
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
+        if(EC_FALSE == __caio_getevents(CAIO_MD_AIO_CONTEXT(caio_md), 0, CAIO_EVENT_MAX_NUM, event, NULL_PTR, &nevent))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_event_handler: "
                                                  "io get events failed\n");
@@ -2793,8 +2927,17 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
         }
 
         /*else*/
-
-        nready -= nevent;
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+        cur_usec = c_get_cur_time_usec();
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
+        if(nready >= nevent)
+        {
+            nready -= nevent;
+        }
+        else
+        {
+            nready = 0;
+        }
 
         for(idx = 0; idx < nevent; idx ++)
         {
@@ -2856,6 +2999,24 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
             }
             else
             {
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+                uint64_t elapsed_msec;
+
+                elapsed_msec = ((cur_usec - CAIO_PAGE_SUBMIT_USEC(caio_page)) /  1000);
+
+                if(10 < elapsed_msec)
+                {
+                    g_caio_stat_tbl[ 10 + 1 ] ++;
+                }
+                else
+                {
+                    g_caio_stat_tbl[ elapsed_msec ] ++;
+                }
+
+                g_caio_stat_sum ++;
+
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
+
                 dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
                                                      "trigger complete handler\n");
 
@@ -2864,6 +3025,26 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
         }
     }
 
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+    if(0 < g_caio_stat_sum)
+    {
+        dbg_log(SEC_0093_CAIO, 1)(LOGSTDOUT, "[DEBUG] caio_event_handler: "
+                                             "0:%.2f,1:%.2f,2:%.2f,3:%.2f,4:%.2f,5:%.2f,6:%.2f,"
+                                             "7:%.2f,8:%.2f,9:%.2f,10:%.2f,O:%.2f\n",
+                                             ((0.0 + g_caio_stat_tbl[0]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[1]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[2]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[3]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[4]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[5]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[6]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[7]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[8]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[9]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[10]) / (0.0 + g_caio_stat_sum)),
+                                             ((0.0 + g_caio_stat_tbl[10 + 1]) / (0.0 + g_caio_stat_sum)));
+    }
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
     return (EC_TRUE);
 }
 
@@ -3267,9 +3448,12 @@ void caio_process_pages(CAIO_MD *caio_md)
     UINT32           aio_req_idx;
     long             aio_total_nr;
     long             aio_succ_nr;
+    UINT32           page_num;
 
     aio_req_num_saved = caio_count_req_num(caio_md);
     aio_req_num       = aio_req_num_saved;
+
+    page_num          = caio_count_page_num(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md));
 
     while(NULL_PTR != (caio_page = caio_pop_first_page(caio_md,
                                         CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md))))
@@ -3317,6 +3501,9 @@ void caio_process_pages(CAIO_MD *caio_md)
         aio_req_idx = aio_req_num - aio_req_num_saved;
         piocb[ aio_req_idx ] = CAIO_PAGE_AIOCB(caio_page);
 
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+        CAIO_PAGE_SUBMIT_USEC(caio_page) = c_get_cur_time_usec();
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
         aio_req_num ++;
 
         if(NULL_PTR != caio_disk)
@@ -3413,10 +3600,17 @@ void caio_process_pages(CAIO_MD *caio_md)
         }
 
         dbg_log(SEC_0093_CAIO, 5)(LOGSTDOUT, "[DEBUG] caio_process_pages: "
-                                             "submit aio to eventfd %d: total %ld, succ %ld, fail %ld\n",
+                                             "submit aio to eventfd %d: pages %ld, total %ld, succ %ld, fail %ld\n",
                                              CAIO_MD_AIO_EVENTFD(caio_md),
-                                             aio_total_nr, req_succ_num, req_fail_num);
+                                             page_num, aio_total_nr, req_succ_num, req_fail_num);
 
+#if (SWITCH_ON == CAIO_STAT_DEBUG)
+        dbg_log(SEC_0093_CAIO, 2)(LOGSTDOUT, "[DEBUG] caio_process_pages: "
+                                             "submit aio to eventfd %d: pages %ld, %ld => %ld, total %ld, succ %ld, fail %ld\n",
+                                             CAIO_MD_AIO_EVENTFD(caio_md),
+                                             page_num, aio_req_num_saved, aio_req_num,
+                                             aio_total_nr, req_succ_num, req_fail_num);
+#endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
         return;
     }
 
@@ -3763,6 +3957,11 @@ EC_BOOL caio_cancel_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
                                          CAIO_REQ_SEQ_NO(caio_req),
                                          __caio_op_str(CAIO_REQ_OP(caio_req)));
     return (EC_TRUE);
+}
+
+UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_list_idx)
+{
+    return clist_size(CAIO_MD_PAGE_LIST(caio_md, page_list_idx));
 }
 
 EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_list_idx, CAIO_PAGE *caio_page)
@@ -4183,6 +4382,8 @@ EC_BOOL caio_file_read(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rs
         timeout_nsec = CAIO_TIMEOUT_NSEC_DEFAULT;
     }
 
+    CAIO_REQ_S_MSEC(caio_req)       = c_get_cur_time_msec();
+
     CAIO_REQ_SEQ_NO(caio_req)       = ++ CAIO_MD_SEQ_NO(caio_md);
     CAIO_REQ_OP(caio_req)           = CAIO_OP_RD;
 
@@ -4251,6 +4452,8 @@ EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 w
     {
         timeout_nsec = CAIO_TIMEOUT_NSEC_DEFAULT;
     }
+
+    CAIO_REQ_S_MSEC(caio_req)       = c_get_cur_time_msec();
 
     CAIO_REQ_SEQ_NO(caio_req)       = ++ CAIO_MD_SEQ_NO(caio_md);
     CAIO_REQ_OP(caio_req)           = CAIO_OP_WR;

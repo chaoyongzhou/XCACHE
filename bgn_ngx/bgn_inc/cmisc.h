@@ -431,6 +431,8 @@ char *c_get_day_time_str();
 
 uint64_t c_get_cur_time_msec();
 
+uint64_t c_get_cur_time_usec();
+
 char *c_get_time_msec_str(const uint64_t time_msec);
 
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);
@@ -520,6 +522,9 @@ void *c_shm_file_create_and_mmap(const char *fname, const UINT32 size, const UIN
                             const int prot, const int flags);
 
 EC_BOOL c_shm_file_munmap(void *data, const UINT32 size);
+
+/*override glibc snprintf*/
+int snprintf(char *str, size_t size, const char *fmt, ...);
 
 #endif /*_CMISC_H*/
 

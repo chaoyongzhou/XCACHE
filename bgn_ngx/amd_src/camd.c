@@ -68,6 +68,9 @@ STATIC_CAST const char *__camd_op_str(const UINT32 op)
 
 /*----------------------------------- camd mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_camd_mem_cache_counter = 0;
+static UINT8 *g_camd_mem_cache_tab[ CAMD_MEM_CACHE_MAX_NUM] = {NULL_PTR};
+
+#if 0
 STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_camd_mem_cache_counter < CAMD_MEM_CACHE_MAX_NUM)
@@ -103,6 +106,51 @@ STATIC_CAST static EC_BOOL __camd_mem_cache_free(UINT8 *mem_cache)
     }
     return (EC_TRUE);
 }
+#endif
+
+#if 1
+STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size, const UINT32 align)
+{
+    UINT8    *mem_cache;
+
+    ASSERT(CMCPGB_PAGE_SIZE_NBYTES == size);
+    if(0 < g_camd_mem_cache_counter)
+    {
+        mem_cache = g_camd_mem_cache_tab[ -- g_camd_mem_cache_counter ];
+
+        ASSERT(NULL_PTR != mem_cache);
+
+        return (mem_cache);
+    }
+
+    mem_cache = (UINT8 *)c_memalign_new(size, align);
+    if(NULL_PTR == mem_cache)
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:__camd_mem_cache_new: alloc memory failed\n");
+
+        return (NULL_PTR);
+    }
+
+    return (mem_cache);
+}
+
+STATIC_CAST static EC_BOOL __camd_mem_cache_free(UINT8 *mem_cache)
+{
+    if(NULL_PTR != mem_cache)
+    {
+        if(CAMD_MEM_CACHE_MAX_NUM <= g_camd_mem_cache_counter)
+        {
+            c_memalign_free(mem_cache);
+        }
+        else
+        {
+            g_camd_mem_cache_tab[ g_camd_mem_cache_counter ++ ] = mem_cache;
+        }
+    }
+    return (EC_TRUE);
+}
+#endif
+
 
 STATIC_CAST static EC_BOOL __camd_mem_cache_check(UINT8 *mem_cache, const UINT32 align)
 {
@@ -596,7 +644,8 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
     }
     else
     {
-        if(SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
+        if(SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH
+        && SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
         && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
         {
             /*if loaded from sata, then flush to ssd*/
@@ -619,8 +668,8 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
     while(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)
     || BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)
     || (BIT_FALSE == CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)
-    && (BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page)
-    || BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page))))
+    && ((SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+    ||  (SWITCH_ON == CAMD_SSD_UPGRADE_MEM_SWITCH  && BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page)))))
     {
         CAMD_MD     *camd_md;
 
@@ -663,7 +712,7 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
             if(EC_TRUE == camd_page_flush_sata_dio(camd_page))/*dio*/
             {
                 dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_page_process: "
-                                 "flush page [%ld, %ld) to mem cache failed => flush sata dio done\n",
+                                 "flush page [%ld, %ld) to sata done => flush sata dio done\n",
                                  CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
                 CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_FALSE; /*clear flag*/
@@ -2823,7 +2872,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
 
         if(SWITCH_ON == CAMD_SYNC_CDC_SWITCH)
         {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] amd_start: cdc disable aio\n");
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: cdc disable aio\n");
 
             CAMD_MD_CDC_MD(camd_md) = cdc_start(ssd_disk_fd,
                                                 ssd_disk_offset + bad_bitmap_size,
@@ -3486,6 +3535,12 @@ STATIC_CAST static EC_BOOL __camd_sync_ssd_bad_bitmap_callback(void *data)
 
 EC_BOOL camd_sync_ssd_bad_bitmap(CAMD_MD *camd_md)
 {
+    if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
+    {
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_sync_ssd_bad_bitmap: "
+                                             "ssd bad bitmap is null => sync nothing\n");
+        return (EC_TRUE);
+    }
     if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
     {
         CDC_MD  *cdc_md;
@@ -3715,7 +3770,9 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(CAMD_NOT_RETRIEVE_BAD_BITMAP == retrieve_bad_bitmap_flag)
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+        if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == camd_create_ssd_bad_bitmap(camd_md))
             {
@@ -3738,7 +3795,9 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(CAMD_RETRIEVE_BAD_BITMAP == retrieve_bad_bitmap_flag)
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+        if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == camd_load_ssd_bad_bitmap(camd_md))
             {
@@ -3779,7 +3838,8 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_ssd_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                                      CAMD_MD_SSD_BAD_BITMAP(camd_md)))
@@ -3798,7 +3858,8 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_sata_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                           CAMD_MD_SATA_BAD_BITMAP(camd_md)))
@@ -3837,7 +3898,8 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SSD_DISK_FD(camd_md),
@@ -3859,7 +3921,8 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SATA_DISK_FD(camd_md),
@@ -3936,7 +3999,7 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(CAMD_NOT_RETRIEVE_BAD_BITMAP == retrieve_bad_bitmap_flag)
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+        if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
         {
             if(EC_FALSE == camd_create_ssd_bad_bitmap_shm(camd_md))
             {
@@ -3961,7 +4024,7 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(CAMD_RETRIEVE_BAD_BITMAP == retrieve_bad_bitmap_flag)
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+        if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
         {
             if(EC_FALSE == camd_retrieve_ssd_bad_bitmap_shm(camd_md))
             {
@@ -4013,7 +4076,8 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_ssd_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                          CAMD_MD_SSD_BAD_BITMAP(camd_md)))
@@ -4035,7 +4099,8 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_sata_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                           CAMD_MD_SATA_BAD_BITMAP(camd_md)))
@@ -4091,7 +4156,8 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SSD_DISK_FD(camd_md),
@@ -4115,7 +4181,8 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SATA_DISK_FD(camd_md),
@@ -4149,19 +4216,22 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
 
 EC_BOOL camd_load(CAMD_MD *camd_md)
 {
-    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    /*ssd bad bitmap*/
+    if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md)
+    && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
     {
-        /*ssd bad bitmap*/
         if(EC_FALSE == camd_load_ssd_bad_bitmap(camd_md))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_load: "
-                                                 "load bad bitmap failed\n");
+                                                 "load ssd bad bitmap failed\n");
 
             camd_clean_ssd_bad_bitmap(camd_md);
+
             return (EC_FALSE);
         }
+
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_load: "
-                                             "load bad bitmap done\n");
+                                             "load ssd bad bitmap done\n");
     }
 
     if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
@@ -4177,7 +4247,8 @@ EC_BOOL camd_load(CAMD_MD *camd_md)
         }
 
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_ssd_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                          CAMD_MD_SSD_BAD_BITMAP(camd_md)))
@@ -4196,7 +4267,8 @@ EC_BOOL camd_load(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_sata_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                           CAMD_MD_SATA_BAD_BITMAP(camd_md)))
@@ -4239,7 +4311,8 @@ EC_BOOL camd_load(CAMD_MD *camd_md)
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SSD_DISK_FD(camd_md),
@@ -4261,7 +4334,8 @@ EC_BOOL camd_load(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SATA_DISK_FD(camd_md),
@@ -4298,10 +4372,9 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
         return (EC_FALSE);
     }
 
-    /*camd bad page bitmap*/
-    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    /*ssd bad bitmap*/
+    if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        /*ssd bad bitmap*/
         if(EC_FALSE == camd_load_ssd_bad_bitmap_shm(camd_md))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_load_shm: "
@@ -4315,7 +4388,7 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
             return (EC_FALSE);
         }
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_load_shm: "
-                                             "load bad bitmap done\n");
+                                             "load ssd bad bitmap done\n");
     }
 
     /*cdc*/
@@ -4342,7 +4415,8 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
         }
 
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_ssd_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                          CAMD_MD_SSD_BAD_BITMAP(camd_md)))
@@ -4364,7 +4438,8 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_sata_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                           CAMD_MD_SATA_BAD_BITMAP(camd_md)))
@@ -4418,7 +4493,8 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SSD_DISK_FD(camd_md),
@@ -4442,7 +4518,8 @@ EC_BOOL camd_load_shm(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SATA_DISK_FD(camd_md),
@@ -4526,9 +4603,17 @@ EC_BOOL camd_dump_shm(CAMD_MD *camd_md)
     cdc_umount_mmap(CAMD_MD_CDC_MD(camd_md));
 
     /*caio*/
-    if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
+    if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)
+    && NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+    && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
     {
         caio_umount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md), CAMD_MD_SSD_DISK_FD(camd_md));
+    }
+
+    if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md)
+    && NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+    && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
+    {
         caio_umount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md), CAMD_MD_SATA_DISK_FD(camd_md));
     }
 
@@ -4627,10 +4712,9 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_retrieve_shm: "
                                          "create mmap node done\n");
 
-    /*camd bad page bitmap*/
-    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    /*ssd bad bitmap*/
+    if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        /*ssd bad bitmap*/
         if(EC_FALSE == camd_retrieve_ssd_bad_bitmap_shm(camd_md))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_retrieve_shm: "
@@ -4645,7 +4729,7 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
         }
 
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_retrieve_shm: "
-                                             "retrieve bad bitmap done\n");
+                                             "retrieve ssd bad bitmap done\n");
     }
 
     /*cdc*/
@@ -4672,7 +4756,8 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
         }
 
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_ssd_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                          CAMD_MD_SSD_BAD_BITMAP(camd_md)))
@@ -4694,7 +4779,8 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
         {
             if(EC_FALSE == cdc_mount_sata_bad_bitmap(CAMD_MD_CDC_MD(camd_md),
                                           CAMD_MD_SATA_BAD_BITMAP(camd_md)))
@@ -4749,7 +4835,8 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
     if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         /*ssd bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SSD_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SSD_DISK_FD(camd_md),
@@ -4773,7 +4860,8 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
         }
 
         /*sata bad bitmap*/
-        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
+        if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md)
+        && ERR_FD != CAMD_MD_SATA_DISK_FD(camd_md))
         {
             if(EC_FALSE == caio_mount_disk_bad_bitmap(CAMD_MD_CAIO_MD(camd_md),
                                            CAMD_MD_SATA_DISK_FD(camd_md),
@@ -5484,8 +5572,16 @@ void camd_process_pages(CAMD_MD *camd_md)
     UINT32           active_page_tree_idx;
     UINT32           standby_page_tree_idx;
 
+    UINT32           active_page_num;
+    UINT32           standby_page_num;
+    UINT32           process_page_num;
+
     active_page_tree_idx  = CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md);
     standby_page_tree_idx = CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md);
+
+    active_page_num       = camd_count_page_num(camd_md, active_page_tree_idx);
+    standby_page_num      = camd_count_page_num(camd_md, standby_page_tree_idx);
+    process_page_num      = 0;
 
     while(NULL_PTR != (camd_page = camd_pop_first_page(camd_md, active_page_tree_idx)))
     {
@@ -5498,7 +5594,18 @@ void camd_process_pages(CAMD_MD *camd_md)
         }
 
         camd_process_page(camd_md, camd_page);
+        process_page_num ++;
     }
+
+    dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_pages: "
+                                         "active pages: %ld => %ld, "
+                                         "standby pages: %ld => %ld, "
+                                         "process pages: %ld\n",
+                                         active_page_num,
+                                         camd_count_page_num(camd_md, active_page_tree_idx),
+                                         standby_page_num,
+                                         camd_count_page_num(camd_md, standby_page_tree_idx),
+                                         process_page_num);
 
     /*switch page tree*/
     CAMD_MD_SWITCH_PAGE_TREE(camd_md);
@@ -5681,14 +5788,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         }
 
         /*page life cycle is determined by process => not need to free page*/
-        if(EC_FALSE == camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)))
-        {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
-                                                 "process page [%ld, %ld) failed\n",
-                                                 CAMD_PAGE_F_S_OFFSET(camd_page),
-                                                 CAMD_PAGE_F_E_OFFSET(camd_page));
-            return;
-        }
+        camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
 
         /*here page may not be accessable => not output log info*/
         return;
@@ -5714,14 +5814,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
     && CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES == CAMD_PAGE_F_E_OFFSET(camd_page))
     {
         /*page life cycle is determined by process => not need to free page*/
-        if(EC_FALSE == camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)))
-        {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
-                                                 "process page [%ld, %ld) failed\n",
-                                                 CAMD_PAGE_F_S_OFFSET(camd_page),
-                                                 CAMD_PAGE_F_E_OFFSET(camd_page));
-            return;
-        }
+        camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
 
         /*here page may not be accessable => not output log info*/
         return;
@@ -5842,14 +5935,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             CAMD_PAGE_SSD_LOADED_FLAG(camd_page) = BIT_TRUE; /*set ssd loaded*/
 
             /*page life cycle is determined by process => not need to free page*/
-            if(EC_FALSE == camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)))
-            {
-                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
-                                                     "process page [%ld, %ld) failed\n",
-                                                     CAMD_PAGE_F_S_OFFSET(camd_page),
-                                                     CAMD_PAGE_F_E_OFFSET(camd_page));
-                return;
-            }
+            camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
         }
 
         /*here page may not be accessable => not output log info*/
@@ -5977,6 +6063,153 @@ void camd_process_post_event_reqs(CAMD_MD *camd_md, const UINT32 process_event_m
 
     dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_post_event_reqs: process %ld reqs\n", counter);
 
+    return;
+}
+
+EC_BOOL camd_is_barried(CAMD_MD *camd_md)
+{
+    if(NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
+    {
+        CAIO_MD        *caio_md;
+        UINT32          aio_req_num;
+
+        caio_md     = CAMD_MD_CAIO_MD(camd_md);
+        aio_req_num = caio_count_req_num(caio_md);
+
+        if(CAIO_REQ_MAX_NUM <= aio_req_num)
+        {
+            dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_is_barried: "
+                                                 "aio_req_num %ld >= %ld\n",
+                                                 aio_req_num, (UINT32)CAIO_REQ_MAX_NUM);
+            return (EC_TRUE); /*barried*/
+        }
+    }
+
+    if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+    {
+        CMC_MD         *cmc_md;
+        REAL            used_ratio;
+        REAL            deg_ratio;
+
+        cmc_md     = CAMD_MD_CMC_MD(camd_md);
+        used_ratio = cmc_used_ratio(cmc_md);
+        deg_ratio  = cmc_deg_ratio(cmc_md);
+
+        if(CMC_DEGRADE_HI_RATIO < used_ratio
+        && CMC_DEGRADE_HI_RATIO < deg_ratio)
+        {
+            dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_is_barried: "
+                                                 "cmc used_ratio %.2f > %.2f "
+                                                 "and deg_ratio %.2f > %.2f\n",
+                                                 used_ratio, (REAL)CMC_DEGRADE_HI_RATIO,
+                                                 deg_ratio, (REAL)CMC_DEGRADE_HI_RATIO);
+            return (EC_TRUE); /*barried*/
+        }
+    }
+
+    if(NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    {
+        CDC_MD         *cdc_md;
+        REAL            used_ratio;
+
+        cdc_md     = CAMD_MD_CDC_MD(camd_md);
+        used_ratio = cdc_used_ratio(cdc_md);
+
+        if(CDC_DEGRADE_HI_RATIO < used_ratio)
+        {
+            dbg_log(SEC_0125_CAMD, 1)(LOGSTDOUT, "[DEBUG] camd_is_barried: "
+                                                 "cdc used_ratio %.2f >= %.2f\n",
+                                                 used_ratio, (REAL)CDC_DEGRADE_HI_RATIO);
+
+            return (EC_TRUE); /*barried*/
+        }
+    }
+
+    return (EC_FALSE);
+}
+
+void camd_process_files(CAMD_MD *camd_md)
+{
+    if(EC_FALSE == camd_is_barried(camd_md)
+    && 0 < clist_size(CAMD_MD_POST_FILE_REQS(camd_md)))
+    {
+        camd_process_post_file_reqs(camd_md);
+    }
+
+    return;
+}
+
+void camd_process_post_file_reqs(CAMD_MD *camd_md)
+{
+    CAIO_MD                *caio_md;
+    UINT32                  aio_req_num;
+
+    CAMD_FILE_REQ          *camd_file_req;
+
+    UINT32                  process_file_max_num;
+
+    ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md));
+
+    caio_md     = CAMD_MD_CAIO_MD(camd_md);
+    aio_req_num = caio_count_req_num(caio_md);
+
+    process_file_max_num = 0;
+
+    while(CAIO_REQ_MAX_NUM > aio_req_num
+    && NULL_PTR != (camd_file_req = clist_pop_front(CAMD_MD_POST_FILE_REQS(camd_md))))
+    {
+        if(CAMD_OP_RD == CAMD_FILE_REQ_OP(camd_file_req))
+        {
+            camd_file_read_aio_do(camd_md,
+                                  CAMD_FILE_REQ_FD(camd_file_req),
+                                  CAMD_FILE_REQ_OFFSET(camd_file_req),
+                                  CAMD_FILE_REQ_RWSIZE(camd_file_req),
+                                  CAMD_FILE_REQ_BUFF(camd_file_req),
+                                  CAMD_FILE_REQ_CAIO_CB(camd_file_req));
+
+            aio_req_num += (CAMD_FILE_REQ_RWSIZE(camd_file_req) + CMCPGB_PAGE_SIZE_NBYTES - 1)
+                        / ((UINT32)CMCPGB_PAGE_SIZE_NBYTES);
+
+            process_file_max_num ++;
+
+            camd_file_req_free(camd_file_req);
+
+            continue;
+        }
+
+        if(CAMD_OP_WR == CAMD_FILE_REQ_OP(camd_file_req))
+        {
+            camd_file_write_aio_do(camd_md,
+                                   CAMD_FILE_REQ_FD(camd_file_req),
+                                   CAMD_FILE_REQ_OFFSET(camd_file_req),
+                                   CAMD_FILE_REQ_RWSIZE(camd_file_req),
+                                   CAMD_FILE_REQ_BUFF(camd_file_req),
+                                   CAMD_FILE_REQ_CAIO_CB(camd_file_req));
+
+            aio_req_num += (CAMD_FILE_REQ_RWSIZE(camd_file_req) + CMCPGB_PAGE_SIZE_NBYTES - 1)
+                        / ((UINT32)CMCPGB_PAGE_SIZE_NBYTES);
+
+            process_file_max_num ++;
+
+            camd_file_req_free(camd_file_req);
+
+            continue;
+        }
+
+        dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_post_file_reqs: "
+                                             "invalid file req op %ld\n",
+                                             CAMD_FILE_REQ_OP(camd_file_req));
+
+        camd_file_req_free(camd_file_req);
+    }
+
+    if(0 < process_file_max_num)
+    {
+        dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_post_file_reqs: "
+                                             "process %ld file reqs, left %ld file reqs\n",
+                                             process_file_max_num,
+                                             clist_size(CAMD_MD_POST_FILE_REQS(camd_md)));
+    }
     return;
 }
 
@@ -6224,6 +6457,11 @@ EC_BOOL camd_cancel_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
                                          CAMD_REQ_SEQ_NO(camd_req),
                                          __camd_op_str(CAMD_REQ_OP(camd_req)));
     return (EC_TRUE);
+}
+
+UINT32 camd_count_page_num(const CAMD_MD *camd_md, const UINT32 page_tree_idx)
+{
+    return crb_tree_node_num(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx));
 }
 
 EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page)
@@ -6973,6 +7211,7 @@ EC_BOOL camd_ssd_load_complete(CAMD_SATA *camd_sata)
     /*flush to sata*/
 
     caio_cb_init(&caio_cb);
+
     caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_SATA_TIMEOUT_NSEC(camd_sata),
                                 (CAIO_CALLBACK)camd_sata_flush_timeout, (void *)camd_sata);
 
@@ -7234,6 +7473,7 @@ EC_BOOL camd_sata_flush(CAMD_MD *camd_md, const CDCNP_KEY *cdcnp_key)
         /*flush to sata*/
 
         caio_cb_init(&caio_cb);
+
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_SATA_TIMEOUT_NSEC(camd_sata),
                                     (CAIO_CALLBACK)camd_sata_flush_timeout, (void *)camd_sata);
 
@@ -7407,6 +7647,7 @@ EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CM
         CAMD_SATA_FD(camd_sata)             = sata_disk_fd;
         CAMD_SATA_F_S_OFFSET(camd_sata)     = f_s_offset;
         CAMD_SATA_F_E_OFFSET(camd_sata)     = f_e_offset;
+        CAMD_SATA_F_T_OFFSET(camd_sata)     = offset;
         CAMD_SATA_M_BUFF(camd_sata)         = m_buff;
         CAMD_SATA_TIMEOUT_NSEC(camd_sata)   = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
         CAMD_SATA_CAMD_MD(camd_sata)        = camd_md;
@@ -7420,7 +7661,7 @@ EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CM
         caio_cb_set_complete_handler(&caio_cb,
                                     (CAIO_CALLBACK)camd_sata_degrade_complete, (void *)camd_sata);
 
-        if(EC_FALSE == caio_file_write(caio_md, sata_disk_fd, &offset, wsize, m_buff, &caio_cb))
+        if(EC_FALSE == caio_file_write(caio_md, sata_disk_fd, &CAMD_SATA_F_T_OFFSET(camd_sata), wsize, m_buff, &caio_cb))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_degrade: "
                                                  "aio flush page [%ld, %ld) to sata failed\n",

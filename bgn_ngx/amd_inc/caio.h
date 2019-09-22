@@ -94,11 +94,11 @@ extern "C"{
 #define CAIO_001M_BLOCK_SIZE_NBYTE  (UINT32_ONE << CAIO_001M_BLOCK_SIZE_NBIT)
 #define CAIO_001M_BLOCK_SIZE_MASK   (CAIO_001M_BLOCK_SIZE_NBYTE - 1)
 
-#define CAIO_REQ_MAX_NUM                (128)
+#define CAIO_REQ_MAX_NUM                (64)
 
-#define CAIO_EVENT_MAX_NUM              (128)
+#define CAIO_EVENT_MAX_NUM              (64)
 
-#define CAIO_PROCESS_EVENT_ONCE_NUM     (128)
+#define CAIO_PROCESS_EVENT_ONCE_NUM     (64)
 
 //#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)1024) /*256MB for 256K-page*/
 #define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)~0)/*no limitation*/
@@ -110,7 +110,7 @@ extern "C"{
 
 #define CAIO_PROCESS_EVENT_ONCE_NUM                     (128)
 
-#define CAIO_TIMEOUT_NSEC_DEFAULT                       (30) /*second*/
+#define CAIO_TIMEOUT_NSEC_DEFAULT                       (3600) /*second*/
 
 #define CAIO_PAGE_LIST_IDX_ERR                          ((UINT32)~0)
 #define CAIO_PAGE_NO_ERR                                ((uint32_t)~0)
@@ -245,6 +245,8 @@ typedef struct
 
     CLIST_DATA             *mounted_pages;          /*mount point in page list of caio module*/
     UINT32                  mounted_list_idx;       /*mount in which page list*/
+
+    uint64_t                submit_usec;            /*for debug only*/
 }CAIO_PAGE;
 
 #define CAIO_PAGE_WORKING_FLAG(caio_page)               ((caio_page)->working_flag)
@@ -264,6 +266,8 @@ typedef struct
 
 #define CAIO_PAGE_CAIO_MD(caio_page)                    ((caio_page)->caio_md)
 #define CAIO_PAGE_CAIO_DISK(caio_page)                  ((caio_page)->caio_disk)
+
+#define CAIO_PAGE_SUBMIT_USEC(caio_page)                ((caio_page)->submit_usec)
 
 #define CAIO_PAGE_MOUNTED_PAGES(caio_page)              ((caio_page)->mounted_pages)
 #define CAIO_PAGE_MOUNTED_LIST_IDX(caio_page)           ((caio_page)->mounted_list_idx)
@@ -285,13 +289,16 @@ typedef struct
     CAIO_MD                *caio_md;            /*shortcut: point to caio module*/
     int                     fd;                 /*inherited from application*/
     int                     rsvd01;
-    UINT8                  *m_cache;            /*inherited from caio page*/
+    UINT8                  *m_cache;            /*inherited from application*/
     UINT8                  *m_buff;             /*inherited from application*/
     UINT32                 *offset;             /*inherited from application*/
     UINT32                  f_s_offset;         /*start offset in file*/
     UINT32                  f_e_offset;         /*end offset in file*/
     UINT32                  timeout_nsec;       /*timeout in seconds*/
     uint64_t                next_access_ms;     /*next access in msec*/
+
+    uint64_t                s_msec;             /*start time in msec*/
+    uint64_t                e_msec;             /*end time in msec*/
 
     CAIO_EVENT_HANDLER      post_event_handler;
     CLIST_DATA             *mounted_post_event_reqs;   /*mount point in post event reqs of caio md*/
@@ -323,6 +330,9 @@ typedef struct
 #define CAIO_REQ_F_E_OFFSET(caio_req)                   ((caio_req)->f_e_offset)
 #define CAIO_REQ_TIMEOUT_NSEC(caio_req)                 ((caio_req)->timeout_nsec)
 #define CAIO_REQ_NTIME_MS(caio_req)                     ((caio_req)->next_access_ms)
+
+#define CAIO_REQ_S_MSEC(caio_req)                       ((caio_req)->s_msec)
+#define CAIO_REQ_E_MSEC(caio_req)                       ((caio_req)->e_msec)
 
 #define CAIO_REQ_POST_EVENT_HANDLER(caio_req)           ((caio_req)->post_event_handler)
 #define CAIO_REQ_MOUNTED_POST_EVENT_REQS(caio_req)      ((caio_req)->mounted_post_event_reqs)
@@ -620,6 +630,8 @@ EC_BOOL caio_make_req_op(CAIO_MD *caio_md, CAIO_REQ *caio_req);
 EC_BOOL caio_dispatch_req(CAIO_MD *caio_md, CAIO_REQ *caio_req);
 
 EC_BOOL caio_cancel_req(CAIO_MD *caio_md, CAIO_REQ *caio_req);
+
+UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_list_idx);
 
 EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *caio_page);
 

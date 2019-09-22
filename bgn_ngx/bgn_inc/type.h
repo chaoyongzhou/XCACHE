@@ -35,7 +35,7 @@ extern "C"{
 
 #include "bgnctrl.h"
 #include "typeconst.h"
-
+#include "fast_memcpy.h"
 #undef TRUE
 #undef FALSE
 
@@ -403,8 +403,8 @@ extern long int lrint(double x);
 #define CTMV_NSEC(tmv)         ((tmv)->tv_sec)
 #define CTMV_MSEC(tmv)         ((tmv)->tv_usec / 1000)
 
-#define BCOPY(src, des, len)           memcpy(des, src, len)
-#define FCOPY(src, des, len)           memcpy(des, src, len)
+#define BCOPY(src, des, len)           do{if((void *)(des) != (void *)(src)) memcpy(des, src, len);}while(0)
+#define FCOPY(src, des, len)           do{if((void *)(des) != (void *)(src)) memcpy(des, src, len);}while(0)
 #define BMOVE(src, des, len)           memmove(des, src, len)
 #define BSET(pvoid, ch, len)           memset(pvoid, ch, len)
 #define BCMP(pstr1, pstr2, len)        memcmp(pstr1, pstr2, len)

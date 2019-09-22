@@ -990,6 +990,8 @@ CDCNP_HEADER *cdcnp_header_new(const uint32_t np_id, const UINT32 fsize, const u
     uint32_t node_max_num;
     uint32_t node_sizeof;
 
+    node_max_num = 0;
+
     cdcnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CDCNP_ITEM);
 

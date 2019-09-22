@@ -1242,6 +1242,9 @@ EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id)
             cmmap_node_free(CXFS_MD_NP_CMMAP_NODE(cxfs_md));
             CXFS_MD_NP_CMMAP_NODE(cxfs_md) = NULL_PTR;
 
+            /*switch zone*/
+            CXFSCFG_NP_ZONE_SWITCH(cxfscfg);
+
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync_do: sync npp done\n");
         }
 
@@ -1259,6 +1262,9 @@ EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id)
 
             cmmap_node_free(CXFS_MD_DN_CMMAP_NODE(cxfs_md));
             CXFS_MD_DN_CMMAP_NODE(cxfs_md) = NULL_PTR;
+
+            /*switch zone*/
+            CXFSCFG_DN_ZONE_SWITCH(cxfscfg);
 
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_sync_do: sync dn done\n");
         }
@@ -3724,7 +3730,7 @@ EC_BOOL cxfs_dump_cfg(const UINT32 cxfs_md_id)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cxfs_create_dn: cxfs module #%ld not started.\n",
+                "error:cxfs_dump_cfg: cxfs module #%ld not started.\n",
                 cxfs_md_id);
         dbg_exit(MD_CXFS, cxfs_md_id);
     }
@@ -3735,7 +3741,32 @@ EC_BOOL cxfs_dump_cfg(const UINT32 cxfs_md_id)
     if(NULL_PTR != CXFS_MD_DN(cxfs_md)
     && CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)))
     {
-        return cxfscfg_dump(CXFS_MD_CFG(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md)));
+        UINT32      dump_retries;
+
+        /*retry 3 times at most*/
+
+        dump_retries = 0;
+        while(EC_FALSE == cxfscfg_dump(CXFS_MD_CFG(cxfs_md), CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))))
+        {
+            dump_retries ++;
+
+            if(3 <= dump_retries)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_cfg: "
+                                                     "dump cxfscfg failed #%ld => stop xfs\n",
+                                                     dump_retries);
+                cxfs_end(cxfs_md_id);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_cfg: "
+                                                 "dump cxfscfg failed #%ld\n",
+                                                 dump_retries);
+        }
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_cfg: "
+                                             "dump cxfscfg done\n");
+        return (EC_TRUE);
     }
 
     return (EC_FALSE);
@@ -6950,7 +6981,7 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle beg\n");
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle beg\n");
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
@@ -6978,12 +7009,12 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
     for(cxfsnp_id = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
     {
         __cxfs_recycle_of_np(cxfs_md_id, cxfsnp_id, max_num_per_np, &complete_recycle_num);
-        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle np %u done\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle np %u done\n", cxfsnp_id);
     }
 
     if(0 < complete_recycle_num)
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle end where complete %ld\n", complete_recycle_num);
+        dbg_log(SEC_0192_CXFS, 4)(LOGSTDOUT, "[DEBUG] cxfs_recycle: recycle end where complete %ld\n", complete_recycle_num);
     }
 
     if(NULL_PTR != complete_num)
@@ -7677,7 +7708,7 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
 
     if(0 < total_num)
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire done where complete %ld\n", total_num);
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire done where complete %ld\n", total_num);
     }
     return (EC_TRUE);
 }

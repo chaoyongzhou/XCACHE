@@ -63,8 +63,8 @@ extern "C"{
 #define CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES                (CMCPGB_PAGE_SIZE_NBYTES)
 #define CAMD_PROCESS_EVENT_ONCE_NUM                     (128)
 
-#define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (30)
-#define CAMD_DIO_TIMEOUT_NSEC_DEFAULT                   (30)
+#define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (3600)
+#define CAMD_DIO_TIMEOUT_NSEC_DEFAULT                   (3600)
 
 #if 0
 #define CAMD_SSD_AIO_REQ_MAX_NUM                        (8)

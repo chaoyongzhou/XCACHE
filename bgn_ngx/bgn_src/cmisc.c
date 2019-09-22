@@ -1430,6 +1430,7 @@ EC_BOOL c_cstr_list_join_to_str(char *str, const int max_len, int *len, const ch
     CLIST_LOOP_NEXT(clist, clist_data)
     {
         CSTRING     *tmp_cstr;
+        UINT8       *tmp_str;
         int          tmp_len;
 
         if(NULL_PTR == CLIST_DATA_DATA(clist_data))
@@ -1452,7 +1453,8 @@ EC_BOOL c_cstr_list_join_to_str(char *str, const int max_len, int *len, const ch
                                               "join [%d] cstring '%s' done\n",
                                               idx, (char *)cstring_get_str(tmp_cstr));
 
-        BCOPY(cstring_get_str(tmp_cstr), cur, tmp_len);
+        tmp_str = cstring_get_str(tmp_cstr);
+        BCOPY(tmp_str, cur, tmp_len);
         cur      += tmp_len;
         left_len -= tmp_len;
 
@@ -1590,15 +1592,18 @@ char *c_str_cat(const char *src_str_1st, const char *src_str_2nd)
 
 char *c_str_dup(const char *str)
 {
-    char *dup_str;
+    char    *dup_str;
+    uint32_t str_size;
 
-    dup_str = (char *)safe_malloc(strlen(str) + 1, LOC_CMISC_0038);
+    str_size = strlen(str) + 1;
+
+    dup_str = (char *)safe_malloc(str_size, LOC_CMISC_0038);
     if(NULL_PTR == dup_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_dup: dup str %s failed\n", str);
         return (NULL_PTR);
     }
-    BCOPY(str, dup_str, strlen(str) + 1);
+    BCOPY(str, dup_str, str_size);
     return (dup_str);
 }
 
@@ -5727,6 +5732,18 @@ uint64_t c_get_cur_time_msec()
     return (time_msec_cur);
 }
 
+uint64_t c_get_cur_time_usec()
+{
+    CTMV        timev_cur;
+    uint64_t    time_usec_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    time_usec_cur = (((uint64_t)timev_cur.tv_sec ) * 1000 * 1000)
+                  + ((uint64_t)timev_cur.tv_usec);
+    return (time_usec_cur);
+}
+
 char *c_get_time_msec_str(const uint64_t time_msec)
 {
     CTMV             timev;
@@ -7380,6 +7397,23 @@ EC_BOOL c_shm_file_munmap(void *data, const UINT32 size)
     return (EC_TRUE);
 }
 
+/*override glibc snprintf*/
+int snprintf(char *str, size_t size, const char *fmt, ...)
+{
+    va_list     args;
+    int         len;
+
+    va_start(args, fmt);
+    len = vsnprintf(str, size, fmt, args);
+    va_end(args);
+
+    if (len >= size)
+    {
+        len = size - 1;
+    }
+
+    return len;
+}
 
 #ifdef __cplusplus
 }
