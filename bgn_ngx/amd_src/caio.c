@@ -518,9 +518,8 @@ STATIC_CAST const char *__caio_op_str(const UINT32 op)
 
 /*----------------------------------- caio mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_caio_mem_cache_counter = 0;
-static UINT8 *g_caio_mem_cache_tab[ CAIO_MEM_CACHE_MAX_NUM] = {NULL_PTR};
 
-#if 0
+#if 1
 STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_caio_mem_cache_counter < CAIO_MEM_CACHE_MAX_NUM)
@@ -558,7 +557,8 @@ STATIC_CAST static EC_BOOL __caio_mem_cache_free(UINT8 *mem_cache)
 }
 #endif
 
-#if 1
+#if 0
+static UINT8 *g_caio_mem_cache_tab[ CAIO_MEM_CACHE_MAX_NUM] = {NULL_PTR};
 STATIC_CAST static UINT8 *__caio_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     UINT8    *mem_cache;
