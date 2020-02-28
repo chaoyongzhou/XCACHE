@@ -2789,6 +2789,12 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         need_log_flag = BIT_FALSE;
     }
 
+    s_nsec = 0;
+    s_msec = 0;
+
+    e_nsec = 0;
+    e_msec = 0;
+
     if(BIT_TRUE == need_log_flag)
     {
         /*trick: unset need log flag*/
@@ -7609,7 +7615,15 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
             return (EC_FALSE);
         }
 
-        tag = MD_CRFS;
+        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        {
+            tag = MD_CXFS;
+        }
+        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+        {
+            tag = MD_CRFS;
+        }
+
         super_cond_wakeup(0, tag, notify_key);
 
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_notify: wakeup waiters of '%.*s' done\n",
@@ -8017,7 +8031,15 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
         return (EC_TRUE);
     }
 
-    tag = MD_CRFS;
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        tag = MD_CXFS;
+    }
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        tag = MD_CRFS;
+    }
+
     timeout_msec = 60 * 1000;
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data_e: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld => start \n",
@@ -8259,7 +8281,15 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
         return (EC_TRUE);
     }
 
-    tag = MD_CRFS;
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        tag = MD_CXFS;
+    }
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        tag = MD_CRFS;
+    }
+
     timeout_msec = 60 * 1000;
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_wait_data: cond wait of [tag %ld, key '%.*s', timeout %ld ms] on %s:%ld => start \n",

@@ -4415,7 +4415,7 @@ EC_BOOL caio_file_read(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rs
     return (EC_TRUE);
 }
 
-EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, UINT8 *buff, CAIO_CB *caio_cb)
+EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff, CAIO_CB *caio_cb)
 {
     CAIO_REQ  *caio_req;
     UINT32     timeout_nsec;
@@ -4461,7 +4461,7 @@ EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 w
     CAIO_REQ_CAIO_MD(caio_req)      = caio_md;
     CAIO_REQ_MODEL(caio_req)        = CAIO_MD_MODEL(caio_md);
     CAIO_REQ_FD(caio_req)           = fd;
-    CAIO_REQ_M_BUFF(caio_req)       = buff;
+    CAIO_REQ_M_BUFF(caio_req)       = (UINT8 *)buff;
     CAIO_REQ_M_CACHE(caio_req)      = NULL_PTR;
     CAIO_REQ_OFFSET(caio_req)       = offset;
     CAIO_REQ_F_S_OFFSET(caio_req)   = (*offset);

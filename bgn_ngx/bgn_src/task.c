@@ -12612,7 +12612,9 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
     COROUTINE_POOL *coroutine_pool;
 
+#if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     CTIMET cbtimer_handled_time;
+#endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
     static UINT32 not_slow_down_max_times = 0; /*shit!*/
 
@@ -12629,7 +12631,9 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
     coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd);
 
+#if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     cbtimer_handled_time = TASK_BRD_CTIME(task_brd);/*initialize*/
+#endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))

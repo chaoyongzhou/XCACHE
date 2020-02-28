@@ -812,6 +812,7 @@ STATIC_CAST static CSFSNP_HEADER *__csfsnp_header_create(const uint32_t np_id, c
     UINT32   bucket_offset;
     UINT32   expect_fsize;
 
+    node_max_num = 0;
     csfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CSFSNP_ITEM);
 

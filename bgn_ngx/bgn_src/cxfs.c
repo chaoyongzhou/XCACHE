@@ -444,7 +444,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     cstring_clone(sata_disk_path, CXFS_MD_SATA_DISK_PATH(cxfs_md));
 
     /*dump npp to standby zone*/
-    if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFS_MD_NPP(cxfs_md))
     {
         if(EC_FALSE == cxfs_dump_npp(cxfs_md_id))
         {
@@ -455,7 +456,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     }
 
     /*dump dn to standby zone*/
-    if(NULL_PTR != CXFS_MD_DN(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
         if(EC_FALSE == cxfs_dump_dn(cxfs_md_id))
         {
@@ -466,7 +468,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     }
 
     /*op mgr*/
-    if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
     {
         CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES);
         if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
@@ -499,9 +502,12 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                         (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
                         (void *)cxfs_md);
 
-    task_brd_process_add(task_brd_default_get(),
-                        (TASK_BRD_CALLBACK)cxfs_process_op,
-                        (void *)cxfs_md_id);
+    if(SWITCH_ON == CXFS_OP_SWITCH)
+    {
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_op,
+                            (void *)cxfs_md_id);
+    }
 
     task_brd_process_add(task_brd_default_get(),
                         (TASK_BRD_CALLBACK)cxfs_process_space,
@@ -842,7 +848,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     cstring_clone(sata_disk_path, CXFS_MD_SATA_DISK_PATH(cxfs_md));
 
     /*replay op*/
-    if(NULL_PTR != CXFS_MD_DN(cxfs_md)
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFS_MD_DN(cxfs_md)
     && NULL_PTR != CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))
     && NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
     {
@@ -915,7 +922,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     }
 
     /*op mgr*/
-    if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
     {
         CXFS_MD_OP_MGR(cxfs_md) = cxfsop_mgr_create(CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES);
         if(NULL_PTR == CXFS_MD_OP_MGR(cxfs_md))
@@ -943,7 +951,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     }
 
     /*dump npp to standby zone*/
-    if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFS_MD_NPP(cxfs_md))
     {
         if(EC_FALSE == cxfs_dump_npp(cxfs_md_id))
         {
@@ -954,7 +963,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     }
 
     /*dump dn to standby zone*/
-    if(NULL_PTR != CXFS_MD_DN(cxfs_md))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
         if(EC_FALSE == cxfs_dump_dn(cxfs_md_id))
         {
@@ -1519,7 +1529,8 @@ EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md)
     CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) = CBAD_BITMAP_USED(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_load_sata_bad_bitmap: "
-                                         "load sata bad bitmap done\n");
+                                         "load sata bad bitmap from fd %d, offset %ld done\n",
+                                         CXFS_MD_SATA_DISK_FD(cxfs_md), offset_saved);
 
     return (EC_TRUE);
 }
@@ -7091,7 +7102,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
     npp_used_ratio = cxfsnp_mgr_used_ratio(CXFS_MD_NPP(cxfs_md));
     dn_used_ratio  = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
 
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
+    dbg_log(SEC_0192_CXFS, 6)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                          "npp used ratio %.3f, dn used ratio %.3f\n",
                                          npp_used_ratio, dn_used_ratio);
 
@@ -7939,7 +7950,7 @@ EC_BOOL cxfs_wait_file_owner_notify_over_http (CXFS_WAIT_FILE *cxfs_wait_file, c
             remote_tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), MOD_NODE_TCID(mod_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
             if(NULL_PTR == remote_tasks_cfg)
             {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "info:cxfs_wait_file_owner_notify: not found tasks_cfg of node %s\n", c_word_to_ipv4(MOD_NODE_TCID(mod_node)));
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "info:cxfs_wait_file_owner_notify_over_http: not found tasks_cfg of node %s\n", c_word_to_ipv4(MOD_NODE_TCID(mod_node)));
                 mod_node_free(mod_node);
                 continue;
             }
@@ -7953,7 +7964,7 @@ EC_BOOL cxfs_wait_file_owner_notify_over_http (CXFS_WAIT_FILE *cxfs_wait_file, c
                         TASKS_CFG_CSRVPORT(remote_tasks_cfg),
                         CXFS_WAIT_FILE_NAME(cxfs_wait_file));
 
-            dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify : file %s tag %ld notify owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
+            dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify_over_http: file %s tag %ld notify owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
                             (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag,
                             MOD_NODE_TCID_STR(mod_node),
                             MOD_NODE_COMM(mod_node),
@@ -7967,7 +7978,7 @@ EC_BOOL cxfs_wait_file_owner_notify_over_http (CXFS_WAIT_FILE *cxfs_wait_file, c
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify : file %s tag %ld notify none due to no owner\n",
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify_over_http: file %s tag %ld notify none due to no owner\n",
                             (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag);
 
     return (EC_TRUE);
@@ -7995,7 +8006,7 @@ EC_BOOL cxfs_wait_file_owner_notify_over_bgn (CXFS_WAIT_FILE *cxfs_wait_file, co
 
             task_p2p_inc(task_mgr, CMPI_ANY_MODI, mod_node, &ret, FI_super_cond_wakeup, CMPI_ERROR_MODI, tag, CXFS_WAIT_FILE_NAME(cxfs_wait_file));
 
-            dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify : file %s tag %ld notify owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
+            dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify_over_bgn: file %s tag %ld notify owner: tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
                             (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag,
                             MOD_NODE_TCID_STR(mod_node),
                             MOD_NODE_COMM(mod_node),
@@ -8009,7 +8020,7 @@ EC_BOOL cxfs_wait_file_owner_notify_over_bgn (CXFS_WAIT_FILE *cxfs_wait_file, co
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify : file %s tag %ld notify none due to no owner\n",
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify_over_bgn: file %s tag %ld notify none due to no owner\n",
                             (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag);
 
     return (EC_TRUE);
@@ -8753,7 +8764,7 @@ STATIC_CAST static EC_BOOL __cxfs_file_lock(const UINT32 cxfs_md_id, const UINT3
 
         cbytes_clone(CXFS_LOCKED_FILE_TOKEN(cxfs_locked_file), token);
 
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_lock: update file %s to locked files tree done\n",
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] __cxfs_file_lock: update file %s to locked files tree done\n",
                             (char *)cstring_get_str(file_path));
         return (EC_TRUE);
     }
@@ -8761,7 +8772,7 @@ STATIC_CAST static EC_BOOL __cxfs_file_lock(const UINT32 cxfs_md_id, const UINT3
     /*now cxfs_locked_file_tmp already insert and mount into tree*/
     cbytes_clone(CXFS_LOCKED_FILE_TOKEN(cxfs_locked_file), token);
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_lock: insert file %s to locked files tree done\n",
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] __cxfs_file_lock: insert file %s to locked files tree done\n",
                         (char *)cstring_get_str(file_path));
     return (EC_TRUE);
 }
@@ -9600,6 +9611,11 @@ EC_BOOL cxfs_process_op(const UINT32 cxfs_md_id)
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
+    if(SWITCH_OFF == CXFS_OP_SWITCH)
+    {
+        return (EC_TRUE);
+    }
+
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     cxfsop_mgr = CXFS_MD_OP_MGR(cxfs_md);
@@ -9722,6 +9738,11 @@ EC_BOOL cxfs_dump_op(const UINT32 cxfs_md_id)
         dbg_exit(MD_CXFS, cxfs_md_id);
     }
 #endif/*CXFS_DEBUG_SWITCH*/
+
+    if(SWITCH_OFF == CXFS_OP_SWITCH)
+    {
+        return (EC_TRUE);
+    }
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
@@ -10211,6 +10232,11 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id)
         dbg_exit(MD_CXFS, cxfs_md_id);
     }
 #endif/*CXFS_DEBUG_SWITCH*/
+
+    if(SWITCH_OFF == CXFS_OP_SWITCH)
+    {
+        return (EC_TRUE);
+    }
 
     cxfs_md    = CXFS_MD_GET(cxfs_md_id);
     cxfsop_mgr = CXFS_MD_OP_MGR(cxfs_md);

@@ -427,7 +427,16 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
         UINT32         tag;
 
         timeout_msec = 60 * 1000;
-        tag          = MD_CRFS;
+
+        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        {
+            tag = MD_CXFS;
+        }
+
+        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+        {
+            tag = MD_CRFS;
+        }
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: cond wait '%s' => go\n",
                         (char *)cstring_get_str(file_path));

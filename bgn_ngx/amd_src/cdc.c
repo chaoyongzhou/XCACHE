@@ -1418,8 +1418,8 @@ EC_BOOL cdc_create_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset, c
 
     if(CDCNP_PAGE_MAX_NUM < key_max_num)
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_np: key num %ld overflow!\n",
-                                            key_max_num);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_np: key num %ld > %ld overflow!\n",
+                                            key_max_num, CDCNP_PAGE_MAX_NUM);
         return (EC_FALSE);
     }
 

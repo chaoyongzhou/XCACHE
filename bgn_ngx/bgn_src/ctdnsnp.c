@@ -469,6 +469,7 @@ STATIC_CAST static CTDNSNP_HEADER *__ctdnsnp_header_create(const uint32_t np_id,
     CTDNSNP_HEADER_NP_ID(ctdnsnp_header)     = np_id;
     CTDNSNP_HEADER_NP_MODEL(ctdnsnp_header)  = model;
 
+    node_max_num = 0;
     ctdnsnp_model_item_max_num(model, &node_max_num);
     node_sizeof = sizeof(CTDNSNP_ITEM);
     ASSERT(32 == node_sizeof);

@@ -9,7 +9,7 @@
 extern "C"{
 #endif/*__cplusplus*/
 
-#if (SWITCH_ON == NGX_BGN_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)
 
 #ifndef _CNGX_KSSL_H
 #define _CNGX_KSSL_H
@@ -74,7 +74,7 @@ int cngx_kssl_callback(SSL_CTX *ssl_ctx, BIO *in, const char *fname);
 
 #endif /*_CNGX_KSSL_H*/
 
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)*/
 
 #ifdef __cplusplus
 }

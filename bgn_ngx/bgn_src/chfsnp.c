@@ -949,6 +949,7 @@ STATIC_CAST static CHFSNP_HEADER *__chfsnp_header_create(const uint32_t np_id, c
     UINT32   bucket_offset;
     UINT32   expect_fsize;
 
+    node_max_num = 0;
     chfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CHFSNP_ITEM);
 
@@ -1095,6 +1096,7 @@ EC_BOOL chfsnp_header_init(CHFSNP_HEADER *chfsnp_header, const uint32_t np_id, c
     CHFSNP_HEADER_1ST_CHASH_ALGO_ID(chfsnp_header)  = first_chash_algo_id;
     CHFSNP_HEADER_2ND_CHASH_ALGO_ID(chfsnp_header)  = second_chash_algo_id;
 
+    node_max_num = 0;
     chfsnp_model_item_max_num(np_model, &node_max_num);
 
     /*init bitmap*/

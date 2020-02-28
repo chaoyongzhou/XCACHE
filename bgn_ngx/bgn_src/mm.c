@@ -147,8 +147,11 @@ extern "C"{
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #include "cngx.h"
-#include "cngx_kssl.h"
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)
+#include "cngx_kssl.h"
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)*/
 
 /* memory manager will manage all node blocks and node block manage its nodes.*/
 /* each memory manager manage only one type of node block */
@@ -501,9 +504,9 @@ STATIC_CAST static UINT32 init_mem_manager()
 
     MM_MGR_DEF(MM_CCALLBACK_NODE               ,"MM_CCALLBACK_NODE               ",256       , sizeof(CCALLBACK_NODE)             , LOC_MM_0212);
 
-#if (SWITCH_ON == NGX_BGN_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)
     MM_MGR_DEF(MM_CNGX_KSSL_NODE               ,"MM_CNGX_KSSL_NODE               ",32        , sizeof(CNGX_KSSL_NODE)             , LOC_MM_0213);
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)*/
 
     MM_MGR_DEF(MM_CTDNSNP_ITEM                  ,"MM_CTDNSNP_ITEM                ",256       , sizeof(CTDNSNP_ITEM)                 , LOC_MM_0214);
     MM_MGR_DEF(MM_CTDNSNP                       ,"MM_CTDNSNP                     ",256       , sizeof(CTDNSNP)                      , LOC_MM_0215);

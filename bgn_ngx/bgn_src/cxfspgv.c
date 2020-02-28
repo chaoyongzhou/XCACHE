@@ -1381,6 +1381,11 @@ void cxfspgv_print(LOG *log, const CXFSPGV *cxfspgv)
 
     page_desc     = CXFSPCB_PAGE_DESC;
 
+    sys_log(log, "cxfspgv_print: cxfspgv %p, offset %ld, fsize %ld\n",
+                 cxfspgv,
+                 CXFSPGV_OFFSET(cxfspgv),
+                 CXFSPGV_FSIZE(cxfspgv));
+
     sys_log(log, "cxfspgv_print: cxfspgv %p, disk num %u, disk max num %u, %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, used size %"PRId64", size ratio %.2f\n",
                  cxfspgv,
                  CXFSPGV_DISK_NUM(cxfspgv),

@@ -986,6 +986,7 @@ STATIC_CAST static CRFSNP_HEADER *__crfsnp_header_new(const uint32_t np_id, cons
     CRFSNP_HEADER_NP_ID(crfsnp_header)  = np_id;
     CRFSNP_HEADER_MODEL(crfsnp_header)  = np_model;
 
+    node_max_num = 0;
     crfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CRFSNP_ITEM);
 

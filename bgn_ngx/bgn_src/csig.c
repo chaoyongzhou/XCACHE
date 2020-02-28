@@ -789,9 +789,7 @@ void csig_core_dump(int signo)
 
     if(0)
     {
-        TASK_BRD *task_brd;
-        task_brd = task_brd_default_get();
-        croutine_pool_print(LOGSTDOUT, TASK_BRD_CROUTINE_POOL(task_brd));
+        croutine_pool_print(LOGSTDOUT, TASK_BRD_CROUTINE_POOL(task_brd_default_get()));
     }
 
     if(0)/*debug*/

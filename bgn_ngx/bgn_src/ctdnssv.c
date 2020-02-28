@@ -585,6 +585,7 @@ STATIC_CAST static CTDNSSV_HEADER *__ctdnssv_header_create(const UINT32 fsize, i
         return (NULL_PTR);
     }
 
+    node_max_num = 0;
     ctdnssv_model_item_max_num(model, &node_max_num);
     node_sizeof = sizeof(CTDNSSV_ITEM);
     ASSERT(32 == node_sizeof);

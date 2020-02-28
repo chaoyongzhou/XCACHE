@@ -24,13 +24,11 @@ extern "C"{
 
 void coroutine_debug(LOG *log, const char *tip)
 {
-    TASK_BRD *task_brd;
     COROUTINE_POOL *coroutine_pool;
     COROUTINE_NODE *coroutine_node_slave;
     COROUTINE_NODE *coroutine_node_self;
 
-    task_brd = task_brd_default_get();
-    coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd);
+    coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd_default_get());
     coroutine_node_slave = coroutine_pool_get_slave(coroutine_pool);
     coroutine_node_self = coroutine_self();
 

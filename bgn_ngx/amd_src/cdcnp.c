@@ -3154,8 +3154,8 @@ EC_BOOL cdcnp_header_flush(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, int
         }
 
         dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_header_flush: "
-                                              "flush cdcnp_hdr %p of np %u to fd %d with size %ld done\n",
-                                              cdcnp_header, np_id, fd, fsize);
+                                              "flush cdcnp_hdr %p of np %u (magic %#x) to fd %d with size %ld done\n",
+                                              cdcnp_header, np_id, CDCNP_HEADER_MAGIC(cdcnp_header), fd, fsize);
         return (EC_TRUE);
     }
     return (EC_TRUE);
@@ -3330,7 +3330,7 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
     if(CDCNP_MAGIC_NUM != magic_t)
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
-                                              "np magic mismatched: stored %u != %u "
+                                              "np magic mismatched: stored %#x != %#x "
                                               "from fd %d, offset %ld\n",
                                               magic_t,
                                               CDCNP_MAGIC_NUM,
@@ -3872,8 +3872,9 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
         CDCNP_ASSERT(offset == CDCNP_E_OFFSET(cdcnp));
 
         dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_flush: "
-                                              "flush np %u to fd %d, offset %ld => %ld, size %ld done\n",
+                                              "flush np %u (magic %#x) to fd %d, offset %ld => %ld, size %ld done\n",
                                               CDCNP_HEADER_NP_ID(cdcnp_header),
+                                              CDCNP_HEADER_MAGIC(cdcnp_header),
                                               CDCNP_FD(cdcnp),
                                               CDCNP_S_OFFSET(cdcnp), offset,
                                               size);

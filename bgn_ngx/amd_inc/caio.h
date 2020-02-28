@@ -108,8 +108,6 @@ extern "C"{
 #define CAIO_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
 #define CAIO_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
-#define CAIO_PROCESS_EVENT_ONCE_NUM                     (128)
-
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (3600) /*second*/
 
 #define CAIO_PAGE_LIST_IDX_ERR                          ((UINT32)~0)
@@ -677,7 +675,7 @@ UINT32 caio_count_req_num(CAIO_MD *caio_md);
 
 EC_BOOL caio_file_read(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff, CAIO_CB *caio_cb);
 
-EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, UINT8 *buff, CAIO_CB *caio_cb);
+EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff, CAIO_CB *caio_cb);
 
 
 #endif /*_CAIO_H*/

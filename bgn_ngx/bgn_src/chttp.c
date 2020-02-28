@@ -5511,7 +5511,7 @@ STATIC_CAST static void __chttp_rsp_header_print_plain(LOG *log, const CHTTP_RSP
         cstrkv = (CSTRKV *)CLIST_DATA_DATA(clist_data);
         if(EC_FALSE == cstring_is_empty(CSTRKV_VAL(cstrkv)))
         {
-            sys_print(log, "%s: %s\n", CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv), CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));
+            sys_print(log, "%s: %s\n", CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));
         }
         else
         {
@@ -9986,7 +9986,15 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     timeout_msec = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) * 1000;
     expire_nsec  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store);
-    tag          = MD_CRFS;
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        tag = MD_CXFS;
+    }
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        tag = MD_CRFS;
+    }
 
     /*make path*/
     cstring_init(&path, NULL_PTR);
@@ -10535,7 +10543,15 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
     CHTTP_STAT_LOG_HEADER_TIME_WHEN_START(&chttp_stat_t); /*record start time*/
 
     timeout_msec = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) * 1000;
-    tag          = MD_CRFS;
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        tag = MD_CXFS;
+    }
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        tag = MD_CRFS;
+    }
 
     /*make path*/
     cstring_init(&path, NULL_PTR);

@@ -52,11 +52,6 @@ STATIC_CAST const char *__camd_op_str(const UINT32 op)
         return ((const char *)"WR");
     }
 
-    if(CAMD_OP_RW == op)
-    {
-        return ((const char *)"RW");
-    }
-
     if(CAMD_OP_ERR == op)
     {
         return ((const char *)"ERR");
@@ -68,9 +63,8 @@ STATIC_CAST const char *__camd_op_str(const UINT32 op)
 
 /*----------------------------------- camd mem cache (posix memalign) interface -----------------------------------*/
 static UINT32 g_camd_mem_cache_counter = 0;
-static UINT8 *g_camd_mem_cache_tab[ CAMD_MEM_CACHE_MAX_NUM] = {NULL_PTR};
 
-#if 0
+#if 1
 STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     if(g_camd_mem_cache_counter < CAMD_MEM_CACHE_MAX_NUM)
@@ -108,7 +102,8 @@ STATIC_CAST static EC_BOOL __camd_mem_cache_free(UINT8 *mem_cache)
 }
 #endif
 
-#if 1
+#if 0
+static UINT8 *g_camd_mem_cache_tab[ CAMD_MEM_CACHE_MAX_NUM] = {NULL_PTR};
 STATIC_CAST static UINT8 *__camd_mem_cache_new(const UINT32 size, const UINT32 align)
 {
     UINT8    *mem_cache;

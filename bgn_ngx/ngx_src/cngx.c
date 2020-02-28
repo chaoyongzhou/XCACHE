@@ -2875,7 +2875,7 @@ EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cng
         r->method_name.data[ 2 ] = 'T';
         r->method_name.len       = 3;
 
-        BCOPY("GET", r->method_name.data, 3);
+        //BCOPY("GET", r->method_name.data, 3);
 
         CNGX_OPTION_CACHEABLE_METHOD(cngx_option) = BIT_TRUE;
         return (EC_TRUE);

@@ -37,10 +37,10 @@ extern "C"{
 
 /*AMD: aio + mem cache + disk cache*/
 
-#define CAMD_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
-#define CAMD_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
-#define CAMD_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
-#define CAMD_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
+#define CAMD_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 0000*/
+#define CAMD_OP_RD                                      ((UINT32)0x0001) /*bitmap: 0001*/
+#define CAMD_OP_WR                                      ((UINT32)0x0002) /*bitmap: 0010*/
+
 
 /*note: mmap max size >= 8713816128  B (i.e.,  8 GB, 118 MB, 146 KB,  64 B)*/
 /*      total of 8 AMDs: 69710529024 B (i.e., 64 GB, 945 MB, 144 KB, 512 B)*/
