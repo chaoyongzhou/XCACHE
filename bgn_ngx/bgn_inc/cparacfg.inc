@@ -564,6 +564,8 @@ typedef struct
 
 #define    CPARACFG_DEFAULT_GET()                        (TASK_BRD_CPARACFG(task_brd_default_get()))
 
+#define    CPARACFG_DEFAULT_SET(name, value)  do{CPARACFG_##name(CPARACFG_DEFAULT_GET()) = (value);}while(0)
+
 #define    CPARACFG_DEFAULT_MAP(macro_name) \
                 (NULL_PTR == CPARACFG_DEFAULT_GET() ? (macro_name##_DEF): macro_name(CPARACFG_DEFAULT_GET()))
 

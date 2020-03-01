@@ -779,7 +779,7 @@ EC_BOOL cxfsop_mgr_pad(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset, const UINT32 size
         return (EC_FALSE);
     }
 
-    data = safe_malloc(size, LOC_CXFSOP_0001);
+    data = safe_malloc(size, LOC_CXFSOP_0006);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_pad: "
@@ -795,7 +795,7 @@ EC_BOOL cxfsop_mgr_pad(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset, const UINT32 size
     if(EC_FALSE == camd_file_write_dio((CAMD_MD *)CXFSOP_MGR_CAMD(cxfsop_mgr),
                                         &offset_t, size, (UINT8 *)data))
     {
-        safe_free(data, LOC_CXFSOP_0001);
+        safe_free(data, LOC_CXFSOP_0007);
 
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_pad: "
                                                "pad %lu zeros to offset %ld failed\n",
@@ -804,7 +804,7 @@ EC_BOOL cxfsop_mgr_pad(CXFSOP_MGR *cxfsop_mgr, UINT32 *offset, const UINT32 size
         return (EC_FALSE);
     }
 
-    safe_free(data, LOC_CXFSOP_0001);
+    safe_free(data, LOC_CXFSOP_0008);
 
     dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_pad: "
                                            "pad %lu zeros to offset %ld done\n",
