@@ -41,7 +41,6 @@ extern "C"{
 #include "json.h"
 #include "cbase64code.h"
 
-#include "db_internal.h"
 #include "cdns.inc"
 #include "cdns.h"
 #include "coroutine.h"
@@ -594,10 +593,10 @@ EC_BOOL cdns_parse_header(const CDNS_NODE *cdns_node, const uint32_t max_len, ui
 
     p = (uint16_t *)data;
 
-    CDNS_HEADER_ID(cdns_header) = gdb_ntoh_uint16(*p);
+    CDNS_HEADER_ID(cdns_header) = ntoh_uint16(*p);
     p ++;
 
-    flag = gdb_ntoh_uint16(*p);
+    flag = ntoh_uint16(*p);
     p ++;
 
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_header: flag = %0x \n", flag);
@@ -628,16 +627,16 @@ EC_BOOL cdns_parse_header(const CDNS_NODE *cdns_node, const uint32_t max_len, ui
     flag >>= 1;
     /*parse flag end*/
 
-    CDNS_HEADER_Q_NUM(cdns_header) = gdb_ntoh_uint16(*p);
+    CDNS_HEADER_Q_NUM(cdns_header) = ntoh_uint16(*p);
     p ++;
 
-    CDNS_HEADER_R_NUM(cdns_header) = gdb_ntoh_uint16(*p);
+    CDNS_HEADER_R_NUM(cdns_header) = ntoh_uint16(*p);
     p ++;
 
-    CDNS_HEADER_O_NUM(cdns_header) = gdb_ntoh_uint16(*p);
+    CDNS_HEADER_O_NUM(cdns_header) = ntoh_uint16(*p);
     p ++;
 
-    CDNS_HEADER_E_NUM(cdns_header) = gdb_ntoh_uint16(*p);
+    CDNS_HEADER_E_NUM(cdns_header) = ntoh_uint16(*p);
     p ++;
 
     if(do_log(SEC_0150_CDNS, 9))
@@ -668,7 +667,7 @@ EC_BOOL cdns_make_header(CDNS_NODE *cdns_node, CDNS_HEADER *cdns_header)
 
     p = (uint16_t *)data;
 
-    (*p) = gdb_hton_uint16(CDNS_HEADER_ID(cdns_header));
+    (*p) = hton_uint16(CDNS_HEADER_ID(cdns_header));
     p ++;
 
     /*make flag beg*/
@@ -691,20 +690,20 @@ EC_BOOL cdns_make_header(CDNS_NODE *cdns_node, CDNS_HEADER *cdns_header)
     flag = (flag << 4) | CDNS_HEADER_FLAG_RCODE(cdns_header);
 
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_make_header: flag = 0x%04x\n", flag);
-    (*p) = gdb_hton_uint16(flag);
+    (*p) = hton_uint16(flag);
     p ++;
     /*make flag end*/
 
-    (*p) = gdb_hton_uint16(CDNS_HEADER_Q_NUM(cdns_header));
+    (*p) = hton_uint16(CDNS_HEADER_Q_NUM(cdns_header));
     p ++;
 
-    (*p) = gdb_hton_uint16(CDNS_HEADER_R_NUM(cdns_header));
+    (*p) = hton_uint16(CDNS_HEADER_R_NUM(cdns_header));
     p ++;
 
-    (*p) = gdb_hton_uint16(CDNS_HEADER_O_NUM(cdns_header));
+    (*p) = hton_uint16(CDNS_HEADER_O_NUM(cdns_header));
     p ++;
 
-    (*p) = gdb_hton_uint16(CDNS_HEADER_E_NUM(cdns_header));
+    (*p) = hton_uint16(CDNS_HEADER_E_NUM(cdns_header));
     p ++;
 
     if(do_log(SEC_0150_CDNS, 9))
@@ -875,7 +874,7 @@ EC_BOOL cdns_parse_uint16(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t
     }
 
     p = (uint16_t *)data;
-    (*num) = gdb_ntoh_uint16(*p);
+    (*num) = ntoh_uint16(*p);
 
     (*pos) += 2;
     return (EC_TRUE);
@@ -888,7 +887,7 @@ EC_BOOL cdns_make_uint16(CDNS_NODE *cdns_node, const uint16_t num)
 
     p = (uint16_t *)data;
 
-    (*p) = gdb_hton_uint16(num);
+    (*p) = hton_uint16(num);
     if(EC_FALSE == chunk_append(CDNS_NODE_SEND_BUF(cdns_node), (uint8_t *)data, 2))
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_make_uint16: append uint16 %u to chunks failed\n", num);
@@ -983,7 +982,7 @@ EC_BOOL cdns_parse_answer(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t
 
     p = (uint16_t *)data;
 
-    check = gdb_ntoh_uint16(*p);
+    check = ntoh_uint16(*p);
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: check = %x\n", check);
     if(0 != (check & 0xC000))
     {
@@ -1038,20 +1037,20 @@ EC_BOOL cdns_parse_answer(CDNS_NODE *cdns_node, const uint32_t max_len, uint32_t
         sys_print(LOGSTDOUT, "\n");
     }
 
-    (*at) = gdb_ntoh_uint16(*p);
+    (*at) = ntoh_uint16(*p);
     p ++;
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: at = %x\n", (*at));
 
-    (*ac) = gdb_ntoh_uint16(*p);
+    (*ac) = ntoh_uint16(*p);
     p ++;
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: ac = %x\n", (*ac));
 
-    (*live) = gdb_ntoh_uint32(*(uint32_t *)p);
+    (*live) = ntoh_uint32(*(uint32_t *)p);
     p ++;
     p ++;
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: live = %x\n", (*live));
 
-    (*len) = gdb_ntoh_uint16(*p);
+    (*len) = ntoh_uint16(*p);
     p ++;
     dbg_log(SEC_0150_CDNS, 9)(LOGSTDOUT, "[DEBUG] cdns_parse_answer: len = %x\n", (*len));
 

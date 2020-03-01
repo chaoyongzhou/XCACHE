@@ -50,11 +50,6 @@ CBITMAP *cbitmap_fload(const UINT8 *fname);
 EC_BOOL  cbitmap_dump(const CBITMAP *cbitmap, UINT8 **buf, UINT32 *len);
 CBITMAP *cbitmap_load(const UINT8 *buf, const UINT32 len);
 
-EC_BOOL  cbitmap_dfs_exist(const CSTRING *fname_cstr, const UINT32 cdfs_md_id);
-CBITMAP *cbitmap_dfs_create(const UINT32 max_bits, const CSTRING *fname_cstr, const UINT32 cdfs_md_id, const UINT32 replica_num);
-EC_BOOL  cbitmap_dfs_flush(const CBITMAP *cbitmap, const CSTRING *fname_cstr, const UINT32 cdfs_md_id);
-CBITMAP *cbitmap_dfs_load(const CSTRING *fname_cstr, const UINT32 cdfs_md_id);
-
 #endif/* _CBITMAP_H */
 
 #ifdef __cplusplus

@@ -51,13 +51,11 @@ extern "C"{
 #include "cload.h"
 #include "csrv.h"
 #include "cproc.h"
-#include "cbgt.h"
 #include "csession.h"
 #include "cbytes.h"
 #include "cbitmap.h"
 #include "cbtimer.h"
 #include "cxml.h"
-#include "cbtree.h"
 #include "coroutine.h"
 #include "cparacfg.inc"
 #include "crb.h"
@@ -357,7 +355,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CSRV                         ,"MM_CSRV                         ",64       , sizeof(CSRV)                        , LOC_MM_0102);
 
     MM_MGR_DEF(MM_CBYTES                       ,"MM_CBYTES                       ",4        , sizeof(CBYTES)                      , LOC_MM_0103);
-    MM_MGR_DEF(MM_CBGT_REG                     ,"MM_CBGT_REG                     ",4        , sizeof(CBGT_REG)                    , LOC_MM_0104);
     MM_MGR_DEF(MM_CBITMAP                      ,"MM_CBITMAP                      ",1        , sizeof(CBITMAP)                     , LOC_MM_0105);
 
     MM_MGR_DEF(MM_CBTIMER_NODE                 ,"MM_CBTIMER_NODE                 ",4        , sizeof(CBTIMER_NODE)                , LOC_MM_0106);
@@ -376,12 +373,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CSESSION_NODE                ,"MM_CSESSION_NODE                ",4        , sizeof(CSESSION_NODE)               , LOC_MM_0117);
     MM_MGR_DEF(MM_CSESSION_ITEM                ,"MM_CSESSION_ITEM                ",4        , sizeof(CSESSION_ITEM)               , LOC_MM_0118);
     MM_MGR_DEF(MM_CTIMET                       ,"MM_CTIMET                       ",4        , sizeof(CTIMET)                      , LOC_MM_0119);
-
-    MM_MGR_DEF(MM_CBTREE_KEY                   ,"MM_CBTREE_KEY                   ",256      , sizeof(CBTREE_KEY)                  , LOC_MM_0120);
-    MM_MGR_DEF(MM_CBTREE_NODE                  ,"MM_CBTREE_NODE                  ",256      , sizeof(CBTREE_NODE)                 , LOC_MM_0121);
-    MM_MGR_DEF(MM_CBTREE                       ,"MM_CBTREE                       ",4        , sizeof(CBTREE)                      , LOC_MM_0122);
-
-    MM_MGR_DEF(MM_CBGT_GDB                     ,"MM_CBGT_GDB                     ",4        , sizeof(CBGT_GDB)                    , LOC_MM_0123);
 
     MM_MGR_DEF(MM_COROUTINE_TASK               ,"MM_COROUTINE_TASK               ",4        , sizeof(COROUTINE_TASK)              , LOC_MM_0124);
     MM_MGR_DEF(MM_COROUTINE_NODE               ,"MM_COROUTINE_NODE               ",4        , sizeof(COROUTINE_NODE)              , LOC_MM_0125);

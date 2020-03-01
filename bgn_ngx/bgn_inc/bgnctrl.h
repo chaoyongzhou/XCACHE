@@ -45,9 +45,6 @@ extern "C"{
 /*CXFSMON Package Debug Switch*/
 #define CXFSMON_DEBUG_SWITCH SWITCH_ON
 
-/*CBGT Package Debug Switch*/
-#define CBGT_DEBUG_SWITCH SWITCH_ON
-
 /*CSESSION Package Debug Switch*/
 #define CSESSION_DEBUG_SWITCH SWITCH_ON
 

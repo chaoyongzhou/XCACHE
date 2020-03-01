@@ -7415,6 +7415,84 @@ int snprintf(char *str, size_t size, const char *fmt, ...)
     return len;
 }
 
+void c_put_8(uint8_t *buffer, uint32_t *counter, uint8_t c)
+{
+    buffer[*counter] = c;
+
+    (*counter)++;
+    return;
+}
+
+void c_put_8s(uint8_t *buffer, uint32_t *counter, const uint8_t *data, const uint32_t len)
+{
+    memcpy(buffer + *counter, data, len);
+    *counter += len;
+
+    return;
+}
+
+void c_put_pad(uint8_t *buffer, uint32_t *counter, const uint8_t ch, const uint32_t len)
+{
+    memset(buffer + (*counter), ch, len);
+    *counter += len;
+
+    return;
+}
+
+void c_put_16(uint8_t *buffer, uint32_t *counter, uint16_t s)
+{
+    s = hton_uint16(s);
+
+    memcpy(buffer + *counter, &s, sizeof(uint16_t));
+    *counter += sizeof(uint16_t);
+
+    return;
+}
+
+void c_put_32(uint8_t *buffer, uint32_t *counter, uint32_t l)
+{
+    l = hton_uint32(l);
+
+    memcpy(buffer + *counter, &l, sizeof(uint32_t));
+    *counter += sizeof(uint32_t);
+
+    return;
+}
+
+uint8_t c_get_8(const uint8_t *buffer, uint32_t *counter)
+{
+    uint8_t i = buffer[*counter];
+
+    (*counter)++;
+
+    return i;
+}
+
+uint16_t c_get_16(const uint8_t *buffer, uint32_t *counter)
+{
+    uint16_t s;
+
+    memcpy(&s, buffer + *counter, sizeof(uint16_t));
+    s = ntoh_uint16(s);
+
+    *counter += sizeof(uint16_t);
+
+    return s;
+}
+
+uint32_t c_get_32(const uint8_t *buffer, uint32_t *counter)
+{
+    uint32_t l;
+
+    memcpy(&l, buffer + *counter, sizeof(uint32_t));
+    l = ntoh_uint32(l);
+
+    *counter += sizeof(uint32_t);
+
+    return l;
+}
+
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

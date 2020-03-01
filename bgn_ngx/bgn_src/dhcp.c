@@ -64,9 +64,6 @@ extern "C"{
 
 #include "findex.inc"
 
-#include "db_internal.h"
-
-
 /*LPF: Linux Packet Filter*/
 
 const char * default_net_card = "eth0";

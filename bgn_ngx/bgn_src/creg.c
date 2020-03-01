@@ -29,7 +29,6 @@ extern "C"{
 #include "csocket.h"
 #include "real.h"
 #include "cload.h"
-#include "cbgt.h"
 #include "csession.h"
 #include "crfsdn.h"
 #include "crfs.h"
@@ -62,7 +61,6 @@ extern "C"{
 #include "super.inc"
 
 #include "cdfs.inc"
-#include "cbgt.inc"
 #include "csession.inc"
 #include "crfs.inc"
 #include "cxfs.inc"
@@ -1191,7 +1189,6 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_SUPER   ,  &g_super_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_super_func_addr_list  , FI_super_start   , FI_super_end    , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CTIMER  ,  NULL_PTR                     ,   NULL_PTR                                  , ERR_FUNC_ID      , ERR_FUNC_ID     , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CDFS    ,  &g_cdfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cdfs_func_addr_list   , FI_cdfs_start    , FI_cdfs_end     , ERR_FUNC_ID             , (dbg_md_fget_mod_mgr) cdfs_get_dn_mod_mgr  );
-    creg_func_addr_vec_add(func_addr_vec, MD_CBGT    ,  &g_cbgt_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cbgt_func_addr_list   , FI_cbgt_start    , FI_cbgt_end     , FI_cbgt_set_mod_mgr     , (dbg_md_fget_mod_mgr) cbgt_get_mod_mgr     );
     creg_func_addr_vec_add(func_addr_vec, MD_CSESSION,  &g_csession_func_addr_list_len,  (FUNC_ADDR_NODE *)g_csession_func_addr_list, FI_csession_start , FI_csession_end, ERR_FUNC_ID            , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CRFS    ,  &g_crfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_crfs_func_addr_list   , FI_crfs_start    , FI_crfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CHFS    ,  &g_chfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_chfs_func_addr_list   , FI_chfs_start    , FI_chfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );

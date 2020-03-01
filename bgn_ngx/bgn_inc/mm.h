@@ -29,7 +29,7 @@ extern "C"{
 #define     MD_SUPER     ((UINT32)  4)
 #define     MD_CTIMER    ((UINT32)  5)
 #define     MD_CDFS      ((UINT32)  6)
-#define     MD_CBGT      ((UINT32)  7)
+#define     MD_XXXX      ((UINT32)  7) /*-- obsolete --*/
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
 #define     MD_CHFS      ((UINT32) 10)
@@ -165,9 +165,9 @@ extern "C"{
 #define                   MM_CDFSDN_STAT    ((UINT32) 97)
 #define                MM_TYPE_CONV_ITEM    ((UINT32) 98)
 #define                          MM_CSRV    ((UINT32) 99)
-#define                       MM_CBGT_KV    ((UINT32)100)
+#define                       MM_XXXX_01    ((UINT32)100) /*-- obsolete --*/
 #define                        MM_CBYTES    ((UINT32)101)
-#define                      MM_CBGT_REG    ((UINT32)102)
+#define                      MM_XXXT_X02    ((UINT32)102) /*-- obsolete --*/
 #define                       MM_CBITMAP    ((UINT32)103)
 #define                  MM_CBTIMER_NODE    ((UINT32)104)
 #define              MM_CLUSTER_NODE_CFG    ((UINT32)105)
@@ -183,10 +183,10 @@ extern "C"{
 #define                 MM_CSESSION_NODE    ((UINT32)115)
 #define                 MM_CSESSION_ITEM    ((UINT32)116)
 #define                        MM_CTIMET    ((UINT32)117)
-#define                    MM_CBTREE_KEY    ((UINT32)118)
-#define                   MM_CBTREE_NODE    ((UINT32)119)
-#define                        MM_CBTREE    ((UINT32)120)
-#define                      MM_CBGT_GDB    ((UINT32)121)
+#define                    MM_XXXXXX_001    ((UINT32)118) /*-- obsolete --*/
+#define                   MM_XXXXXX__002    ((UINT32)119) /*-- obsolete --*/
+#define                        MM_XXXXXX    ((UINT32)120) /*-- obsolete -- */
+#define                      MM_XXXX_X03    ((UINT32)121) /*-- obsolete --*/
 #define                MM_COROUTINE_TASK    ((UINT32)122)
 #define                MM_COROUTINE_NODE    ((UINT32)123)
 #define                MM_COROUTINE_POOL    ((UINT32)124)

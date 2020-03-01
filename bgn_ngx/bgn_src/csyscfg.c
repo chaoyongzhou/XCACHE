@@ -35,7 +35,6 @@ extern "C"{
 #include "cmisc.h"
 
 #include "cdfs.h"
-#include "cbgt.h"
 #include "crfsnp.h"
 #include "task.h"
 #include "csyscfg.inc"

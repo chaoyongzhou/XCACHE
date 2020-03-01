@@ -260,52 +260,6 @@ EC_BOOL api_cmd_ui_disable_all_task_brd(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cdfs_write_files(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_cbgt_show_module(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_show_module_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_traversal_module(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_traversal_module_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_traversal_depth_module(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_traversal_depth_module_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_debug_merge(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_debug_split(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_runthrough_module(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_runthrough_module_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_runthrough_depth_module_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_print_status(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_print_status_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_create_root_table(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_create_user_table(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_delete_user_table(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_delete_colf_table(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_add_colf_table(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_insert(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_delete(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_search(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_fetch(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_cached(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_in_cached_user(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_in_all_user(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_in_cached_colf(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_select_in_all_colf(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_open_root_table(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_open_colf_table(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_close_module(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cbgt_flush(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cbgt_flush_all(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_csession_add(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_csession_rmv_by_name(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_csession_rmv_by_id(CMD_PARA_VEC * param);

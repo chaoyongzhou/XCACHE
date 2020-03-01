@@ -526,6 +526,16 @@ EC_BOOL c_shm_file_munmap(void *data, const UINT32 size);
 /*override glibc snprintf*/
 int snprintf(char *str, size_t size, const char *fmt, ...);
 
+
+void c_put_8(uint8_t *buffer, uint32_t *counter, uint8_t c);
+void c_put_8s(uint8_t *buffer, uint32_t *counter, const uint8_t *data, const uint32_t len);
+void c_put_pad(uint8_t *buffer, uint32_t *counter, const uint8_t ch, const uint32_t len);
+void c_put_16(uint8_t *buffer, uint32_t *counter, uint16_t s);
+void c_put_32(uint8_t *buffer, uint32_t *counter, uint32_t l);
+uint8_t c_get_8(const uint8_t *buffer, uint32_t *counter);
+uint16_t c_get_16(const uint8_t *buffer, uint32_t *counter);
+uint32_t c_get_32(const uint8_t *buffer, uint32_t *counter);
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

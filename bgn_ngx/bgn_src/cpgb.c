@@ -20,8 +20,6 @@ extern "C"{
 #include "cmisc.h"
 #include "real.h"
 
-#include "db_internal.h"
-
 #include "cpgrb.h"
 #include "cpgb.h"
 

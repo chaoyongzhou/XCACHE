@@ -21,8 +21,6 @@ extern "C"{
 
 #include "cmisc.h"
 
-#include "db_internal.h"
-
 #include "cxfsnprb.h"
 #include "cxfsnp.inc"
 

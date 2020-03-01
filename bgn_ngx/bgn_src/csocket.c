@@ -53,7 +53,6 @@ extern "C"{
 #include "crbuff.h"
 #include "cbuffer.h"
 
-#include "db_internal.h"
 #include "cparacfg.inc"
 
 #include "ccallback.h"
@@ -907,7 +906,7 @@ STATIC_CAST static EC_BOOL csocket_srv_addr_init( const UINT32 srv_ipaddr, const
 {
     srv_addr->sin_family      = AF_INET;
     srv_addr->sin_port        = htons( atoi(c_word_to_port(srv_port)) );
-    srv_addr->sin_addr.s_addr = INADDR_ANY/*gdb_hton_uint32((uint32_t)srv_ipaddr)*/;
+    srv_addr->sin_addr.s_addr = INADDR_ANY/*hton_uint32((uint32_t)srv_ipaddr)*/;
     bzero(srv_addr->sin_zero, sizeof(srv_addr->sin_zero)/sizeof(srv_addr->sin_zero[0]));
 
     return  ( EC_TRUE );
@@ -2366,10 +2365,10 @@ EC_BOOL csocket_udp_mcast_sendto(const int sockfd, const UINT32 mcast_ipaddr, co
         }
 
         counter = 0;
-        gdbPut32(udp_packet, &counter, tlen);
-        gdbPut16(udp_packet, &counter, osize);
-        gdbPut16(udp_packet, &counter, seqno);
-        gdbPut8s(udp_packet, &counter, data + csize, osize);
+        c_put_32(udp_packet, &counter, tlen);
+        c_put_16(udp_packet, &counter, osize);
+        c_put_16(udp_packet, &counter, seqno);
+        c_put_8s(udp_packet, &counter, data + csize, osize);
 
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_udp_mcast_sendto: tlen %d, osize %d, seqno %d\n", tlen, osize, seqno);
 
@@ -2423,9 +2422,9 @@ EC_BOOL csocket_udp_mcast_recvfrom(const int sockfd, const UINT32 mcast_ipaddr, 
         }
 
         counter = 0;
-        tlen  = gdbGet32(udp_packet, &counter);
-        osize = gdbGet16(udp_packet, &counter);
-        seqno = gdbGet16(udp_packet, &counter);
+        tlen  = c_get_32(udp_packet, &counter);
+        osize = c_get_16(udp_packet, &counter);
+        seqno = c_get_16(udp_packet, &counter);
 
         if(NULL_PTR != cbitmap && EC_TRUE == cbitmap_check(cbitmap, seqno))
         {

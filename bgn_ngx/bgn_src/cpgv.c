@@ -27,8 +27,6 @@ extern "C"{
 #include "cmisc.h"
 #include "real.h"
 
-#include "db_internal.h"
-
 #include "cpgrb.h"
 #include "cpgd.h"
 #include "cpgv.h"

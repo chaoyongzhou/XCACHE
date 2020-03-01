@@ -27,8 +27,6 @@ extern "C"{
 #include "cmisc.h"
 #include "real.h"
 
-#include "db_internal.h"
-
 #include "cxfscfg.h"
 #include "cxfspgrb.h"
 #include "cxfspgd.h"

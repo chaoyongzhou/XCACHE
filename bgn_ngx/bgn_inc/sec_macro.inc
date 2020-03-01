@@ -61,7 +61,7 @@
 #define SEC_0051_CTDNSSV                    ((UINT32)(     51)) /*ctdnssv                         */
 #define SEC_0052_CPARACFG                   ((UINT32)(     52)) /*cparacfg                        */
 #define SEC_0053_CSOCKET                    ((UINT32)(     53)) /*csocket                         */
-#define SEC_0054_CBGT                       ((UINT32)(     54)) /*cbgt                            */
+#define SEC_0054_XXXX                       ((UINT32)(     54)) /*-- obsolete --                  */
 #define SEC_0055_CTDNSSVMGR                 ((UINT32)(     55)) /*ctdnssvmgr                      */
 #define SEC_0056_CDFS                       ((UINT32)(     56)) /*cdfs                            */
 #define SEC_0057_TASKCFGCHK                 ((UINT32)(     57)) /*taskcfgchk                      */

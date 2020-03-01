@@ -38,7 +38,6 @@ extern "C"{
 #include "cmisc.h"
 
 #include "cdfs.h"
-#include "cbgt.h"
 #include "crfsnp.inc"
 #include "crfsnp.h"
 #include "cpgd.h"

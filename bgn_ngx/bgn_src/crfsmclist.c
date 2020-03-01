@@ -19,8 +19,6 @@ extern "C"{
 
 #include "cmisc.h"
 
-#include "db_internal.h"
-
 #include "crfsmclist.h"
 #include "crfsmc.h"
 
