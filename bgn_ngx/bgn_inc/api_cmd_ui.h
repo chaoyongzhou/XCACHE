@@ -172,93 +172,11 @@ EC_BOOL api_cmd_ui_sync_rank_load_to_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_rank_load(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_rank_load_on_all(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_cdfs_create_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_open_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_npp_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_with_flush_npp_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_create_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_open_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_dn_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_close_with_flush_dn_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_read(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_write(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_trunc(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_update(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_mkdir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_mkdir_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_qfile(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qdir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qlist_path(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qlist_seg(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_qcount_files(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qsize_files(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qsize_one_file(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_qblock(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_flush_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_flush_dn(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_flush_npp_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_flush_dn_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_add_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_add_dn_to_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_add_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_add_npp_to_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_reg_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_reg_npp_to_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_reg_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_reg_dn_to_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_list_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_list_dn(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_list_npp_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_list_dn_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_show_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_show_dn(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_show_npp_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_show_dn_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_show_block_path(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_show_cached_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_show_cached_np_all(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_showup_np(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_delete_path_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_delete_file_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_delete_dir_npp(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_transfer_npp(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_make_snapshot(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_make_snapshot_all(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_import_fnode_log(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cdfs_import_replica_log(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_enable_task_brd(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_enable_all_task_brd(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_disable_task_brd(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_disable_all_task_brd(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_cdfs_write_files(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_csession_add(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_csession_rmv_by_name(CMD_PARA_VEC * param);

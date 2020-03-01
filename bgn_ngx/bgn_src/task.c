@@ -70,9 +70,6 @@ extern "C"{
 #include "api_cmd_ui.h"
 
 #include "chashdb.h"
-#include "cdfsnp.h"
-#include "cdfsdn.h"
-#include "cdfs.h"
 #include "cconnp.h"
 
 #include "cload.h"
@@ -6569,16 +6566,6 @@ EC_BOOL task_brd_parse_args(int argc, char **argv, UINT32 *size, UINT32 *tcid, U
         if(0 == strcasecmp(argv[idx], "-reg") && idx + 1 < argc)
         {
             //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "tcid = %s\n", argv[idx + 1]);
-            if(0 == strcasecmp(argv[idx + 1], "hsdfs"))
-            {
-                (*reg_type) = TASK_REGISTER_HSDFS_SERVER;
-                continue;
-            }
-            if(0 == strcasecmp(argv[idx + 1], "hsbgt"))
-            {
-                (*reg_type) = TASK_REGISTER_HSBGT_SERVER;
-                continue;
-            }
             if(0 == strcasecmp(argv[idx + 1], "all"))
             {
                 (*reg_type) = TASK_REGISTER_ALL_SERVER;
@@ -7211,74 +7198,6 @@ EC_BOOL task_brd_register_role_str_and_group_cstr(TASK_BRD *task_brd, CLUSTER_CF
     return (EC_TRUE);
 }
 
-EC_BOOL task_brd_register_hsdfs_cluster(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
-{
-    CLUSTER_NODE_CFG *cluster_node_cfg;
-
-    /*whoami*/
-    cluster_node_cfg = cluster_cfg_search_by_tcid_rank(cluster_cfg, TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
-    if(NULL_PTR == cluster_node_cfg)
-    {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_hsdfs_cluster: current tcid %s rank %ld not belong to cluster %ld\n",
-                           TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), CLUSTER_CFG_ID(cluster_cfg));
-        return (EC_TRUE);
-    }
-
-    /*I am namenode, connect to all namenode and datanode*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"namenode:np"))
-    {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"namenode:np:datanode:dn");
-    }
-
-    /*I am datanode, connect to all namenode and datanode in the same group*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"datanode:dn"))
-    {
-        task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"namenode:np");
-        task_brd_register_role_str_and_group_cstr(task_brd, cluster_cfg, (const char *)"datanode:dn", CLUSTER_NODE_CFG_GROUP(cluster_node_cfg));
-        return (EC_TRUE);
-    }
-
-    /*I am client, connect to all namenode and datanode in the same group*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"client"))
-    {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"namenode:np:datanode:dn");
-    }
-
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_hsdfs_cluster: invalid cluster node role %s\n",
-                       (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg));
-    return (EC_FALSE);
-}
-
-EC_BOOL task_brd_register_hsbgt_cluster(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
-{
-    CLUSTER_NODE_CFG *cluster_node_cfg;
-
-    /*whoami*/
-    cluster_node_cfg = cluster_cfg_search_by_tcid_rank(cluster_cfg, TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
-    if(NULL_PTR == cluster_node_cfg)
-    {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_hsbgt_cluster: current tcid %s rank %ld not belong to cluster %ld\n",
-                           TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), CLUSTER_CFG_ID(cluster_cfg));
-        return (EC_TRUE);
-    }
-
-    /*I am table, connect to all tables*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"table"))
-    {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"table");
-    }
-
-    /*I am client, connect to all tables*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"client"))
-    {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"table");
-    }
-
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_hsbgt_cluster: invalid cluster node role %s\n",
-                       (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg));
-    return (EC_FALSE);
-}
-
 EC_BOOL task_brd_register_hsrfs_cluster(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
 {
     return task_brd_register_all(task_brd, cluster_cfg);
@@ -7341,16 +7260,6 @@ EC_BOOL task_brd_register_one_cluster(TASK_BRD *task_brd, const UINT32 cluster_i
     if(MODEL_TYPE_CROSS_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
     {
         return task_brd_register_cross_cluster(task_brd, cluster_cfg);
-    }
-
-    if(MODEL_TYPE_HSDFS_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
-    {
-        return task_brd_register_hsdfs_cluster(task_brd, cluster_cfg);
-    }
-
-    if(MODEL_TYPE_HSBGT_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
-    {
-        return task_brd_register_hsbgt_cluster(task_brd, cluster_cfg);
     }
 
     if(MODEL_TYPE_HSRFS_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
@@ -8801,30 +8710,6 @@ UINT32 task_brd_default_get_chfsmon_id()
 UINT32 task_brd_default_get_csfsmon_id()
 {
     return TASK_BRD_CSFSMON_ID(task_brd_default_get());
-}
-
-CSTRING *task_brd_default_get_hsdfs_np_root_dir()
-{
-    TASK_BRD *task_brd;
-
-    task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsdfs_np_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
-}
-
-CSTRING *task_brd_default_get_hsdfs_dn_root_dir()
-{
-    TASK_BRD *task_brd;
-
-    task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsdfs_dn_root_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
-}
-
-CSTRING *task_brd_default_get_hsbgt_root_table_dir()
-{
-    TASK_BRD *task_brd;
-
-    task_brd = task_brd_default_get();
-    return sys_cfg_collect_hsbgt_root_table_dir(TASK_BRD_SYS_CFG(task_brd), TASKS_CFG_CLUSTER_VEC(TASK_BRD_LOCAL_TASKS_CFG(task_brd)));
 }
 
 EC_BOOL task_brd_default_check_validity()
@@ -11862,34 +11747,6 @@ EC_BOOL task_brd_cpu_avg_stat_update_once(TASK_BRD *task_brd)
     dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_cpu_avg_stat_update_once: was called\n");
     csys_cpu_avg_stat_get(TASK_BRD_CPU_AVG_STAT(task_brd));
     return (EC_TRUE);
-}
-
-EC_BOOL task_brd_start_cdfs_srv(TASK_BRD *task_brd, const UINT32 cdfs_md_id, const UINT32 cdfs_srv_ipaddr, const UINT32 cdfs_srv_port)
-{
-    if(NULL_PTR != TASK_BRD_CSRV(task_brd))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_start_cdfs_srv: TASK_BRD_CSRV is already working as server at %s:%ld on sockfd %d\n",
-                            c_word_to_ipv4(CSRV_IPADDR(TASK_BRD_CSRV(task_brd))),
-                            CSRV_PORT(TASK_BRD_CSRV(task_brd)),
-                            CSRV_SOCKFD(TASK_BRD_CSRV(task_brd)));
-        return (EC_FALSE);
-    }
-
-    TASK_BRD_CSRV(task_brd) = csrv_start(cdfs_srv_ipaddr, cdfs_srv_port, cdfs_md_id);
-    if(NULL_PTR == TASK_BRD_CSRV(task_brd))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_start_cdfs_srv: start cdfs srv failed\n");
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL task_brd_default_start_cdfs_srv(const UINT32 cdfs_md_id, const UINT32 cdfs_srv_ipaddr, const UINT32 cdfs_srv_port)
-{
-    TASK_BRD *task_brd;
-
-    task_brd = task_brd_default_get();
-    return task_brd_start_cdfs_srv(task_brd, cdfs_md_id, cdfs_srv_ipaddr, cdfs_srv_port);
 }
 
 #if 1 /*http server*/

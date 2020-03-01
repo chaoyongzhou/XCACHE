@@ -28,7 +28,6 @@ extern "C"{
 #define CMPI_DBG_RANK      ((UINT32)  0)  /*define debug rank*/
 #define CMPI_MON_RANK      ((UINT32)  0)  /*define monitor rank*/
 #define CMPI_FWD_RANK      ((UINT32)  0)  /*define forward rank*/
-#define CMPI_CDFS_RANK     ((UINT32)  0)  /*define cdfs rank*/
 #define CMPI_CRFS_RANK     ((UINT32)  0)  /*define crfs rank*/
 #define CMPI_CRFSC_RANK    ((UINT32)  0)  /*define crfsc rank*/
 #define CMPI_CXFS_RANK     ((UINT32)  0)  /*define cxfs rank*/
@@ -50,8 +49,6 @@ extern "C"{
 #define CMPI_LOCAL_RANK    task_brd_default_get_rank()
 #define CMPI_LOCAL_SIZE    task_brd_default_get_size()
 
-#define TASK_REGISTER_HSDFS_SERVER          ((UINT32) 0x01)
-#define TASK_REGISTER_HSBGT_SERVER          ((UINT32) 0x02)
 #define TASK_REGISTER_OTHER_SERVER          ((UINT32) 0x04)
 #define TASK_REGISTER_UDP_SERVER            ((UINT32) 0x08)
 #define TASK_REGISTER_ALL_SERVER            ((UINT32) 0x0F)
@@ -260,12 +257,6 @@ UINT32 task_brd_default_get_rank();
 UINT32 task_brd_default_get_size();
 
 UINT32 task_brd_default_get_super();
-
-CSTRING *task_brd_default_get_hsdfs_np_root_dir();
-
-CSTRING *task_brd_default_get_hsdfs_dn_root_dir();
-
-CSTRING *task_brd_default_get_hsbgt_root_table_dir();
 
 CRFSMC  *task_brd_default_get_crfsmc();
 
@@ -612,9 +603,6 @@ EC_BOOL task_brd_cbtimer_do(TASK_BRD *task_brd);
 EC_BOOL do_once(TASK_BRD *task_brd);
 EC_BOOL do_slave(TASK_BRD *task_brd);
 EC_BOOL do_slave_enhanced(TASK_BRD *task_brd);
-
-EC_BOOL task_brd_start_cdfs_srv(TASK_BRD *task_brd, const UINT32 cdfs_md_id, const UINT32 cdfs_srv_ipaddr, const UINT32 cdfs_srv_port);
-EC_BOOL task_brd_default_start_cdfs_srv(const UINT32 cdfs_md_id, const UINT32 cdfs_srv_ipaddr, const UINT32 cdfs_srv_port);
 
 /*http server*/
 EC_BOOL task_brd_start_http_srv(TASK_BRD *task_brd, const UINT32 http_srv_ipaddr, const UINT32 http_srv_port);

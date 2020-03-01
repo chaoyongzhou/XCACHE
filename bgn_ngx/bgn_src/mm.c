@@ -43,10 +43,6 @@ extern "C"{
 #include "chashnode.h"
 #include "chashvec.h"
 #include "chashdb.h"
-#include "cdfsnp.h"
-#include "cdfsdn.h"
-#include "cdfsnpmgr.h"
-#include "cdfs.h"
 #include "cbloom.h"
 #include "cload.h"
 #include "csrv.h"
@@ -333,23 +329,8 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CHASHDB                      ,"MM_CHASHDB                      ", 4       , sizeof(CHASHDB)                     , LOC_MM_0085);
     MM_MGR_DEF(MM_CHASHDB_BUCKET               ,"MM_CHASHDB_BUCKET               ", 4       , sizeof(CHASHDB_BUCKET)              , LOC_MM_0086);
 
-    MM_MGR_DEF(MM_CDFSNP                       ,"MM_CDFSNP                       ", 4       , sizeof(CDFSNP)                      , LOC_MM_0087);
-    MM_MGR_DEF(MM_CDFSNP_ITEM                  ,"MM_CDFSNP_ITEM                  ", 4       , sizeof(CDFSNP_ITEM)                 , LOC_MM_0088);
-    MM_MGR_DEF(MM_CDFSNP_INODE                 ,"MM_CDFSNP_INODE                 ", 4       , sizeof(CDFSNP_INODE)                , LOC_MM_0089);
-    MM_MGR_DEF(MM_CDFSNP_FNODE                 ,"MM_CDFSNP_FNODE                 ", 4       , sizeof(CDFSNP_FNODE)                , LOC_MM_0090);
-    MM_MGR_DEF(MM_CDFSNP_DNODE                 ,"MM_CDFSNP_DNODE                 ", 4       , sizeof(CDFSNP_DNODE)                , LOC_MM_0091);
-
-    MM_MGR_DEF(MM_CDFSDN_CACHE                 ,"MM_CDFSDN_CACHE                 ", 4       , sizeof(CDFSDN_CACHE)                , LOC_MM_0092);
-    MM_MGR_DEF(MM_CDFSDN_BLOCK                 ,"MM_CDFSDN_BLOCK                 ", 4       , sizeof(CDFSDN_BLOCK)                , LOC_MM_0093);
-    MM_MGR_DEF(MM_CDFSDN                       ,"MM_CDFSDN                       ", 4       , sizeof(CDFSDN)                      , LOC_MM_0094);
-    MM_MGR_DEF(MM_CDFSDN_RECORD                ,"MM_CDFSDN_RECORD                ", 4       , sizeof(CDFSDN_RECORD)               , LOC_MM_0095);
-    MM_MGR_DEF(MM_CDFSDN_RECORD_MGR            ,"MM_CDFSDN_RECORD_MGR            ", 4       , sizeof(CDFSDN_RECORD_MGR)           , LOC_MM_0096);
-
     MM_MGR_DEF(MM_CLOAD_STAT                   ,"MM_CLOAD_STAT                   ", 8       , sizeof(CLOAD_STAT)                  , LOC_MM_0097);
     MM_MGR_DEF(MM_CLOAD_NODE                   ,"MM_CLOAD_NODE                   ", 8       , sizeof(CLOAD_NODE)                  , LOC_MM_0098);
-
-    MM_MGR_DEF(MM_CDFSNP_MGR                   ,"MM_CDFSNP_MGR                   ", 8       , sizeof(CDFSNP_MGR)                  , LOC_MM_0099);
-    MM_MGR_DEF(MM_CDFSDN_STAT                  ,"MM_CDFSDN_STAT                  ", 8       , sizeof(CDFSDN_STAT)                 , LOC_MM_0100);
 
     MM_MGR_DEF(MM_TYPE_CONV_ITEM               ,"MM_TYPE_CONV_ITEM               ",64       , sizeof(TYPE_CONV_ITEM)              , LOC_MM_0101);
     MM_MGR_DEF(MM_CSRV                         ,"MM_CSRV                         ",64       , sizeof(CSRV)                        , LOC_MM_0102);

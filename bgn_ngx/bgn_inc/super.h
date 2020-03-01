@@ -188,10 +188,6 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *taskc_mgr);
 
 UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, CLOAD_MGR *des_cload_mgr);
 
-EC_BOOL super_register_hsbgt_cluster(const UINT32 super_md_id);
-
-EC_BOOL super_register_hsdfs_cluster(const UINT32 super_md_id);
-
 /**
 *
 * check taskc node connectivity by SUPER module

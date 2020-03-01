@@ -28,8 +28,8 @@ extern "C"{
 #define     MD_CRUN      ((UINT32)  3)/* user interfaces */
 #define     MD_SUPER     ((UINT32)  4)
 #define     MD_CTIMER    ((UINT32)  5)
-#define     MD_CDFS      ((UINT32)  6)
-#define     MD_XXXX      ((UINT32)  7) /*-- obsolete --*/
+#define     MD_0001      ((UINT32)  6) /*-- obsolee --*/
+#define     MD_0002      ((UINT32)  7) /*-- obsolete --*/
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
 #define     MD_CHFS      ((UINT32) 10)
@@ -149,25 +149,24 @@ extern "C"{
 #define                  MM_CHASHDB_ITEM    ((UINT32) 81)
 #define                       MM_CHASHDB    ((UINT32) 82)
 #define                MM_CHASHDB_BUCKET    ((UINT32) 83)
-#define                        MM_CDFSNP    ((UINT32) 84)
-#define                   MM_CDFSNP_ITEM    ((UINT32) 85)
-#define                  MM_CDFSNP_INODE    ((UINT32) 86)
-#define                  MM_CDFSNP_FNODE    ((UINT32) 87)
-#define                  MM_CDFSNP_DNODE    ((UINT32) 88)
-#define                  MM_CDFSDN_CACHE    ((UINT32) 89)
-#define                  MM_CDFSDN_BLOCK    ((UINT32) 90)
-#define                        MM_CDFSDN    ((UINT32) 91)
-#define                 MM_CDFSDN_RECORD    ((UINT32) 92)
-#define             MM_CDFSDN_RECORD_MGR    ((UINT32) 93)
+#define                        MM_000084    ((UINT32) 84) /*-- obsolete --*/
+#define                        MM_000085    ((UINT32) 85) /*-- obsolete --*/
+#define                        MM_000086    ((UINT32) 86) /*-- obsolete --*/
+#define                        MM_000087    ((UINT32) 87) /*-- obsolete --*/
+#define                        MM_000088    ((UINT32) 88) /*-- obsolete --*/
+#define                        MM_000090    ((UINT32) 90) /*-- obsolete --*/
+#define                        MM_000091    ((UINT32) 91) /*-- obsolete --*/
+#define                        MM_000092    ((UINT32) 92) /*-- obsolete --*/
+#define                        MM_000093    ((UINT32) 93) /*-- obsolete --*/
 #define                    MM_CLOAD_STAT    ((UINT32) 94)
 #define                    MM_CLOAD_NODE    ((UINT32) 95)
-#define                    MM_CDFSNP_MGR    ((UINT32) 96)
-#define                   MM_CDFSDN_STAT    ((UINT32) 97)
+#define                        MM_000096    ((UINT32) 96) /*-- obsolete --*/
+#define                        MM_000097    ((UINT32) 97) /*-- obsolete --*/
 #define                MM_TYPE_CONV_ITEM    ((UINT32) 98)
 #define                          MM_CSRV    ((UINT32) 99)
-#define                       MM_XXXX_01    ((UINT32)100) /*-- obsolete --*/
+#define                        MM_000100    ((UINT32)100) /*-- obsolete --*/
 #define                        MM_CBYTES    ((UINT32)101)
-#define                      MM_XXXT_X02    ((UINT32)102) /*-- obsolete --*/
+#define                        MM_000102    ((UINT32)102) /*-- obsolete --*/
 #define                       MM_CBITMAP    ((UINT32)103)
 #define                  MM_CBTIMER_NODE    ((UINT32)104)
 #define              MM_CLUSTER_NODE_CFG    ((UINT32)105)
@@ -183,10 +182,10 @@ extern "C"{
 #define                 MM_CSESSION_NODE    ((UINT32)115)
 #define                 MM_CSESSION_ITEM    ((UINT32)116)
 #define                        MM_CTIMET    ((UINT32)117)
-#define                    MM_XXXXXX_001    ((UINT32)118) /*-- obsolete --*/
-#define                   MM_XXXXXX__002    ((UINT32)119) /*-- obsolete --*/
-#define                        MM_XXXXXX    ((UINT32)120) /*-- obsolete -- */
-#define                      MM_XXXX_X03    ((UINT32)121) /*-- obsolete --*/
+#define                        MM_000118    ((UINT32)118) /*-- obsolete --*/
+#define                        MM_000119    ((UINT32)119) /*-- obsolete --*/
+#define                        MM_000120    ((UINT32)120) /*-- obsolete --*/
+#define                        MM_000121    ((UINT32)121) /*-- obsolete --*/
 #define                MM_COROUTINE_TASK    ((UINT32)122)
 #define                MM_COROUTINE_NODE    ((UINT32)123)
 #define                MM_COROUTINE_POOL    ((UINT32)124)

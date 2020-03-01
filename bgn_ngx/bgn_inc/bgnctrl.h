@@ -15,9 +15,6 @@ extern "C"{
 /*Super Package Debug Switch*/
 #define SUPER_DEBUG_SWITCH SWITCH_ON
 
-/*CDFS Package Debug Switch*/
-#define CDFS_DEBUG_SWITCH SWITCH_ON
-
 /*CRFS Package Debug Switch*/
 #define CRFS_DEBUG_SWITCH SWITCH_ON
 

@@ -905,18 +905,6 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
     return (0);
 }
 
-EC_BOOL super_register_hsbgt_cluster(const UINT32 super_md_id)
-{
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_register_hsbgt_cluster: obsoleted!\n");
-    return (EC_FALSE);
-}
-
-EC_BOOL super_register_hsdfs_cluster(const UINT32 super_md_id)
-{
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_register_hsdfs_cluster: obsoleted!\n");
-    return (EC_FALSE);
-}
-
 /**
 *
 * check taskc node connectivity by SUPER module

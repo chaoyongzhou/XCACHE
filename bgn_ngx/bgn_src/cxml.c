@@ -37,7 +37,6 @@ extern "C"{
 #include "cbtimer.h"
 #include "cmisc.h"
 
-#include "cdfs.h"
 #include "crfsnp.inc"
 #include "crfsnp.h"
 #include "cpgd.h"
@@ -415,14 +414,6 @@ STATIC_CAST static EC_BOOL __cxml_parse_cluster_model(xmlNodePtr node, const cha
         else if(0 == strcasecmp((char *)attr_val, "cross"))
         {
             (*cluster_model) = MODEL_TYPE_CROSS_CONNEC;
-        }
-        else if(0 == strcasecmp((char *)attr_val, "hsdfs"))
-        {
-            (*cluster_model) = MODEL_TYPE_HSDFS_CONNEC;
-        }
-        else if(0 == strcasecmp((char *)attr_val, "hsbgt"))
-        {
-            (*cluster_model) = MODEL_TYPE_HSBGT_CONNEC;
         }
         else if(0 == strcasecmp((char *)attr_val, "hsrfs"))
         {

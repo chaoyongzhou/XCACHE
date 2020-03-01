@@ -211,30 +211,6 @@ MACIP_CFG *sys_cfg_search_macip_cfg_by_ipv4_addr(const SYS_CFG *sys_cfg, const U
 
 MACIP_CFG *sys_cfg_search_macip_cfg_by_mac_addr(const SYS_CFG *sys_cfg, const UINT8 *mac_addr);
 
-EC_BOOL sys_cfg_collect_hsdfs_dn_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * dn_tcid_vec);
-
-EC_BOOL sys_cfg_collect_hsdfs_np_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * np_tcid_vec);
-
-EC_BOOL sys_cfg_collect_hsdfs_client_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * client_tcid_vec);
-
-CSTRING *sys_cfg_get_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const UINT32 cluster_id);
-
-CSTRING *sys_cfg_get_hsdfs_dn_root_dir(const SYS_CFG *sys_cfg, const UINT32 cluster_id);
-
-CSTRING *sys_cfg_collect_hsdfs_np_root_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec);
-
-CSTRING *sys_cfg_collect_hsdfs_dn_root_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec);
-
-EC_BOOL sys_cfg_collect_hsbgt_root_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * root_tcid_vec);
-
-EC_BOOL sys_cfg_collect_hsbgt_table_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * table_tcid_vec);
-
-EC_BOOL sys_cfg_collect_hsbgt_client_tcid_vec(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec, CVECTOR * table_tcid_vec);
-
-CSTRING *sys_cfg_get_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const UINT32 cluster_id);
-
-CSTRING *sys_cfg_collect_hsbgt_root_table_dir(const SYS_CFG *sys_cfg, const CVECTOR *cluster_id_vec);
-
 EC_BOOL sys_cfg_add_macip_cfg(SYS_CFG *sys_cfg, const UINT32 ipv4_addr, const UINT8 *mac_addr);
 
 EC_BOOL sys_cfg_add_tasks_cfg(SYS_CFG *sys_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske, const UINT32 srvipaddr, const UINT32 srvport, const UINT32 csrvport, const UINT32 ssrvport);

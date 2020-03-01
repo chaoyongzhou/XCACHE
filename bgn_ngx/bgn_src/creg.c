@@ -23,9 +23,6 @@ extern "C"{
 #include "cstring.h"
 
 #include "kbuff.h"
-#include "cdfs.h"
-#include "cdfsnp.h"
-#include "cdfsdn.h"
 #include "csocket.h"
 #include "real.h"
 #include "cload.h"
@@ -60,7 +57,6 @@ extern "C"{
 #include "crun.inc"
 #include "super.inc"
 
-#include "cdfs.inc"
 #include "csession.inc"
 #include "crfs.inc"
 #include "cxfs.inc"
@@ -519,42 +515,6 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_task_report_node_size
     );
     creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CDFSNP_FNODE_ptr,
-        /* type_sizeof            */sizeof(CDFSNP_FNODE),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CDFSNP_FNODE,
-        /* init_type_func         */(UINT32)cdfsnp_fnode_init,
-        /* clean_type_func        */(UINT32)cdfsnp_fnode_clean,
-        /* free_type_func         */(UINT32)cdfsnp_fnode_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cdfsnp_fnode,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cdfsnp_fnode,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cdfsnp_fnode_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CDFSNP_ITEM_ptr,
-        /* type_sizeof            */sizeof(CDFSNP_ITEM),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CDFSNP_ITEM,
-        /* init_type_func         */(UINT32)cdfsnp_item_init,
-        /* clean_type_func        */(UINT32)cdfsnp_item_clean,
-        /* free_type_func         */(UINT32)cdfsnp_item_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cdfsnp_item,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cdfsnp_item,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cdfsnp_item_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CDFSDN_STAT_ptr,
-        /* type_sizeof            */sizeof(CDFSDN_STAT),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CDFSDN_STAT,
-        /* init_type_func         */(UINT32)cdfsdn_stat_init,
-        /* clean_type_func        */(UINT32)cdfsdn_stat_clean,
-        /* free_type_func         */(UINT32)cdfsdn_stat_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cdfsdn_stat,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cdfsdn_stat,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cdfsdn_stat_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CLOAD_STAT_ptr,
         /* type_sizeof            */sizeof(CLOAD_STAT),
         /* pointer_flag           */EC_TRUE,
@@ -589,30 +549,6 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cload_mgr,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cload_mgr,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cload_mgr_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CDFSDN_RECORD_ptr,
-        /* type_sizeof            */sizeof(CDFSDN_RECORD),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CDFSDN_RECORD,
-        /* init_type_func         */(UINT32)cdfsdn_record_init,
-        /* clean_type_func        */(UINT32)cdfsdn_record_clean,
-        /* free_type_func         */(UINT32)cdfsdn_record_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cdfsdn_record,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cdfsdn_record,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cdfsdn_record_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CDFSDN_BLOCK_ptr,
-        /* type_sizeof            */sizeof(CDFSDN_BLOCK) + sizeof(CDFSDN_CACHE),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CDFSDN_BLOCK,
-        /* init_type_func         */(UINT32)cdfsdn_block_init_0,
-        /* clean_type_func        */(UINT32)cdfsdn_block_clean,
-        /* free_type_func         */(UINT32)cdfsdn_block_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cdfsdn_block,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cdfsdn_block,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cdfsdn_block_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CBYTES_ptr,
@@ -1188,7 +1124,6 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CRUN    ,  &g_crun_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_crun_func_addr_list   , ERR_FUNC_ID      , ERR_FUNC_ID     , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_SUPER   ,  &g_super_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_super_func_addr_list  , FI_super_start   , FI_super_end    , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CTIMER  ,  NULL_PTR                     ,   NULL_PTR                                  , ERR_FUNC_ID      , ERR_FUNC_ID     , ERR_FUNC_ID             , NULL_PTR                                   );
-    creg_func_addr_vec_add(func_addr_vec, MD_CDFS    ,  &g_cdfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cdfs_func_addr_list   , FI_cdfs_start    , FI_cdfs_end     , ERR_FUNC_ID             , (dbg_md_fget_mod_mgr) cdfs_get_dn_mod_mgr  );
     creg_func_addr_vec_add(func_addr_vec, MD_CSESSION,  &g_csession_func_addr_list_len,  (FUNC_ADDR_NODE *)g_csession_func_addr_list, FI_csession_start , FI_csession_end, ERR_FUNC_ID            , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CRFS    ,  &g_crfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_crfs_func_addr_list   , FI_crfs_start    , FI_crfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CHFS    ,  &g_chfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_chfs_func_addr_list   , FI_chfs_start    , FI_chfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );

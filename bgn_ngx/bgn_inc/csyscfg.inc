@@ -20,25 +20,9 @@ extern "C"{
 
 #define MODEL_TYPE_MASTER_SLAVE              ((UINT32) 1)/*master slave model*/
 #define MODEL_TYPE_CROSS_CONNEC              ((UINT32) 2)/*cross connection model*/
-#define MODEL_TYPE_HSDFS_CONNEC              ((UINT32) 3)/*hsdfs connection model*/
-#define MODEL_TYPE_HSBGT_CONNEC              ((UINT32) 4)/*hsbgt connection model*/
 #define MODEL_TYPE_HSRFS_CONNEC              ((UINT32) 5)/*hsrfs connection model*/
 #define MODEL_TYPE_ANY                       ((UINT32)-2)/*any   connection model*/
 #define MODEL_TYPE_ERROR                     ((UINT32)-1)/*error connection model*/
-
-/**
-    <clusters>
-        <cluster id="1" name="hsdfs" model="cross">
-            <node role="namenode" tcid="10.10.10.1" rank="1"/>
-            <node role="namenode" tcid="10.10.10.2" rank="1"/>
-            <node role="datanode" tcid="10.10.10.3" rank="1"/>
-            <node role="datanode" tcid="10.10.10.4" rank="1"/>
-            <node role="datanode" tcid="10.10.10.5" rank="1"/>
-            <node role="client"   tcid="10.10.10.6" rank="1"/>
-            <node role="client"   tcid="10.10.10.7" rank="1"/>
-        </cluster>
-    </clusters>
-**/
 
 /*cluster node*/
 typedef struct

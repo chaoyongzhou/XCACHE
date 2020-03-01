@@ -24,9 +24,6 @@ extern "C"{
 #include "super.h"
 
 #include "kbuff.h"
-#include "cdfs.h"
-#include "cdfsnp.h"
-#include "cdfsdn.h"
 #include "crfs.h"
 #include "crfsnp.h"
 #include "crfsdn.h"
@@ -203,22 +200,6 @@ UINT32 cmpi_encode_task_report_node(const UINT32 comm, const TASK_REPORT_NODE *t
 UINT32 cmpi_encode_task_report_node_size(const UINT32 comm, const TASK_REPORT_NODE *task_report_node, UINT32 *size);
 UINT32 cmpi_decode_task_report_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, TASK_REPORT_NODE *task_report_node);
 
-UINT32 cmpi_encode_cdfsnp_inode(const UINT32 comm, const CDFSNP_INODE *cdfsnp_inode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsnp_inode_size(const UINT32 comm, const CDFSNP_INODE *cdfsnp_inode, UINT32 *size);
-UINT32 cmpi_decode_cdfsnp_inode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSNP_INODE *cdfsnp_inode);
-
-UINT32 cmpi_encode_cdfsnp_fnode(const UINT32 comm, const CDFSNP_FNODE *cdfsnp_fnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsnp_fnode_size(const UINT32 comm, const CDFSNP_FNODE *cdfsnp_fnode, UINT32 *size);
-UINT32 cmpi_decode_cdfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSNP_FNODE *cdfsnp_fnode);
-
-UINT32 cmpi_encode_cdfsnp_item(const UINT32 comm, const CDFSNP_ITEM *cdfsnp_item, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsnp_item_size(const UINT32 comm, const CDFSNP_ITEM *cdfsnp_item, UINT32 *size);
-UINT32 cmpi_decode_cdfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSNP_ITEM *cdfsnp_item);
-
-UINT32 cmpi_encode_cdfsdn_stat(const UINT32 comm, const CDFSDN_STAT *cdfsdn_stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsdn_stat_size(const UINT32 comm, const CDFSDN_STAT *cdfsdn_stat, UINT32 *size);
-UINT32 cmpi_decode_cdfsdn_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSDN_STAT *cdfsdn_stat);
-
 UINT32 cmpi_encode_cload_stat(const UINT32 comm, const CLOAD_STAT *cload_stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cload_stat_size(const UINT32 comm, const CLOAD_STAT *cload_stat, UINT32 *size);
 UINT32 cmpi_decode_cload_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CLOAD_STAT *cload_stat);
@@ -230,14 +211,6 @@ UINT32 cmpi_decode_cload_node(const UINT32 comm, const UINT8 *in_buff, const UIN
 UINT32 cmpi_encode_cload_mgr(const UINT32 comm, const CLOAD_MGR *cload_mgr, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cload_mgr_size(const UINT32 comm, const CLOAD_MGR *cload_mgr, UINT32 *size);
 UINT32 cmpi_decode_cload_mgr(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CLOAD_MGR *cload_mgr);
-
-UINT32 cmpi_encode_cdfsdn_record(const UINT32 comm, const CDFSDN_RECORD *cdfsdn_record, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsdn_record_size(const UINT32 comm, const CDFSDN_RECORD *cdfsdn_record, UINT32 *size);
-UINT32 cmpi_decode_cdfsdn_record(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSDN_RECORD *cdfsdn_record);
-
-UINT32 cmpi_encode_cdfsdn_block(const UINT32 comm, const CDFSDN_BLOCK *cdfsdn_block, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cdfsdn_block_size(const UINT32 comm, const CDFSDN_BLOCK *cdfsdn_block, UINT32 *size);
-UINT32 cmpi_decode_cdfsdn_block(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CDFSDN_BLOCK *cdfsdn_block);
 
 UINT32 cmpi_encode_cbytes(const UINT32 comm, const CBYTES *cbytes, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cbytes_size(const UINT32 comm, const CBYTES *cbytes, UINT32 *size);

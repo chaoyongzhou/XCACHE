@@ -63,14 +63,14 @@ extern "C"{
 #define          e_dbg_CSYS_ETH_STAT_ptr    ((UINT32) 32)
 #define          e_dbg_CSYS_DSK_STAT_ptr    ((UINT32) 33)
 #define       e_dbg_TASK_REPORT_NODE_ptr    ((UINT32) 34)
-#define           e_dbg_CDFSNP_FNODE_ptr    ((UINT32) 35)
-#define            e_dbg_CDFSNP_ITEM_ptr    ((UINT32) 36)
-#define            e_dbg_CDFSDN_STAT_ptr    ((UINT32) 37)
+#define                  e_dbg_00035_ptr    ((UINT32) 35) /*-- obsolete --*/
+#define                  e_dbg_00036_ptr    ((UINT32) 36) /*-- obsolete --*/
+#define                  e_dbg_00037_ptr    ((UINT32) 37) /*-- obsolete --*/
 #define             e_dbg_CLOAD_STAT_ptr    ((UINT32) 38)
 #define             e_dbg_CLOAD_NODE_ptr    ((UINT32) 39)
 #define              e_dbg_CLOAD_MGR_ptr    ((UINT32) 40)
-#define          e_dbg_CDFSDN_RECORD_ptr    ((UINT32) 41)
-#define           e_dbg_CDFSDN_BLOCK_ptr    ((UINT32) 42)
+#define                  e_dbg_00041_ptr    ((UINT32) 41) /*-- obsolete --*/
+#define                  e_dbg_00042_ptr    ((UINT32) 42) /*-- obsolete --*/
 #define                 e_dbg_CBYTES_ptr    ((UINT32) 43)
 #define               e_dbg_MOD_NODE_ptr    ((UINT32) 44)
 #define                 e_dbg_CTIMET_ptr    ((UINT32) 45)

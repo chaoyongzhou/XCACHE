@@ -23,7 +23,6 @@ extern "C"{
 #include "cmpic.inc"
 
 #include "cbitmap.h"
-#include "cdfs.h"
 
 CBITMAP *cbitmap_new(const UINT32 max_bits)
 {
