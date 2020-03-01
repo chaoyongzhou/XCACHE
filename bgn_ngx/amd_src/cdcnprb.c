@@ -1240,7 +1240,8 @@ EC_BOOL cdcnprb_pool_init(CDCNPRB_POOL *pool, const uint32_t node_max_num, const
 
     if(CDCNPRB_POOL_MAX_SIZE < node_max_num)
     {
-        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_pool_init: node_max_num %u overflow!\n", node_max_num);
+        dbg_log(SEC_0181_CDCNPRB, 0)(LOGSTDOUT, "error:cdcnprb_pool_init: node_max_num %u > %u overflow!\n", 
+                                                node_max_num, CDCNPRB_POOL_MAX_SIZE);
         return (EC_FALSE);
     }
 

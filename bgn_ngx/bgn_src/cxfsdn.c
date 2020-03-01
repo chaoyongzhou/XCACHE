@@ -36,7 +36,7 @@ extern "C"{
 
 #include "crb.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "cmmap.h"
 
@@ -516,12 +516,12 @@ EC_BOOL cxfsdn_umount_disk(CXFSDN *cxfsdn, const uint16_t disk_no)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap)
+EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CPG_BITMAP *cpg_bitmap)
 {
     if(NULL_PTR == CXFSDN_SATA_BAD_BITMAP(cxfsdn)
-    && NULL_PTR != cbad_bitmap)
+    && NULL_PTR != cpg_bitmap)
     {
-        CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = cbad_bitmap;
+        CXFSDN_SATA_BAD_BITMAP(cxfsdn)      = cpg_bitmap;
 
         if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
         {
@@ -562,7 +562,7 @@ STATIC_CAST static EC_BOOL __cxfsdn_sync_sata_bad_bitmap_callback(void *data)
 EC_BOOL cxfsdn_sync_sata_bad_bitmap(CXFSDN *cxfsdn, const UINT32 sata_bad_bitmap_offset, const UINT32 sata_bad_bitmap_size)
 {
     CAMD_MD             *camd_md;
-    CBAD_BITMAP         *sata_bad_bitmap;
+    CPG_BITMAP         *sata_bad_bitmap;
     int                  sata_disk_fd;
 
     camd_md         = CXFSDN_CAMD_MD(cxfsdn);
@@ -644,7 +644,7 @@ EC_BOOL cxfsdn_cover_sata_bad_page(CXFSDN *cxfsdn, const uint32_t size, const ui
 
         for(; s_page <= e_page; s_page ++)
         {
-            if(EC_TRUE == cbad_bitmap_is(CXFSDN_SATA_BAD_BITMAP(cxfsdn), s_page, (uint8_t)1))
+            if(EC_TRUE == cpg_bitmap_is(CXFSDN_SATA_BAD_BITMAP(cxfsdn), s_page, (uint8_t)1))
             {
                 dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_cover_sata_bad_page: "
                                                        "(disk %u, block %u, page %u), size %u => [%ld, %ld) "

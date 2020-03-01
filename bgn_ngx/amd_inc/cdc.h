@@ -17,7 +17,7 @@ extern "C"{
 
 #include "type.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "cdcnp.h"
 #include "cdcdn.h"
@@ -92,8 +92,8 @@ typedef struct
     CDCDN                   *cdcdn;
     CDCNP                   *cdcnp;
 
-    CBAD_BITMAP             *ssd_bad_bitmap;    /*mounted point. inheritted from camd*/
-    CBAD_BITMAP             *sata_bad_bitmap;   /*mounted point. inheritted from camd*/
+    CPG_BITMAP              *ssd_bad_bitmap;    /*mounted point. inheritted from camd*/
+    CPG_BITMAP              *sata_bad_bitmap;   /*mounted point. inheritted from camd*/
 
     CMMAP_NODE              *cmmap_node;        /*mounted point. inheritted from camd*/
 
@@ -1148,7 +1148,7 @@ EC_BOOL cdc_has_post_event_reqs(CDC_MD *cdc_md);
 
 CDC_REQ *cdc_search_req(CDC_MD *cdc_md, const UINT32 seq_no);
 
-EC_BOOL cdc_mount_ssd_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *ssd_bad_bitmap);
+EC_BOOL cdc_mount_ssd_bad_bitmap(CDC_MD *cdc_md, CPG_BITMAP *ssd_bad_bitmap);
 
 EC_BOOL cdc_umount_ssd_bad_bitmap(CDC_MD *cdc_md);
 
@@ -1158,7 +1158,7 @@ EC_BOOL cdc_set_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
 
 EC_BOOL cdc_clear_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no);
 
-EC_BOOL cdc_mount_sata_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *sata_bad_bitmap);
+EC_BOOL cdc_mount_sata_bad_bitmap(CDC_MD *cdc_md, CPG_BITMAP *sata_bad_bitmap);
 
 EC_BOOL cdc_umount_sata_bad_bitmap(CDC_MD *cdc_md);
 

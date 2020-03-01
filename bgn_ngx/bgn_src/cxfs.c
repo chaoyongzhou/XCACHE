@@ -40,7 +40,7 @@ extern "C"{
 
 #include "cmpie.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "crb.h"
 #include "chttp.h"
@@ -389,7 +389,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
         if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
         {
-            cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+            cpg_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
             CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
         }
 
@@ -817,7 +817,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
         if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
         {
-            cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+            cpg_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
             CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
         }
 
@@ -1106,7 +1106,7 @@ void cxfs_end(const UINT32 cxfs_md_id)
     {
         cxfs_flush_sata_bad_bitmap(cxfs_md);
 
-        cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        cpg_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
         CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
     }
 
@@ -1500,9 +1500,9 @@ EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md)
     offset = CXFSCFG_SIZE;
     offset_saved = offset;
 
-    CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cbad_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
-                                                       CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
-                                                       CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
+    CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cpg_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
+                                                      CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
+                                                      CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
     if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_load_sata_bad_bitmap: "
@@ -1518,15 +1518,15 @@ EC_BOOL cxfs_load_sata_bad_bitmap(CXFS_MD *cxfs_md)
                                              "load sata bad bitmap from fd %d, offset %ld failed\n",
                                              CXFS_MD_SATA_DISK_FD(cxfs_md), offset_saved);
 
-        cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        cpg_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
         CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = NULL_PTR;
 
         return (EC_FALSE);
     }
 
-    cbad_bitmap_revise(CXFS_MD_SATA_BAD_BITMAP(cxfs_md), CXFS_SATA_BAD_BITMAP_SIZE_NBITS);
+    cpg_bitmap_revise(CXFS_MD_SATA_BAD_BITMAP(cxfs_md), CXFS_SATA_BAD_BITMAP_SIZE_NBITS);
 
-    CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) = CBAD_BITMAP_USED(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+    CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) = CPG_BITMAP_USED(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_load_sata_bad_bitmap: "
                                          "load sata bad bitmap from fd %d, offset %ld done\n",
@@ -1578,12 +1578,12 @@ EC_BOOL cxfs_flush_sata_bad_bitmap(CXFS_MD *cxfs_md)
 /*sync bad bitmap to sata disk*/
 EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md)
 {
-    CBAD_BITMAP         *sata_bad_bitmap;
+    CPG_BITMAP         *sata_bad_bitmap;
 
     sata_bad_bitmap = CXFS_MD_SATA_BAD_BITMAP(cxfs_md);
 
     if(NULL_PTR != sata_bad_bitmap
-    && CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) != CBAD_BITMAP_USED(sata_bad_bitmap)
+    && CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) != CPG_BITMAP_USED(sata_bad_bitmap)
     && NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
         uint64_t  time_msec_cur;
@@ -1621,7 +1621,7 @@ EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md)
                                                  sata_bad_bitmap_offset,
                                                  sata_bad_bitmap_size);
 
-            CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md)   = CBAD_BITMAP_USED(sata_bad_bitmap); /*update*/
+            CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md)   = CPG_BITMAP_USED(sata_bad_bitmap); /*update*/
 
             CXFS_MD_SATA_BAD_SYNC_NTIME(cxfs_md) = time_msec_cur + 60 * 1000; /*60s later*/
 
@@ -1643,7 +1643,7 @@ EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md)
 {
     if(NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
     {
-       cbad_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+       cpg_bitmap_free(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
        CXFS_MD_SATA_BAD_BITMAP(cxfs_md)     = NULL_PTR;
 
        CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md)   = 0;
@@ -2246,9 +2246,9 @@ EC_BOOL cxfs_create_sata_bad_bitmap(const UINT32 cxfs_md_id)
 
     if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
     {
-        CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cbad_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
-                                                           CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
-                                                           CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
+        CXFS_MD_SATA_BAD_BITMAP(cxfs_md) = cpg_bitmap_new(CXFS_SATA_BAD_BITMAP_SIZE_NBYTES,
+                                                          CXFS_SATA_BAD_BITMAP_SIZE_NBITS,
+                                                          CXFS_SATA_BAD_BITMAP_MEM_ALIGN);
         if(NULL_PTR == CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_create_sata_bad_bitmap: "
@@ -2256,7 +2256,7 @@ EC_BOOL cxfs_create_sata_bad_bitmap(const UINT32 cxfs_md_id)
             return (EC_FALSE);
         }
 
-        CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) = CBAD_BITMAP_USED(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
+        CXFS_MD_SATA_BAD_PAGE_NUM(cxfs_md) = CPG_BITMAP_USED(CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
 
         if(NULL_PTR != CXFS_MD_DN(cxfs_md))
         {
@@ -2461,7 +2461,7 @@ void cxfs_show_sata_bad_pages(const UINT32 cxfs_md_id, LOG *log)
         return;
     }
 
-    cbad_bitmap_print(log, CAMD_MD_SATA_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
+    cpg_bitmap_print(log, CAMD_MD_SATA_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
 
     return;
 }
@@ -2615,7 +2615,7 @@ void cxfs_show_ssd_bad_pages(const UINT32 cxfs_md_id, LOG *log)
         return;
     }
 
-    cbad_bitmap_print(log, CAMD_MD_SSD_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
+    cpg_bitmap_print(log, CAMD_MD_SSD_BAD_BITMAP(CXFSDN_CAMD_MD(CXFS_MD_DN(cxfs_md))));
 
     return;
 }

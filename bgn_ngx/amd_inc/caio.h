@@ -26,7 +26,7 @@ extern "C"{
 #include "clist.h"
 #include "crb.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "cfc.h"
 
@@ -160,7 +160,7 @@ typedef struct
     UINT32                  *max_req_num;
     UINT32                   cur_req_num;
 
-    CBAD_BITMAP             *bad_bitmap; /*mounted point. inheritted from camd*/
+    CPG_BITMAP              *bad_bitmap; /*mounted point. inheritted from camd*/
 }CAIO_DISK;
 
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
@@ -659,7 +659,7 @@ EC_BOOL caio_del_disk(CAIO_MD *caio_md, const int fd);
 
 CAIO_DISK *caio_find_disk(CAIO_MD *caio_md, const int fd);
 
-EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CBAD_BITMAP *cbad_bitmap);
+EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CPG_BITMAP *cpg_bitmap);
 
 EC_BOOL caio_umount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd);
 

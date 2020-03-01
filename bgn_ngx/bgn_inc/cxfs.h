@@ -28,7 +28,7 @@ extern "C"{
 
 #include "real.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 #include "cmmap.h"
 #include "cxfscfg.h"
 #include "cxfsnp.h"
@@ -120,7 +120,7 @@ typedef struct
     CXFSDN              *cxfsdn;
     CXFSNP_MGR          *cxfsnpmgr;    /*namespace pool*/
 
-    CBAD_BITMAP         *sata_bad_bitmap;
+    CPG_BITMAP          *sata_bad_bitmap;
     uint32_t             sata_bad_page_num; /*save prev num of sata bad pages*/
     uint32_t             rsvd05;
     uint64_t             time_msec_next;    /*next time to sync sata bad bitmap*/

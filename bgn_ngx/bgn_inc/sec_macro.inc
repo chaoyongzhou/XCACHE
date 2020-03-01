@@ -217,7 +217,7 @@
 #define SEC_0207_CDEQUEUE                   ((UINT32)(    207)) /*cdequeue                        */
 #define SEC_0208_CFC                        ((UINT32)(    208)) /*cfc                             */
 #define SEC_0209_CMMAP                      ((UINT32)(    209)) /*cmmap                           */
-#define SEC_0210_CBADBITMAP                 ((UINT32)(    210)) /*cbadbitmap                      */
+#define SEC_0210_CPGBITMAP                  ((UINT32)(    210)) /*cpgbitmap                       */
 #define SEC_0211_CDIO                       ((UINT32)(    211)) /*cdio                            */
 #define SEC_0212_CMSYNC                     ((UINT32)(    212)) /*cmsync                          */
 #define SEC_0213_CXFSOP                     ((UINT32)(    213)) /*cxfsop                          */

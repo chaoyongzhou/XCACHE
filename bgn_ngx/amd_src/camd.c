@@ -17,7 +17,7 @@ extern "C"{
 #include "log.h"
 #include "cmisc.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "task.h"
 #include "cepoll.h"
@@ -3245,9 +3245,9 @@ EC_BOOL camd_is_dontdump(CAMD_MD *camd_md)
 /*create ssd bad bitmap on ssd disk*/
 EC_BOOL camd_create_ssd_bad_bitmap(CAMD_MD *camd_md)
 {
-    CAMD_MD_SSD_BAD_BITMAP(camd_md) = cbad_bitmap_new(CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES,
-                                                      CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS,
-                                                      CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
+    CAMD_MD_SSD_BAD_BITMAP(camd_md) = cpg_bitmap_new(CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES,
+                                                     CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS,
+                                                     CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
     if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_create_ssd_bad_bitmap: "
@@ -3255,7 +3255,7 @@ EC_BOOL camd_create_ssd_bad_bitmap(CAMD_MD *camd_md)
         return (EC_FALSE);
     }
 
-    CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+    CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create_ssd_bad_bitmap: "
                                          "create ssd bad bitmap done\n");
@@ -3281,8 +3281,8 @@ EC_BOOL camd_create_ssd_bad_bitmap_shm(CAMD_MD *camd_md)
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == cbad_bitmap_init(CAMD_MD_SSD_BAD_BITMAP(camd_md),
-                                         CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS))
+        if(EC_FALSE == cpg_bitmap_init(CAMD_MD_SSD_BAD_BITMAP(camd_md),
+                                       CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS))
         {
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_create_ssd_bad_bitmap_shm: "
                                                  "init ssd bad bitmap failed\n");
@@ -3290,7 +3290,7 @@ EC_BOOL camd_create_ssd_bad_bitmap_shm(CAMD_MD *camd_md)
             return (EC_FALSE);
         }
 
-        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create_ssd_bad_bitmap_shm: "
                                              "create ssd bad bitmap done\n");
@@ -3335,9 +3335,9 @@ EC_BOOL camd_load_ssd_bad_bitmap(CAMD_MD *camd_md)
            - CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES;
     offset_saved = offset;
 
-    CAMD_MD_SSD_BAD_BITMAP(camd_md) = cbad_bitmap_new(CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES,
-                                                      CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS,
-                                                      CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
+    CAMD_MD_SSD_BAD_BITMAP(camd_md) = cpg_bitmap_new(CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES,
+                                                     CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS,
+                                                     CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
     if(NULL_PTR == CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_load_ssd_bad_bitmap: "
@@ -3355,10 +3355,11 @@ EC_BOOL camd_load_ssd_bad_bitmap(CAMD_MD *camd_md)
         return (EC_FALSE);
     }
 
-    CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+    CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_load_ssd_bad_bitmap: "
-                                         "load ssd bad bitmap done\n");
+                                         "load ssd bad bitmap from fd %d, offset %ld done\n",
+                                         CDC_MD_SSD_FD(cdc_md), offset_saved);
 
     return (EC_TRUE);
 }
@@ -3380,7 +3381,7 @@ EC_BOOL camd_load_ssd_bad_bitmap_shm(CAMD_MD *camd_md)
             return (EC_FALSE);
         }
 
-        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_load_ssd_bad_bitmap_shm: "
                                              "load ssd bad bitmap done\n");
@@ -3448,7 +3449,7 @@ EC_BOOL camd_retrieve_ssd_bad_bitmap_shm(CAMD_MD *camd_md)
             return (EC_FALSE);
         }
 
-        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_retrieve_ssd_bad_bitmap_shm: "
                                              "retrieve ssd bad bitmap done\n");
@@ -3630,10 +3631,10 @@ EC_BOOL camd_revise_ssd_bad_bitmap(CAMD_MD *camd_md)
 {
     if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        cbad_bitmap_revise(CAMD_MD_SSD_BAD_BITMAP(camd_md),
-                           CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS);
+        cpg_bitmap_revise(CAMD_MD_SSD_BAD_BITMAP(camd_md),
+                          CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBITS);
 
-        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+        CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(CAMD_MD_SSD_BAD_BITMAP(camd_md));
     }
 
     return (EC_TRUE);
@@ -3643,7 +3644,7 @@ EC_BOOL camd_clean_ssd_bad_bitmap(CAMD_MD *camd_md)
 {
     if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        cbad_bitmap_free(CAMD_MD_SSD_BAD_BITMAP(camd_md));
+        cpg_bitmap_free(CAMD_MD_SSD_BAD_BITMAP(camd_md));
         CAMD_MD_SSD_BAD_BITMAP(camd_md) = NULL_PTR;
 
         CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = 0;
@@ -3660,12 +3661,12 @@ EC_BOOL camd_free_ssd_bad_bitmap(CAMD_MD *camd_md)
     return camd_clean_ssd_bad_bitmap(camd_md);
 }
 
-EC_BOOL camd_mount_sata_bad_bitmap(CAMD_MD *camd_md, CBAD_BITMAP *sata_bad_bitmap)
+EC_BOOL camd_mount_sata_bad_bitmap(CAMD_MD *camd_md, CPG_BITMAP *sata_bad_bitmap)
 {
     if(NULL_PTR == CAMD_MD_SATA_BAD_BITMAP(camd_md) && NULL_PTR != sata_bad_bitmap)
     {
         CAMD_MD_SATA_BAD_BITMAP(camd_md)    = sata_bad_bitmap;
-        CAMD_MD_SATA_BAD_PAGE_NUM(camd_md)  = CBAD_BITMAP_USED(sata_bad_bitmap);
+        CAMD_MD_SATA_BAD_PAGE_NUM(camd_md)  = CPG_BITMAP_USED(sata_bad_bitmap);
         return (EC_TRUE);
     }
     return (EC_FALSE);
@@ -3691,7 +3692,7 @@ EC_BOOL camd_set_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
                                              "set ssd bad page: page %u\n",
                                              page_no);
 
-        if(EC_FALSE == cbad_bitmap_set(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no))
+        if(EC_FALSE == cpg_bitmap_set(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no))
         {
             return (EC_FALSE);
         }
@@ -3706,7 +3707,7 @@ EC_BOOL camd_is_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        return cbad_bitmap_is(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no, (uint8_t)1);
+        return cpg_bitmap_is(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no, (uint8_t)1);
     }
     return (EC_FALSE);
 }
@@ -3716,7 +3717,7 @@ EC_BOOL camd_clear_ssd_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SSD_BAD_BITMAP(camd_md))
     {
-        return cbad_bitmap_clear(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no);
+        return cpg_bitmap_clear(CAMD_MD_SSD_BAD_BITMAP(camd_md), page_no);
     }
     return (EC_FALSE);
 }
@@ -3730,7 +3731,7 @@ EC_BOOL camd_set_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
                                              "set sata bad page: page %u\n",
                                              page_no);
 
-        if(EC_FALSE == cbad_bitmap_set(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no))
+        if(EC_FALSE == cpg_bitmap_set(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no))
         {
             return (EC_FALSE);
         }
@@ -3745,7 +3746,7 @@ EC_BOOL camd_is_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
     {
-        return cbad_bitmap_is(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no, (uint8_t)1);
+        return cpg_bitmap_is(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no, (uint8_t)1);
     }
     return (EC_FALSE);
 }
@@ -3755,7 +3756,7 @@ EC_BOOL camd_clear_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no)
 {
     if(NULL_PTR != CAMD_MD_SATA_BAD_BITMAP(camd_md))
     {
-        return cbad_bitmap_clear(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no);
+        return cpg_bitmap_clear(CAMD_MD_SATA_BAD_BITMAP(camd_md), page_no);
     }
     return (EC_FALSE);
 }
@@ -3806,13 +3807,13 @@ EC_BOOL camd_create(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create: "
                                                  "before revise ssd bad bitmap:\n");
-            cbad_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
+            cpg_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
             camd_revise_ssd_bad_bitmap(camd_md);
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create: "
                                                  "after revise ssd bad bitmap:\n");
-            cbad_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
+            cpg_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create: "
                                                  "retrieve ssd bad bitmap done\n");
@@ -4035,13 +4036,13 @@ EC_BOOL camd_create_shm(CAMD_MD *camd_md, const UINT32 retrieve_bad_bitmap_flag)
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create_shm: "
                                                  "before revise ssd bad bitmap:\n");
-            cbad_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
+            cpg_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
             camd_revise_ssd_bad_bitmap(camd_md);
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create_shm: "
                                                  "after revise ssd bad bitmap:\n");
-            cbad_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
+            cpg_bitmap_print_brief(LOGSTDOUT, CAMD_MD_SSD_BAD_BITMAP(camd_md));
 
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_create_shm: "
                                                  "retrieve ssd bad bitmap done\n");
@@ -5369,11 +5370,11 @@ void camd_process(CAMD_MD *camd_md)
 
 void camd_process_ssd_bad_bitmap(CAMD_MD *camd_md)
 {
-    CBAD_BITMAP     *ssd_bad_bitmap;
+    CPG_BITMAP     *ssd_bad_bitmap;
 
     ssd_bad_bitmap = CAMD_MD_SSD_BAD_BITMAP(camd_md);
 
-    if(CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) != CBAD_BITMAP_USED(ssd_bad_bitmap))
+    if(CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) != CPG_BITMAP_USED(ssd_bad_bitmap))
     {
         static __thread uint64_t     time_msec_next = 0; /*init*/
         uint64_t                     time_msec_cur;
@@ -5384,7 +5385,7 @@ void camd_process_ssd_bad_bitmap(CAMD_MD *camd_md)
         {
             camd_sync_ssd_bad_bitmap(camd_md);
 
-            CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CBAD_BITMAP_USED(ssd_bad_bitmap); /*update*/
+            CAMD_MD_SSD_BAD_PAGE_NUM(camd_md) = CPG_BITMAP_USED(ssd_bad_bitmap); /*update*/
 
             time_msec_next = time_msec_cur + 60 * 1000; /*60s later*/
         }

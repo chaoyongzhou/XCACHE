@@ -17,7 +17,7 @@ extern "C"{
 #include "log.h"
 #include "cmisc.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "caio.h"
 
@@ -890,7 +890,7 @@ EC_BOOL caio_disk_set_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no)
                                              "set disk bad page: fd %d, page %u\n",
                                              CAIO_DISK_FD(caio_disk), page_no);
 
-        if(EC_FALSE == cbad_bitmap_set(CAIO_DISK_BAD_BITMAP(caio_disk), page_no))
+        if(EC_FALSE == cpg_bitmap_set(CAIO_DISK_BAD_BITMAP(caio_disk), page_no))
         {
             return (EC_FALSE);
         }
@@ -907,7 +907,7 @@ EC_BOOL caio_disk_clear_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no)
     && NULL_PTR != CAIO_DISK_BAD_BITMAP(caio_disk)
     && CAIO_PAGE_NO_ERR != page_no)
     {
-        return cbad_bitmap_clear(CAIO_DISK_BAD_BITMAP(caio_disk), page_no);
+        return cpg_bitmap_clear(CAIO_DISK_BAD_BITMAP(caio_disk), page_no);
     }
 
     return (EC_FALSE);
@@ -919,7 +919,7 @@ EC_BOOL caio_disk_check_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no)
     && NULL_PTR != CAIO_DISK_BAD_BITMAP(caio_disk)
     && CAIO_PAGE_NO_ERR != page_no)
     {
-        return cbad_bitmap_is(CAIO_DISK_BAD_BITMAP(caio_disk), page_no, (uint8_t)1);
+        return cpg_bitmap_is(CAIO_DISK_BAD_BITMAP(caio_disk), page_no, (uint8_t)1);
     }
 
     return (EC_FALSE);
@@ -4222,7 +4222,7 @@ CAIO_DISK *caio_find_disk(CAIO_MD *caio_md, const int fd)
     return (caio_disk);
 }
 
-EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CBAD_BITMAP *cbad_bitmap)
+EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CPG_BITMAP *cpg_bitmap)
 {
     CAIO_DISK   *caio_disk;
 
@@ -4243,7 +4243,7 @@ EC_BOOL caio_mount_disk_bad_bitmap(CAIO_MD *caio_md, const int fd, CBAD_BITMAP *
         return (EC_FALSE);
     }
 
-    CAIO_DISK_BAD_BITMAP(caio_disk)             = cbad_bitmap;
+    CAIO_DISK_BAD_BITMAP(caio_disk)             = cpg_bitmap;
 
     return (EC_TRUE);
 }
@@ -4285,7 +4285,7 @@ EC_BOOL caio_is_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t pag
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_is(CAIO_DISK_BAD_BITMAP(caio_disk), page_no, (uint8_t)1);
+    return cpg_bitmap_is(CAIO_DISK_BAD_BITMAP(caio_disk), page_no, (uint8_t)1);
 }
 
 EC_BOOL caio_set_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t page_no)
@@ -4302,7 +4302,7 @@ EC_BOOL caio_set_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t pa
                                          "set disk bad page: fd %d, page %u\n",
                                          fd, page_no);
 
-    if(EC_FALSE == cbad_bitmap_set(CAIO_DISK_BAD_BITMAP(caio_disk), page_no))
+    if(EC_FALSE == cpg_bitmap_set(CAIO_DISK_BAD_BITMAP(caio_disk), page_no))
     {
         return (EC_FALSE);
     }
@@ -4320,7 +4320,7 @@ EC_BOOL caio_clear_disk_bad_page(CAIO_MD *caio_md, const int fd, const uint32_t 
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_clear(CAIO_DISK_BAD_BITMAP(caio_disk), page_no);
+    return cpg_bitmap_clear(CAIO_DISK_BAD_BITMAP(caio_disk), page_no);
 }
 
 UINT32 caio_count_req_num(CAIO_MD *caio_md)

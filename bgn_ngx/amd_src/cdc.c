@@ -26,7 +26,7 @@ extern "C"{
 
 #include "cbytes.h"
 
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "cdc.h"
 #include "cdcnpdeg.h"
@@ -4287,13 +4287,13 @@ EC_BOOL cdc_show_np(const CDC_MD *cdc_md, LOG *log)
     if(NULL_PTR != CDC_MD_SSD_BAD_BITMAP(cdc_md))
     {
         sys_log(log, "cdc_show_np: ssd bad pages : %u\n",
-                     CBAD_BITMAP_USED(CDC_MD_SSD_BAD_BITMAP(cdc_md)));
+                     CPG_BITMAP_USED(CDC_MD_SSD_BAD_BITMAP(cdc_md)));
     }
 
     if(NULL_PTR != CDC_MD_SATA_BAD_BITMAP(cdc_md))
     {
         sys_log(log, "cdc_show_np: sata bad pages: %u\n",
-                     CBAD_BITMAP_USED(CDC_MD_SATA_BAD_BITMAP(cdc_md)));
+                     CPG_BITMAP_USED(CDC_MD_SATA_BAD_BITMAP(cdc_md)));
     }
 
     cdcnp_print(log, CDC_MD_NP(cdc_md));
@@ -8662,7 +8662,7 @@ CDC_REQ *cdc_search_req(CDC_MD *cdc_md, const UINT32 seq_no)
     return (cdc_req);
 }
 
-EC_BOOL cdc_mount_ssd_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *ssd_bad_bitmap)
+EC_BOOL cdc_mount_ssd_bad_bitmap(CDC_MD *cdc_md, CPG_BITMAP *ssd_bad_bitmap)
 {
     if(NULL_PTR == CDC_MD_SSD_BAD_BITMAP(cdc_md) && NULL_PTR != ssd_bad_bitmap)
     {
@@ -8691,7 +8691,7 @@ EC_BOOL cdc_is_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_is(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no, (uint8_t)1);
+    return cpg_bitmap_is(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no, (uint8_t)1);
 }
 
 EC_BOOL cdc_set_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
@@ -8705,7 +8705,7 @@ EC_BOOL cdc_set_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
                                          "set ssd bad page: page %u\n",
                                          page_no);
 
-    if(EC_FALSE == cbad_bitmap_set(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no))
+    if(EC_FALSE == cpg_bitmap_set(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no))
     {
         return (EC_FALSE);
     }
@@ -8720,10 +8720,10 @@ EC_BOOL cdc_clear_ssd_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_clear(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no);
+    return cpg_bitmap_clear(CDC_MD_SSD_BAD_BITMAP(cdc_md), page_no);
 }
 
-EC_BOOL cdc_mount_sata_bad_bitmap(CDC_MD *cdc_md, CBAD_BITMAP *sata_bad_bitmap)
+EC_BOOL cdc_mount_sata_bad_bitmap(CDC_MD *cdc_md, CPG_BITMAP *sata_bad_bitmap)
 {
     if(NULL_PTR == CDC_MD_SATA_BAD_BITMAP(cdc_md) && NULL_PTR != sata_bad_bitmap)
     {
@@ -8752,7 +8752,7 @@ EC_BOOL cdc_is_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_is(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no, (uint8_t)1);
+    return cpg_bitmap_is(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no, (uint8_t)1);
 }
 
 EC_BOOL cdc_set_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
@@ -8766,7 +8766,7 @@ EC_BOOL cdc_set_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
                                          "set sata bad page: page %u\n",
                                          page_no);
 
-    if(EC_FALSE == cbad_bitmap_set(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no))
+    if(EC_FALSE == cpg_bitmap_set(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no))
     {
         return (EC_FALSE);
     }
@@ -8781,7 +8781,7 @@ EC_BOOL cdc_clear_sata_bad_page(CDC_MD *cdc_md, const uint32_t page_no)
         return (EC_FALSE);
     }
 
-    return cbad_bitmap_clear(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no);
+    return cpg_bitmap_clear(CDC_MD_SATA_BAD_BITMAP(cdc_md), page_no);
 }
 
 EC_BOOL cdc_check_ssd_bad_page(CDC_MD *cdc_md, const uint32_t node_pos)

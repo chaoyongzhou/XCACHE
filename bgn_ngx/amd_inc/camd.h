@@ -24,7 +24,7 @@ extern "C"{
 #include "cparacfg.h"
 
 #include "coroutine.inc"
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "caio.h"
 #include "cmc.h"
@@ -108,8 +108,8 @@ typedef struct
     int              sata_disk_fd;
     int              ssd_disk_fd;
 
-    CBAD_BITMAP     *ssd_bad_bitmap;    /*ssd bad aio-page bitmap*/
-    CBAD_BITMAP     *sata_bad_bitmap;   /*sata bad aio-page bitmap*/
+    CPG_BITMAP      *ssd_bad_bitmap;    /*ssd bad aio-page bitmap*/
+    CPG_BITMAP      *sata_bad_bitmap;   /*sata bad aio-page bitmap*/
     uint32_t         ssd_bad_page_num;  /*save prev num of ssd bad pages*/
     uint32_t         sata_bad_page_num; /*save prev num of sata bad pages*/
 
@@ -767,7 +767,7 @@ EC_BOOL camd_clean_ssd_bad_bitmap(CAMD_MD *camd_md);
 
 EC_BOOL camd_free_ssd_bad_bitmap(CAMD_MD *camd_md);
 
-EC_BOOL camd_mount_sata_bad_bitmap(CAMD_MD *camd_md, CBAD_BITMAP *sata_bad_bitmap);
+EC_BOOL camd_mount_sata_bad_bitmap(CAMD_MD *camd_md, CPG_BITMAP *sata_bad_bitmap);
 
 EC_BOOL camd_umount_sata_bad_bitmap(CAMD_MD *camd_md);
 

@@ -35,7 +35,6 @@ extern "C"{
 
 #include "bgnctrl.h"
 #include "typeconst.h"
-#include "fast_memcpy.h"
 #undef TRUE
 #undef FALSE
 

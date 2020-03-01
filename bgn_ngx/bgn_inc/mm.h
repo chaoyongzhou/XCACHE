@@ -288,9 +288,9 @@ extern "C"{
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #define                MM_CCALLBACK_NODE    ((UINT32)213)
-#if (SWITCH_ON == NGX_BGN_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)
 #define                MM_CNGX_KSSL_NODE    ((UINT32)214)
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH && SWITCH_ON == NGX_KSSL_SWITCH)*/
 
 #define                  MM_CTDNSNP_ITEM    ((UINT32)215)
 #define                       MM_CTDNSNP    ((UINT32)216)

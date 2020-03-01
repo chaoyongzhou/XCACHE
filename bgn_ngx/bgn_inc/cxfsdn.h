@@ -29,7 +29,7 @@ extern "C"{
 #include "cmutex.h"
 #include "crb.h"
 #include "real.h"
-#include "cbadbitmap.h"
+#include "cpgbitmap.h"
 
 #include "cmmap.h"
 
@@ -194,7 +194,7 @@ typedef struct
 
     CAMD_MD           *camd_md;
 
-    CBAD_BITMAP       *sata_bad_bitmap;
+    CPG_BITMAP        *sata_bad_bitmap;
 }CXFSDN;
 
 #define CXFSDN_READ_ONLY_FLAG(cxfsdn)                      ((cxfsdn)->read_only_flag)
@@ -231,7 +231,7 @@ EC_BOOL cxfsdn_mount_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
 EC_BOOL cxfsdn_umount_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
-EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CBAD_BITMAP *cbad_bitmap);
+EC_BOOL cxfsdn_mount_sata_bad_bitmap(CXFSDN *cxfsdn, CPG_BITMAP *cpg_bitmap);
 
 EC_BOOL cxfsdn_umount_sata_bad_bitmap(CXFSDN *cxfsdn);
 
