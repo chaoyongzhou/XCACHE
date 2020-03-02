@@ -5284,11 +5284,43 @@ EC_BOOL chttp_req_set_ipaddr(CHTTP_REQ *chttp_req, const char *ipaddr)
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_req_has_ipaddr(const CHTTP_REQ *chttp_req)
+{
+    if(CMPI_ERROR_IPADDR == CHTTP_REQ_IPADDR(chttp_req))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+UINT32 chttp_req_get_ipaddr(const CHTTP_REQ *chttp_req)
+{
+    return CHTTP_REQ_IPADDR(chttp_req);
+}
+
+char *chttp_req_get_ipaddr_str(const CHTTP_REQ *chttp_req)
+{
+    return CHTTP_REQ_IPADDR_STR(chttp_req);
+}
+
 EC_BOOL chttp_req_set_port(CHTTP_REQ *chttp_req, const char *port)
 {
     CHTTP_REQ_PORT(chttp_req) = c_str_to_word(port);
 
     return (EC_TRUE);
+}
+
+EC_BOOL chttp_req_has_port(const CHTTP_REQ *chttp_req)
+{
+    if(CMPI_ERROR_SRVPORT == CHTTP_REQ_PORT(chttp_req))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+UINT32 chttp_req_get_port(const CHTTP_REQ *chttp_req)
+{
+    return CHTTP_REQ_PORT(chttp_req);
 }
 
 EC_BOOL chttp_req_set_method(CHTTP_REQ *chttp_req, const char *method)

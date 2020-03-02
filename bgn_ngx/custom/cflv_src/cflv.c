@@ -2449,6 +2449,69 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_head_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_head_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -2501,7 +2564,37 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0025);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_head_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CFLV_MD_CHTTP_REQ(cflv_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_head_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CFLV_MD_CHTTP_REQ(cflv_md)));
 
             break; /*ok*/
         }
@@ -2514,7 +2607,15 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_head_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_head_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
@@ -3271,6 +3372,69 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_direct_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_direct_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -3323,7 +3487,37 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0056);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_direct_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CFLV_MD_CHTTP_REQ(cflv_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_direct_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CFLV_MD_CHTTP_REQ(cflv_md)));
 
             break; /*ok*/
         }
@@ -3336,7 +3530,15 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_direct_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_direct_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
@@ -4920,6 +5122,69 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_repair_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_repair_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -4972,7 +5237,37 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0091);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_repair_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CFLV_MD_CHTTP_REQ(cflv_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_repair_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CFLV_MD_CHTTP_REQ(cflv_md)));
 
             break; /*ok*/
         }
@@ -4985,7 +5280,15 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_repair_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_repair_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
@@ -6323,6 +6626,69 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_orig_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_orig_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -6379,8 +6745,37 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0128);
 
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_orig_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(chttp_req));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_orig_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(chttp_req));
             break; /*ok*/
         }
 
@@ -6392,7 +6787,15 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_orig_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_orig_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
@@ -8209,6 +8612,69 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_ms_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ms_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -8265,7 +8731,37 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0173);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_ms_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(chttp_req));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_ms_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(chttp_req));
 
             break; /*ok*/
         }
@@ -8278,7 +8774,15 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_ms_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_ms_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
@@ -11000,6 +11504,69 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cflv_content_ims_header_in_filter_ipaddr(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_ims_header_in_filter_ipaddr: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CFLV_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
 {
     CFLV_MD                     *cflv_md;
@@ -11052,7 +11619,37 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CFLV_0228);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cflv_content_ims_header_in_filter_ipaddr(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CFLV_MD_CHTTP_REQ(cflv_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cflv_content_ims_header_in_filter_port(cflv_md_id))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CFLV_MD_CHTTP_REQ(cflv_md)));
 
             break; /*ok*/
         }
@@ -11065,7 +11662,15 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cflv_content_ims_header_in_filter_ipaddr(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cflv_content_ims_header_in_filter_port(cflv_md_id))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "

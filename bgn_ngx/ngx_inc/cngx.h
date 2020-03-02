@@ -72,7 +72,8 @@ extern "C"{
 #define  CNGX_VAR_ORIG_FORCE_SWITCH               ("c_orig_force_switch")       /*default: off*/
 #define  CNGX_VAR_ORIG_REDIRECT_MAX_TIMES         ("c_orig_redirect_max_times") /*default: 3*/
 #define  CNGX_VAR_ORIG_REDIRECT_SPECIFIC          ("c_orig_redirect_specific")  /*default: null. format: <src status> => <des status> => <redirect url>[|...]*/
-#define  CNGX_VAR_ORIG_SERVER                     ("c_orig_server")             /*default: ngx.var.host or ngx.var.http_host*/
+#define  CNGX_VAR_ORIG_IPADDR                     ("c_orig_ipaddr")
+#define  CNGX_VAR_ORIG_SERVER                     ("c_orig_server")             /*default: ngx.var.host or ngx.var.http_host + ngx.var.server_port*/
 #define  CNGX_VAR_ORIG_HOST                       ("c_orig_host")               /*default: ngx.var.http_host*/
 #define  CNGX_VAR_ORIG_PORT                       ("c_orig_port")               /*default: ngx.var.server_port*/
 #define  CNGX_VAR_ORIG_URI                        ("c_orig_uri")                /*default: ngx.var.request_uri*/
@@ -372,7 +373,7 @@ EC_BOOL cngx_http_bgn_mod_table_del(const char *name, const uint32_t len);
 
 void    cngx_http_bgn_mod_table_print(LOG *log);
 
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len, 
+CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len,
                                                       const char *mod_name, const uint32_t mod_name_len,
                                                       const char *posix_name, const uint32_t posix_name_len);
 

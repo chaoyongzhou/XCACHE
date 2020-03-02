@@ -2785,6 +2785,69 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_head_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_head_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -2837,7 +2900,37 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0030);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_head_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CMP4_MD_CHTTP_REQ(cmp4_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_head_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CMP4_MD_CHTTP_REQ(cmp4_md)));
 
             break; /*ok*/
         }
@@ -2850,7 +2943,15 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_head_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_head_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
@@ -3607,6 +3708,69 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_direct_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_direct_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -3659,7 +3823,36 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0061);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_direct_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CMP4_MD_CHTTP_REQ(cmp4_md)));
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_direct_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CMP4_MD_CHTTP_REQ(cmp4_md)));
 
             break; /*ok*/
         }
@@ -3672,7 +3865,15 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_direct_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_direct_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
@@ -5256,6 +5457,69 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_repair2_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_repair2_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -5306,7 +5570,36 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0095);
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0096);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_repair2_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CMP4_MD_CHTTP_REQ(cmp4_md)));
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_repair2_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CMP4_MD_CHTTP_REQ(cmp4_md)));
 
             break; /*ok*/
         }
@@ -5319,7 +5612,15 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_repair2_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_repair2_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
@@ -6631,6 +6932,69 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_orig_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_orig_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -6685,7 +7049,36 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0129);
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0130);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_orig_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(chttp_req));
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_orig_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(chttp_req));
 
             break; /*ok*/
         }
@@ -6698,7 +7091,15 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_orig_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_orig_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
@@ -8585,6 +8986,69 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_ms_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ms_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -8641,7 +9105,37 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0171);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_ms_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(chttp_req));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_ms_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(chttp_req));
 
             break; /*ok*/
         }
@@ -8654,7 +9148,15 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_ms_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_ms_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
@@ -11315,6 +11817,69 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_ims_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_ims_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -11365,7 +11930,36 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0224);
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0225);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_ims_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(CMP4_MD_CHTTP_REQ(cmp4_md)));
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_ims_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(CMP4_MD_CHTTP_REQ(cmp4_md)));
 
             break; /*ok*/
         }
@@ -11378,7 +11972,15 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_ims_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_ims_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
@@ -12929,6 +13531,69 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cmp4_content_repair_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_repair_header_in_filter_ipaddr: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_ipaddr: "
+                                             "get var '%s' failed\n",
+                                             k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_ipaddr: "
+                                             "[conf] get var '%s':'%s' done\n",
+                                             k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_ipaddr: "
+                                                 "[conf] set ipaddr '%s' to http req failed\n",
+                                                 v);
+            safe_free(v, LOC_CMP4_0113);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_ipaddr: "
+                                             "[conf] set ipaddr  '%s' to http req done\n",
+                                             v);
+
+        safe_free(v, LOC_CMP4_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
@@ -12982,7 +13647,36 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0256);
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] set server '%s' to http req done\n",
+                                                 v);
+
             safe_free(v, LOC_CMP4_0257);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cmp4_content_repair_header_in_filter_ipaddr(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                     "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] filter ipaddr '%s' done\n",
+                                                 chttp_req_get_ipaddr_str(chttp_req));
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cmp4_content_repair_header_in_filter_port(cmp4_md_id))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                     "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] filter port %ld done\n",
+                                                 chttp_req_get_port(chttp_req));
 
             break; /*ok*/
         }
@@ -12995,7 +13689,15 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cmp4_content_repair_header_in_filter_ipaddr(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                 "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cmp4_content_repair_header_in_filter_port(cmp4_md_id))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "

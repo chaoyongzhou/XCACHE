@@ -2362,6 +2362,69 @@ EC_BOOL cvendor_content_head_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_head_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_head_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -2414,7 +2477,37 @@ EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0027);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_head_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_head_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
 
             break; /*ok*/
         }
@@ -2427,7 +2520,15 @@ EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_head_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_head_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
@@ -2461,16 +2562,16 @@ EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
-                                                 "get var '%s' failed\n",
-                                                 k);
+                                                    "get var '%s' failed\n",
+                                                    k);
             return (EC_FALSE);
         }
 
         if(NULL_PTR != v)
         {
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
-                                                 "get var '%s':'%s' done\n",
-                                                 k, v);
+                                                    "get var '%s':'%s' done\n",
+                                                    k, v);
 
             if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
             {
@@ -3182,6 +3283,69 @@ EC_BOOL cvendor_content_direct_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_direct_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_direct_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -3234,8 +3398,37 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0058);
 
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
             break; /*ok*/
         }
 
@@ -3247,7 +3440,15 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_direct_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_direct_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
@@ -4829,6 +5030,69 @@ EC_BOOL cvendor_content_repair_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_repair_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_repair_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -4881,8 +5145,37 @@ EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0093);
 
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_repair_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_repair_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
             break; /*ok*/
         }
 
@@ -4894,7 +5187,15 @@ EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_repair_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_repair_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
@@ -6633,6 +6934,69 @@ EC_BOOL cvendor_content_orig_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_orig_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_orig_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -6689,7 +7053,37 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0132);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(chttp_req));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(chttp_req));
 
             break; /*ok*/
         }
@@ -6702,7 +7096,15 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_orig_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_orig_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
@@ -8443,6 +8845,69 @@ EC_BOOL cvendor_content_ms_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_ms_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ms_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -8499,8 +8964,37 @@ EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0175);
 
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_ms_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(chttp_req));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_ms_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(chttp_req));
             break; /*ok*/
         }
 
@@ -8512,7 +9006,15 @@ EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_ms_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_ms_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
@@ -11251,6 +11753,69 @@ EC_BOOL cvendor_content_ims_header_in_filter_port(const UINT32 cvendor_md_id)
     return (EC_TRUE);
 }
 
+EC_BOOL cvendor_content_ims_header_in_filter_ipaddr(const UINT32 cvendor_md_id)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+    ngx_http_request_t          *r;
+    const char                  *k;
+    char                        *v;
+    CHTTP_REQ                   *chttp_req;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_content_ims_header_in_filter_ipaddr: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
+
+    chttp_req = CVENDOR_MD_CHTTP_REQ(cvendor_md);
+
+    /*when cngx config orig ipaddr*/
+    k = (const char *)CNGX_VAR_ORIG_IPADDR;
+    if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
+    {
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_ipaddr: "
+                                                "get var '%s' failed\n",
+                                                k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_ipaddr: "
+                                                "[conf] get var '%s':'%s' done\n",
+                                                k, v);
+
+        if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, v))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter_ipaddr: "
+                                                    "[conf] set ipaddr '%s' to http req failed\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0113);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_ipaddr: "
+                                                "[conf] set ipaddr  '%s' to http req done\n",
+                                                v);
+
+        safe_free(v, LOC_CVENDOR_0117);
+
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -11303,7 +11868,37 @@ EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
 
                 return (EC_FALSE);
             }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set server '%s' to http req done\n",
+                                                    v);
+
             safe_free(v, LOC_CVENDOR_0229);
+
+            /*set or overwrite ipaddr*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_ipaddr(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "filter ipaddr failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] filter ipaddr '%s' done\n",
+                                                    chttp_req_get_ipaddr_str(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
+
+
+            /*set or overwrite port*/
+            if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "filter port failed\n");
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] filter port %ld done\n",
+                                                    chttp_req_get_port(CVENDOR_MD_CHTTP_REQ(cvendor_md)));
 
             break; /*ok*/
         }
@@ -11316,7 +11911,15 @@ EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        /*set port*/
+        /*set or overwrite ipaddr*/
+        if(EC_FALSE == cvendor_content_ims_header_in_filter_ipaddr(cvendor_md_id))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                    "filter ipaddr failed\n");
+            return (EC_FALSE);
+        }
+
+        /*set or overwrite port*/
         if(EC_FALSE == cvendor_content_ims_header_in_filter_port(cvendor_md_id))
         {
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "

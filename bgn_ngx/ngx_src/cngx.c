@@ -2727,6 +2727,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
                                                  v);
             /*reuse v: move v to cstring without memory allocation*/
             cstring_set_str(store_path, (const uint8_t *)v);
+            cstring_rtrim(store_path, (const UINT8)'/');
             return (EC_TRUE);
         }
 
@@ -2737,6 +2738,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
                                                  v + 6);
 
             cstring_append_str(store_path, (const uint8_t *)(v + 6));
+            cstring_rtrim(store_path, (const UINT8)'/');
 
             safe_free(v, LOC_CNGX_0054);
             return (EC_TRUE);
@@ -2749,6 +2751,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
                                                  v + 7);
 
             cstring_append_str(store_path, (const uint8_t *)(v + 7));
+            cstring_rtrim(store_path, (const UINT8)'/');
 
             safe_free(v, LOC_CNGX_0055);
             return (EC_TRUE);
@@ -2762,6 +2765,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             safe_free(v, LOC_CNGX_0056);
             return (EC_FALSE);
         }
+        cstring_rtrim(store_path, (const UINT8)'/');
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                              "format store_path '/%s' done\n",
@@ -2808,6 +2812,8 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         safe_free(uri_str, LOC_CNGX_0061);
         return (EC_FALSE);
     }
+    cstring_rtrim(store_path, (const UINT8)'/');
+
     safe_free(host_str, LOC_CNGX_0062);
     safe_free(uri_str, LOC_CNGX_0063);
 

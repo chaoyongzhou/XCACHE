@@ -148,7 +148,7 @@ typedef struct
 
 #define CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) \
     ((BIT_FALSE == CMP4_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cmp4_md)) ? 0 : CNGX_SEND_BODY_PRELOAD_FLAG)
-    
+
 /**
 *   for test only
 *
@@ -223,6 +223,8 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id);
 
+EC_BOOL cmp4_content_head_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
+
 EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id);
@@ -240,6 +242,8 @@ EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id);
 EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_direct_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id);
 
@@ -277,6 +281,8 @@ EC_BOOL cmp4_content_repair2_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id);
 
+EC_BOOL cmp4_content_repair2_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
+
 EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_repair2_header_out_filter(const UINT32 cmp4_md_id);
@@ -292,6 +298,8 @@ EC_BOOL cmp4_content_repair2_procedure(const UINT32 cmp4_md_id);
 EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_orig_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id);
 
@@ -318,6 +326,8 @@ EC_BOOL cmp4_content_orig_procedure(const UINT32 cmp4_md_id);
 EC_BOOL cmp4_content_ms_header_in_filter_host(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ms_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id);
 
@@ -369,7 +379,67 @@ EC_BOOL cmp4_content_preload_procedure(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id);
 
-EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_seg, CBYTES *seg_cbytes);
+EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ims_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ims_header_out_304_last_modified_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_304_expires_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_304_date_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_304_age_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_304_content_range_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_304_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_not_304_last_modified_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_not_304_etag_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_not_304_expires_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_not_304_content_range_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_header_out_not_304_filter(const UINT32 cmp4_md_id, const UINT32 cmp4_md_id_t, uint32_t status);
+
+EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_ims_procedure(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_header_in_filter_ipaddr(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_repair_fetch_response(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_seg, CBYTES *seg_cbytes);
+
+EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_seg, CBYTES *seg_cbytes);;
+
+EC_BOOL cmp4_content_expired_header_out_range_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_expired_header_out_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_expired_body_out_filter(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_seg);
+
+EC_BOOL cmp4_content_expired_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *crange_node);
+
+EC_BOOL cmp4_content_expired_send_response(const UINT32 cmp4_md_id);
+
+EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id);
 
 EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *header_cbytes);
 
