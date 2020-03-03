@@ -134,7 +134,7 @@
 #define SEC_0124_HTTP                       ((UINT32)(    124)) /*http                            */
 #define SEC_0125_CAMD                       ((UINT32)(    125)) /*camd                            */
 #define SEC_0126_CBUFFER                    ((UINT32)(    126)) /*cbuffer                         */
-#define SEC_0127_XXXXXXXXX                  ((UINT32)(    127)) /*-- obsolete --                  */
+#define SEC_0127_CLOOPBACK                  ((UINT32)(    127)) /*cloopback                       */
 #define SEC_0128_CSET                       ((UINT32)(    128)) /*cset                            */
 #define SEC_0129_CDCNP                      ((UINT32)(    129)) /*cdcnp                           */
 #define SEC_0130_BTREE                      ((UINT32)(    130)) /*btree                           */

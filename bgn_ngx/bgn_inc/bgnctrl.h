@@ -78,6 +78,9 @@ extern "C"{
 /*CMIAOPAI Package Debug Switch*/
 #define CMIAOPAI_DEBUG_SWITCH SWITCH_ON
 
+/*CLOOPBACK Package Debug Switch*/
+#define CLOOPBACK_DEBUG_SWITCH SWITCH_ON
+
 /*CFILE Package Debug Switch*/
 #define CFILE_DEBUG_SWITCH SWITCH_ON
 
