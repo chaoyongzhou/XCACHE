@@ -29,7 +29,7 @@ extern "C"{
 #define     MD_SUPER     ((UINT32)  4)
 #define     MD_CTIMER    ((UINT32)  5)
 #define     MD_0001      ((UINT32)  6) /*-- obsolee --*/
-#define     MD_0002      ((UINT32)  7) /*-- obsolete --*/
+#define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
 #define     MD_CHFS      ((UINT32) 10)

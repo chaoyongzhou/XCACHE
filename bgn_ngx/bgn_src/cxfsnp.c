@@ -1013,6 +1013,8 @@ CXFSNP_HEADER *cxfsnp_header_create(const uint32_t np_id, const uint8_t np_model
     CXFSNP_HEADER_NP_ID(cxfsnp_header)  = np_id;
     CXFSNP_HEADER_MODEL(cxfsnp_header)  = np_model;
 
+    node_max_num = 0;
+
     cxfsnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CXFSNP_ITEM);
 

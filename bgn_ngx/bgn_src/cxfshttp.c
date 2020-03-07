@@ -162,29 +162,6 @@ EC_BOOL cxfshttp_log_start()
 
     task_brd = task_brd_default_get();
 
-#if 0/*support rotate*/
-    if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
-    {
-        CSTRING *log_file_name;
-
-        log_file_name = cstring_new(NULL_PTR, LOC_CXFSHTTP_0001);
-        cstring_format(log_file_name, "%s/xfs_%s_%ld.log",
-                        (char *)TASK_BRD_LOG_PATH_STR(task_brd),
-                        c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
-                        TASK_BRD_RANK(task_brd));
-        if(EC_FALSE == user_log_open(LOGUSER08, (char *)cstring_get_str(log_file_name), "a+"))/*append mode. scenario: after restart*/
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_log_start: user_log_open '%s' -> LOGUSER08 failed\n",
-                               (char *)cstring_get_str(log_file_name));
-            cstring_free(log_file_name);
-            /*task_brd_default_abort();*/
-        }
-        else
-        {
-            cstring_free(log_file_name);
-        }
-    }
-#endif
     if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
     {
         CSTRING *log_file_name;
@@ -217,36 +194,6 @@ EC_BOOL cxfshttp_log_start()
             cstring_free(log_file_name);
         }
     }
-#if 0
-    if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
-    {
-        CSTRING *log_file_name;
-        LOG     *log;
-
-        /*open log and redirect LOGUSER08 to it*/
-        log_file_name = cstring_new(NULL_PTR, LOC_CXFSHTTP_0003);
-        cstring_format(log_file_name, "%s/debug_%s_%ld",
-                        (char *)TASK_BRD_LOG_PATH_STR(task_brd),
-                        c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
-                        TASK_BRD_RANK(task_brd));
-        log = log_file_open((char *)cstring_get_str(log_file_name), /*"a+"*/"w+",
-                            TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
-                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
-                            LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
-        if(NULL_PTR == log)
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_log_start: log_file_open '%s' -> LOGUSER07 failed\n",
-                               (char *)cstring_get_str(log_file_name));
-            cstring_free(log_file_name);
-            /*task_brd_default_abort();*/
-        }
-        else
-        {
-            sys_log_redirect_setup(LOGUSER07, log);
-            cstring_free(log_file_name);
-        }
-    }
-#endif
     return (EC_TRUE);
 }
 
@@ -3532,29 +3479,6 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setsmf_post_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_post_request: cxfs write %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_post_request: cxfs write %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-
-            cstring_clean(&path_cstr);
-            cbytes_free(content_cbytes);
-            return (EC_TRUE);
-        }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_post_request: cxfs write %s done\n",
-                            (char *)cstring_get_str(&path_cstr));
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setsmf_post_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
-#endif
     }
     else
     {
@@ -4024,23 +3948,6 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_update_post_request: cxfs update %s done", (char *)cstring_get_str(&path_cstr));
-#endif
-#if 0
-        if(EC_FALSE == cxfs_update_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_post_request: cxfs update %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_post_request: cxfs update %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-
-            cstring_clean(&path_cstr);
-            cbytes_free(content_cbytes);
-            return (EC_TRUE);
-        }
 #endif
     }
 
@@ -4519,22 +4426,6 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_dsmf_get_request: cxfs delete file %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_REG, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_dsmf_get_request: cxfs delete file %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_dsmf_get_request: cxfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
-
-            cstring_clean(&path_cstr);
-            return (EC_TRUE);
-        }
-#endif
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
@@ -4729,22 +4620,6 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_ddir_get_request: cxfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
-#endif
-#if 0
-        if(EC_FALSE == cxfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_DIR, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_ddir_get_request: cxfs delete dir %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_ddir_get_request: cxfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
-
-            cstring_clean(&path_cstr);
-            return (EC_TRUE);
-        }
 #endif
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }

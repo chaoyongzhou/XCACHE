@@ -36,8 +36,8 @@ static UINT32 g_log_switch = SWITCH_ON;
 
 UINT32 g_log_level[ SEC_NONE_END ];
 
-#define LOG_NODE_BUF_SIZE  (64 * 1024)
-#define LOG_NODE_BUF_TYPE  (MM_UINT8_064K)
+#define LOG_NODE_BUF_SIZE  (1 << 20)
+#define LOG_NODE_BUF_TYPE  (MM_UINT8_001M)
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
 static char g_log_node_buf[ LOG_NODE_BUF_SIZE ];

@@ -396,8 +396,8 @@ typedef struct
 #define CDCNP_BITMAP_SIZE_NBYTES        (CDCNP_HEADER_SIZE_NBYTES - 8 - 4 - 4 - 16)
 #define CDCNP_PAGE_MAX_NUM              (CDCNP_BITMAP_SIZE_NBYTES << 3) /*nbytes * 8*/
 
-#define CDCNP_MAGIC_NUM                 ((uint32_t)0x31415926)
-#define CDCNP_ERR_MAGIC_NUM             ((uint32_t)~0)
+#define CDCNP_MAGIC_VAL                 ((uint32_t)0x31415926)
+#define CDCNP_ERR_MAGIC_VAL             ((uint32_t)~0)
 
 /*each np own one header*/
 typedef struct

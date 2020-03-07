@@ -162,7 +162,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     }
 
     /*check validity*/
-    if(CXFS_MAX_MODI < cxfs_md_id) /*limited to 2-digital*/
+    if(CXFS_MAX_MODI < cxfs_md_id)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: cxfs_md_id %ld overflow\n", cxfs_md_id);
 
@@ -318,32 +318,30 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
     ret = EC_TRUE;
 
-    if(CXFSCFG_MAGIC_NUM == CXFSCFG_MAGIC(cxfscfg))
+    while(CXFSCFG_MAGIC_VAL == CXFSCFG_MAGIC(cxfscfg))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: cxfscfg is\n");
         cxfscfg_print(LOGSTDOUT, cxfscfg);
 
-        if(EC_TRUE == ret)
+        if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
         {
-            if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: load sata bad bitmap failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: load sata bad bitmap failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
-        if(EC_TRUE == ret)
+        CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr_open(CXFS_MD_SATA_DISK_FD(cxfs_md), cxfscfg);
+        if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
         {
-            CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr_open(CXFS_MD_SATA_DISK_FD(cxfs_md), cxfscfg);
-            if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open npp failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open npp failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
         /*fix: to reduce the np loading time elapsed*/
-        if(EC_TRUE == ret && NULL_PTR != CXFS_MD_NPP(cxfs_md))
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
         {
             if(EC_FALSE == cxfsnp_mgr_open_np_all(CXFS_MD_NPP(cxfs_md)))
             {
@@ -352,25 +350,27 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
                 cxfsnp_mgr_close_np_all(CXFS_MD_NPP(cxfs_md));/*roll back*/
 
                 ret = EC_FALSE;
+                break; /*terminate*/
             }
         }
 
-        if(EC_TRUE == ret)
+        CXFS_MD_DN(cxfs_md) = cxfsdn_open(cxfscfg,
+                                          CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                          CXFS_MD_SSD_DISK_FD(cxfs_md));
+        if(NULL_PTR == CXFS_MD_DN(cxfs_md))
         {
-            CXFS_MD_DN(cxfs_md) = cxfsdn_open(cxfscfg,
-                                              CXFS_MD_SATA_DISK_FD(cxfs_md),
-                                              CXFS_MD_SSD_DISK_FD(cxfs_md));
-            if(NULL_PTR == CXFS_MD_DN(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open dn failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open dn failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
-        if(EC_TRUE == ret && NULL_PTR != CXFS_MD_DN(cxfs_md) && NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
+        if(NULL_PTR != CXFS_MD_DN(cxfs_md) && NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
         {
             cxfsdn_mount_sata_bad_bitmap(CXFS_MD_DN(cxfs_md), CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
         }
+
+        break; /*fall through*/
     }
 
     if(EC_FALSE == ret)
@@ -413,7 +413,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         return (CMPI_ERROR_MODI);
     }
 
-    if(CXFSCFG_MAGIC_NUM != CXFSCFG_MAGIC(cxfscfg))
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && CXFSCFG_MAGIC_VAL != CXFSCFG_MAGIC(cxfscfg))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: magic mismatched\n");
 
@@ -437,17 +438,38 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET + 0;
     }
 
+     if(SWITCH_OFF == CXFS_OP_SWITCH
+    && CXFSCFG_MAGIC_VAL != CXFSCFG_MAGIC(cxfscfg))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: magic mismatched\n");
+
+        cxfscfg_clean(cxfscfg); /*clean up dirty data*/
+
+        CXFSCFG_OP_S_OFFSET(cxfscfg)        = ERR_OFFSET; /*disabled*/
+
+        CXFSCFG_OP_E_OFFSET(cxfscfg)        = ERR_OFFSET; /*disabled*/
+
+
+        /*set basic info to config for fresh xfs*/
+        CXFSCFG_SATA_DISK_SIZE(cxfscfg)     = sata_disk_size;
+        CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)   = CXFSCFG_SIZE
+                                            + CXFS_SATA_BAD_BITMAP_SIZE_NBYTES;
+
+        CXFSCFG_SSD_DISK_SIZE(cxfscfg)      = ssd_disk_size;
+        CXFSCFG_SSD_DISK_OFFSET(cxfscfg)    = CXFSDN_CAMD_SSD_DISK_OFFSET + 0;
+    }
+
     CXFS_MD_STATE(cxfs_md) = CXFS_WORK_STATE;
 
     cxfs_md->usedcounter = 1;
 
     cstring_clone(sata_disk_path, CXFS_MD_SATA_DISK_PATH(cxfs_md));
 
-    /*dump npp to standby zone*/
     if(SWITCH_ON == CXFS_OP_SWITCH
     && NULL_PTR != CXFS_MD_NPP(cxfs_md))
     {
-        if(EC_FALSE == cxfs_dump_npp(cxfs_md_id))
+        /*dump npp to standby zone*/
+        if(EC_FALSE == cxfs_dump_npp(cxfs_md_id, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg)))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: dump npp to standby zone failed\n");
             cxfs_end(cxfs_md_id);
@@ -455,11 +477,11 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         }
     }
 
-    /*dump dn to standby zone*/
     if(SWITCH_ON == CXFS_OP_SWITCH
     && NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
-        if(EC_FALSE == cxfs_dump_dn(cxfs_md_id))
+        /*dump dn to standby zone*/
+        if(EC_FALSE == cxfs_dump_dn(cxfs_md_id, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg)))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: dump dn to standby zone failed\n");
             cxfs_end(cxfs_md_id);
@@ -577,6 +599,12 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     int         sata_disk_fd;
     int         ssd_disk_fd;
 
+    if(SWITCH_OFF == CXFS_OP_SWITCH)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "fatal error:cxfs_retrieve: not support yet!\n");
+        return (CMPI_ERROR_MODI);
+    }
+
     cbc_md_reg(MD_CXFS, 32);
 
     cxfs_md_id = cbc_md_new(MD_CXFS, sizeof(CXFS_MD));
@@ -586,7 +614,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     }
 
     /*check validity*/
-    if(CXFS_MAX_MODI < cxfs_md_id) /*limited to 2-digital*/
+    if(CXFS_MAX_MODI < cxfs_md_id)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: cxfs_md_id %ld overflow\n", cxfs_md_id);
 
@@ -744,34 +772,32 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     CXFSCFG_NP_ZONE_SWITCH(cxfscfg);
     CXFSCFG_DN_ZONE_SWITCH(cxfscfg);
 
-    CXFSCFG_MAGIC(cxfscfg) = CXFSCFG_MAGIC_NUM; /*reset*/
+    CXFSCFG_MAGIC(cxfscfg) = CXFSCFG_MAGIC_VAL; /*reset*/
 
-    if(CXFSCFG_MAGIC_NUM == CXFSCFG_MAGIC(cxfscfg))
+    while(CXFSCFG_MAGIC_VAL == CXFSCFG_MAGIC(cxfscfg))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: cxfscfg is\n");
         cxfscfg_print(LOGSTDOUT, cxfscfg);
 
-        if(EC_TRUE == ret)
+        if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
         {
-            if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: load sata bad bitmap failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: load sata bad bitmap failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
-        if(EC_TRUE == ret)
+        CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr_open(CXFS_MD_SATA_DISK_FD(cxfs_md), cxfscfg);
+        if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
         {
-            CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr_open(CXFS_MD_SATA_DISK_FD(cxfs_md), cxfscfg);
-            if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open npp failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open npp failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
         /*fix: to reduce the np loading time elapsed*/
-        if(EC_TRUE == ret && NULL_PTR != CXFS_MD_NPP(cxfs_md))
+        if(NULL_PTR != CXFS_MD_NPP(cxfs_md))
         {
             if(EC_FALSE == cxfsnp_mgr_open_np_all(CXFS_MD_NPP(cxfs_md)))
             {
@@ -780,25 +806,27 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
                 cxfsnp_mgr_close_np_all(CXFS_MD_NPP(cxfs_md));/*roll back*/
 
                 ret = EC_FALSE;
+                break; /*terminate*/
             }
         }
 
-        if(EC_TRUE == ret)
+        CXFS_MD_DN(cxfs_md) = cxfsdn_open(cxfscfg,
+                                          CXFS_MD_SATA_DISK_FD(cxfs_md),
+                                          CXFS_MD_SSD_DISK_FD(cxfs_md));
+        if(NULL_PTR == CXFS_MD_DN(cxfs_md))
         {
-            CXFS_MD_DN(cxfs_md) = cxfsdn_open(cxfscfg,
-                                              CXFS_MD_SATA_DISK_FD(cxfs_md),
-                                              CXFS_MD_SSD_DISK_FD(cxfs_md));
-            if(NULL_PTR == CXFS_MD_DN(cxfs_md))
-            {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open dn failed\n");
-                ret = EC_FALSE;
-            }
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open dn failed\n");
+
+            ret = EC_FALSE;
+            break; /*terminate*/
         }
 
         if(EC_TRUE == ret && NULL_PTR != CXFS_MD_DN(cxfs_md) && NULL_PTR != CXFS_MD_SATA_BAD_BITMAP(cxfs_md))
         {
             cxfsdn_mount_sata_bad_bitmap(CXFS_MD_DN(cxfs_md), CXFS_MD_SATA_BAD_BITMAP(cxfs_md));
         }
+
+        break; /*fall through*/
     }
 
     if(EC_FALSE == ret)
@@ -950,11 +978,11 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: create op mgr done\n");
     }
 
-    /*dump npp to standby zone*/
     if(SWITCH_ON == CXFS_OP_SWITCH
     && NULL_PTR != CXFS_MD_NPP(cxfs_md))
     {
-        if(EC_FALSE == cxfs_dump_npp(cxfs_md_id))
+        /*dump npp to standby zone*/
+        if(EC_FALSE == cxfs_dump_npp(cxfs_md_id, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg)))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: dump npp to standby zone failed\n");
             cxfs_end(cxfs_md_id);
@@ -962,11 +990,11 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         }
     }
 
-    /*dump dn to standby zone*/
     if(SWITCH_ON == CXFS_OP_SWITCH
     && NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
-        if(EC_FALSE == cxfs_dump_dn(cxfs_md_id))
+        /*dump dn to standby zone*/
+        if(EC_FALSE == cxfs_dump_dn(cxfs_md_id, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg)))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: dump dn to standby zone failed\n");
             cxfs_end(cxfs_md_id);
@@ -985,9 +1013,12 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
                         (TASK_BRD_CALLBACK)cxfs_sync_sata_bad_bitmap,
                         (void *)cxfs_md);
 
-    task_brd_process_add(task_brd_default_get(),
-                        (TASK_BRD_CALLBACK)cxfs_process_op,
-                        (void *)cxfs_md_id);
+    if(SWITCH_ON == CXFS_OP_SWITCH)
+    {
+        task_brd_process_add(task_brd_default_get(),
+                            (TASK_BRD_CALLBACK)cxfs_process_op,
+                            (void *)cxfs_md_id);
+    }
 
     task_brd_process_add(task_brd_default_get(),
                         (TASK_BRD_CALLBACK)cxfs_process_space,
@@ -1232,6 +1263,8 @@ EC_BOOL cxfs_sync_do(const UINT32 cxfs_md_id)
         CAMD_MD         *camd_md;
         MOD_NODE         mod_node;
 
+        /*note: when CXFS_OP_SWITCH = OFF, active zone and standby zone is same one*/
+
         cxfscfg = CXFS_MD_CFG(cxfs_md);
         np_zone = CXFSCFG_NP_ZONE(cxfscfg, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
         dn_zone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
@@ -1418,10 +1451,12 @@ EC_BOOL cxfs_sync(const UINT32 cxfs_md_id)
                          NULL_PTR,
                          FI_cxfs_sync_do, CMPI_ERROR_MODI);
 
-        task_brd_process_add(task_brd_default_get(),
-                            (TASK_BRD_CALLBACK)cxfs_process_op,
-                            (void *)cxfs_md_id);
-
+        if(SWITCH_ON == CXFS_OP_SWITCH)
+        {
+            task_brd_process_add(task_brd_default_get(),
+                                (TASK_BRD_CALLBACK)cxfs_process_op,
+                                (void *)cxfs_md_id);
+        }
         return (EC_TRUE);
     }
 
@@ -2142,22 +2177,39 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
 
     np_total_size = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
 
-    cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 0);
-    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
-    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+    if(SWITCH_ON == CXFS_OP_SWITCH) /*active and standy zones*/
+    {
+        cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 0);
+        CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+        CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
 
+        cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 1);
+        CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+        CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
 
-    cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 1);
-    CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
-    CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
+        CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+        CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
+    }
 
-    CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
-    CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) + 2 * np_total_size;
+    if(SWITCH_OFF == CXFS_OP_SWITCH) /*only active zone*/
+    {
+        cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 0);
+        CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+        CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+
+        cxfszone = CXFSCFG_NP_ZONE(cxfscfg, 1);
+        CXFSZONE_S_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+        CXFSZONE_E_OFFSET(cxfszone)            = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+
+        CXFSCFG_NP_ZONE_S_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 0 * np_total_size;
+        CXFSCFG_NP_ZONE_E_OFFSET(cxfscfg)      = CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr) + 1 * np_total_size;
+    }
 
     CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr;
 
     /*op mgr*/
-    if(NULL_PTR != cxfsnp_mgr
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != cxfsnp_mgr
     && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
     {
         cxfsnp_mgr_mount_op_mgr(cxfsnp_mgr, CXFS_MD_OP_MGR(cxfs_md));
@@ -2168,10 +2220,10 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
 
 /**
 *
-*  dump name node pool to sandby np zone
+*  dump name node pool to specific np zone
 *
 **/
-EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id)
+EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id, const UINT32 np_zone_idx)
 {
     CXFS_MD     *cxfs_md;
     CXFSCFG     *cxfscfg;
@@ -2204,20 +2256,24 @@ EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
-    /*standy zone*/
-    cxfszone = CXFSCFG_NP_ZONE(cxfscfg, CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
+    /*np zone*/
+    cxfszone = CXFSCFG_NP_ZONE(cxfscfg, np_zone_idx);
 
     if(EC_FALSE == cxfsnp_mgr_dump(CXFS_MD_NPP(cxfs_md), CXFSZONE_S_OFFSET(cxfszone)))
     {
         task_brd_update_time_default();
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_npp: "
-                                             "dump npp to standy zone %ld failed\n",
+                                             "dump npp to zone %ld (active %ld, standby %ld)failed\n",
+                                             np_zone_idx,
+                                             CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
                                              CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
         return (EC_FALSE);
     }
     task_brd_update_time_default();
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_npp: "
-                                         "dump npp to standy zone %ld done\n",
+                                         "dump npp to zone %ld (active %ld, standby %ld) done\n",
+                                         np_zone_idx,
+                                         CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
                                          CXFSCFG_NP_ZONE_STANDBY_IDX(cxfscfg));
 
     return (EC_TRUE);
@@ -3837,17 +3893,35 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
 
     CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg) = 0;
 
-    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 0);
-    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * cxfsdn_zone_size;
-    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+    if(SWITCH_ON == CXFS_OP_SWITCH) /*active and standy zones*/
+    {
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 0);
+        CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * cxfsdn_zone_size;
+        CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
 
-    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 1);
-    CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
-    CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 1);
+        CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+        CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
 
-    CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
+        CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 2 * cxfsdn_zone_size;
 
-    CXFSCFG_SATA_DISK_OFFSET(cxfscfg)   = CXFSCFG_SATA_DISK_SIZE(cxfscfg) % cxfsdn_disk_size;
+        CXFSCFG_SATA_DISK_OFFSET(cxfscfg)   = CXFSCFG_SATA_DISK_SIZE(cxfscfg) % cxfsdn_disk_size;
+    }
+
+    if(SWITCH_OFF == CXFS_OP_SWITCH) /*only active zone*/
+    {
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 0);
+        CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * cxfsdn_zone_size;
+        CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, 1);
+        CXFSZONE_S_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 0 * cxfsdn_zone_size;
+        CXFSZONE_E_OFFSET(cxfszone)         = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+
+        CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)   = CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg) + 1 * cxfsdn_zone_size;
+
+        CXFSCFG_SATA_DISK_OFFSET(cxfscfg)   = CXFSCFG_SATA_DISK_SIZE(cxfscfg) % cxfsdn_disk_size;
+    }
 
     while(CXFSCFG_SATA_DISK_OFFSET(cxfscfg) < CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg))
     {
@@ -3877,10 +3951,10 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
         }
     }
 
-    CXFSCFG_MAGIC(cxfscfg)              = CXFSCFG_MAGIC_NUM;
+    CXFSCFG_MAGIC(cxfscfg)              = CXFSCFG_MAGIC_VAL;
 
     cxfsdn = cxfsdn_create(cxfscfg,
-                          CXFS_MD_SATA_DISK_FD(cxfs_md),
+                           CXFS_MD_SATA_DISK_FD(cxfs_md),
                            CXFSDN_CAMD_MEM_DISK_SIZE,
                            CXFS_MD_SSD_DISK_FD(cxfs_md));
     if(NULL_PTR == cxfsdn)
@@ -3907,7 +3981,8 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
     }
 
     /*op mgr*/
-    if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn)
+    if(SWITCH_ON == CXFS_OP_SWITCH
+    && NULL_PTR != CXFSDN_CAMD_MD(cxfsdn)
     && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
     {
         cxfsop_mgr_mount_camd(CXFS_MD_OP_MGR(cxfs_md), CXFSDN_CAMD_MD(cxfsdn));
@@ -3923,10 +3998,10 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id)
 
 /**
 *
-*  dump data node to standby zone
+*  dump data node to specific zone
 *
 **/
-EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id)
+EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id, const UINT32 dn_zone_idx)
 {
     CXFS_MD   *cxfs_md;
     CXFSCFG   *cxfscfg;
@@ -3952,21 +4027,24 @@ EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id)
 
     cxfscfg = CXFS_MD_CFG(cxfs_md);
 
-    /*standby zone*/
-    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
+    cxfszone = CXFSCFG_DN_ZONE(cxfscfg, dn_zone_idx);
 
     if(EC_FALSE == cxfsdn_dump(CXFS_MD_DN(cxfs_md), CXFSZONE_S_OFFSET(cxfszone)))
     {
         task_brd_update_time_default();
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_dump_dn: "
-                                             "dump dn to standy zone %ld failed\n",
+                                             "dump dn to zone %ld (active %ld, standby %ld) failed\n",
+                                             dn_zone_idx,
+                                             CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg),
                                              CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
         return (EC_FALSE);
     }
 
     task_brd_update_time_default();
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_dump_dn: "
-                                         "dump dn to standy zone %ld done\n",
+                                         "dump dn to zone %ld (active %ld, standby %ld) done\n",
+                                         dn_zone_idx,
+                                         CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg),
                                          CXFSCFG_DN_ZONE_STANDBY_IDX(cxfscfg));
 
     return (EC_TRUE);
@@ -10101,7 +10179,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op(const UINT32 cxfs_md_id, void *start
         }
 
         /*invalid magic num*/
-        if(CXFSOP_MAGIC_NUM != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
+        if(CXFSOP_MAGIC_VAL != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:__cxfs_replay_op: "
                                                  "invalid magic num %lx\n",

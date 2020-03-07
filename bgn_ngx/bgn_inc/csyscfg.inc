@@ -20,7 +20,6 @@ extern "C"{
 
 #define MODEL_TYPE_MASTER_SLAVE              ((UINT32) 1)/*master slave model*/
 #define MODEL_TYPE_CROSS_CONNEC              ((UINT32) 2)/*cross connection model*/
-#define MODEL_TYPE_HSRFS_CONNEC              ((UINT32) 5)/*hsrfs connection model*/
 #define MODEL_TYPE_ANY                       ((UINT32)-2)/*any   connection model*/
 #define MODEL_TYPE_ERROR                     ((UINT32)-1)/*error connection model*/
 

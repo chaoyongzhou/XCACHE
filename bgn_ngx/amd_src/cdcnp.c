@@ -3182,7 +3182,7 @@ EC_BOOL cdcnp_erase(CDCNP *cdcnp, const uint32_t np_id, int fd, const UINT32 s_o
 
         cdcnp_header = CDCNP_HDR(cdcnp);
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_VAL;
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_erase: erase np header magic done\n");
     }
 
@@ -3327,13 +3327,13 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
                                           fd, f_s_offset);
 
     /*trick: check magic number*/
-    if(CDCNP_MAGIC_NUM != magic_t)
+    if(CDCNP_MAGIC_VAL != magic_t)
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load: "
                                               "np magic mismatched: stored %#x != %#x "
                                               "from fd %d, offset %ld\n",
                                               magic_t,
-                                              CDCNP_MAGIC_NUM,
+                                              CDCNP_MAGIC_VAL,
                                               fd, f_s_offset);
         return (EC_FALSE);
     }
@@ -3388,7 +3388,7 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
 
     CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
     CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
-    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_VAL == CDCNP_HEADER_MAGIC(cdcnp_header));
     CDCNP_ASSERT(f_s_offset + np_size == offset);
 
     cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
@@ -3416,7 +3416,7 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
 
         offset_erase = f_s_offset;
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_VAL;/*set to invalid magic temporarily*/
 
         /*alignment*/
         data     = (UINT8 *)cdcnp_header;
@@ -3428,7 +3428,7 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
                                                   "erase np magic from fd %d, offset %ld failed\n",
                                                   fd, offset_erase);
 
-            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
             return (EC_FALSE);
         }
 
@@ -3436,7 +3436,7 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
                                               "erase np magic temporarily from fd %d, offset %ld done\n",
                                               fd, offset_erase);
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
     }
 
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
@@ -3537,11 +3537,11 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
                                           np_id);
 
     /*trick: check magic number*/
-    if(CDCNP_MAGIC_NUM != magic_t)
+    if(CDCNP_MAGIC_VAL != magic_t)
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: "
                                               "np magic mismatched: shm stored %#x != %#x\n",
-                                              magic_t, CDCNP_MAGIC_NUM);
+                                              magic_t, CDCNP_MAGIC_VAL);
         return (EC_FALSE);
     }
 
@@ -3583,7 +3583,7 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
 
     CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
     CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
-    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_VAL == CDCNP_HEADER_MAGIC(cdcnp_header));
 
     cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
 
@@ -3613,7 +3613,7 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
 
         offset_erase = f_s_offset;
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_VAL;/*set to invalid magic temporarily*/
 
         /*alignment*/
         data     = (UINT8 *)cdcnp_header;
@@ -3625,7 +3625,7 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
                                                   "erase np magic from fd %d, offset %ld failed\n",
                                                   fd, offset_erase);
 
-            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
             return (EC_FALSE);
         }
 
@@ -3633,7 +3633,7 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
                                               "erase np magic temporarily from fd %d, offset %ld done\n",
                                               fd, offset_erase);
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
     }
 
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load_shm: "
@@ -3702,11 +3702,11 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
                                           np_id);
 
     /*trick: check magic number*/
-    if(CDCNP_MAGIC_NUM != magic_t)
+    if(CDCNP_MAGIC_VAL != magic_t)
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: "
                                               "np magic mismatched: shm stored %#x != %#x\n",
-                                              magic_t, CDCNP_MAGIC_NUM);
+                                              magic_t, CDCNP_MAGIC_VAL);
         return (EC_FALSE);
     }
 
@@ -3761,7 +3761,7 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
 
     CDCNP_ASSERT(np_id == CDCNP_HEADER_NP_ID(cdcnp_header));
     CDCNP_ASSERT(np_model_t == CDCNP_HEADER_MODEL(cdcnp_header));
-    CDCNP_ASSERT(CDCNP_MAGIC_NUM == CDCNP_HEADER_MAGIC(cdcnp_header));
+    CDCNP_ASSERT(CDCNP_MAGIC_VAL == CDCNP_HEADER_MAGIC(cdcnp_header));
     CDCNP_ASSERT(f_s_offset + np_size == offset);
 
     cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
@@ -3792,7 +3792,7 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
 
         offset_erase = f_s_offset;
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_NUM;/*set to invalid magic temporarily*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_ERR_MAGIC_VAL;/*set to invalid magic temporarily*/
 
         /*alignment*/
         data     = (UINT8 *)cdcnp_header;
@@ -3804,7 +3804,7 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
                                                   "erase np magic from fd %d, offset %ld failed\n",
                                                   fd, offset_erase);
 
-            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+            CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
             return (EC_FALSE);
         }
 
@@ -3812,7 +3812,7 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
                                               "erase np magic temporarily from fd %d, offset %ld done\n",
                                               fd, offset_erase);
 
-        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM; /*restore to valid magic*/
+        CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL; /*restore to valid magic*/
     }
 
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_retrieve_shm: "
@@ -3871,7 +3871,7 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
 
         CDCNP_ASSERT(offset == CDCNP_E_OFFSET(cdcnp));
 
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_flush: "
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_flush: "
                                               "flush np %u (magic %#x) to fd %d, offset %ld => %ld, size %ld done\n",
                                               CDCNP_HEADER_NP_ID(cdcnp_header),
                                               CDCNP_HEADER_MAGIC(cdcnp_header),
@@ -3926,7 +3926,7 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
         return (NULL_PTR);
     }
 
-    CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM;
+    CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL;
 
     cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
     if(EC_FALSE == cdcnp_bitmap_init(cdcnp_bitmap, key_max_num))
@@ -4046,7 +4046,7 @@ CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint
     /*init DEG nodes*/
     cdcnpdeg_pool_init(CDCNP_HEADER_ITEMS_POOL(cdcnp_header), node_max_num, node_sizeof);
 
-    CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_NUM;
+    CDCNP_HEADER_MAGIC(cdcnp_header) = CDCNP_MAGIC_VAL;
 
     cdcnp_bitmap = CDCNP_HEADER_BITMAP(cdcnp_header);
     if(EC_FALSE == cdcnp_bitmap_init(cdcnp_bitmap, key_max_num))

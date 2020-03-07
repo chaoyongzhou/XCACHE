@@ -415,10 +415,6 @@ STATIC_CAST static EC_BOOL __cxml_parse_cluster_model(xmlNodePtr node, const cha
         {
             (*cluster_model) = MODEL_TYPE_CROSS_CONNEC;
         }
-        else if(0 == strcasecmp((char *)attr_val, "hsrfs"))
-        {
-            (*cluster_model) = MODEL_TYPE_HSRFS_CONNEC;
-        }
         else
         {
             dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:__cxml_parse_cluster_model: invalid type %s\n", (char *)attr_val);

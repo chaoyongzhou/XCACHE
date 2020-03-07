@@ -263,7 +263,7 @@ void cxfsop_mgr_print(LOG *log, const CXFSOP_MGR *cxfsop_mgr)
 
             cxfsop_comm_hdr = (CXFSOP_COMM_HDR *)cur;
 
-            if(CXFSOP_MAGIC_NUM != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
+            if(CXFSOP_MAGIC_VAL != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
             {
                 sys_log(log, "error:cxfsop_mgr_print: invalid magic num %lx\n",
                              CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr));
@@ -534,7 +534,7 @@ void *cxfsop_mgr_search(CXFSOP_MGR *cxfsop_mgr, void *cur, const uint64_t max_sc
 
         cxfsop_comm_hdr = (CXFSOP_COMM_HDR *)cur;
 
-        if(CXFSOP_MAGIC_NUM != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr)
+        if(CXFSOP_MAGIC_VAL != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr)
         || 0 == CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr)
         || c_time_msec < CXFSOP_COMM_HDR_TIME(cxfsop_comm_hdr))
         {
@@ -614,7 +614,7 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
         }
 
         /*invalid magic num*/
-        if(CXFSOP_MAGIC_NUM != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
+        if(CXFSOP_MAGIC_VAL != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
         {
             dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "warn:cxfsop_mgr_scan: "
                                                    "invalid magic num %lx\n",
@@ -910,7 +910,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_ADD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -978,7 +978,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1045,7 +1045,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_D_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_TRUE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1118,7 +1118,7 @@ EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_ADD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1194,7 +1194,7 @@ EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1261,7 +1261,7 @@ EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_DEL_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_TRUE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1335,7 +1335,7 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_np_hdr = (CXFSOP_NP_HDR *)data;
 
     CXFSOP_NP_HDR_TIME(cxfsop_np_hdr)     = c_get_cur_time_msec();
-    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_HDR_MAGIC(cxfsop_np_hdr)    = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_HDR_OP(cxfsop_np_hdr)       = CXFSOP_NP_F_UPD_OP;
     CXFSOP_NP_HDR_WILDCARD(cxfsop_np_hdr) = BIT_FALSE;
     CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr)     = __cxfsop_mgr_np_path_copy(klen, key, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr));
@@ -1407,7 +1407,7 @@ EC_BOOL cxfsop_mgr_np_push_item_retire(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_np_item = (CXFSOP_NP_ITEM *)data;
 
     CXFSOP_NP_ITEM_TIME(cxfsop_np_item)       = c_get_cur_time_msec();
-    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_ITEM_OP(cxfsop_np_item)         = CXFSOP_NP_I_RET_OP;
     CXFSOP_NP_ITEM_SIZE(cxfsop_np_item)       = sizeof(CXFSOP_NP_ITEM);
 
@@ -1449,7 +1449,7 @@ EC_BOOL cxfsop_mgr_np_push_item_recycle(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_np_item = (CXFSOP_NP_ITEM *)data;
 
     CXFSOP_NP_ITEM_TIME(cxfsop_np_item)       = c_get_cur_time_msec();
-    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_NP_ITEM_MAGIC(cxfsop_np_item)      = CXFSOP_MAGIC_VAL;
     CXFSOP_NP_ITEM_OP(cxfsop_np_item)         = CXFSOP_NP_I_REC_OP;
     CXFSOP_NP_ITEM_SIZE(cxfsop_np_item)       = sizeof(CXFSOP_NP_ITEM);
 
@@ -1492,7 +1492,7 @@ EC_BOOL cxfsop_mgr_dn_push_reserve_op(CXFSOP_MGR      *cxfsop_mgr,
     cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
 
     CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
-    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_VAL;
     CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_RSV_OP;
     CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
 
@@ -1537,7 +1537,7 @@ EC_BOOL cxfsop_mgr_dn_push_release_op(CXFSOP_MGR *cxfsop_mgr,
     cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
 
     CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
-    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_VAL;
     CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_REL_OP;
     CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
 
@@ -1582,7 +1582,7 @@ EC_BOOL cxfsop_mgr_dn_push_recycle_op(CXFSOP_MGR *cxfsop_mgr,
     cxfsop_dn_node = (CXFSOP_DN_NODE *)data;
 
     CXFSOP_DN_NODE_TIME(cxfsop_dn_node)       = c_get_cur_time_msec();
-    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_NUM;
+    CXFSOP_DN_NODE_MAGIC(cxfsop_dn_node)      = CXFSOP_MAGIC_VAL;
     CXFSOP_DN_NODE_OP(cxfsop_dn_node)         = CXFSOP_DN_REC_OP;
     CXFSOP_DN_NODE_SIZE(cxfsop_dn_node)       = sizeof(CXFSOP_DN_NODE);
 

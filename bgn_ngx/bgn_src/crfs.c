@@ -64,7 +64,6 @@ extern "C"{
 
 STATIC_CAST static CRFSNP_FNODE * __crfs_reserve_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
 STATIC_CAST static EC_BOOL __crfs_release_npp(const UINT32 crfs_md_id, const CSTRING *file_path);
-STATIC_CAST static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id);
 STATIC_CAST static EC_BOOL __crfs_recycle_of_np(const UINT32 crfs_md_id, const uint32_t crfsnp_id, const UINT32 max_num, UINT32 *complete_num);
 
 /**
@@ -319,8 +318,6 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfs_end, crfs_md_id);
 
-    __crfs_collect_neighbors(crfs_md_id);
-
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%ld\n", crfs_md_id);
 
     if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
@@ -513,147 +510,6 @@ EC_BOOL crfs_flush(const UINT32 crfs_md_id)
     }
 
     dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "[DEBUG] crfs_flush: flush done\n");
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __crfs_add_neighbor(const UINT32 crfs_md_id, TASKS_CFG *remote_tasks_cfg)
-{
-    CRFS_MD  *crfs_md;
-    CVECTOR  *crfs_neighbor_vec;
-    MOD_NODE *mod_node;
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    crfs_neighbor_vec = CRFS_MD_NEIGHBOR_VEC(crfs_md);
-
-    mod_node = mod_node_new();
-    if(NULL_PTR == mod_node)
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_add_neighbor: new mod_node failed\n");
-        return (EC_FALSE);
-    }
-
-    MOD_NODE_TCID(mod_node) = TASKS_CFG_TCID(remote_tasks_cfg);
-    MOD_NODE_COMM(mod_node) = CMPI_COMM_NULL;
-    MOD_NODE_RANK(mod_node) = CMPI_CRFS_RANK;
-    MOD_NODE_MODI(mod_node) = 0;
-
-    if(CVECTOR_ERR_POS != cvector_search_front(crfs_neighbor_vec, (void *)mod_node, (CVECTOR_DATA_CMP)mod_node_cmp))
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_add_neighbor: tcid %s already in neighbors\n", MOD_NODE_TCID_STR(mod_node));
-        mod_node_free(mod_node);
-        return (EC_FALSE);
-    }
-
-    cvector_push(crfs_neighbor_vec, (void *)mod_node);
-
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __crfs_collect_neighbors_from_cluster(const UINT32 crfs_md_id, const UINT32 cluster_id)
-{
-    TASK_BRD    *task_brd;
-    TASKS_CFG   *local_tasks_cfg;
-    CLUSTER_CFG *cluster_cfg;
-
-    task_brd = task_brd_default_get();
-    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
-
-    cluster_cfg = sys_cfg_get_cluster_cfg_by_id(TASK_BRD_SYS_CFG(task_brd), cluster_id);
-    if(NULL_PTR == cluster_cfg)
-    {
-        dbg_log(SEC_0031_CRFS, 1)(LOGSTDOUT, "warn:__crfs_collect_neighbors_from_cluster: not found cluter %ld definition\n", cluster_id);
-        return (EC_TRUE);
-    }
-
-    if(MODEL_TYPE_HSRFS_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
-    {
-        CVECTOR  *cluster_nodes;
-        UINT32    pos;
-
-        cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
-
-        CVECTOR_LOCK(cluster_nodes, LOC_CRFS_0003);
-        for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
-        {
-            CLUSTER_NODE_CFG *cluster_node_cfg;
-            TASKS_CFG *remote_tasks_cfg;
-
-            cluster_node_cfg = (CLUSTER_NODE_CFG *)cvector_get_no_lock(cluster_nodes, pos);
-            if(NULL_PTR == cluster_node_cfg)
-            {
-                continue;
-            }
-
-            remote_tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), CLUSTER_NODE_CFG_TCID(cluster_node_cfg), CMPI_ANY_MASK, CMPI_ANY_MASK);
-            if(NULL_PTR == remote_tasks_cfg)
-            {
-                dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_collect_neighbors_from_cluster: not found tasks_cfg of cluster node %s\n", CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg));
-                continue;
-            }
-
-            if(EC_TRUE == tasks_cfg_cmp(local_tasks_cfg, remote_tasks_cfg))
-            {
-                dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_collect_neighbors_from_cluster: skip local tcid %s\n", CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg));
-                continue;
-            }
-
-            /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
-            if(EC_FALSE == tasks_cfg_is_intranet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_externet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_lannet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_dbgnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
-            && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
-            )
-            {
-                continue;
-            }
-
-            if(EC_FALSE == __crfs_add_neighbor(crfs_md_id, remote_tasks_cfg))
-            {
-                dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_collect_neighbors_from_cluster: add neighbor tcid %s failed\n", CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg));
-                continue;
-            }
-            dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG]__crfs_collect_neighbors_from_cluster: add neighbor tcid %s done\n", CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg));
-        }
-        CVECTOR_UNLOCK(cluster_nodes, LOC_CRFS_0004);
-    }
-    else
-    {
-        dbg_log(SEC_0031_CRFS, 3)(LOGSTDOUT, "info:__crfs_collect_neighbors_from_cluster: skip cluster %ld due to mismatched model %ld\n",
-                           cluster_id, CLUSTER_CFG_MODEL(cluster_cfg));
-    }
-
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __crfs_collect_neighbors(const UINT32 crfs_md_id)
-{
-    CRFS_MD     *crfs_md;
-
-    TASK_BRD    *task_brd;
-    TASKS_CFG   *tasks_cfg;
-
-    EC_BOOL      ret;
-
-    crfs_md = CRFS_MD_GET(crfs_md_id);
-    if(NULL_PTR == crfs_md)
-    {
-        dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:__crfs_collect_neighbors: crfs_md_id = %ld not exist.\n", crfs_md_id);
-        dbg_exit(MD_CRFS, crfs_md_id);
-    }
-
-    task_brd  = task_brd_default_get();
-    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
-
-    if(NULL_PTR != tasks_cfg)
-    {
-        cvector_loop(TASKS_CFG_CLUSTER_VEC(tasks_cfg), &ret, NULL_PTR,
-                                (UINT32)2,
-                                (UINT32)1,
-                                (UINT32)__crfs_collect_neighbors_from_cluster,
-                                crfs_md_id,
-                                NULL_PTR);
-    }
     return (EC_TRUE);
 }
 

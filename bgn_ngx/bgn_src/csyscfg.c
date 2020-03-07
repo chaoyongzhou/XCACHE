@@ -571,9 +571,6 @@ void cluster_cfg_print_xml(LOG *log, const CLUSTER_CFG *cluster_cfg, const UINT3
         case MODEL_TYPE_CROSS_CONNEC:
             mode_str = (const char *)"cross";
             break;
-        case MODEL_TYPE_HSRFS_CONNEC:
-            mode_str = (const char *)"hsrfs";
-            break;
         default:
             mode_str = (const char *)"UNKNOWN";
     }

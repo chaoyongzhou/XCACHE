@@ -470,7 +470,7 @@ EC_BOOL cloopback_access_filter(const UINT32 cloopback_md_id)
     if(NULL_PTR != strcasestr(header_x_via, var_hostname))
     {
         dbg_log(SEC_0127_CLOOPBACK, 0)(LOGSTDOUT, "error:cloopback_access_filter: "
-                                                  "header '%s':'%s' contains visable host '%s' => check failed\n",
+                                                  "header '%s:%s' contains visable host '%s' => check failed\n",
                                                   (const char *)CLOOPBACK_VIA_HEADER, header_x_via,
                                                   var_hostname);
 

@@ -36,19 +36,16 @@ extern "C"{
 #include "cxfsnpmgr.h"
 #include "cxfsop.h"
 
-#define CXFS_MAX_MODI                       ((UINT32)32)
-
-#define CXFS_CHECK_DN_EXPIRE_IN_NSEC        ((uint32_t) 300) /*check once in 5 minutes*/
-
-#define CXFS_MAX_REPLICA_NUM                ((UINT32) 1)
+#define CXFS_MAX_MODI                       ((UINT32)1)
 
 #define CXFS_MEM_ALIGNMENT                  (1 << 20) /*1MB*/
 
 #define CXFS_RECYCLE_MAX_NUM                ((UINT32)~0)
 
-#define CXFS_SATA_BAD_BITMAP_SIZE_NBYTES    ((uint32_t)(16 << 20)) /*16MB, up to 16T SATA for 256K-page*/
+/*sata disk size / page size / 8*/
+#define CXFS_SATA_BAD_BITMAP_SIZE_NBYTES    ((uint32_t)(1 << (CAMD_SATA_DISK_MAX_SIZE_NBITS - CAMD_PAGE_SIZE_NBITS - 3)))
 #define CXFS_SATA_BAD_BITMAP_SIZE_NBITS     ((CXFS_SATA_BAD_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
-#define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (256 << 10) /*align to 256KB*/
+#define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (1 << 20) /*align to 1MB*/
 
 #if 0
 /*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
@@ -76,7 +73,7 @@ extern "C"{
 #define CXFS_OP_TABLE_DISK_MAX_USED_NBYTES  (((uint64_t)256) << 20)/*256MB*/
 
 #define CXFS_OP_DUMP_MCACHE_MAX_SIZE_NBYTES (((uint32_t) 32) << 20)/*32MB*/
-#define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  1) << 20)/*1MB*/
+#define CXFS_OP_DUMP_MCACHE_MAX_USED_NBYTES (((uint32_t)  8) << 20)/*8MB*/
 #define CXFS_OP_DUMP_MCACHE_MAX_IDLE_NSEC   (1)                    /*idle seconds at most before next dump*/
 
 #define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
@@ -387,10 +384,10 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id, const UINT32 cxfsnp_model, cons
 
 /**
 *
-*  dump name node pool to sandby np zone
+*  dump name node pool to specific np zone
 *
 **/
-EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id);
+EC_BOOL cxfs_dump_npp(const UINT32 cxfs_md_id, const UINT32 np_zone_idx);
 
 /**
 *
@@ -574,10 +571,10 @@ EC_BOOL cxfs_create_dn(const UINT32 cxfs_md_id);
 
 /**
 *
-*  dump data node to standby zone
+*  dump data node to specific zone
 *
 **/
-EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id);
+EC_BOOL cxfs_dump_dn(const UINT32 cxfs_md_id, const UINT32 dn_zone_idx);
 
 /**
 *

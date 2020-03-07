@@ -7198,11 +7198,6 @@ EC_BOOL task_brd_register_role_str_and_group_cstr(TASK_BRD *task_brd, CLUSTER_CF
     return (EC_TRUE);
 }
 
-EC_BOOL task_brd_register_hsrfs_cluster(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
-{
-    return task_brd_register_all(task_brd, cluster_cfg);
-}
-
 EC_BOOL task_brd_register_master_slave_cluster(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg)
 {
     CLUSTER_NODE_CFG *cluster_node_cfg;
@@ -7262,10 +7257,6 @@ EC_BOOL task_brd_register_one_cluster(TASK_BRD *task_brd, const UINT32 cluster_i
         return task_brd_register_cross_cluster(task_brd, cluster_cfg);
     }
 
-    if(MODEL_TYPE_HSRFS_CONNEC == CLUSTER_CFG_MODEL(cluster_cfg))
-    {
-        return task_brd_register_hsrfs_cluster(task_brd, cluster_cfg);
-    }
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_cluster_one: invalid cluster model %ld\n", CLUSTER_CFG_MODEL(cluster_cfg));
     return (EC_FALSE);
 }

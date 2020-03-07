@@ -595,9 +595,18 @@ STATIC_CAST static uint32_t __cxfsnp_mgr_get_np_id_of_path(const CXFSNP_MGR *cxf
     uint32_t cxfsnp_id;
     uint32_t hash_val;
 
-    hash_val   = __cxfsnp_mgr_path_hash(path_len, path);
     cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+    if(1 == cxfsnp_num)
+    {
+        cxfsnp_id = 0;
+
+        dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __cxfsnp_mgr_get_np_id_of_path: cxfsnp num %u => cxfsnp id %u\n", cxfsnp_num, cxfsnp_id);
+        return (cxfsnp_id);
+    }
+
+    hash_val   = __cxfsnp_mgr_path_hash(path_len, path);
     cxfsnp_id  = (hash_val % cxfsnp_num);
+
     dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __cxfsnp_mgr_get_np_id_of_path: hash %u, cxfsnp num %u => cxfsnp id %u\n", hash_val, cxfsnp_num, cxfsnp_id);
     return (cxfsnp_id);
 }

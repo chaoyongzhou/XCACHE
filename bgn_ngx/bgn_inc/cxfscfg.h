@@ -17,7 +17,7 @@ extern "C"{
 
 #include "camd.h"
 
-#define CXFSCFG_MAGIC_NUM                  ((UINT32)0x3141592653589793) /* 3.14159 26535 89793*/
+#define CXFSCFG_MAGIC_VAL                  ((UINT32)0x3141592653589793) /* 3.14159 26535 89793*/
 
 #define CXFSCFG_SIZE                       (256 * 1024) /*256KB*/
 

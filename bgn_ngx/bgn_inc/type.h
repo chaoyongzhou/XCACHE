@@ -287,7 +287,7 @@ netinet/in.h
 #define ANY_FD       ((int)-2)
 #define ERR_FD       ((int)-1)
 #define ERR_SEEK     (-1)
-#define ERR_OFFSET   ((UINT32)-1)
+#define ERR_OFFSET   ((UINT32)~0)
 
 #define FILE_PAD_CHAR (0x00)
 

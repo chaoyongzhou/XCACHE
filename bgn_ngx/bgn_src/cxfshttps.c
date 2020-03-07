@@ -2626,29 +2626,6 @@ EC_BOOL cxfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_setsmf_post_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_setsmf_post_request: cxfs write %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_setsmf_post_request: cxfs write %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
-
-            cstring_clean(&path_cstr);
-            cbytes_free(content_cbytes);
-            return (EC_TRUE);
-        }
-        dbg_log(SEC_0200_CXFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_setsmf_post_request: cxfs write %s done\n",
-                            (char *)cstring_get_str(&path_cstr));
-
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_setsmf_post_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
-#endif
     }
     else
     {
@@ -3119,23 +3096,6 @@ EC_BOOL cxfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_update_post_request: cxfs update %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_update_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_update_post_request: cxfs update %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_update_post_request: cxfs update %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
-
-            cstring_clean(&path_cstr);
-            cbytes_free(content_cbytes);
-            return (EC_TRUE);
-        }
-#endif
     }
 
     else
@@ -3414,23 +3374,6 @@ EC_BOOL cxfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_renew_post_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_renew_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_renew_post_request: cxfs renew %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_renew_post_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
-
-            cstring_clean(&path_cstr);
-            cbytes_free(content_cbytes);
-            return (EC_TRUE);
-        }
-#endif
     }
     else
     {
@@ -3630,22 +3573,6 @@ EC_BOOL cxfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_dsmf_get_request: cxfs delete file %s done", (char *)cstring_get_str(&path_cstr));
 #endif
-#if 0
-        if(EC_FALSE == cxfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_REG, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_dsmf_get_request: cxfs delete file %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_dsmf_get_request: cxfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
-
-            cstring_clean(&path_cstr);
-            return (EC_TRUE);
-        }
-#endif
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
     }
     else
@@ -3840,22 +3767,6 @@ EC_BOOL cxfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
         CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_ddir_get_request: cxfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
-#endif
-#if 0
-        if(EC_FALSE == cxfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_DIR, CXFS_MAX_REPLICA_NUM))
-        {
-            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_ddir_get_request: cxfs delete dir %s failed\n",
-                                (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_ddir_get_request: cxfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
-
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
-
-            cstring_clean(&path_cstr);
-            return (EC_TRUE);
-        }
 #endif
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
     }
