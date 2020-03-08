@@ -168,7 +168,7 @@ EC_BOOL cxfshttp_log_start()
         LOG     *log;
 
         /*open log and redirect LOGUSER08 to it*/
-        log_file_name = cstring_new(NULL_PTR, LOC_CXFSHTTP_0002);
+        log_file_name = cstring_new(NULL_PTR, LOC_CXFSHTTP_0001);
         cstring_format(log_file_name, "%s/xfs_%s_%ld",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
                         c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
@@ -219,7 +219,7 @@ EC_BOOL cxfshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0004);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0002);
 
         return (EC_TRUE);
     }
@@ -237,7 +237,7 @@ EC_BOOL cxfshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0005);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0003);
 
         return (EC_TRUE);
     }
@@ -255,7 +255,7 @@ EC_BOOL cxfshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0006);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CXFSHTTP_0004);
 
         return (EC_TRUE);
     }
@@ -699,7 +699,7 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0007);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0005);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -968,7 +968,7 @@ STATIC_CAST static UINT32 __cxfshttp_convert_expires_str_to_nseconds(const char 
     if(1 == seg_num)
     {
         expires_nsec = c_str_to_word(fields[0]);
-        safe_free(str, LOC_CXFSHTTP_0008);
+        safe_free(str, LOC_CXFSHTTP_0006);
         return (expires_nsec);
     }
 
@@ -984,11 +984,11 @@ STATIC_CAST static UINT32 __cxfshttp_convert_expires_str_to_nseconds(const char 
 
         expires_nsec = (expire_when - cur_time);
 
-        safe_free(str, LOC_CXFSHTTP_0009);
+        safe_free(str, LOC_CXFSHTTP_0007);
         return (expires_nsec);
     }
 
-    safe_free(str, LOC_CXFSHTTP_0010);
+    safe_free(str, LOC_CXFSHTTP_0008);
     return ((UINT32)0);
 }
 EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
@@ -1013,7 +1013,7 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0011);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0009);
 
     cstring_init(&token_cstr, NULL_PTR);
 
@@ -1279,7 +1279,7 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0012);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0010);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1508,7 +1508,7 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0013);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0011);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3374,7 +3374,7 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0014);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0012);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3619,7 +3619,7 @@ EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0015);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0013);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_head_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3843,7 +3843,7 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0016);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0014);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_update_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4122,7 +4122,7 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0017);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0015);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4367,7 +4367,7 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0018);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0016);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4562,7 +4562,7 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0019);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0017);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -4758,7 +4758,7 @@ EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sexpire");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0020);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0018);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6388,7 +6388,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/qtree");
 
     cstring_init(&path, NULL_PTR);
-    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0021);
+    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0019);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
 
@@ -6437,7 +6437,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
         super_md_id = 0;
 
-        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTP_0022);
+        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTP_0020);
 
         if(EC_FALSE == cxfs_qlist_tree(super_md_id, &path, path_cstr_vec))
         {
@@ -6451,8 +6451,8 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
             cstring_clean(&path);
 
-            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTP_0023);
-            cvector_free(path_cstr_vec, LOC_CXFSHTTP_0024);
+            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTP_0021);
+            cvector_free(path_cstr_vec, LOC_CXFSHTTP_0022);
 
             return (EC_TRUE);
         }
@@ -6493,7 +6493,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
         cstring_clean(&path);
 
-        cvector_free(path_cstr_vec, LOC_CXFSHTTP_0025);
+        cvector_free(path_cstr_vec, LOC_CXFSHTTP_0023);
 
         /* free json obj */
         json_object_put(rsp_body_obj);
@@ -7082,7 +7082,7 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_wait");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0024);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_wait_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7426,7 +7426,7 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0025);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7634,7 +7634,7 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7843,7 +7843,7 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0029);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8054,7 +8054,7 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0030);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8271,7 +8271,7 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0031);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0029);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8652,7 +8652,7 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0032);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0030);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
