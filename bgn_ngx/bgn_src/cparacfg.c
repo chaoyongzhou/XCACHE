@@ -24,7 +24,6 @@ extern "C"{
 #include "cparacfg.inc"
 #include "cparacfg.h"
 #include "crfsnp.h"
-#include "chfsnp.inc"
 
 CPARACFG *cparacfg_new(const UINT32 this_tcid, const UINT32 this_rank)
 {
@@ -140,20 +139,12 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSMON_CONHASH_REPLICAS);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSMON_HOT_PATH_SWITCH);
 
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_NP_MODEL);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_BUCKET_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFSMON_CONHASH_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFSMON_CONHASH_REPLICAS);
-
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_EPOLL_TIMEOUT_MSEC);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP);
 
     CPARACFG_SET_STR_DEFAULT(cparacfg, CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR);
     CPARACFG_SET_STR_DEFAULT(cparacfg, CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR);
@@ -315,20 +306,12 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CXFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg));
     sys_log(log, "CPARACFG_CXFSMON_HOT_PATH_SWITCH           = %s\n" ,  CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg));
 
-    sys_log(log, "CPARACFG_CHFS_MEMC_SWITCH                  = %s\n" ,  CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CHFS_MEMC_NP_MODEL                = %s\n" ,  crfsnp_model_str(CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)));
-    sys_log(log, "CPARACFG_CHFS_MEMC_BUCKET_NUM              = %u\n" ,  CPARACFG_CHFS_MEMC_BUCKET_NUM(cparacfg));
-    sys_log(log, "CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM          = %s\n" ,  cpgd_model_str(CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM(cparacfg)));
-    sys_log(log, "CPARACFG_CHFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CHFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg));
-
     sys_log(log, "CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT     = %u\n" ,  CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
     sys_log(log, "CPARACFG_NGX_EPOLL_TIMEOUT_MSEC            = %u\n" ,  CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
 
     sys_log(log, "CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-    sys_log(log, "CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
 
     sys_log(log, "CAMD_SSD_AIO_REQ_MAX_NUM                   = %ld\n" , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
     sys_log(log, "CAMD_SATA_AIO_REQ_MAX_NUM                  = %ld\n" , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));

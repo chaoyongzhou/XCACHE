@@ -21,14 +21,8 @@ extern "C"{
 /*CRFSMON Package Debug Switch*/
 #define CRFSMON_DEBUG_SWITCH SWITCH_ON
 
-/*CHFSMON Package Debug Switch*/
-#define CHFSMON_DEBUG_SWITCH SWITCH_ON
-
 /*CRFSC Package Debug Switch*/
 #define CRFSC_DEBUG_SWITCH SWITCH_ON
-
-/*CHFS Package Debug Switch*/
-#define CHFS_DEBUG_SWITCH SWITCH_ON
 
 /*CXFS Package Debug Switch*/
 #define CXFS_DEBUG_SWITCH SWITCH_ON

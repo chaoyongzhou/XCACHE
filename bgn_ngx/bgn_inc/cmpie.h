@@ -32,10 +32,6 @@ extern "C"{
 #include "cxfsnp.h"
 #include "cxfsdn.h"
 #include "cxfsmon.h"
-#include "chfs.h"
-#include "chfsnp.h"
-#include "chfsmon.h"
-
 
 #include "csocket.h"
 
@@ -254,18 +250,6 @@ UINT32 cmpi_encode_crfsnp_item(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item
 UINT32 cmpi_encode_crfsnp_item_size(const UINT32 comm, const CRFSNP_ITEM *crfsnp_item, UINT32 *size);
 UINT32 cmpi_decode_crfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSNP_ITEM *crfsnp_item);
 
-UINT32 cmpi_encode_chfsnp_inode(const UINT32 comm, const CHFSNP_INODE *chfsnp_inode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsnp_inode_size(const UINT32 comm, const CHFSNP_INODE *chfsnp_inode, UINT32 *size);
-UINT32 cmpi_decode_chfsnp_inode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSNP_INODE *chfsnp_inode);
-
-UINT32 cmpi_encode_chfsnp_fnode(const UINT32 comm, const CHFSNP_FNODE *chfsnp_fnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsnp_fnode_size(const UINT32 comm, const CHFSNP_FNODE *chfsnp_fnode, UINT32 *size);
-UINT32 cmpi_decode_chfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSNP_FNODE *chfsnp_fnode);
-
-UINT32 cmpi_encode_chfsnp_item(const UINT32 comm, const CHFSNP_ITEM *chfsnp_item, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsnp_item_size(const UINT32 comm, const CHFSNP_ITEM *chfsnp_item, UINT32 *size);
-UINT32 cmpi_decode_chfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSNP_ITEM *chfsnp_item);
-
 UINT32 cmpi_encode_cmd5_digest(const UINT32 comm, const CMD5_DIGEST *cmd5_digest, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cmd5_digest_size(const UINT32 comm, const CMD5_DIGEST *cmd5_digest, UINT32 *size);
 UINT32 cmpi_decode_cmd5_digest(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CMD5_DIGEST *cmd5_digest);
@@ -297,27 +281,6 @@ UINT32 cmpi_decode_crfsconhash(const UINT32 comm, const UINT8 *in_buff, const UI
 UINT32 cmpi_encode_crfsdt_pnode(const UINT32 comm, const CRFSDT_PNODE *crfsdt_pnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_crfsdt_pnode_size(const UINT32 comm, const CRFSDT_PNODE *crfsdt_pnode, UINT32 *size);
 UINT32 cmpi_decode_crfsdt_pnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSDT_PNODE *crfsdt_pnode);
-
-UINT32 cmpi_encode_chfsconhash_rnode(const UINT32 comm, const CHFSCONHASH_RNODE *chfsconhash_rnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsconhash_rnode_size(const UINT32 comm, const CHFSCONHASH_RNODE *chfsconhash_rnode, UINT32 *size);
-UINT32 cmpi_decode_chfsconhash_rnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSCONHASH_RNODE *chfsconhash_rnode);
-
-UINT32 cmpi_encode_chfsconhash_vnode(const UINT32 comm, const CHFSCONHASH_VNODE *chfsconhash_vnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsconhash_vnode_size(const UINT32 comm, const CHFSCONHASH_VNODE *chfsconhash_vnode, UINT32 *size);
-UINT32 cmpi_decode_chfsconhash_vnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSCONHASH_VNODE *chfsconhash_vnode);
-
-UINT32 cmpi_encode_chfsconhash_rnode_vec(const UINT32 comm, const CVECTOR *rnode_vec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsconhash_rnode_vec_size(const UINT32 comm, const CVECTOR *rnode_vec, UINT32 *size);
-UINT32 cmpi_decode_chfsconhash_rnode_vec(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CVECTOR *rnode_vec);
-
-UINT32 cmpi_encode_chfsconhash_vnode_tree(const UINT32 comm, const CRB_TREE *vnode_tree, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsconhash_vnode_tree_size(const UINT32 comm, const CRB_TREE *vnode_tree, UINT32 *size);
-UINT32 cmpi_decode_chfsconhash_vnode_tree(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRB_TREE *vnode_tree);
-
-UINT32 cmpi_encode_chfsconhash(const UINT32 comm, const CHFSCONHASH *chfsconhash, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfsconhash_size(const UINT32 comm, const CHFSCONHASH *chfsconhash, UINT32 *size);
-UINT32 cmpi_decode_chfsconhash(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFSCONHASH *chfsconhash);
-
 
 UINT32 cmpi_encode_cbuffer(const UINT32 comm, const CBUFFER *cbuffer, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cbuffer_size(const UINT32 comm, const CBUFFER *cbuffer, UINT32 *size);
@@ -354,10 +317,6 @@ UINT32 cmpi_decode_tasks_node(const UINT32 comm, const UINT8 *in_buff, const UIN
 UINT32 cmpi_encode_crfs_node(const UINT32 comm, const CRFS_NODE *crfs_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_crfs_node_size(const UINT32 comm, const CRFS_NODE *crfs_node, UINT32 *size);
 UINT32 cmpi_decode_crfs_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFS_NODE *crfs_node);
-
-UINT32 cmpi_encode_chfs_node(const UINT32 comm, const CHFS_NODE *chfs_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_chfs_node_size(const UINT32 comm, const CHFS_NODE *chfs_node, UINT32 *size);
-UINT32 cmpi_decode_chfs_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CHFS_NODE *chfs_node);
 
 UINT32 cmpi_encode_time_t(const UINT32 comm, const ctime_t time, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_time_t_size(const UINT32 comm, const ctime_t time, UINT32 *size);

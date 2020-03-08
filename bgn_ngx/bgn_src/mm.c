@@ -68,12 +68,6 @@ extern "C"{
 #include "crfschttp.h"
 #include "crfsdt.h"
 #include "crfsconhash.h"
-#include "chfs.h"
-#include "chfsmon.h"
-#include "chfsnp.h"
-#include "chfsnpmgr.h"
-#include "chfshttp.h"
-#include "chfsconhash.h"
 #include "cxfspgb.h"
 #include "cxfspgd.h"
 #include "cxfspgv.h"
@@ -367,11 +361,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CRFSNP_KEY                   ,"MM_CRFSNP_KEY                   ",1        , sizeof(CRFSNP_KEY)                  , LOC_MM_0122);
     MM_MGR_DEF(MM_CRFSDN_CACHE_NODE            ,"MM_CRFSDN_CACHE_NODE            ",1        , sizeof(CRFSDN_CACHE_NODE)           , LOC_MM_0123);
 
-    MM_MGR_DEF(MM_CHFSNP_FNODE                 ,"MM_CHFSNP_FNODE                 ",1        , sizeof(CHFSNP_FNODE)                , LOC_MM_0124);
-    MM_MGR_DEF(MM_CHFSNP_ITEM                  ,"MM_CHFSNP_ITEM                  ",1        , sizeof(CHFSNP_ITEM)                 , LOC_MM_0125);
-    MM_MGR_DEF(MM_CHFSNP                       ,"MM_CHFSNP                       ",1        , sizeof(CHFSNP)                      , LOC_MM_0126);
-    MM_MGR_DEF(MM_CHFSNP_MGR                   ,"MM_CHFSNP_MGR                   ",1        , sizeof(CHFSNP_MGR)                  , LOC_MM_0127);
-
     MM_MGR_DEF(MM_UINT64                       ,"MM_UINT64                       ",32       , sizeof(uint64_t)                    , LOC_MM_0128);
 
     MM_MGR_DEF(MM_CEPOLL                       ,"MM_CEPOLL                       ",1        , sizeof(CEPOLL)                      , LOC_MM_0129);
@@ -431,14 +420,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CHTTPS_NODE                  ,"MM_CHTTPS_NODE                  ",256       , sizeof(CHTTPS_NODE)                , LOC_MM_0168);
     MM_MGR_DEF(MM_CHTTPS_REST                  ,"MM_CHTTPS_REST                  ",256       , sizeof(CHTTPS_REST)                , LOC_MM_0169);
     MM_MGR_DEF(MM_CSSL_NODE                    ,"MM_CSSL_NODE                    ",256       , sizeof(CSSL_NODE)                  , LOC_MM_0170);
-
-    MM_MGR_DEF(MM_CHFS_LOCKED_FILE             ,"MM_CHFS_LOCKED_FILE             ",32        , sizeof(CHFS_LOCKED_FILE)           , LOC_MM_0171);
-    MM_MGR_DEF(MM_CHFS_WAIT_FILE               ,"MM_CHFS_WAIT_FILE               ",256       , sizeof(CHFS_WAIT_FILE)             , LOC_MM_0172);
-
-    MM_MGR_DEF(MM_CHFSCONHASH                  ,"MM_CHFSCONHASH                  ",1         , sizeof(CHFSCONHASH)                , LOC_MM_0173);
-    MM_MGR_DEF(MM_CHFSCONHASH_RNODE            ,"MM_CHFSCONHASH_RNODE            ",32        , sizeof(CHFSCONHASH_RNODE)          , LOC_MM_0174);
-    MM_MGR_DEF(MM_CHFSCONHASH_VNODE            ,"MM_CHFSCONHASH_VNODE            ",32        , sizeof(CHFSCONHASH_VNODE)          , LOC_MM_0175);
-    MM_MGR_DEF(MM_CHFS_NODE                    ,"MM_CHFS_NODE                    ",256       , sizeof(CHFS_NODE)                  , LOC_MM_0176);
 
     MM_MGR_DEF(MM_CRANGE_SEG                   ,"MM_CRANGE_SEG                   ",32        , sizeof(CRANGE_SEG)                 , LOC_MM_0190);
     MM_MGR_DEF(MM_CRANGE_NODE                  ,"MM_CRANGE_NODE                  ",32        , sizeof(CRANGE_NODE)                , LOC_MM_0191);

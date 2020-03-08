@@ -39,7 +39,6 @@ extern "C"{
 #include "csyscfg.inc"
 #include "csyscfg.h"
 #include "cxml.h"
-#include "chfsnp.h"
 
 CLUSTER_NODE_CFG *cluster_node_cfg_new()
 {
@@ -1007,22 +1006,6 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     return;
 }
 
-void cparacfg_hfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
-{
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
-    {
-        c_ident_print(log, level);
-        sys_print(log, "<hfsConfig");
-        sys_print(log, " memcacheSwitch=\"%s\""          , CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg));
-        sys_print(log, " memcacheNpModel=\"%s\""         , chfsnp_model_str(CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)));
-        sys_print(log, " memcacheDnModel=\"%s\""         , cpgd_model_str(CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM(cparacfg)));
-        sys_print(log, " memcacheBucketNum=\"%u\""       , CPARACFG_CHFS_MEMC_BUCKET_NUM(cparacfg));
-        sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-        sys_print(log, "/>\n");
-    }
-    return;
-}
-
 void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
     if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
@@ -1037,9 +1020,6 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " xfsConhashSwitch=\"%s\""        , CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " xfsConhashReplicas=\"%u\""      , CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg));
         sys_print(log, " xfsHotPathSwitch=\"%s\""        , CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg));
-
-        sys_print(log, " hfsConhashSwitch=\"%s\""        , CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg));
-        sys_print(log, " hfsConhashReplicas=\"%u\""      , CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg));
 
         sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
         sys_print(log, " epollTimeoutMsec=\"%u\""        , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
@@ -1102,7 +1082,6 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     cparacfg_conn_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_rfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_xfs_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_hfs_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_ngx_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_amd_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_ssl_cfg_print_xml  (log, cparacfg, level + 1);

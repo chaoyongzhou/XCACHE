@@ -32,10 +32,10 @@ extern "C"{
 #define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
-#define     MD_CHFS      ((UINT32) 10)
+#define     MD_0010      ((UINT32) 10) /*-- obsolee --*/
 #define     MD_CRFSC     ((UINT32) 11)
 #define     MD_CRFSMON   ((UINT32) 12)
-#define     MD_CHFSMON   ((UINT32) 13)
+#define     MD_0013      ((UINT32) 13) /*-- obsolee --*/
 #define     MD_0014      ((UINT32) 14) /*-- obsolee --*/
 #define     MD_0015      ((UINT32) 15) /*-- obsolee --*/
 #define     MD_CVENDOR   ((UINT32) 16)
@@ -204,10 +204,10 @@ extern "C"{
 #define                    MM_CRFSNP_KEY    ((UINT32)137)
 #define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
 
-#define                  MM_CHFSNP_FNODE    ((UINT32)139)
-#define                   MM_CHFSNP_ITEM    ((UINT32)140)
-#define                        MM_CHFSNP    ((UINT32)141)
-#define                    MM_CHFSNP_MGR    ((UINT32)142)
+#define                        MM_000139    ((UINT32)139)
+#define                        MM_000140    ((UINT32)140)
+#define                        MM_000141    ((UINT32)141)
+#define                        MM_000142    ((UINT32)142)
 
 #define                        MM_UINT64    ((UINT32)143)
 #define                        MM_CEPOLL    ((UINT32)144)
@@ -253,13 +253,13 @@ extern "C"{
 #define                     MM_CRFS_NODE    ((UINT32)182)
 #define                   MM_CHTTPS_NODE    ((UINT32)183)
 #define                     MM_CSSL_NODE    ((UINT32)184)
-#define              MM_CHFS_LOCKED_FILE    ((UINT32)185)
-#define                MM_CHFS_WAIT_FILE    ((UINT32)186)
-#define                   MM_CHFSCONHASH    ((UINT32)187)
-#define             MM_CHFSCONHASH_RNODE    ((UINT32)188)
-#define             MM_CHFSCONHASH_VNODE    ((UINT32)189)
+#define                        MM_000185    ((UINT32)185)
+#define                        MM_000186    ((UINT32)186)
+#define                        MM_000187    ((UINT32)187)
+#define                        MM_000188    ((UINT32)188)
+#define                        MM_000189    ((UINT32)189)
 #define                        MM_000190    ((UINT32)190)
-#define                     MM_CHFS_NODE    ((UINT32)191)
+#define                        MM_000191    ((UINT32)191)
 #define                        MM_000192    ((UINT32)192)
 #define                        MM_000193    ((UINT32)193)
 #define                        MM_000194    ((UINT32)194)

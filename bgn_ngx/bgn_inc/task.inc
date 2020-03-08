@@ -520,7 +520,6 @@ typedef struct _TASK_BRD
 
     UINT32       crfsmon_id;
     UINT32       cxfsmon_id;
-    UINT32       chfsmon_id;
 
     CLIST        task_queue[ TASK_QUEUE_END ];       /* task req/rsp queue - buffer! */
 
@@ -1040,7 +1039,6 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 
 #define TASK_BRD_CRFSMON_ID(task_brd)                        ((task_brd)->crfsmon_id)
 #define TASK_BRD_CXFSMON_ID(task_brd)                        ((task_brd)->cxfsmon_id)
-#define TASK_BRD_CHFSMON_ID(task_brd)                        ((task_brd)->chfsmon_id)
 
 #define TASK_BRD_TCID(task_brd)                              ((task_brd)->this_tcid)
 #define TASK_BRD_TCID_STR(task_brd)                          (c_word_to_ipv4(TASK_BRD_TCID(task_brd)))

@@ -105,25 +105,13 @@ typedef struct
     UINT32    cxfsmon_conhash_switch        ; /* CXFSMON_CONHASH_SWITCH */
     UINT32    cxfsmon_hot_path_switch       ; /* CXFSMON_HOT_PATH_SWITCH */
 
-    UINT32    chfs_memc_switch              ; /* CHFS_MEMC_SWITCH */
-    uint8_t   rsvd05;
-    uint8_t   chfs_memc_np_model;           ;
-    uint16_t  chfs_memc_cpgd_block_num      ;
-    uint32_t  chfs_memc_bucket_num          ;
-    uint32_t  rsvd06;
-
-    uint16_t  rsvd07;
-    uint16_t  chfsmon_conhash_replicas      ; /* CHFSMON_CONHASH_REPLICAS */
-    UINT32    chfsmon_conhash_switch        ; /* CHFSMON_CONHASH_SWITCH */
-
     uint32_t  ngx_lua_output_blocking_lowat ; /* if buff to send is more than that, block for next sending;otherwise, return and prepare data for next sending*/
     uint32_t  ngx_epoll_timeout_msec        ;
 
     uint32_t  ngx_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  rfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  xfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    uint32_t  hfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    //uint32_t  rsvd11;
+    uint32_t  rsvd11;
     CSTRING   ssl_certificate_file_name_cstr;
     CSTRING   ssl_private_key_file_name_cstr;
 
@@ -247,20 +235,12 @@ typedef struct
 #define CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->cxfsmon_conhash_replicas)
 #define CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->cxfsmon_hot_path_switch)
 
-#define CPARACFG_CHFS_MEMC_SWITCH(cparacfg)                         ((cparacfg)->chfs_memc_switch)
-#define CPARACFG_CHFS_MEMC_NP_MODEL(cparacfg)                       ((cparacfg)->chfs_memc_np_model)
-#define CPARACFG_CHFS_MEMC_BUCKET_NUM(cparacfg)                     ((cparacfg)->chfs_memc_bucket_num)
-#define CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM(cparacfg)                 ((cparacfg)->chfs_memc_cpgd_block_num)
-#define CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->chfsmon_conhash_switch)
-#define CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->chfsmon_conhash_replicas)
-
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)            ((cparacfg)->ngx_lua_output_blocking_lowat)
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)                   ((cparacfg)->ngx_epoll_timeout_msec)
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->ngx_http_req_num_per_loop)
 #define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->rfs_http_req_num_per_loop)
 #define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->xfs_http_req_num_per_loop)
-#define CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->hfs_http_req_num_per_loop)
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_certificate_file_name_cstr))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_private_key_file_name_cstr))
@@ -327,9 +307,6 @@ typedef struct
 
 #define CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)))
 #define CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)))
-
-#define CPARACFG_CHFS_MEMC_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CHFS_MEMC_SWITCH(cparacfg)))
-#define CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)))
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
@@ -474,21 +451,12 @@ typedef struct
 #define CPARACFG_CXFSMON_CONHASH_REPLICAS_DEF                    4096
 #define CPARACFG_CXFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
 
-#define CPARACFG_CHFS_MEMC_SWITCH_DEF                            SWITCH_OFF
-#define CPARACFG_CHFS_MEMC_NP_MODEL_DEF                          CHFSNP_128M_MODEL
-#define CPARACFG_CHFS_MEMC_BUCKET_NUM_DEF                        CHFSNP_BUCKET_NUM
-#define CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM_DEF                    CPGD_001GB_BLOCK_NUM
-
-#define CPARACFG_CHFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
-#define CPARACFG_CHFSMON_CONHASH_REPLICAS_DEF                    4096
-
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT_DEF               MEM_BUFF_32K
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC_DEF                      1
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
-#define CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR_DEF              ((uint8_t *)"certificate.pem")
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR_DEF              ((uint8_t *)"private_key.pem")
 
@@ -615,20 +583,12 @@ typedef struct
 #define    CXFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_REPLICAS)
 #define    CXFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_HOT_PATH_SWITCH)
 
-#define    CHFS_MEMC_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_SWITCH)
-#define    CHFS_MEMC_NP_MODEL                            CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_NP_MODEL)
-#define    CHFS_MEMC_BUCKET_NUM                          CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_BUCKET_NUM)
-#define    CHFS_MEMC_CPGD_BLOCK_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM)
-#define    CHFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CHFSMON_CONHASH_SWITCH)
-#define    CHFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CHFSMON_CONHASH_REPLICAS)
-
 #define    NGX_LUA_OUTPUT_BLOCKING_LOWAT                 CPARACFG_DEFAULT_MAP(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT)
 #define    NGX_EPOLL_TIMEOUT_MSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC)
 
 #define    NGX_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP)
 #define    RFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP)
 #define    XFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP)
-#define    HFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP)
 
 #define    SSL_CERTIFICATE_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR)
 #define    SSL_PRIVATE_KEY_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR)

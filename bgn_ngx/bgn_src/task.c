@@ -86,7 +86,6 @@ extern "C"{
 #include "crfschttp.h"
 #include "cxfsmon.h"
 #include "cxfshttp.h"
-#include "chfshttp.h"
 
 #include "cagent.h"
 #include "ctdns.h"
@@ -8675,11 +8674,6 @@ UINT32 task_brd_default_get_crfsmon_id()
 UINT32 task_brd_default_get_cxfsmon_id()
 {
     return TASK_BRD_CXFSMON_ID(task_brd_default_get());
-}
-
-UINT32 task_brd_default_get_chfsmon_id()
-{
-    return TASK_BRD_CHFSMON_ID(task_brd_default_get());
 }
 
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
