@@ -34,8 +34,6 @@ extern "C"{
 
 #include "ccache.h"
 
-#include "crfsmon.h"
-
 #include "crfsgw.h"
 
 #include "cngx.h"
@@ -341,7 +339,7 @@ EC_BOOL crfsgw_get_rfs_server(const UINT32 crfsgw_md_id, const CSTRING *cache_ur
 
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 cache_uri_cstr,
                                                 cache_srv_tcid, cache_srv_ipaddr, cache_srv_port))
     {

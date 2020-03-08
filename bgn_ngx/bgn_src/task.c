@@ -87,7 +87,6 @@ extern "C"{
 #include "cxfsmon.h"
 #include "cxfshttp.h"
 #include "chfshttp.h"
-#include "csfshttp.h"
 
 #include "cagent.h"
 #include "ctdns.h"
@@ -8255,7 +8254,8 @@ LOG * task_brd_default_init(int argc, char **argv)
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
     /*start crfs monintor*/
-    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH
+    && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         TASK_BRD_CRFSMON_ID(task_brd) = crfsmon_start();
         if(CMPI_ERROR_MODI == TASK_BRD_CRFSMON_ID(task_brd))
@@ -8265,9 +8265,12 @@ LOG * task_brd_default_init(int argc, char **argv)
 
             task_brd_default_abort();/*abort !*/
         }
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start crfsmon done\n");
     }
+
     /*start cxfs monintor*/
-    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH
+    && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         TASK_BRD_CXFSMON_ID(task_brd) = cxfsmon_start();
         if(CMPI_ERROR_MODI == TASK_BRD_CXFSMON_ID(task_brd))
@@ -8277,21 +8280,8 @@ LOG * task_brd_default_init(int argc, char **argv)
 
             task_brd_default_abort();/*abort !*/
         }
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start cxfsmon done\n");
     }
-#if 0/*not need HFS at present*/
-    /*start chfs monintor*/
-    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
-    {
-        TASK_BRD_CHFSMON_ID(task_brd) = chfsmon_start();
-        if(CMPI_ERROR_MODI == TASK_BRD_CHFSMON_ID(task_brd))
-        {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start chfsmon failed\n");
-            task_brd_free(task_brd);
-
-            task_brd_default_abort();/*abort !*/
-        }
-    }
-#endif
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
@@ -8428,19 +8418,13 @@ LOG * task_brd_default_init(int argc, char **argv)
     }
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
-//#if (SWITCH_ON == NGX_BGN_SWITCH)
     if(EC_TRUE == task_brd_default_check_csrv_enabled())
     {
         if(EC_TRUE == chttp_defer_request_queue_init())
         {
             task_brd_start_http_srv(task_brd, task_brd_default_get_srv_ipaddr(), task_brd_default_get_csrv_port());
-
-            /*xxx*/
-            //crfshttp_log_start();
-            //chttp_rest_list_push((const char *)CRFSHTTP_REST_API_NAME, crfshttp_commit_request);
         }
    }
-//#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
     return (log);
 }
@@ -8698,9 +8682,30 @@ UINT32 task_brd_default_get_chfsmon_id()
     return TASK_BRD_CHFSMON_ID(task_brd_default_get());
 }
 
-UINT32 task_brd_default_get_csfsmon_id()
+EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
-    return TASK_BRD_CSFSMON_ID(task_brd_default_get());
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+                                                       path,tcid, srv_ipaddr, srv_port))
+        {
+            return (EC_FALSE);
+        }
+        return (EC_TRUE);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        if(EC_FALSE == cxfsmon_cxfs_store_http_srv_get(task_brd_default_get_cxfsmon_id(),
+                                                       path,tcid, srv_ipaddr, srv_port))
+        {
+            return (EC_FALSE);
+        }
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_get_store_http_srv: invalid switch\n");
+    return (EC_FALSE);
 }
 
 EC_BOOL task_brd_default_check_validity()

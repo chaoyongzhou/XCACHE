@@ -25,8 +25,6 @@ extern "C"{
 #include "cparacfg.h"
 #include "crfsnp.h"
 #include "chfsnp.inc"
-#include "csfsnp.inc"
-#include "csfsd.h"
 
 CPARACFG *cparacfg_new(const UINT32 this_tcid, const UINT32 this_rank)
 {
@@ -148,13 +146,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFS_MEMC_CPGD_BLOCK_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFSMON_CONHASH_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CHFSMON_CONHASH_REPLICAS);
-
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFS_MEMC_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFS_MEMC_NP_MODEL);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFS_MEMC_BUCKET_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFS_MEMC_CSFSD_BLOCK_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFSMON_CONHASH_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSFSMON_CONHASH_REPLICAS);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_EPOLL_TIMEOUT_MSEC);
@@ -331,13 +322,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CHFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CHFSMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CHFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg));
 
-    sys_log(log, "CPARACFG_CSFS_MEMC_SWITCH                  = %s\n" ,  CPARACFG_CSFS_MEMC_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CSFS_MEMC_NP_MODEL                = %s\n" ,  crfsnp_model_str(CPARACFG_CSFS_MEMC_NP_MODEL(cparacfg)));
-    sys_log(log, "CPARACFG_CSFS_MEMC_BUCKET_NUM              = %u\n" ,  CPARACFG_CSFS_MEMC_BUCKET_NUM(cparacfg));
-    sys_log(log, "CPARACFG_CSFS_MEMC_CSFSD_BLOCK_NUM         = %s\n" ,  cpgd_model_str(CPARACFG_CSFS_MEMC_CSFSD_BLOCK_NUM(cparacfg)));
-    sys_log(log, "CPARACFG_CSFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CSFSMON_CONHASH_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CSFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CSFSMON_CONHASH_REPLICAS(cparacfg));
-
     sys_log(log, "CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT     = %u\n" ,  CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
     sys_log(log, "CPARACFG_NGX_EPOLL_TIMEOUT_MSEC            = %u\n" ,  CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
 
@@ -345,7 +329,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_HFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-    sys_log(log, "CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP         = %u\n" ,  CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
 
     sys_log(log, "CAMD_SSD_AIO_REQ_MAX_NUM                   = %ld\n" , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
     sys_log(log, "CAMD_SATA_AIO_REQ_MAX_NUM                  = %ld\n" , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));

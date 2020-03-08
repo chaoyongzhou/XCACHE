@@ -27,8 +27,6 @@ extern "C"{
 
 #include "ccache.h"
 
-#include "crfsmon.h"
-
 #include "chttp.h"
 
 #include "cngx.h"
@@ -565,7 +563,7 @@ EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, C
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -640,7 +638,7 @@ EC_BOOL cvendor_get_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *ra
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_get_cache_seg_n: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -716,7 +714,7 @@ EC_BOOL cvendor_wait_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *r
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_wait_cache_seg_n: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -1833,7 +1831,7 @@ EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, co
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_renew_header_cache: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {

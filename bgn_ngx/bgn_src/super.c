@@ -7364,73 +7364,152 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 **/
 STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
-    TASK_BRD    *task_brd;
-    TASK_MGR    *task_mgr;
-
-    UINT32       crfsmon_md_id;
-
-    UINT32       pos;
-    UINT32       num;
-    EC_BOOL      ret;
-
-    task_brd = task_brd_default_get();
-
-    crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
-    if(CMPI_ERROR_MODI == crfsmon_md_id)
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no crfsmon started\n");
-        return (EC_FALSE);
-    }
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
 
-    crfsmon_crfs_node_num(crfsmon_md_id, &num);
-    if(0 == num)
-    {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
-        return (EC_FALSE);
-    }
+        UINT32       crfsmon_md_id;
 
-    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+        UINT32       pos;
+        UINT32       num;
+        EC_BOOL      ret;
 
-    for(pos = 0; pos < num; pos ++)
-    {
-        CRFS_NODE      crfs_node;
-        MOD_NODE       recv_mod_node;
+        task_brd = task_brd_default_get();
 
-        crfs_node_init(&crfs_node);
-        if(EC_FALSE == crfsmon_crfs_node_get_by_pos(crfsmon_md_id, pos, &crfs_node))
+        crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
+        if(CMPI_ERROR_MODI == crfsmon_md_id)
         {
-            crfs_node_clean(&crfs_node);
-            continue;
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no crfsmon started\n");
+            return (EC_FALSE);
         }
 
-        if(EC_FALSE == crfs_node_is_up(&crfs_node))
+        crfsmon_crfs_node_num(crfsmon_md_id, &num);
+        if(0 == num)
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
-                    );
-            crfs_node_clean(&crfs_node);
-            continue;
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
+            return (EC_FALSE);
         }
 
-        MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
-        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-        MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
-        task_p2p_inc(task_mgr, 0, &recv_mod_node,
-                &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
-                CRFS_NODE_TCID(&crfs_node), CRFS_NODE_IPADDR(&crfs_node), CRFS_NODE_PORT(&crfs_node), path);
+        for(pos = 0; pos < num; pos ++)
+        {
+            CRFS_NODE      crfs_node;
+            MOD_NODE       recv_mod_node;
 
-        crfs_node_clean(&crfs_node);
+            crfs_node_init(&crfs_node);
+            if(EC_FALSE == crfsmon_crfs_node_get_by_pos(crfsmon_md_id, pos, &crfs_node))
+            {
+                crfs_node_clean(&crfs_node);
+                continue;
+            }
+
+            if(EC_FALSE == crfs_node_is_up(&crfs_node))
+            {
+                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                        c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
+                        );
+                crfs_node_clean(&crfs_node);
+                continue;
+            }
+
+            MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
+            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+            MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+
+            task_p2p_inc(task_mgr, 0, &recv_mod_node,
+                    &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
+                    CRFS_NODE_TCID(&crfs_node), CRFS_NODE_IPADDR(&crfs_node), CRFS_NODE_PORT(&crfs_node), path);
+
+            crfs_node_clean(&crfs_node);
+        }
+
+        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
+
+        return (EC_TRUE);
     }
 
-    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
 
-    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
+        UINT32       cxfsmon_md_id;
+
+        UINT32       pos;
+        UINT32       num;
+        EC_BOOL      ret;
+
+        task_brd = task_brd_default_get();
+
+        cxfsmon_md_id = TASK_BRD_CXFSMON_ID(task_brd);
+        if(CMPI_ERROR_MODI == cxfsmon_md_id)
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no cxfsmon started\n");
+            return (EC_FALSE);
+        }
+
+        cxfsmon_cxfs_node_num(cxfsmon_md_id, &num);
+        if(0 == num)
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
+            return (EC_FALSE);
+        }
+
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+
+        for(pos = 0; pos < num; pos ++)
+        {
+            CXFS_NODE      cxfs_node;
+            MOD_NODE       recv_mod_node;
+
+            cxfs_node_init(&cxfs_node);
+            if(EC_FALSE == cxfsmon_cxfs_node_get_by_pos(cxfsmon_md_id, pos, &cxfs_node))
+            {
+                cxfs_node_clean(&cxfs_node);
+                continue;
+            }
+
+            if(EC_FALSE == cxfs_node_is_up(&cxfs_node))
+            {
+                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                        c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node))
+                        );
+                cxfs_node_clean(&cxfs_node);
+                continue;
+            }
+
+            MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
+            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+            MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+
+            task_p2p_inc(task_mgr, 0, &recv_mod_node,
+                    &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
+                    CXFS_NODE_TCID(&cxfs_node), CXFS_NODE_IPADDR(&cxfs_node), CXFS_NODE_PORT(&cxfs_node), path);
+
+            cxfs_node_clean(&cxfs_node);
+        }
+
+        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: not delete '%.*s' due to invalid switch\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
-    return (EC_TRUE);
+    return (EC_FALSE);
 }
 
 EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CBYTES *cbytes, const CSTRING *auth_token, const CHTTP_STORE *chttp_store)
@@ -7465,71 +7544,148 @@ EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid,
 
 STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
-    TASK_BRD    *task_brd;
-    TASK_MGR    *task_mgr;
-
-    UINT32       crfsmon_md_id;
-
-    UINT32       pos;
-    UINT32       num;
-    EC_BOOL      ret;
-
-    task_brd = task_brd_default_get();
-
-    crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
-    if(CMPI_ERROR_MODI == crfsmon_md_id)
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no crfsmon started\n");
-        return (EC_FALSE);
-    }
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
 
-    crfsmon_crfs_node_num(crfsmon_md_id, &num);
-    if(0 == num)
-    {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
-        return (EC_FALSE);
-    }
+        UINT32       crfsmon_md_id;
 
-    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+        UINT32       pos;
+        UINT32       num;
+        EC_BOOL      ret;
 
-    for(pos = 0; pos < num; pos ++)
-    {
-        CRFS_NODE      crfs_node;
-        MOD_NODE       recv_mod_node;
+        task_brd = task_brd_default_get();
 
-        crfs_node_init(&crfs_node);
-        if(EC_FALSE == crfsmon_crfs_node_get_by_pos(crfsmon_md_id, pos, &crfs_node))
+        crfsmon_md_id = TASK_BRD_CRFSMON_ID(task_brd);
+        if(CMPI_ERROR_MODI == crfsmon_md_id)
         {
-            crfs_node_clean(&crfs_node);
-            continue;
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no crfsmon started\n");
+            return (EC_FALSE);
         }
 
-        if(EC_FALSE == crfs_node_is_up(&crfs_node))
+        crfsmon_crfs_node_num(crfsmon_md_id, &num);
+        if(0 == num)
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                    c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
-                    );
-            crfs_node_clean(&crfs_node);
-            continue;
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
+            return (EC_FALSE);
         }
 
-        MOD_NODE_TCID(&recv_mod_node) = CRFS_NODE_TCID(&crfs_node);
-        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
-        task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_crfs_delete, CMPI_ERROR_MODI, path, CRFSNP_ITEM_FILE_IS_DIR);
+        for(pos = 0; pos < num; pos ++)
+        {
+            CRFS_NODE      crfs_node;
+            MOD_NODE       recv_mod_node;
 
-        crfs_node_clean(&crfs_node);
+            crfs_node_init(&crfs_node);
+            if(EC_FALSE == crfsmon_crfs_node_get_by_pos(crfsmon_md_id, pos, &crfs_node))
+            {
+                crfs_node_clean(&crfs_node);
+                continue;
+            }
+
+            if(EC_FALSE == crfs_node_is_up(&crfs_node))
+            {
+                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                        c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node))
+                        );
+                crfs_node_clean(&crfs_node);
+                continue;
+            }
+
+            MOD_NODE_TCID(&recv_mod_node) = CRFS_NODE_TCID(&crfs_node);
+            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+            MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+
+            task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_crfs_delete, CMPI_ERROR_MODI, path, CRFSNP_ITEM_FILE_IS_DIR);
+
+            crfs_node_clean(&crfs_node);
+        }
+
+        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: rfs delete '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
+
+        return (EC_TRUE);
     }
 
-    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
 
-    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' done\n",
+        UINT32       cxfsmon_md_id;
+
+        UINT32       pos;
+        UINT32       num;
+        EC_BOOL      ret;
+
+        task_brd = task_brd_default_get();
+
+        cxfsmon_md_id = TASK_BRD_CXFSMON_ID(task_brd);
+        if(CMPI_ERROR_MODI == cxfsmon_md_id)
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no cxfsmon started\n");
+            return (EC_FALSE);
+        }
+
+        cxfsmon_cxfs_node_num(cxfsmon_md_id, &num);
+        if(0 == num)
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
+            return (EC_FALSE);
+        }
+
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+
+        for(pos = 0; pos < num; pos ++)
+        {
+            CXFS_NODE      cxfs_node;
+            MOD_NODE       recv_mod_node;
+
+            cxfs_node_init(&cxfs_node);
+            if(EC_FALSE == cxfsmon_cxfs_node_get_by_pos(cxfsmon_md_id, pos, &cxfs_node))
+            {
+                cxfs_node_clean(&cxfs_node);
+                continue;
+            }
+
+            if(EC_FALSE == cxfs_node_is_up(&cxfs_node))
+            {
+                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                        c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node))
+                        );
+                cxfs_node_clean(&cxfs_node);
+                continue;
+            }
+
+            MOD_NODE_TCID(&recv_mod_node) = CXFS_NODE_TCID(&cxfs_node);
+            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+            MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
+
+            task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_cxfs_delete, CMPI_ERROR_MODI, path, CXFSNP_ITEM_FILE_IS_DIR);
+
+            cxfs_node_clean(&cxfs_node);
+        }
+
+        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: xfs delete '%.*s' done\n",
+                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: delete '%.*s' due to invalid switch\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
-    return (EC_TRUE);
+    return (EC_FALSE);
 }
 
 /*over bgn*/

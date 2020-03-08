@@ -27,8 +27,6 @@ extern "C"{
 
 #include "ccache.h"
 
-#include "crfsmon.h"
-
 #include "chttp.h"
 
 #include "cngx.h"
@@ -549,7 +547,7 @@ EC_BOOL cmp4_get_cache_seg(const UINT32 cmp4_md_id, const UINT32 seg_no, CBYTES 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_get_cache_seg: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -626,7 +624,7 @@ EC_BOOL cmp4_get_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *crange_s
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_get_cache_seg_n: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -735,7 +733,7 @@ EC_BOOL cmp4_wait_cache_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *range_s
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_wait_cache_seg_n: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {
@@ -2255,7 +2253,7 @@ EC_BOOL cmp4_renew_header_cache(const UINT32 cmp4_md_id, const char *k, const ch
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_renew_header_cache: gen cache_uri '%s' done\n",
                     (char *)cstring_get_str(&cache_uri_cstr));
 
-    if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
+    if(EC_FALSE == task_brd_default_get_store_http_srv(
                                                 &cache_uri_cstr,
                                                 &cache_srv_tcid, &cache_srv_ipaddr, &cache_srv_port))
     {

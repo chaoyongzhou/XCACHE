@@ -333,7 +333,7 @@ UINT32 chfs_start(const CSTRING *chfsnp_root_basedir, const CSTRING *crfsdn_root
             }
 
             chfshttps_log_start();
-            task_brd_default_bind_https_srv_modi(csfs_md_id);
+            task_brd_default_bind_https_srv_modi(chfs_md_id);
             chttps_rest_list_push((const char *)CHFSHTTPS_REST_API_NAME, chfshttps_commit_request);
         }
 #endif

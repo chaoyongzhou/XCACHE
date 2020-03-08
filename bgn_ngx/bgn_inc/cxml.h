@@ -68,8 +68,6 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
 EC_BOOL cxml_parse_cparacfg_hfs_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
-EC_BOOL cxml_parse_cparacfg_sfs_cfg(xmlNodePtr node, CPARACFG *cparacfg);
-
 EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
 EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg);

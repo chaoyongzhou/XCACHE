@@ -1188,17 +1188,6 @@ EC_BOOL cxml_parse_cparacfg_hfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     return (EC_TRUE);
 }
 
-EC_BOOL cxml_parse_cparacfg_sfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
-{
-    __cxml_parse_tag_switch(node, (const char *)"memcacheSwitch"     , &(CPARACFG_CSFS_MEMC_SWITCH(cparacfg)));
-    __cxml_parse_tag_np_model(node, (const char *)"memcacheNpModel"  , &(CPARACFG_CSFS_MEMC_NP_MODEL(cparacfg)));
-    __cxml_parse_tag_dn_model(node, (const char *)"memcacheDnModel"  , &(CPARACFG_CSFS_MEMC_CSFSD_BLOCK_NUM(cparacfg)));
-    __cxml_parse_tag_uint32_t(node, (const char *)"memcacheBucketNum", &(CPARACFG_CSFS_MEMC_BUCKET_NUM(cparacfg)));
-    __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop", &(CPARACFG_SFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
-
-    return (EC_TRUE);
-}
-
 EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_switch(node, (const char *)"rfsConhashSwitch"     , &(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)));
@@ -1211,9 +1200,6 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
     __cxml_parse_tag_switch(node, (const char *)"hfsConhashSwitch"     , &(CPARACFG_CHFSMON_CONHASH_SWITCH(cparacfg)));
     __cxml_parse_tag_uint16_t(node, (const char *)"hfsConhashReplicas" , &(CPARACFG_CHFSMON_CONHASH_REPLICAS(cparacfg)));
-
-    __cxml_parse_tag_switch(node, (const char *)"sfsConhashSwitch"     , &(CPARACFG_CSFSMON_CONHASH_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint16_t(node, (const char *)"sfsConhashReplicas" , &(CPARACFG_CSFSMON_CONHASH_REPLICAS(cparacfg)));
 
     __cxml_parse_tag_uint32_t(node, (const char *)"outputBlockingLowAt", &(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)));
     __cxml_parse_tag_uint32_t(node, (const char *)"epollTimeoutMsec"   , &(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)));
@@ -1336,11 +1322,6 @@ EC_BOOL cxml_parse_cparacfg_para_cfg(xmlNodePtr node, CPARACFG *cparacfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"hfsConfig"))
         {
             cxml_parse_cparacfg_hfs_cfg(cur, cparacfg);
-            continue;
-        }
-        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"sfsConfig"))
-        {
-            cxml_parse_cparacfg_sfs_cfg(cur, cparacfg);
             continue;
         }
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"ngxConfig"))

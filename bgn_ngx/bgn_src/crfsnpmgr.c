@@ -662,9 +662,18 @@ STATIC_CAST static uint32_t __crfsnp_mgr_get_np_id_of_path(const CRFSNP_MGR *crf
     uint32_t crfsnp_id;
     uint32_t hash_val;
 
-    hash_val   = __crfsnp_mgr_path_hash(path_len, path);
     crfsnp_num = CRFSNP_MGR_NP_MAX_NUM(crfsnp_mgr);
+    if(1 == crfsnp_num)
+    {
+        crfsnp_id = 0;
+
+        dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_get_np_id_of_path: crfsnp num %u => crfsnp id %u\n", crfsnp_num, crfsnp_id);
+        return (crfsnp_id);
+    }
+
+    hash_val   = __crfsnp_mgr_path_hash(path_len, path);
     crfsnp_id  = (hash_val % crfsnp_num);
+
     dbg_log(SEC_0009_CRFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] __crfsnp_mgr_get_np_id_of_path: hash %u, crfsnp num %u => crfsnp id %u\n", hash_val, crfsnp_num, crfsnp_id);
     return (crfsnp_id);
 }

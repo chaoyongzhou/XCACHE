@@ -1895,6 +1895,11 @@ COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, con
 {
     COROUTINE_NODE *coroutine_node;
 
+    static uint64_t     fail_s_time_msec          = 0;     /*start time of failure*/
+    static uint64_t     fail_r_time_msec          = 0;     /*last report time of failure*/
+    static uint64_t     fail_counter              = 0;     /*counter of failures*/
+    const  uint64_t     fail_r_interval_msec      = 10000; /*failure report interval is 10s*/
+
     coroutine_node = coroutine_pool_reserve_no_lock(coroutine_pool);
     if(NULL_PTR == coroutine_node)
     {
@@ -1903,12 +1908,48 @@ COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, con
         UINT32 total_num;
         UINT32 max_num;
 
+        uint64_t fail_c_time_msec; /*cur time of failure*/
+
         coroutine_pool_num_info_no_lock(coroutine_pool, &idle_num, &busy_num, &total_num);
         max_num = COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool);
 
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "warn:coroutine_pool_load_no_lock: failed to reserve one coroutine_node where idle %ld, busy %ld, total %ld, max %ld\n",
-                            idle_num, busy_num, total_num, max_num);
+        fail_counter ++;
+
+        fail_c_time_msec = c_get_cur_time_msec();
+        if(0 == fail_s_time_msec) /*failure at first time*/
+        {
+            fail_s_time_msec = fail_c_time_msec;
+            fail_r_time_msec = fail_c_time_msec;
+
+            /*report nothing at first failure to prevent from fluttering*/
+            return (NULL_PTR);
+        }
+
+        /*compress failure report logs*/
+        if(fail_c_time_msec - fail_r_time_msec >= fail_r_interval_msec)
+        {
+            fail_r_time_msec = fail_c_time_msec;
+
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "warn:coroutine_pool_load_no_lock: "
+                                                      "failed to reserve one coroutine_node "
+                                                      "where idle %ld, busy %ld, total %ld, max %ld, "
+                                                      "failure elapsed %lu ms, failure times %lu\n",
+                                                      idle_num, busy_num, total_num, max_num,
+                                                      fail_c_time_msec - fail_s_time_msec, fail_counter);
+
+            return (NULL_PTR);
+        }
+
         return (NULL_PTR);
+    }
+
+    if(0 < fail_s_time_msec)
+    {
+        /*report nothing at last failure to prevent from fluttering*/
+
+        fail_s_time_msec = 0;
+        fail_r_time_msec = 0;
+        fail_counter     = 0;
     }
 
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));

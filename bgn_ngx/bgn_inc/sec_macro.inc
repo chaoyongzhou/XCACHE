@@ -170,18 +170,18 @@
 #define SEC_0160_CHFSMC                     ((UINT32)(    160)) /*chfsmc                          */
 #define SEC_0161_CHFSMON                    ((UINT32)(    161)) /*chfsmon                         */
 #define SEC_0162_CHFSCONHASH                ((UINT32)(    162)) /*chfsconhash                     */
-#define SEC_0163_CSFSDN                     ((UINT32)(    163)) /*crfsdn                          */
-#define SEC_0164_CSFSV                      ((UINT32)(    164)) /*crfsv                           */
-#define SEC_0165_CSFSD                      ((UINT32)(    165)) /*crfsd                           */
-#define SEC_0166_CSFSB                      ((UINT32)(    166)) /*crfsb                           */
-#define SEC_0167_CSFS                       ((UINT32)(    167)) /*csfs                            */
-#define SEC_0168_CSFSHTTP                   ((UINT32)(    168)) /*csfshttp                        */
-#define SEC_0169_CSFSMON                    ((UINT32)(    169)) /*csfsmon                         */
-#define SEC_0170_CSFSCONHASH                ((UINT32)(    170)) /*csfsconhash                     */
-#define SEC_0171_CSFSNPMGR                  ((UINT32)(    171)) /*csfsnpmgr                       */
-#define SEC_0172_CSFSNPRB                   ((UINT32)(    172)) /*csfsnprb                        */
-#define SEC_0173_CSFSNP                     ((UINT32)(    173)) /*csfsnp                          */
-#define SEC_0174_CSFSMC                     ((UINT32)(    174)) /*csfsmc                          */
+#define SEC_0163_XXXXXX                     ((UINT32)(    163)) /*-- obsolete --                  */
+#define SEC_0164_XXXXX                      ((UINT32)(    164)) /*-- obsolete --                  */ 
+#define SEC_0165_XXXXX                      ((UINT32)(    165)) /*-- obsolete --                  */
+#define SEC_0166_XXXXX                      ((UINT32)(    166)) /*-- obsolete --                  */
+#define SEC_0167_XXXX                       ((UINT32)(    167)) /*-- obsolete --                  */
+#define SEC_0168_XXXXXXXX                   ((UINT32)(    168)) /*-- obsolete --                  */
+#define SEC_0169_XXXXXXX                    ((UINT32)(    169)) /*-- obsolete --                  */
+#define SEC_0170_XXXXXXXXXXX                ((UINT32)(    170)) /*-- obsolete --                  */ 
+#define SEC_0171_XXXXXXXXX                  ((UINT32)(    171)) /*-- obsolete --                  */
+#define SEC_0172_XXXXXXXX                   ((UINT32)(    172)) /*-- obsolete --                  */
+#define SEC_0173_XXXXXX                     ((UINT32)(    173)) /*-- obsolete --                  */
+#define SEC_0174_XXXXXX                     ((UINT32)(    174)) /*-- obsolete --                  */
 #define SEC_0175_CVENDOR                    ((UINT32)(    175)) /*cvendor                         */
 #define SEC_0176_CNGX                       ((UINT32)(    176)) /*cngx                            */
 #define SEC_0177_CCACHE                     ((UINT32)(    177)) /*ccache                          */

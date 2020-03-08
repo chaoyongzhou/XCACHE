@@ -362,26 +362,6 @@ EC_BOOL api_cmd_ui_chfs_show_dn(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_chfs_show_cached_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_chfs_show_specific_np(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_csfs_create_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_create_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_add_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_del_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_mount_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_umount_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_open(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_close(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_read(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_write(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_search(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_qfile(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_count_file_num(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_count_file_size(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_delete(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_show_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_show_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_show_cached_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_csfs_show_specific_np(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_start(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_end(CMD_PARA_VEC * param);

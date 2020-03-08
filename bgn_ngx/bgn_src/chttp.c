@@ -35,9 +35,6 @@ extern "C"{
 
 #include "cepoll.h"
 
-#include "crfs.h"
-#include "crfsmon.h"
-
 #include "cbuffer.h"
 #include "cstrkv.h"
 #include "chunk.h"
@@ -959,11 +956,7 @@ EC_BOOL chttp_store_check(const CHTTP_STORE *chttp_store)
 
 EC_BOOL chttp_store_srv_get(const CHTTP_STORE *chttp_store, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
-    UINT32      crfsmon_md_id;
-
-    crfsmon_md_id = task_brd_default_get_crfsmon_id();
-
-    return crfsmon_crfs_store_http_srv_get(crfsmon_md_id, path, tcid, srv_ipaddr, srv_port);
+    return task_brd_default_get_store_http_srv(path, tcid, srv_ipaddr, srv_port);
 }
 
 EC_BOOL chttp_store_path_get(const CHTTP_STORE *chttp_store, CSTRING *path)
