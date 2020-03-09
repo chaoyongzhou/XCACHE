@@ -9585,7 +9585,27 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: handover rsp done\n");
+    dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_basic: handover rsp done\n");
+
+    /*handover cache_ctrl*/
+    if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
+    {
+        if(do_log(SEC_0149_CHTTP, 9))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] chttp_request_basic: chttp_store %p:\n", CHTTP_NODE_STORE(chttp_node));
+            chttp_store_print(LOGSTDOUT, CHTTP_NODE_STORE(chttp_node));
+        }
+
+        if(NULL_PTR != chttp_store)
+        {
+            dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_basic: cache_ctrl: %#x -> %#x\n",
+                                                  CHTTP_STORE_CACHE_CTRL(chttp_store),
+                                                  CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node)));
+
+            CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node));
+        }
+    }
+
     chttp_node_free(chttp_node);
 
     return (EC_TRUE);

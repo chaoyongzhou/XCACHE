@@ -2739,7 +2739,7 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index)
 * send http request and recv http response
 *
 **/
-EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
     uint32_t s_nsec; /*start time in second*/
     uint32_t s_msec; /*start time in micro-second*/
@@ -2762,10 +2762,13 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    if(do_log(SEC_0117_SUPER, 9))
+    if(NULL_PTR != chttp_store)
     {
-        sys_log(LOGSTDOUT, "[DEBUG] super_http_request: chttp_store %p:\n", chttp_store);
-        chttp_store_print(LOGSTDOUT, chttp_store);
+        if(do_log(SEC_0117_SUPER, 9))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] super_http_request: chttp_store %p:\n", chttp_store);
+            chttp_store_print(LOGSTDOUT, chttp_store);
+        }
     }
 
     if(NULL_PTR != chttp_store && BIT_TRUE == CHTTP_STORE_NEED_LOG_FLAG(chttp_store))
@@ -2966,6 +2969,13 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         chttp_req_clean(&chttp_req_t);
     }
 
+    /*check result cache_ctrl*/
+    if(NULL_PTR != chttp_store)
+    {
+        dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_http_request: restore cache_ctrl: result %#x\n",
+                                              CHTTP_STORE_CACHE_CTRL(chttp_store));
+    }
+
     if(BIT_TRUE == need_log_flag)
     {
         /*trick: restore need log flag*/
@@ -2994,7 +3004,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
 * send http request and recv http response in merge procedure
 *
 **/
-EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
+EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )

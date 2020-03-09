@@ -464,14 +464,14 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index);
 * send http request and recv http response
 *
 **/
-EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
+EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 
 /**
 *
 * send http request and recv http response in merge procedure
 *
 **/
-EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
+EC_BOOL super_http_request_merge(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 
 /**
 *

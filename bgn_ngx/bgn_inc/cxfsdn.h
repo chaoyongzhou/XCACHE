@@ -261,7 +261,7 @@ EC_BOOL cxfsdn_unset_read_only(CXFSDN *cxfsdn);
 
 EC_BOOL cxfsdn_is_read_only(CXFSDN *cxfsdn);
 
-EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn);
+EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
                        const int cxfsdn_sata_fd,
@@ -270,7 +270,7 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
 
 CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int cxfsdn_ssd_fd);
 
-EC_BOOL cxfsdn_close(CXFSDN *cxfsdn);
+EC_BOOL cxfsdn_close(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsdn_dump(CXFSDN *cxfsdn, const UINT32 cxfsdn_zone_s_offset);
 

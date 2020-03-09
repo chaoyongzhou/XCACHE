@@ -947,7 +947,9 @@ void cxfspgd_print(LOG *log, const CXFSPGD *cxfspgd)
                  EC_TRUE == REAL_ISZERO(CMPI_ERROR_MODI, occupied_size) ? 0.0 : (used_size / occupied_size)
                  );
 */
-    sys_log(log, "cxfspgd_print: cxfspgd %p, block num %u, %s, page max num %u, page used num %u, page ratio %.2f, actual used size %"PRId64", size ratio %.2f\n",
+    sys_log(log, "cxfspgd_print: cxfspgd %p, block num %u, "
+                 "page desc %s, page max num %u, page used num %u, page ratio %.2f, "
+                 "actual used size %"PRId64", size ratio %.2f\n",
                  cxfspgd,
                  CXFSPGD_PAGE_BLOCK_MAX_NUM(cxfspgd),
                  page_desc,

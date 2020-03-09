@@ -377,7 +377,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     {
         if(NULL_PTR != CXFS_MD_DN(cxfs_md))
         {
-            cxfsdn_close(CXFS_MD_DN(cxfs_md));
+            cxfsdn_close(CXFS_MD_DN(cxfs_md), cxfscfg);
             CXFS_MD_DN(cxfs_md) = NULL_PTR;
         }
 
@@ -833,7 +833,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     {
         if(NULL_PTR != CXFS_MD_DN(cxfs_md))
         {
-            cxfsdn_close(CXFS_MD_DN(cxfs_md));
+            cxfsdn_close(CXFS_MD_DN(cxfs_md), cxfscfg);
             CXFS_MD_DN(cxfs_md) = NULL_PTR;
         }
 
@@ -1115,7 +1115,7 @@ void cxfs_end(const UINT32 cxfs_md_id)
 
     if(NULL_PTR != CXFS_MD_DN(cxfs_md))
     {
-        cxfsdn_close(CXFS_MD_DN(cxfs_md));
+        cxfsdn_close(CXFS_MD_DN(cxfs_md), CXFS_MD_CFG(cxfs_md));
         CXFS_MD_DN(cxfs_md) = NULL_PTR;
     }
 
@@ -4291,7 +4291,7 @@ EC_BOOL cxfs_close_dn(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
-    cxfsdn_close(CXFS_MD_DN(cxfs_md));
+    cxfsdn_close(CXFS_MD_DN(cxfs_md), CXFS_MD_CFG(cxfs_md));
     CXFS_MD_DN(cxfs_md) = NULL_PTR;
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_close_dn: dn was closed\n");
 
@@ -6734,7 +6734,7 @@ EC_BOOL cxfs_flush_dn(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfsdn_flush(CXFS_MD_DN(cxfs_md)))
+    if(EC_FALSE == cxfsdn_flush(CXFS_MD_DN(cxfs_md), CXFS_MD_CFG(cxfs_md)))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_flush_dn: flush dn failed\n");
         return (EC_FALSE);

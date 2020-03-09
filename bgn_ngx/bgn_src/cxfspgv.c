@@ -1384,7 +1384,9 @@ void cxfspgv_print(LOG *log, const CXFSPGV *cxfspgv)
                  CXFSPGV_OFFSET(cxfspgv),
                  CXFSPGV_FSIZE(cxfspgv));
 
-    sys_log(log, "cxfspgv_print: cxfspgv %p, disk num %u, disk max num %u, %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, used size %"PRId64", size ratio %.2f\n",
+    sys_log(log, "cxfspgv_print: cxfspgv %p, disk num %u, disk max num %u, "
+                 "page desc %s, page max num %"PRId64", page used num %"PRId64", page ratio %.2f, "
+                 "used size %"PRId64", size ratio %.2f\n",
                  cxfspgv,
                  CXFSPGV_DISK_NUM(cxfspgv),
                  CXFSPGV_DISK_MAX_NUM(cxfspgv),
@@ -1416,7 +1418,7 @@ void cxfspgv_print(LOG *log, const CXFSPGV *cxfspgv)
         }
     }
 
-    if(1)
+    if(0)
     {
         uint16_t  disk_no;
         for(disk_no = 0; disk_no < CXFSPGV_MAX_DISK_NUM; disk_no ++)

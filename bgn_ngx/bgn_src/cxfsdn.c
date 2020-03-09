@@ -862,18 +862,28 @@ EC_BOOL cxfsdn_is_read_only(CXFSDN *cxfsdn)
     return (EC_FALSE);
 }
 
-EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
+EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg)
 {
     if(SWITCH_OFF == CXFS_DN_MMAP_SWITCH
     && NULL_PTR != cxfsdn
     && ERR_FD != CXFSDN_SATA_DISK_FD(cxfsdn))
     {
-        UINT32      offset;
-        UINT32      wsize;
-        UINT8      *mem_cache;
+        UINT32               offset;
+        UINT32               wsize;
+        UINT32               dn_size;
+        UINT8               *mem_cache;
+        const CXFSZONE      *cxfszone;
 
-        offset    = CXFSDN_OFFSET(cxfsdn);
-        wsize     = CXFSDN_SIZE(cxfsdn);
+        dn_size = CXFSCFG_DN_ZONE_SIZE(cxfscfg);
+
+        /*active zone*/
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg));
+
+        ASSERT(dn_size == CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone));
+        ASSERT(dn_size == CXFSDN_SIZE(cxfsdn));
+
+        offset    = CXFSZONE_S_OFFSET(cxfszone);
+        wsize     = dn_size;
         mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
 
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
@@ -885,16 +895,16 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_flush: "
                                                    "flush dn to [%ld, %ld), size %ld failed\n",
-                                                   CXFSDN_OFFSET(cxfsdn),
-                                                   CXFSDN_OFFSET(cxfsdn) + wsize,
+                                                   CXFSZONE_S_OFFSET(cxfszone),
+                                                   CXFSZONE_S_OFFSET(cxfszone) + wsize,
                                                    wsize);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
+        dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
                                                "flush dn to [%ld, %ld), size %ld done\n",
-                                               CXFSDN_OFFSET(cxfsdn),
-                                               CXFSDN_OFFSET(cxfsdn) + wsize,
+                                               CXFSZONE_S_OFFSET(cxfszone),
+                                               CXFSZONE_S_OFFSET(cxfszone) + wsize,
                                                wsize);
     }
 
@@ -902,10 +912,20 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn)
     && NULL_PTR != cxfsdn
     && ERR_FD != CXFSDN_SATA_DISK_FD(cxfsdn))
     {
-        UINT32      wsize;
-        UINT8      *mem_cache;
+        UINT32               wsize;
+        UINT32               dn_size;
+        UINT8               *mem_cache;
+        const CXFSZONE      *cxfszone;
 
-        wsize     = CXFSDN_SIZE(cxfsdn);
+        dn_size = CXFSCFG_DN_ZONE_SIZE(cxfscfg);
+
+        /*active zone*/
+        cxfszone = CXFSCFG_DN_ZONE(cxfscfg, CXFSCFG_DN_ZONE_ACTIVE_IDX(cxfscfg));
+
+        ASSERT(dn_size == CXFSZONE_E_OFFSET(cxfszone) - CXFSZONE_S_OFFSET(cxfszone));
+        ASSERT(dn_size == CXFSDN_SIZE(cxfsdn));
+
+        wsize     = dn_size;
         mem_cache = CXFSDN_MEM_CACHE(cxfsdn);
 
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
@@ -1158,7 +1178,7 @@ CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int 
     return (cxfsdn);
 }
 
-EC_BOOL cxfsdn_close(CXFSDN *cxfsdn)
+EC_BOOL cxfsdn_close(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg)
 {
     if(NULL_PTR != cxfsdn)
     {
@@ -1195,7 +1215,7 @@ EC_BOOL cxfsdn_close(CXFSDN *cxfsdn)
             }
         }
 
-        cxfsdn_flush(cxfsdn);
+        cxfsdn_flush(cxfsdn, cxfscfg);
         cxfsdn_free(cxfsdn);
     }
     return (EC_TRUE);
