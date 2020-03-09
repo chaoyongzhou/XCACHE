@@ -8498,26 +8498,26 @@ EC_BOOL crfshttp_handle_rfs_up_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __crfshttp_uri_is_rfs_up_get_op(uri_cbuffer))
     {
-        UINT32       crfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CRFS_NODE    crfs_node;
+        CMON_NODE    cmon_node;
 
-        crfsmon_id = task_brd_default_get_crfsmon_id();
-        if(CMPI_ERROR_MODI == crfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: no crfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        crfs_node_init(&crfs_node);
+        cmon_node_init(&cmon_node);
 
-        CRFS_NODE_MODI(&crfs_node)   = 0; /*default*/
-        CRFS_NODE_STATE(&crfs_node) = CRFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-tcid");
         if(NULL_PTR != v)
@@ -8530,13 +8530,13 @@ EC_BOOL crfshttp_handle_rfs_up_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: invalid rfs-tcid '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_TCID(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_up_get_request: header rfs-tcid %s => 0x%lx\n",
-                                v, CRFS_NODE_TCID(&crfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-ip");
@@ -8550,50 +8550,50 @@ EC_BOOL crfshttp_handle_rfs_up_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: invalid rfs-ip '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_IPADDR(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_up_get_request: header rfs-ip %s => 0x%lx\n",
-                                v, CRFS_NODE_IPADDR(&crfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-port");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_PORT(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_up_get_request: header rfs-port %s => %ld\n",
-                                v, CRFS_NODE_PORT(&crfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-modi");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_MODI(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_up_get_request: header rfs-modi %s => %ld\n",
-                                v, CRFS_NODE_MODI(&crfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == crfsmon_crfs_node_set_up(crfsmon_id, &crfs_node))
+        if(EC_FALSE == cmon_set_node_up(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: set up rfs %s failed", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_up_get_request: set up rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            crfs_node_clean(&crfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_up_get_request: set up rfs %s done", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_up_get_request: set up rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        crfs_node_clean(&crfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -8743,26 +8743,26 @@ EC_BOOL crfshttp_handle_rfs_down_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __crfshttp_uri_is_rfs_down_get_op(uri_cbuffer))
     {
-        UINT32       crfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CRFS_NODE    crfs_node;
+        CMON_NODE    cmon_node;
 
-        crfsmon_id = task_brd_default_get_crfsmon_id();
-        if(CMPI_ERROR_MODI == crfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: no crfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        crfs_node_init(&crfs_node);
+        cmon_node_init(&cmon_node);
 
-        CRFS_NODE_MODI(&crfs_node)   = 0; /*default*/
-        CRFS_NODE_STATE(&crfs_node) = CRFS_NODE_IS_DOWN;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_DOWN;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-tcid");
         if(NULL_PTR != v)
@@ -8775,13 +8775,13 @@ EC_BOOL crfshttp_handle_rfs_down_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: invalid rfs-tcid '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_TCID(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_down_get_request: header rfs-tcid %s => 0x%lx\n",
-                                v, CRFS_NODE_TCID(&crfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-ip");
@@ -8795,50 +8795,50 @@ EC_BOOL crfshttp_handle_rfs_down_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: invalid rfs-ip '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_IPADDR(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_down_get_request: header rfs-ip %s => 0x%lx\n",
-                                v, CRFS_NODE_IPADDR(&crfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-port");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_PORT(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_down_get_request: header rfs-port %s => %ld\n",
-                                v, CRFS_NODE_PORT(&crfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-modi");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_MODI(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_down_get_request: header rfs-modi %s => %ld\n",
-                                v, CRFS_NODE_MODI(&crfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == crfsmon_crfs_node_set_down(crfsmon_id, &crfs_node))
+        if(EC_FALSE == cmon_set_node_down(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: set down rfs %s failed", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_down_get_request: set down rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            crfs_node_clean(&crfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_down_get_request: set down rfs %s done", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_down_get_request: set down rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        crfs_node_clean(&crfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -8988,26 +8988,26 @@ EC_BOOL crfshttp_handle_rfs_add_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __crfshttp_uri_is_rfs_add_get_op(uri_cbuffer))
     {
-        UINT32       crfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CRFS_NODE    crfs_node;
+        CMON_NODE    cmon_node;
 
-        crfsmon_id = task_brd_default_get_crfsmon_id();
-        if(CMPI_ERROR_MODI == crfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: no crfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        crfs_node_init(&crfs_node);
+        cmon_node_init(&cmon_node);
 
-        CRFS_NODE_MODI(&crfs_node)   = 0; /*default*/
-        CRFS_NODE_STATE(&crfs_node) = CRFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-tcid");
         if(NULL_PTR != v)
@@ -9020,13 +9020,13 @@ EC_BOOL crfshttp_handle_rfs_add_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: invalid rfs-tcid '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_TCID(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_add_get_request: header rfs-tcid %s => 0x%lx\n",
-                                v, CRFS_NODE_TCID(&crfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-ip");
@@ -9040,50 +9040,50 @@ EC_BOOL crfshttp_handle_rfs_add_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: invalid rfs-ip '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_IPADDR(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_add_get_request: header rfs-ip %s => 0x%lx\n",
-                                v, CRFS_NODE_IPADDR(&crfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-port");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_PORT(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_add_get_request: header rfs-port %s => %ld\n",
-                                v, CRFS_NODE_PORT(&crfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-modi");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_MODI(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_add_get_request: header rfs-modi %s => %ld\n",
-                                v, CRFS_NODE_MODI(&crfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == crfsmon_crfs_node_add(crfsmon_id, &crfs_node))
+        if(EC_FALSE == cmon_add_node(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: add rfs %s failed", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_add_get_request: add rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            crfs_node_clean(&crfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_add_get_request: add rfs %s done", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_add_get_request: add rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        crfs_node_clean(&crfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -9233,25 +9233,25 @@ EC_BOOL crfshttp_handle_rfs_del_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __crfshttp_uri_is_rfs_del_get_op(uri_cbuffer))
     {
-        UINT32       crfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CRFS_NODE    crfs_node;
+        CMON_NODE    cmon_node;
 
-        crfsmon_id = task_brd_default_get_crfsmon_id();
-        if(CMPI_ERROR_MODI == crfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: no crfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        crfs_node_init(&crfs_node);
+        cmon_node_init(&cmon_node);
 
-        CRFS_NODE_MODI(&crfs_node)   = 0; /*default*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-tcid");
         if(NULL_PTR != v)
@@ -9264,13 +9264,13 @@ EC_BOOL crfshttp_handle_rfs_del_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: invalid rfs-tcid '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_TCID(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_del_get_request: header rfs-tcid %s => 0x%lx\n",
-                                v, CRFS_NODE_TCID(&crfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-ip");
@@ -9284,50 +9284,50 @@ EC_BOOL crfshttp_handle_rfs_del_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: invalid rfs-ip '%s'", v);
 
-                crfs_node_clean(&crfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CRFS_NODE_IPADDR(&crfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_del_get_request: header rfs-ip %s => 0x%lx\n",
-                                v, CRFS_NODE_IPADDR(&crfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-port");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_PORT(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_del_get_request: header rfs-port %s => %ld\n",
-                                v, CRFS_NODE_PORT(&crfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"rfs-modi");
         if(NULL_PTR != v)
         {
-            CRFS_NODE_MODI(&crfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "[DEBUG] crfshttp_handle_rfs_del_get_request: header rfs-modi %s => %ld\n",
-                                v, CRFS_NODE_MODI(&crfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == crfsmon_crfs_node_del(crfsmon_id, &crfs_node))
+        if(EC_FALSE == cmon_del_node(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: del rfs %s failed", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_del_get_request: del rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            crfs_node_clean(&crfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_del_get_request: del rfs %s done", c_word_to_ipv4(CRFS_NODE_TCID(&crfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_rfs_del_get_request: del rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        crfs_node_clean(&crfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -9477,24 +9477,24 @@ EC_BOOL crfshttp_handle_rfs_list_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __crfshttp_uri_is_rfs_list_get_op(uri_cbuffer))
     {
-        UINT32       crfsmon_id;
+        UINT32       cmon_id;
         CSTRING      crfs_list_cstr;
 
-        crfsmon_id = task_brd_default_get_crfsmon_id();
-        if(CMPI_ERROR_MODI == crfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_list_get_request: no crfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_rfs_list_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
         cstring_init(&crfs_list_cstr, NULL_PTR);
 
-        crfsmon_crfs_node_list(crfsmon_id, &crfs_list_cstr);
+        cmon_list_nodes(cmon_id, &crfs_list_cstr);
 
         cbytes_mount(content_cbytes, CSTRING_LEN(&crfs_list_cstr), CSTRING_STR(&crfs_list_cstr));
         cstring_unset(&crfs_list_cstr);

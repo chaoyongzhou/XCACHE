@@ -81,11 +81,6 @@ typedef struct
     UINT32    crfsdn_camd_ssd_disk_offset   ; /* CRFSDN_CAMD_SSD_DISK_OFFSET*/
     UINT32    crfsdn_camd_ssd_disk_size     ; /* CRFSDN_CAMD_SSD_DISK_SIZE  */
 
-    uint16_t  rsvd03;
-    uint16_t  crfsmon_conhash_replicas      ; /* CRFSMON_CONHASH_REPLICAS */
-    UINT32    crfsmon_conhash_switch        ; /* CRFSMON_CONHASH_SWITCH   */
-    UINT32    crfsmon_hot_path_switch       ; /* CRFSMON_HOT_PATH_SWITCH  */
-
     REAL      cxfsnp_max_used_ratio         ; /* CXFSNP_MAX_USED_RATIO    */
     REAL      cxfsdn_max_used_ratio         ; /* CXFSDN_MAX_USED_RATIO    */
 
@@ -100,10 +95,10 @@ typedef struct
     UINT32    cxfsdn_camd_ssd_disk_offset   ; /* CXFSDN_CAMD_SSD_DISK_OFFSET */
     //UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE   */
 
-    uint16_t  rsvd04;
-    uint16_t  cxfsmon_conhash_replicas      ; /* CXFSMON_CONHASH_REPLICAS */
-    UINT32    cxfsmon_conhash_switch        ; /* CXFSMON_CONHASH_SWITCH */
-    UINT32    cxfsmon_hot_path_switch       ; /* CXFSMON_HOT_PATH_SWITCH */
+    uint16_t  rsvd03;
+    uint16_t  cmon_conhash_replicas         ; /* CMON_CONHASH_REPLICAS */
+    UINT32    cmon_conhash_switch           ; /* CMON_CONHASH_SWITCH */
+    UINT32    cmon_hot_path_switch          ; /* CMON_HOT_PATH_SWITCH */
 
     uint32_t  ngx_lua_output_blocking_lowat ; /* if buff to send is more than that, block for next sending;otherwise, return and prepare data for next sending*/
     uint32_t  ngx_epoll_timeout_msec        ;
@@ -213,10 +208,6 @@ typedef struct
 #define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->crfsdn_camd_ssd_disk_offset)
 #define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->crfsdn_camd_ssd_disk_size)
 
-#define CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->crfsmon_conhash_switch)
-#define CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->crfsmon_conhash_replicas)
-#define CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->crfsmon_hot_path_switch)
-
 #define CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsnp_max_used_ratio)
 #define CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsdn_max_used_ratio)
 
@@ -231,9 +222,9 @@ typedef struct
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->cxfsdn_camd_ssd_disk_offset)
 //#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
 
-#define CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)                   ((cparacfg)->cxfsmon_conhash_switch)
-#define CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg)                 ((cparacfg)->cxfsmon_conhash_replicas)
-#define CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)                  ((cparacfg)->cxfsmon_hot_path_switch)
+#define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                      ((cparacfg)->cmon_conhash_switch)
+#define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                    ((cparacfg)->cmon_conhash_replicas)
+#define CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)                     ((cparacfg)->cmon_hot_path_switch)
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)            ((cparacfg)->ngx_lua_output_blocking_lowat)
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)                   ((cparacfg)->ngx_epoll_timeout_msec)
@@ -297,16 +288,13 @@ typedef struct
 
 #define CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)))
 
-#define CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CRFSMON_CONHASH_SWITCH(cparacfg)))
-#define CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CRFSMON_HOT_PATH_SWITCH(cparacfg)))
-
 #define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
 
 #define CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)))
 
-#define CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFSMON_CONHASH_SWITCH(cparacfg)))
-#define CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CXFSMON_HOT_PATH_SWITCH(cparacfg)))
+#define CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_CMON_CONHASH_SWITCH(cparacfg)))
+#define CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)))
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
@@ -429,10 +417,6 @@ typedef struct
 #define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
 #define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
-#define CPARACFG_CRFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
-#define CPARACFG_CRFSMON_CONHASH_REPLICAS_DEF                    4096
-#define CPARACFG_CRFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
-
 #define CPARACFG_CXFSNP_MAX_USED_RATIO_DEF                       (0.999)
 #define CPARACFG_CXFSDN_MAX_USED_RATIO_DEF                       (0.999)
 
@@ -447,9 +431,9 @@ typedef struct
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
 //#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
-#define CPARACFG_CXFSMON_CONHASH_SWITCH_DEF                      SWITCH_ON
-#define CPARACFG_CXFSMON_CONHASH_REPLICAS_DEF                    4096
-#define CPARACFG_CXFSMON_HOT_PATH_SWITCH_DEF                     SWITCH_ON
+#define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_ON
+#define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       4096
+#define CPARACFG_CMON_HOT_PATH_SWITCH_DEF                        SWITCH_ON
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT_DEF               MEM_BUFF_32K
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC_DEF                      1
@@ -561,10 +545,6 @@ typedef struct
 #define    CRFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET)
 #define    CRFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE)
 
-#define    CRFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_SWITCH)
-#define    CRFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_CONHASH_REPLICAS)
-#define    CRFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CRFSMON_HOT_PATH_SWITCH)
-
 #define    CXFSNP_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_MAX_USED_RATIO)
 #define    CXFSDN_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_MAX_USED_RATIO)
 
@@ -579,9 +559,9 @@ typedef struct
 #define    CXFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET)
 //#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
 
-#define    CXFSMON_CONHASH_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_SWITCH)
-#define    CXFSMON_CONHASH_REPLICAS                      CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_CONHASH_REPLICAS)
-#define    CXFSMON_HOT_PATH_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFSMON_HOT_PATH_SWITCH)
+#define    CMON_CONHASH_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_SWITCH)
+#define    CMON_CONHASH_REPLICAS                         CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_REPLICAS)
+#define    CMON_HOT_PATH_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMON_HOT_PATH_SWITCH)
 
 #define    NGX_LUA_OUTPUT_BLOCKING_LOWAT                 CPARACFG_DEFAULT_MAP(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT)
 #define    NGX_EPOLL_TIMEOUT_MSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC)

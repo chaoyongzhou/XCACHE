@@ -31,7 +31,6 @@ extern "C"{
 #include "crfsnpmgr.h"
 #include "crfsmc.h"
 #include "crfsbk.h"
-#include "crfsdt.inc"
 
 
 #define CRFS_MAX_MODI                       ((UINT32)32)

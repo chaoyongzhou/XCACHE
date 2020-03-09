@@ -27,7 +27,6 @@ extern "C"{
 #include "cngx.h"
 #include "cngx_mp4.h"
 
-#include "crfsmon.h"
 #include "ccache.h"
 
 /*copied and modified from ngx_http_mp4_module*/

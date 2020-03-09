@@ -46,8 +46,6 @@ extern "C"{
 #include "crfsnpdel.h"
 #include "crfsnpkey.h"
 #include "crfsnp.h"
-#include "crfsdt.h"
-#include "crfsconhash.h"
 #include "findex.inc"
 
 static CRFSNP_CFG g_crfsnp_cfg_tbl[] = {

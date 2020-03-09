@@ -29,7 +29,6 @@ extern "C"{
 #define CMPI_MON_RANK      ((UINT32)  0)  /*define monitor rank*/
 #define CMPI_FWD_RANK      ((UINT32)  0)  /*define forward rank*/
 #define CMPI_CRFS_RANK     ((UINT32)  0)  /*define crfs rank*/
-#define CMPI_CRFSC_RANK    ((UINT32)  0)  /*define crfsc rank*/
 #define CMPI_CXFS_RANK     ((UINT32)  0)  /*define cxfs rank*/
 
 #define CMPI_DBG_TCID_BEG         ((UINT32) 64) /*dbg tcid beg = 0.0.0.64 */
@@ -332,8 +331,7 @@ UINT32  task_brd_default_get_ssrv_port();
 
 UINT32  task_brd_default_get_network_level();
 
-UINT32  task_brd_default_get_crfsmon_id();
-UINT32 task_brd_default_get_cxfsmon_id();
+UINT32  task_brd_default_get_cmon_id();
 
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
 

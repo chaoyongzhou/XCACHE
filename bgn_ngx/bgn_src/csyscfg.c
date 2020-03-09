@@ -1013,13 +1013,9 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         c_ident_print(log, level);
         sys_print(log, "<ngxConfig");
 
-        sys_print(log, " rfsConhashSwitch=\"%s\""        , CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));
-        sys_print(log, " rfsConhashReplicas=\"%u\""      , CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg));
-        sys_print(log, " rfsHotPathSwitch=\"%s\""        , CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
-
-        sys_print(log, " xfsConhashSwitch=\"%s\""        , CPARACFG_CXFSMON_CONHASH_SWITCH_STR(cparacfg));
-        sys_print(log, " xfsConhashReplicas=\"%u\""      , CPARACFG_CXFSMON_CONHASH_REPLICAS(cparacfg));
-        sys_print(log, " xfsHotPathSwitch=\"%s\""        , CPARACFG_CXFSMON_HOT_PATH_SWITCH_STR(cparacfg));
+        sys_print(log, " conhashSwitch=\"%s\""        , CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
+        sys_print(log, " conhashReplicas=\"%u\""      , CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
+        sys_print(log, " hotPathSwitch=\"%s\""        , CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));
 
         sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
         sys_print(log, " epollTimeoutMsec=\"%u\""        , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));

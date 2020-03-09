@@ -81,10 +81,7 @@ extern "C"{
 #include "chttp.h"
 #include "chttps.h"
 #include "crfsmc.h"
-#include "crfsmon.h"
 #include "crfshttp.h"
-#include "crfschttp.h"
-#include "cxfsmon.h"
 #include "cxfshttp.h"
 
 #include "cagent.h"
@@ -5631,8 +5628,7 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
 
     TASK_BRD_HTTP_CCONNP_MGR(task_brd)    = NULL_PTR;
 
-    TASK_BRD_CRFSMON_ID(task_brd)         = CMPI_ERROR_MODI;
-    TASK_BRD_CXFSMON_ID(task_brd)         = CMPI_ERROR_MODI;
+    TASK_BRD_CMON_ID(task_brd)            = CMPI_ERROR_MODI;
 
     /*initialize queues*/
     task_queue_init(TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE));
@@ -8256,30 +8252,30 @@ LOG * task_brd_default_init(int argc, char **argv)
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH
     && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
-        TASK_BRD_CRFSMON_ID(task_brd) = crfsmon_start();
-        if(CMPI_ERROR_MODI == TASK_BRD_CRFSMON_ID(task_brd))
+        TASK_BRD_CMON_ID(task_brd) = cmon_start();
+        if(CMPI_ERROR_MODI == TASK_BRD_CMON_ID(task_brd))
         {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start crfsmon failed\n");
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start cmon failed\n");
             task_brd_free(task_brd);
 
             task_brd_default_abort();/*abort !*/
         }
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start crfsmon done\n");
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start cmon done\n");
     }
 
     /*start cxfs monintor*/
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH
     && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
-        TASK_BRD_CXFSMON_ID(task_brd) = cxfsmon_start();
-        if(CMPI_ERROR_MODI == TASK_BRD_CXFSMON_ID(task_brd))
+        TASK_BRD_CMON_ID(task_brd) = cmon_start();
+        if(CMPI_ERROR_MODI == TASK_BRD_CMON_ID(task_brd))
         {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start cxfsmon failed\n");
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start cmon failed\n");
             task_brd_free(task_brd);
 
             task_brd_default_abort();/*abort !*/
         }
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start cxfsmon done\n");
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start cmon done\n");
     }
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
@@ -8666,22 +8662,17 @@ UINT32 task_brd_default_get_network_level()
     return TASK_BRD_NETWORK_LEVEL(task_brd_default_get());
 }
 
-UINT32 task_brd_default_get_crfsmon_id()
+UINT32 task_brd_default_get_cmon_id()
 {
-    return TASK_BRD_CRFSMON_ID(task_brd_default_get());
-}
-
-UINT32 task_brd_default_get_cxfsmon_id()
-{
-    return TASK_BRD_CXFSMON_ID(task_brd_default_get());
+    return TASK_BRD_CMON_ID(task_brd_default_get());
 }
 
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
-        if(EC_FALSE == crfsmon_crfs_store_http_srv_get(task_brd_default_get_crfsmon_id(),
-                                                       path,tcid, srv_ipaddr, srv_port))
+        if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
+                                               path,tcid, srv_ipaddr, srv_port))
         {
             return (EC_FALSE);
         }
@@ -8690,8 +8681,8 @@ EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, U
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        if(EC_FALSE == cxfsmon_cxfs_store_http_srv_get(task_brd_default_get_cxfsmon_id(),
-                                                       path,tcid, srv_ipaddr, srv_port))
+        if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
+                                               path,tcid, srv_ipaddr, srv_port))
         {
             return (EC_FALSE);
         }

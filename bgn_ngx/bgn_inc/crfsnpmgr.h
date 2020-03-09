@@ -31,7 +31,6 @@ extern "C"{
 #include "chashalgo.h"
 #include "crfsnp.h"
 #include "crfsnprb.h"
-#include "crfsdt.inc"
 
 #define CRFSNP_DB_NAME      ((const char *)"np_cfg.dat")
 

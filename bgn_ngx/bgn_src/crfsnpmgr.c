@@ -40,7 +40,6 @@ extern "C"{
 #include "crfsnpmgr.h"
 #include "chashalgo.h"
 #include "cmd5.h"
-#include "crfsdt.h"
 #include "findex.inc"
 
 STATIC_CAST static uint32_t __crfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)

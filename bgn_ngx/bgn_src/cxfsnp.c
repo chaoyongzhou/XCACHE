@@ -47,7 +47,6 @@ extern "C"{
 #include "cxfsnpdel.h"
 #include "cxfsnpkey.h"
 #include "cxfsnp.h"
-#include "cxfsconhash.h"
 #include "cxfsop.h"
 
 #include "findex.inc"

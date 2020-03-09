@@ -30,7 +30,7 @@
 #define SEC_0020_CMAP                       ((UINT32)(     20)) /*cmap                            */
 #define SEC_0021_CTDNSNPRB                  ((UINT32)(     21)) /*ctdnsnprb                       */
 #define SEC_0022_CTDNSNP                    ((UINT32)(     22)) /*ctdnsnp                         */
-#define SEC_0023_XXXX                       ((UINT32)(     23)) /*-- obsolete --                  */
+#define SEC_0023_CMON                       ((UINT32)(     23)) /*cmon                            */
 #define SEC_0024_CRFSDN                     ((UINT32)(     24)) /*crfsdn                          */
 #define SEC_0025_CSESSION                   ((UINT32)(     25)) /*csession                        */
 #define SEC_0026_CTDNS                      ((UINT32)(     26)) /*ctdns                           */
@@ -57,7 +57,7 @@
 #define SEC_0047_DEBUG                      ((UINT32)(     47)) /*debug                           */
 #define SEC_0048_CTDNSHTTP                  ((UINT32)(     48)) /*ctdnshttp                       */
 #define SEC_0049_CRFSHTTP                   ((UINT32)(     49)) /*crfshttp                        */
-#define SEC_0050_XXXXXX                     ((UINT32)(     50)) /*-- obsolete --                  */
+#define SEC_0050_CCONHASH                   ((UINT32)(     50)) /*cconhash                        */
 #define SEC_0051_CTDNSSV                    ((UINT32)(     51)) /*ctdnssv                         */
 #define SEC_0052_CPARACFG                   ((UINT32)(     52)) /*cparacfg                        */
 #define SEC_0053_CSOCKET                    ((UINT32)(     53)) /*csocket                         */
@@ -149,10 +149,10 @@
 #define SEC_0139_MAIN                       ((UINT32)(    139)) /*main                            */
 #define SEC_0140_CRFSMC                     ((UINT32)(    140)) /*crfsmc                          */
 #define SEC_0141_CRFSBK                     ((UINT32)(    141)) /*crfsbk                          */
-#define SEC_0142_CRFSDT                     ((UINT32)(    142)) /*crfsc                           */
-#define SEC_0143_CRFSC                      ((UINT32)(    143)) /*crfsdt                          */
-#define SEC_0144_CRFSCONHASH                ((UINT32)(    144)) /*crfsconhash                     */
-#define SEC_0145_CRFSCHTTP                  ((UINT32)(    145)) /*crfschttp                       */
+#define SEC_0142_XXXXXX                     ((UINT32)(    142)) /*-- obsolete --                  */
+#define SEC_0143_XXXXX                      ((UINT32)(    143)) /*-- obsolete --                  */
+#define SEC_0144_XXXXXXXXXXX                ((UINT32)(    144)) /*-- obsolete --                  */
+#define SEC_0145_XXXXXXXXX                  ((UINT32)(    145)) /*-- obsolete --                  */
 #define SEC_0146_CFLV                       ((UINT32)(    146)) /*cflv                            */
 #define SEC_0147_CMP4                       ((UINT32)(    147)) /*cmp4                            */
 #define SEC_0148_CEXPAT                     ((UINT32)(    148)) /*cexpat                          */
@@ -161,8 +161,8 @@
 #define SEC_0151_NGX                        ((UINT32)(    151)) /*      --- for nginx ---         */
 #define SEC_0152_EVENT                      ((UINT32)(    152)) /*      --- for nginx event ---   */
 #define SEC_0153_REQ                        ((UINT32)(    153)) /* --- for http request trace --- */
-#define SEC_0154_CCONNP                     ((UINT32)(    154)) /* cconnp                         */
-#define SEC_0155_CRFSMON                    ((UINT32)(    155)) /*crfsmon                         */
+#define SEC_0154_CCONNP                     ((UINT32)(    154)) /*cconnp                          */
+#define SEC_0155_XXXXXXX                    ((UINT32)(    155)) /*-- obsolete --                  */
 #define SEC_0156_CSSL                       ((UINT32)(    156)) /*cssl                            */
 #define SEC_0157_CHTTPS                     ((UINT32)(    157)) /*chttps                          */
 #define SEC_0158_CRFSHTTPS                  ((UINT32)(    158)) /*crfshttps                       */
@@ -171,13 +171,13 @@
 #define SEC_0161_XXXXXXX                    ((UINT32)(    161)) /*-- obsolete --                  */
 #define SEC_0162_XXXXXXXXXXX                ((UINT32)(    162)) /*-- obsolete --                  */
 #define SEC_0163_XXXXXX                     ((UINT32)(    163)) /*-- obsolete --                  */
-#define SEC_0164_XXXXX                      ((UINT32)(    164)) /*-- obsolete --                  */ 
+#define SEC_0164_XXXXX                      ((UINT32)(    164)) /*-- obsolete --                  */
 #define SEC_0165_XXXXX                      ((UINT32)(    165)) /*-- obsolete --                  */
 #define SEC_0166_XXXXX                      ((UINT32)(    166)) /*-- obsolete --                  */
 #define SEC_0167_XXXX                       ((UINT32)(    167)) /*-- obsolete --                  */
 #define SEC_0168_XXXXXXXX                   ((UINT32)(    168)) /*-- obsolete --                  */
 #define SEC_0169_XXXXXXX                    ((UINT32)(    169)) /*-- obsolete --                  */
-#define SEC_0170_XXXXXXXXXXX                ((UINT32)(    170)) /*-- obsolete --                  */ 
+#define SEC_0170_XXXXXXXXXXX                ((UINT32)(    170)) /*-- obsolete --                  */
 #define SEC_0171_XXXXXXXXX                  ((UINT32)(    171)) /*-- obsolete --                  */
 #define SEC_0172_XXXXXXXX                   ((UINT32)(    172)) /*-- obsolete --                  */
 #define SEC_0173_XXXXXX                     ((UINT32)(    173)) /*-- obsolete --                  */
@@ -206,14 +206,14 @@
 #define SEC_0196_CXFSNPDEL                  ((UINT32)(    196)) /*cxfsnpdel                       */
 #define SEC_0197_CXFSNP                     ((UINT32)(    197)) /*cxfsnp                          */
 #define SEC_0198_CXFSNPRB                   ((UINT32)(    198)) /*cxfsnprb                        */
-#define SEC_0199_CXFSCONHASH                ((UINT32)(    199)) /*cxfsconhash                     */
+#define SEC_0199_XXXXXXXXXXX                ((UINT32)(    199)) /*-- obsolete --                  */
 #define SEC_0200_CXFSHTTPS                  ((UINT32)(    200)) /*cxfshttps                       */
 #define SEC_0201_CXFSPGB                    ((UINT32)(    201)) /*cxfspgb                         */
 #define SEC_0202_CXFSPGD                    ((UINT32)(    202)) /*cxfspgd                         */
 #define SEC_0203_CXFSPGV                    ((UINT32)(    203)) /*cxfspgv                         */
 #define SEC_0204_CXFSPGRB                   ((UINT32)(    204)) /*cxfspgrb                        */
 #define SEC_0205_CXFSCFG                    ((UINT32)(    205)) /*cxfscfg                         */
-#define SEC_0206_CXFSMON                    ((UINT32)(    206)) /*cxfsmon                         */
+#define SEC_0206_XXXXXXX                    ((UINT32)(    206)) /*-- obsolete --                  */
 #define SEC_0207_CDEQUEUE                   ((UINT32)(    207)) /*cdequeue                        */
 #define SEC_0208_CFC                        ((UINT32)(    208)) /*cfc                             */
 #define SEC_0209_CMMAP                      ((UINT32)(    209)) /*cmmap                           */

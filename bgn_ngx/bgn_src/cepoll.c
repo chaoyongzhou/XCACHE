@@ -1130,7 +1130,7 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
     timeout_num = 0;
 
     CEPOLL_LOCK(cepoll, LOC_CEPOLL_0019);
-    while(EC_FALSE == crb_tree_is_empty(CEPOLL_TIMEOUT_TREE(cepoll)) && CRFSCHTTP_TIMEOUT_MAX_NUM > timeout_num)
+    while(EC_FALSE == crb_tree_is_empty(CEPOLL_TIMEOUT_TREE(cepoll)) && CONN_TIMEOUT_MAX_NUM_PER_LOOP > timeout_num)
     {
         CRB_NODE              *crb_node;
         CEPOLL_NODE           *cepoll_node;

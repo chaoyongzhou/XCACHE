@@ -32,7 +32,6 @@ extern "C"{
 #include "chashalgo.h"
 #include "crfsnprb.h"
 #include "crfsnp.inc"
-#include "crfsdt.h"
 
 const char *crfsnp_model_str(const uint8_t crfsnp_model);
 

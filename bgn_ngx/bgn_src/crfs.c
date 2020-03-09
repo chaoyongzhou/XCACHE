@@ -50,8 +50,6 @@ extern "C"{
 
 #include "cmd5.h"
 #include "cbase64code.h"
-#include "crfsdt.h"
-#include "crfsc.h"
 
 #include "findex.inc"
 

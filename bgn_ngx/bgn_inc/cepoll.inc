@@ -106,9 +106,6 @@ typedef struct
 #define CEPOLL_NODE_NOT_USED_FLAG      ((uint16_t) 0)
 #define CEPOLL_NODE_IS_USED_FLAG       ((uint16_t) 1)
 
-#define CRFSCHTTP_TIMEOUT_MAX_NUM      CONN_TIMEOUT_MAX_NUM_PER_LOOP
-
-
 typedef EC_BOOL (*CEPOLL_EVENT_HANDLER)(void *);
 typedef EC_BOOL (*CEPOLL_LOOP_HANDLER)(void *);
 

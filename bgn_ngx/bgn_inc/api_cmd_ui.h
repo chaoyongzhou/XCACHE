@@ -257,29 +257,6 @@ EC_BOOL api_cmd_ui_crfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_show_locked_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param);
 
-
-EC_BOOL api_cmd_ui_crfsc_open(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_close(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_read(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_write(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_search_file(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_search_dir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_count_file_size(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_qfile(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_delete_file(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_delete_dir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_delete_path(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_recycle(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_md5sum(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_add_dir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_del_dir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_has_dir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_clone_dt(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_rollback_dt(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_flush_dt(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_load_dt(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfsc_show_dt(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_cxfs_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_create_dn(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_create_sata_bad_bitmap(CMD_PARA_VEC * param);

@@ -7558,26 +7558,26 @@ EC_BOOL cxfshttps_handle_xfs_up_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __cxfshttps_uri_is_xfs_up_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: no cxfsmon start");
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -7590,13 +7590,13 @@ EC_BOOL cxfshttps_handle_xfs_up_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_up_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-ip");
@@ -7610,50 +7610,50 @@ EC_BOOL cxfshttps_handle_xfs_up_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_up_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_up_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_up_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_set_up(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_set_node_up(cmon_id, &cmon_node))
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: set up xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_up_get_request: set up xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_up_get_request: set up xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_up_get_request: set up xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -7803,26 +7803,26 @@ EC_BOOL cxfshttps_handle_xfs_down_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __cxfshttps_uri_is_xfs_down_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: no cxfsmon start");
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_DOWN;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_DOWN;/*useless*/
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -7835,13 +7835,13 @@ EC_BOOL cxfshttps_handle_xfs_down_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_down_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-ip");
@@ -7855,50 +7855,50 @@ EC_BOOL cxfshttps_handle_xfs_down_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_down_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_down_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_down_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_set_down(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_set_node_down(cmon_id, &cmon_node))
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: set down xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_down_get_request: set down xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_down_get_request: set down xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_down_get_request: set down xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -8048,26 +8048,26 @@ EC_BOOL cxfshttps_handle_xfs_add_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __cxfshttps_uri_is_xfs_add_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: no cxfsmon start");
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -8080,13 +8080,13 @@ EC_BOOL cxfshttps_handle_xfs_add_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_add_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-ip");
@@ -8100,50 +8100,50 @@ EC_BOOL cxfshttps_handle_xfs_add_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_add_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_add_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_add_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_add(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_add_node(cmon_id, &cmon_node))
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: add xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_add_get_request: add xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_add_get_request: add xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_add_get_request: add xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -8293,25 +8293,25 @@ EC_BOOL cxfshttps_handle_xfs_del_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __cxfshttps_uri_is_xfs_del_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: no cxfsmon start");
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -8324,13 +8324,13 @@ EC_BOOL cxfshttps_handle_xfs_del_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_del_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-ip");
@@ -8344,50 +8344,50 @@ EC_BOOL cxfshttps_handle_xfs_del_get_request(CHTTPS_NODE *chttps_node)
                 CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_del_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_del_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_xfs_del_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_del(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_del_node(cmon_id, &cmon_node))
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: del xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_del_get_request: del xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
         CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_del_get_request: del xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] cxfshttps_handle_xfs_del_get_request: del xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -8537,24 +8537,24 @@ EC_BOOL cxfshttps_handle_xfs_list_get_request(CHTTPS_NODE *chttps_node)
 
     if(EC_TRUE == __cxfshttps_uri_is_xfs_list_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         CSTRING      cxfs_list_cstr;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
             CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_list_get_request: no cxfsmon start");
+            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:cxfshttps_handle_xfs_list_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
         cstring_init(&cxfs_list_cstr, NULL_PTR);
 
-        cxfsmon_cxfs_node_list(cxfsmon_id, &cxfs_list_cstr);
+        cmon_list_nodes(cmon_id, &cxfs_list_cstr);
 
         cbytes_mount(content_cbytes, CSTRING_LEN(&cxfs_list_cstr), CSTRING_STR(&cxfs_list_cstr));
         cstring_unset(&cxfs_list_cstr);

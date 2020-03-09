@@ -29,11 +29,9 @@ extern "C"{
 #include "csession.h"
 #include "crfsdn.h"
 #include "crfs.h"
-#include "crfsc.h"
-#include "crfsmon.h"
 #include "cxfsdn.h"
 #include "cxfs.h"
-#include "cxfsmon.h"
+#include "cmon.h"
 #include "ctdns.h"
 #include "cdetect.h"
 #include "cdetectn.h"
@@ -57,9 +55,7 @@ extern "C"{
 #include "crfs.inc"
 #include "cxfs.inc"
 #include "crfsbk.inc"
-#include "crfsc.inc"
-#include "crfsmon.inc"
-#include "cxfsmon.inc"
+#include "cmon.inc"
 #include "chttp.inc"
 #include "ctdns.inc"
 #include "cdetect.inc"
@@ -687,16 +683,16 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cxfsnp_fnode_size
     );
     creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CXFS_NODE_ptr,
-        /* type_sizeof            */sizeof(CXFS_NODE),
+        /* type                   */e_dbg_CMON_NODE_ptr,
+        /* type_sizeof            */sizeof(CMON_NODE),
         /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CXFS_NODE,
-        /* init_type_func         */(UINT32)cxfs_node_init,
-        /* clean_type_func        */(UINT32)cxfs_node_clean,
-        /* free_type_func         */(UINT32)cxfs_node_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cxfs_node,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cxfs_node,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cxfs_node_size
+        /* var_mm_type            */MM_CMON_NODE,
+        /* init_type_func         */(UINT32)cmon_node_init,
+        /* clean_type_func        */(UINT32)cmon_node_clean,
+        /* free_type_func         */(UINT32)cmon_node_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cmon_node,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cmon_node,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cmon_node_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_uint64_t_ptr,
@@ -745,18 +741,6 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_crfsop,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_crfsop,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_crfsop_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CRFSDT_PNODE_ptr,
-        /* type_sizeof            */sizeof(CRFSDT_PNODE),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CRFSDT_PNODE,
-        /* init_type_func         */(UINT32)crfsdt_pnode_init,
-        /* clean_type_func        */(UINT32)crfsdt_pnode_clean,
-        /* free_type_func         */(UINT32)crfsdt_pnode_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_crfsdt_pnode,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_crfsdt_pnode,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_crfsdt_pnode_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CBUFFER_ptr,
@@ -860,18 +844,6 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_tasks_node,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_tasks_node,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_tasks_node_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CRFS_NODE_ptr,
-        /* type_sizeof            */sizeof(CRFS_NODE),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CRFS_NODE,
-        /* init_type_func         */(UINT32)crfs_node_init,
-        /* clean_type_func        */(UINT32)crfs_node_clean,
-        /* free_type_func         */(UINT32)crfs_node_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_crfs_node,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_crfs_node,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_crfs_node_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CTDNSSV_NODE_MGR_ptr,
@@ -1046,9 +1018,6 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CSESSION,  &g_csession_func_addr_list_len,  (FUNC_ADDR_NODE *)g_csession_func_addr_list, FI_csession_start , FI_csession_end, ERR_FUNC_ID            , NULL_PTR                                   );
     creg_func_addr_vec_add(func_addr_vec, MD_CRFS    ,  &g_crfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_crfs_func_addr_list   , FI_crfs_start    , FI_crfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );
 
-    creg_func_addr_vec_add(func_addr_vec, MD_CRFSC   ,  &g_crfsc_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_crfsc_func_addr_list  , FI_crfsc_start   , FI_crfsc_end    , ERR_FUNC_ID             , NULL_PTR                                   );
-    creg_func_addr_vec_add(func_addr_vec, MD_CRFSMON ,  &g_crfsmon_func_addr_list_len,   (FUNC_ADDR_NODE *)g_crfsmon_func_addr_list, FI_crfsmon_start , FI_crfsmon_end  , ERR_FUNC_ID             , NULL_PTR                                   );
-
     creg_func_addr_vec_add(func_addr_vec, MD_CTDNS   ,  &g_ctdns_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_ctdns_func_addr_list  , FI_ctdns_start   , FI_ctdns_end    , ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CDETECT ,  &g_cdetect_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cdetect_func_addr_list, FI_cdetect_start , FI_cdetect_end  , ERR_FUNC_ID             , NULL_PTR                                   );
@@ -1060,7 +1029,8 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CFILE   ,  &g_cfile_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cfile_func_addr_list  , FI_cfile_start    , FI_cfile_end   , ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CXFS    ,  &g_cxfs_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cxfs_func_addr_list   , FI_cxfs_start    , FI_cxfs_end     , ERR_FUNC_ID             , NULL_PTR                                   );
-    creg_func_addr_vec_add(func_addr_vec, MD_CXFSMON ,  &g_cxfsmon_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cxfsmon_func_addr_list, FI_cxfsmon_start , FI_cxfsmon_end  , ERR_FUNC_ID             , NULL_PTR                                   );
+
+    creg_func_addr_vec_add(func_addr_vec, MD_CMON    ,  &g_cmon_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cmon_func_addr_list   , FI_cmon_start    , FI_cmon_end     , ERR_FUNC_ID             , NULL_PTR                                   );
 
     return (EC_TRUE);
 }

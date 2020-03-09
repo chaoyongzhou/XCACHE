@@ -18,17 +18,11 @@ extern "C"{
 /*CRFS Package Debug Switch*/
 #define CRFS_DEBUG_SWITCH SWITCH_ON
 
-/*CRFSMON Package Debug Switch*/
-#define CRFSMON_DEBUG_SWITCH SWITCH_ON
-
-/*CRFSC Package Debug Switch*/
-#define CRFSC_DEBUG_SWITCH SWITCH_ON
-
 /*CXFS Package Debug Switch*/
 #define CXFS_DEBUG_SWITCH SWITCH_ON
 
-/*CXFSMON Package Debug Switch*/
-#define CXFSMON_DEBUG_SWITCH SWITCH_ON
+/*CMON Package Debug Switch*/
+#define CMON_DEBUG_SWITCH SWITCH_ON
 
 /*CSESSION Package Debug Switch*/
 #define CSESSION_DEBUG_SWITCH SWITCH_ON

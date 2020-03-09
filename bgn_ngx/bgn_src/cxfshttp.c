@@ -39,7 +39,7 @@ extern "C"{
 #include "chttp.inc"
 #include "chttp.h"
 #include "cxfshttp.h"
-#include "cxfsmon.h"
+#include "cmon.h"
 
 #include "cbuffer.h"
 #include "cstrkv.h"
@@ -9257,26 +9257,26 @@ EC_BOOL cxfshttp_handle_xfs_up_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cxfshttp_uri_is_xfs_up_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: no cxfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -9289,13 +9289,13 @@ EC_BOOL cxfshttp_handle_xfs_up_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_up_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-ip");
@@ -9309,50 +9309,50 @@ EC_BOOL cxfshttp_handle_xfs_up_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_up_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_up_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_up_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_set_up(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_set_node_up(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: set up xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_up_get_request: set up xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_up_get_request: set up xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_up_get_request: set up xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -9502,26 +9502,26 @@ EC_BOOL cxfshttp_handle_xfs_down_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cxfshttp_uri_is_xfs_down_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: no cxfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_DOWN;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_DOWN;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -9534,13 +9534,13 @@ EC_BOOL cxfshttp_handle_xfs_down_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_down_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-ip");
@@ -9554,50 +9554,50 @@ EC_BOOL cxfshttp_handle_xfs_down_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_down_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_down_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_down_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_set_down(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_set_node_down(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: set down xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_down_get_request: set down xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_down_get_request: set down xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_down_get_request: set down xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -9747,26 +9747,26 @@ EC_BOOL cxfshttp_handle_xfs_add_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cxfshttp_uri_is_xfs_add_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: no cxfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
-        CXFS_NODE_STATE(&cxfs_node) = CXFS_NODE_IS_UP;/*useless*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -9779,13 +9779,13 @@ EC_BOOL cxfshttp_handle_xfs_add_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_add_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-ip");
@@ -9799,50 +9799,50 @@ EC_BOOL cxfshttp_handle_xfs_add_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_add_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_add_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_add_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_add(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_add_node(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: add xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_add_get_request: add xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_add_get_request: add xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_add_get_request: add xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -9992,25 +9992,25 @@ EC_BOOL cxfshttp_handle_xfs_del_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cxfshttp_uri_is_xfs_del_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         char        *v;
-        CXFS_NODE    cxfs_node;
+        CMON_NODE    cmon_node;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: no cxfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
-        cxfs_node_init(&cxfs_node);
+        cmon_node_init(&cmon_node);
 
-        CXFS_NODE_MODI(&cxfs_node)   = 0; /*default*/
+        CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -10023,13 +10023,13 @@ EC_BOOL cxfshttp_handle_xfs_del_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: invalid xfs-tcid '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_TCID(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_TCID(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_del_get_request: header xfs-tcid %s => 0x%lx\n",
-                                v, CXFS_NODE_TCID(&cxfs_node));
+                                v, CMON_NODE_TCID(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-ip");
@@ -10043,50 +10043,50 @@ EC_BOOL cxfshttp_handle_xfs_del_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: invalid xfs-ip '%s'", v);
 
-                cxfs_node_clean(&cxfs_node);
+                cmon_node_clean(&cmon_node);
                 return (EC_TRUE);
             }
 
-            CXFS_NODE_IPADDR(&cxfs_node) = c_ipv4_to_word(v);
+            CMON_NODE_IPADDR(&cmon_node) = c_ipv4_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_del_get_request: header xfs-ip %s => 0x%lx\n",
-                                v, CXFS_NODE_IPADDR(&cxfs_node));
+                                v, CMON_NODE_IPADDR(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-port");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_PORT(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_PORT(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_del_get_request: header xfs-port %s => %ld\n",
-                                v, CXFS_NODE_PORT(&cxfs_node));
+                                v, CMON_NODE_PORT(&cmon_node));
         }
 
         v = chttp_node_get_header(chttp_node, (const char *)"xfs-modi");
         if(NULL_PTR != v)
         {
-            CXFS_NODE_MODI(&cxfs_node) = c_str_to_word(v);
+            CMON_NODE_MODI(&cmon_node) = c_str_to_word(v);
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_xfs_del_get_request: header xfs-modi %s => %ld\n",
-                                v, CXFS_NODE_MODI(&cxfs_node));
+                                v, CMON_NODE_MODI(&cmon_node));
         }
 
-        if(EC_FALSE == cxfsmon_cxfs_node_del(cxfsmon_id, &cxfs_node))
+        if(EC_FALSE == cmon_del_node(cmon_id, &cmon_node))
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: del xfs %s failed", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_del_get_request: del xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
-            cxfs_node_clean(&cxfs_node);
+            cmon_node_clean(&cmon_node);
             return (EC_TRUE);
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_del_get_request: del xfs %s done", c_word_to_ipv4(CXFS_NODE_TCID(&cxfs_node)));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_xfs_del_get_request: del xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cxfs_node_clean(&cxfs_node);
+        cmon_node_clean(&cmon_node);
     }
 
     return (EC_TRUE);
@@ -10236,24 +10236,24 @@ EC_BOOL cxfshttp_handle_xfs_list_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cxfshttp_uri_is_xfs_list_get_op(uri_cbuffer))
     {
-        UINT32       cxfsmon_id;
+        UINT32       cmon_id;
         CSTRING      cxfs_list_cstr;
 
-        cxfsmon_id = task_brd_default_get_cxfsmon_id();
-        if(CMPI_ERROR_MODI == cxfsmon_id)
+        cmon_id = task_brd_default_get_cmon_id();
+        if(CMPI_ERROR_MODI == cmon_id)
         {
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_list_get_request: no cxfsmon start");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_xfs_list_get_request: no cmon start");
 
             return (EC_TRUE);
         }
 
         cstring_init(&cxfs_list_cstr, NULL_PTR);
 
-        cxfsmon_cxfs_node_list(cxfsmon_id, &cxfs_list_cstr);
+        cmon_list_nodes(cmon_id, &cxfs_list_cstr);
 
         cbytes_mount(content_cbytes, CSTRING_LEN(&cxfs_list_cstr), CSTRING_STR(&cxfs_list_cstr));
         cstring_unset(&cxfs_list_cstr);

@@ -28,13 +28,13 @@ extern "C"{
 #define     MD_CRUN      ((UINT32)  3)/* user interfaces */
 #define     MD_SUPER     ((UINT32)  4)
 #define     MD_CTIMER    ((UINT32)  5)
-#define     MD_0001      ((UINT32)  6) /*-- obsolee --*/
+#define     MD_CMON      ((UINT32)  6) /*-- obsolee --*/
 #define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
 #define     MD_0010      ((UINT32) 10) /*-- obsolee --*/
-#define     MD_CRFSC     ((UINT32) 11)
-#define     MD_CRFSMON   ((UINT32) 12)
+#define     MD_0011      ((UINT32) 11) /*-- obsolee --*/
+#define     MD_0012      ((UINT32) 12) /*-- obsolee --*/
 #define     MD_0013      ((UINT32) 13) /*-- obsolee --*/
 #define     MD_0014      ((UINT32) 14) /*-- obsolee --*/
 #define     MD_0015      ((UINT32) 15) /*-- obsolee --*/
@@ -50,7 +50,7 @@ extern "C"{
 #define     MD_CDETECTN  ((UINT32) 25)
 #define     MD_CMIAOPAI  ((UINT32) 26)
 #define     MD_CXFS      ((UINT32) 27)
-#define     MD_CXFSMON   ((UINT32) 28)
+#define     MD_0028      ((UINT32) 28) /*-- obsolee --*/
 #define     MD_END       ((UINT32) 29)
 
 /* Memory Management */
@@ -149,11 +149,11 @@ extern "C"{
 #define                  MM_CHASHDB_ITEM    ((UINT32) 81)
 #define                       MM_CHASHDB    ((UINT32) 82)
 #define                MM_CHASHDB_BUCKET    ((UINT32) 83)
-#define                        MM_000084    ((UINT32) 84) /*-- obsolete --*/
-#define                        MM_000085    ((UINT32) 85) /*-- obsolete --*/
-#define                        MM_000086    ((UINT32) 86) /*-- obsolete --*/
-#define                        MM_000087    ((UINT32) 87) /*-- obsolete --*/
-#define                        MM_000088    ((UINT32) 88) /*-- obsolete --*/
+#define                     MM_CMON_NODE    ((UINT32) 84)
+#define                 MM_CMON_HOT_PATH    ((UINT32) 85)
+#define                      MM_CCONHASH    ((UINT32) 86)
+#define                MM_CCONHASH_RNODE    ((UINT32) 87)
+#define                MM_CCONHASH_VNODE    ((UINT32) 88)
 #define                        MM_000090    ((UINT32) 90) /*-- obsolete --*/
 #define                        MM_000091    ((UINT32) 91) /*-- obsolete --*/
 #define                        MM_000092    ((UINT32) 92) /*-- obsolete --*/
@@ -222,14 +222,14 @@ extern "C"{
 #define                     MM_CHUNK_MGR    ((UINT32)151)
 #define                   MM_CMD5_DIGEST    ((UINT32)152)
 #define                        MM_CRFSOP    ((UINT32)153)
-#define                  MM_CRFSDT_PNODE    ((UINT32)154)
-#define                  MM_CRFSDT_RNODE    ((UINT32)155)
-#define                        MM_CRFSDT    ((UINT32)156)
-#define                   MM_CRFSCONHASH    ((UINT32)157)
-#define             MM_CRFSCONHASH_RNODE    ((UINT32)158)
-#define             MM_CRFSCONHASH_VNODE    ((UINT32)159)
+#define                        MM_000154    ((UINT32)154)
+#define                        MM_000155    ((UINT32)155)
+#define                        MM_000156    ((UINT32)156)
+#define                        MM_000157    ((UINT32)157)
+#define                        MM_000158    ((UINT32)158)
+#define                        MM_000159    ((UINT32)159)
 #define                      MM_CDEQUEUE    ((UINT32)160)
-#define                MM_CRFSCHTTP_NODE    ((UINT32)161)
+#define                        MM_000161    ((UINT32)161)
 #define                   MM_CEXPAT_ATTR    ((UINT32)162)
 #define                   MM_CEXPAT_NODE    ((UINT32)163)
 #define              MM_CRFS_LOCKED_FILE    ((UINT32)164)
@@ -250,7 +250,7 @@ extern "C"{
 #define                MM_CRFS_WAIT_FILE    ((UINT32)179)
 #define                        MM_CCONNP    ((UINT32)180)
 #define                    MM_CCONNP_MGR    ((UINT32)181)
-#define                     MM_CRFS_NODE    ((UINT32)182)
+#define                        MM_000182    ((UINT32)182)
 #define                   MM_CHTTPS_NODE    ((UINT32)183)
 #define                     MM_CSSL_NODE    ((UINT32)184)
 #define                        MM_000185    ((UINT32)185)
@@ -361,13 +361,13 @@ extern "C"{
 #define                    MM_CXFSNP_MGR    ((UINT32)273)
 #define                    MM_CXFSNP_KEY    ((UINT32)274)
 #define                        MM_CXFSDN    ((UINT32)275)
-#define                   MM_CXFSCONHASH    ((UINT32)276)
-#define             MM_CXFSCONHASH_RNODE    ((UINT32)277)
-#define             MM_CXFSCONHASH_VNODE    ((UINT32)278)
+#define                        MM_000276    ((UINT32)276)
+#define                        MM_000277    ((UINT32)277)
+#define                        MM_000278    ((UINT32)278)
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)
-#define                     MM_CXFS_NODE    ((UINT32)281)
-#define                 MM_CXFS_HOT_PATH    ((UINT32)282)
+#define                        MM_000281    ((UINT32)281)
+#define                        MM_000282    ((UINT32)282)
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
 #define                     MM_CAMD_COND    ((UINT32)284)
 
