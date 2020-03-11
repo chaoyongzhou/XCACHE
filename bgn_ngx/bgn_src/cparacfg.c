@@ -281,10 +281,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET       = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
     sys_log(log, "CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE         = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
-    sys_log(log, "CPARACFG_CRFSMON_CONHASH_SWITCH            = %s\n" ,  CPARACFG_CRFSMON_CONHASH_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_CRFSMON_CONHASH_REPLICAS          = %u\n" ,  CPARACFG_CRFSMON_CONHASH_REPLICAS(cparacfg));
-    sys_log(log, "CPARACFG_CRFSMON_HOT_PATH_SWITCH           = %s\n" ,  CPARACFG_CRFSMON_HOT_PATH_SWITCH_STR(cparacfg));
-
     sys_log(log, "CPARACFG_CXFSNP_MAX_USED_RATIO             = %.3f\n",  CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg));
     sys_log(log, "CPARACFG_CXFSDN_MAX_USED_RATIO             = %.3f\n",  CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg));
 

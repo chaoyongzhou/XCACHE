@@ -25,6 +25,7 @@ extern "C"{
 #define CHASH_AP_ALGO_ID            ((UINT32)   8)
 #define CHASH_CRC_ALGO_ID           ((UINT32)   9)
 #define CHASH_MD5_ALGO_ID           ((UINT32)  10)
+#define CHASH_MURMUR_ALGO_ID        ((UINT32)  11)
 #define CHASH_ERR_ALGO_ID           ((UINT32)0xFF)/*8bits*/
 
 typedef UINT32 (*CHASH_ALGO)(const UINT32, const UINT8 *);
@@ -70,6 +71,9 @@ UINT32 AP_hash(const UINT32 len, const UINT8 *str);
 UINT32 CRC_hash(const UINT32 len, const UINT8 *str);
 
 UINT32 MD5_hash(const UINT32 len, const UINT8 *str);
+
+/*from ngx_murmur_hash2*/
+UINT32 MURMUR_hash(const UINT32 len, const UINT8 *data);
 
 CHASH_ALGO chash_algo_fetch(const UINT32 chash_algo_id);
 

@@ -267,10 +267,19 @@ EC_BOOL tasks_cfg_match_ssrv(const TASKS_CFG *tasks_cfg, const UINT32 tcid, cons
 **/
 EC_BOOL tasks_cfg_is_dbgnet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *tasks_cfg_des)
 {
-    if(EC_TRUE == task_brd_check_is_dbg_tcid(TASKS_CFG_TCID(tasks_cfg_src)) || EC_TRUE == task_brd_check_is_dbg_tcid(TASKS_CFG_TCID(tasks_cfg_des)))
+    if(EC_TRUE == task_brd_check_is_dbg_tcid(TASKS_CFG_TCID(tasks_cfg_src))
+    || EC_TRUE == task_brd_check_is_dbg_tcid(TASKS_CFG_TCID(tasks_cfg_des)))
     {
+        dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [Y] tasks_cfg_is_dbgnet: %s or %s is dbgnet\n",
+                            TASKS_CFG_TCID_STR(tasks_cfg_src),
+                            TASKS_CFG_TCID_STR(tasks_cfg_des));
+
         return (EC_TRUE);
     }
+
+    dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [N] tasks_cfg_is_dbgnet: %s and %s are not dbgnet\n",
+                        TASKS_CFG_TCID_STR(tasks_cfg_src),
+                        TASKS_CFG_TCID_STR(tasks_cfg_des));
     return (EC_FALSE);
 }
 
@@ -282,10 +291,19 @@ EC_BOOL tasks_cfg_is_dbgnet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *tas
 **/
 EC_BOOL tasks_cfg_is_monnet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *tasks_cfg_des)
 {
-    if(EC_TRUE == task_brd_check_is_monitor_tcid(TASKS_CFG_TCID(tasks_cfg_src)) || EC_TRUE == task_brd_check_is_monitor_tcid(TASKS_CFG_TCID(tasks_cfg_des)))
+    if(EC_TRUE == task_brd_check_is_monitor_tcid(TASKS_CFG_TCID(tasks_cfg_src))
+    || EC_TRUE == task_brd_check_is_monitor_tcid(TASKS_CFG_TCID(tasks_cfg_des)))
     {
+        dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [Y] tasks_cfg_is_monnet: %s or %s is monnet\n",
+                            TASKS_CFG_TCID_STR(tasks_cfg_src),
+                            TASKS_CFG_TCID_STR(tasks_cfg_des));
+
         return (EC_TRUE);
     }
+
+    dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [N] tasks_cfg_is_monnet: %s and %s are not monnet\n",
+                        TASKS_CFG_TCID_STR(tasks_cfg_src),
+                        TASKS_CFG_TCID_STR(tasks_cfg_des));
     return (EC_FALSE);
 }
 
@@ -300,12 +318,12 @@ EC_BOOL tasks_cfg_is_intranet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *t
     /*src & maski(src) == des & maski(src)*/
     if(DES_TCID_IS_INTRANET(TASKS_CFG_TCID(tasks_cfg_src), TASKS_CFG_MASKI(tasks_cfg_src), TASKS_CFG_TCID(tasks_cfg_des), TASKS_CFG_MASKE(tasks_cfg_des)))
     {
-        dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_intranet: %s & %s == %s & %s\n",
+        dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [Y] tasks_cfg_is_intranet: %s & %s == %s & %s\n",
                             TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKI_STR(tasks_cfg_src),
                             TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKE_STR(tasks_cfg_des));
         return (EC_TRUE);
     }
-    dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_intranet: %s & %s != %s & %s\n",
+    dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [N] tasks_cfg_is_intranet: %s & %s != %s & %s\n",
                         TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKI_STR(tasks_cfg_src),
                         TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKE_STR(tasks_cfg_des));
     return (EC_FALSE);
@@ -322,12 +340,12 @@ EC_BOOL tasks_cfg_is_lannet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *tas
     /*src & maske(src) == des & maske(des)*/
     if(DES_TCID_IS_LANNET(TASKS_CFG_TCID(tasks_cfg_src), TASKS_CFG_MASKE(tasks_cfg_src), TASKS_CFG_TCID(tasks_cfg_des), TASKS_CFG_MASKE(tasks_cfg_des)))
     {
-        dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_lannet: %s & %s == %s & %s\n",
+        dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [Y] tasks_cfg_is_lannet: %s & %s == %s & %s\n",
                             TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKE_STR(tasks_cfg_src),
                             TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKE_STR(tasks_cfg_des));
         return (EC_TRUE);
     }
-    dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_lannet: %s & %s != %s & %s\n",
+    dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [N] tasks_cfg_is_lannet: %s & %s != %s & %s\n",
                         TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKE_STR(tasks_cfg_src),
                         TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKE_STR(tasks_cfg_des));
     return (EC_FALSE);
@@ -344,12 +362,12 @@ EC_BOOL tasks_cfg_is_externet(const TASKS_CFG *tasks_cfg_src, const TASKS_CFG *t
     /*src & maske(src) == des & maske(src)*/
     if(DES_TCID_IS_EXTERNET(TASKS_CFG_TCID(tasks_cfg_src), TASKS_CFG_MASKE(tasks_cfg_src), TASKS_CFG_TCID(tasks_cfg_des), TASKS_CFG_MASKI(tasks_cfg_des)))
     {
-        dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_externet: %s & %s == %s & %s\n",
+        dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [Y] tasks_cfg_is_externet: %s & %s == %s & %s\n",
                             TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKE_STR(tasks_cfg_src),
                             TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKI_STR(tasks_cfg_des));
         return (EC_TRUE);
     }
-    dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG] tasks_cfg_is_externet: %s & %s != %s & %s\n",
+    dbg_log(SEC_0019_TASKCFG, 1)(LOGSTDOUT, "[DEBUG] [N] tasks_cfg_is_externet: %s & %s != %s & %s\n",
                         TASKS_CFG_TCID_STR(tasks_cfg_src), TASKS_CFG_MASKE_STR(tasks_cfg_src),
                         TASKS_CFG_TCID_STR(tasks_cfg_des), TASKS_CFG_MASKI_STR(tasks_cfg_des));
     return (EC_FALSE);
@@ -679,60 +697,7 @@ EC_BOOL task_cfg_filter(const TASK_CFG *src_task_cfg, const UINT32 tcid, TASK_CF
         {
             continue;
         }
-#if 0
-        if(EC_TRUE == tasks_cfg_is_intranet(filtered_tasks_cfg, tasks_cfg))
-        {
-            dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG][I]tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d\n",
-                            TASKS_CFG_TCID_STR(tasks_cfg),
-                            TASKS_CFG_MASKI_STR(tasks_cfg),
-                            TASKS_CFG_MASKE_STR(tasks_cfg),
-                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
-                            TASKS_CFG_SRVPORT(tasks_cfg),
-                            TASKS_CFG_SRVSOCKFD(tasks_cfg));
-        }
-        if(EC_TRUE == tasks_cfg_is_externet(filtered_tasks_cfg, tasks_cfg))
-        {
-            dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG][E]tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d\n",
-                            TASKS_CFG_TCID_STR(tasks_cfg),
-                            TASKS_CFG_MASKI_STR(tasks_cfg),
-                            TASKS_CFG_MASKE_STR(tasks_cfg),
-                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
-                            TASKS_CFG_SRVPORT(tasks_cfg),
-                            TASKS_CFG_SRVSOCKFD(tasks_cfg));
-        }
-        if(EC_TRUE == tasks_cfg_is_lannet(filtered_tasks_cfg, tasks_cfg))
-        {
-            dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG][L]tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d\n",
-                            TASKS_CFG_TCID_STR(tasks_cfg),
-                            TASKS_CFG_MASKI_STR(tasks_cfg),
-                            TASKS_CFG_MASKE_STR(tasks_cfg),
-                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
-                            TASKS_CFG_SRVPORT(tasks_cfg),
-                            TASKS_CFG_SRVSOCKFD(tasks_cfg));
-        }
 
-        if(EC_TRUE == tasks_cfg_is_dbgnet(filtered_tasks_cfg, tasks_cfg))
-        {
-            dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG][D]tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d\n",
-                            TASKS_CFG_TCID_STR(tasks_cfg),
-                            TASKS_CFG_MASKI_STR(tasks_cfg),
-                            TASKS_CFG_MASKE_STR(tasks_cfg),
-                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
-                            TASKS_CFG_SRVPORT(tasks_cfg),
-                            TASKS_CFG_SRVSOCKFD(tasks_cfg));
-        }
-
-        if(EC_TRUE == tasks_cfg_is_monnet(filtered_tasks_cfg, tasks_cfg))
-        {
-            dbg_log(SEC_0019_TASKCFG, 9)(LOGSTDOUT, "[DEBUG][D]tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d\n",
-                            TASKS_CFG_TCID_STR(tasks_cfg),
-                            TASKS_CFG_MASKI_STR(tasks_cfg),
-                            TASKS_CFG_MASKE_STR(tasks_cfg),
-                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
-                            TASKS_CFG_SRVPORT(tasks_cfg),
-                            TASKS_CFG_SRVSOCKFD(tasks_cfg));
-        }
-#endif
         /*clone tasks_cfg when filtered_tasks_cfg belongs to the intranet or lanmet or extrannet of it*/
         if(EC_TRUE == tasks_cfg_is_intranet(tasks_cfg, filtered_tasks_cfg)/*whether filtered_tasks_cfg belong to intranet of tasks_cfg*/
         || EC_TRUE == tasks_cfg_is_externet(tasks_cfg, filtered_tasks_cfg)/*whether filtered_tasks_cfg belong to extranet of tasks_cfg*/

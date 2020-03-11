@@ -42,7 +42,7 @@ extern "C"{
 #define CMPI_ANY_MON_TCID   ((UINT32)( -7))
 
 #define CMPI_ERROR_TCID     ((UINT32)( -8))
-#define CMPI_ERROR_MASK     ((UINT32)(  1))
+#define CMPI_ERROR_MASK     ((UINT32)( -1))
 #define CMPI_ERROR_COMM     (CMPI_COMM_NULL)
 #define CMPI_ERROR_RANK     ((UINT32)( -9))
 #define CMPI_ERROR_MODI     ((UINT32)( -10))

@@ -226,6 +226,54 @@ UINT32 MD5_hash(const UINT32 len, const UINT8 *str)
     return (hash);
 }
 
+/*from ngx_murmur_hash2*/
+UINT32 MURMUR_hash(const UINT32 len, const UINT8 *data)
+{
+    uint32_t  h;
+    uint32_t  k;
+    uint32_t  dlen;
+
+    dlen = ((uint32_t)len);
+    h = 0 ^ dlen;
+
+    while (dlen >= 4)
+    {
+        k  = data[0];
+        k |= data[1] << 8;
+        k |= data[2] << 16;
+        k |= data[3] << 24;
+
+        k *= 0x5bd1e995;
+        k ^= k >> 24;
+        k *= 0x5bd1e995;
+
+        h *= 0x5bd1e995;
+        h ^= k;
+
+        data += 4;
+        dlen -= 4;
+    }
+
+    switch (dlen)
+    {
+        case 3:
+            h ^= data[2] << 16;
+            /* fall through */
+        case 2:
+            h ^= data[1] << 8;
+            /* fall through */
+        case 1:
+            h ^= data[0];
+            h *= 0x5bd1e995;
+    }
+
+    h ^= h >> 13;
+    h *= 0x5bd1e995;
+    h ^= h >> 15;
+
+    return (h);
+}
+
 CHASH_ALGO chash_algo_fetch(const UINT32 chash_algo_id)
 {
     CHASH_ALGO_NODE *chash_algo_node;

@@ -450,12 +450,13 @@ CRB_NODE *cconhash_add_vnode(CCONHASH *cconhash, const CCONHASH_VNODE *cconhash_
 
 STATIC_CAST static uint32_t __cconhash_hash_vnode(CCONHASH *cconhash, const uint32_t tcid, const uint16_t replica, const UINT32 salt)
 {
-    char     str[64];
+    uint64_t sid;
     uint32_t len;
     uint32_t hash;
 
-    len  = snprintf(str, sizeof(str), "%s.%u.%ld", c_word_to_ipv4(tcid), (uint32_t)(replica * replica), salt);
-    hash = (uint32_t)CCONHASH_HASH_FUNC(cconhash)(len, (UINT8 *)str);
+    sid = ((((uint64_t)tcid) << 32) | (((uint64_t)replica) << 16) | (((uint64_t)salt) & 0xFFFF));
+    len = 8; /*64bits*/
+    hash = (uint32_t)CCONHASH_HASH_FUNC(cconhash)(len, (UINT8 *)&sid);
 
     return (hash);
 }
@@ -587,12 +588,12 @@ EC_BOOL cconhash_add_node(CCONHASH *cconhash, const uint32_t tcid, const uint16_
 {
     CCONHASH_RNODE  cconhash_rnode_t;
     CCONHASH_RNODE *cconhash_rnode;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),
-                                                 (void *)&cconhash_rnode_t,
-                                                 (CVECTOR_DATA_CMP)cconhash_rnode_cmp_tcid);
+                                             (void *)&cconhash_rnode_t,
+                                             (CVECTOR_DATA_CMP)cconhash_rnode_cmp_tcid);
     if(CVECTOR_ERR_POS != cconhash_rnode_pos)
     {
         cconhash_rnode = (CCONHASH_RNODE *)cvector_get(CCONHASH_RNODE_VEC(cconhash), cconhash_rnode_pos);
@@ -653,7 +654,7 @@ EC_BOOL cconhash_del_node(CCONHASH *cconhash, const uint32_t tcid)
 {
     CCONHASH_RNODE  cconhash_rnode_t;
     CCONHASH_RNODE *cconhash_rnode;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),
@@ -696,7 +697,7 @@ EC_BOOL cconhash_up_node(CCONHASH *cconhash, const uint32_t tcid)
 {
     CCONHASH_RNODE  cconhash_rnode_t;
     CCONHASH_RNODE *cconhash_rnode;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),
@@ -768,7 +769,7 @@ EC_BOOL cconhash_down_node(CCONHASH *cconhash, const uint32_t tcid)
 {
     CCONHASH_RNODE  cconhash_rnode_t;
     CCONHASH_RNODE *cconhash_rnode;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),
@@ -826,7 +827,7 @@ EC_BOOL cconhash_down_node(CCONHASH *cconhash, const uint32_t tcid)
 EC_BOOL cconhash_has_node(const CCONHASH *cconhash, const uint32_t tcid)
 {
     CCONHASH_RNODE  cconhash_rnode_t;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),
@@ -846,7 +847,7 @@ CCONHASH_RNODE *cconhash_get_rnode(const CCONHASH *cconhash, const uint32_t tcid
 {
     CCONHASH_RNODE  cconhash_rnode_t;
     CCONHASH_RNODE *cconhash_rnode;
-    UINT32             cconhash_rnode_pos;
+    UINT32          cconhash_rnode_pos;
 
     CCONHASH_RNODE_TCID(&cconhash_rnode_t) = tcid;
     cconhash_rnode_pos = cvector_search_front(CCONHASH_RNODE_VEC(cconhash),

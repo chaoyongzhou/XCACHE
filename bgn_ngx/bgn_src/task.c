@@ -6905,11 +6905,11 @@ EC_BOOL task_brd_http_connp_one_cluster(TASK_BRD *task_brd, const UINT32 cluster
     cluster_cfg = sys_cfg_get_cluster_cfg_by_id(TASK_BRD_SYS_CFG(task_brd), cluster_id);
     if(NULL_PTR == cluster_cfg)
     {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_http_connp_one_cluster: not found cluter %ld definition\n", cluster_id);
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_http_connp_one_cluster: not found cluster %ld definition\n", cluster_id);
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_http_connp_one_cluster: try to register to cluter %ld (%s)\n",
+    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_http_connp_one_cluster: try to register to cluster %ld (%s)\n",
                         cluster_id, (char *)CLUSTER_CFG_NAME_STR(cluster_cfg));
 
     if(MODEL_TYPE_MASTER_SLAVE == CLUSTER_CFG_MODEL(cluster_cfg))
@@ -7023,8 +7023,10 @@ EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid)
     remote_tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), tcid, CMPI_ANY_MASK, CMPI_ANY_MASK);
     if(NULL_PTR == remote_tasks_cfg)
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "info:task_brd_register_node: not found tasks_cfg of node %s\n", c_word_to_ipv4(tcid));
-        return (EC_TRUE);
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "info:task_brd_register_node: "
+                                             "not found tasks_cfg of node %s\n",
+                                             c_word_to_ipv4(tcid));
+        return (EC_FALSE);
     }
 
     /*check whether remote_tasks_cfg belong to the intranet of local_tasks_cfg*/
@@ -7035,20 +7037,23 @@ EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid)
     && EC_FALSE == tasks_cfg_is_monnet(TASK_BRD_LOCAL_TASKS_CFG(task_brd), remote_tasks_cfg)
     )
     {
-        return (EC_TRUE);
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node: "
+                                             "not in same subnet\n");
+        return (EC_FALSE);
     }
 
     if(CMPI_ERROR_IPADDR  == TASKS_CFG_SRVIPADDR(remote_tasks_cfg)
     || CMPI_ERROR_SRVPORT == TASKS_CFG_SRVPORT(remote_tasks_cfg))
     {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node: not register to remote tasks tcid %s: "
-                                             "maski %s maske %s [srvipaddr %s:srvport %ld]\n",
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node: "
+                            "not register to remote tasks tcid %s: "
+                            "maski %s maske %s [srvipaddr %s:srvport %ld]\n",
                             TASKS_CFG_TCID_STR(remote_tasks_cfg),
                             TASKS_CFG_MASKI_STR(remote_tasks_cfg),
                             TASKS_CFG_MASKE_STR(remote_tasks_cfg),
                             TASKS_CFG_SRVIPADDR_STR(remote_tasks_cfg),
                             TASKS_CFG_SRVPORT(remote_tasks_cfg));
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == task_brd_register_one(task_brd, TASKS_CFG_TCID(remote_tasks_cfg),
@@ -7056,17 +7061,19 @@ EC_BOOL task_brd_register_node(TASK_BRD *task_brd, const UINT32 tcid)
                                       TASKS_CFG_SRVPORT(remote_tasks_cfg),
                                       (UINT32)CSOCKET_CNODE_NUM))
     {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node: register to remote tasks tcid %s: "
-                                             "maski %s maske %s [srvipaddr %s:srvport %ld] failed\n",
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_node: "
+                            "register to remote tasks tcid %s: "
+                            "maski %s maske %s [srvipaddr %s:srvport %ld] failed\n",
                             TASKS_CFG_TCID_STR(remote_tasks_cfg),
                             TASKS_CFG_MASKI_STR(remote_tasks_cfg),
                             TASKS_CFG_MASKE_STR(remote_tasks_cfg),
                             TASKS_CFG_SRVIPADDR_STR(remote_tasks_cfg),
                             TASKS_CFG_SRVPORT(remote_tasks_cfg));
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_node: register to remote tasks tcid %s: "
-                                         "maski %s maske %s [srvipaddr %s:srvport %ld] done\n",
+    dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_register_node: "
+                        "register to remote tasks tcid %s: "
+                        "maski %s maske %s [srvipaddr %s:srvport %ld] done\n",
                         TASKS_CFG_TCID_STR(remote_tasks_cfg),
                         TASKS_CFG_MASKI_STR(remote_tasks_cfg),
                         TASKS_CFG_MASKE_STR(remote_tasks_cfg),
@@ -7120,74 +7127,34 @@ EC_BOOL task_brd_register_role_str(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg,
 
         if(EC_FALSE == cluster_node_cfg_check_role_str(cluster_node_cfg, role_str))
         {
-            dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str: give up, "
-                                                 "due to cluster_node_cfg role %s tcid %s  not matched to role %s\n",
+            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str: "
+                               "[N] [C:%ld] R:%s,T:%s mismatch R:%s\n",
+                               CLUSTER_CFG_ID(cluster_cfg),
                                (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg),
                                (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
                                role_str);
             continue;
         }
 
-        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str: try to register to "
-                                             "cluster_node_cfg role %s tcid %s which is matched to role %s\n",
+        if(EC_FALSE == task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg)))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str: "
+                               "[Y] [C:%ld] R:%s,T:%s match R:%s => register fail\n",
+                               CLUSTER_CFG_ID(cluster_cfg),
+                               (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg),
+                               (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
+                               role_str);
+            continue;
+        }
+
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str: "
+                           "[Y] [C:%ld] R:%s,T:%s match R:%s => register succ\n",
+                           CLUSTER_CFG_ID(cluster_cfg),
                            (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg),
                            (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
                            role_str);
-
-        task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));
     }
     CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0128);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL task_brd_register_role_str_and_group_cstr(TASK_BRD *task_brd, CLUSTER_CFG *cluster_cfg, const char *role_str, CSTRING *group_cstr)
-{
-    CVECTOR *cluster_nodes;
-    UINT32 pos;
-
-    cluster_nodes = CLUSTER_CFG_NODES(cluster_cfg);
-
-    CVECTOR_LOCK(cluster_nodes, LOC_TASK_0129);
-    for(pos = 0; pos < cvector_size(cluster_nodes); pos ++)
-    {
-        CLUSTER_NODE_CFG *cluster_node_cfg;
-
-        cluster_node_cfg = (CLUSTER_NODE_CFG *)cvector_get_no_lock(cluster_nodes, pos);
-        if(NULL_PTR == cluster_node_cfg)
-        {
-            continue;
-        }
-
-        if(EC_FALSE == cluster_node_cfg_check_role_str(cluster_node_cfg, role_str))
-        {
-            dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str_and_group_cstr: give up, "
-                                                 "due to cluster_node_cfg role %s tcid %s  not matched to role %s\n",
-                               (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg),
-                               (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
-                               role_str);
-            continue;
-        }
-
-        if(EC_FALSE == cluster_node_cfg_check_group_cstr(cluster_node_cfg, group_cstr))
-        {
-            dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str_and_group_cstr: give up, "
-                                                 "due to cluster_node_cfg group %s tcid %s  not matched to group %s\n",
-                               (char *)CLUSTER_NODE_CFG_GROUP_STR(cluster_node_cfg),
-                               (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
-                               (char *)cstring_get_str(group_cstr));
-            continue;
-        }
-
-        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_role_str_and_group_cstr: try to register to "
-                                             "cluster_node_cfg role %s tcid %s which is matched to role %s\n",
-                           (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg),
-                           (char *)CLUSTER_NODE_CFG_TCID_STR(cluster_node_cfg),
-                           role_str);
-
-        task_brd_register_node(task_brd, CLUSTER_NODE_CFG_TCID(cluster_node_cfg));
-    }
-    CVECTOR_UNLOCK(cluster_nodes, LOC_TASK_0130);
 
     return (EC_TRUE);
 }
@@ -7200,24 +7167,31 @@ EC_BOOL task_brd_register_master_slave_cluster(TASK_BRD *task_brd, CLUSTER_CFG *
     cluster_node_cfg = cluster_cfg_search_by_tcid_rank(cluster_cfg, TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
     if(NULL_PTR == cluster_node_cfg)
     {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_master_slave_cluster: current tcid %s rank %ld not belong to cluster %ld\n",
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_master_slave_cluster: "
+                           "tcid %s rank %ld not in cluster %ld\n",
                            TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), CLUSTER_CFG_ID(cluster_cfg));
         return (EC_TRUE);
     }
 
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_master_slave_cluster: "
+                       "tcid %s rank %ld in cluster %ld\n",
+                       TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), CLUSTER_CFG_ID(cluster_cfg));
+
+
     /*I am master, connect to all slaves*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"master:server"))
+    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"master"))
     {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"slave:client");
+        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"slave");
     }
 
     /*I am slave, connect to all masters*/
-    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"slave:client"))
+    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg, (const char *)"slave"))
     {
-        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"master:server");
+        return task_brd_register_role_str(task_brd, cluster_cfg, (const char *)"master");
     }
 
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_master_slave_cluster: invalid cluster node role %s\n",
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_master_slave_cluster: "
+                       "invalid cluster node role %s\n",
                        (char *)CLUSTER_NODE_CFG_ROLE_STR(cluster_node_cfg));
     return (EC_FALSE);
 }
@@ -7234,12 +7208,17 @@ EC_BOOL task_brd_register_one_cluster(TASK_BRD *task_brd, const UINT32 cluster_i
     cluster_cfg = sys_cfg_get_cluster_cfg_by_id(TASK_BRD_SYS_CFG(task_brd), cluster_id);
     if(NULL_PTR == cluster_cfg)
     {
-        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_one_cluster: not found cluter %ld definition\n", cluster_id);
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_brd_register_one_cluster: "
+                        "not found cluster %ld definition\n",
+                        cluster_id);
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one_cluster: try to register to cluter %ld (%s)\n",
-                        cluster_id, (char *)CLUSTER_CFG_NAME_STR(cluster_cfg));
+    dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_register_one_cluster: "
+                        "tcid %s, rank %ld in cluster %ld (%s) model %ld\n",
+                        TASK_BRD_TCID_STR(task_brd),
+                        TASK_BRD_RANK(task_brd),
+                        cluster_id, (char *)CLUSTER_CFG_NAME_STR(cluster_cfg), CLUSTER_CFG_MODEL(cluster_cfg));
 
     if(MODEL_TYPE_MASTER_SLAVE == CLUSTER_CFG_MODEL(cluster_cfg))
     {
@@ -7251,7 +7230,9 @@ EC_BOOL task_brd_register_one_cluster(TASK_BRD *task_brd, const UINT32 cluster_i
         return task_brd_register_cross_cluster(task_brd, cluster_cfg);
     }
 
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_cluster_one: invalid cluster model %ld\n", CLUSTER_CFG_MODEL(cluster_cfg));
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_register_cluster_one: "
+                    "invalid cluster model %ld\n",
+                    CLUSTER_CFG_MODEL(cluster_cfg));
     return (EC_FALSE);
 }
 
@@ -8248,24 +8229,8 @@ LOG * task_brd_default_init(int argc, char **argv)
     }
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
-    /*start crfs monintor*/
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH
-    && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
-    {
-        TASK_BRD_CMON_ID(task_brd) = cmon_start();
-        if(CMPI_ERROR_MODI == TASK_BRD_CMON_ID(task_brd))
-        {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: abort due to start cmon failed\n");
-            task_brd_free(task_brd);
-
-            task_brd_default_abort();/*abort !*/
-        }
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start cmon done\n");
-    }
-
-    /*start cxfs monintor*/
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH
-    && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
+    /*start monintor*/
+    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         TASK_BRD_CMON_ID(task_brd) = cmon_start();
         if(CMPI_ERROR_MODI == TASK_BRD_CMON_ID(task_brd))
@@ -8311,9 +8276,14 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     /*register to remote servers before current taskcomm is ready*/
     /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd))*/
+    dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_default_int: tcid %s, rank %ld\n",
+                                         TASK_BRD_TCID_STR(task_brd),
+                                         TASK_BRD_RANK(task_brd));
     if (CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
         task_brd_register_cluster(task_brd);
+
+        dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_default_int: register cluster done\n");
     }
 
     /*[optional] share TASKC_NODE info to forwarding process of taskComm*/
@@ -8669,28 +8639,12 @@ UINT32 task_brd_default_get_cmon_id()
 
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
+                                           path,tcid, srv_ipaddr, srv_port))
     {
-        if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
-                                               path,tcid, srv_ipaddr, srv_port))
-        {
-            return (EC_FALSE);
-        }
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-    {
-        if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
-                                               path,tcid, srv_ipaddr, srv_port))
-        {
-            return (EC_FALSE);
-        }
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_get_store_http_srv: invalid switch\n");
-    return (EC_FALSE);
+    return (EC_TRUE);
 }
 
 EC_BOOL task_brd_default_check_validity()

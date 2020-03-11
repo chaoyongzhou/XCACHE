@@ -28,7 +28,7 @@ extern "C"{
 #include "cconhash.h"
 
 
-#define CMON_CONHASH_DEFAULT_HASH_ALGO       CHASH_MD5_ALGO_ID
+#define CMON_CONHASH_DEFAULT_HASH_ALGO       CHASH_MURMUR_ALGO_ID
 #define CMON_HOT_PATH_HASH_ALGO              CHASH_RS_ALGO_ID
 
 typedef struct
@@ -122,7 +122,7 @@ EC_BOOL cmon_node_is_up(const CMON_NODE *cmon_node);
 
 EC_BOOL cmon_node_is_valid(const CMON_NODE *cmon_node);
 
-int cmon_node_cmp(const CMON_NODE *cmon_node_1st, const CMON_NODE *cmon_node_2nd);
+EC_BOOL cmon_node_cmp(const CMON_NODE *cmon_node_1st, const CMON_NODE *cmon_node_2nd);
 
 const char *cmon_node_state(const CMON_NODE *cmon_node);
 

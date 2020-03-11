@@ -537,7 +537,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: start CXFS module #%ld\n", cxfs_md_id);
 
-    if(SWITCH_ON == CXFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CXFS module is allowed to launch xfs http server*/
         /*http server*/
@@ -1026,7 +1026,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: start CXFS module #%ld\n", cxfs_md_id);
 
-    if(SWITCH_ON == CXFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CXFS module is allowed to launch xfs http server*/
         /*http server*/

@@ -48,6 +48,7 @@ extern "C"{
 #include "cbtimer.h"
 #include "chttp.h"
 #include "crfshttp.h"
+#include "cxfshttp.h"
 #include "cdns.h"
 #include "findex.inc"
 
@@ -7317,8 +7318,17 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"POST");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/update");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/update");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/update");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)c_word_to_str(CBYTES_LEN(cbytes)));
@@ -7373,152 +7383,73 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 **/
 STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    TASK_BRD    *task_brd;
+    TASK_MGR    *task_mgr;
+
+    UINT32       cmon_md_id;
+
+    UINT32       pos;
+    UINT32       num;
+    EC_BOOL      ret;
+
+    task_brd = task_brd_default_get();
+
+    cmon_md_id = TASK_BRD_CMON_ID(task_brd);
+    if(CMPI_ERROR_MODI == cmon_md_id)
     {
-        TASK_BRD    *task_brd;
-        TASK_MGR    *task_mgr;
-
-        UINT32       cmon_md_id;
-
-        UINT32       pos;
-        UINT32       num;
-        EC_BOOL      ret;
-
-        task_brd = task_brd_default_get();
-
-        cmon_md_id = TASK_BRD_CMON_ID(task_brd);
-        if(CMPI_ERROR_MODI == cmon_md_id)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no cmon started\n");
-            return (EC_FALSE);
-        }
-
-        cmon_count_nodes(cmon_md_id, &num);
-        if(0 == num)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
-            return (EC_FALSE);
-        }
-
-        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-
-        for(pos = 0; pos < num; pos ++)
-        {
-            CMON_NODE      cmon_node;
-            MOD_NODE       recv_mod_node;
-
-            cmon_node_init(&cmon_node);
-            if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
-            {
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            if(EC_FALSE == cmon_node_is_up(&cmon_node))
-            {
-                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
-                        );
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
-            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-            MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
-
-            task_p2p_inc(task_mgr, 0, &recv_mod_node,
-                    &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
-                    CMON_NODE_TCID(&cmon_node), CMON_NODE_IPADDR(&cmon_node), CMON_NODE_PORT(&cmon_node), path);
-
-            cmon_node_clean(&cmon_node);
-        }
-
-        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
-
-        return (EC_TRUE);
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no cmon started\n");
+        return (EC_FALSE);
     }
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    cmon_count_nodes(cmon_md_id, &num);
+    if(0 == num)
     {
-        TASK_BRD    *task_brd;
-        TASK_MGR    *task_mgr;
-
-        UINT32       cmon_md_id;
-
-        UINT32       pos;
-        UINT32       num;
-        EC_BOOL      ret;
-
-        task_brd = task_brd_default_get();
-
-        cmon_md_id = TASK_BRD_CMON_ID(task_brd);
-        if(CMPI_ERROR_MODI == cmon_md_id)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: no cmon started\n");
-            return (EC_FALSE);
-        }
-
-        cmon_count_nodes(cmon_md_id, &num);
-        if(0 == num)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
-            return (EC_FALSE);
-        }
-
-        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-
-        for(pos = 0; pos < num; pos ++)
-        {
-            CMON_NODE      cmon_node;
-            MOD_NODE       recv_mod_node;
-
-            cmon_node_init(&cmon_node);
-            if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
-            {
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            if(EC_FALSE == cmon_node_is_up(&cmon_node))
-            {
-                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
-                        );
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
-            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-            MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
-
-            task_p2p_inc(task_mgr, 0, &recv_mod_node,
-                    &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
-                    CMON_NODE_TCID(&cmon_node), CMON_NODE_IPADDR(&cmon_node), CMON_NODE_PORT(&cmon_node), path);
-
-            cmon_node_clean(&cmon_node);
-        }
-
-        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
-
-        return (EC_TRUE);
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: store is empty\n");
+        return (EC_FALSE);
     }
 
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_http_store_after_ddir: not delete '%.*s' due to invalid switch\n",
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CMON_NODE      cmon_node;
+        MOD_NODE       recv_mod_node;
+
+        cmon_node_init(&cmon_node);
+        if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
+        {
+            cmon_node_clean(&cmon_node);
+            continue;
+        }
+
+        if(EC_FALSE == cmon_node_is_up(&cmon_node))
+        {
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                    c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
+                    );
+            cmon_node_clean(&cmon_node);
+            continue;
+        }
+
+        MOD_NODE_TCID(&recv_mod_node) = TASK_BRD_TCID(task_brd);
+        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+        MOD_NODE_RANK(&recv_mod_node) = TASK_BRD_RANK(task_brd);
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+
+        task_p2p_inc(task_mgr, 0, &recv_mod_node,
+                &ret, FI_super_delete_dir, CMPI_ERROR_MODI,
+                CMON_NODE_TCID(&cmon_node), CMON_NODE_IPADDR(&cmon_node), CMON_NODE_PORT(&cmon_node), path);
+
+        cmon_node_clean(&cmon_node);
+    }
+
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' done\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
-    return (EC_FALSE);
+    return (EC_TRUE);
 }
 
 EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CBYTES *cbytes, const CSTRING *auth_token, const CHTTP_STORE *chttp_store)
@@ -7553,148 +7484,71 @@ EC_BOOL super_http_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid,
 
 STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_store, const CSTRING *path)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    TASK_BRD    *task_brd;
+    TASK_MGR    *task_mgr;
+
+    UINT32       cmon_md_id;
+
+    UINT32       pos;
+    UINT32       num;
+    EC_BOOL      ret;
+
+    task_brd = task_brd_default_get();
+
+    cmon_md_id = TASK_BRD_CMON_ID(task_brd);
+    if(CMPI_ERROR_MODI == cmon_md_id)
     {
-        TASK_BRD    *task_brd;
-        TASK_MGR    *task_mgr;
-
-        UINT32       cmon_md_id;
-
-        UINT32       pos;
-        UINT32       num;
-        EC_BOOL      ret;
-
-        task_brd = task_brd_default_get();
-
-        cmon_md_id = TASK_BRD_CMON_ID(task_brd);
-        if(CMPI_ERROR_MODI == cmon_md_id)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no cmon started\n");
-            return (EC_FALSE);
-        }
-
-        cmon_count_nodes(cmon_md_id, &num);
-        if(0 == num)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
-            return (EC_FALSE);
-        }
-
-        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-
-        for(pos = 0; pos < num; pos ++)
-        {
-            CMON_NODE      cmon_node;
-            MOD_NODE       recv_mod_node;
-
-            cmon_node_init(&cmon_node);
-            if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
-            {
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            if(EC_FALSE == cmon_node_is_up(&cmon_node))
-            {
-                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
-                        );
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
-            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-            MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
-
-            task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_crfs_delete, CMPI_ERROR_MODI, path, CRFSNP_ITEM_FILE_IS_DIR);
-
-            cmon_node_clean(&cmon_node);
-        }
-
-        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: rfs delete '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
-
-        return (EC_TRUE);
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no cmon started\n");
+        return (EC_FALSE);
     }
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    cmon_count_nodes(cmon_md_id, &num);
+    if(0 == num)
     {
-        TASK_BRD    *task_brd;
-        TASK_MGR    *task_mgr;
-
-        UINT32       cmon_md_id;
-
-        UINT32       pos;
-        UINT32       num;
-        EC_BOOL      ret;
-
-        task_brd = task_brd_default_get();
-
-        cmon_md_id = TASK_BRD_CMON_ID(task_brd);
-        if(CMPI_ERROR_MODI == cmon_md_id)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: no cmon started\n");
-            return (EC_FALSE);
-        }
-
-        cmon_count_nodes(cmon_md_id, &num);
-        if(0 == num)
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
-            return (EC_FALSE);
-        }
-
-        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-
-        for(pos = 0; pos < num; pos ++)
-        {
-            CMON_NODE      cmon_node;
-            MOD_NODE       recv_mod_node;
-
-            cmon_node_init(&cmon_node);
-            if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
-            {
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            if(EC_FALSE == cmon_node_is_up(&cmon_node))
-            {
-                dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
-                        );
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
-            MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
-            MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
-
-            task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_cxfs_delete, CMPI_ERROR_MODI, path, CXFSNP_ITEM_FILE_IS_DIR);
-
-            cmon_node_clean(&cmon_node);
-        }
-
-        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: xfs delete '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
-
-        return (EC_TRUE);
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: store is empty\n");
+        return (EC_FALSE);
     }
 
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:__super_store_after_ddir: delete '%.*s' due to invalid switch\n",
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+
+    for(pos = 0; pos < num; pos ++)
+    {
+        CMON_NODE      cmon_node;
+        MOD_NODE       recv_mod_node;
+
+        cmon_node_init(&cmon_node);
+        if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
+        {
+            cmon_node_clean(&cmon_node);
+            continue;
+        }
+
+        if(EC_FALSE == cmon_node_is_up(&cmon_node))
+        {
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+                    (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                    c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
+                    );
+            cmon_node_clean(&cmon_node);
+            continue;
+        }
+
+        MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
+        MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+
+        task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_crfs_delete, CMPI_ERROR_MODI, path, CRFSNP_ITEM_FILE_IS_DIR);
+
+        cmon_node_clean(&cmon_node);
+    }
+
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' done\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
 
-    return (EC_FALSE);
+    return (EC_TRUE);
 }
 
 /*over bgn*/
@@ -7827,8 +7681,18 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_notify_req");
-    cstring_append_cstr(uri, path);
+
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_notify_req");
+        cstring_append_cstr(uri, path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/unlock_notify_req");
+        cstring_append_cstr(uri, path);
+    }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_unlock_notify: req uri '%.*s' done\n",
                 (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
@@ -7892,8 +7756,18 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_req");
-    cstring_append_cstr(uri, path);
+
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(uri, (uint8_t *)CRFSHTTP_REST_API_NAME"/unlock_req");
+        cstring_append_cstr(uri, path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/unlock_req");
+        cstring_append_cstr(uri, path);
+    }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_http: req uri '%.*s'\n",
                 (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
@@ -8002,8 +7876,17 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_wait");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8092,8 +7975,17 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
                         (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/getsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8256,8 +8148,17 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_wait");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_wait");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8344,8 +8245,17 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
                         (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CRFSHTTP_REST_API_NAME"/getsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/getsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+    }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8504,8 +8414,17 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/renew_header");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req_t, (const char *)"Content-Length", (char *)"0");
@@ -8574,8 +8493,17 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/renew_header");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/renew_header");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req_t, (const char *)"Content-Length", (char *)"0");
@@ -8666,8 +8594,17 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_notify");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/file_notify");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_notify");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req_t, (const char *)"Content-Length", (char *)"0");
@@ -8728,8 +8665,17 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/ddir");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/ddir");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/ddir");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req_t, (const char *)"Content-Length", (char *)"0");
@@ -8790,8 +8736,17 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/dsmf");
-    cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CRFSHTTP_REST_API_NAME"/dsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
+
+    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    {
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/dsmf");
+        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+    }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req_t, (const char *)"Content-Length", (char *)"0");

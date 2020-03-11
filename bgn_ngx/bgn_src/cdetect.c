@@ -172,7 +172,7 @@ UINT32 cdetect_start(const CSTRING *cdetect_conf_file)
                                             "start CDETECT module #%ld\n",
                                             cdetect_md_id);
 
-    if(SWITCH_ON == CDETECTHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CDETECT module is allowed to launch tdns http server*/
         /*http server*/

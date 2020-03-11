@@ -137,14 +137,11 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
     CRFS_MD *crfs_md;
     UINT32   crfs_md_id;
 
-    TASK_BRD *task_brd;
     EC_BOOL   ret;
 
     CSTRING *crfs_dir;
     CSTRING *crfsnp_root_dir;
     CSTRING *crfsdn_root_dir;
-
-    task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CRFS, 32);
 
@@ -318,30 +315,7 @@ UINT32 crfs_start(const CSTRING *crfs_root_dir)
 
     dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "[DEBUG] crfs_start: start CRFS module #%ld\n", crfs_md_id);
 
-    if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
-    {
-        UINT32 core_max_num;
-        UINT32 flush_thread_idx;
-
-        CRFS_MD_TERMINATE_FLAG(crfs_md) = EC_FALSE;
-        core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
-
-        ASSERT(0 < CRFS_DN_DEFER_WRITE_THREAD_NUM);
-
-        for(flush_thread_idx = 0; flush_thread_idx < CRFS_DN_DEFER_WRITE_THREAD_NUM; flush_thread_idx ++)
-        {
-            cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
-                    (const char *)"crfsdn_flush_cache_nodes",
-                    (UINT32)crfsdn_flush_cache_nodes,
-                    (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
-                    (UINT32)2,/*para num*/
-                    (UINT32)(&(CRFS_MD_DN(crfs_md))),
-                    (UINT32)&(CRFS_MD_TERMINATE_FLAG(crfs_md))
-                    );
-        }
-    }
-
-    if(SWITCH_ON == CRFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CRFS module is allowed to launch rfs http server*/
         /*http server*/
@@ -417,7 +391,7 @@ void crfs_end(const UINT32 crfs_md_id)
 
 #if 0
     /*stop server*/
-    if(SWITCH_ON == CRFSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CRFS module is allowed to launch rfs http server*/
         if(EC_TRUE == task_brd_default_check_csrv_enabled() && 0 == crfs_md_id)
@@ -1660,11 +1634,6 @@ EC_BOOL crfs_write(const UINT32 crfs_md_id, const CSTRING *file_path, const CBYT
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH)
-    {
-        return __crfs_write_cache(crfs_md_id, file_path, cbytes);
-    }
-
     return __crfs_write(crfs_md_id, file_path, cbytes);
 }
 
@@ -1679,11 +1648,6 @@ EC_BOOL crfs_write_no_lock(const UINT32 crfs_md_id, const CSTRING *file_path, co
         dbg_exit(MD_CRFS, crfs_md_id);
     }
 #endif/*CRFS_DEBUG_SWITCH*/
-
-    if(SWITCH_ON == CRFS_DN_DEFER_WRITE_SWITCH)
-    {
-        return __crfs_write_cache_no_lock(crfs_md_id, file_path, cbytes);
-    }
 
     return __crfs_write_no_lock(crfs_md_id, file_path, cbytes);
 }

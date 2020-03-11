@@ -257,7 +257,7 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
 
 
 #if 0
-    if(SWITCH_ON == CP2PHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CP2P module is allowed to launch tdns http server*/
         /*http server*/

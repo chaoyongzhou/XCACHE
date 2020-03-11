@@ -418,7 +418,7 @@ typedef struct
 #define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CXFSNP_MAX_USED_RATIO_DEF                       (0.999)
-#define CPARACFG_CXFSDN_MAX_USED_RATIO_DEF                       (0.999)
+#define CPARACFG_CXFSDN_MAX_USED_RATIO_DEF                       (0.980)
 
 #define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
 #define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
@@ -432,7 +432,7 @@ typedef struct
 //#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_ON
-#define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       4096
+#define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       32
 #define CPARACFG_CMON_HOT_PATH_SWITCH_DEF                        SWITCH_ON
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT_DEF               MEM_BUFF_32K

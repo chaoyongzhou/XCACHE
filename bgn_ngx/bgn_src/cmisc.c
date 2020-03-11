@@ -7492,7 +7492,6 @@ uint32_t c_get_32(const uint8_t *buffer, uint32_t *counter)
     return l;
 }
 
-
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

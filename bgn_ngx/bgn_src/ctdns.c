@@ -236,7 +236,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
 
     dbg_log(SEC_0026_CTDNS, 0)(LOGSTDOUT, "[DEBUG] ctdns_start: start CTDNS module #%ld\n", ctdns_md_id);
 
-    if(SWITCH_ON == CTDNSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CTDNS module is allowed to launch tdns http server*/
         /*http server*/
@@ -273,7 +273,7 @@ UINT32 ctdns_start(const CSTRING *ctdns_root_dir)
     }
 
 #if 1
-    if(SWITCH_ON == CP2PHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: trick! start p2p http server with same port as that of tdns http server*/
         /*http server*/
@@ -350,7 +350,7 @@ void ctdns_end(const UINT32 ctdns_md_id)
 
 #if 0
     /*stop server*/
-    if(SWITCH_ON == CTDNSHTTP_SWITCH && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
         /*note: only the first CTDNS module is allowed to launch tdns http server*/
         if(EC_TRUE == task_brd_default_check_csrv_enabled() && 0 == ctdns_md_id)
