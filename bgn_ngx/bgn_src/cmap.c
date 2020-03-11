@@ -98,6 +98,51 @@ EC_BOOL    cmap_node_cmp_val(const CMAP_NODE *cmap_node, const void *val, CMAP_V
     return (EC_FALSE);
 }
 
+EC_BOOL    cmap_node_clone(const CMAP_NODE *cmap_node_src, CMAP_NODE *cmap_node_des,
+                                 CMAP_KEY_NEW   key_new  , CMAP_VAL_NEW   val_new,
+                                 CMAP_KEY_FREE  key_free , CMAP_VAL_FREE  val_free,
+                                 CMAP_KEY_CLONE key_clone, CMAP_VAL_CLONE val_clone,
+                                 UINT32 location)
+{
+    CMAP_NODE_KEY(cmap_node_des) = key_new();
+    if(NULL_PTR == CMAP_NODE_KEY(cmap_node_des))
+    {
+        return (EC_FALSE);
+    }
+
+    CMAP_NODE_VAL(cmap_node_des) = val_new();
+    if(NULL_PTR == CMAP_NODE_VAL(cmap_node_des))
+    {
+        key_free(CMAP_NODE_KEY(cmap_node_des), location);
+        CMAP_NODE_KEY(cmap_node_des) = NULL_PTR;
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == key_clone(CMAP_NODE_KEY(cmap_node_src), CMAP_NODE_KEY(cmap_node_des)))
+    {
+        key_free(CMAP_NODE_KEY(cmap_node_des), location);
+        CMAP_NODE_KEY(cmap_node_des) = NULL_PTR;
+
+        val_free(CMAP_NODE_VAL(cmap_node_des), location);
+        CMAP_NODE_VAL(cmap_node_des) = NULL_PTR;
+
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == val_clone(CMAP_NODE_VAL(cmap_node_src), CMAP_NODE_VAL(cmap_node_des)))
+    {
+        key_free(CMAP_NODE_KEY(cmap_node_des), location);
+        CMAP_NODE_KEY(cmap_node_des) = NULL_PTR;
+
+        val_free(CMAP_NODE_VAL(cmap_node_des), location);
+        CMAP_NODE_VAL(cmap_node_des) = NULL_PTR;
+
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 CMAP *  cmap_new(CMAP_KEY_FREE key_free, CMAP_VAL_FREE val_free, const UINT32 location)
 {
     CMAP *cmap;
@@ -208,6 +253,47 @@ void *  cmap_get_key_by_val(const CMAP *cmap, const void *val, CMAP_VAL_CMP val_
 UINT32  cmap_size(const CMAP *cmap)
 {
     return clist_size(CMAP_NODES(cmap));
+}
+
+EC_BOOL cmap_clone(const CMAP *cmap_src, CMAP *cmap_des,
+                   CMAP_KEY_NEW   key_new  , CMAP_VAL_NEW   val_new,
+                   CMAP_KEY_CLONE key_clone, CMAP_VAL_CLONE val_clone,
+                   UINT32 location)
+{
+    CLIST_DATA  *clist_data;
+
+    ASSERT(CMAP_KEY_FREE_FUNC(cmap_src) == CMAP_KEY_FREE_FUNC(cmap_des));
+    ASSERT(CMAP_VAL_FREE_FUNC(cmap_src) == CMAP_VAL_FREE_FUNC(cmap_des));
+
+    CLIST_LOOP_NEXT(CMAP_NODES(cmap_src), clist_data)
+    {
+        CMAP_NODE *cmap_node_src;
+        CMAP_NODE *cmap_node_des;
+
+        cmap_node_src = (CMAP_NODE *)CLIST_DATA_DATA(clist_data);
+
+        cmap_node_des = cmap_node_new(NULL_PTR, NULL_PTR, location);
+        if(NULL_PTR == cmap_node_des)
+        {
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cmap_node_clone(cmap_node_src, cmap_node_des,
+                                        key_new, val_new,
+                                        CMAP_KEY_FREE_FUNC(cmap_des), CMAP_VAL_FREE_FUNC(cmap_des),
+                                        key_clone, val_clone,
+                                        location))
+        {
+            cmap_node_free(cmap_node_des,
+                            CMAP_KEY_FREE_FUNC(cmap_des), CMAP_VAL_FREE_FUNC(cmap_des),
+                            location);
+            return (EC_FALSE);
+        }
+
+        clist_push_back(CMAP_NODES(cmap_des), (void *)cmap_node_des);
+    }
+
+    return (EC_TRUE);
 }
 
 #ifdef __cplusplus

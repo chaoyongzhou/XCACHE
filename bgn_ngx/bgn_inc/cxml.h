@@ -40,6 +40,8 @@ EC_BOOL cxml_parse_taskr_cfg(xmlNodePtr node, TASKR_CFG *taskr_cfg);
 
 EC_BOOL cxml_parse_task_cfg(xmlNodePtr node, TASK_CFG *task_cfg, const UINT32 default_tasks_cfg_port);
 
+EC_BOOL cxml_parse_tasks_cfg_vec(xmlNodePtr node, TASK_CFG *task_cfg, const UINT32 default_tasks_cfg_port);
+
 EC_BOOL cxml_parse_cluster_node_cfg(xmlNodePtr node, CLUSTER_NODE_CFG *cluster_node_cfg);
 
 EC_BOOL cxml_parse_cluster_cfg(xmlNodePtr node, CLUSTER_CFG *cluster_cfg);

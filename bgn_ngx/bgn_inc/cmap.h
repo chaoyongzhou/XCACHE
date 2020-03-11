@@ -23,6 +23,13 @@ typedef EC_BOOL (*CMAP_VAL_FREE)(void *, const UINT32);
 typedef EC_BOOL (*CMAP_KEY_CMP)(const void *, const void *);
 typedef EC_BOOL (*CMAP_VAL_CMP)(const void *, const void *);
 
+typedef void *  (*CMAP_KEY_NEW)();
+typedef void *  (*CMAP_VAL_NEW)();
+
+typedef EC_BOOL  (*CMAP_KEY_CLONE)(const void *, void *);
+typedef EC_BOOL  (*CMAP_VAL_CLONE)(const void *, void *);
+
+
 typedef struct
 {
     void *key;
@@ -53,6 +60,12 @@ EC_BOOL    cmap_node_umount(CMAP_NODE *cmap_node);
 EC_BOOL    cmap_node_cmp_key(const CMAP_NODE *cmap_node, const void *key, CMAP_KEY_CMP key_cmp);
 EC_BOOL    cmap_node_cmp_val(const CMAP_NODE *cmap_node, const void *val, CMAP_VAL_CMP val_cmp);
 
+EC_BOOL    cmap_node_clone(const CMAP_NODE *cmap_node_src, CMAP_NODE *cmap_node_des,
+                                 CMAP_KEY_NEW   key_new  , CMAP_VAL_NEW   val_new,
+                                 CMAP_KEY_FREE  key_free , CMAP_VAL_FREE  val_free,
+                                 CMAP_KEY_CLONE key_clone, CMAP_VAL_CLONE val_clone,
+                                 UINT32 location);
+
 CMAP *  cmap_new(CMAP_KEY_FREE key_free, CMAP_VAL_FREE val_free, const UINT32 location);
 EC_BOOL cmap_init(CMAP *cmap, CMAP_KEY_FREE key_free, CMAP_VAL_FREE val_free, const UINT32 location);
 EC_BOOL cmap_clean(CMAP *cmap, const UINT32 location);
@@ -61,6 +74,11 @@ EC_BOOL cmap_add(CMAP *cmap, void *key, void *val, const UINT32 location);
 void *  cmap_get_val_by_key(const CMAP *cmap, const void *key, CMAP_KEY_CMP key_cmp);
 void *  cmap_get_key_by_val(const CMAP *cmap, const void *val, CMAP_VAL_CMP val_cmp);
 UINT32  cmap_size(const CMAP *cmap);
+
+EC_BOOL cmap_clone(const CMAP *cmap_src, CMAP *cmap_des,
+                   CMAP_KEY_NEW   key_new  , CMAP_VAL_NEW   val_new,
+                   CMAP_KEY_CLONE key_clone, CMAP_VAL_CLONE val_clone,
+                   UINT32 location);
 
 #endif /*_CMAP_H*/
 
