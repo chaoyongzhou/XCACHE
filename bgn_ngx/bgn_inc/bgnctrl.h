@@ -69,40 +69,6 @@ extern "C"{
 /*Encode/Decode Functions Debug Switch*/
 #define ENCODE_DEBUG_SWITCH SWITCH_ON
 
-/*Task Functions Debug Switch*/
-#define TASK_DEBUG_SWITCH SWITCH_ON
-
-/*TASKC Functions Debug Switch*/
-#define TASKC_DEBUG_SWITCH SWITCH_ON
-
-/*Static Memory Control Switch*/
-#define STATIC_MEMORY_SWITCH SWITCH_ON
-
-/*Print Static Memory Stats Info Switch*/
-#define STATIC_MEM_STATS_INFO_PRINT_SWITCH SWITCH_OFF
-
-/*Static Memory Diagnostication Location Switch*/
-#define STATIC_MEM_DIAG_LOC_SWITCH SWITCH_ON
-
-/*Stack Memory Control Switch*/
-#define STACK_MEMORY_SWITCH SWITCH_OFF
-
-/*CLIST Memory Control Switch*/
-#define CLIST_STATIC_MEM_SWITCH SWITCH_ON
-
-/*CSET Memory Control Switch*/
-#define CSET_STATIC_MEM_SWITCH SWITCH_OFF
-
-/*CSTACK Memory Control Switch*/
-#define CSTACK_STATIC_MEM_SWITCH SWITCH_OFF
-
-/*CQUEUE Memory Control Switch*/
-#define CQUEUE_STATIC_MEM_SWITCH SWITCH_OFF
-
-#if (STATIC_MEMORY_SWITCH == STACK_MEMORY_SWITCH)
-#error "fatal error: STATIC_MEMORY_SWITCH equal to STACK_MEMORY_SWITCH"
-#endif/* STATIC_MEMORY_SWITCH == STACK_MEMORY_SWITCH */
-
 #define ASM_DISABLE_SWITCH SWITCH_ON
 
 #endif /* _CONTROL_H */

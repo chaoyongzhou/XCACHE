@@ -26,19 +26,10 @@ extern "C"{
 
 #include "debug.h"
 
-#if (SWITCH_OFF == CLIST_STATIC_MEM_SWITCH)
-#define SAFE_CLIST_DATA_MALLOC(clist_data, __location__)     (clist_data) = (CLIST_DATA *)SAFE_MALLOC(sizeof(CLIST_DATA), __location__)
-#define SAFE_CLIST_DATA_FREE(clist_data, __location__)       SAFE_FREE(clist_data, __location__)
-#define SAFE_CLIST_MALLOC(clist, __location__)               (clist) = (CLIST *)SAFE_MALLOC(sizeof(CLIST), __location__)
-#define SAFE_CLIST_FREE(clist, __location__)                 SAFE_FREE(clist, __location__)
-#endif
-
-#if (SWITCH_ON == CLIST_STATIC_MEM_SWITCH)
 #define SAFE_CLIST_DATA_MALLOC(clist_data, __location__)     alloc_static_mem(MM_CLIST_DATA, (void **)&(clist_data), (__location__))
 #define SAFE_CLIST_DATA_FREE(clist_data, __location__)       free_static_mem(MM_CLIST_DATA, (void *)(clist_data), (__location__))
 #define SAFE_CLIST_MALLOC(clist, __location__)               alloc_static_mem(MM_CLIST, (void **)&(clist), (__location__))
 #define SAFE_CLIST_FREE(clist, __location__)                 free_static_mem(MM_CLIST, (void *)(clist), (__location__))
-#endif
 
 STATIC_CAST static CLIST_DATA *clist_data_malloc_default()
 {

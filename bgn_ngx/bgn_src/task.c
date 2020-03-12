@@ -6751,6 +6751,33 @@ EC_BOOL task_brd_shortcut_config(TASK_BRD *task_brd)
     return (EC_TRUE);
 }
 
+EC_BOOL task_brd_bind_core(TASK_BRD *task_brd)
+{
+    UINT32          core_id;
+
+    core_id = PROC_CORE_ID;
+
+    if(CMPI_ERROR_CORE_ID != core_id)
+    {
+        cpu_set_t       mask;
+
+        CPU_ZERO(&mask);
+        CPU_SET(core_id, &mask);
+
+        if(0 > sched_setaffinity(0 /*current thread or process*/, sizeof(cpu_set_t), &mask))
+        {
+            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_bind_core: bind core %ld failed\n",
+                                                 core_id);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_bind_core: bind core %ld done\n",
+                                             core_id);
+    }
+
+    return (EC_TRUE);
+}
+
 /*--------------------------------- create http connection pool ---------------------------------*/
 EC_BOOL task_brd_http_connp_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port)
 {
@@ -8073,6 +8100,9 @@ LOG * task_brd_default_init(int argc, char **argv)
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: shortcut config failed\n");
         task_brd_default_abort();
     }
+
+    /*bind cpu core*/
+    task_brd_bind_core(task_brd);
 
     log_level_import(CPARACFG_LOG_LEVEL_TAB(TASK_BRD_CPARACFG(task_brd)), SEC_NONE_END);
 
@@ -10510,38 +10540,23 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
                     break;
                 }
 
-#if (SWITCH_ON == TASK_REQ_HANDLE_THREAD_SWITCH)
-#if 0
-                /*for debug only!*/
-                if(NULL_PTR != TASK_REQ_CTHREAD_NODE(task_req))
-                {
-                    /*note: when TASK_REQ_DECODE_THREAD_SWITCH is switch on, TASK_REQ_CTHREAD_NODE(task_req) should not be null*/
-                    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DBG] error: TASK_REQ_CTHREAD_NODE(task_req) %lx is not null\n", TASK_REQ_CTHREAD_NODE(task_req));
-                }
-#endif
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: thread try to load...\n");
-
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: croutine_pool_load: task_brd %p, task_node %p\n", task_brd, task_node);
-
                 TASK_REQ_CTHREAD_NODE(task_req) = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd),
                                                                 (UINT32)task_req_handle_thread,
                                                                 (UINT32)2,
                                                                 (UINT32)task_brd,
                                                                 (UINT32)task_req
                                                                 );
-                //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: routine loaded %lx\n", TASK_REQ_CTHREAD_NODE(task_req));
                 if(NULL_PTR != TASK_REQ_CTHREAD_NODE(task_req))
                 {
                     CLIST_DATA *clist_data_rmv;
 
                     clist_data_rmv = clist_data;
                     clist_data = CLIST_DATA_PREV(clist_data);
+
                     clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), clist_data_rmv);
-                    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: try to set thread loaded %lx to busy\n", TASK_REQ_CTHREAD_NODE(task_req));
-                    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_is_recv_queue_handle: set thread loaded %lx to busy done\n", TASK_REQ_CTHREAD_NODE(task_req));
+
                     CROUTINE_NODE_COND_RELEASE(TASK_REQ_CTHREAD_NODE(task_req), LOC_TASK_0171);
                 }
-#endif/*(SWITCH_ON == TASK_REQ_HANDLE_THREAD_SWITCH)*/
 
                 break;
             }

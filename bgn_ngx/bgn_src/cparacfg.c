@@ -56,6 +56,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_TCID(cparacfg) = this_tcid;
     CPARACFG_RANK(cparacfg) = this_rank;
 
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_PROC_CORE_ID);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_REQ_THREAD_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_RSP_THREAD_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CTHREAD_STACK_MAX_SIZE);
@@ -64,10 +66,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_SLOW_DOWN_MSEC);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES);
 
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_ENCODING_RULE);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSOCKET_SO_SNDBUFF_SIZE);
@@ -230,10 +228,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_TASK_SLOW_DOWN_MSEC               = %ld\n",  CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)           );
     sys_log(log, "CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES      = %ld\n",  CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg)  );
 
-    sys_log(log, "TASK_REQ_HANDLE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg) );
-    sys_log(log, "TASK_REQ_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg) );
-    sys_log(log, "TASK_RSP_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg) );
-    sys_log(log, "TASK_FWD_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg) );
     sys_log(log, "TASK_ENCODING_RULE                         = %ld\n",  CPARACFG_TASK_ENCODING_RULE(cparacfg)            );
 
     sys_log(log, "CSOCKET_SO_SNDBUFF_SIZE                    = %d\n",   CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)        );

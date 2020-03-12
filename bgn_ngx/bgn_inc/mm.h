@@ -28,16 +28,16 @@ extern "C"{
 #define     MD_CRUN      ((UINT32)  3)/* user interfaces */
 #define     MD_SUPER     ((UINT32)  4)
 #define     MD_CTIMER    ((UINT32)  5)
-#define     MD_CMON      ((UINT32)  6) /*-- obsolee --*/
+#define     MD_CMON      ((UINT32)  6)
 #define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_CRFS      ((UINT32)  9)
-#define     MD_0010      ((UINT32) 10) /*-- obsolee --*/
-#define     MD_0011      ((UINT32) 11) /*-- obsolee --*/
-#define     MD_0012      ((UINT32) 12) /*-- obsolee --*/
-#define     MD_0013      ((UINT32) 13) /*-- obsolee --*/
-#define     MD_0014      ((UINT32) 14) /*-- obsolee --*/
-#define     MD_0015      ((UINT32) 15) /*-- obsolee --*/
+#define     MD_0010      ((UINT32) 10) /*-- obsolete --*/
+#define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
+#define     MD_0012      ((UINT32) 12) /*-- obsolete --*/
+#define     MD_0013      ((UINT32) 13) /*-- obsolete --*/
+#define     MD_0014      ((UINT32) 14) /*-- obsolete --*/
+#define     MD_0015      ((UINT32) 15) /*-- obsolete --*/
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
 #define     MD_CRFSGW    ((UINT32) 18)
@@ -50,8 +50,8 @@ extern "C"{
 #define     MD_CDETECTN  ((UINT32) 25)
 #define     MD_CMIAOPAI  ((UINT32) 26)
 #define     MD_CXFS      ((UINT32) 27)
-#define     MD_0028      ((UINT32) 28) /*-- obsolee --*/
-#define     MD_END       ((UINT32) 29)
+#define     MD_0028      ((UINT32) 28) /*-- obsolete --*/
+#define     MD_END       ((UINT32) 64)
 
 /* Memory Management */
 #define                        MM_UINT32    ((UINT32)  0)
@@ -204,10 +204,10 @@ extern "C"{
 #define                    MM_CRFSNP_KEY    ((UINT32)137)
 #define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
 
-#define                        MM_000139    ((UINT32)139)
-#define                        MM_000140    ((UINT32)140)
-#define                        MM_000141    ((UINT32)141)
-#define                        MM_000142    ((UINT32)142)
+#define                        MM_000139    ((UINT32)139) /*-- obsolete --*/
+#define                        MM_000140    ((UINT32)140) /*-- obsolete --*/
+#define                        MM_000141    ((UINT32)141) /*-- obsolete --*/
+#define                        MM_000142    ((UINT32)142) /*-- obsolete --*/
 
 #define                        MM_UINT64    ((UINT32)143)
 #define                        MM_CEPOLL    ((UINT32)144)
@@ -221,15 +221,15 @@ extern "C"{
 #define                         MM_CHUNK    ((UINT32)150)
 #define                     MM_CHUNK_MGR    ((UINT32)151)
 #define                   MM_CMD5_DIGEST    ((UINT32)152)
-#define                        MM000153    ((UINT32)153)
-#define                        MM_000154    ((UINT32)154)
-#define                        MM_000155    ((UINT32)155)
-#define                        MM_000156    ((UINT32)156)
-#define                        MM_000157    ((UINT32)157)
-#define                        MM_000158    ((UINT32)158)
-#define                        MM_000159    ((UINT32)159)
+#define                        MM_000153    ((UINT32)153) /*-- obsolete --*/
+#define                        MM_000154    ((UINT32)154) /*-- obsolete --*/
+#define                        MM_000155    ((UINT32)155) /*-- obsolete --*/
+#define                        MM_000156    ((UINT32)156) /*-- obsolete --*/
+#define                        MM_000157    ((UINT32)157) /*-- obsolete --*/
+#define                        MM_000158    ((UINT32)158) /*-- obsolete --*/
+#define                        MM_000159    ((UINT32)159) /*-- obsolete --*/
 #define                      MM_CDEQUEUE    ((UINT32)160)
-#define                        MM_000161    ((UINT32)161)
+#define                        MM_000161    ((UINT32)161) /*-- obsolete --*/
 #define                   MM_CEXPAT_ATTR    ((UINT32)162)
 #define                   MM_CEXPAT_NODE    ((UINT32)163)
 #define              MM_CRFS_LOCKED_FILE    ((UINT32)164)
@@ -250,30 +250,30 @@ extern "C"{
 #define                MM_CRFS_WAIT_FILE    ((UINT32)179)
 #define                        MM_CCONNP    ((UINT32)180)
 #define                    MM_CCONNP_MGR    ((UINT32)181)
-#define                        MM_000182    ((UINT32)182)
+#define                        MM_000182    ((UINT32)182) /*-- obsolete --*/
 #define                   MM_CHTTPS_NODE    ((UINT32)183)
 #define                     MM_CSSL_NODE    ((UINT32)184)
-#define                        MM_000185    ((UINT32)185)
-#define                        MM_000186    ((UINT32)186)
-#define                        MM_000187    ((UINT32)187)
-#define                        MM_000188    ((UINT32)188)
-#define                        MM_000189    ((UINT32)189)
-#define                        MM_000190    ((UINT32)190)
-#define                        MM_000191    ((UINT32)191)
-#define                        MM_000192    ((UINT32)192)
-#define                        MM_000193    ((UINT32)193)
-#define                        MM_000194    ((UINT32)194)
-#define                        MM_000195    ((UINT32)195)
-#define                        MM_000196    ((UINT32)196)
-#define                        MM_000197    ((UINT32)197)
-#define                        MM_000198    ((UINT32)198)
-#define                        MM_000199    ((UINT32)199)
-#define                        MM_000200    ((UINT32)200)
-#define                        MM_000201    ((UINT32)201)
-#define                        MM_000202    ((UINT32)202)
-#define                        MM_000203    ((UINT32)203)
-#define                        MM_000204    ((UINT32)204)
-#define                        MM_000205    ((UINT32)205)
+#define                        MM_000185    ((UINT32)185) /*-- obsolete --*/
+#define                        MM_000186    ((UINT32)186) /*-- obsolete --*/
+#define                        MM_000187    ((UINT32)187) /*-- obsolete --*/
+#define                        MM_000188    ((UINT32)188) /*-- obsolete --*/
+#define                        MM_000189    ((UINT32)189) /*-- obsolete --*/
+#define                        MM_000190    ((UINT32)190) /*-- obsolete --*/
+#define                        MM_000191    ((UINT32)191) /*-- obsolete --*/
+#define                        MM_000192    ((UINT32)192) /*-- obsolete --*/
+#define                        MM_000193    ((UINT32)193) /*-- obsolete --*/
+#define                        MM_000194    ((UINT32)194) /*-- obsolete --*/
+#define                        MM_000195    ((UINT32)195) /*-- obsolete --*/
+#define                        MM_000196    ((UINT32)196) /*-- obsolete --*/
+#define                        MM_000197    ((UINT32)197) /*-- obsolete --*/
+#define                        MM_000198    ((UINT32)198) /*-- obsolete --*/
+#define                        MM_000199    ((UINT32)199) /*-- obsolete --*/
+#define                        MM_000200    ((UINT32)200) /*-- obsolete --*/
+#define                        MM_000201    ((UINT32)201) /*-- obsolete --*/
+#define                        MM_000202    ((UINT32)202) /*-- obsolete --*/
+#define                        MM_000203    ((UINT32)203) /*-- obsolete --*/
+#define                        MM_000204    ((UINT32)204) /*-- obsolete --*/
+#define                        MM_000205    ((UINT32)205) /*-- obsolete --*/
 #define                    MM_CHTTP_REST    ((UINT32)206)
 #define                   MM_CHTTPS_REST    ((UINT32)207)
 
@@ -361,13 +361,13 @@ extern "C"{
 #define                    MM_CXFSNP_MGR    ((UINT32)273)
 #define                    MM_CXFSNP_KEY    ((UINT32)274)
 #define                        MM_CXFSDN    ((UINT32)275)
-#define                        MM_000276    ((UINT32)276)
-#define                        MM_000277    ((UINT32)277)
-#define                        MM_000278    ((UINT32)278)
+#define                        MM_000276    ((UINT32)276) /*-- obsolete --*/
+#define                        MM_000277    ((UINT32)277) /*-- obsolete --*/
+#define                        MM_000278    ((UINT32)278) /*-- obsolete --*/
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)
-#define                        MM_000281    ((UINT32)281)
-#define                        MM_000282    ((UINT32)282)
+#define                        MM_000281    ((UINT32)281) /*-- obsolete --*/
+#define                        MM_000282    ((UINT32)282) /*-- obsolete --*/
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
 #define                     MM_CAMD_COND    ((UINT32)284)
 
@@ -386,9 +386,7 @@ typedef struct
     UINT32  next;
     UINT32  usedflag;
 
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
     UINT32 location;
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
 
     UINT8 * pmem;
 }MM_NODE;
@@ -654,7 +652,7 @@ void safe_copy(UINT8 *old_ptr, UINT8 *new_ptr, UINT32 len);
 
 void print_static_mem_status(LOG *log);
 void print_static_mem_status_of_type(LOG *log, const UINT32  type);
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
+
 typedef void (*SHOW_MEM_DETAIL)(LOG *, void *);
 
 UINT32 print_static_mem_diag_info( LOG *log );
@@ -663,7 +661,6 @@ UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*
 
 UINT32 print_static_mem_stat_info(LOG *log);
 UINT32 print_static_mem_stat_info_of_type(LOG *log, const UINT32 type);
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
 
 #if 1
 #define SAFE_MALLOC(__size__, __location__)                                   safe_malloc(__size__, __location__)

@@ -1013,6 +1013,8 @@ void super_activate_sys_cfg(const UINT32 super_md_id)
         task_brd_default_abort();
     }
 
+    task_brd_bind_core(task_brd);
+
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_activate_sys_cfg: import cparacfg ---------------------------------------------------\n");
     log_level_import(CPARACFG_LOG_LEVEL_TAB(TASK_BRD_CPARACFG(task_brd)), SEC_NONE_END);
     //log_level_print(LOGSTDOUT);

@@ -1043,9 +1043,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     pNodeBlock->nextfree = pNode->next;
     pNode->usedflag    = MM_NODE_USED;
 
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
     pNode->location = location;
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
 
     *ppvoid = pNode->pmem + sizeof(MM_AUX);
     MM_ASSERT(((MM_AUX *)pNode->pmem)->type == type);
@@ -1070,18 +1068,6 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
         NODEBLOCK_FREENODE_DEL(pNodeBlock);
         NODEBLOCK_FREENODE_INIT(pNodeBlock);/*important: point its next and prev to itself*/
     }
-
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
-/*
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT,"alloc_static_mem_0: alloced node %p type %ld for module type %ld id = %ld at %s:%d\n",
-            *ppvoid,
-            type,
-            module_type,
-            module_id,
-            MM_LOC_FILE_NAME(location),
-            MM_LOC_LINE_NO(location));
-*/
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
 
     MAN_UNLOCK(pMan, LOC_MM_0242);
     return ( 0 );
@@ -1220,21 +1206,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
 
     pNode->usedflag    = MM_NODE_NOT_USED;
 
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
-/*
-    dbg_log(SEC_0066_MM, 5)(LOGSTDOUT,"free_static_mem_0: freed node %p type %ld of module type %ld id = %ld at %s:%d\n",
-            pvoid,
-            type,
-            module_type,
-            module_id,
-            MM_LOC_FILE_NAME(location),
-            MM_LOC_LINE_NO(location));
-*/
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
-
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
     pNode->location = /*LOC_NONE_BASE*/location;
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
 
     pNode->next = pNodeBlock->nextfree;
     pNodeBlock->nextfree = node_idx;
@@ -1816,7 +1788,6 @@ void print_static_mem_status_of_type(LOG *log, const UINT32  type)
     return ;
 }
 
-#if ( SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH )
 UINT32 print_static_mem_diag_info(LOG *log)
 {
     UINT32  type;
@@ -2082,9 +2053,6 @@ UINT32 print_static_mem_stat_info_of_type(LOG *log, const UINT32 type)
 
     return 0;
 }
-
-#endif/*SWITCH_ON == STATIC_MEM_DIAG_LOC_SWITCH*/
-
 
 UINT32 mm_man_occupy_node_clean(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 {

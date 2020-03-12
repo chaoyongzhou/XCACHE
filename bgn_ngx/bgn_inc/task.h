@@ -309,6 +309,8 @@ EC_BOOL task_brd_parse_tcid_from_netcards(TASK_BRD *task_brd, const CSET *cnetca
 
 EC_BOOL task_brd_shortcut_config(TASK_BRD *task_brd);
 
+EC_BOOL task_brd_bind_core(TASK_BRD *task_brd);
+
 EC_BOOL task_brd_check_is_dbg_tcid(const UINT32 tcid);
 
 EC_BOOL task_brd_check_is_monitor_tcid(const UINT32 tcid);

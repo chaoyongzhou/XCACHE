@@ -54,6 +54,7 @@ extern "C"{
 #define XML_RANK_SEPARATOR       ((char *)":;, \t\n\r")
 #define XML_PORT_SEPARATOR       ((char *)":;, \t\n\r")
 #define XML_CLUSTER_SEPARATOR    ((char *)":;, \t\n\r")
+#define XML_COREID_SEPARATOR     ((char *)":;, \t\n\r")
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_uint16_t(xmlNodePtr node, const char *tag, uint16_t *data)
 {
@@ -673,6 +674,13 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_rank_vec(xmlNodePtr node, const char
         rank = 0;/*default*/
         cvector_push(rank_vec, (void *)rank);
     }
+    return (EC_TRUE);
+}
+
+STATIC_CAST static EC_BOOL __cxml_parse_tag_core_vec(xmlNodePtr node, const char *tag, CVECTOR *core_vec)
+{
+    __cxml_parse_tag_uint32_vec(node, tag, XML_COREID_SEPARATOR, core_vec);
+
     return (EC_TRUE);
 }
 
@@ -1488,10 +1496,6 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"stackGuardSize"           , &(CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskSlowDownMsec"         , &(CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskNotSlowDownMaxTimes"  , &(CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"taskReqHandleThreadSwitch", &(CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"taskReqDecodeThreadSwitch", &(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"taskRspDecodeThreadSwitch", &(CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"taskFwdDecodeThreadSwitch", &(CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverHttpSwitch"     , &(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverRfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)));
@@ -1844,18 +1848,30 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
 {
     CVECTOR tcid_vec;
     CVECTOR rank_vec;
+    CVECTOR core_vec; /*cpu core id vector*/
+
     UINT32  tcid_pos;
 
-    cvector_init(&tcid_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0036);
-    __cxml_parse_tag_tcid_vec(node, (const char *)"tcid", &tcid_vec);
+    UINT32  core_pos;
+    UINT32  core_num;
 
+    cvector_init(&tcid_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0036);
     cvector_init(&rank_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0037);
+    cvector_init(&core_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0037);
+
+    __cxml_parse_tag_tcid_vec(node, (const char *)"tcid", &tcid_vec);
     __cxml_parse_tag_rank_vec(node, (const char *)"rank", &rank_vec);
+    __cxml_parse_tag_core_vec(node, (const char *)"core", &core_vec);
 
     CVECTOR_LOCK(paras_cfg, LOC_CXML_0038);
+
+    core_num = cvector_size(&core_vec);
+    core_pos = 0;
+
     for(tcid_pos = 0; tcid_pos < cvector_size(&tcid_vec); tcid_pos ++)
     {
         UINT32  rank_pos;
+
         UINT32  tcid;
 
         tcid = (UINT32)cvector_get(&tcid_vec, tcid_pos);
@@ -1880,6 +1896,7 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
                     dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cxml_parse_para_cfg: parse cparacfg failed\n");
                     cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0040);
                     cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0041);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
                     return (EC_FALSE);
                 }
             }
@@ -1893,8 +1910,10 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
                     dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cxml_parse_para_cfg: new cparacfg failed\n");
                     cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0043);
                     cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0044);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
                     return (EC_FALSE);
                 }
+
                 /*CPARACFG_LOG_LEVEL_TAB(cparacfg) was set to default*/
                 if(EC_FALSE == cxml_parse_cparacfg_para_cfg(node, cparacfg))
                 {
@@ -1904,10 +1923,19 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
                     cparacfg_free(cparacfg);
                     cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0046);
                     cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0047);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
                     return (EC_FALSE);
                 }
 
                 cvector_push_no_lock(paras_cfg, (void *)cparacfg);
+            }
+
+            if(core_pos < core_num)
+            {
+                void     *data;
+
+                data = cvector_get(&core_vec, core_pos);
+                CPARACFG_PROC_CORE_ID(cparacfg) = (UINT32)data;
             }
         }
     }
@@ -1916,6 +1944,7 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
 
     cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0049);
     cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0050);
+    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0050);
 
     return (EC_TRUE);
 

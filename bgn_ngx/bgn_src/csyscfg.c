@@ -805,12 +805,7 @@ void cparacfg_thread_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UIN
     sys_print(log, " stackGuardSize=\"%ld\""           , CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg));
     sys_print(log, " taskSlowDownMsec=\"%ld\""         , CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg));
     sys_print(log, " taskNotSlowDownMaxTimes=\"%ld\""  , CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg));
-#if 0/*not release yet*/
-    sys_print(log, " taskReqHandleThreadSwitch=\"%s\"" , CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg));
-    sys_print(log, " taskReqDecodeThreadSwitch=\"%s\"" , CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg));
-    sys_print(log, " taskRspDecodeThreadSwitch=\"%s\"" , CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg));
-    sys_print(log, " taskFwdDecodeThreadSwitch=\"%s\"" , CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg));
-#endif
+
     sys_print(log, " ngxBgnOverHttpSwitch=\"%s\""      , CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
     sys_print(log, " ngxBgnOverRfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
     sys_print(log, " ngxBgnOverXfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
@@ -1062,11 +1057,22 @@ void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
     c_ident_print(log, level);
-    sys_print(log, "<paraConfig tcid=\"%s\" rank=\"%ld\">\n",
-                    c_word_to_ipv4(CPARACFG_TCID(cparacfg)),
-                    CPARACFG_RANK(cparacfg));
 
-    cparacfg_thread_cfg_print_xml (log, cparacfg, level + 1);
+    if(CMPI_ERROR_CORE_ID == CPARACFG_PROC_CORE_ID(cparacfg))
+    {
+        sys_print(log, "<paraConfig tcid=\"%s\" rank=\"%ld\">\n",
+                        c_word_to_ipv4(CPARACFG_TCID(cparacfg)),
+                        CPARACFG_RANK(cparacfg));
+    }
+    else
+    {
+        sys_print(log, "<paraConfig tcid=\"%s\" rank=\"%ld\" core=\"%ld\">\n",
+                        c_word_to_ipv4(CPARACFG_TCID(cparacfg)),
+                        CPARACFG_RANK(cparacfg),
+                        CPARACFG_PROC_CORE_ID(cparacfg));
+    }
+
+    cparacfg_thread_cfg_print_xml(log, cparacfg, level + 1);
 #if 0/*not release yet*/
     if(CMPI_FWD_RANK == CPARACFG_RANK(cparacfg))
     {
@@ -1074,14 +1080,14 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     }
     cparacfg_log_cfg_print_xml(log, cparacfg, level + 1);
 #endif
-    //cparacfg_log_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_conn_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_rfs_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_xfs_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_ngx_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_amd_cfg_print_xml (log, cparacfg, level + 1);
-    cparacfg_ssl_cfg_print_xml  (log, cparacfg, level + 1);
-    cparacfg_log_cfg_print_xml (log, cparacfg, level + 1); /* change the order */
+    //cparacfg_log_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_conn_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_rfs_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_xfs_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_ngx_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_amd_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_ssl_cfg_print_xml (log, cparacfg, level + 1);
+    cparacfg_log_cfg_print_xml(log, cparacfg, level + 1); /* change the order */
     c_ident_print(log, level);
     sys_print(log, "</paraConfig>\n");
     return;

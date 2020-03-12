@@ -50,8 +50,14 @@ extern "C"{
 #define                e_dbg_CSTRING_ptr    ((UINT32) 13)
 #define              e_dbg_TASKC_MGR_ptr    ((UINT32) 14)
 #define                    e_dbg_LOG_ptr    ((UINT32) 15)
+#define                  e_dbg_00016_ptr    ((UINT32) 16) /*-- obsolete --*/
 #define                e_dbg_CVECTOR_ptr    ((UINT32) 17)
+#define                  e_dbg_00018_ptr    ((UINT32) 18) /*-- obsolete --*/
 #define                  e_dbg_KBUFF_ptr    ((UINT32) 19)
+#define                  e_dbg_00020_ptr    ((UINT32) 20) /*-- obsolete --*/
+#define                  e_dbg_00021_ptr    ((UINT32) 21) /*-- obsolete --*/
+#define                  e_dbg_00022_ptr    ((UINT32) 22) /*-- obsolete --*/
+#define                  e_dbg_00023_ptr    ((UINT32) 23) /*-- obsolete --*/
 #define          e_dbg_CSOCKET_CNODE_ptr    ((UINT32) 24)
 #define             e_dbg_TASKC_NODE_ptr    ((UINT32) 25)
 #define          e_dbg_CSYS_CPU_STAT_ptr    ((UINT32) 26)
@@ -83,13 +89,13 @@ extern "C"{
 #define                  e_dbg_CLIST_ptr    ((UINT32) 52)
 #define            e_dbg_CRFSNP_ITEM_ptr    ((UINT32) 53)
 #define           e_dbg_CRFSNP_FNODE_ptr    ((UINT32) 54)
-#define                  e_dbg_00055_ptr    ((UINT32) 55)
-#define                  e_dbg_00056_ptr    ((UINT32) 56)
+#define                  e_dbg_00055_ptr    ((UINT32) 55) /*-- obsolete --*/
+#define                  e_dbg_00056_ptr    ((UINT32) 56) /*-- obsolete --*/
 #define               e_dbg_uint64_t_ptr    ((UINT32) 57)
 #define      e_dbg_CRFSDN_CACHE_NODE_ptr    ((UINT32) 58)
 #define            e_dbg_CMD5_DIGEST_ptr    ((UINT32) 59)
-#define                  e_dbg_00060_ptr    ((UINT32) 60)
-#define                  e_dbg_00061_ptr    ((UINT32) 61)
+#define                  e_dbg_00060_ptr    ((UINT32) 60) /*-- obsolete --*/
+#define                  e_dbg_00061_ptr    ((UINT32) 61) /*-- obsolete --*/
 #define                e_dbg_CBUFFER_ptr    ((UINT32) 62)
 #define                 e_dbg_CSTRKV_ptr    ((UINT32) 63)
 #define             e_dbg_CSTRKV_MGR_ptr    ((UINT32) 64)
@@ -98,11 +104,11 @@ extern "C"{
 #define             e_dbg_CHTTP_STAT_ptr    ((UINT32) 67)
 #define            e_dbg_CHTTP_STORE_ptr    ((UINT32) 68)
 #define             e_dbg_TASKS_NODE_ptr    ((UINT32) 69)
-#define                  e_dbg_00070_ptr    ((UINT32) 70)
-#define                  e_dbg_00071_ptr    ((UINT32) 71)
-#define                  e_dbg_00072_ptr    ((UINT32) 72)
-#define                  e_dbg_00073_ptr    ((UINT32) 73)
-#define                  e_dbg_00074_ptr    ((UINT32) 74)
+#define                  e_dbg_00070_ptr    ((UINT32) 70) /*-- obsolete --*/
+#define                  e_dbg_00071_ptr    ((UINT32) 71) /*-- obsolete --*/
+#define                  e_dbg_00072_ptr    ((UINT32) 72) /*-- obsolete --*/
+#define                  e_dbg_00073_ptr    ((UINT32) 73) /*-- obsolete --*/
+#define                  e_dbg_00074_ptr    ((UINT32) 74) /*-- obsolete --*/
 #define       e_dbg_CTDNSSV_NODE_MGR_ptr    ((UINT32) 75)
 #define           e_dbg_CTDNSSV_NODE_ptr    ((UINT32) 76)
 #define              e_dbg_CP2P_FILE_ptr    ((UINT32) 77)
@@ -111,7 +117,7 @@ extern "C"{
 
 #define            e_dbg_CXFSNP_ITEM_ptr    ((UINT32) 80)
 #define           e_dbg_CXFSNP_FNODE_ptr    ((UINT32) 81)
-#define                  e_dbg_00082_ptr    ((UINT32) 82)
+#define                  e_dbg_00082_ptr    ((UINT32) 82) /*-- obsolete --*/
 #define             e_dbg_CXFSNP_KEY_ptr    ((UINT32) 83)
 
 #define              e_dbg_CMON_NODE_ptr    ((UINT32) 84)

@@ -52,6 +52,8 @@ extern "C"{
 #define CMPI_ERROR_SOCKFD   ((int)   ( -1))
 #define CMPI_ERROR_TAG      ((UINT32)(-12))
 
+#define CMPI_ERROR_CORE_ID  ((UINT32)(-13))
+
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 
 #if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
@@ -74,7 +76,7 @@ extern "C"{
 #define CMPI_ANY_MON_TCID   ((UINT32)(0xFFFFFFF9))/*((UINT32)( -7))*/
 
 #define CMPI_ERROR_TCID     ((UINT32)(0xFFFFFFF8))/*((UINT32)( -8))*/
-#define CMPI_ERROR_MASK     ((UINT32)(  1))
+#define CMPI_ERROR_MASK     ((UINT32)( -1))
 #define CMPI_ERROR_COMM     (CMPI_COMM_NULL)
 #define CMPI_ERROR_RANK     ((UINT32)(0x000000F7))/*((UINT32)( -9))*/
 #define CMPI_ERROR_MODI     ((UINT32)(0x0000FFF6))/*((UINT32)( -10))*/
@@ -83,6 +85,8 @@ extern "C"{
 #define CMPI_ERROR_CLNTPORT ((UINT32)(  0))/*error client port*/
 #define CMPI_ERROR_SOCKFD   ((int)   ( -1))
 #define CMPI_ERROR_TAG      ((UINT32)(0x000000F4))/*((UINT32)(-12))*/
+
+#define CMPI_ERROR_CORE_ID  ((UINT32)(0x000000F3))/*((UINT32)(-13))*/
 
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
 

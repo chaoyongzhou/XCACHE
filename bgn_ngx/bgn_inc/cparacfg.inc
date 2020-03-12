@@ -24,14 +24,13 @@ typedef struct
     UINT32    tcid; /*this cparacfg for which tcid*/
     UINT32    rank; /*this cparacfg for which rank*/
 
+    UINT32    proc_core_id; /*bind cpu core id*/
+
     UINT32    task_req_thread_max_num       ;
     UINT32    task_rsp_thread_max_num       ;
     UINT32    cthread_stack_max_size        ;
     UINT32    cthread_stack_guard_size      ;
-    UINT32    task_req_handle_thread_switch ;
-    UINT32    task_req_decode_thread_switch ;
-    UINT32    task_rsp_decode_thread_switch ;
-    UINT32    task_fwd_decode_thread_switch ;
+
     UINT32    task_encoding_rule            ;
     UINT32    task_slow_down_msec           ;
     UINT32    task_not_slow_down_max_times  ;
@@ -148,14 +147,13 @@ typedef struct
 #define CPARACFG_TCID_STR(cparacfg)                                 (c_word_to_ipv4(CPARACFG_TCID(cparacfg)))
 #define CPARACFG_RANK(cparacfg)                                     ((cparacfg)->rank)
 
+#define CPARACFG_PROC_CORE_ID(cparacfg)                             ((cparacfg)->proc_core_id)
+
 #define CPARACFG_TASK_REQ_THREAD_MAX_NUM(cparacfg)                  ((cparacfg)->task_req_thread_max_num       )
 #define CPARACFG_TASK_RSP_THREAD_MAX_NUM(cparacfg)                  ((cparacfg)->task_rsp_thread_max_num       )
 #define CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)                   ((cparacfg)->cthread_stack_max_size        )
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)                 ((cparacfg)->cthread_stack_guard_size      )
-#define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_req_handle_thread_switch )
-#define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_req_decode_thread_switch )
-#define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_rsp_decode_thread_switch )
-#define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_fwd_decode_thread_switch )
+
 #define CPARACFG_TASK_ENCODING_RULE(cparacfg)                       ((cparacfg)->task_encoding_rule            )
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
@@ -266,10 +264,6 @@ typedef struct
 #define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_md_ratio)
 #define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_lo_ratio)
 
-#define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH(cparacfg)))
-#define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)))
-#define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)))
-#define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_STR(cparacfg)       (c_switch_to_str(CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)))
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
@@ -359,6 +353,8 @@ typedef struct
 #define CTHREAD_STACK_GUARD_SIZE_008M ( 8388608 )
 
 /*------------------------------------------------- default value definition BEG -------------------------------------------------*/
+#define CPARACFG_PROC_CORE_ID_DEF                                CMPI_ERROR_CORE_ID
+
 #define CPARACFG_TASK_REQ_THREAD_MAX_NUM_DEF                     512
 #define CPARACFG_TASK_RSP_THREAD_MAX_NUM_DEF                     32
 #define CPARACFG_CTHREAD_STACK_MAX_SIZE_DEF                      CTHREAD_STACK_MAX_SIZE_064K
@@ -367,11 +363,9 @@ typedef struct
 #define CPARACFG_TASK_SLOW_DOWN_MSEC_DEF                         3
 #define CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES_DEF                512
 
-#define CPARACFG_TASK_REQ_HANDLE_THREAD_SWITCH_DEF               SWITCH_ON
-#define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_DEF               SWITCH_OFF
-#define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_DEF               SWITCH_ON
-#define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_DEF               SWITCH_ON
-#define CPARACFG_TASK_ENCODING_RULE_DEF                          BYTE_ENCODING_RULE
+/*-- read only configuration -- */
+//#define CPARACFG_TASK_ENCODING_RULE_DEF                          BYTE_ENCODING_RULE
+#define CPARACFG_TASK_ENCODING_RULE_DEF                          TASK_ENCODING_RULE
 
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC_DEF                10
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE_DEF                     MEM_BUFF_64K
@@ -492,6 +486,8 @@ typedef struct
 
 #define    CPARACFG_DEFAULT_STR_MAP(macro_name) \
                 (NULL_PTR == CPARACFG_DEFAULT_GET() ? (char *)(macro_name##_DEF): (char *)cstring_get_str(macro_name(CPARACFG_DEFAULT_GET())))
+
+#define    PROC_CORE_ID                                  CPARACFG_DEFAULT_MAP(CPARACFG_PROC_CORE_ID)
 
 #define    TASK_REQ_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_REQ_THREAD_MAX_NUM)
 #define    TASK_RSP_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_RSP_THREAD_MAX_NUM)
