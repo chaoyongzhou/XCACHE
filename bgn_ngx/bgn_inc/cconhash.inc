@@ -24,8 +24,6 @@ extern "C"{
 #define CCONHASH_ANY_REPLICAS                 ((uint16_t) 0)
 #define CCONHASH_ERR_REPLICAS                 ((uint16_t)(~((uint16_t)0)))
 
-#define CCONHASH_RNODE_DEBUG                  (SWITCH_ON)
-
 #define CCONHASH_RNODE_IS_ERR                 ((uint16_t)0x0000)
 #define CCONHASH_RNODE_IS_UP                  ((uint16_t)0x0001)
 #define CCONHASH_RNODE_IS_DOWN                ((uint16_t)0x0002)
@@ -35,31 +33,11 @@ typedef struct
     uint16_t     replicas; /* number of replica virtual nodes */
     uint16_t     status;
     uint32_t     tcid;
-#if(SWITCH_ON == CCONHASH_RNODE_DEBUG)
-    UINT32       counter; /*debug only!*/
-#endif/*(SWITCH_ON == CCONHASH_RNODE_DEBUG)*/
 }CCONHASH_RNODE;/*real node*/
 
 #define CCONHASH_RNODE_REPLICAS(cconhash_rnode)           ((cconhash_rnode)->replicas)
 #define CCONHASH_RNODE_STATUS(cconhash_rnode)             ((cconhash_rnode)->status)
 #define CCONHASH_RNODE_TCID(cconhash_rnode)               ((cconhash_rnode)->tcid)
-
-#if(SWITCH_ON == CCONHASH_RNODE_DEBUG)
-#define CCONHASH_RNODE_COUNTER(cconhash_rnode)            ((cconhash_rnode)->counter)
-#define CCONHASH_RNODE_COUNTER_INC(cconhash_rnode)        (CCONHASH_RNODE_COUNTER(cconhash_rnode) += 1)
-#define CCONHASH_RNODE_COUNTER_SET(cconhash_rnode, num)   (CCONHASH_RNODE_COUNTER(cconhash_rnode) = (num))
-#define CCONHASH_RNODE_COUNTER_CLR(cconhash_rnode)        (CCONHASH_RNODE_COUNTER(cconhash_rnode) = 0)
-#define CCONHASH_RNODE_COUNTER_CLONE(cconhash_rnode_src, cconhash_rnode_des)   \
-    CCONHASH_RNODE_COUNTER(cconhash_rnode_des) = CCONHASH_RNODE_COUNTER(cconhash_rnode_src)
-#endif/*(SWITCH_ON == CCONHASH_RNODE_DEBUG)*/
-
-#if(SWITCH_OFF == CCONHASH_RNODE_DEBUG)
-#define CCONHASH_RNODE_COUNTER(cconhash_rnode)                                   do{}while(0)
-#define CCONHASH_RNODE_COUNTER_INC(cconhash_rnode)                               do{}while(0)
-#define CCONHASH_RNODE_COUNTER_SET(cconhash_rnode, num)                          do{}while(0)
-#define CCONHASH_RNODE_COUNTER_CLR(cconhash_rnode)                               do{}while(0)
-#define CCONHASH_RNODE_COUNTER_CLONE(cconhash_rnode_src, cconhash_rnode_des)  do{}while(0)
-#endif/*(SWITCH_OFF == CCONHASH_RNODE_DEBUG)*/
 
 typedef struct
 {

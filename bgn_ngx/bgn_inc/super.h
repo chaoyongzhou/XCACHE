@@ -695,19 +695,6 @@ EC_BOOL super_cond_wakeup(const UINT32 super_md_id, const UINT32 tag, const CSTR
 EC_BOOL super_cond_terminate(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key);
 
 EC_BOOL super_cond_delete(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key);
-/**
-*
-* switch ngx memcache on
-*
-**/
-EC_BOOL super_switch_ngx_memc_on(const UINT32 super_md_id);
-
-/**
-*
-* switch ngx memcache off
-*
-**/
-EC_BOOL super_switch_ngx_memc_off(const UINT32 super_md_id);
 
 /**
 *

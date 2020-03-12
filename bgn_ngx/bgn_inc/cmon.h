@@ -25,6 +25,7 @@ extern "C"{
 #include "cbtimer.h"
 #include "mod.inc"
 
+#include "chashalgo.h"
 #include "cconhash.h"
 
 

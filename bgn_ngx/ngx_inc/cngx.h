@@ -24,7 +24,7 @@ extern "C"{
 #include "cstring.h"
 #include "clist.h"
 #include "cvector.h"
-
+#include "chashalgo.h"
 #include "chttp.h"
 
 #define  CNGX_BGN_MOD_SO_PATH_DEFAULT             ("/usr/local/xcache/lib")

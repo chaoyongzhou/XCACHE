@@ -47,8 +47,6 @@ CCONHASH_RNODE *cconhash_rnode_make(const uint32_t tcid, const uint16_t replicas
         CCONHASH_RNODE_REPLICAS(cconhash_rnode) = replicas;
         CCONHASH_RNODE_STATUS(cconhash_rnode)   = CCONHASH_RNODE_IS_UP;
         CCONHASH_RNODE_TCID(cconhash_rnode)     = tcid;
-
-        CCONHASH_RNODE_COUNTER_CLR(cconhash_rnode);
     }
     return (cconhash_rnode);
 }
@@ -58,8 +56,6 @@ EC_BOOL cconhash_rnode_init(CCONHASH_RNODE *cconhash_rnode)
     CCONHASH_RNODE_REPLICAS(cconhash_rnode) = 0;
     CCONHASH_RNODE_STATUS(cconhash_rnode)   = CCONHASH_RNODE_IS_ERR;
     CCONHASH_RNODE_TCID(cconhash_rnode)     = (uint32_t)CMPI_ERROR_TCID;
-
-    CCONHASH_RNODE_COUNTER_CLR(cconhash_rnode);
     return (EC_TRUE);
 }
 
@@ -68,8 +64,6 @@ EC_BOOL cconhash_rnode_clean(CCONHASH_RNODE *cconhash_rnode)
     CCONHASH_RNODE_REPLICAS(cconhash_rnode) = 0;
     CCONHASH_RNODE_STATUS(cconhash_rnode)   = CCONHASH_RNODE_IS_ERR;
     CCONHASH_RNODE_TCID(cconhash_rnode)     = (uint32_t)CMPI_ERROR_TCID;
-
-    CCONHASH_RNODE_COUNTER_CLR(cconhash_rnode);
     return (EC_TRUE);
 }
 
@@ -103,8 +97,6 @@ EC_BOOL cconhash_rnode_clone(const CCONHASH_RNODE *cconhash_rnode_src, CCONHASH_
     CCONHASH_RNODE_REPLICAS(cconhash_rnode_des) = CCONHASH_RNODE_REPLICAS(cconhash_rnode_src);
     CCONHASH_RNODE_STATUS(cconhash_rnode_des)   = CCONHASH_RNODE_STATUS(cconhash_rnode_src);
     CCONHASH_RNODE_TCID(cconhash_rnode_des)     = CCONHASH_RNODE_TCID(cconhash_rnode_src);
-
-    CCONHASH_RNODE_COUNTER_CLONE(cconhash_rnode_src, cconhash_rnode_des);
     return (EC_TRUE);
 }
 
@@ -182,23 +174,12 @@ EC_BOOL cconhash_rnode_cmp_tcid(const CCONHASH_RNODE *cconhash_rnode_1st, const 
 
 void cconhash_rnode_print(LOG *log, const CCONHASH_RNODE *cconhash_rnode)
 {
-#if(SWITCH_OFF == CCONHASH_RNODE_DEBUG)
     sys_log(log, "cconhash_rnode %p: tcid %s, replicas %u, status %s\n",
                     cconhash_rnode,
                     c_word_to_ipv4(CCONHASH_RNODE_TCID(cconhash_rnode)),
                     CCONHASH_RNODE_REPLICAS(cconhash_rnode),
                     cconhash_rnode_status(cconhash_rnode)
                    );
-#endif/*(SWITCH_OFF == CCONHASH_RNODE_DEBUG)*/
-#if(SWITCH_ON == CCONHASH_RNODE_DEBUG)
-    sys_log(log, "cconhash_rnode %p: tcid %s, replicas %u, status %s, counter %ld\n",
-                    cconhash_rnode,
-                    c_word_to_ipv4(CCONHASH_RNODE_TCID(cconhash_rnode)),
-                    CCONHASH_RNODE_REPLICAS(cconhash_rnode),
-                    cconhash_rnode_status(cconhash_rnode),
-                    CCONHASH_RNODE_COUNTER(cconhash_rnode)
-                   );
-#endif/*(SWITCH_ON == CCONHASH_RNODE_DEBUG)*/
     return;
 }
 

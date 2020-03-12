@@ -1502,7 +1502,6 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
 EC_BOOL cxml_parse_cparacfg_encode_rule_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
-    __cxml_parse_tag_switch(node, (const char *)"base64EncodeSwitch", &(CPARACFG_CBASE64_ENCODE_SWITCH(cparacfg)));
     __cxml_parse_tag_encode_rule(node, (const char *)"taskEncodeRule", &(CPARACFG_TASK_ENCODING_RULE(cparacfg)));
 
     return (EC_TRUE);

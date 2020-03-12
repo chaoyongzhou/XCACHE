@@ -106,9 +106,6 @@ EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_do_test(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_switch_ngx_memc(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_switch_ngx_memc_all(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_enable_to_rank_node(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_enable_all_to_rank_node(CMD_PARA_VEC * param);
 

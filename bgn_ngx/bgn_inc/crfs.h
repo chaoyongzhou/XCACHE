@@ -29,7 +29,6 @@ extern "C"{
 #include "crfsnp.h"
 #include "crfsdn.h"
 #include "crfsnpmgr.h"
-#include "crfsmc.h"
 #include "crfsbk.h"
 
 

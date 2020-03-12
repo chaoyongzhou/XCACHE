@@ -43,7 +43,6 @@ extern "C"{
 #include "crfs.h"
 #include "crfshttp.h"
 #include "crfshttps.h"
-#include "crfsmc.h"
 #include "crfsbk.h"
 
 #include "cload.h"

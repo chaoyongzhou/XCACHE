@@ -23,7 +23,6 @@ extern "C"{
 #include "cstring.h"
 #include "ipv4pool.h"
 #include "dhcp.h"
-#include "crfsmc.inc"
 
 #define CMPI_DBG_RANK      ((UINT32)  0)  /*define debug rank*/
 #define CMPI_MON_RANK      ((UINT32)  0)  /*define monitor rank*/
@@ -254,11 +253,6 @@ UINT32 task_brd_default_get_rank();
 UINT32 task_brd_default_get_size();
 
 UINT32 task_brd_default_get_super();
-
-CRFSMC  *task_brd_default_get_crfsmc();
-
-EC_BOOL task_brd_default_set_crfsmc(void *data, TASK_BRD_EXTRA_CLEANER cleanup);
-EC_BOOL task_brd_set_crfsmc(TASK_BRD *task_brd, void *data, TASK_BRD_EXTRA_CLEANER cleanup);
 
 UINT32 task_brd_default_local_taskc();
 

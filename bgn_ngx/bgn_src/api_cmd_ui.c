@@ -150,7 +150,6 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "diag mem"     , "diag mem {all | type <type>} on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "diag socket"  , "diag socket on {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "breathing mem", "breathing mem on {all | tcid <tcid> rank <rank>}");
-    //api_cmd_help_vec_create(cmd_help_vec, "mon oid"      , "mon oid <oid> for <times> times on {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "show client"  , "show client {all | tcid <tcid>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show mem"     , "show mem {all | type <type>} on {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "show queue"   , "show queue on {all | tcid <tcid> rank <rank>} at <console|log>");
@@ -169,7 +168,6 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     //api_cmd_help_vec_create(cmd_help_vec, "shell"        , "shell <cmd> on {all | tcid <tcid>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "switch"       , "switch {all | tcid <tcid> rank <rank>} log <on|off>");
-    //api_cmd_help_vec_create(cmd_help_vec, "switch"       , "switch ngx memc on {all | tcid <tcid> rank <rank>} to <on|off>");
     api_cmd_help_vec_create(cmd_help_vec, "shutdown"     , "shutdown <dbg | mon | work> {all | tcid <tcid>}");
     //api_cmd_help_vec_create(cmd_help_vec, "ping taskcomm", "ping taskcomm tcid <tcid> at <console|log>");
 
@@ -413,9 +411,6 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_switch_log_all              , "switch all log %l"                               , on_off);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_switch_log                  , "switch tcid %t rank %n log %l"                   , tcid, rank, on_off);
-
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_switch_ngx_memc_all         , "switch ngx memc on all to %l"                    , on_off);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_switch_ngx_memc             , "switch ngx memc on tcid %t rank %n to %l"        , tcid, rank, on_off);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_rotate_log_all              , "rotate log %n on all at %s"                     , rank, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_rotate_log                  , "rotate log %n on tcid %t rank %n at %s"         , rank, tcid, rank, where);
@@ -3143,101 +3138,6 @@ EC_BOOL api_cmd_ui_do_test(CMD_PARA_VEC * param)
     {
         sys_log(des_log, "[FAIL] test failed\n");
     }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL api_cmd_ui_switch_ngx_memc(CMD_PARA_VEC * param)
-{
-    UINT32 tcid;
-    UINT32 rank;
-    UINT32 on_off;
-
-    MOD_MGR  *mod_mgr;
-    TASK_MGR *task_mgr;
-
-    UINT32 remote_mod_node_num;
-    UINT32 remote_mod_node_idx;
-
-    api_cmd_para_vec_get_tcid(param, 0, &tcid);
-    api_cmd_para_vec_get_uint32(param, 1, &rank);
-    api_cmd_para_vec_get_uint32(param, 2, &on_off);
-
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "switch ngx memc on tcid %s, rank %ld to %ld\n",
-                        c_word_to_ipv4((tcid)),
-                        rank,
-                        on_off);
-
-    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
-#if 1
-    if(do_log(SEC_0010_API, 5))
-    {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_switch_ngx_memc beg ----------------------------------\n");
-        mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_switch_ngx_memc end ----------------------------------\n");
-    }
-#endif
-#if 1
-    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
-    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
-    {
-        if(SWITCH_OFF == on_off)/*off*/
-        {
-            task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_switch_ngx_memc_off, CMPI_ERROR_MODI);
-        }
-        else
-        {
-            task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_switch_ngx_memc_on, CMPI_ERROR_MODI);
-        }
-    }
-    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-#endif
-    mod_mgr_free(mod_mgr);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL api_cmd_ui_switch_ngx_memc_all(CMD_PARA_VEC * param)
-{
-    MOD_MGR  *mod_mgr;
-    TASK_MGR *task_mgr;
-
-    UINT32 remote_mod_node_num;
-    UINT32 remote_mod_node_idx;
-
-    UINT32 on_off;
-
-    api_cmd_para_vec_get_uint32(param, 0, &on_off);
-
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "switch ngx memc on all to %ld\n", on_off);
-
-    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
-#if 1
-    if(do_log(SEC_0010_API, 5))
-    {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_switch_ngx_memc_all beg ----------------------------------\n");
-        mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_switch_ngx_memc_all end ----------------------------------\n");
-    }
-#endif
-#if 1
-    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
-    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
-    {
-        if(SWITCH_OFF == on_off)/*off*/
-        {
-            task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_switch_ngx_memc_off, CMPI_ERROR_MODI);
-        }
-        else
-        {
-            task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_switch_ngx_memc_on, CMPI_ERROR_MODI);
-        }
-    }
-    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-#endif
-    mod_mgr_free(mod_mgr);
 
     return (EC_TRUE);
 }

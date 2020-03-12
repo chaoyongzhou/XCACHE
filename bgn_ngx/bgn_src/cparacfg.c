@@ -68,7 +68,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CBASE64_ENCODE_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_ENCODING_RULE);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSOCKET_SO_SNDBUFF_SIZE);
@@ -235,7 +234,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "TASK_REQ_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg) );
     sys_log(log, "TASK_RSP_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg) );
     sys_log(log, "TASK_FWD_DECODE_THREAD_SWITCH              = %s\n" ,  CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg) );
-    sys_log(log, "CBASE64_ENCODE_SWITCH                      = %s\n" ,  CPARACFG_CBASE64_ENCODE_SWITCH_STR(cparacfg)         );
     sys_log(log, "TASK_ENCODING_RULE                         = %ld\n",  CPARACFG_TASK_ENCODING_RULE(cparacfg)            );
 
     sys_log(log, "CSOCKET_SO_SNDBUFF_SIZE                    = %d\n",   CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)        );

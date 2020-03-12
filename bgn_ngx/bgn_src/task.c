@@ -80,7 +80,6 @@ extern "C"{
 #include "cepoll.h"
 #include "chttp.h"
 #include "chttps.h"
-#include "crfsmc.h"
 #include "crfshttp.h"
 #include "cxfshttp.h"
 
@@ -1047,15 +1046,6 @@ CEPOLL *task_brd_get_cepoll(TASK_BRD *task_brd)
         return (NULL_PTR);
     }
     return TASK_BRD_CEPOLL(task_brd);
-}
-
-CRFSMC *task_brd_get_crfsmc(TASK_BRD *task_brd)
-{
-    if(NULL_PTR == task_brd)
-    {
-        return (NULL_PTR);
-    }
-    return TASK_BRD_EXTRA(task_brd);
 }
 
 #define RATE(used, max) ((1.0 * (used))/(1.0 * (max)))
@@ -8448,28 +8438,6 @@ UINT32 task_brd_default_get_super()
 
     task_brd = task_brd_default_get();
     return TASK_BRD_SUPER_MD_ID(task_brd);
-}
-
-CRFSMC  *task_brd_default_get_crfsmc()
-{
-    TASK_BRD *task_brd;
-
-    task_brd = task_brd_default_get();
-    return TASK_BRD_EXTRA(task_brd);
-}
-
-EC_BOOL task_brd_default_set_crfsmc(void *data, TASK_BRD_EXTRA_CLEANER cleanup)
-{
-    return task_brd_set_crfsmc(task_brd_default_get(), data, cleanup);
-}
-
-EC_BOOL task_brd_set_crfsmc(TASK_BRD *task_brd, void *data, TASK_BRD_EXTRA_CLEANER cleanup)
-{
-    /*warning: here will override TASK_BRD_EXTRA*/
-    TASK_BRD_EXTRA(task_brd)         = data;
-    TASK_BRD_EXTRA_CLEANUP(task_brd) = cleanup;
-
-    return (EC_TRUE);
 }
 
 UINT32 task_brd_local_taskc(const TASK_BRD *task_brd)

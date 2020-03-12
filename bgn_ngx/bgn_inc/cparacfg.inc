@@ -32,7 +32,6 @@ typedef struct
     UINT32    task_req_decode_thread_switch ;
     UINT32    task_rsp_decode_thread_switch ;
     UINT32    task_fwd_decode_thread_switch ;
-    UINT32    cbase64_encode_switch         ;
     UINT32    task_encoding_rule            ;
     UINT32    task_slow_down_msec           ;
     UINT32    task_not_slow_down_max_times  ;
@@ -157,7 +156,6 @@ typedef struct
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_req_decode_thread_switch )
 #define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_rsp_decode_thread_switch )
 #define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)            ((cparacfg)->task_fwd_decode_thread_switch )
-#define CPARACFG_CBASE64_ENCODE_SWITCH(cparacfg)                    ((cparacfg)->cbase64_encode_switch         )
 #define CPARACFG_TASK_ENCODING_RULE(cparacfg)                       ((cparacfg)->task_encoding_rule            )
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
@@ -272,7 +270,6 @@ typedef struct
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH(cparacfg)))
 #define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_STR(cparacfg)        (c_switch_to_str(CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH(cparacfg)))
-#define CPARACFG_CBASE64_ENCODE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CBASE64_ENCODE_SWITCH(cparacfg)))
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_STR(cparacfg)       (c_switch_to_str(CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)))
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
@@ -374,7 +371,6 @@ typedef struct
 #define CPARACFG_TASK_REQ_DECODE_THREAD_SWITCH_DEF               SWITCH_OFF
 #define CPARACFG_TASK_RSP_DECODE_THREAD_SWITCH_DEF               SWITCH_ON
 #define CPARACFG_TASK_FWD_DECODE_THREAD_SWITCH_DEF               SWITCH_ON
-#define CPARACFG_CBASE64_ENCODE_SWITCH_DEF                       SWITCH_OFF
 #define CPARACFG_TASK_ENCODING_RULE_DEF                          BYTE_ENCODING_RULE
 
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC_DEF                10
@@ -391,7 +387,7 @@ typedef struct
 #define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE_DEF                  MEM_BUFF_64K
 #define CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE_DEF                  MEM_BUFF_64K
-#define CPARACFG_CSOCKET_CNODE_NUM_DEF                           4
+#define CPARACFG_CSOCKET_CNODE_NUM_DEF                           1
 
 #define CPARACFG_FILE_LOG_MAX_RECORDS_DEF                        FILE_LOG_RECORDS_001M
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_DEF              SWITCH_OFF
