@@ -54,7 +54,6 @@ extern "C"{
 #include "csession.inc"
 #include "crfs.inc"
 #include "cxfs.inc"
-#include "crfsbk.inc"
 #include "cmon.inc"
 #include "chttp.inc"
 #include "ctdns.inc"
@@ -729,18 +728,6 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cmd5_digest,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cmd5_digest,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cmd5_digest_size
-    );
-    creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CRFSOP_ptr,
-        /* type_sizeof            */sizeof(CRFSOP),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CRFSOP,
-        /* init_type_func         */(UINT32)crfsop_init,
-        /* clean_type_func        */(UINT32)crfsop_clean,
-        /* free_type_func         */(UINT32)crfsop_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_crfsop,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_crfsop,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_crfsop_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CBUFFER_ptr,

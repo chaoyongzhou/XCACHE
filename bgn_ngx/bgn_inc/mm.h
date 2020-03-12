@@ -221,7 +221,7 @@ extern "C"{
 #define                         MM_CHUNK    ((UINT32)150)
 #define                     MM_CHUNK_MGR    ((UINT32)151)
 #define                   MM_CMD5_DIGEST    ((UINT32)152)
-#define                        MM_CRFSOP    ((UINT32)153)
+#define                        MM000153    ((UINT32)153)
 #define                        MM_000154    ((UINT32)154)
 #define                        MM_000155    ((UINT32)155)
 #define                        MM_000156    ((UINT32)156)

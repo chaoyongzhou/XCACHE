@@ -148,7 +148,7 @@
 #define SEC_0138_CRUN                       ((UINT32)(    138)) /*crun                            */
 #define SEC_0139_MAIN                       ((UINT32)(    139)) /*main                            */
 #define SEC_0140_XXXXXX                     ((UINT32)(    140)) /*-- obsolete --                  */
-#define SEC_0141_CRFSBK                     ((UINT32)(    141)) /*crfsbk                          */
+#define SEC_0141_XXXXXX                     ((UINT32)(    141)) /*-- obsolete --                  */
 #define SEC_0142_XXXXXX                     ((UINT32)(    142)) /*-- obsolete --                  */
 #define SEC_0143_XXXXX                      ((UINT32)(    143)) /*-- obsolete --                  */
 #define SEC_0144_XXXXXXXXXXX                ((UINT32)(    144)) /*-- obsolete --                  */

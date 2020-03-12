@@ -59,7 +59,6 @@ extern "C"{
 #include "cpgd.h"
 #include "cpgv.h"
 #include "crfs.h"
-#include "crfsbk.inc"
 #include "crfsdn.h"
 #include "crfsnp.h"
 #include "crfsnpmgr.h"
@@ -85,7 +84,6 @@ extern "C"{
 #include "chunk.h"
 #include "cmd5.h"
 
-#include "crfsbk.inc"
 #include "chttp.inc"
 #include "cdns.inc"
 
@@ -369,7 +367,6 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CHUNK_MGR                    ,"MM_CHUNK_MGR                    ",32        , sizeof(CHUNK_MGR)                  , LOC_MM_0131);
 
     MM_MGR_DEF(MM_CMD5_DIGEST                  ,"MM_CMD5_DIGEST                  ",4         , sizeof(CMD5_DIGEST)                , LOC_MM_0132);
-    MM_MGR_DEF(MM_CRFSOP                       ,"MM_CRFSOP                       ",32        , sizeof(CRFSOP)                     , LOC_MM_0133);
 
     MM_MGR_DEF(MM_CEXPAT_ATTR                  ,"MM_CEXPAT_ATTR                  ",256       , sizeof(CEXPAT_ATTR)                , LOC_MM_0134);
     MM_MGR_DEF(MM_CEXPAT_NODE                  ,"MM_CEXPAT_NODE                  ",256       , sizeof(CEXPAT_NODE)                , LOC_MM_0135);

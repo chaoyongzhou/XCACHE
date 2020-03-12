@@ -88,7 +88,7 @@ extern "C"{
 #define               e_dbg_uint64_t_ptr    ((UINT32) 57)
 #define      e_dbg_CRFSDN_CACHE_NODE_ptr    ((UINT32) 58)
 #define            e_dbg_CMD5_DIGEST_ptr    ((UINT32) 59)
-#define                 e_dbg_CRFSOP_ptr    ((UINT32) 60)
+#define                  e_dbg_00060_ptr    ((UINT32) 60)
 #define                  e_dbg_00061_ptr    ((UINT32) 61)
 #define                e_dbg_CBUFFER_ptr    ((UINT32) 62)
 #define                 e_dbg_CSTRKV_ptr    ((UINT32) 63)

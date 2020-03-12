@@ -56,8 +56,6 @@ extern "C"{
 #include "cbytes.h"
 #include "csession.h"
 
-#include "crfsbk.inc"
-
 #include "cbuffer.h"
 
 #include "cstrkv.h"
@@ -3563,75 +3561,6 @@ UINT32 cmpi_decode_cmd5_digest(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, CMD5_DIGEST_SUM(cmd5_digest), &(size));
     ASSERT(CMD5_DIGEST_LEN == size);
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_crfsop(const UINT32 comm, const CRFSOP *crfsop, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == crfsop )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsop: crfsop is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == out_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsop: out_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_crfsop: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_encode_uint16(comm, CRFSOP_OP_TYPE(crfsop), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint16(comm, CRFSOP_PATH_TYPE(crfsop), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32(comm, CRFSOP_PATH_HASH(crfsop), out_buff, out_buff_max_len, position);
-    cmpi_encode_cstring(comm, CRFSOP_PATH_NAME(crfsop), out_buff, out_buff_max_len, position);
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_crfsop_size(const UINT32 comm, const CRFSOP *crfsop, UINT32 *size)
-{
-    cmpi_encode_uint16_size(comm, CRFSOP_OP_TYPE(crfsop), size);
-    cmpi_encode_uint16_size(comm, CRFSOP_PATH_TYPE(crfsop), size);
-    cmpi_encode_uint32_size(comm, CRFSOP_PATH_HASH(crfsop), size);
-    cmpi_encode_cstring_size(comm, CRFSOP_PATH_NAME(crfsop), size);
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_crfsop(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CRFSOP *crfsop)
-{
-    UINT32 num;
-
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == in_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsop: in_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsop: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == crfsop )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_crfsop: crfsop is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CRFSOP_OP_TYPE(crfsop)));
-    cmpi_decode_uint16(comm, in_buff, in_buff_max_len, position, &(CRFSOP_PATH_TYPE(crfsop)));
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(num));
-    cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CRFSOP_PATH_NAME(crfsop));
-
-    CRFSOP_PATH_HASH(crfsop) = (uint32_t)num;
 
     return ((UINT32)0);
 }
