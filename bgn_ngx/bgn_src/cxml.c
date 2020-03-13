@@ -1936,6 +1936,8 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
 
                 data = cvector_get(&core_vec, core_pos);
                 CPARACFG_PROC_CORE_ID(cparacfg) = (UINT32)data;
+
+                core_pos ++;
             }
         }
     }
