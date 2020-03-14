@@ -149,6 +149,7 @@ typedef struct
 #define CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) \
     ((BIT_FALSE == CMP4_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cmp4_md)) ? 0 : CNGX_SEND_BODY_PRELOAD_FLAG)
 
+
 /**
 *   for test only
 *

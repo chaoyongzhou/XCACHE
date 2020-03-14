@@ -332,6 +332,11 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "session get"   , "session get [nameregex <name> | idregex <id>] key <key path> on tcid <tcid> rank <rank> modi <modi> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "session show"  , "session show on tcid <tcid> rank <rank> modi <modi> at <console|log>");
 #endif
+
+#if 1
+    api_cmd_help_vec_create(cmd_help_vec, "ngx so"        , "ngx <reload|switch|show> so on tcid <tcid> at <console|log>");
+
+#endif
     //api_cmd_help_vec_create(cmd_help_vec, "exec download" , "exec download <file> on {all|tcid <tcid>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "exec upload"   , "exec upload <file> with <content> on {all|tcid <tcid>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "exec shell"    , "exec shell <cmd> on {all|tcid <tcid>} at <console|log>");
@@ -636,6 +641,10 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_say_hello_loop        , "say hello loop %n to tcid %t rank %n on tcid %t rank %n at %s", rank, tcid, rank, tcid, rank, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_say_hello_loop_all    , "say hello loop %n to tcid %t rank %n on all at %s", rank, tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ngx_reload_so         , "ngx reload so on tcid %t at %s", tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ngx_switch_so         , "ngx switch so on tcid %t at %s", tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_ngx_show_so           , "ngx show so on tcid %t at %s", tcid, where);
 
     return (EC_TRUE);
 }
@@ -16105,6 +16114,117 @@ EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param)
 
     return (EC_TRUE);
 }
+
+#if 1
+EC_BOOL api_cmd_ui_ngx_reload_so(CMD_PARA_VEC * param)
+{
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &tcid);
+    api_cmd_para_vec_get_cstring(param , 1, &where);
+
+    /*ngx reload so on tcid <tcid> at <where>*/
+    /*ngx reload on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ngx_reload_so: ngx reload so on tcid %s at %s\n",
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;/*only one super modi*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             NULL_PTR,
+             FI_super_ngx_reload_so, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    sys_log(des_log, "[SUCC] ngx reload so done\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ngx_switch_so(CMD_PARA_VEC * param)
+{
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &tcid);
+    api_cmd_para_vec_get_cstring(param , 1, &where);
+
+    /*ngx switch so on tcid <tcid> at <where>*/
+    /*ngx switch on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ngx_switch_so: ngx switch so on tcid %s at %s\n",
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;/*only one super modi*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             NULL_PTR,
+             FI_super_ngx_switch_so, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    sys_log(des_log, "[SUCC] ngx switch so done\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_ngx_show_so(CMD_PARA_VEC * param)
+{
+    UINT32   tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+    LOG       *log;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &tcid);
+    api_cmd_para_vec_get_cstring(param , 1, &where);
+
+    /*ngx show so on tcid <tcid> at <where>*/
+    /*ngx show on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_ngx_show_so: ngx show so on tcid %s at %s\n",
+                        c_word_to_ipv4(tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
+    MOD_NODE_MODI(&mod_node) = 0;/*only one super modi*/
+
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             NULL_PTR,
+             FI_super_ngx_show_so, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    sys_log(des_log, "[rank_%s_%ld]\n%s\n",
+                     MOD_NODE_TCID_STR(&mod_node), MOD_NODE_RANK(&mod_node),
+                     (char *)cstring_get_str(LOG_CSTR(log)));
+
+    log_cstr_close(log);
+
+    return (EC_TRUE);
+}
+#endif
 
 #ifdef __cplusplus
 }

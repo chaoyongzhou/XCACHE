@@ -1857,13 +1857,13 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
 
     cvector_init(&tcid_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0036);
     cvector_init(&rank_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0037);
-    cvector_init(&core_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0037);
+    cvector_init(&core_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0038);
 
     __cxml_parse_tag_tcid_vec(node, (const char *)"tcid", &tcid_vec);
     __cxml_parse_tag_rank_vec(node, (const char *)"rank", &rank_vec);
     __cxml_parse_tag_core_vec(node, (const char *)"core", &core_vec);
 
-    CVECTOR_LOCK(paras_cfg, LOC_CXML_0038);
+    CVECTOR_LOCK(paras_cfg, LOC_CXML_0039);
 
     core_num = cvector_size(&core_vec);
     core_pos = 0;
@@ -1891,12 +1891,12 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
 
                 if(EC_FALSE == cxml_parse_cparacfg_para_cfg(node, cparacfg))
                 {
-                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0039);
+                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0040);
 
                     dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cxml_parse_para_cfg: parse cparacfg failed\n");
-                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0040);
-                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0041);
-                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
+                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0041);
+                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0042);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0043);
                     return (EC_FALSE);
                 }
             }
@@ -1905,25 +1905,25 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
                 cparacfg = cparacfg_new(tcid, rank);
                 if(NULL_PTR == cparacfg)
                 {
-                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0042);
+                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0044);
 
                     dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cxml_parse_para_cfg: new cparacfg failed\n");
-                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0043);
-                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0044);
-                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
+                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0045);
+                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0046);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0047);
                     return (EC_FALSE);
                 }
 
                 /*CPARACFG_LOG_LEVEL_TAB(cparacfg) was set to default*/
                 if(EC_FALSE == cxml_parse_cparacfg_para_cfg(node, cparacfg))
                 {
-                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0045);
+                    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0048);
 
                     dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "error:cxml_parse_para_cfg: parse cparacfg failed\n");
                     cparacfg_free(cparacfg);
-                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0046);
-                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0047);
-                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0041);
+                    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0049);
+                    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0050);
+                    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0051);
                     return (EC_FALSE);
                 }
 
@@ -1942,11 +1942,11 @@ EC_BOOL cxml_parse_para_cfg(xmlNodePtr node, CVECTOR *paras_cfg)
         }
     }
 
-    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0048);
+    CVECTOR_UNLOCK(paras_cfg, LOC_CXML_0052);
 
-    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0049);
-    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0050);
-    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0050);
+    cvector_clean_no_lock(&tcid_vec, NULL_PTR, LOC_CXML_0053);
+    cvector_clean_no_lock(&rank_vec, NULL_PTR, LOC_CXML_0054);
+    cvector_clean_no_lock(&core_vec, NULL_PTR, LOC_CXML_0055);
 
     return (EC_TRUE);
 

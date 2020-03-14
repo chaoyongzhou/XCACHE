@@ -157,6 +157,9 @@
 #define                   FI_super_cond_terminate  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 138))
 #define                      FI_super_cond_delete  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 139))
 #define                 FI_super_dns_resolve_demo  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 140))
+#define                    FI_super_ngx_reload_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 141))
+#define                    FI_super_ngx_switch_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 142))
+#define                      FI_super_ngx_show_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 143))
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))

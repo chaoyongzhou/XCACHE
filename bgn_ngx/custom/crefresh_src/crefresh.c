@@ -50,6 +50,7 @@ extern "C"{
 #define CREFRESH_MD_ID_CHECK_INVALID(crefresh_md_id)  \
     ((CMPI_ANY_MODI != (crefresh_md_id)) && ((NULL_PTR == CREFRESH_MD_GET(crefresh_md_id)) || (0 == (CREFRESH_MD_GET(crefresh_md_id)->usedcounter))))
 
+
 /**
 *   for test only
 *

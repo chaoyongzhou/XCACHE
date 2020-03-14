@@ -66,6 +66,7 @@ typedef struct
 #define CREFRESH_MD_NGX_LOC(crefresh_md)                      ((crefresh_md)->ngx_loc)
 #define CREFRESH_MD_NGX_RC(crefresh_md)                       ((crefresh_md)->ngx_rc)
 
+
 /**
 *   for test only
 *

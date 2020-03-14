@@ -139,6 +139,7 @@ typedef struct
 #define CVENDOR_MD_SEND_BODY_PRELOAD_FLAG(cvendor_md) \
     ((BIT_FALSE == CVENDOR_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cvendor_md)) ? 0 : CNGX_SEND_BODY_PRELOAD_FLAG)
 
+
 /**
 *   for test only
 *

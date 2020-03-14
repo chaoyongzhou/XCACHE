@@ -770,6 +770,27 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 **/
 EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port, const CSTRING *billing_flags, const CSTRING *billing_domain, const CSTRING *billing_client_type, const UINT32 send_len, const UINT32 recv_len);
 
+/**
+*
+* ngx reload bgn module so libs
+*
+**/
+void super_ngx_reload_so(const UINT32 super_md_id);
+
+/**
+*
+* ngx switch bgn module so libs
+*
+**/
+void super_ngx_switch_so(const UINT32 super_md_id);
+
+/**
+*
+* ngx show bgn module so libs
+*
+**/
+void super_ngx_show_so(const UINT32 super_md_id, LOG *log);
+
 /*------------------------------------------------------ test for ict -----------------------------------------------------------------------*/
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size);
 EC_BOOL super_load_data(const UINT32 super_md_id);

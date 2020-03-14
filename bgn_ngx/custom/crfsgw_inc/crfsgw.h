@@ -66,6 +66,7 @@ typedef struct
 #define CRFSGW_MD_NGX_LOC(crfsgw_md)                      ((crfsgw_md)->ngx_loc)
 #define CRFSGW_MD_NGX_RC(crfsgw_md)                       ((crfsgw_md)->ngx_rc)
 
+
 /**
 *   for test only
 *

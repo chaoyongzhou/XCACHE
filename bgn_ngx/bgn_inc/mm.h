@@ -283,7 +283,7 @@ extern "C"{
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 #define                    MM_CNGX_RANGE    ((UINT32)211)
-#define             MM_CNGX_HTTP_BGN_MOD    ((UINT32)212)
+#define              MM_CNGX_BGN_MOD_MGR    ((UINT32)212)
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #define                MM_CCALLBACK_NODE    ((UINT32)213)

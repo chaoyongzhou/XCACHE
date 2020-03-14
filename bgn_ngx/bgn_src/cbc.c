@@ -85,7 +85,7 @@ EC_BOOL cbc_md_reg(const UINT32 md_type, const UINT32 md_capaciy)
     {
         dbg_log(SEC_0091_CBC, 9)(LOGSTDOUT, "[DEBUG] cbc_md_reg: md_type %ld has already registered\n", md_type);
         CARRAY_UNLOCK(g_cbc, LOC_CBC_0006);
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
 
     md_cindex = cindex_new(md_capaciy, MM_UINT32, LOC_CBC_0007);/*note: the data item type is (void *) */

@@ -362,6 +362,13 @@ EC_BOOL api_cmd_ui_cp2p_offline(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);
+
+#if 1
+EC_BOOL api_cmd_ui_ngx_reload_so(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ngx_switch_so(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_ngx_show_so(CMD_PARA_VEC * param);
+#endif
+
 #endif
 
 

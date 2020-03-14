@@ -1909,7 +1909,7 @@ EC_BOOL cmon_load_hot_paths(const UINT32 cmon_md_id, const CSTRING *path)
 
     if(EC_FALSE == c_file_exist(fname))
     {
-        dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_load_hot_paths: "
+        dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "warn:cmon_load_hot_paths: "
                                              "file '%s' not exist\n",
                                              fname);
         return (EC_FALSE);

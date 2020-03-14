@@ -51,6 +51,7 @@ typedef struct
 #define CLOOPBACK_MD_NGX_LOC(cloopback_md)                            ((cloopback_md)->ngx_loc)
 #define CLOOPBACK_MD_NGX_RC(cloopback_md)                             ((cloopback_md)->ngx_rc)
 
+
 /**
 *   for test only
 *

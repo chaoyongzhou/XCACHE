@@ -123,51 +123,6 @@ typedef struct
 #define CNGX_RANGE_START(cngx_range)                ((cngx_range)->start)
 #define CNGX_RANGE_END(cngx_range)                  ((cngx_range)->end)
 
-
-typedef EC_BOOL    (*CNGX_HTTP_BGN_MOD_REG_FUNC   )();
-typedef EC_BOOL    (*CNGX_HTTP_BGN_MOD_UNREG_FUNC )();
-typedef UINT32     (*CNGX_HTTP_BGN_MOD_START_FUNC )(ngx_http_request_t *r);
-typedef void       (*CNGX_HTTP_BGN_MOD_END_FUNC   )(const UINT32 modi);
-typedef EC_BOOL    (*CNGX_HTTP_BGN_MOD_GETRC_FUNC )(const UINT32 modi, ngx_int_t *, UINT32 *);
-typedef EC_BOOL    (*CNGX_HTTP_BGN_MOD_HANDLE_FUNC)(const UINT32 modi);
-
-#define CNGX_HTTP_BGN_MOD_NAME_HASH(name, len)        (JS_hash(len, name))
-
-#define CNGX_HTTP_BGN_MOD_FUNC_NAME_MAX_SIZE          (256)
-
-typedef struct {
-    void                             *dl_lib;
-    CSTRING                           dl_path;
-
-    CSTRING                           name;/*module name*/
-    UINT32                            type;/*module type, like as MD_XXX*/
-
-    UINT32                            hash;/*hash of module name*/
-
-    CNGX_HTTP_BGN_MOD_REG_FUNC        reg;
-    CNGX_HTTP_BGN_MOD_UNREG_FUNC      unreg;
-    CNGX_HTTP_BGN_MOD_START_FUNC      start;
-    CNGX_HTTP_BGN_MOD_END_FUNC        end;
-    CNGX_HTTP_BGN_MOD_GETRC_FUNC      getrc;
-    CNGX_HTTP_BGN_MOD_HANDLE_FUNC     handle;
-}CNGX_HTTP_BGN_MOD;
-
-#define CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod)             ((cngx_http_bgn_mod)->dl_lib)
-#define CNGX_HTTP_BGN_MOD_DL_PATH(cngx_http_bgn_mod)            (&((cngx_http_bgn_mod)->dl_path))
-
-#define CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod)               (&((cngx_http_bgn_mod)->name))
-#define CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod)               ((cngx_http_bgn_mod)->type)
-
-#define CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod)               ((cngx_http_bgn_mod)->hash)
-
-#define CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod)                ((cngx_http_bgn_mod)->reg)
-#define CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod)              ((cngx_http_bgn_mod)->unreg)
-#define CNGX_HTTP_BGN_MOD_START(cngx_http_bgn_mod)              ((cngx_http_bgn_mod)->start)
-#define CNGX_HTTP_BGN_MOD_END(cngx_http_bgn_mod)                ((cngx_http_bgn_mod)->end)
-#define CNGX_HTTP_BGN_MOD_GETRC(cngx_http_bgn_mod)              ((cngx_http_bgn_mod)->getrc)
-#define CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod)             ((cngx_http_bgn_mod)->handle)
-
-
 CNGX_RANGE *cngx_range_new();
 
 EC_BOOL cngx_range_init(CNGX_RANGE *cngx_range);
@@ -343,42 +298,6 @@ EC_BOOL cngx_option_init(CNGX_OPTION *cngx_option);
 EC_BOOL cngx_option_clean(CNGX_OPTION *cngx_option);
 EC_BOOL cngx_option_set_cacheable_method(ngx_http_request_t *r, CNGX_OPTION *cngx_option);
 EC_BOOL cngx_option_set_only_if_cached(ngx_http_request_t *r, CNGX_OPTION *cngx_option);
-
-/*------------------------------ NGX BGN MODULE MANAGEMENT ------------------------------*/
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_new();
-
-EC_BOOL cngx_http_bgn_mod_init(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-EC_BOOL cngx_http_bgn_mod_clean(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-EC_BOOL cngx_http_bgn_mod_free(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-EC_BOOL cngx_http_bgn_mod_hash(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-EC_BOOL cngx_http_bgn_mod_set_name(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod, const char *name, const uint32_t len);
-
-void    cngx_http_bgn_mod_print(LOG *log, const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-int     cngx_http_bgn_mod_cmp(const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_1st, const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_2nd);
-
-EC_BOOL cngx_http_bgn_mod_table_init();
-
-EC_BOOL cngx_http_bgn_mod_table_add(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod);
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_table_search(const char *name, const uint32_t len);
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_table_get(const char *name, const uint32_t len);
-
-EC_BOOL cngx_http_bgn_mod_table_del(const char *name, const uint32_t len);
-
-void    cngx_http_bgn_mod_table_print(LOG *log);
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len,
-                                                      const char *mod_name, const uint32_t mod_name_len,
-                                                      const char *posix_name, const uint32_t posix_name_len);
-
-EC_BOOL cngx_http_bgn_mod_dl_unload(const char *name, const uint32_t len);
-
 
 #endif /*_CNGX_H*/
 

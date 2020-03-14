@@ -37,9 +37,6 @@ extern "C"{
 #include "cngx.h"
 
 
-static CRB_TREE  g_cngx_http_bgn_mod_tree;
-static EC_BOOL   g_cngx_http_bgn_mod_tree_init_flag = EC_FALSE;
-
 static const char *g_cngx_default_cache_http_codes_str = "200 203 206 301 401";
 
 static const uint32_t g_cngx_default_cache_http_codes[] = {200, 203, 206, 301, 401};
@@ -49,7 +46,7 @@ static UINT32         g_cngx_default_cache_http_codes_num =
 CNGX_RANGE *cngx_range_new()
 {
     CNGX_RANGE *cngx_range;
-    alloc_static_mem(MM_CNGX_RANGE, &cngx_range, LOC_CNGX_0003);
+    alloc_static_mem(MM_CNGX_RANGE, &cngx_range, LOC_CNGX_0001);
     if(NULL_PTR != cngx_range)
     {
         cngx_range_init(cngx_range);
@@ -76,7 +73,7 @@ EC_BOOL cngx_range_free(CNGX_RANGE *cngx_range)
     if(NULL_PTR != cngx_range)
     {
         cngx_range_clean(cngx_range);
-        free_static_mem(MM_CNGX_RANGE, cngx_range, LOC_CNGX_0004);
+        free_static_mem(MM_CNGX_RANGE, cngx_range, LOC_CNGX_0002);
     }
     return (EC_TRUE);
 }
@@ -591,7 +588,7 @@ EC_BOOL cngx_get_var_str(ngx_http_request_t *r, const char *key, char **val, con
         return (EC_TRUE);
     }
 
-    (*val) = safe_malloc(vv->len + 1, LOC_CNGX_0005);
+    (*val) = safe_malloc(vv->len + 1, LOC_CNGX_0003);
     if(NULL_PTR == (*val))
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_var_str: get var '%s' but malloc %d bytes failed\n",
@@ -690,7 +687,7 @@ EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val)
 {
     if(0 < r->method_name.len && NULL_PTR != r->method_name.data)
     {
-        (*val) = safe_malloc(r->method_name.len + 1, LOC_CNGX_0006);
+        (*val) = safe_malloc(r->method_name.len + 1, LOC_CNGX_0004);
         if(NULL_PTR == (*val))
         {
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_method_str: no memory\n");
@@ -790,49 +787,49 @@ EC_BOOL cngx_get_req_info_debug(ngx_http_request_t *r)
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"host", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: host: %s\n", v);
-        safe_free(v, LOC_CNGX_0007);
+        safe_free(v, LOC_CNGX_0005);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"remote_addr", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_addr: %s\n", v);
-        safe_free(v, LOC_CNGX_0008);
+        safe_free(v, LOC_CNGX_0006);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"remote_port", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: remote_port: %s\n", v);
-        safe_free(v, LOC_CNGX_0009);
+        safe_free(v, LOC_CNGX_0007);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_addr", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_addr: %s\n", v);
-        safe_free(v, LOC_CNGX_0010);
+        safe_free(v, LOC_CNGX_0008);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_port", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_port: %s\n", v);
-        safe_free(v, LOC_CNGX_0011);
+        safe_free(v, LOC_CNGX_0009);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_protocol", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_protocol: %s\n", v);
-        safe_free(v, LOC_CNGX_0012);
+        safe_free(v, LOC_CNGX_0010);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"server_name", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: server_name: %s\n", v);
-        safe_free(v, LOC_CNGX_0013);
+        safe_free(v, LOC_CNGX_0011);
     }
 
     if(EC_TRUE == cngx_get_var_str(r, (const char *)"hostname", &v, NULL_PTR))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_info_debug: hostname: %s\n", v);
-        safe_free(v, LOC_CNGX_0014);
+        safe_free(v, LOC_CNGX_0012);
     }
 
     return (EC_TRUE);
@@ -842,7 +839,7 @@ EC_BOOL cngx_get_req_uri(const ngx_http_request_t *r, char **val)
 {
     if(0 < r->uri.len && NULL_PTR != r->uri.data)
     {
-        (*val) = safe_malloc(r->uri.len + 1, LOC_CNGX_0015);
+        (*val) = safe_malloc(r->uri.len + 1, LOC_CNGX_0013);
         if(NULL_PTR == (*val))
         {
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_uri: no memory\n");
@@ -867,7 +864,7 @@ EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val)
 {
     if(0 < r->args.len && NULL_PTR != r->args.data)
     {
-        (*val) = safe_malloc(r->args.len + 1, LOC_CNGX_0016);
+        (*val) = safe_malloc(r->args.len + 1, LOC_CNGX_0014);
         if(NULL_PTR == (*val))
         {
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_arg: no memory\n");
@@ -930,7 +927,7 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
 
             cstring_append_str(req_url, (const uint8_t *)(v + 6));
 
-            safe_free(v, LOC_CNGX_0017);
+            safe_free(v, LOC_CNGX_0015);
             return (EC_TRUE);
         }
 
@@ -942,7 +939,7 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
 
             cstring_append_str(req_url, (const uint8_t *)(v + 7));
 
-            safe_free(v, LOC_CNGX_0018);
+            safe_free(v, LOC_CNGX_0016);
             return (EC_TRUE);
         }
 
@@ -951,14 +948,14 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
                                                  "format store_path '/%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CNGX_0019);
+            safe_free(v, LOC_CNGX_0017);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
                                              "format store_path '/%s' done\n",
                                              v);
-        safe_free(v, LOC_CNGX_0020);
+        safe_free(v, LOC_CNGX_0018);
 
         return (EC_TRUE);
     }
@@ -978,7 +975,7 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
                                              "fetch '%s' failed\n",
                                              k);
-        safe_free(uri_str, LOC_CNGX_0021);
+        safe_free(uri_str, LOC_CNGX_0019);
         return (EC_FALSE);
     }
 
@@ -987,12 +984,12 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
                                              "format req_url '/%s%s' failed\n",
                                              host_str, uri_str);
-        safe_free(host_str, LOC_CNGX_0022);
-        safe_free(uri_str, LOC_CNGX_0023);
+        safe_free(host_str, LOC_CNGX_0020);
+        safe_free(uri_str, LOC_CNGX_0021);
         return (EC_FALSE);
     }
-    safe_free(host_str, LOC_CNGX_0024);
-    safe_free(uri_str, LOC_CNGX_0025);
+    safe_free(host_str, LOC_CNGX_0022);
+    safe_free(uri_str, LOC_CNGX_0023);
 
     if(EC_TRUE == need_args && EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
     {
@@ -1004,7 +1001,7 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
         {
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
                                                  "[cngx] append '?' failed\n");
-            safe_free(v, LOC_CNGX_0026);
+            safe_free(v, LOC_CNGX_0024);
             return (EC_FALSE);
         }
 
@@ -1013,13 +1010,13 @@ EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_a
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_url: "
                                                  "[cngx] append args '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CNGX_0027);
+            safe_free(v, LOC_CNGX_0025);
             return (EC_FALSE);
         }
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
                                              "[cngx] append args '%s' done\n",
                                              v);
-        safe_free(v, LOC_CNGX_0028);
+        safe_free(v, LOC_CNGX_0026);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_url: "
@@ -1210,14 +1207,14 @@ EC_BOOL cngx_is_method(ngx_http_request_t *r, const char *method)
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_method: method is '%s'\n",
                         req_method);
 
-        safe_free(req_method, LOC_CNGX_0029);
+        safe_free(req_method, LOC_CNGX_0027);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_method: method '%s' != '%s'\n",
                     req_method, method);
 
-    safe_free(req_method, LOC_CNGX_0030);
+    safe_free(req_method, LOC_CNGX_0028);
     return (EC_FALSE);
 }
 
@@ -1256,13 +1253,13 @@ EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r)
             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_cacheable_method: '%s' not in '%s' => not cachable\n",
                         req_method, cache_http_method_default);
 
-            safe_free(req_method, LOC_CNGX_0031);
+            safe_free(req_method, LOC_CNGX_0029);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_cacheable_method: '%s' is in '%s' => cachable\n",
                         req_method, cache_http_method_default);
-        safe_free(req_method, LOC_CNGX_0032);
+        safe_free(req_method, LOC_CNGX_0030);
         return (EC_TRUE);
     }
 
@@ -1271,16 +1268,16 @@ EC_BOOL cngx_is_cacheable_method(ngx_http_request_t *r)
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_cacheable_method: '%s' not in '%s' => not cachable\n",
                     req_method, cache_http_method);
 
-        safe_free(req_method, LOC_CNGX_0033);
-        safe_free(cache_http_method, LOC_CNGX_0034);
+        safe_free(req_method, LOC_CNGX_0031);
+        safe_free(cache_http_method, LOC_CNGX_0032);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_is_cacheable_method: '%s' in '%s' => cachable\n",
                     req_method, cache_http_method);
 
-    safe_free(req_method, LOC_CNGX_0035);
-    safe_free(cache_http_method, LOC_CNGX_0036);
+    safe_free(req_method, LOC_CNGX_0033);
+    safe_free(cache_http_method, LOC_CNGX_0034);
 
     return (EC_TRUE);
 }
@@ -1518,7 +1515,7 @@ EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp
         (*des_rsp_status)   = CHTTP_STATUS_NONE;
         (*des_redirect_url) = NULL_PTR;
 
-        safe_free(v, LOC_CNGX_0037);
+        safe_free(v, LOC_CNGX_0035);
         return (EC_TRUE);
     }
 
@@ -1535,7 +1532,7 @@ EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp
             (*des_rsp_status)   = CHTTP_STATUS_NONE;
             (*des_redirect_url) = NULL_PTR;
 
-            safe_free(v, LOC_CNGX_0038);
+            safe_free(v, LOC_CNGX_0036);
             return (EC_TRUE);
         }
 
@@ -1558,7 +1555,7 @@ EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp
                 (*des_rsp_status)   = CHTTP_STATUS_NONE;
                 (*des_redirect_url) = NULL_PTR;
 
-                safe_free(v, LOC_CNGX_0039);
+                safe_free(v, LOC_CNGX_0037);
                 return (EC_TRUE);
             }
 
@@ -1571,14 +1568,14 @@ EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp
                 (*des_rsp_status)   = CHTTP_STATUS_NONE;
                 (*des_redirect_url) = NULL_PTR;
 
-                safe_free(v, LOC_CNGX_0040);
+                safe_free(v, LOC_CNGX_0038);
                 return (EC_FALSE);
             }
 
             dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG]cngx_get_redirect_specific: "
                                                  "cngx '%s' => status %u, redirect url '%s'\n",
                                                  k, (*des_rsp_status), (*des_redirect_url));
-            safe_free(v, LOC_CNGX_0041);
+            safe_free(v, LOC_CNGX_0039);
             return (EC_TRUE);
         }
     }
@@ -1590,7 +1587,7 @@ EC_BOOL cngx_get_redirect_specific(ngx_http_request_t *r, const uint32_t src_rsp
     (*des_rsp_status)   = CHTTP_STATUS_NONE;
     (*des_redirect_url) = NULL_PTR;
 
-    safe_free(v, LOC_CNGX_0042);
+    safe_free(v, LOC_CNGX_0040);
 
     return (EC_TRUE);
 }
@@ -1626,7 +1623,7 @@ EC_BOOL cngx_export_method(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_export_method: set chttp_req method: '%s'\n",
                     req_method);
 
-    safe_free(req_method, LOC_CNGX_0043);
+    safe_free(req_method, LOC_CNGX_0041);
 
     return (EC_TRUE);
 }
@@ -1644,7 +1641,7 @@ EC_BOOL cngx_export_uri(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     }
 
     chttp_req_set_uri(chttp_req, req_uri);
-    safe_free(req_uri, LOC_CNGX_0044);
+    safe_free(req_uri, LOC_CNGX_0042);
 
     if(EC_FALSE == cngx_get_req_arg(r, &req_arg))
     {
@@ -1656,7 +1653,7 @@ EC_BOOL cngx_export_uri(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     {
         chttp_req_set_uri(chttp_req, (const char *)"?");
         chttp_req_set_uri(chttp_req, req_arg);
-        safe_free(req_arg, LOC_CNGX_0045);
+        safe_free(req_arg, LOC_CNGX_0043);
     }
 
     return (EC_TRUE);
@@ -1896,7 +1893,7 @@ EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v)
         && 0 == STRNCASECMP(k, (const char *)header[i].key.data, klen))
         {
             vlen = (uint32_t)header[i].value.len;
-            (*v) = safe_malloc(vlen + 1, LOC_CNGX_0046);
+            (*v) = safe_malloc(vlen + 1, LOC_CNGX_0044);
             if(NULL_PTR == (*v))
             {
                 dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_header_in: "
@@ -1986,7 +1983,7 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
         return (EC_TRUE);
     }
 #endif
-    coroutine_cond = coroutine_cond_new((UINT32)send_timeout, LOC_CNGX_0047);
+    coroutine_cond = coroutine_cond_new((UINT32)send_timeout, LOC_CNGX_0045);
     if(NULL_PTR == coroutine_cond)
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
@@ -2000,20 +1997,20 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
                                          "coroutine_cond %p on r:%p, c:%p, wev:%p <= start\n",
                                          coroutine_cond, r, c, wev);
 
-    coroutine_cond_reserve(coroutine_cond, 1, LOC_CNGX_0048);
-    ret = coroutine_cond_wait(coroutine_cond, LOC_CNGX_0049);
+    coroutine_cond_reserve(coroutine_cond, 1, LOC_CNGX_0046);
+    ret = coroutine_cond_wait(coroutine_cond, LOC_CNGX_0047);
 
     __COROUTINE_CATCH_EXCEPTION() { /*exception*/
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
                                              "coroutine_cond %p on r:%p, c:%p, wev:%p => cancelled\n",
                                              coroutine_cond, r, c, wev);
-        coroutine_cond_free(coroutine_cond, LOC_CNGX_0050);
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0048);
         NGX_W_COROUTINE_COND(wev) = NULL_PTR;
     }__COROUTINE_TERMINATE();
 
     if(NULL_PTR != NGX_W_COROUTINE_COND(wev))/*double confirm its validity for safe reason*/
     {
-        coroutine_cond_free(coroutine_cond, LOC_CNGX_0051);
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0049);
         NGX_W_COROUTINE_COND(wev) = NULL_PTR;
     }
 
@@ -2047,7 +2044,7 @@ void cngx_send_again(ngx_http_request_t *r)
 
     if(NULL_PTR != NGX_W_COROUTINE_COND(wev))
     {
-        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0052);
+        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0050);
     }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
@@ -2442,7 +2439,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_http_codes: "
                                              "dup str '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CNGX_0053);
+        safe_free(v, LOC_CNGX_0051);
         return (EC_FALSE);
     }
 
@@ -2463,7 +2460,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
                                         " %u", status_code);
         }
     }
-    safe_free(cache_http_codes_str, LOC_CNGX_0054);
+    safe_free(cache_http_codes_str, LOC_CNGX_0052);
 
     if(0 == lost_codes_pos)
     {
@@ -2481,7 +2478,7 @@ EC_BOOL cngx_set_store_cache_http_codes(ngx_http_request_t *r, CHTTP_STORE *chtt
                                          "cngx var '%s':'%s', add lost default '%s' => '%s' done\n",
                                          k, v, (char *)lost_codes_str, cache_http_codes_str);
 
-    safe_free(v, LOC_CNGX_0055);
+    safe_free(v, LOC_CNGX_0053);
 
     cstring_set_str(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store), (const uint8_t *)cache_http_codes_str);
 
@@ -2740,7 +2737,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             cstring_append_str(store_path, (const uint8_t *)(v + 6));
             cstring_rtrim(store_path, (const UINT8)'/');
 
-            safe_free(v, LOC_CNGX_0056);
+            safe_free(v, LOC_CNGX_0054);
             return (EC_TRUE);
         }
 
@@ -2753,7 +2750,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             cstring_append_str(store_path, (const uint8_t *)(v + 7));
             cstring_rtrim(store_path, (const UINT8)'/');
 
-            safe_free(v, LOC_CNGX_0057);
+            safe_free(v, LOC_CNGX_0055);
             return (EC_TRUE);
         }
 
@@ -2762,7 +2759,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                                  "format store_path '/%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CNGX_0058);
+            safe_free(v, LOC_CNGX_0056);
             return (EC_FALSE);
         }
         cstring_rtrim(store_path, (const UINT8)'/');
@@ -2770,7 +2767,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                              "format store_path '/%s' done\n",
                                              v);
-        safe_free(v, LOC_CNGX_0059);
+        safe_free(v, LOC_CNGX_0057);
 
         return (EC_TRUE);
     }
@@ -2788,7 +2785,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "fetched req uri is '%s'\n",
                                              uri_str);
-        safe_free(uri_str, LOC_CNGX_0060);
+        safe_free(uri_str, LOC_CNGX_0058);
         return (EC_FALSE);
     }
 
@@ -2799,7 +2796,7 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "fetch '%s' failed\n",
                                              k);
-        safe_free(uri_str, LOC_CNGX_0061);
+        safe_free(uri_str, LOC_CNGX_0059);
         return (EC_FALSE);
     }
 
@@ -2808,14 +2805,14 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_store_cache_path: "
                                              "format store_path '/%s%s' failed\n",
                                              host_str, uri_str);
-        safe_free(host_str, LOC_CNGX_0062);
-        safe_free(uri_str, LOC_CNGX_0063);
+        safe_free(host_str, LOC_CNGX_0060);
+        safe_free(uri_str, LOC_CNGX_0061);
         return (EC_FALSE);
     }
     cstring_rtrim(store_path, (const UINT8)'/');
 
-    safe_free(host_str, LOC_CNGX_0064);
-    safe_free(uri_str, LOC_CNGX_0065);
+    safe_free(host_str, LOC_CNGX_0062);
+    safe_free(uri_str, LOC_CNGX_0063);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                          "set store_path '%s' done\n",
@@ -2925,511 +2922,6 @@ EC_BOOL cngx_option_set_only_if_cached(ngx_http_request_t *r, CNGX_OPTION *cngx_
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_option_set_only_if_cached: "
                                          "not found only-if-cached => false\n");
-    return (EC_TRUE);
-}
-
-/*------------------------------ NGX BGN MODULE MANAGEMENT ------------------------------*/
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_new()
-{
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-    alloc_static_mem(MM_CNGX_HTTP_BGN_MOD, &cngx_http_bgn_mod, LOC_CNGX_0066);
-    if(NULL_PTR != cngx_http_bgn_mod)
-    {
-        cngx_http_bgn_mod_init(cngx_http_bgn_mod);
-    }
-    return (cngx_http_bgn_mod);
-}
-
-EC_BOOL cngx_http_bgn_mod_init(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod) = NULL_PTR;
-    cstring_init(CNGX_HTTP_BGN_MOD_DL_PATH(cngx_http_bgn_mod), NULL_PTR);
-
-    cstring_init(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod), NULL_PTR);
-    CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod)   = MD_END;
-
-    CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod)   = 0;
-
-    CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod)    = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_START(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_END(cngx_http_bgn_mod)    = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_GETRC(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod) = NULL_PTR;
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_http_bgn_mod_clean(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    if(NULL_PTR != CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod))
-    {
-        dlclose(CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod));
-        CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod) = NULL_PTR;
-    }
-    cstring_clean(CNGX_HTTP_BGN_MOD_DL_PATH(cngx_http_bgn_mod));
-
-    cstring_clean(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod));
-    CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod)   = MD_END;
-
-    CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod)   = 0;
-
-    CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod)    = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_START(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_END(cngx_http_bgn_mod)    = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_GETRC(cngx_http_bgn_mod)  = NULL_PTR;
-    CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod) = NULL_PTR;
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_http_bgn_mod_free(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    if(NULL_PTR != cngx_http_bgn_mod)
-    {
-        cngx_http_bgn_mod_clean(cngx_http_bgn_mod);
-        free_static_mem(MM_CNGX_HTTP_BGN_MOD, cngx_http_bgn_mod, LOC_CNGX_0067);
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_http_bgn_mod_hash(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    if(0 == CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod))
-    {
-        CSTRING     *name;
-        UINT32       hash;
-
-        name = CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod);
-        hash = CNGX_HTTP_BGN_MOD_NAME_HASH(CSTRING_STR(name), CSTRING_LEN(name));
-
-        CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod) = hash;
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_http_bgn_mod_set_name(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod, const char *name, const uint32_t len)
-{
-    if(EC_FALSE == cstring_set_chars(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod), (const UINT8 *)name, (UINT32)len))
-    {
-        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "warn:cngx_http_bgn_mod_set_name: set '%.*s'failed\n",
-                                             len, name);
-        return (EC_FALSE);
-    }
-
-    cngx_http_bgn_mod_hash(cngx_http_bgn_mod);
-
-    return (EC_TRUE);
-}
-
-void cngx_http_bgn_mod_print(LOG *log, const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    sys_log(log, "cngx_http_bgn_mod_print: cngx_http_bgn_mod %p: type %ld, name '%s', hash %ld\n",
-                 cngx_http_bgn_mod,
-                 CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod),
-                 (char *)cstring_get_str(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod)),
-                 CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod));
-    return;
-}
-
-int cngx_http_bgn_mod_cmp(const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_1st, const CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_2nd)
-{
-#if 0
-    if(CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod_1st) > CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod_2nd))
-    {
-        return (1);
-    }
-
-    if(CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod_1st) < CNGX_HTTP_BGN_MOD_TYPE(cngx_http_bgn_mod_2nd))
-    {
-        return (-1);
-    }
-#endif
-    if(CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod_1st) > CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod_2nd))
-    {
-        return (1);
-    }
-
-    if(CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod_1st) < CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod_2nd))
-    {
-        return (-1);
-    }
-
-    return cstring_cmp(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod_1st), CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod_1st));
-}
-
-EC_BOOL cngx_http_bgn_mod_table_init()
-{
-    if(EC_FALSE == g_cngx_http_bgn_mod_tree_init_flag)
-    {
-        crb_tree_init(&g_cngx_http_bgn_mod_tree,
-                      (CRB_DATA_CMP  )cngx_http_bgn_mod_cmp,
-                      (CRB_DATA_FREE )cngx_http_bgn_mod_free,
-                      (CRB_DATA_PRINT)cngx_http_bgn_mod_print);
-
-        g_cngx_http_bgn_mod_tree_init_flag = EC_TRUE;
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_http_bgn_mod_table_add(CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod)
-{
-    CRB_NODE    *crb_node;
-
-    cngx_http_bgn_mod_table_init();/*trick*/
-
-    ASSERT(0 < CNGX_HTTP_BGN_MOD_HASH(cngx_http_bgn_mod));
-
-    crb_node = crb_tree_insert_data(&g_cngx_http_bgn_mod_tree, (void *)cngx_http_bgn_mod);
-    if(NULL_PTR == crb_node)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_add: add mod '%s' failed\n",
-                                (char *)cstring_get_str(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod)));
-        return (EC_FALSE);
-    }
-
-    if(CRB_NODE_DATA(crb_node) != cngx_http_bgn_mod)/*found duplicate*/
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_add: duplicate mod '%s'\n",
-                                (char *)cstring_get_str(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod)));
-        return (EC_FALSE);/*xxx*/
-    }
-
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_http_bgn_mod_table_add: add mod '%s' done\n",
-                            (char *)cstring_get_str(CNGX_HTTP_BGN_MOD_NAME(cngx_http_bgn_mod)));
-    return (EC_TRUE);
-}
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_table_search(const char *name, const uint32_t len)
-{
-    CRB_NODE          *crb_node;
-
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_searched;
-
-    cngx_http_bgn_mod_table_init();/*trick*/
-
-    cngx_http_bgn_mod = cngx_http_bgn_mod_new();
-    if(NULL_PTR == cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_search: new cngx_http_bgn_mod failed\n");
-        return (NULL_PTR);
-    }
-
-    if(EC_FALSE == cngx_http_bgn_mod_set_name(cngx_http_bgn_mod, name, len))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_search: set mod '%.*s' failed\n",
-                                             len, name);
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*searched by name*/
-    crb_node = crb_tree_search_data(&g_cngx_http_bgn_mod_tree, (void *)cngx_http_bgn_mod);
-    if(NULL_PTR == crb_node)
-    {
-        return (NULL_PTR);
-    }
-
-    cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-
-    cngx_http_bgn_mod_searched = CRB_NODE_DATA(crb_node);
-    return (cngx_http_bgn_mod_searched);
-}
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_table_get(const char *name, const uint32_t len)
-{
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-
-    cngx_http_bgn_mod = cngx_http_bgn_mod_table_search(name, len);
-    if(NULL_PTR == cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_get: not found mod '%.*s'\n",
-                                            len, name);
-        return (NULL_PTR);
-    }
-
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_http_bgn_mod_table_get: get mod '%.*s' done\n",
-                                        len, name);
-    return (cngx_http_bgn_mod);
-}
-
-EC_BOOL cngx_http_bgn_mod_table_del(const char *name, const uint32_t len)
-{
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-
-    cngx_http_bgn_mod_table_init();/*trick*/
-
-    cngx_http_bgn_mod = cngx_http_bgn_mod_new();
-    if(NULL_PTR == cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_del: new cngx_http_bgn_mod failed\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cngx_http_bgn_mod_set_name(cngx_http_bgn_mod, name, len))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_del: set mod '%.*s' failed\n",
-                                             len, name);
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (EC_FALSE);
-    }
-
-    /*search and delete by name*/
-    if(EC_FALSE == crb_tree_delete_data(&g_cngx_http_bgn_mod_tree, (void *)cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_table_del: del mod '%.*s' failed\n",
-                                             len, name);
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (EC_FALSE);
-    }
-
-    cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_http_bgn_mod_table_del: del mod '%.*s' done\n",
-                                         len, name);
-    return (EC_TRUE);
-}
-
-void cngx_http_bgn_mod_table_print(LOG *log)
-{
-    sys_log(log, "cngx_http_bgn_mod_table_print: g_cngx_http_bgn_mod_tree:\n");
-    crb_tree_print(log, &g_cngx_http_bgn_mod_tree);
-
-    return;
-}
-
-CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod_dl_load(const char *so_path, const uint32_t so_path_len,
-                                                      const char *mod_name, const uint32_t mod_name_len,
-                                                      const char *posix_name, const uint32_t posix_name_len)
-{
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-
-    CSTRING           *dl_path;
-    char               func_name[ CNGX_HTTP_BGN_MOD_FUNC_NAME_MAX_SIZE ];
-
-    cngx_http_bgn_mod = cngx_http_bgn_mod_table_search(mod_name, mod_name_len);
-    if(NULL_PTR != cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 5)(LOGSTDOUT, "info:cngx_http_bgn_mod_dl_load: module '%.*s' exist already\n",
-                                            mod_name_len, mod_name);
-        return (cngx_http_bgn_mod);
-    }
-
-    cngx_http_bgn_mod = cngx_http_bgn_mod_new();
-    if(NULL_PTR == cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: new cngx_http_bgn_mod failed\n");
-        return (NULL_PTR);
-    }
-
-    if(EC_FALSE == cngx_http_bgn_mod_set_name(cngx_http_bgn_mod, mod_name, mod_name_len))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: set '%.*s' to cngx_http_bgn_mod failed\n",
-                                             mod_name_len, mod_name);
-        return (NULL_PTR);
-    }
-
-    /* load */
-    if(NULL_PTR == so_path || 0 == so_path_len)
-    {
-        dl_path = CNGX_HTTP_BGN_MOD_DL_PATH(cngx_http_bgn_mod);
-
-        if(EC_FALSE == cstring_format(dl_path, (const char *)"%s/lib%.*s.so",
-                                      (char *)CNGX_BGN_MOD_SO_PATH_DEFAULT,
-                                      mod_name_len, mod_name))
-        {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: format string '%s/%.*s.so' failed\n",
-                                                (char *)CNGX_BGN_MOD_SO_PATH_DEFAULT,
-                                                mod_name_len, mod_name);
-            cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-            return (NULL_PTR);
-        }
-    }
-    else
-    {
-        dl_path = CNGX_HTTP_BGN_MOD_DL_PATH(cngx_http_bgn_mod);
-
-        if(EC_FALSE == cstring_format(dl_path, (const char *)"%.*s/lib%.*s.so",
-                                      so_path_len, so_path,
-                                      mod_name_len, mod_name))
-        {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: format string '%.*s/%.*s.so' failed\n",
-                                                so_path_len, so_path,
-                                                mod_name_len, mod_name);
-            cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-            return (NULL_PTR);
-        }
-    }
-
-    CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod) = dlopen((char *)cstring_get_str(dl_path), RTLD_LAZY);
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: load '%s' failed, err = '%s'\n",
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load reg interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_reg", mod_name_len, mod_name);
-    CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_REG_FUNC)dlsym(
-                                                    CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                    (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load unreg interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_unreg", mod_name_len, mod_name);
-    CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_REG_FUNC)dlsym(
-                                                      CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                      (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load start interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_start", mod_name_len, mod_name);
-    CNGX_HTTP_BGN_MOD_START(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_START_FUNC)dlsym(
-                                                        CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                        (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_START(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load end interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_end", mod_name_len, mod_name);
-    CNGX_HTTP_BGN_MOD_END(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_END_FUNC)dlsym(
-                                                        CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                        (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_END(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load get_ngx_rc interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_get_ngx_rc", mod_name_len, mod_name);
-    CNGX_HTTP_BGN_MOD_GETRC(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_GETRC_FUNC)dlsym(
-                                                        CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                        (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_GETRC(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*load content_handler interface*/
-    snprintf(func_name, sizeof(func_name), "%.*s""_""%.*s", mod_name_len, mod_name, posix_name_len, posix_name);
-    CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod) = (CNGX_HTTP_BGN_MOD_HANDLE_FUNC)dlsym(
-                                                        CNGX_HTTP_BGN_MOD_DL_LIB(cngx_http_bgn_mod),
-                                                        (const char *)func_name);
-
-    if(NULL_PTR == CNGX_HTTP_BGN_MOD_HANDLE(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: not found '%s' in '%s', err = '%s'\n",
-                                            (char *)func_name,
-                                            (char *)cstring_get_str(dl_path),
-                                            dlerror());
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    /*register module*/
-    if(EC_FALSE == CNGX_HTTP_BGN_MOD_REG(cngx_http_bgn_mod)())
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: call reg in '%s' failed\n",
-                                            (char *)cstring_get_str(dl_path));
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    if(EC_FALSE == cngx_http_bgn_mod_table_add(cngx_http_bgn_mod))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_load: add bgn module '%.*s' to table failed\n",
-                                            mod_name_len, mod_name);
-
-        cngx_http_bgn_mod_free(cngx_http_bgn_mod);
-        return (NULL_PTR);
-    }
-
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_http_bgn_mod_dl_load: load bgn module '%.*s' done\n",
-                                        mod_name_len, mod_name);
-    return (cngx_http_bgn_mod);
-}
-
-EC_BOOL cngx_http_bgn_mod_dl_unload(const char *name, const uint32_t len)
-{
-    CNGX_HTTP_BGN_MOD *cngx_http_bgn_mod;
-
-    /*for debug reason, check it*/
-    cngx_http_bgn_mod = cngx_http_bgn_mod_table_search(name, len);
-    if(NULL_PTR != cngx_http_bgn_mod)
-    {
-        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "warn:cngx_http_bgn_mod_dl_unload: module '%.*s' not exist\n",
-                                             len, name);
-        return (EC_TRUE);
-    }
-
-    /*unregister module*/
-    if(NULL_PTR != CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod)
-    && EC_FALSE == CNGX_HTTP_BGN_MOD_UNREG(cngx_http_bgn_mod)())
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_unload: call unreg of '%s' failed\n",
-                                            (char *)name);
-
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cngx_http_bgn_mod_table_del(name, len))
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_http_bgn_mod_dl_unload: unload mod '%.*s' failed\n",
-                                             len, name);
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_http_bgn_mod_dl_unload: unload mod '%.*s' done\n",
-                                         len, name);
     return (EC_TRUE);
 }
 

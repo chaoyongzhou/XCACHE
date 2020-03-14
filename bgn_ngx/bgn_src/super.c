@@ -52,6 +52,9 @@ extern "C"{
 #include "cdns.h"
 #include "findex.inc"
 
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+#include "cngx_mod.h"
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #define SUPER_MD_CAPACITY()          (cbc_md_capacity(MD_SUPER))
 
@@ -8873,6 +8876,92 @@ EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_serv
 
     return (EC_TRUE);
 }
+
+/**
+*
+* ngx reload bgn module so libs
+*
+**/
+void super_ngx_reload_so(const UINT32 super_md_id)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_ngx_reload_so: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    cngx_bgn_mod_mgr_table_set_reload();
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_ngx_reload_so: not support\n");
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
+    return;
+}
+
+/**
+*
+* ngx switch bgn module so libs
+*
+**/
+void super_ngx_switch_so(const UINT32 super_md_id)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_ngx_switch_so: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    cngx_bgn_mod_mgr_table_switch();
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_ngx_switch_so: not support\n");
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
+    return;
+}
+
+/**
+*
+* ngx show bgn module so libs
+*
+**/
+void super_ngx_show_so(const UINT32 super_md_id, LOG *log)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_ngx_show_so: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    cngx_bgn_mod_mgr_table_print(log);
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_ngx_show_so: not support\n");
+    sys_log(log, "error:super_ngx_show_so: not support\n");
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
+    return;
+}
+
 
 #ifdef __cplusplus
 }
