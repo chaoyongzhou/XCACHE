@@ -4071,6 +4071,14 @@ EC_BOOL cmp4_content_direct_header_out_range_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {
         char       *content_range_str;
@@ -5817,6 +5825,14 @@ EC_BOOL cmp4_content_repair2_header_out_range_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {
         char       *content_range_str;
@@ -7503,6 +7519,14 @@ EC_BOOL cmp4_content_orig_header_out_range_filter(const UINT32 cmp4_md_id)
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {
@@ -9587,6 +9611,14 @@ EC_BOOL cmp4_content_ms_header_out_range_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {
         char       *content_length_str;
@@ -10929,6 +10961,14 @@ EC_BOOL cmp4_content_preload_header_out_range_filter(const UINT32 cmp4_md_id)
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {
@@ -14211,6 +14251,14 @@ EC_BOOL cmp4_content_expired_header_out_range_filter(const UINT32 cmp4_md_id)
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     do /*renew content-length info*/
     {
         const char *k;
@@ -15220,6 +15268,14 @@ EC_BOOL cmp4_content_cache_header_out_range_filter(const UINT32 cmp4_md_id)
 #endif/*CMP4_DEBUG_SWITCH*/
 
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)))
+    {
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CMP4_MD_CONTENT_LENGTH_EXIST_FLAG(cmp4_md))
     {

@@ -3645,6 +3645,14 @@ EC_BOOL cvendor_content_direct_header_out_range_filter(const UINT32 cvendor_md_i
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
         char       *content_range_str;
@@ -5390,6 +5398,14 @@ EC_BOOL cvendor_content_repair_header_out_range_filter(const UINT32 cvendor_md_i
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
@@ -7534,6 +7550,14 @@ EC_BOOL cvendor_content_orig_header_out_range_filter(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
         char       *content_length_str;
@@ -9444,6 +9468,14 @@ EC_BOOL cvendor_content_ms_header_out_range_filter(const UINT32 cvendor_md_id)
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
         char       *content_length_str;
@@ -10909,6 +10941,14 @@ EC_BOOL cvendor_content_preload_header_out_range_filter(const UINT32 cvendor_md_
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
@@ -13149,6 +13189,14 @@ EC_BOOL cvendor_content_expired_header_out_range_filter(const UINT32 cvendor_md_
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     do /*renew content-length info*/
     {
         const char *k;
@@ -14198,6 +14246,14 @@ EC_BOOL cvendor_content_cache_header_out_range_filter(const UINT32 cvendor_md_id
 #endif/*CVENDOR_DEBUG_SWITCH*/
 
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    {
+        dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_range_filter: "
+                                                "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CVENDOR_MD_CONTENT_LENGTH_EXIST_FLAG(cvendor_md))
     {
@@ -15633,7 +15689,6 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                                                         seg_no);
             }
             else
-#endif
             {
                 /*preload does not need send data to client. so choose orig procedure but not ms procedure*/
                 if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
@@ -15645,6 +15700,20 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                 }
                 dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
                                                         "[preload] orig send absent seg %ld done\n",
+                                                        seg_no);
+            }
+#endif
+            {
+                /*preload does not need send data to client. so choose orig procedure but not ms procedure*/
+                if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
+                {
+                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                                                            "orig send absent seg %ld failed\n",
+                                                            seg_no);
+                    return (EC_FALSE);
+                }
+                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_procedure: "
+                                                        "orig send absent seg %ld done\n",
                                                         seg_no);
             }
 

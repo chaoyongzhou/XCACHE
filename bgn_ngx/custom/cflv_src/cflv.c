@@ -3737,6 +3737,14 @@ EC_BOOL cflv_content_direct_header_out_range_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {
         char       *content_range_str;
@@ -5515,6 +5523,14 @@ EC_BOOL cflv_content_repair_header_out_range_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {
         char       *content_range_str;
@@ -7263,6 +7279,14 @@ EC_BOOL cflv_content_orig_header_out_range_filter(const UINT32 cflv_md_id)
 #endif/*CFLV_DEBUG_SWITCH*/
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {
@@ -9214,6 +9238,14 @@ EC_BOOL cflv_content_ms_header_out_range_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {
         char       *content_length_str;
@@ -10555,6 +10587,14 @@ EC_BOOL cflv_content_preload_header_out_range_filter(const UINT32 cflv_md_id)
 #endif/*CFLV_DEBUG_SWITCH*/
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {
@@ -12938,6 +12978,14 @@ EC_BOOL cflv_content_expired_header_out_range_filter(const UINT32 cflv_md_id)
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
+
     do /*renew content-length info*/
     {
         const char *k;
@@ -13945,6 +13993,14 @@ EC_BOOL cflv_content_cache_header_out_range_filter(const UINT32 cflv_md_id)
 #endif/*CFLV_DEBUG_SWITCH*/
 
     cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    if(CHTTP_NO_CONTENT == CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)))
+    {
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_range_filter: "
+                                             "status 204 (no content) => done\n");
+
+        return (EC_TRUE);
+    }
 
     while(BIT_FALSE == CFLV_MD_CONTENT_LENGTH_EXIST_FLAG(cflv_md))
     {

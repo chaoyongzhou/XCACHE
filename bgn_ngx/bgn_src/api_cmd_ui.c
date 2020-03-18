@@ -915,7 +915,8 @@ STATIC_CAST static MOD_MGR *api_cmd_ui_gen_mod_mgr(const UINT32 incl_tcid, const
 
     mod_mgr_excl(excl_tcid, CMPI_ANY_COMM, excl_rank, modi, mod_mgr);
 
-    if(0 == MOD_MGR_REMOTE_NUM(mod_mgr))
+    if(0 == MOD_MGR_REMOTE_NUM(mod_mgr)
+    && TDNS_RESOLVE_SWITCH == SWITCH_ON)
     {
         UINT32      incl_ipv4;
         UINT32      incl_port;

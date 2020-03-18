@@ -434,7 +434,7 @@ typedef struct
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR_DEF              ((uint8_t *)"certificate.pem")
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR_DEF              ((uint8_t *)"private_key.pem")
 
-#define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_ON
+#define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_OFF
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
 #define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    4
