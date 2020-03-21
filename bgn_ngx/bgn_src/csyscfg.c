@@ -318,10 +318,32 @@ EC_BOOL cluster_cfg_check_id(const CLUSTER_CFG *cluster_cfg, const UINT32 id)
 
 EC_BOOL cluster_cfg_check_name_str(const CLUSTER_CFG *cluster_cfg, const char *name_str)
 {
-    if(0 == strcmp(name_str, (char *)CLUSTER_CFG_NAME_STR(cluster_cfg)))
+    char    *name_str_t;
+    char    *field[4];
+    UINT32   num;
+    UINT32   pos;
+
+    name_str_t = c_str_dup(name_str);
+    if(NULL_PTR == name_str_t)
     {
-        return (EC_TRUE);
+        if(0 == strcasecmp(name_str, (char *)CLUSTER_CFG_NAME_STR(cluster_cfg)))
+        {
+            return (EC_TRUE);
+        }
+        return (EC_FALSE);
     }
+
+    num = c_str_split(name_str_t, (const char *)":", (char * *)field, sizeof(field)/sizeof(field[0]));
+    for(pos = 0; pos < num; pos ++)
+    {
+        if(0 == strcasecmp(field[ pos ], (char *)CLUSTER_CFG_NAME_STR(cluster_cfg)))
+        {
+            c_str_free(name_str_t);
+            return (EC_TRUE);
+        }
+    }
+
+    c_str_free(name_str_t);
     return (EC_FALSE);
 }
 

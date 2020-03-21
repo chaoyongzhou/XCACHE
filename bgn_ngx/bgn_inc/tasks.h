@@ -33,6 +33,8 @@ extern "C"{
 
 EC_BOOL tasks_srv_start(TASKS_CFG *tasks_cfg);
 
+EC_BOOL tasks_srv_close(TASKS_CFG *tasks_cfg);
+
 EC_BOOL tasks_srv_end(TASKS_CFG *tasks_cfg);
 
 EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag);

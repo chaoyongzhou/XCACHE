@@ -353,6 +353,20 @@ EC_BOOL cmon_node_is_up(const CMON_NODE *cmon_node)
 {
     if(CMON_NODE_IS_UP == CMON_NODE_STATE(cmon_node))
     {
+        TASK_BRD        *task_brd;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_FALSE == task_brd_check_tcid_connected(task_brd, CMON_NODE_TCID(cmon_node)))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_node_is_up: "
+                            "tcid %s is not connected => set down\n",
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node)));
+
+            cmon_set_node_down(TASK_BRD_CMON_ID(task_brd), cmon_node);
+            return (EC_FALSE);
+        }
+
         return (EC_TRUE);
     }
 
@@ -484,7 +498,8 @@ void cmon_list_nodes(const UINT32 cmon_md_id, CSTRING *cstr)
         cstring_format(cstr,
                     "[%ld/%ld] (tcid %s, srv %s:%ld, modi %ld, state %s)\n", pos, num,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
-                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)),
+                    CMON_NODE_PORT(cmon_node),
                     CMON_NODE_MODI(cmon_node),
                     cmon_node_state(cmon_node)
                     );
@@ -551,7 +566,8 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                     "cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) is invalid\n",
                     cmon_node,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
-                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)),
+                    CMON_NODE_PORT(cmon_node),
                     CMON_NODE_MODI(cmon_node),
                     cmon_node_state(cmon_node)
                     );
@@ -563,21 +579,33 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                                (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS != pos)/*found duplicate*/
     {
+        cmon_node_t = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), pos);
+
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "warn:cmon_add_node: "
                     "found duplicate cmon_node %p "
                     "(tcid %s, srv %s:%ld, modi %ld, state %s)\n",
-                    cmon_node,
-                    c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
-                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
-                    CMON_NODE_MODI(cmon_node),
-                    cmon_node_state(cmon_node)
+                    cmon_node_t,
+                    c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                    c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)),
+                    CMON_NODE_PORT(cmon_node_t),
+                    CMON_NODE_MODI(cmon_node_t),
+                    cmon_node_state(cmon_node_t)
                     );
+        if(CMON_NODE_IS_DOWN == CMON_NODE_STATE(cmon_node_t)
+        && CMON_NODE_IS_UP == CMON_NODE_STATE(cmon_node))
+        {
+            cmon_set_node_up(cmon_md_id, cmon_node_t);
+        }
+
         return (EC_TRUE);
     }
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), CMON_NODE_TCID(cmon_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd),
+                                         CMON_NODE_TCID(cmon_node),
+                                         CMPI_ANY_MASK,
+                                         CMPI_ANY_MASK);
     if(NULL_PTR == tasks_cfg)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_add_node: "
@@ -613,7 +641,7 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     if(NULL_PTR != CMON_MD_CCONHASH(cmon_md))
     {
-        if(EC_FALSE ==cconhash_add_node(CMON_MD_CCONHASH(cmon_md),
+        if(EC_FALSE == cconhash_add_node(CMON_MD_CCONHASH(cmon_md),
                                         (uint32_t)CMON_NODE_TCID(cmon_node_t),
                                         CMON_CONHASH_REPLICAS))
         {
@@ -673,7 +701,9 @@ EC_BOOL cmon_del_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
-    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)cmon_node, (CVECTOR_DATA_CMP)cmon_node_cmp);
+    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md),
+                               (const void *)cmon_node,
+                               (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS == pos)
     {
         dbg_log(SEC_0023_CMON, 1)(LOGSTDOUT, "warn:cmon_del_node: "
@@ -696,9 +726,8 @@ EC_BOOL cmon_del_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     if(NULL_PTR != CMON_MD_CCONHASH(cmon_md))
     {
-        if(EC_FALSE ==cconhash_del_node(CMON_MD_CCONHASH(cmon_md),
-                                        (uint32_t)CMON_NODE_TCID(cmon_node_t))
-        )
+        if(EC_FALSE == cconhash_del_node(CMON_MD_CCONHASH(cmon_md),
+                                        (uint32_t)CMON_NODE_TCID(cmon_node_t)))
         {
             dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_del_node: "
                             "del cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
@@ -755,7 +784,9 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
-    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)cmon_node, (CVECTOR_DATA_CMP)cmon_node_cmp);
+    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md),
+                               (const void *)cmon_node,
+                               (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS == pos)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_up: "
@@ -785,9 +816,8 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     if(NULL_PTR != CMON_MD_CCONHASH(cmon_md))
     {
-        if(EC_FALSE ==cconhash_up_node(CMON_MD_CCONHASH(cmon_md),
-                                            (uint32_t)CMON_NODE_TCID(cmon_node_t))
-        )
+        if(EC_FALSE == cconhash_up_node(CMON_MD_CCONHASH(cmon_md),
+                                            (uint32_t)CMON_NODE_TCID(cmon_node_t)))
         {
             dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_up: "
                             "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
@@ -802,7 +832,7 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
         }
         else
         {
-            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
                             "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in connhash done\n",
                             cmon_node_t,
@@ -816,8 +846,8 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     CMON_NODE_STATE(cmon_node_t) = CMON_NODE_IS_UP; /*set up*/
 
-    dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
-                    "set up cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
+    dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+                    "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
                     cmon_node_t,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
                     c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
@@ -845,7 +875,9 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
-    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)cmon_node, (CVECTOR_DATA_CMP)cmon_node_cmp);
+    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md),
+                              (const void *)cmon_node,
+                              (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS == pos)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_down: "
@@ -875,9 +907,8 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     if(NULL_PTR != CMON_MD_CCONHASH(cmon_md))
     {
-        if(EC_FALSE ==cconhash_down_node(CMON_MD_CCONHASH(cmon_md),
-                                            (uint32_t)CMON_NODE_TCID(cmon_node_t))
-        )
+        if(EC_FALSE == cconhash_down_node(CMON_MD_CCONHASH(cmon_md),
+                                            (uint32_t)CMON_NODE_TCID(cmon_node_t)))
         {
             dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_down: "
                             "set down cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
@@ -935,7 +966,9 @@ EC_BOOL cmon_check_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
-    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)cmon_node, (CVECTOR_DATA_CMP)cmon_node_cmp);
+    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md),
+                               (const void *)cmon_node,
+                               (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS == pos)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_check_node_up: "
@@ -1048,7 +1081,9 @@ EC_BOOL cmon_get_node_by_tcid(const UINT32 cmon_md_id, const UINT32 tcid, const 
     CMON_NODE_TCID(&cmon_node_t) = tcid;
     CMON_NODE_MODI(&cmon_node_t) = modi;
 
-    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)&cmon_node_t, (CVECTOR_DATA_CMP)cmon_node_cmp);
+    pos = cvector_search_front(CMON_MD_CMON_NODE_VEC(cmon_md),
+                                (const void *)&cmon_node_t,
+                                (CVECTOR_DATA_CMP)cmon_node_cmp);
     if(CVECTOR_ERR_POS == pos)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_node_by_tcid: "
@@ -1270,7 +1305,10 @@ EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *p
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), CMON_NODE_TCID(&cmon_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd),
+                                         CMON_NODE_TCID(&cmon_node),
+                                         CMPI_ANY_MASK,
+                                         CMPI_ANY_MASK);
     if(NULL_PTR == tasks_cfg)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_store_http_srv_get: "
@@ -1330,18 +1368,31 @@ EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UI
     hash = c_crc32_short(CSTRING_STR(path), (size_t)CSTRING_LEN(path));
 
     cmon_node_init(&cmon_node);
-    if(EC_FALSE == cmon_get_node_by_hash(cmon_md_id, hash, &cmon_node))
-    {
-        dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
-                    "get cmon_node with cmon_md_id %ld and hash %ld failed\n",
-                    cmon_md_id, hash);
 
-        cmon_node_clean(&cmon_node);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cmon_node_is_up(&cmon_node))
+    for(;;)
     {
+        if(EC_FALSE == cmon_get_node_by_hash(cmon_md_id, hash, &cmon_node))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
+                        "get cmon_node with cmon_md_id %ld and hash %ld of path '%.*s' failed\n",
+                        cmon_md_id, hash,
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path));
+
+            cmon_node_clean(&cmon_node);
+            return (EC_FALSE);
+        }
+
+        if(EC_TRUE == cmon_node_is_up(&cmon_node))
+        {
+            dbg_log(SEC_0023_CMON, 1)(LOGSTDOUT, "[DEBUG] cmon_get_store_http_srv: "
+                        "cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) is up\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(&cmon_node)), CMON_NODE_PORT(&cmon_node),
+                        CMON_NODE_MODI(&cmon_node),
+                        cmon_node_state(&cmon_node));
+            break;
+        }
+
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
                     "cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) is not up\n",
                     c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
@@ -1350,17 +1401,21 @@ EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UI
                     cmon_node_state(&cmon_node));
 
         cmon_node_clean(&cmon_node);
-        return (EC_FALSE);
+
+        /*fall through*/
     }
 
     task_brd = task_brd_default_get();
 
-    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), CMON_NODE_TCID(&cmon_node), CMPI_ANY_MASK, CMPI_ANY_MASK);
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd),
+                                         CMON_NODE_TCID(&cmon_node),
+                                         CMPI_ANY_MASK,
+                                         CMPI_ANY_MASK);
     if(NULL_PTR == tasks_cfg)
     {
         dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
-                            "not searched tasks cfg of tcid %s\n",
-                            c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
+                                             "not searched tasks cfg of tcid %s\n",
+                                             c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
         return (EC_FALSE);
     }
 

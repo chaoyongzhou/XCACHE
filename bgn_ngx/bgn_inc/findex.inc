@@ -405,6 +405,7 @@
 #define                          FI_cxfs_dump_cfg  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 110))
 #define                     FI_cxfs_process_space  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 111))
 #define                           FI_cxfs_sync_do  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 112))
+#define                           FI_cxfs_reg_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 113))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))

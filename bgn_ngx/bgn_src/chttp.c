@@ -1093,7 +1093,7 @@ EC_BOOL chttp_store_has_cache_status_code(CHTTP_STORE *chttp_store, const uint32
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_cache_status_code: check %u in '%s'\n", status_code, cache_http_codes_str);
 
     num = sizeof(cache_http_codes)/sizeof(cache_http_codes[0]);
-    num = c_str_split(cache_http_codes_str, (const char *)"; ", (char **)cache_http_codes, num);
+    num = c_str_split(cache_http_codes_str, (const char *)";, ", (char **)cache_http_codes, num);
     for(pos = 0; pos < num; pos ++)
     {
         char *cache_http_code;
@@ -1242,7 +1242,7 @@ EC_BOOL chttp_store_has_not_cache_status_code(CHTTP_STORE *chttp_store, const ui
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_store_has_not_cache_status_code: check %u in '%s'\n", status_code, not_cache_http_codes_str);
 
     num = sizeof(not_cache_http_codes)/sizeof(not_cache_http_codes[0]);
-    num = c_str_split(not_cache_http_codes_str, (const char *)"; ", (char **)not_cache_http_codes, num);/*add space seperator. Jun 14,2017*/
+    num = c_str_split(not_cache_http_codes_str, (const char *)";,: ", (char **)not_cache_http_codes, num);/*add space seperator. Jun 14,2017*/
     for(pos = 0; pos < num; pos ++)
     {
         char   *not_cache_if_http_code;
@@ -4442,7 +4442,17 @@ CSRV * chttp_srv_start(const UINT32 srv_ipaddr, const UINT32 srv_port, const UIN
 
 EC_BOOL chttp_srv_end(CSRV *csrv)
 {
-    return csrv_free(csrv);
+    if(NULL_PTR != csrv)
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "[DEBUG] chttp_srv_end: close srv sockfd %d on %s:%ld\n",
+                                              CSRV_SOCKFD(csrv),
+                                              c_word_to_ipv4(CSRV_IPADDR(csrv)),
+                                              CSRV_PORT(csrv));
+
+        return csrv_free(csrv);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL chttp_srv_bind_modi(CSRV *csrv, const UINT32 modi)

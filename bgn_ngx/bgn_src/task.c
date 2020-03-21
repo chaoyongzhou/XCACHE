@@ -8470,20 +8470,6 @@ UINT32 task_brd_default_get_super()
     return TASK_BRD_SUPER_MD_ID(task_brd);
 }
 
-UINT32 task_brd_local_taskc(const TASK_BRD *task_brd)
-{
-    return TASK_BRD_TCID(task_brd);
-}
-
-EC_BOOL task_brd_is_local_taskc(const TASK_BRD *task_brd, const UINT32 this_taskc)
-{
-    if(this_taskc == TASK_BRD_TCID(task_brd))
-    {
-        return (EC_TRUE);
-    }
-    return (EC_FALSE);
-}
-
 EC_BOOL task_brd_wait_proc_ready(const TASK_BRD *task_brd, const UINT32 recv_tcid, const UINT32 recv_comm, const UINT32 recv_rank)
 {
     MOD_NODE send_mod_node;
@@ -11851,7 +11837,7 @@ EC_BOOL task_brd_default_stop_srvs()
     task_brd_stop_http_srv(task_brd);
 
     tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
-    tasks_srv_end(tasks_cfg);
+    tasks_srv_close(tasks_cfg);/*close listen port*/
 
     return (EC_TRUE);
 }

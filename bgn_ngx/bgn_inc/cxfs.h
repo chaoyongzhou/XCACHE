@@ -1022,6 +1022,8 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id);
 
 EC_BOOL cxfs_pop_op(const UINT32 cxfs_md_id, const UINT32 op_size);
 
+EC_BOOL cxfs_reg_ngx(const UINT32 cxfs_md_id);
+
 #endif /*_CXFS_H*/
 
 #ifdef __cplusplus

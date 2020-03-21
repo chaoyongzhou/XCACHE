@@ -555,6 +555,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             cxfshttp_log_start();
             task_brd_default_bind_http_srv_modi(cxfs_md_id);
             chttp_rest_list_push((const char *)CXFSHTTP_REST_API_NAME, cxfshttp_commit_request);
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: reg xfs http rest api done\n");
         }
 
         /*https server*/
@@ -572,8 +574,15 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             cxfshttps_log_start();
             task_brd_default_bind_https_srv_modi(cxfs_md_id);
             chttps_rest_list_push((const char *)CXFSHTTPS_REST_API_NAME, cxfshttps_commit_request);
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: reg xfs https rest api done\n");
         }
 #endif
+    }
+
+    if(EC_TRUE == cxfs_reg_ngx(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: reg ngx done\n");
     }
 
     return ( cxfs_md_id );
@@ -10711,6 +10720,133 @@ EC_BOOL cxfs_pop_op(const UINT32 cxfs_md_id, const UINT32 op_size)
     }
 
     CXFSOP_MGR_USED(cxfsop_mgr) -= op_size;
+    return (EC_TRUE);
+}
+
+/**
+*
+*  register xfs to ngx consistent hash table
+*
+**/
+EC_BOOL cxfs_reg_ngx(const UINT32 cxfs_md_id)
+{
+    TASK_BRD                *task_brd;
+    CLUSTER_CFG             *cluster_cfg;           /*cluster xfs-ngx*/
+    CLUSTER_NODE_CFG        *cluster_node_cfg_xfs;  /*xfs node in cluster xfs-ngx*/
+
+    const char              *role_str_ngx;          /*ngx role. if xfs is master, ngx is slave, otherwise master*/
+
+    UINT32                   cluster_node_num;
+    UINT32                   cluster_node_pos;
+
+    TASK_MGR                *task_mgr;
+    CMON_NODE                cmon_node;
+    EC_BOOL                  ret;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_reg_ngx: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    task_brd = task_brd_default_get();
+
+    cluster_cfg = sys_cfg_get_cluster_cfg_by_name_str(TASK_BRD_SYS_CFG(task_brd), (const char *)"xfs-ngx:ngx-xfs");
+    if(NULL_PTR == cluster_cfg)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:cxfs_reg_ngx: no cluster 'xfs-ngx' or 'ngx-xfs'\n");
+        return (EC_FALSE);
+    }
+
+    cluster_node_cfg_xfs = cluster_cfg_search_by_tcid_rank(cluster_cfg, TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd));
+    if(NULL_PTR == cluster_node_cfg_xfs)
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_reg_ngx: current tcid %s rank %ld not belong to cluster %ld\n",
+                           TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd), CLUSTER_CFG_ID(cluster_cfg));
+        return (EC_FALSE);
+    }
+
+    /*init*/
+    cmon_node_init(&cmon_node);
+
+    CMON_NODE_TCID(&cmon_node)   = TASK_BRD_TCID(task_brd);
+    CMON_NODE_IPADDR(&cmon_node) = TASK_BRD_IPADDR(task_brd);
+    CMON_NODE_PORT(&cmon_node)   = TASK_BRD_PORT(task_brd);
+    CMON_NODE_MODI(&cmon_node)   = cxfs_md_id;
+    CMON_NODE_STATE(&cmon_node)  = CMON_NODE_IS_UP;
+
+    ret = EC_FALSE;
+
+    role_str_ngx = NULL_PTR;
+
+    /*determine ngx role*/
+    if(EC_TRUE == cluster_node_cfg_check_role_str(cluster_node_cfg_xfs, (const char *)"master"))
+    {
+        role_str_ngx = (const char *)"slave";
+    }
+    else
+    {
+        role_str_ngx = (const char *)"master";
+    }
+
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+
+    /*scan out all ngx*/
+    cluster_node_num = cvector_size(CLUSTER_CFG_NODES(cluster_cfg));
+    for(cluster_node_pos = 0; cluster_node_pos < cluster_node_num; cluster_node_pos ++)
+    {
+        CLUSTER_NODE_CFG        *cluster_node_cfg_ngx;  /*ngx node in cluster xfs-ngx*/
+        UINT32                   rank_num;
+        UINT32                   rank_pos;
+
+        cluster_node_cfg_ngx = cvector_get(CLUSTER_CFG_NODES(cluster_cfg), cluster_node_pos);
+        if(NULL_PTR == cluster_node_cfg_ngx)
+        {
+            continue;
+        }
+
+        if(EC_FALSE == cluster_node_cfg_check_role_str(cluster_node_cfg_ngx, role_str_ngx))
+        {
+            continue;
+        }
+
+        rank_num = cvector_size(CLUSTER_NODE_CFG_RANK_VEC(cluster_node_cfg_ngx));
+        for(rank_pos = 0; rank_pos < rank_num; rank_pos ++)
+        {
+            MOD_NODE                recv_mod_node;
+            UINT32                  rank;
+
+            rank = (UINT32)cvector_get(CLUSTER_NODE_CFG_RANK_VEC(cluster_node_cfg_ngx), rank_pos);
+
+            MOD_NODE_TCID(&recv_mod_node) = CLUSTER_NODE_CFG_TCID(cluster_node_cfg_ngx);
+            MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
+            MOD_NODE_RANK(&recv_mod_node) = rank;
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one cmon*/
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_reg_ngx: "
+                                                 "reg ngx tcid %s rank %ld in cluster %ld\n",
+                                                 c_word_to_ipv4(MOD_NODE_TCID(&recv_mod_node)),
+                                                 MOD_NODE_RANK(&recv_mod_node),
+                                                 CLUSTER_CFG_ID(cluster_cfg));
+
+
+            task_p2p_inc(task_mgr, cxfs_md_id, &recv_mod_node,
+                        &ret, FI_cmon_add_node, CMPI_ERROR_MODI, &cmon_node);
+
+        }
+    }
+
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    cmon_node_clean(&cmon_node);
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_reg_ngx: done\n");
+
     return (EC_TRUE);
 }
 

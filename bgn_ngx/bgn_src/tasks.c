@@ -86,6 +86,35 @@ EC_BOOL tasks_srv_start(TASKS_CFG *tasks_cfg)
 
 /**
 *
+* close server listen port
+*
+**/
+EC_BOOL tasks_srv_close(TASKS_CFG *tasks_cfg)
+{
+    if(CMPI_ERROR_SOCKFD != TASKS_CFG_SRVSOCKFD(tasks_cfg))
+    {
+        cepoll_del_all(task_brd_default_get_cepoll(), TASKS_CFG_SRVSOCKFD(tasks_cfg));
+        cepoll_clear_node(task_brd_default_get_cepoll(), TASKS_CFG_SRVSOCKFD(tasks_cfg));
+
+        if(EC_FALSE == csocket_srv_end(TASKS_CFG_SRVSOCKFD(tasks_cfg)))
+        {
+            dbg_log(SEC_0121_TASKS, 0)(LOGSTDERR, "error:tasks_srv_close: close server on %s:%ld:%d failed\n",
+                            TASKS_CFG_SRVIPADDR_STR(tasks_cfg), TASKS_CFG_SRVPORT(tasks_cfg), TASKS_CFG_SRVSOCKFD(tasks_cfg));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDERR, "[DEBUG] tasks_srv_close: close server on %s:%ld:%d done\n",
+                        TASKS_CFG_SRVIPADDR_STR(tasks_cfg), TASKS_CFG_SRVPORT(tasks_cfg), TASKS_CFG_SRVSOCKFD(tasks_cfg));
+
+
+        TASKS_CFG_SRVSOCKFD(tasks_cfg) = CMPI_ERROR_SOCKFD;
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
 *   stop one server
 *   1. stop all connection to this server
 *   2. stop server itself
@@ -93,17 +122,13 @@ EC_BOOL tasks_srv_start(TASKS_CFG *tasks_cfg)
 **/
 EC_BOOL tasks_srv_end(TASKS_CFG *tasks_cfg)
 {
-    cepoll_del_all(task_brd_default_get_cepoll(), TASKS_CFG_SRVSOCKFD(tasks_cfg));
-    cepoll_clear_node(task_brd_default_get_cepoll(), TASKS_CFG_SRVSOCKFD(tasks_cfg));
-
-    if(EC_FALSE == csocket_srv_end(TASKS_CFG_SRVSOCKFD(tasks_cfg)))
+    if(CMPI_ERROR_SOCKFD != TASKS_CFG_SRVSOCKFD(tasks_cfg)
+    && EC_FALSE == tasks_srv_close(tasks_cfg))
     {
-        dbg_log(SEC_0121_TASKS, 0)(LOGSTDERR, "error:tasks_srv_end: failed to end server on %s:%ld:%d\n",
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDERR, "error:tasks_srv_end: close server on %s:%ld:%d failed\n",
                         TASKS_CFG_SRVIPADDR_STR(tasks_cfg), TASKS_CFG_SRVPORT(tasks_cfg), TASKS_CFG_SRVSOCKFD(tasks_cfg));
         return (EC_FALSE);
     }
-
-    TASKS_CFG_SRVSOCKFD(tasks_cfg) = CMPI_ERROR_SOCKFD;
 
     tasks_worker_clean(TASKS_CFG_WORKER(tasks_cfg));
     tasks_monitor_clean(TASKS_CFG_MONITOR(tasks_cfg));
