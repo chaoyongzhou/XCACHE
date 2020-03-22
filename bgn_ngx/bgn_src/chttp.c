@@ -9604,7 +9604,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         return (EC_FALSE);
     }
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_basic: handover rsp done\n");
-
+#if 0
     /*handover cache_ctrl*/
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
@@ -9623,7 +9623,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
             CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node));
         }
     }
-
+#endif
     chttp_node_free(chttp_node);
 
     return (EC_TRUE);
