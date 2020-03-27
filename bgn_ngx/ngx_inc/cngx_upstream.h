@@ -30,6 +30,10 @@ EC_BOOL cngx_upstream_get_location(ngx_http_request_t *r, u_char **str, uint32_t
 
 EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port);
 
+EC_BOOL cngx_upstream_set_down(ngx_http_request_t *r);
+
+EC_BOOL cngx_upstream_set_up(ngx_http_request_t *r);
+
 #endif /*_CNGX_UPSTREAM_H*/
 
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/

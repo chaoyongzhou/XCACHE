@@ -2179,10 +2179,12 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -2205,7 +2207,7 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -2216,37 +2218,41 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);
@@ -3236,10 +3242,12 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -3262,7 +3270,7 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -3273,37 +3281,41 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);
@@ -5127,10 +5139,12 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -5153,7 +5167,7 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -5164,37 +5178,41 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);
@@ -6768,10 +6786,12 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -6794,7 +6814,7 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -6805,37 +6825,41 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);
@@ -8896,10 +8920,12 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -8922,7 +8948,7 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -8933,37 +8959,41 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);
@@ -11945,10 +11975,12 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
 
     ngx_http_request_t          *r;
     CHTTP_REQ                   *chttp_req;
+
+    UINT32                       upstream_peer_ipaddr;
+    UINT32                       upstream_peer_port;
+
     uint8_t                     *upstream_name_str;
     uint32_t                     upstream_name_len;
-    UINT32                       srv_ipaddr;
-    UINT32                       srv_port;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -11971,7 +12003,7 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_upstream_fetch(r, &srv_ipaddr, &srv_port))
+    if(EC_FALSE == cngx_upstream_fetch(r, &upstream_peer_ipaddr, &upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_upstream: "
                                              "upstream '%.*s' fetch server failed\n",
@@ -11982,37 +12014,41 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
                                          "upstream '%.*s' fetch server %s:%ld\n",
                                          upstream_name_len, upstream_name_str,
-                                         c_word_to_ipv4(srv_ipaddr), srv_port);
+                                         c_word_to_ipv4(upstream_peer_ipaddr), upstream_peer_port);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
 
-    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, srv_ipaddr))
+    if(EC_FALSE == chttp_req_set_ipaddr_word(chttp_req, upstream_peer_ipaddr))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_upstream: "
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
-                                             c_word_to_ipv4(srv_ipaddr),
+                                             c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
-                                         c_word_to_ipv4(srv_ipaddr),
+                                         c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
 
-    if(EC_FALSE == chttp_req_set_port_word(chttp_req, srv_port))
+    if(EC_FALSE == chttp_req_set_port_word(chttp_req, upstream_peer_port))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_upstream: "
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
-                                             srv_port,
+                                             upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0123);
         return (EC_FALSE);
     }
 
+    chttp_req_set_conn_fail_callback(chttp_req,
+                                     (CHTTP_REQ_CONN_FAIL_CALLBACK)cngx_upstream_set_down,
+                                     (void *)r);
+
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
                                          "[cngx] set port '%ld' of upsteam '%.*s' to http req done\n",
-                                         srv_port,
+                                         upstream_peer_port,
                                          upstream_name_len, upstream_name_str);
 
     return (EC_TRUE);

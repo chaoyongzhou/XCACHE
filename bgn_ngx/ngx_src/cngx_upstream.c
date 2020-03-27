@@ -18,6 +18,7 @@ extern "C"{
 #include <ngx_http_request.h>
 
 #include "ngx_http_bgn_common.h"
+#include "ngx_http_bgn_directive.h"
 
 #include "type.h"
 #include "mm.h"
@@ -40,7 +41,9 @@ EC_BOOL cngx_upstream_exist(ngx_http_request_t *r)
 
 EC_BOOL cngx_upstream_get_name(ngx_http_request_t *r, u_char **str, uint32_t *len)
 {
-    ngx_http_bgn_loc_conf_t     *blcf;
+    ngx_http_bgn_loc_conf_t                 *blcf;
+    ngx_str_t                               *name;
+    ngx_http_upstream_t                     *u;
 
     blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
 
@@ -48,12 +51,36 @@ EC_BOOL cngx_upstream_get_name(ngx_http_request_t *r, u_char **str, uint32_t *le
         return (EC_FALSE);
     }
 
+    u = r->upstream;
+    if (NULL_PTR == u) {
+        u = ngx_pcalloc(r->pool, sizeof(ngx_http_upstream_t));
+
+        if (NULL_PTR == u) {
+            return (EC_FALSE);
+        }
+
+        u->peer.log = r->connection->log;
+        r->upstream = u; /*arm upstream*/
+    }
+
+    if(NULL_PTR == blcf->bgn_upstream.proxy_lengths) {
+        name = &(blcf->bgn_upstream.vars.host_header);
+    }
+    else {
+        if(NULL_PTR == u->resolved) {
+            if (ngx_http_bgn_proxy_eval(r, blcf) != NGX_OK) {
+                return (EC_FALSE);
+            }
+        }
+        name = &(u->resolved->host);
+    }
+
     if(NULL_PTR != str) {
-        (*str) = blcf->bgn_upstream.url.data;
+        (*str) = name->data;
     }
 
     if(NULL_PTR != len) {
-        (*len) = blcf->bgn_upstream.url.len;
+        (*len) = name->len;
     }
 
     return (EC_TRUE);
@@ -213,14 +240,7 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
         return (EC_FALSE);
     }
 
-    name = &(blcf->bgn_upstream.vars.host_header);
-
-    ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
-                  "[cngx] cngx_upstream_fetch: blcf url %V, host_header %V",
-                  &(blcf->bgn_upstream.url), name);
-
     u = r->upstream;
-
     if (NULL_PTR == u) {
         u = ngx_pcalloc(r->pool, sizeof(ngx_http_upstream_t));
 
@@ -232,48 +252,72 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
         r->upstream = u; /*arm upstream*/
     }
 
-    uscf = cngx_upstream_search(r, name);
-    if(NULL_PTR == uscf) {
-        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                      "[cngx] cngx_upstream_fetch: no upstream '%V'",
-                      name);
-
-        return (EC_FALSE);
+    if(NULL_PTR == blcf->bgn_upstream.proxy_lengths) {
+        u->schema = blcf->bgn_upstream.vars.schema;
+        name = &(blcf->bgn_upstream.vars.host_header);
+    }
+    else {
+        if(NULL_PTR == u->resolved) {
+            if (ngx_http_bgn_proxy_eval(r, blcf) != NGX_OK) {
+                return (EC_FALSE);
+            }
+        }
+        name = &(u->resolved->host);
     }
 
-    ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
-                  "[cngx] cngx_upstream_fetch: matched upstream %V", name);
+    ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
+                  "[cngx] cngx_upstream_fetch: blcf url %V, upstream %V",
+                  &(blcf->bgn_upstream.url), name);
 
-    u->upstream = uscf; /*arm upstream srv conf*/
+    uscf = u->upstream;
+
+    if(NULL_PTR == uscf
+    || uscf->host.len != name->len
+    || 0 != ngx_strncasecmp(uscf->host.data, name->data, name->len))
+    {
+        uscf = cngx_upstream_search(r, name);
+        if(NULL_PTR == uscf) {
+            ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                          "[cngx] cngx_upstream_fetch: no upstream '%V'",
+                          name);
+
+            return (EC_FALSE);
+        }
+
+        ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
+                      "[cngx] cngx_upstream_fetch: matched upstream %V", name);
+
+        u->upstream = uscf; /*arm upstream srv conf*/
+    }
 
     /*e.g., ngx_http_upstream_init_keepalive_peer*/
     if(NGX_OK != uscf->peer.init(r, uscf)) {
-        ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "[cngx] cngx_upstream_fetch: upstream %V init peer failed",
                       &(uscf->host));
         return (EC_FALSE);
     }
 
-    ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+    ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
                   "[cngx] cngx_upstream_fetch: upstream %V init peer done",
                   &(uscf->host));
 
     /*e.g., ngx_http_upstream_get_keepalive_peer*/
     if(NGX_OK != r->upstream->peer.get(&u->peer, u->peer.data)) {
-        ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "[cngx] cngx_upstream_fetch: upstream %V get peer failed",
                       &(uscf->host));
         return (EC_FALSE);
     }
 
     if(NULL_PTR == u->peer.name || 1 == u->peer.down) {
-        ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "[cngx] cngx_upstream_fetch: upstream %V get empty or down peer",
                       &(uscf->host));
         return (EC_FALSE);
     }
 
-    ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+    ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0,
                   "[cngx] cngx_upstream_fetch: upstream %V get peer done => name:%V",
                   &(uscf->host), u->peer.name);
 
@@ -289,7 +333,7 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
         if(NGX_OK != ngx_parse_addr_port(r->pool, addr,
                                 u->peer.name->data, u->peer.name->len)) {
 
-            ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+            ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                           "[cngx] cngx_upstream_fetch: upstream %V parse peer '%V' failed",
                           &(uscf->host), u->peer.name);
             return (EC_FALSE);
@@ -317,7 +361,7 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
                 | (((UINT32)p[2]) <<  8)
                 | (((UINT32)p[3]) <<  0);
 
-        ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+        ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
                       "[cngx] cngx_upstream_fetch: upstream %V parse peer '%V' => ipaddr %ld (%s)",
                       &(uscf->host), u->peer.name, (*ipaddr), c_word_to_ipv4(*ipaddr));
     }
@@ -330,12 +374,92 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
             (*port) = in_port;
         }
 
-        ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+        ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
                       "[cngx] cngx_upstream_fetch: upstream %V parse peer '%V' => port %d",
                       &(uscf->host), u->peer.name, in_port);
     }
 
     return (EC_TRUE);
+}
+
+EC_BOOL cngx_upstream_set_down(ngx_http_request_t *r)
+{
+    ngx_http_upstream_t                     *u;
+    ngx_http_upstream_srv_conf_t            *uscf;
+    ngx_peer_connection_t                   *pc;
+
+    u = r->upstream;
+
+    if(NULL_PTR == u || NULL_PTR == u->upstream) {
+        return (EC_FALSE);
+    }
+
+    uscf = u->upstream;
+    pc   = &u->peer;
+
+    if(NULL_PTR != uscf->peer.data) {
+        ngx_http_upstream_rr_peers_t            *peers;
+        ngx_http_upstream_rr_peer_t             *peer;
+
+        for(peers = uscf->peer.data, peer = peers->peer; NULL_PTR != peer; peer = peer->next) {
+            /*
+             * warning: check ngx_http_upstream_get_round_robin_peer() indicating that
+             * pc name would be peer name (pc->name = &peer->name) or peers name (pc->name = peers->name)
+             * thus cannot finger out peer by name but by sockaddr.
+             *
+             */
+
+            if(pc->sockaddr == peer->sockaddr && 0 == peer->down) {
+                peer->down = 1;
+                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                              "[cngx] cngx_upstream_set_down: upstream '%V' set peer '%V' down",
+                              &(uscf->host), &(peer->name));
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_upstream_set_up(ngx_http_request_t *r)
+{
+    ngx_http_upstream_t                     *u;
+    ngx_http_upstream_srv_conf_t            *uscf;
+    ngx_peer_connection_t                   *pc;
+
+    u = r->upstream;
+
+    if(NULL_PTR == u || NULL_PTR == u->upstream) {
+        return (EC_FALSE);
+    }
+
+    uscf = u->upstream;
+    pc   = &u->peer;
+
+    if(NULL_PTR != uscf->peer.data) {
+        ngx_http_upstream_rr_peers_t            *peers;
+        ngx_http_upstream_rr_peer_t             *peer;
+
+        for(peers = uscf->peer.data, peer = peers->peer; NULL_PTR != peer; peer = peer->next) {
+            /*
+             * warning: check ngx_http_upstream_get_round_robin_peer() indicating that
+             * pc name would be peer name (pc->name = &peer->name) or peers name (pc->name = peers->name)
+             * thus cannot finger out peer by name but by sockaddr.
+             *
+             */
+
+            if(pc->sockaddr == peer->sockaddr && 1 == peer->down) {
+                peer->down = 0;
+                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                              "[cngx] cngx_upstream_set_down: upstream '%V' set peer '%V' up",
+                              &(uscf->host), &(peer->name));
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    return (EC_FALSE);
 }
 
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/

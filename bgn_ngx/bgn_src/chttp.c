@@ -5035,6 +5035,9 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
 
     cbytes_init(CHTTP_REQ_BODY(chttp_req));
 
+    CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req) = NULL_PTR;
+    CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req) = NULL_PTR;
+
     return (EC_TRUE);
 }
 
@@ -5056,6 +5059,10 @@ EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
     cstring_clean(CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req));
 
     cbytes_clean(CHTTP_REQ_BODY(chttp_req));
+
+    CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req) = NULL_PTR;
+    CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req) = NULL_PTR;
+
     return (EC_TRUE);
 }
 
@@ -5089,6 +5096,10 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
     sys_log(log, "chttp_req_print: body: len = %ld\n", cbytes_len(CHTTP_REQ_BODY(chttp_req)));
 
     //cbytes_print_chars(log, CHTTP_REQ_BODY(chttp_req));
+
+    sys_log(log, "chttp_req_print: conn fail callback %p(%p)\n",
+                 CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req),
+                 CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req));
 
     return;
 }
@@ -5439,6 +5450,14 @@ EC_BOOL chttp_req_set_body(CHTTP_REQ *chttp_req, const uint8_t *data, const uint
     return cbytes_set(CHTTP_REQ_BODY(chttp_req), data, len);
 }
 
+EC_BOOL chttp_req_set_conn_fail_callback(CHTTP_REQ *chttp_req, CHTTP_REQ_CONN_FAIL_CALLBACK func, void *args)
+{
+    CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req) = func;
+    CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req) = args;
+
+    return (EC_TRUE);
+}
+
 EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src)
 {
     CHTTP_REQ_IPADDR(chttp_req_des) = CHTTP_REQ_IPADDR(chttp_req_src);
@@ -5453,6 +5472,9 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
     cstrkv_mgr_clone(CHTTP_REQ_HEADER(chttp_req_src), CHTTP_REQ_HEADER(chttp_req_des));
 
     cbytes_clone(CHTTP_REQ_BODY(chttp_req_src), CHTTP_REQ_BODY(chttp_req_des));
+
+    CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req_des) = CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req_src);
+    CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req_des) = CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req_src);
 
     return (EC_TRUE);
 }
@@ -9160,6 +9182,12 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
+        if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
+        {
+            /*mark ngx upstream peer down*/
+            CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req)(CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req));
+        }
+
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         chttp_node_free(chttp_node);
         return (EC_FALSE);
@@ -9422,6 +9450,12 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
+
+        if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
+        {
+            /*mark ngx upstream peer down*/
+            CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req)(CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req));
+        }
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
 

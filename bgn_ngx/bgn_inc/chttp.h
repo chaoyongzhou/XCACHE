@@ -320,6 +320,7 @@ EC_BOOL chttp_req_set_ca_file(CHTTP_REQ *chttp_req, const char *fname);
 EC_BOOL chttp_req_set_client_certificate_file(CHTTP_REQ *chttp_req, const char *fname);
 EC_BOOL chttp_req_set_client_private_key_file(CHTTP_REQ *chttp_req, const char *fname);
 EC_BOOL chttp_req_set_body(CHTTP_REQ *chttp_req, const uint8_t *data, const uint32_t len);
+EC_BOOL chttp_req_set_conn_fail_callback(CHTTP_REQ *chttp_req, CHTTP_REQ_CONN_FAIL_CALLBACK func, void *args);
 EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src);
 EC_BOOL chttp_req_is_head_method(const CHTTP_REQ *chttp_req);
 EC_BOOL chttp_req_has_body(const CHTTP_REQ *chttp_req);

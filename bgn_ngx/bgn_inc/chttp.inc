@@ -119,7 +119,7 @@ typedef struct
     uint32_t                  override_expires_nsec;    /*override orig expires in seconds*/
     uint32_t                  seg_max_id;
 
-    uint32_t                  default_expires_nsec;     /*default orig expires in seconds*/ 
+    uint32_t                  default_expires_nsec;     /*default orig expires in seconds*/
     uint32_t                  rsvd02;
 
     UINT32                    redirect_max_times;/*redirect location control from configuration*/
@@ -220,7 +220,7 @@ typedef struct
             /*start time means the connection setup time or parser resumed time*/
             uint32_t                  s_nsec; /*start time in second*/
             uint32_t                  s_msec; /*start time in micro-second*/
-            
+
             /*recv time means the whole http request including body received or parsed time*/
             uint32_t                  r_nsec; /*received time in second*/
             uint32_t                  r_msec; /*received time in micro-second*/
@@ -276,7 +276,7 @@ typedef struct
             /*unsed*/
             uint32_t                  u_nsec;
             uint32_t                  u_msec;
-            
+
             /*[header] wait done time, wait_ready or wait_data*/
             uint32_t                  w_nsec; /*wait_ready or wait_header done time in second*/
             uint32_t                  w_msec; /*wait_ready or wait_header done time in micro-second*/
@@ -380,7 +380,7 @@ typedef struct _CHTTP_NODE
     uint32_t                  counter :4;     /*reference counting*/
     uint32_t                  rsvd01  :27;
     uint32_t                  rsvd02;
-    
+
     void                     *csrv;          /*mount point*/
 
     CROUTINE_NODE            *croutine_node; /*croutine mounted point*/
@@ -828,7 +828,7 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
 
 
 typedef EC_BOOL (*CHTTP_NODE_COMMIT_REQUEST)(CHTTP_NODE *);
-
+typedef EC_BOOL (*CHTTP_REQ_CONN_FAIL_CALLBACK)(void *);
 typedef struct
 {
     /*http server*/
@@ -847,6 +847,10 @@ typedef struct
     CSTRING             client_privkey_file;    /*client private key file name. used for https and server check client validity*/
 
     CBYTES              body;
+
+    /*extension for to mark ngx upstream peer down when connection failure happen*/
+    CHTTP_REQ_CONN_FAIL_CALLBACK  conn_fail_callback;
+    void                         *conn_fail_callback_args;
 }CHTTP_REQ;
 
 #define CHTTP_REQ_IPADDR(chttp_req)                 ((chttp_req)->ipaddr)
@@ -861,6 +865,9 @@ typedef struct
 #define CHTTP_REQ_CLIENT_CERT_FILE(chttp_req)       (&((chttp_req)->client_cert_file))
 #define CHTTP_REQ_CLIENT_PRIVKEY_FILE(chttp_req)    (&((chttp_req)->client_privkey_file))
 #define CHTTP_REQ_BODY(chttp_req)                   (&((chttp_req)->body))
+
+#define CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req)      ((chttp_req)->conn_fail_callback)
+#define CHTTP_REQ_CONN_FAIL_CALLBACK_ARGS(chttp_req)      ((chttp_req)->conn_fail_callback_args)
 
 typedef struct
 {
