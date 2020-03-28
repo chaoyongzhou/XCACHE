@@ -151,7 +151,7 @@ EC_BOOL tasks_srv_accept_once(TASKS_CFG *tasks_cfg, EC_BOOL *continue_flag)
     EC_BOOL         ret;
     int             client_conn_sockfd;
 
-    ret = csocket_accept( TASKS_CFG_SRVSOCKFD(tasks_cfg), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
+    ret = csocket_accept(TASKS_CFG_SRVSOCKFD(tasks_cfg), &(client_conn_sockfd), CSOCKET_IS_NONBLOCK_MODE, &(client_ipaddr), &(client_port));
     if(EC_TRUE == ret)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -1469,6 +1469,35 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
     return (NULL_PTR);
 }
 
+TASKS_NODE *tasks_worker_search_tasks_node_by_tcid_comm(const TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 comm)
+{
+    const CVECTOR      *tasks_nodes;
+    UINT32              pos;
+
+    tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
+
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0034);
+    for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
+    {
+        TASKS_NODE *tasks_node;
+
+        tasks_node = (TASKS_NODE *)cvector_get_no_lock(tasks_nodes, pos);
+        if(NULL_PTR == tasks_node)
+        {
+            continue;
+        }
+
+        if(tcid == TASKS_NODE_TCID(tasks_node)
+        && (comm == TASKS_NODE_COMM(tasks_node) || CMPI_ANY_COMM == comm))
+        {
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0035);
+            return (tasks_node);
+        }
+    }
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0036);
+    return (NULL_PTR);
+}
+
 CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tasks_tcid)
 {
     const CVECTOR     *tasks_nodes;
@@ -1689,7 +1718,7 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
 {
     TASKS_NODE *tasks_node;
 
-    tasks_node = tasks_worker_search_tasks_node_by_tcid(tasks_worker, CSOCKET_CNODE_TCID(csocket_cnode));
+    tasks_node = tasks_worker_search_tasks_node_by_tcid_comm(tasks_worker, CSOCKET_CNODE_TCID(csocket_cnode), CSOCKET_CNODE_COMM(csocket_cnode));
     if(NULL_PTR != tasks_node)
     {
         /*debug only*/
@@ -1976,11 +2005,11 @@ EC_BOOL tasks_node_set_writable(TASKS_NODE  *tasks_node)
     return (EC_TRUE);
 }
 
-EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tcid, const UINT32 msg_tag, TASK_NODE *task_node)
+EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 msg_tag, TASK_NODE *task_node)
 {
     TASKS_NODE  *tasks_node;
 
-    tasks_node = tasks_worker_search_tasks_node_by_tcid(tasks_worker, des_tcid);
+    tasks_node = tasks_worker_search_tasks_node_by_tcid_comm(tasks_worker, des_tcid, des_comm);
     if(NULL_PTR == tasks_node)
     {
         TASKS_CFG *remote_tasks_cfg;
@@ -2122,12 +2151,12 @@ STATIC_CAST static EC_BOOL __decode_node_debug(const UINT8  *in_buff, UINT32  in
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_TCID(task_any)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_COMM(task_any)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_COMM(task_any)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_RANK(task_any)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_MODI(task_any)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_TCID(task_any)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_COMM(task_any)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_COMM(task_any)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_RANK(task_any)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_MODI(task_any)));
 
@@ -2608,7 +2637,7 @@ STATIC_CAST static TASK_NODE *__tasks_handshake_encode()
     cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd), data_tag, data_buff, data_num, &pos);           /*no useful info*/
 
     cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), TASK_BRD_TCID(task_brd), data_buff, data_num, &pos);/*payload info*/
-    cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd), TASK_BRD_COMM(task_brd), data_buff, data_num, &pos);/*payload info*/
+    cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), TASK_BRD_COMM(task_brd), data_buff, data_num, &pos);/*payload info*/
     cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd), TASK_BRD_SIZE(task_brd), data_buff, data_num, &pos);/*payload info*/
     cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), TASK_BRD_PORT(task_brd), data_buff, data_num, &pos);/*payload info*/
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
@@ -2651,7 +2680,7 @@ STATIC_CAST static EC_BOOL __tasks_handshake_decode(TASK_NODE *task_node, CSOCKE
     cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , data_buff, data_num, &position, &(discard_data_tag));
 
     cmpi_decode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), data_buff, data_num, &position, &(CSOCKET_CNODE_TCID(csocket_cnode)));
-    cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , data_buff, data_num, &position, &(CSOCKET_CNODE_COMM(csocket_cnode)));
+    cmpi_decode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), data_buff, data_num, &position, &(CSOCKET_CNODE_COMM(csocket_cnode)));
     cmpi_decode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , data_buff, data_num, &position, &(CSOCKET_CNODE_SIZE(csocket_cnode)));
     cmpi_decode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), data_buff, data_num, &position, &(CSOCKET_CNODE_SRVPORT(csocket_cnode)));
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/

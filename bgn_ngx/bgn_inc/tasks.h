@@ -125,6 +125,8 @@ TASKS_NODE    *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *task
 
 TASKS_NODE    *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tcid);
 
+TASKS_NODE *tasks_worker_search_tasks_node_by_tcid_comm(const TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 comm);
+
 CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tasks_tcid);
 
 CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 des_tcid);
@@ -155,7 +157,7 @@ void    tasks_worker_print_in_plain(LOG *log, const TASKS_WORKER *tasks_worker);
 
 void    tasks_worker_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_WORKER *tasks_worker, UINT32 *index);
 
-EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tcid, const UINT32 msg_tag, TASK_NODE *task_node);
+EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 msg_tag, TASK_NODE *task_node);
 
 EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker);
 

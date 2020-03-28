@@ -3019,7 +3019,7 @@ EC_BOOL crfs_renew_http_headers_with_token(const UINT32 crfs_md_id, const CSTRIN
 *  wait a file which stores http headers util specific headers are ready
 *
 **/
-EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready)
+EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready)
 {
     CBYTES        cbytes;
     CHTTP_RSP     chttp_rsp;
@@ -3084,7 +3084,7 @@ EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const UINT32 tcid, const 
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == crfs_file_wait(crfs_md_id, tcid, file_path, NULL_PTR, NULL_PTR))
+    if(EC_FALSE == crfs_file_wait(crfs_md_id, mod_node, file_path, NULL_PTR, NULL_PTR))
     {
         return (EC_FALSE);
     }
@@ -3096,7 +3096,7 @@ EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const UINT32 tcid, const 
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
+EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
     CBYTES        cbytes;
     CHTTP_RSP     chttp_rsp;
@@ -3173,7 +3173,7 @@ EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const UINT32 tcid, const
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == crfs_file_wait(crfs_md_id, tcid, file_path, NULL_PTR, NULL_PTR))
+    if(EC_FALSE == crfs_file_wait(crfs_md_id, mod_node, file_path, NULL_PTR, NULL_PTR))
     {
         return (EC_FALSE);
     }
@@ -5398,45 +5398,60 @@ EC_BOOL crfs_wait_file_name_set(CRFS_WAIT_FILE *crfs_wait_file, const CSTRING *f
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __crfs_wait_file_owner_cmp(const MOD_NODE *mod_node, const UINT32 tcid)
+STATIC_CAST static EC_BOOL __crfs_wait_file_owner_cmp(const MOD_NODE *mod_node_1st, const MOD_NODE *mod_node_2nd)
 {
-    if(MOD_NODE_TCID(mod_node) == tcid)
+    if(MOD_NODE_TCID(mod_node_1st) != MOD_NODE_TCID(mod_node_2nd))
     {
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
 
-    return (EC_FALSE);
+    if(CMPI_ANY_COMM != MOD_NODE_COMM(mod_node_1st)
+    && CMPI_ANY_COMM != MOD_NODE_COMM(mod_node_2nd)
+    && MOD_NODE_COMM(mod_node_1st) != MOD_NODE_COMM(mod_node_2nd))
+    {
+        return (EC_FALSE);
+    }
+
+    if(CMPI_ANY_RANK != MOD_NODE_RANK(mod_node_1st)
+    && CMPI_ANY_RANK != MOD_NODE_RANK(mod_node_2nd)
+    && MOD_NODE_RANK(mod_node_1st) != MOD_NODE_RANK(mod_node_2nd))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
 }
 
-EC_BOOL crfs_wait_file_owner_push(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tcid)
+EC_BOOL crfs_wait_file_owner_push(CRFS_WAIT_FILE *crfs_wait_file, const MOD_NODE *mod_node)
 {
     CLIST *owner_list;
 
     owner_list = CRFS_WAIT_FILE_OWNER_LIST(crfs_wait_file);
     if(
-       CMPI_ERROR_TCID != tcid
-    && CMPI_ANY_TCID != tcid
-    && NULL_PTR == clist_search_data_front(owner_list, (void *)tcid, (CLIST_DATA_DATA_CMP)__crfs_wait_file_owner_cmp)
+       CMPI_ERROR_TCID != MOD_NODE_TCID(mod_node)
+    && CMPI_ANY_TCID != MOD_NODE_TCID(mod_node)
+    && NULL_PTR == clist_search_data_front(owner_list, (void *)mod_node, (CLIST_DATA_DATA_CMP)__crfs_wait_file_owner_cmp)
     )
     {
-        MOD_NODE *mod_node;
+        MOD_NODE *mod_node_t;
 
-        mod_node = mod_node_new();
-        if(NULL_PTR == mod_node)
+        mod_node_t = mod_node_new();
+        if(NULL_PTR == mod_node_t)
         {
             dbg_log(SEC_0031_CRFS, 0)(LOGSTDOUT, "error:crfs_wait_file_owner_push: new mod_node failed\n");
             return (EC_FALSE);
         }
 
-        MOD_NODE_TCID(mod_node) = tcid;
-        MOD_NODE_COMM(mod_node) = CMPI_ANY_COMM;
-        MOD_NODE_RANK(mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(mod_node) = 0;/*SUPER modi always be 0*/
+        MOD_NODE_TCID(mod_node_t) = MOD_NODE_TCID(mod_node);
+        MOD_NODE_COMM(mod_node_t) = MOD_NODE_COMM(mod_node);
+        MOD_NODE_RANK(mod_node_t) = MOD_NODE_RANK(mod_node);
+        MOD_NODE_MODI(mod_node_t) = 0;/*SUPER modi always be 0*/
 
         clist_push_back(owner_list, (void *)mod_node);
 
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] crfs_wait_file_owner_push: push %s to file '%.*s'\n",
-                    c_word_to_ipv4(tcid), (uint32_t)CRFS_WAIT_FILE_NAME_LEN(crfs_wait_file), CRFS_WAIT_FILE_NAME_STR(crfs_wait_file));
+                    MOD_NODE_TCID_STR(mod_node),
+                    (uint32_t)CRFS_WAIT_FILE_NAME_LEN(crfs_wait_file), CRFS_WAIT_FILE_NAME_STR(crfs_wait_file));
     }
 
     return (EC_TRUE);
@@ -5809,7 +5824,7 @@ EC_BOOL crfs_wait_file_owner_terminate(CRFS_WAIT_FILE *crfs_wait_file, const UIN
     return crfs_wait_file_owner_terminate_over_bgn(crfs_wait_file, tag);
 }
 
-STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path)
+STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path)
 {
     CRFS_MD          *crfs_md;
 
@@ -5845,22 +5860,22 @@ STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const UINT3
         crfs_wait_file_free(crfs_wait_file); /*no useful*/
 
         /*when found the file had been wait, register remote owner to it*/
-        crfs_wait_file_owner_push(crfs_wait_file_duplicate, tcid);
+        crfs_wait_file_owner_push(crfs_wait_file_duplicate, mod_node);
 
         dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_file_wait: push %s to duplicated file '%s' in wait files tree done\n",
-                            c_word_to_ipv4(tcid), (char *)cstring_get_str(file_path));
+                            MOD_NODE_TCID_STR(mod_node), (char *)cstring_get_str(file_path));
         return (EC_TRUE);
     }
 
     /*register remote token owner to it*/
-    crfs_wait_file_owner_push(crfs_wait_file, tcid);
+    crfs_wait_file_owner_push(crfs_wait_file, mod_node);
 
     dbg_log(SEC_0031_CRFS, 9)(LOGSTDOUT, "[DEBUG] __crfs_file_wait: push %s to inserted file %s in wait files tree done\n",
-                        c_word_to_ipv4(tcid), (char *)cstring_get_str(file_path));
+                        MOD_NODE_TCID_STR(mod_node), (char *)cstring_get_str(file_path));
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -5888,7 +5903,7 @@ EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
         (*data_ready) = EC_FALSE;
     }
 
-    if(EC_FALSE == __crfs_file_wait(crfs_md_id, tcid, file_path))
+    if(EC_FALSE == __crfs_file_wait(crfs_md_id, mod_node, file_path))
     {
         return (EC_FALSE);
     }
@@ -5896,7 +5911,7 @@ EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *data_ready)
+EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -5908,16 +5923,16 @@ EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const UINT32 tcid, const C
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    return crfs_file_wait(crfs_md_id, tcid, file_path, NULL_PTR, data_ready);
+    return crfs_file_wait(crfs_md_id, mod_node, file_path, NULL_PTR, data_ready);
 }
 
-EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:crfs_file_wait: crfs module #%ld not started.\n",
+                "error:crfs_file_wait_e: crfs module #%ld not started.\n",
                 crfs_md_id);
         dbg_exit(MD_CRFS, crfs_md_id);
     }
@@ -5939,7 +5954,7 @@ EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRI
         (*data_ready) = EC_FALSE;
     }
 
-    if(EC_FALSE == __crfs_file_wait(crfs_md_id, tcid, file_path))
+    if(EC_FALSE == __crfs_file_wait(crfs_md_id, mod_node, file_path))
     {
         return (EC_FALSE);
     }
@@ -6300,7 +6315,7 @@ EC_BOOL crfs_locked_file_retire(const UINT32 crfs_md_id, const UINT32 retire_max
     return (EC_TRUE);
 }
 
-STATIC_CAST static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CBYTES *token, UINT32 *locked_already)
+STATIC_CAST static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 expire_nsec, CBYTES *token, UINT32 *locked_already)
 {
     CRFS_MD          *crfs_md;
 
@@ -6367,7 +6382,7 @@ STATIC_CAST static EC_BOOL __crfs_file_lock(const UINT32 crfs_md_id, const UINT3
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already)
+EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already)
 {
     //CRFS_MD      *crfs_md;
 
@@ -6389,7 +6404,7 @@ EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING
 
     cbytes_init(&token_cbyte);
 
-    if(EC_FALSE == __crfs_file_lock(crfs_md_id, tcid, file_path, expire_nsec, &token_cbyte, locked_already))
+    if(EC_FALSE == __crfs_file_lock(crfs_md_id, file_path, expire_nsec, &token_cbyte, locked_already))
     {
         return (EC_FALSE);
     }

@@ -158,6 +158,15 @@ EC_BOOL crb_postorder_walk(const CRB_TREE *crbtree, EC_BOOL (*walker)(const void
 EC_BOOL crb_preorder_walk(const CRB_TREE *crbtree, EC_BOOL (*walker)(const void *, void *), void *arg);
 
 /*walk through: left -> root -> right*/
+CRB_NODE *crb_inorder_locate(CRB_TREE *crbtree, void *data);
+
+/*walk through: left -> right -> root*/
+CRB_NODE *crb_postorder_locate(CRB_TREE *crbtree, void *data);
+
+/*walk through: left -> root -> right*/
+CRB_NODE *crb_preorder_locate(CRB_TREE *crbtree, void *data);
+
+/*walk through: left -> root -> right*/
 EC_BOOL crb_inorder_flush(const CRB_TREE *crbtree, int fd, UINT32 *offset, EC_BOOL (*flush)(const void *, int, UINT32 *));
 EC_BOOL crb_tree_flush(const CRB_TREE *crbtree, int fd, UINT32 *offset, EC_BOOL (*flush)(const void *, int, UINT32 *));
 

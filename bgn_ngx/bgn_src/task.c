@@ -711,11 +711,18 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
         /*forwarding process TODO:*/
         if(TASK_BRD_TCID(task_brd) ==  TASK_NODE_RECV_TCID(task_node))
         {
-            return cproc_isend(TASK_BRD_CPROC(task_brd), TASK_NODE_RECV_RANK(task_node), TASK_ANY_TAG(TASK_NODE_ANY(task_node)), task_node);
+            return cproc_isend(TASK_BRD_CPROC(task_brd),
+                               TASK_NODE_RECV_RANK(task_node),
+                               TASK_ANY_TAG(TASK_NODE_ANY(task_node)),
+                               task_node);
         }
         else
         {
-            return tasks_worker_isend_node(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), TASK_NODE_RECV_TCID(task_node), TAG_TASK_FWD, task_node);
+            return tasks_worker_isend_node(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)),
+                                           TASK_NODE_RECV_TCID(task_node),
+                                           TASK_NODE_RECV_COMM(task_node),
+                                           TAG_TASK_FWD,
+                                           task_node);
         }
     }
     else
@@ -723,12 +730,18 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
         /*sending in local taskComm*/
         if(TASK_BRD_TCID(task_brd) == TASK_NODE_RECV_TCID(task_node))
         {
-            return cproc_isend(TASK_BRD_CPROC(task_brd), TASK_NODE_RECV_RANK(task_node), TASK_ANY_TAG(TASK_NODE_ANY(task_node)), task_node);
+            return cproc_isend(TASK_BRD_CPROC(task_brd),
+                                TASK_NODE_RECV_RANK(task_node),
+                                TASK_ANY_TAG(TASK_NODE_ANY(task_node)),
+                                task_node);
         }
         /*sending to remote taskComm, need forwarding at first*/
         else
         {
-            return cproc_isend(TASK_BRD_CPROC(task_brd), CMPI_FWD_RANK, TAG_TASK_FWD, task_node);
+            return cproc_isend(TASK_BRD_CPROC(task_brd),
+                               CMPI_FWD_RANK,
+                               TAG_TASK_FWD,
+                               task_node);
         }
     }
     return (EC_FALSE);
@@ -1712,12 +1725,12 @@ EC_BOOL task_req_encode_size(const TASK_REQ *task_req, UINT32 *size)
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (UINT32)0, size);/*tag used when forwarding*/
 
     cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_REQ_SEND_TCID(task_req)), size);
-    cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_REQ_SEND_COMM(task_req)), size);
+    cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_REQ_SEND_COMM(task_req)), size);
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_REQ_SEND_RANK(task_req)), size);
     cmpi_encode_uint32_compressed_uint16_t_size(send_comm, (TASK_REQ_SEND_MODI(task_req)), size);
 
     cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_REQ_RECV_TCID(task_req)), size);
-    cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_REQ_RECV_COMM(task_req)), size);
+    cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_REQ_RECV_COMM(task_req)), size);
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_REQ_RECV_RANK(task_req)), size);
     cmpi_encode_uint32_compressed_uint16_t_size(send_comm, (TASK_REQ_RECV_MODI(task_req)), size);
 
@@ -1805,12 +1818,12 @@ EC_BOOL task_req_encode_header(TASK_REQ *task_req)
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_TAG(task_req)), out_buff, out_buff_len, &(position));/*tag will be modifed when forwarding*/
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_SEND_TCID(task_req)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_SEND_COMM(task_req)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_SEND_COMM(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_SEND_RANK(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_REQ_SEND_MODI(task_req)), out_buff, out_buff_len, &(position));
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_RECV_TCID(task_req)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_RECV_COMM(task_req)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_RECV_COMM(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_RECV_RANK(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_REQ_RECV_MODI(task_req)), out_buff, out_buff_len, &(position));
 
@@ -1922,12 +1935,12 @@ EC_BOOL task_req_encode(TASK_REQ *task_req)
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_TAG(task_req)), out_buff, out_buff_len, &(position));/*tag will be modifed when forwarding*/
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_SEND_TCID(task_req)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_SEND_COMM(task_req)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_SEND_COMM(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_SEND_RANK(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_REQ_SEND_MODI(task_req)), out_buff, out_buff_len, &(position));
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_RECV_TCID(task_req)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_RECV_COMM(task_req)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_REQ_RECV_COMM(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_REQ_RECV_RANK(task_req)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_REQ_RECV_MODI(task_req)), out_buff, out_buff_len, &(position));
 
@@ -2028,12 +2041,12 @@ EC_BOOL task_req_decode(const UINT32 recv_comm, TASK_REQ *task_req)
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_SEND_TCID(task_req)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_SEND_COMM(task_req)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_SEND_COMM(task_req)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_SEND_RANK(task_req)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_SEND_MODI(task_req)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_RECV_TCID(task_req)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_RECV_COMM(task_req)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_RECV_COMM(task_req)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_RECV_RANK(task_req)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_REQ_RECV_MODI(task_req)));
 
@@ -2812,12 +2825,12 @@ EC_BOOL task_rsp_encode_size(TASK_RSP *task_rsp, FUNC_ADDR_NODE *func_addr_node,
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, 0, size);/*tag used when forwarding*/
 
     cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_RSP_SEND_TCID(task_rsp)), size);
-    cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_RSP_SEND_COMM(task_rsp)), size);
+    cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_RSP_SEND_COMM(task_rsp)), size);
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_RSP_SEND_RANK(task_rsp)), size);
     cmpi_encode_uint32_compressed_uint16_t_size(send_comm, (TASK_RSP_SEND_MODI(task_rsp)), size);
 
     cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_RSP_RECV_TCID(task_rsp)), size);
-    cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_RSP_RECV_COMM(task_rsp)), size);
+    cmpi_encode_uint32_compressed_uint32_t_size(send_comm, (TASK_RSP_RECV_COMM(task_rsp)), size);
     cmpi_encode_uint32_compressed_uint8_t_size(send_comm, (TASK_RSP_RECV_RANK(task_rsp)), size);
     cmpi_encode_uint32_compressed_uint16_t_size(send_comm, (TASK_RSP_RECV_MODI(task_rsp)), size);
 
@@ -2921,12 +2934,12 @@ EC_BOOL task_rsp_encode(TASK_RSP *task_rsp)
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_RSP_TAG(task_rsp)), out_buff, out_buff_len, &(position));/*tag will be modifed when forwarding*/
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_RSP_SEND_TCID(task_rsp)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_RSP_SEND_COMM(task_rsp)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_RSP_SEND_COMM(task_rsp)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_RSP_SEND_RANK(task_rsp)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_RSP_SEND_MODI(task_rsp)), out_buff, out_buff_len, &(position));
 
     cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_RSP_RECV_TCID(task_rsp)), out_buff, out_buff_len, &(position));
-    cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_RSP_RECV_COMM(task_rsp)), out_buff, out_buff_len, &(position));
+    cmpi_encode_uint32_compressed_uint32_t(send_comm, (TASK_RSP_RECV_COMM(task_rsp)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint8_t(send_comm, (TASK_RSP_RECV_RANK(task_rsp)), out_buff, out_buff_len, &(position));
     cmpi_encode_uint32_compressed_uint16_t(send_comm, (TASK_RSP_RECV_MODI(task_rsp)), out_buff, out_buff_len, &(position));
 
@@ -3142,12 +3155,12 @@ EC_BOOL task_rsp_decode_header(TASK_RSP *task_rsp)
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_TCID(task_rsp)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_COMM(task_rsp)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_COMM(task_rsp)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_RANK(task_rsp)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_MODI(task_rsp)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_TCID(task_rsp)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_COMM(task_rsp)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_COMM(task_rsp)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_RANK(task_rsp)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_MODI(task_rsp)));
 
@@ -3250,12 +3263,12 @@ EC_BOOL task_rsp_decode(const UINT32 recv_comm, TASK_BRD *task_brd, TASK_RSP *ta
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_TCID(task_rsp)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_COMM(task_rsp)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_COMM(task_rsp)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_RANK(task_rsp)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_SEND_MODI(task_rsp)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_TCID(task_rsp)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_COMM(task_rsp)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_COMM(task_rsp)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_RANK(task_rsp)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_RSP_RECV_MODI(task_rsp)));
 
@@ -3788,12 +3801,12 @@ EC_BOOL task_fwd_decode(const UINT32 recv_comm, TASK_FWD *task_fwd)
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_SEND_TCID(task_fwd)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_SEND_COMM(task_fwd)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_SEND_COMM(task_fwd)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_SEND_RANK(task_fwd)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_SEND_MODI(task_fwd)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_RECV_TCID(task_fwd)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_RECV_COMM(task_fwd)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_RECV_COMM(task_fwd)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_RECV_RANK(task_fwd)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_FWD_RECV_MODI(task_fwd)));
 
@@ -3938,12 +3951,12 @@ EC_BOOL task_any_decode(const UINT32 recv_comm, TASK_ANY *task_any)
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard tag info used when forwarding only*/
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_TCID(task_any)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_COMM(task_any)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_COMM(task_any)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_RANK(task_any)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_SEND_MODI(task_any)));
 
     cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_TCID(task_any)));
-    cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_COMM(task_any)));
+    cmpi_decode_uint32_compressed_uint32_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_COMM(task_any)));
     cmpi_decode_uint32_compressed_uint8_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_RANK(task_any)));
     cmpi_decode_uint32_compressed_uint16_t(recv_comm, in_buff, in_buff_len, &(position), &(TASK_ANY_RECV_MODI(task_any)));
 
@@ -6960,11 +6973,23 @@ EC_BOOL task_brd_http_connp_cluster(TASK_BRD *task_brd)
 }
 
 /*--------------------------------- register remote servers ---------------------------------*/
+UINT32 task_brd_connection_count(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port)
+{
+    TASKS_WORKER    *tasks_worker;
+    TASKS_MONITOR   *tasks_monitor;
+    UINT32           conn_count;
+
+    tasks_worker  = TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+    tasks_monitor = TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+
+    conn_count = tasks_worker_count(tasks_worker, remote_tcid, remote_srv_ipaddr, remote_srv_port)
+               + tasks_monitor_count(tasks_monitor, remote_tcid, remote_srv_ipaddr, remote_srv_port);
+
+    return (conn_count);
+}
+
 EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port, const UINT32 conn_num)
 {
-    UINT32 csocket_cnode_idx;
-    UINT32 conn_count;
-
     if(TASKS_CFG_TCID(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
     {
         return (EC_TRUE);
@@ -6973,12 +6998,16 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
     //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: tasks_cfg %lx of task_brd\n", TASK_BRD_LOCAL_TASKS_CFG(task_brd));
     //tasks_cfg_print(LOGSTDOUT, TASK_BRD_LOCAL_TASKS_CFG(task_brd));
 
-    conn_count = tasks_worker_count(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port)
-               + tasks_monitor_count(TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port);
-
-    /*setup multi sockets to remote taskcomm*/
-    for(csocket_cnode_idx = conn_count; csocket_cnode_idx < conn_num; csocket_cnode_idx ++)
+    for(;;)
     {
+        UINT32 conn_count;
+
+        conn_count = task_brd_connection_count(task_brd, remote_tcid, remote_srv_ipaddr, remote_srv_port);
+        if(conn_count >= conn_num)
+        {
+            break;
+        }
+
         dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG]task_brd_register_one: try to register to remote tasks tcid %s srvipaddr %s srvport %ld\n",
                             c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
 
@@ -6992,6 +7021,7 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_one: register to remote tasks tcid %s srvipaddr %s srvport %ld done\n",
                             c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
     }
+
     return (EC_TRUE);
 }
 
@@ -7865,7 +7895,7 @@ LOG * task_brd_default_init(int argc, char **argv)
         log_set_level(loglevel);
     }
 
-    this_comm   = CMPI_COMM_WORLD;
+    this_comm   = getpid();           /*master or fwd process pid (4B)*/
     this_size   = CMPI_MIN_SIZE;      /*default*/
     this_tcid   = CMPI_ERROR_TCID;
     this_ipaddr = CMPI_ERROR_IPADDR;

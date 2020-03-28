@@ -311,6 +311,7 @@ EC_BOOL api_cmd_ui_cxfs_show_specific_np_lru_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_specific_np_del_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_wait_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param);

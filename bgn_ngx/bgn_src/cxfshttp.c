@@ -1070,28 +1070,15 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
         UINT32   expires_nsec;
         UINT32   locked_flag;
 
-        char    *tcid_str;
-        UINT32   tcid;
-
         expires_str  = chttp_node_get_header(chttp_node, (const char *)"Expires");
         expires_nsec = __cxfshttp_convert_expires_str_to_nseconds(expires_str);
         locked_flag  = EC_FALSE;
-
-        tcid_str     = chttp_node_get_header(chttp_node, (const char *)"tcid");
-        if(NULL_PTR == tcid_str)
-        {
-            tcid = CMPI_ERROR_TCID;
-        }
-        else
-        {
-            tcid = c_ipv4_to_word(tcid_str);
-        }
 
         dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_get_request: header Expires %s => %ld\n",
                                 expires_str, expires_nsec);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-        if(EC_FALSE == cxfs_file_lock(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, expires_nsec, &token_cstr, &locked_flag))
+        if(EC_FALSE == cxfs_file_lock(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expires_nsec, &token_cstr, &locked_flag))
         {
             dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "error:cxfshttp_handle_lock_req_get_request: cxfs lock %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -7080,13 +7067,13 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
 
     UINT32         req_body_chunk_num;
 
-    char          *tcid_str;
-    UINT32         tcid;
+    const char    *k;
+    char          *v;
+    MOD_NODE       mod_node;
 
     char          *wait_data_str;
     char          *store_offset_str;
     char          *store_size_str;
-
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
@@ -7128,8 +7115,11 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
-    if(NULL_PTR == tcid_str)
+    mod_node_init(&mod_node);
+
+    k = (const char *)"tcid";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
     {
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
@@ -7139,8 +7129,29 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
+    MOD_NODE_TCID(&mod_node) = c_ipv4_to_word(v);
 
-    tcid = c_ipv4_to_word(tcid_str);
+    k = (const char *)"comm";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
+    {
+        MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    }
+    else
+    {
+        MOD_NODE_COMM(&mod_node) = c_str_to_word(v);
+    }
+
+    k = (const char *)"rank";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
+    {
+        MOD_NODE_RANK(&mod_node) = CMPI_ANY_RANK;
+    }
+    else
+    {
+        MOD_NODE_RANK(&mod_node) = c_str_to_word(v);
+    }
 
     wait_data_str = chttp_node_get_header(chttp_node, (const char *)"wait-data");
     if(NULL_PTR != wait_data_str && EC_FALSE == c_str_to_bool(wait_data_str))
@@ -7151,7 +7162,7 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         data_ready    = EC_OBSCURE;/*means wait file only without reading data util file is ready and notification is sent*/
 
-        if(EC_FALSE == cxfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, NULL_PTR, &data_ready))
+        if(EC_FALSE == cxfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, NULL_PTR, &data_ready))
         {
             dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_wait_get_request: cxfs wait %s only failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -7206,7 +7217,7 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
         max_len       = store_size;
         data_ready    = EC_FALSE;
 
-        if(EC_FALSE == cxfs_file_wait_e(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, &offset, max_len, content_cbytes, &data_ready))
+        if(EC_FALSE == cxfs_file_wait_e(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, &offset, max_len, content_cbytes, &data_ready))
         {
             dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_wait_get_request: cxfs wait %s with offset %u, size %u failed\n",
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
@@ -7244,7 +7255,7 @@ EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         data_ready    = EC_FALSE;
 
-        if(EC_FALSE == cxfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, content_cbytes, &data_ready))
+        if(EC_FALSE == cxfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, content_cbytes, &data_ready))
         {
             dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_wait_get_request: cxfs wait %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -8649,8 +8660,9 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
     CSOCKET_CNODE *csocket_cnode;
     char          *wait_num;
 
-    char          *tcid_str;
-    UINT32         tcid;
+    const char    *k;
+    char          *v;
+    MOD_NODE       mod_node;
 
     CSTRKV_MGR    *cstrkv_mgr;
     uint32_t       num;
@@ -8698,10 +8710,13 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
+    mod_node_init(&mod_node);
+
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-    tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
-    if(NULL_PTR == tcid_str)
+    k = (const char *)"tcid";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
     {
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
@@ -8712,7 +8727,29 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    tcid = c_ipv4_to_word(tcid_str);
+    MOD_NODE_TCID(&mod_node)= c_ipv4_to_word(v);
+
+    k = (const char *)"comm";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
+    {
+        MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    }
+    else
+    {
+        MOD_NODE_COMM(&mod_node) = c_str_to_word(v);
+    }
+
+    k = (const char *)"rank";
+    v = chttp_node_get_header(chttp_node, k);
+    if(NULL_PTR == v)
+    {
+        MOD_NODE_RANK(&mod_node) = CMPI_ANY_RANK;
+    }
+    else
+    {
+        MOD_NODE_RANK(&mod_node) = c_str_to_word(v);
+    }
 
     wait_num  = chttp_node_get_header(chttp_node, (const char *)"wait-num");
     if(NULL_PTR == wait_num)
@@ -8764,7 +8801,7 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
         cstring_set_str(&wait_key_cstr, (UINT8 *)wait_key);
         cstring_set_str(&wait_val_cstr, (UINT8 *)wait_val);
 
-        if(EC_FALSE == cxfs_wait_http_header(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, &wait_key_cstr, &wait_val_cstr, &header_ready))
+        if(EC_FALSE == cxfs_wait_http_header(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, &wait_key_cstr, &wait_val_cstr, &header_ready))
         {
             dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_wait_header_get_request: cxfs wait %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -8883,7 +8920,7 @@ EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
         }
     }
 
-    if(EC_FALSE == cxfs_wait_http_headers(CSOCKET_CNODE_MODI(csocket_cnode), tcid, &path_cstr, cstrkv_mgr, &header_ready))
+    if(EC_FALSE == cxfs_wait_http_headers(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, cstrkv_mgr, &header_ready))
     {
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_wait_header_get_request: cxfs wait %s failed\n",
                             (char *)cstring_get_str(&path_cstr));

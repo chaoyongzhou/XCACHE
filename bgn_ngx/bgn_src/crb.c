@@ -1356,6 +1356,118 @@ EC_BOOL crb_preorder_walk(const CRB_TREE *crbtree, EC_BOOL (*walker)(const void 
     return __crb_preorder_walk(crbtree, CRB_TREE_ROOT(crbtree), walker, arg);
 }
 
+STATIC_CAST static CRB_NODE *__crb_inorder_locate(CRB_TREE *crbtree, CRB_NODE *node, void *data)
+{
+    if(NULL_PTR != node)
+    {
+        CRB_NODE    *node_t;
+
+        if(NULL_PTR != CRB_NODE_LEFT(node))
+        {
+            node_t = __crb_inorder_locate(crbtree, CRB_NODE_LEFT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+
+        if(CRB_NODE_DATA(node) == data)
+        {
+            return (node);
+        }
+
+        if(NULL_PTR != CRB_NODE_RIGHT(node))
+        {
+            node_t = __crb_inorder_locate(crbtree, CRB_NODE_RIGHT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+    }
+
+    return (NULL_PTR);
+}
+
+STATIC_CAST static CRB_NODE *__crb_postorder_locate(CRB_TREE *crbtree, CRB_NODE *node, void *data)
+{
+    if(NULL_PTR != node)
+    {
+        CRB_NODE    *node_t;
+
+        if(NULL_PTR != CRB_NODE_LEFT(node))
+        {
+            node_t = __crb_postorder_locate(crbtree, CRB_NODE_LEFT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+
+        if(NULL_PTR != CRB_NODE_RIGHT(node))
+        {
+            node_t = __crb_postorder_locate(crbtree, CRB_NODE_RIGHT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+
+        if(CRB_NODE_DATA(node) == data)
+        {
+            return (node);
+        }
+    }
+    return (NULL_PTR);
+}
+
+STATIC_CAST static CRB_NODE *__crb_preorder_locate(CRB_TREE *crbtree, CRB_NODE *node, void *data)
+{
+    if(NULL_PTR != node)
+    {
+        CRB_NODE    *node_t;
+
+        if(CRB_NODE_DATA(node) == data)
+        {
+            return (node);
+        }
+
+        if(NULL_PTR != CRB_NODE_LEFT(node))
+        {
+            node_t = __crb_preorder_locate(crbtree, CRB_NODE_LEFT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+
+        if(NULL_PTR != CRB_NODE_RIGHT(node))
+        {
+            node_t = __crb_preorder_locate(crbtree, CRB_NODE_RIGHT(node), data);
+            if(NULL_PTR != node_t)
+            {
+                return (node_t);
+            }
+        }
+    }
+    return (EC_TRUE);
+}
+
+CRB_NODE *crb_inorder_locate(CRB_TREE *crbtree, void *data)
+{
+    return __crb_inorder_locate(crbtree, CRB_TREE_ROOT(crbtree), data);
+}
+
+CRB_NODE *crb_postorder_locate(CRB_TREE *crbtree, void *data)
+{
+    return __crb_postorder_locate(crbtree, CRB_TREE_ROOT(crbtree), data);
+}
+
+CRB_NODE *crb_preorder_locate(CRB_TREE *crbtree, void *data)
+{
+    return __crb_preorder_locate(crbtree, CRB_TREE_ROOT(crbtree), data);
+}
+
 STATIC_CAST static EC_BOOL __crb_inorder_flush(const CRB_TREE *crbtree, const CRB_NODE *node, int fd, UINT32 *offset, EC_BOOL (*data_flush)(const void *, int, UINT32 *))
 {
     if(NULL_PTR == node)

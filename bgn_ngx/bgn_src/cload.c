@@ -151,9 +151,9 @@ CLOAD_NODE *cload_node_new(const UINT32 tcid, const UINT32 comm, const UINT32 si
 EC_BOOL cload_node_init(CLOAD_NODE *cload_node, const UINT32 tcid, const UINT32 comm, const UINT32 size)
 {
     UINT32 rank;
+
     CLOAD_NODE_TCID(cload_node) = tcid;
     CLOAD_NODE_COMM(cload_node) = comm;
-
 
     cvector_init(CLOAD_NODE_RANK_LOAD_STAT_VEC(cload_node), size, MM_CLOAD_STAT, CVECTOR_LOCK_ENABLE, LOC_CLOAD_0004);
     for(rank = 0; rank < size; rank ++)

@@ -864,7 +864,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
             continue;
         }
 
-        if(0 == TASKS_NODE_COMM(tasks_node))
+        if(CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node))
         {
             continue;
         }

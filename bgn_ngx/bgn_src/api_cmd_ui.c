@@ -236,9 +236,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete root dir"  , "hsxfs <id> delete root dir / on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs recycle" , "hsxfs <id> recycle on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs retire"  , "hsxfs <id> retire max <num> files on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush npp on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush dn on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs flush"   , "hsxfs <id> flush [npp | dn] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs set"     , "hsxfs <id> <set|unset|check> read only on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs sync"    , "hsxfs <id> sync on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs replay"  , "hsxfs <id> replay op on tcid <tcid> at <console|log>");
@@ -252,9 +250,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qlist"   , "hsxfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show npp [<lru | del>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show dn on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show cached np [<lru | del>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show specific np <id> [<lru | del>] on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show locked files on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show <locked | wait> files on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum file <name> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum bigfile <name> seg <no> on tcid <tcid> at <console|log>");
 #endif
@@ -566,6 +563,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_specific_np_del_list , "hsxfs %n show specific np %n del on tcid %t at %s", rank, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_specific_np , "hsxfs %n show specific np %n on tcid %t at %s", rank, rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_locked_files, "hsxfs %n show locked files on tcid %t at %s", rank, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_show_wait_files  , "hsxfs %n show wait files on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_md5sum           , "hsxfs %n md5sum file %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_count_file_num   , "hsxfs %n count file num of %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_count_file_size  , "hsxfs %n count file size of %s on tcid %t at %s", rank, where, tcid, where);
@@ -13343,7 +13341,7 @@ EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param)
 
     if(EC_TRUE == ret)
     {
-        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld\n%s",
+        sys_log(des_log, "[rank_%s_%ld][SUCC] np %ld\n%s\n",
                            c_word_to_ipv4(cxfs_tcid),
                            CMPI_CXFS_RANK,
                            cxfsnp_id,
@@ -13352,7 +13350,7 @@ EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param)
     }
     else
     {
-        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld\n%s",
+        sys_log(des_log, "[rank_%s_%ld][FAIL] np %ld\n%s\n",
                           c_word_to_ipv4(cxfs_tcid),
                           CMPI_CXFS_RANK, cxfsnp_id,
                           (char *)cstring_get_str(LOG_CSTR(log)));
@@ -13398,7 +13396,52 @@ EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param)
 
     des_log = api_cmd_ui_get_log(where);
 
-    sys_log(des_log, "[rank_%s_%ld][SUCC] \n%s",
+    sys_log(des_log, "[rank_%s_%ld][SUCC] \n%s\n",
+                       c_word_to_ipv4(cxfs_tcid),
+                       CMPI_CXFS_RANK,
+                       (char *)cstring_get_str(LOG_CSTR(log)));
+    log_cstr_close(log);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_show_wait_files(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   cxfs_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    LOG *log;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_tcid(param    , 1, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    /*hsxfs <id> show wait files on tcid <tcid> at <console|log>*/
+    /*hsxfs %n show wait files on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_show_wait_files: hsxfs %ld wait files on tcid %s at %s\n",
+                        cxfs_modi,
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfs_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    log = log_cstr_open();
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             NULL_PTR,
+             FI_cxfs_wait_files_print, CMPI_ERROR_MODI, log);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    sys_log(des_log, "[rank_%s_%ld][SUCC] \n%s\n",
                        c_word_to_ipv4(cxfs_tcid),
                        CMPI_CXFS_RANK,
                        (char *)cstring_get_str(LOG_CSTR(log)));

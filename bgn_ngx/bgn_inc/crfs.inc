@@ -1122,7 +1122,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already); -- */
+/* -- EC_BOOL crfs_file_lock(const UINT32 crfs_md_id, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_file_lock,
 /*func beg addr   */     0,
@@ -1131,9 +1131,9 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func name       */     "crfs_file_lock",
 /*func index      */     FI_crfs_file_lock,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     6,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1242,7 +1242,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready); -- */
+/* -- EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_file_wait,
 /*func beg addr   */     0,
@@ -1253,11 +1253,11 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     5,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready); -- */
+/* -- EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_file_wait_e,
 /*func beg addr   */     0,
@@ -1268,7 +1268,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     7,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_CBYTES_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1332,7 +1332,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready); -- */
+/* -- EC_BOOL crfs_wait_http_header(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_wait_http_header,
 /*func beg addr   */     0,
@@ -1343,11 +1343,11 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     6,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready); -- */
+/* -- EC_BOOL crfs_wait_http_headers(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_wait_http_headers,
 /*func beg addr   */     0,
@@ -1358,7 +1358,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     5,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRKV_MGR_ptr,e_dbg_UINT32_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRKV_MGR_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1407,7 +1407,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *data_ready); -- */
+/* -- EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready); -- */
 /*func module     */     MD_CRFS,
 /*func logic addr */     (UINT32)crfs_file_wait_ready,
 /*func beg addr   */     0,
@@ -1418,7 +1418,7 @@ FUNC_ADDR_NODE g_crfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     4,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

@@ -3375,6 +3375,9 @@ UINT32 csocket_encode_actual_size()
         *   reaches local and meet the size length ...
         *
         **/
+
+        /*encode len and tag*/
+
 #if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*len*/
         cmpi_encode_uint32_size(TASK_BRD_COMM(task_brd), (UINT32)0, &g_tmp_encode_size);/*tag*/
@@ -3418,13 +3421,13 @@ UINT32 xmod_node_encode_actual_size()
 
 #if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*tcid*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
-        cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*comm*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
+        cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*comm*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*size*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
 #endif/*(SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)*/
 #if (SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*tcid*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
-        cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , /*comm*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
+        cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*comm*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32_compressed_uint8_t(TASK_BRD_COMM(task_brd) , /*size*/(UINT32)0x000000FF, out_buff, out_buff_max_len, position);
         cmpi_encode_uint32_compressed_uint32_t(TASK_BRD_COMM(task_brd), /*port*/(UINT32)0xFFFFFFFF, out_buff, out_buff_max_len, position);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
@@ -3472,6 +3475,8 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         out_size = CSOCKET_CNODE_PKT_POS(csocket_cnode);
 
         pos = 0;
+
+        /*decode len and tag*/
 
 #if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
         cmpi_decode_uint32(TASK_BRD_COMM(task_brd), out_buff, out_size, &pos, &len);

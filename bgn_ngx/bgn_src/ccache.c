@@ -1068,7 +1068,6 @@ EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
     chttp_req_add_header(&chttp_req, (const char *)"Expires", (char *)c_word_to_str(expire_nsec));
-    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(task_brd_default_get_tcid()));
 
     (*locked_already) = EC_FALSE;
 
@@ -1154,7 +1153,7 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
@@ -1163,8 +1162,7 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_file_lock, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
-                 file_path, expire_nsec, auth_token, locked_already);
+                 FI_crfs_file_lock, CMPI_ERROR_MODI, file_path, expire_nsec, auth_token, locked_already);
     }
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
@@ -1172,8 +1170,7 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_cxfs_file_lock, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
-                 file_path, expire_nsec, auth_token, locked_already);
+                 FI_cxfs_file_lock, CMPI_ERROR_MODI, file_path, expire_nsec, auth_token, locked_already);
     }
 
     if(EC_FALSE == ret)
@@ -1275,7 +1272,7 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
@@ -1572,7 +1569,7 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
@@ -1646,7 +1643,9 @@ EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 sto
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
-    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(task_brd_default_get_tcid()));
+    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(CMPI_LOCAL_TCID));
+    chttp_req_add_header(&chttp_req, (const char *)"comm", (char *)c_word_to_str(CMPI_LOCAL_COMM));
+    chttp_req_add_header(&chttp_req, (const char *)"rank", (char *)c_word_to_str(CMPI_LOCAL_RANK));
     chttp_req_add_header(&chttp_req, (const char *)"wait-data", (char *)"yes");
 
     if(CHTTP_SEG_ERR_OFFSET != store_start_offset
@@ -1729,6 +1728,7 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     && CHTTP_SEG_ERR_OFFSET != store_end_offset
     && store_end_offset >= store_start_offset)
     {
+        MOD_NODE                     send_mod_node;
         MOD_NODE                     recv_mod_node;
         EC_BOOL                      ret;
 
@@ -1738,10 +1738,15 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         store_offset = store_start_offset;
         store_size   = store_end_offset - store_start_offset + 1;
 
+        MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&send_mod_node) = 0;/*ignore*/
+
         MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
         ret = EC_FALSE;
 
@@ -1749,16 +1754,16 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
-                &ret, FI_crfs_file_wait_e, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path,
-                &store_offset, store_size, content_cbytes, data_ready);
+                &ret, FI_crfs_file_wait_e, CMPI_ERROR_MODI, &send_mod_node,
+                file_path, &store_offset, store_size, content_cbytes, data_ready);
         }
 
         if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
-                &ret, FI_cxfs_file_wait_e, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path,
-                &store_offset, store_size, content_cbytes, data_ready);
+                &ret, FI_cxfs_file_wait_e, CMPI_ERROR_MODI, &send_mod_node,
+                file_path, &store_offset, store_size, content_cbytes, data_ready);
         }
 
         if(EC_FALSE == ret)
@@ -1777,13 +1782,19 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     }
     else
     {
+        MOD_NODE                     send_mod_node;
         MOD_NODE                     recv_mod_node;
         EC_BOOL                      ret;
+
+        MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&send_mod_node) = 0;/*ignore*/
 
         MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
         ret = EC_FALSE;
 
@@ -1791,14 +1802,14 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
-                &ret, FI_crfs_file_wait, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path, content_cbytes, data_ready);
+                &ret, FI_crfs_file_wait, CMPI_ERROR_MODI, &send_mod_node, file_path, content_cbytes, data_ready);
         }
 
         if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
-                &ret, FI_cxfs_file_wait, CMPI_ERROR_MODI, task_brd_default_get_tcid(), file_path, content_cbytes, data_ready);
+                &ret, FI_cxfs_file_wait, CMPI_ERROR_MODI, &send_mod_node, file_path, content_cbytes, data_ready);
         }
 
         if(EC_FALSE == ret)
@@ -1855,7 +1866,9 @@ EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
-    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(task_brd_default_get_tcid()));
+    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(CMPI_LOCAL_TCID));
+    chttp_req_add_header(&chttp_req, (const char *)"comm", (char *)c_word_to_str(CMPI_LOCAL_COMM));
+    chttp_req_add_header(&chttp_req, (const char *)"rank", (char *)c_word_to_str(CMPI_LOCAL_RANK));
     chttp_req_add_header(&chttp_req, (const char *)"wait-data", (char *)"no");
 
     if(EC_FALSE == chttp_request_basic(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))
@@ -1910,15 +1923,21 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
                                                 const CSTRING *file_path,
                                                 UINT32 *data_ready)
 {
+    MOD_NODE                     send_mod_node;
     MOD_NODE                     recv_mod_node;
 
     EC_BOOL                      ret;
     UINT32                       data_ready_t;
 
+    MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
+    MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
+    MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
+    MOD_NODE_MODI(&send_mod_node) = 0;/*ignore*/
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
@@ -1926,16 +1945,14 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
-            &ret, FI_crfs_file_wait_ready, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
-            file_path, &data_ready_t);
+            &ret, FI_crfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node, file_path, &data_ready_t);
     }
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
-            &ret, FI_cxfs_file_wait_ready, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
-            file_path, &data_ready_t);
+            &ret, FI_cxfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node, file_path, &data_ready_t);
     }
 
     if(EC_FALSE == ret)
@@ -1993,7 +2010,9 @@ EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UI
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)"0");
-    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(task_brd_default_get_tcid()));
+    chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(CMPI_LOCAL_TCID));
+    chttp_req_add_header(&chttp_req, (const char *)"comm", (char *)c_word_to_ipv4(CMPI_LOCAL_COMM));
+    chttp_req_add_header(&chttp_req, (const char *)"rank", (char *)c_word_to_ipv4(CMPI_LOCAL_RANK));
 
     idx = 0;
     CLIST_LOOP_NEXT(CSTRKV_MGR_LIST(cstrkv_mgr), clist_data)
@@ -2073,13 +2092,19 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
                                                     const CSTRING *file_path,
                                                     const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
+    MOD_NODE     send_mod_node;
     MOD_NODE     recv_mod_node;
     EC_BOOL      ret;
+
+    MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
+    MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
+    MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
+    MOD_NODE_MODI(&send_mod_node) = 0;/*ignore*/
 
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
@@ -2088,7 +2113,7 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_wait_http_headers, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
+                 FI_crfs_wait_http_headers, CMPI_ERROR_MODI, &send_mod_node,
                  file_path, cstrkv_mgr, header_ready);
     }
 
@@ -2097,7 +2122,7 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_cxfs_wait_http_headers, CMPI_ERROR_MODI, task_brd_default_get_tcid(),
+                 FI_cxfs_wait_http_headers, CMPI_ERROR_MODI, &send_mod_node,
                  file_path, cstrkv_mgr, header_ready);
     }
 

@@ -13,7 +13,6 @@ extern "C"{
 #define _CMPIC_INC
 
 #define CMPI_COMM_NULL      ((UINT32)( 0))
-#define CMPI_COMM_WORLD     ((UINT32)(91))
 #define CMPI_MIN_SIZE       ((UINT32)( 1))
 
 #define CMPI_ULONGLONG      ((UINT32)(8))

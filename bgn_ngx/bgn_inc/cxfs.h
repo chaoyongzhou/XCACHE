@@ -300,7 +300,7 @@ EC_BOOL cxfs_wait_file_free(CXFS_WAIT_FILE *cxfs_wait_file);
 
 EC_BOOL cxfs_wait_file_name_set(CXFS_WAIT_FILE *cxfs_wait_file, const CSTRING *file_name);
 
-EC_BOOL cxfs_wait_file_owner_push(CXFS_WAIT_FILE *cxfs_wait_file, const UINT32 tcid);
+EC_BOOL cxfs_wait_file_owner_push(CXFS_WAIT_FILE *cxfs_wait_file, const MOD_NODE *mod_node);
 
 EC_BOOL cxfs_wait_file_owner_notify (CXFS_WAIT_FILE *cxfs_wait_file, const UINT32 tag);
 
@@ -697,8 +697,8 @@ EC_BOOL cxfs_renew_http_headers_with_token(const UINT32 cxfs_md_id, const CSTRIN
 *  wait a file which stores http headers util specific headers are ready
 *
 **/
-EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready);
-EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready);
+EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready);
+EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready);
 
 /**
 *
@@ -858,7 +858,7 @@ EC_BOOL cxfs_locked_file_retire(const UINT32 cxfs_md_id, const UINT32 retire_max
 *  try to lock a file in expire_nsec seconds and return the authentication token
 *
 **/
-EC_BOOL cxfs_file_lock(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already);
+EC_BOOL cxfs_file_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *token_str, UINT32 *locked_already);
 
 /**
 *
@@ -872,16 +872,16 @@ EC_BOOL cxfs_file_unlock(const UINT32 cxfs_md_id, const CSTRING *file_path, cons
 *  wait file to ready
 *
 **/
-EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready);
+EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready);
 
-EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *data_ready);
+EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready);
 
 /**
 *
 *  wait file (range) to ready
 *
 **/
-EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const UINT32 tcid, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready);
+EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready);
 
 /**
 *
