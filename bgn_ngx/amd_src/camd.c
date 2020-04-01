@@ -3077,7 +3077,7 @@ void camd_end(CAMD_MD *camd_md)
             CAMD_MD_DIR(camd_md) = NULL_PTR;
         }
 
-        safe_free(camd_md, LOC_CAMD_0012);
+        safe_free(camd_md, LOC_CAMD_0013);
     }
 
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_end: stop camd done\n");
@@ -3523,7 +3523,7 @@ STATIC_CAST static EC_BOOL __camd_sync_ssd_bad_bitmap_callback(void *data)
 {
     if(NULL_PTR != data)
     {
-        free_static_mem(MM_UINT32, data, LOC_CAMD_0013);
+        free_static_mem(MM_UINT32, data, LOC_CAMD_0014);
     }
 
     return (EC_TRUE);
@@ -3565,7 +3565,7 @@ EC_BOOL camd_sync_ssd_bad_bitmap(CAMD_MD *camd_md)
                                    - CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES;
             ssd_bad_bitmap_size    = CAMD_SSD_BAD_PAGE_BITMAP_SIZE_NBYTES;
 
-            alloc_static_mem(MM_UINT32, &ssd_bad_bitmap_offset_t, LOC_CAMD_0014);
+            alloc_static_mem(MM_UINT32, &ssd_bad_bitmap_offset_t, LOC_CAMD_0015);
             if(NULL_PTR == ssd_bad_bitmap_offset_t)
             {
                 dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sync_ssd_bad_bitmap: "
@@ -6635,7 +6635,7 @@ CAMD_SSD *camd_ssd_new()
 {
     CAMD_SSD *camd_ssd;
 
-    alloc_static_mem(MM_CAMD_SSD, &camd_ssd, LOC_CAMD_0015);
+    alloc_static_mem(MM_CAMD_SSD, &camd_ssd, LOC_CAMD_0016);
     if(NULL_PTR == camd_ssd)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_ssd_new: alloc memory failed\n");
@@ -6682,7 +6682,7 @@ EC_BOOL camd_ssd_free(CAMD_SSD *camd_ssd)
     if(NULL_PTR != camd_ssd)
     {
         camd_ssd_clean(camd_ssd);
-        free_static_mem(MM_CAMD_SSD, camd_ssd, LOC_CAMD_0016);
+        free_static_mem(MM_CAMD_SSD, camd_ssd, LOC_CAMD_0017);
     }
     return (EC_TRUE);
 }
@@ -6936,7 +6936,7 @@ CAMD_SATA *camd_sata_new()
 {
     CAMD_SATA *camd_sata;
 
-    alloc_static_mem(MM_CAMD_SATA, &camd_sata, LOC_CAMD_0017);
+    alloc_static_mem(MM_CAMD_SATA, &camd_sata, LOC_CAMD_0018);
     if(NULL_PTR == camd_sata)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_sata_new: alloc memory failed\n");
@@ -6998,7 +6998,7 @@ EC_BOOL camd_sata_free(CAMD_SATA *camd_sata)
     if(NULL_PTR != camd_sata)
     {
         camd_sata_clean(camd_sata);
-        free_static_mem(MM_CAMD_SATA, camd_sata, LOC_CAMD_0018);
+        free_static_mem(MM_CAMD_SATA, camd_sata, LOC_CAMD_0019);
     }
     return (EC_TRUE);
 }
@@ -8003,21 +8003,21 @@ EC_BOOL camd_cond_wait(CAMD_COND *camd_cond, const UINT32 location)
 /*------------------------ coroutine interface ----------------------------*/
 STATIC_CAST static EC_BOOL __camd_file_read_timeout(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0022);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_read_terminate(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0023);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_read_complete(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0024);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
@@ -8035,7 +8035,7 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
     CAMD_ASSERT(NULL_PTR != camd_md);
 
     caio_cb_init(&caio_cb);
-    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0022);
+    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0025);
 
     caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                 (CAIO_CALLBACK)__camd_file_read_timeout, (void *)&camd_cond);
@@ -8085,8 +8085,8 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
 
     req_seq_no = CAMD_REQ_SEQ_NO(camd_req); /*save it for debug info*/
 
-    camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0023);
-    ret = camd_cond_wait(&camd_cond, LOC_CAMD_0024);
+    camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0032);
+    ret = camd_cond_wait(&camd_cond, LOC_CAMD_0033);
 
     __COROUTINE_IF_EXCEPTION() {/*exception*/
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read: "
@@ -8290,21 +8290,21 @@ EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 w
 
 STATIC_CAST static EC_BOOL __camd_file_read_dio_timeout(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0034);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_read_dio_terminate(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0035);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_read_dio_complete(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0036);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
@@ -8318,7 +8318,7 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
         EC_BOOL              ret;
 
         caio_cb_init(&caio_cb);
-        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0034);
+        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0037);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_read_dio_timeout, (void *)&camd_cond);
@@ -8332,8 +8332,8 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
             return (EC_FALSE);
         }
 
-        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0035);
-        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0036);
+        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0038);
+        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0039);
 
         __COROUTINE_IF_EXCEPTION() {/*exception*/
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_read_dio: "
@@ -8382,21 +8382,21 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
 
 STATIC_CAST static EC_BOOL __camd_file_write_dio_timeout(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0040);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TIMEOUT;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_write_dio_terminate(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0041);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_TERMINATE;
     return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __camd_file_write_dio_complete(CAMD_COND *camd_cond)
 {
-    camd_cond_release(camd_cond, LOC_CAMD_0025);
+    camd_cond_release(camd_cond, LOC_CAMD_0042);
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_COMPLETE;
     return (EC_TRUE);
 }
@@ -8417,7 +8417,7 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
         }
 
         caio_cb_init(&caio_cb);
-        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0040);
+        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0043);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_write_dio_timeout, (void *)&camd_cond);
@@ -8435,8 +8435,8 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
             return (EC_FALSE);
         }
 
-        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0041);
-        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0042);
+        camd_cond_reserve(&camd_cond, 1, LOC_CAMD_0044);
+        ret = camd_cond_wait(&camd_cond, LOC_CAMD_0045);
 
         __COROUTINE_IF_EXCEPTION() {/*exception*/
             dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_file_write_dio: "

@@ -151,7 +151,7 @@ EC_BOOL cp2phttp_log_start()
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
                         c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
                         TASK_BRD_RANK(task_brd));
-        log = log_file_open((char *)cstring_get_str(log_file_name), /*"a+"*/"w+",
+        log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
                             LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
@@ -184,7 +184,7 @@ EC_BOOL cp2phttp_log_start()
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
                         c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
                         TASK_BRD_RANK(task_brd));
-        log = log_file_open((char *)cstring_get_str(log_file_name), /*"a+"*/"w+",
+        log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
                             LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);

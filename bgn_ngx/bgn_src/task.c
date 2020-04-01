@@ -8052,7 +8052,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*open log and redirect LOGSTDOUT & LOGSTDERR log to it*/
     log_file_name = cstring_new(NULL_PTR, LOC_TASK_0133);
     cstring_format(log_file_name, "%s/rank_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
-    log = log_file_open((char *)cstring_get_str(log_file_name), /*"a+"*/"w+",
+    log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                         this_tcid, this_rank,
                         LOGD_FILE_RECORD_LIMIT_ENABLED, (UINT32)FILE_LOG_NAME_WITH_DATE_SWITCH,
                         LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
@@ -8104,7 +8104,7 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     /*register module type and module number per block*/
     cbc_new(MD_END); /*set the max number of supported modules*/
-    cbc_md_reg(MD_SUPER   ,  1);
+    cbc_md_reg(MD_SUPER,  1);
 
 #if 0
     if(CMPI_FWD_RANK == this_rank)

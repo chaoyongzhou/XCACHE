@@ -61,9 +61,9 @@
 #define SEC_0051_CTDNSSV                    ((UINT32)(     51)) /*ctdnssv                         */
 #define SEC_0052_CPARACFG                   ((UINT32)(     52)) /*cparacfg                        */
 #define SEC_0053_CSOCKET                    ((UINT32)(     53)) /*csocket                         */
-#define SEC_0054_XXXX                       ((UINT32)(     54)) /*-- obsolete --                  */
+#define SEC_0054_CNGX_HTTP                  ((UINT32)(     54)) /*cngx_http                       */
 #define SEC_0055_CTDNSSVMGR                 ((UINT32)(     55)) /*ctdnssvmgr                      */
-#define SEC_0056_XXXX                       ((UINT32)(     56)) /*-- obsolete --                  */
+#define SEC_0056_CNGX_HTTPS                 ((UINT32)(     56)) /*cngx_https                      */
 #define SEC_0057_TASKCFGCHK                 ((UINT32)(     57)) /*taskcfgchk                      */
 #define SEC_0058_XXXXXX                     ((UINT32)(     58)) /*-- obsolete --                  */
 #define SEC_0059_CP2P                       ((UINT32)(     59)) /*cp2p                            */

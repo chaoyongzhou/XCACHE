@@ -188,6 +188,8 @@ EC_BOOL csocket_disable_keepalive(int sockfd);
 
 EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode);
 
+EC_BOOL csocket_srv_optimize(int sockfd, const UINT32 csocket_block_mode);
+
 EC_BOOL csocket_udp_optimize(int sockfd);
 
 EC_BOOL csocket_listen(const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv_sockfd);

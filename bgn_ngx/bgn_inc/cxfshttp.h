@@ -266,60 +266,6 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cxfshttp_is_http_get_xfs_up(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_xfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_xfs_up_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_up_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_xfs_down(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_xfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_xfs_down_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_down_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_xfs_add(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_xfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_xfs_add_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_add_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_xfs_del(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_xfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_xfs_del_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_del_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_xfs_list(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_xfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_xfs_list_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_xfs_list_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_ngx_breathe(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_ngx_breathe_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_breathe_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_ngx_reload_so(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_reload_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_ngx_reload_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_ngx_reload_so_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_reload_so_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_ngx_switch_so(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_switch_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_ngx_switch_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_ngx_switch_so_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_switch_so_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_ngx_show_so(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_show_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_ngx_show_so_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_ngx_show_so_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_ngx_show_so_get_response(CHTTP_NODE *chttp_node);
-
 #endif /*_CXFSHTTP_H*/
 
 #ifdef __cplusplus

@@ -73,6 +73,7 @@ typedef struct tcp_connection_info      CSOCKET_TCPI;
 #define CSOCKET_SO_RCVTIMEO             SO_RCVTIMEO
 #define CSOCKET_SO_RCVLOWAT             SO_RCVLOWAT
 #define CSOCKET_SO_SNDLOWAT             SO_SNDLOWAT
+#define CSOCKET_SO_REUSEPORT            SO_REUSEPORT
 #define CSOCKET_SO_SNDBUF               SO_SNDBUF
 #define CSOCKET_SO_RCVBUF               SO_RCVBUF
 #define CSOCKET_SO_BROADCAST            SO_BROADCAST
@@ -117,6 +118,7 @@ typedef struct tcp_info                 CSOCKET_TCPI;
 #define CSOCKET_SO_RCVTIMEO             SO_RCVTIMEO
 #define CSOCKET_SO_RCVLOWAT             SO_RCVLOWAT
 #define CSOCKET_SO_SNDLOWAT             SO_SNDLOWAT
+#define CSOCKET_SO_REUSEPORT            SO_REUSEPORT
 #define CSOCKET_SO_SNDBUF               SO_SNDBUF
 #define CSOCKET_SO_RCVBUF               SO_RCVBUF
 #define CSOCKET_SO_BROADCAST            SO_BROADCAST

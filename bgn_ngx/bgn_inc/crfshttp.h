@@ -236,42 +236,6 @@ EC_BOOL crfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL crfshttp_is_http_get_rfs_up(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_rfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_rfs_up_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_up_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL crfshttp_is_http_get_rfs_down(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_rfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_rfs_down_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_down_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL crfshttp_is_http_get_rfs_add(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_rfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_rfs_add_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_add_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL crfshttp_is_http_get_rfs_del(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_rfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_rfs_del_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_del_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL crfshttp_is_http_get_rfs_list(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_rfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_rfs_list_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_rfs_list_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL crfshttp_is_http_get_ngx_breathe(const CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_ngx_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_handle_ngx_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_make_ngx_breathe_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL crfshttp_commit_ngx_breathe_get_response(CHTTP_NODE *chttp_node);
-
 #endif /*_CRFSHTTP_H*/
 
 #ifdef __cplusplus

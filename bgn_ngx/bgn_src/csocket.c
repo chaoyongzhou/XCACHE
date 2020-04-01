@@ -1326,6 +1326,36 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
         }
     }
 
+
+
+    return (ret);
+}
+
+EC_BOOL csocket_srv_optimize(int sockfd, const UINT32 csocket_block_mode)
+{
+    EC_BOOL ret;
+
+    ret = EC_TRUE;
+
+    if(EC_FALSE == csocket_optimize(sockfd, csocket_block_mode))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_srv_optimize: sockfd %d general optimization failed\n", sockfd);
+        ret = EC_FALSE;
+    }
+
+    /*optimization: Permits multiple AF_INET or AF_INET6 sockets to be bound to an identical socket address*/
+    if(1)
+    {
+        int  flag;
+
+        flag = 1;
+        if(0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_REUSEPORT, (const void *) &flag, sizeof(int)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_srv_optimize: sockfd %d failed to set CSOCKET_SO_REUSEPORT to %d\n", sockfd, flag);
+            ret = EC_FALSE;
+        }
+    }
+
     return (ret);
 }
 
@@ -1537,7 +1567,7 @@ EC_BOOL csocket_listen( const UINT32 srv_ipaddr, const UINT32 srv_port, int *srv
     csocket_srv_addr_init( srv_ipaddr, srv_port, &srv_addr);
 
     /* note: optimization must before listen at server side*/
-    if(EC_FALSE == csocket_optimize(sockfd, CSOCKET_IS_NONBLOCK_MODE))
+    if( EC_FALSE == csocket_srv_optimize(sockfd, CSOCKET_IS_NONBLOCK_MODE) )
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_listen: sockfd %d failed in some optimization\n", sockfd);
     }

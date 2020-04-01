@@ -36,8 +36,9 @@ extern "C"{
 
 #include "crb.h"
 #include "chttp.h"
-#include "cxfshttp.h"
-#include "crfshttp.h"
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+#include "cngx_http.h"
+#endif /*(SWITCH_ON == NGX_BGN_SWITCH)*/
 #include "cmon.h"
 #include "cconhash.h"
 
@@ -169,10 +170,10 @@ UINT32 cmon_start()
                                        cmon_md_id,
                                        (UINT32)cmon_callback_when_del);
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH
-    && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    if(CMPI_FWD_RANK == CMPI_LOCAL_RANK)
     {
-        /*note: only the first module is allowed to launch rfs http server*/
+        /*note: only the first module is allowed to launch ngx http server*/
         /*http server*/
         if(EC_TRUE == task_brd_default_check_csrv_enabled()
         && NULL_PTR != task_brd_default_get_cepoll()
@@ -180,39 +181,17 @@ UINT32 cmon_start()
         {
             if(EC_FALSE == chttp_defer_request_queue_init())
             {
-                dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_start: init crfshttp defer request queue failed\n");
+                dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_start: init cngx http defer request queue failed\n");
                 cmon_end(cmon_md_id);
                 return (CMPI_ERROR_MODI);
             }
 
-            crfshttp_log_start();
+            cngx_http_log_start();
             task_brd_default_bind_http_srv_modi(cmon_md_id);
-            chttp_rest_list_push((const char *)CRFSHTTP_REST_API_NAME, crfshttp_commit_request);
+            chttp_rest_list_push((const char *)CNGX_HTTP_REST_API_NAME, cngx_http_commit_request);
         }
     }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH
-    && CMPI_FWD_RANK == CMPI_LOCAL_RANK)
-    {
-        /*note: only the first module is allowed to launch xfs http server*/
-        /*http server*/
-        if(EC_TRUE == task_brd_default_check_csrv_enabled()
-        && NULL_PTR != task_brd_default_get_cepoll()
-        && 0 == cmon_md_id)
-        {
-            if(EC_FALSE == chttp_defer_request_queue_init())
-            {
-                dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_start: init cxfshttp defer request queue failed\n");
-                cmon_end(cmon_md_id);
-                return (CMPI_ERROR_MODI);
-            }
-
-            cxfshttp_log_start();
-            task_brd_default_bind_http_srv_modi(cmon_md_id);
-            chttp_rest_list_push((const char *)CXFSHTTP_REST_API_NAME, cxfshttp_commit_request);
-        }
-    }
-
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cmon_end, cmon_md_id);
 
     dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_start: start CMON module #%ld\n", cmon_md_id);

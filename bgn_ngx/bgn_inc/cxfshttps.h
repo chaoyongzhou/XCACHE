@@ -212,36 +212,6 @@ EC_BOOL cxfshttps_handle_locked_file_retire_get_request(CHTTPS_NODE *chttp_node)
 EC_BOOL cxfshttps_make_locked_file_retire_get_response(CHTTPS_NODE *chttp_node);
 EC_BOOL cxfshttps_commit_locked_file_retire_get_response(CHTTPS_NODE *chttp_node);
 
-EC_BOOL cxfshttps_is_http_get_xfs_up(const CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_up_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_handle_xfs_up_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_make_xfs_up_get_response(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_up_get_response(CHTTPS_NODE *chttp_node);
-
-EC_BOOL cxfshttps_is_http_get_xfs_down(const CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_down_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_handle_xfs_down_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_make_xfs_down_get_response(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_down_get_response(CHTTPS_NODE *chttp_node);
-
-EC_BOOL cxfshttps_is_http_get_xfs_add(const CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_add_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_handle_xfs_add_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_make_xfs_add_get_response(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_add_get_response(CHTTPS_NODE *chttp_node);
-
-EC_BOOL cxfshttps_is_http_get_xfs_del(const CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_del_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_handle_xfs_del_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_make_xfs_del_get_response(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_del_get_response(CHTTPS_NODE *chttp_node);
-
-EC_BOOL cxfshttps_is_http_get_xfs_list(const CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_list_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_handle_xfs_list_get_request(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_make_xfs_list_get_response(CHTTPS_NODE *chttp_node);
-EC_BOOL cxfshttps_commit_xfs_list_get_response(CHTTPS_NODE *chttp_node);
-
 #endif /*_CXFSHTTPS_H*/
 
 #ifdef __cplusplus
