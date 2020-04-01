@@ -661,8 +661,7 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_tcid_vec_0(xmlNodePtr node, const ch
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_tcid_vec(xmlNodePtr node, const char *tag, CVECTOR *tcid_vec)
 {
-    __cxml_parse_tag_tcid_vec_0(node, tag, XML_TCID_SEPARATOR, tcid_vec);
-    return (EC_TRUE);
+    return __cxml_parse_tag_tcid_vec_0(node, tag, XML_TCID_SEPARATOR, tcid_vec);
 }
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_rank_vec(xmlNodePtr node, const char *tag, CVECTOR *rank_vec)
@@ -679,21 +678,17 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_rank_vec(xmlNodePtr node, const char
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_core_vec(xmlNodePtr node, const char *tag, CVECTOR *core_vec)
 {
-    __cxml_parse_tag_uint32_vec(node, tag, XML_COREID_SEPARATOR, core_vec);
-
-    return (EC_TRUE);
+    return __cxml_parse_tag_uint32_vec(node, tag, XML_COREID_SEPARATOR, core_vec);
 }
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_port_vec(xmlNodePtr node, const char *tag, CVECTOR *port_vec)
 {
-    __cxml_parse_tag_uint32_vec(node, tag, XML_PORT_SEPARATOR, port_vec);
-    return (EC_TRUE);
+    return __cxml_parse_tag_uint32_vec(node, tag, XML_PORT_SEPARATOR, port_vec);
 }
 
 STATIC_CAST static EC_BOOL __cxml_parse_tag_cluster_vec(xmlNodePtr node, const char *tag, CVECTOR *cluster_vec)
 {
-    __cxml_parse_tag_uint32_vec(node, tag, XML_CLUSTER_SEPARATOR, cluster_vec);
-    return (EC_TRUE);
+    return __cxml_parse_tag_uint32_vec(node, tag, XML_CLUSTER_SEPARATOR, cluster_vec);
 }
 
 STATIC_CAST static EC_BOOL __cxml_parse_any_of_tags(xmlNodePtr node, const char *tags_str, void *data, CXML_PARSE_TAG tag_parser)
@@ -702,6 +697,7 @@ STATIC_CAST static EC_BOOL __cxml_parse_any_of_tags(xmlNodePtr node, const char 
     char *tags[32];
     int tag_num;
     int tag_pos;
+    uint32_t len;
 
     if(strlen(tags_str) >= sizeof(buf)/sizeof(buf[0]))
     {
@@ -709,7 +705,8 @@ STATIC_CAST static EC_BOOL __cxml_parse_any_of_tags(xmlNodePtr node, const char 
         return (EC_FALSE);
     }
 
-    BCOPY(tags_str, buf, strlen(tags_str) + 1);
+    len = strlen(tags_str) + 1;
+    BCOPY(tags_str, buf, len);
 
     tag_num = c_str_split((char *)buf, (const char *)":", tags, sizeof(tags)/sizeof(tags[0]));
 
@@ -730,6 +727,7 @@ STATIC_CAST static EC_BOOL __cxml_parse_all_of_tags(xmlNodePtr node, const char 
     char *tags[32];
     int tag_num;
     int tag_pos;
+    uint32_t len;
 
     if(strlen(tags_str) >= sizeof(buf)/sizeof(buf[0]))
     {
@@ -737,7 +735,8 @@ STATIC_CAST static EC_BOOL __cxml_parse_all_of_tags(xmlNodePtr node, const char 
         return (EC_FALSE);
     }
 
-    BCOPY(tags_str, buf, strlen(tags_str) + 1);
+    len = strlen(tags_str) + 1;
+    BCOPY(tags_str, buf, len);
 
     tag_num = c_str_split((char *)buf, (const char *)":", tags, sizeof(tags)/sizeof(tags[0]));
 
@@ -878,8 +877,8 @@ EC_BOOL cxml_parse_tasks_cfg(xmlNodePtr node, TASKS_CFG *tasks_cfg)
     __cxml_parse_tag_ipv4_mask(node, (const char *)"maske", &(TASKS_CFG_MASKE(tasks_cfg)));
 
     __cxml_parse_any_of_tags(node, (const char *)"srvipaddr:ipaddr:ip:ipv4", &(TASKS_CFG_SRVIPADDR(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_ipv4_addr);
-    __cxml_parse_any_of_tags(node, (const char *)"srvport:sport:port"      , &(TASKS_CFG_SRVPORT(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
-    __cxml_parse_any_of_tags(node, (const char *)"csrvport:cport"          , &(TASKS_CFG_CSRVPORT(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
+    __cxml_parse_any_of_tags(node, (const char *)"srvport:sport:port:bgn"  , &(TASKS_CFG_SRVPORT(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
+    __cxml_parse_any_of_tags(node, (const char *)"csrvport:cport:rest"     , &(TASKS_CFG_CSRVPORT(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
     __cxml_parse_any_of_tags(node, (const char *)"ssrvport:sport"          , &(TASKS_CFG_SSRVPORT(tasks_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
 
     __cxml_parse_tag_cluster_vec(node, (const char *)"cluster", TASKS_CFG_CLUSTER_VEC(tasks_cfg));
@@ -1042,8 +1041,8 @@ EC_BOOL cxml_parse_tasks_cfg_vec(xmlNodePtr node, TASK_CFG *task_cfg, const UINT
 
     __cxml_parse_any_of_tags(node, (const char *)"srvipaddr:ipaddr:ip:ipv4", &srvipaddr, (CXML_PARSE_TAG)__cxml_parse_tag_ipv4_addr);
 
-    __cxml_parse_any_of_tags(node, (const char *)"srvport:sport:port"      , &srvport_vec, (CXML_PARSE_TAG)__cxml_parse_tag_port_vec);
-    __cxml_parse_any_of_tags(node, (const char *)"csrvport:cport"          , &csrvport_vec, (CXML_PARSE_TAG)__cxml_parse_tag_port_vec);
+    __cxml_parse_any_of_tags(node, (const char *)"srvport:sport:port:bgn"  , &srvport_vec, (CXML_PARSE_TAG)__cxml_parse_tag_port_vec);
+    __cxml_parse_any_of_tags(node, (const char *)"csrvport:cport:rest"     , &csrvport_vec, (CXML_PARSE_TAG)__cxml_parse_tag_port_vec);
     __cxml_parse_any_of_tags(node, (const char *)"ssrvport:sport"          , &ssrvport_vec, (CXML_PARSE_TAG)__cxml_parse_tag_port_vec);
 
     __cxml_parse_tag_cluster_vec(node, (const char *)"cluster", &cluster_vec);

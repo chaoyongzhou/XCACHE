@@ -337,6 +337,10 @@ EC_BOOL task_brd_default_stop_srvs();
 
 EC_BOOL task_brd_default_stop_logs();
 
+EC_BOOL task_brd_no_busy(TASK_BRD *task_brd);
+
+EC_BOOL task_brd_default_no_busy();
+
 EC_BOOL task_brd_default_abort();
 
 EC_BOOL task_brd_set_abort(TASK_BRD *task_brd);

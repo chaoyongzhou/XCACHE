@@ -461,12 +461,12 @@ STATIC_CAST static void tasks_cfg_body_print_xml(LOG *log, const TASKS_CFG *task
     //sys_print(log, " maske=\"%s\"", TASKS_CFG_MASKE_STR(tasks_cfg));
     sys_print(log, " maski=\"%ld\""   , (UINT32)ipv4_subnet_mask_prefix(TASKS_CFG_MASKI(tasks_cfg)));
     sys_print(log, " maske=\"%ld\""   , (UINT32)ipv4_subnet_mask_prefix(TASKS_CFG_MASKE(tasks_cfg)));
-    sys_print(log, " srvipaddr=\"%s\"", TASKS_CFG_SRVIPADDR_STR(tasks_cfg));
-    sys_print(log, " srvport=\"%ld\"" , TASKS_CFG_SRVPORT(tasks_cfg));
+    sys_print(log, " ipv4=\"%s\"", TASKS_CFG_SRVIPADDR_STR(tasks_cfg));
+    sys_print(log, " bgn=\"%ld\"" , TASKS_CFG_SRVPORT(tasks_cfg));
 
     if(CMPI_ERROR_SRVPORT != TASKS_CFG_CSRVPORT(tasks_cfg))
     {
-        sys_print(log, " csrvport=\"%ld\"", TASKS_CFG_CSRVPORT(tasks_cfg));
+        sys_print(log, " rest=\"%ld\"", TASKS_CFG_CSRVPORT(tasks_cfg));
     }
 
     if(CMPI_ERROR_SRVPORT != TASKS_CFG_SSRVPORT(tasks_cfg))

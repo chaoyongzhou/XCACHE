@@ -36,6 +36,16 @@ EC_BOOL taskc_node_cmp_tcid(const TASKC_NODE *taskc_node_1, TASKC_NODE *taskc_no
     return (EC_FALSE);
 }
 
+EC_BOOL taskc_node_cmp_tcid_comm(const TASKC_NODE *taskc_node_1, TASKC_NODE *taskc_node_2)
+{
+    if(TASKC_NODE_TCID(taskc_node_1) != TASKC_NODE_TCID(taskc_node_2)
+    || TASKC_NODE_COMM(taskc_node_1) != TASKC_NODE_COMM(taskc_node_2))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
 void taskc_node_print(LOG *log, const TASKC_NODE *taskc_node)
 {
     sys_log(log, "tcid %s, comm %ld, size %ld\n",

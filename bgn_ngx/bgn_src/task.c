@@ -11886,6 +11886,27 @@ EC_BOOL task_brd_default_stop_logs()
     return (EC_TRUE);
 }
 
+EC_BOOL task_brd_no_busy(TASK_BRD *task_brd)
+{
+    COROUTINE_POOL *coroutine_pool;
+
+    coroutine_pool = TASK_REQ_CTHREAD_POOL(task_brd);
+    if(0 == croutine_pool_busy_num(coroutine_pool))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL task_brd_default_no_busy()
+{
+    TASK_BRD     *task_brd;
+
+    task_brd = task_brd_default_get();
+    return task_brd_no_busy(task_brd);
+}
+
 EC_BOOL task_brd_set_abort(TASK_BRD *task_brd)
 {
     return cproc_abort(TASK_BRD_CPROC(task_brd));

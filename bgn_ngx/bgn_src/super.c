@@ -794,7 +794,7 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *des_taskc_mgr)
         dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "super_sync_taskc_mgr: tasks node: tcid %s, comm %ld, size %ld\n",
                             TASKS_NODE_TCID_STR(tasks_node), TASKS_NODE_COMM(tasks_node), TASKS_NODE_SIZE(tasks_node));
 
-        if(0 == TASKS_NODE_COMM(tasks_node))
+        if(CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node))
         {
             continue;
         }
@@ -806,7 +806,9 @@ UINT32 super_sync_taskc_mgr(const UINT32 super_md_id, TASKC_MGR *des_taskc_mgr)
         TASKC_NODE_SIZE(taskc_node) = TASKS_NODE_SIZE(tasks_node);
 
         /*if duplicate, give up pushing to list*/
-        if(NULL_PTR != clist_search_front(TASKC_MGR_NODE_LIST(des_taskc_mgr), (void *)taskc_node, (CLIST_DATA_DATA_CMP)taskc_node_cmp_tcid))
+        if(NULL_PTR != clist_search_front(TASKC_MGR_NODE_LIST(des_taskc_mgr),
+                                          (void *)taskc_node,
+                                          (CLIST_DATA_DATA_CMP)taskc_node_cmp_tcid_comm))
         {
             taskc_node_free(taskc_node);
             continue;/*give up*/

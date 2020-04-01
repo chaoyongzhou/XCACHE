@@ -24,8 +24,8 @@ extern "C"{
 #include "cstack.h"
 #include "cmisc.h"
 
-#define COROUTINE_MUTEX_IGNORE_FLAG     ((UINT32)0)
-#define COROUTINE_RWLOCK_IGNORE_FLAG    ((UINT32)0)
+#define COROUTINE_MUTEX_IGNORE_FLAG     ((UINT32) 0)
+#define COROUTINE_RWLOCK_IGNORE_FLAG    ((UINT32) 0)
 
 #define COROUTINE_MUTEX_OP_NEW          ((UINT32) 0)
 #define COROUTINE_MUTEX_OP_INIT         ((UINT32) 1)
