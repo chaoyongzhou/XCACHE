@@ -5323,43 +5323,56 @@ void camd_process(CAMD_MD *camd_md)
 
     if(1)
     {
-        static uint64_t              time_msec_handled = 0; /*init*/
         uint64_t                     time_msec_cur;
-        uint64_t                     time_msec_interval;
 
         time_msec_cur = c_get_cur_time_msec(); /*current time in msec*/
 
-        /*memory breath*/
-        time_msec_interval = 60 * 1000;
-        if(time_msec_cur >= time_msec_handled + time_msec_interval)
+        if(0) /*move to main loop of do_slave_enhanced*/
         {
-            breathing_static_mem(); /*breath memory per minute*/
+            static uint64_t              time_msec_handled = 0; /*init*/
+            uint64_t                     time_msec_interval;
 
-            if(0 == time_msec_handled)
+            /*memory breath*/
+
+            time_msec_interval = 60 * 1000;
+
+            if(time_msec_cur >= time_msec_handled + time_msec_interval)
             {
-                time_msec_handled = time_msec_cur;
-            }
-            else
-            {
-                /*note:
-                 *   here time_msec_handled inc 60 but not update to time_msec_cur
-                 *   to avoid time deviation accumulated
-                 */
-                time_msec_handled += time_msec_interval;
+                breathing_static_mem(); /*breath memory per minute*/
+
+                if(0 == time_msec_handled)
+                {
+                    time_msec_handled = time_msec_cur;
+                }
+                else
+                {
+                    /*note:
+                     *   here time_msec_handled inc 60 but not update to time_msec_cur
+                     *   to avoid time deviation accumulated
+                     */
+                    time_msec_handled += time_msec_interval;
+                }
             }
         }
 
-        /*flow control*/
-        time_msec_interval = CAMD_FLOW_CONTROL_NSEC * 1000;
-        cfc_calc_speed(CAMD_MD_SATA_READ_FC(camd_md), time_msec_cur, time_msec_interval);
-        cfc_calc_speed(CAMD_MD_SATA_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
-        cfc_calc_speed(CAMD_MD_SSD_FC(camd_md), time_msec_cur, time_msec_interval);
-        cfc_calc_speed(CAMD_MD_MEM_FC(camd_md), time_msec_cur, time_msec_interval);
-        cfc_calc_speed(CAMD_MD_AMD_READ_FC(camd_md), time_msec_cur, time_msec_interval);
-        cfc_calc_speed(CAMD_MD_AMD_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+        if(1)
+        {
+            uint64_t                     time_msec_interval;
 
-        ciostat_calc_io_ratio(CAMD_MD_MEM_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
-        ciostat_calc_io_ratio(CAMD_MD_SSD_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
+            /*flow control*/
+
+            time_msec_interval = CAMD_FLOW_CONTROL_NSEC * 1000;
+
+            cfc_calc_speed(CAMD_MD_SATA_READ_FC(camd_md), time_msec_cur, time_msec_interval);
+            cfc_calc_speed(CAMD_MD_SATA_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+            cfc_calc_speed(CAMD_MD_SSD_FC(camd_md), time_msec_cur, time_msec_interval);
+            cfc_calc_speed(CAMD_MD_MEM_FC(camd_md), time_msec_cur, time_msec_interval);
+            cfc_calc_speed(CAMD_MD_AMD_READ_FC(camd_md), time_msec_cur, time_msec_interval);
+            cfc_calc_speed(CAMD_MD_AMD_WRITE_FC(camd_md), time_msec_cur, time_msec_interval);
+
+            ciostat_calc_io_ratio(CAMD_MD_MEM_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
+            ciostat_calc_io_ratio(CAMD_MD_SSD_IOSTAT(camd_md), time_msec_cur, time_msec_interval);
+        }
     }
 
     task_brd_process_add(task_brd_default_get(),

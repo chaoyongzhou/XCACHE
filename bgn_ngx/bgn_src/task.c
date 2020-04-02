@@ -12175,6 +12175,39 @@ EC_BOOL task_brd_default_reg_conv(
     return (EC_TRUE);
 }
 
+EC_BOOL task_brd_default_breathing()
+{
+    static uint64_t              time_msec_handled = 0; /*init*/
+    uint64_t                     time_msec_cur;
+    uint64_t                     time_msec_interval;
+
+    time_msec_cur = c_get_cur_time_msec(); /*current time in msec*/
+
+    /*memory breath*/
+
+    time_msec_interval = 60 * 1000;
+
+    if(time_msec_cur >= time_msec_handled + time_msec_interval)
+    {
+        breathing_static_mem(); /*breath memory per minute*/
+
+        if(0 == time_msec_handled)
+        {
+            time_msec_handled = time_msec_cur;
+        }
+        else
+        {
+            /*note:
+             *   here time_msec_handled inc 60 but not update to time_msec_cur
+             *   to avoid time deviation accumulated
+             */
+            time_msec_handled += time_msec_interval;
+        }
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL task_brd_enable_slow_down(TASK_BRD *task_brd)
 {
     TASK_BRD_ENABLE_SLOW_DOWN(task_brd) = BIT_TRUE;
@@ -12309,8 +12342,6 @@ EC_BOOL do_once(TASK_BRD *task_brd)
     return (EC_TRUE);
 }
 
-UINT32 g_do_slave_usleep_counter = 0;
-
 EC_BOOL do_slave(TASK_BRD *task_brd)
 {
     TASKS_CFG  *tasks_cfg;
@@ -12409,7 +12440,6 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
         {
             if(EC_TRUE == slow_down_flag)
             {
-                g_do_slave_usleep_counter ++;
                 c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0233);
             }
         }
@@ -12448,12 +12478,6 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
-    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
-    {
-        //task_brd_register_cluster(task_brd);
-    }
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
-#if (SWITCH_OFF == NGX_BGN_SWITCH)
     for(;;)
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     {
@@ -12465,6 +12489,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         /* check if we caught some signals and process them */
         csig_process_queue();
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
         if(TASK_BRD_IS_ABORT(task_brd))
         {
             TASK_BRD_RESET_FLAG(task_brd) = EC_FALSE;
@@ -12473,6 +12498,8 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
         /*update task_brd time*/
         task_brd_update_time(task_brd);
+
+        task_brd_default_breathing();
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
         /*handle timeout event or expired event, check each second*/
@@ -12484,43 +12511,16 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         }
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
-#if 0
-        /*register to remote servers before current taskcomm is ready*/
-        /*note: here is dangerous: dead lock of TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) and TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd))*/
-        if (EC_FALSE == task_brd_register_cluster_flag && CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
-        {
-            task_brd_register_cluster(task_brd);
-            task_brd_register_cluster_flag = EC_TRUE;
-        }
-#endif
-#if 1
         if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
         {
             tasks_worker_heartbeat(TASKS_CFG_WORKER(tasks_cfg));
         }
-#endif
-        //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: [2]\n");
 
         cproc_recving_handle(TASK_BRD_CPROC(task_brd), TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE));
         cproc_sending_handle(TASK_BRD_CPROC(task_brd));
 
-        //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: [3]\n");
-
-#if 0
-        if(EC_FALSE == tasks_monitor_empty_flag)
-        {
-            dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: tasks_monitor_empty_flag is false\n");
-            if(EC_TRUE == tasks_monitor_is_empty(TASKS_CFG_MONITOR(tasks_cfg)))
-            {
-                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: set tasks_monitor_empty_flag to true\n");
-                tasks_monitor_empty_flag = EC_TRUE;
-            }
-        }
-#endif
-        //if(EC_TRUE == tasks_monitor_empty_flag)
         for(loops= 4, count = 0; count < loops; count ++)/*ensure to complete task state transition!*/
         {
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: [4]\n");
             /*when task req or task rsp in board is recved completely, commit it to some manager*/
             task_brd_recving_queue_handle(task_brd);
 
@@ -12554,11 +12554,10 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
             {
                 not_slow_down_max_times = 0; /*reset*/
 
-                //dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec beg\n", TASK_SLOW_DOWN_MSEC);
                 cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
+
                 /*if slow_down happen, update task_brd time*/
                 task_brd_update_time(task_brd);
-                //dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced: slow down %d msec end\n", TASK_SLOW_DOWN_MSEC);
             }
             else
             {
@@ -12574,7 +12573,6 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         {
             if(EC_TRUE == slow_down_flag)
             {
-                g_do_slave_usleep_counter ++;
                 c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0234);
                 /*if slow_down happen, update task_brd time*/
                 task_brd_update_time(task_brd);
@@ -12721,19 +12719,14 @@ EC_BOOL do_cmd_default()
         api_cmd_help_vec_free(cmd_help_vec);
         api_cmd_tree_free(cmd_tree);
 
-        //sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
-        //print_static_mem_status(LOGCONSOLE);
-
         task_brd_set_abort_default();
         return (EC_TRUE);
     }
 
     for(;;)
     {
-        //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_cmd_default: check\n");
         if(EC_TRUE == api_cmd_ui_readline_is_disabled())/*when command is ready*/
         {
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_cmd_default: readline is disabled\n");
             api_cmd_ui_task_once(cmd_tree, cmd_help_vec);
 
             api_cmd_ui_readline_set_enabled();
@@ -12745,9 +12738,6 @@ EC_BOOL do_cmd_default()
     api_cmd_elem_vec_free(cmd_elem_vec);
     api_cmd_help_vec_free(cmd_help_vec);
     api_cmd_tree_free(cmd_tree);
-
-    //sys_log(LOGSTDOUT, "[DEBUG] do_cmd_default: show mem status:\n");
-    //print_static_mem_status(LOGCONSOLE);
 
     return (EC_TRUE);
 }

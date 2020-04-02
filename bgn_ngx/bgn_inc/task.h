@@ -390,6 +390,8 @@ EC_BOOL task_brd_sync_cload_mgr(const TASK_BRD *task_brd, const CVECTOR *tcid_ve
 
 EC_BOOL task_brd_wait_proc_ready(const TASK_BRD *task_brd, const UINT32 recv_tcid, const UINT32 recv_comm, const UINT32 recv_rank);
 
+EC_BOOL task_brd_default_breathing();
+
 EC_BOOL task_brd_enable_slow_down(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_disable_slow_down(TASK_BRD *task_brd);
