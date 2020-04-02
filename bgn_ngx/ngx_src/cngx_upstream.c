@@ -86,28 +86,6 @@ EC_BOOL cngx_upstream_get_name(ngx_http_request_t *r, u_char **str, uint32_t *le
     return (EC_TRUE);
 }
 
-/*for debug*/
-EC_BOOL cngx_upstream_get_location(ngx_http_request_t *r, u_char **str, uint32_t *len)
-{
-    ngx_http_bgn_loc_conf_t     *blcf;
-
-    blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
-
-    if(NULL_PTR == blcf || 0 == blcf->bgn_upstream.active) {
-        return (EC_FALSE);
-    }
-
-    if(NULL_PTR != str) {
-        (*str) = blcf->bgn_upstream.location.data;
-    }
-
-    if(NULL_PTR != len) {
-        (*len) = blcf->bgn_upstream.location.len;
-    }
-
-    return (EC_TRUE);
-}
-
 #if (NGX_HTTP_UPSTREAM_RBTREE)
 ngx_http_upstream_srv_conf_t *
 cngx_upstream_rbtree_lookup(ngx_http_upstream_main_conf_t *umcf,

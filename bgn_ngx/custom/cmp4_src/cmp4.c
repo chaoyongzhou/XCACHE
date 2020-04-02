@@ -4235,7 +4235,7 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
         safe_free(v, LOC_CMP4_0077);
     }while(0);
 
-#if 0
+
     /*set range*/
     if(CMP4_ERR_SEG_NO != CMP4_MD_ABSENT_SEG_NO(cmp4_md))
     {
@@ -4271,7 +4271,7 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
             return (EC_FALSE);
         }
     }
-#endif
+
     return cmp4_filter_header_in_common(cmp4_md_id, CMP4_MD_CHTTP_REQ(cmp4_md));
 }
 

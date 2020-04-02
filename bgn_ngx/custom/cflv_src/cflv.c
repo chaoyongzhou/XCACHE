@@ -3901,7 +3901,6 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
         safe_free(v, LOC_CFLV_0072);
     }while(0);
 
-#if 0
     /*set range*/
     if(CFLV_ERR_SEG_NO != CFLV_MD_ABSENT_SEG_NO(cflv_md))
     {
@@ -3937,7 +3936,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
             return (EC_FALSE);
         }
     }
-#endif
+
     return cflv_filter_header_in_common(cflv_md_id);
 }
 

@@ -3809,7 +3809,6 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
         safe_free(v, LOC_CVENDOR_0074);
     }while(0);
 
-#if 0
     /*set range*/
     if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
     {
@@ -3845,7 +3844,7 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
     }
-#endif
+
     return cvendor_filter_header_in_common(cvendor_md_id);
 }
 
