@@ -280,6 +280,19 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
 
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                            "add header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
+
             chttp_req_renew_header(chttp_req, k_str, v_str);
 
             c_str_free(k_str);
@@ -317,6 +330,16 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
             }
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            if(NULL_PTR == k_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                            "del header '%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data));
+
+                c_str_free(k_str);
+                return (EC_FALSE);
+            }
 
             chttp_req_del_header(chttp_req, k_str);
 
@@ -360,6 +383,19 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                            "renew header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
 
             chttp_req_renew_header(chttp_req, k_str, v_str);
 
@@ -417,6 +453,19 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
 
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                            "add header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
+
             chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
 
             c_str_free(k_str);
@@ -454,6 +503,16 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
             }
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            if(NULL_PTR == k_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                            "del header '%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data));
+
+                c_str_free(k_str);
+                return (EC_FALSE);
+            }
 
             chttp_rsp_del_header(chttp_rsp, k_str);
 
@@ -497,6 +556,19 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                            "renew header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
 
             chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
 
@@ -554,6 +626,19 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
 
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                            "add header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
+
             chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
 
             c_str_free(k_str);
@@ -591,6 +676,16 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
             }
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            if(NULL_PTR == k_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                            "del header '%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data));
+
+                c_str_free(k_str);
+                return (EC_FALSE);
+            }
 
             chttp_rsp_del_header(chttp_rsp, k_str);
 
@@ -634,6 +729,19 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
 
             k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
             v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            if(NULL_PTR == k_str
+            || NULL_PTR == v_str)
+            {
+                dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                            "renew header '%.*s':'%.*s' but no more memory\n",
+                                            (size_t)(k.len), (const char *)(k.data),
+                                            (size_t)(v.len), (const char *)(v.data));
+
+                c_str_free(k_str);
+                c_str_free(v_str);
+                return (EC_FALSE);
+            }
 
             chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
 
