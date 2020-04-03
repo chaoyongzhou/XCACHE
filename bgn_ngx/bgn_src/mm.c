@@ -502,9 +502,9 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CMON_NODE                    ,"MM_CMON_NODE                    ",256       , sizeof(CMON_NODE)                  , LOC_MM_0230);
     MM_MGR_DEF(MM_CMON_HOT_PATH                ,"MM_CMON_HOT_PATH                ",32        , sizeof(CMON_HOT_PATH)              , LOC_MM_0231);
 
-    MM_MGR_DEF(MM_CCONHASH                     ,"MM_CCONHASH                  ",1            , sizeof(CCONHASH)                   , LOC_MM_0232);
-    MM_MGR_DEF(MM_CCONHASH_RNODE               ,"MM_CCONHASH_RNODE            ",32           , sizeof(CCONHASH_RNODE)             , LOC_MM_0233);
-    MM_MGR_DEF(MM_CCONHASH_VNODE               ,"MM_CCONHASH_VNODE            ",32           , sizeof(CCONHASH_VNODE)             , LOC_MM_0234);
+    MM_MGR_DEF(MM_CCONHASH                     ,"MM_CCONHASH                     ",1            , sizeof(CCONHASH)                   , LOC_MM_0232);
+    MM_MGR_DEF(MM_CCONHASH_RNODE               ,"MM_CCONHASH_RNODE               ",32           , sizeof(CCONHASH_RNODE)             , LOC_MM_0233);
+    MM_MGR_DEF(MM_CCONHASH_VNODE               ,"MM_CCONHASH_VNODE               ",32           , sizeof(CCONHASH_VNODE)             , LOC_MM_0234);
 
     return ( 0 );
 }

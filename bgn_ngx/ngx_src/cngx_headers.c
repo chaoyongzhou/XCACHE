@@ -29,6 +29,99 @@ extern "C"{
 
 #include "cngx_headers.h"
 
+EC_BOOL cngx_headers_kv_wash_k(ngx_http_request_t *r, ngx_http_bgn_header_kv_t *kv, ngx_str_t *k)
+{
+    if(0 != kv->k_final.len && NULL_PTR != kv->k_final.data)
+    {
+        (*k) = kv->k_final; /*link*/
+        return (EC_TRUE);
+    }
+
+    if(0 == kv->complex_k_source.len || NULL_PTR == kv->complex_k_source.data)
+    {
+        return (EC_FALSE); /*give up*/
+    }
+
+    if(NULL_PTR == kv->complex_k_lengths || NULL_PTR == kv->complex_k_values)
+    {
+        return (EC_FALSE); /*give up*/
+    }
+
+    if(NULL_PTR == ngx_http_script_run(r, k, kv->complex_k_lengths->elts, 0, kv->complex_k_values->elts))
+    {
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_kv_wash_k: "
+                                "'%.*s' => '%.*s'\n",
+                                (size_t)(kv->complex_k_source.len), (const char *)(kv->complex_k_source.data),
+                                (size_t)(k->len), (const char *)(k->data));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_headers_kv_wash_v(ngx_http_request_t *r, ngx_http_bgn_header_kv_t *kv, ngx_str_t *v)
+{
+    if(0 != kv->v_final.len && NULL_PTR != kv->v_final.data)
+    {
+        (*v) = kv->v_final; /*link*/
+        return (EC_TRUE);
+    }
+
+    if(0 == kv->complex_v_source.len || NULL_PTR == kv->complex_v_source.data)
+    {
+        return (EC_FALSE); /*give up*/
+    }
+
+    if(NULL_PTR == kv->complex_v_lengths || NULL_PTR == kv->complex_v_values)
+    {
+        return (EC_FALSE); /*give up*/
+    }
+
+    if(NULL_PTR == ngx_http_script_run(r, v, kv->complex_v_lengths->elts, 0, kv->complex_v_values->elts))
+    {
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_kv_wash_v: "
+                                "'%.*s' => '%.*s'\n",
+                                (size_t)(kv->complex_v_source.len), (const char *)(kv->complex_v_source.data),
+                                (size_t)(v->len), (const char *)(v->data));
+
+    return (EC_TRUE);
+}
+
+static ngx_str_t *cngx_headers_kv_get_k(ngx_http_bgn_header_kv_t *kv)
+{
+    if(0 != kv->k_final.len && NULL_PTR != kv->k_final.data)
+    {
+        return &(kv->k_final);
+    }
+
+    if(0 == kv->complex_k_source.len || NULL_PTR == kv->complex_k_source.data)
+    {
+        return (NULL_PTR); /*give up*/
+    }
+
+
+    return &(kv->complex_k_source);
+}
+
+static ngx_str_t *cngx_headers_kv_get_v(ngx_http_bgn_header_kv_t *kv)
+{
+    if(0 != kv->v_final.len && NULL_PTR != kv->v_final.data)
+    {
+        return &(kv->v_final);
+    }
+
+    if(0 == kv->complex_v_source.len || NULL_PTR == kv->complex_v_source.data)
+    {
+        return (NULL_PTR); /*give up*/
+    }
+
+
+    return &(kv->complex_v_source);
+}
 
 EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
 {
@@ -44,13 +137,34 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            ngx_http_bgn_set_header_in(r, kv->key, kv->value, 1 /*override*/);
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: add header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir0_filter: "
+                                            "add header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            ngx_http_bgn_set_header_in(r, k, v, 1 /*override*/);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: "
+                                        "add header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -60,12 +174,28 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            ngx_http_bgn_del_header_in(r, kv->key);
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: del header '%s'\n",
-                                        (const char *)(kv->key.data));
+            /*wash complex key*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k))
+            {
+                ngx_str_t   *__k;
+
+                __k = cngx_headers_kv_get_k(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir0_filter: "
+                                            "del header '%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data));
+                return (EC_FALSE);
+            }
+
+            ngx_http_bgn_del_header_in(r, k);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: "
+                                        "del header '%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data));
         }
     }
 
@@ -75,13 +205,34 @@ EC_BOOL cngx_headers_dir0_filter(ngx_http_request_t *r)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            ngx_http_bgn_renew_header_in(r, kv->key, kv->value);
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: renew header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir0_filter: "
+                                            "renew header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            ngx_http_bgn_renew_header_in(r, k, v);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir0_filter: "
+                                        "renew header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -102,13 +253,42 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_req_renew_header(chttp_req, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: add header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+             /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir1_filter: "
+                                            "add header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_req_renew_header(chttp_req, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                        "add header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -118,12 +298,33 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            char                             *k_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_req_del_header(chttp_req, (const char *)(kv->key.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: del header '%s'\n",
-                                        (const char *)(kv->key.data));
+            /*wash complex key*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k))
+            {
+                ngx_str_t   *__k;
+
+                __k = cngx_headers_kv_get_k(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir1_filter: "
+                                            "del header '%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            chttp_req_del_header(chttp_req, k_str);
+
+            c_str_free(k_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                        "del header '%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data));
         }
     }
 
@@ -133,13 +334,42 @@ EC_BOOL cngx_headers_dir1_filter(ngx_http_request_t *r, CHTTP_REQ *chttp_req)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_req_renew_header(chttp_req, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: renew header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir1_filter: "
+                                            "renew header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_req_renew_header(chttp_req, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir1_filter: "
+                                        "renew header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -160,13 +390,42 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: add header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir2_filter: "
+                                            "add header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                        "add header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -176,12 +435,33 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            char                             *k_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_del_header(chttp_rsp, (const char *)(kv->key.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: del header '%s'\n",
-                                        (const char *)(kv->key.data));
+            /*wash complex key*/
+            if (EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k))
+            {
+                ngx_str_t   *__k;
+
+                __k = cngx_headers_kv_get_k(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir2_filter: "
+                                            "del header '%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            chttp_rsp_del_header(chttp_rsp, k_str);
+
+            c_str_free(k_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                        "del header '%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data));
         }
     }
 
@@ -191,13 +471,42 @@ EC_BOOL cngx_headers_dir2_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: renew header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir2_filter: "
+                                            "renew header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir2_filter: "
+                                        "renew header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -218,13 +527,42 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: add header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir3_filter: "
+                                            "add header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                        "add header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 
@@ -234,12 +572,33 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            char                             *k_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_del_header(chttp_rsp, (const char *)(kv->key.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: del header '%s'\n",
-                                        (const char *)(kv->key.data));
+            /*wash complex key*/
+            if (EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k))
+            {
+                ngx_str_t   *__k;
+
+                __k = cngx_headers_kv_get_k(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir3_filter: "
+                                            "del header '%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+
+            chttp_rsp_del_header(chttp_rsp, k_str);
+
+            c_str_free(k_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                        "del header '%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data));
         }
     }
 
@@ -249,13 +608,42 @@ EC_BOOL cngx_headers_dir3_filter(ngx_http_request_t *r, CHTTP_RSP *chttp_rsp)
         for (idx = 0; idx < headers->nelts; idx ++)
         {
             ngx_http_bgn_header_kv_t         *kv;
+            ngx_str_t                         k;
+            ngx_str_t                         v;
+            char                             *k_str; /*string with null char terminal*/
+            char                             *v_str; /*string with null char terminal*/
 
             kv = (ngx_http_bgn_header_kv_t *)(headers->elts + idx * headers->size);
 
-            chttp_rsp_renew_header(chttp_rsp, (const char *)(kv->key.data), (const char *)(kv->value.data));
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: renew header '%s':'%s'\n",
-                                        (const char *)(kv->key.data),
-                                        (const char *)(kv->value.data));
+            /*wash complex key and value*/
+            if(EC_FALSE == cngx_headers_kv_wash_k(r, kv, &k)
+            || EC_FALSE == cngx_headers_kv_wash_v(r, kv, &v))
+            {
+                ngx_str_t   *__k;
+                ngx_str_t   *__v;
+
+                __k = cngx_headers_kv_get_k(kv);
+                __v = cngx_headers_kv_get_v(kv);
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_dir3_filter: "
+                                            "renew header '%.*s':'%.*s' but wash failed\n",
+                                            (size_t)(__k->len), (const char *)(__k->data),
+                                            (size_t)(__v->len), (const char *)(__v->data));
+                return (EC_FALSE);
+            }
+
+            k_str = c_str_n_dup((char *)k.data, (uint32_t)k.len);
+            v_str = c_str_n_dup((char *)v.data, (uint32_t)v.len);
+
+            chttp_rsp_renew_header(chttp_rsp, k_str, v_str);
+
+            c_str_free(k_str);
+            c_str_free(v_str);
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_dir3_filter: "
+                                        "renew header '%.*s':'%.*s'\n",
+                                        (size_t)(k.len), (const char *)(k.data),
+                                        (size_t)(v.len), (const char *)(v.data));
         }
     }
 

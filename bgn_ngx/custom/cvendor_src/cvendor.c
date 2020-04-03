@@ -90,7 +90,7 @@ EC_BOOL cvendor_reg()
     /*do nothing*/
 
     /*register module*/
-    return cbc_md_reg(MD_CVENDOR , 128);
+    return cbc_md_reg(MD_CVENDOR , 1024);
 }
 
 /**

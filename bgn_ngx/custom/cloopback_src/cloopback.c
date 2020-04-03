@@ -75,7 +75,7 @@ EC_BOOL cloopback_reg()
     /*do nothing*/
 
     /*register module*/
-    return cbc_md_reg(MD_CLOOPBACK , 128);
+    return cbc_md_reg(MD_CLOOPBACK , 256);
 }
 
 /**
