@@ -189,8 +189,9 @@ typedef struct
 typedef struct
 {
     UINT32        counter;
-    CTMV          start_time;   /*timeval when start*/
     UINT32        timeout_msec; /*0 means never timeout*/
+    uint64_t      s_msec;       /*start time in msec if timeout is set*/
+    uint64_t      e_msec;       /*end time in msec if timeout is set*/
 
     uint32_t      terminate_flag:1; /*is terminated flag*/
     uint32_t      rsvd01:31;
@@ -201,8 +202,10 @@ typedef struct
 
 #define COROUTINE_COND_COUNTER(coroutine_cond)        ((coroutine_cond)->counter)
 
-#define COROUTINE_COND_START_TIME(coroutine_cond)     (&((coroutine_cond)->start_time))
 #define COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond)   ((coroutine_cond)->timeout_msec)
+#define COROUTINE_COND_S_MSEC(coroutine_cond)         ((coroutine_cond)->s_msec)
+#define COROUTINE_COND_E_MSEC(coroutine_cond)         ((coroutine_cond)->e_msec)
+
 #define COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) ((coroutine_cond)->terminate_flag)
 
 #if 0

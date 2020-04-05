@@ -212,6 +212,8 @@ CTM *task_brd_default_get_localtime();
 
 CTMV *task_brd_default_get_daytime();
 
+uint64_t task_brd_default_get_time_msec();
+
 char *task_brd_default_get_time_str();
 
 CEPOLL *task_brd_default_get_cepoll();

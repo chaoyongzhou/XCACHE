@@ -915,6 +915,18 @@ CTMV *task_brd_default_get_daytime()
     return TASK_BRD_CTMV(task_brd);
 }
 
+uint64_t task_brd_default_get_time_msec()
+{
+    TASK_BRD *task_brd;
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR == task_brd)
+    {
+        return (0);
+    }
+    return TASK_BRD_TIME_MSEC(task_brd);
+}
+
 char *task_brd_default_get_time_str()
 {
     TASK_BRD *task_brd;
@@ -1037,9 +1049,16 @@ char *task_brd_get_time_str(TASK_BRD *task_brd)
 
 void task_brd_update_time(TASK_BRD *task_brd)
 {
+    CTMV        *timev_cur;
+
     TASK_BRD_CTIME(task_brd) = c_time(NULL_PTR);
     localtime_r(&(TASK_BRD_CTIME(task_brd)), TASK_BRD_CTM(task_brd));
-    gettimeofday(TASK_BRD_CTMV(task_brd), NULL_PTR);
+
+    timev_cur = TASK_BRD_CTMV(task_brd);
+    gettimeofday(timev_cur, NULL_PTR);
+
+    TASK_BRD_TIME_MSEC(task_brd) = (((uint64_t)timev_cur->tv_sec ) * 1000)
+                                 + (((uint64_t)timev_cur->tv_usec) / 1000);
 
     snprintf(TASK_BRD_TIME_STR(task_brd), TASK_BRD_TIME_STR_SIZE, "%4d-%02d-%02d %02d:%02d:%02d.%03d",
             TIME_IN_YMDHMS(TASK_BRD_CTM(task_brd)),

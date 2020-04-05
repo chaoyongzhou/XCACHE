@@ -449,6 +449,7 @@ typedef struct _TASK_BRD
     CTIMET       ctime;/*current task_brd time on wall*/
     CTM          ctm;  /*current task_brd time on wall*/
     CTMV         ctmv;
+    uint64_t     time_msec;
     char         time_str[64];
 
     CEPOLL      *cepoll;
@@ -907,6 +908,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_CTIME(task_brd)                           ((task_brd)->ctime)
 #define TASK_BRD_CTM(task_brd)                             (&((task_brd)->ctm))
 #define TASK_BRD_CTMV(task_brd)                            (&((task_brd)->ctmv))
+#define TASK_BRD_TIME_MSEC(task_brd)                       ((task_brd)->time_msec)
 #define TASK_BRD_TIME_STR(task_brd)                        ((task_brd)->time_str)
 #define TASK_BRD_CEPOLL(task_brd)                          ((task_brd)->cepoll)
 #define TASK_BRD_CSIG(task_brd)                            ((task_brd)->csig)
