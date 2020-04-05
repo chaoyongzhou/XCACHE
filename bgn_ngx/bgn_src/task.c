@@ -7973,7 +7973,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     csig_atexit_register((CSIG_ATEXIT_HANDLER)task_brd_exit, (UINT32)task_brd);
 
     /*if sysconfig xml file not exist, then try to get it from multicast network*/
-    if(NULL_PTR == TASK_BRD_SYS_CFG_FNAME(task_brd )
+    if(NULL_PTR == TASK_BRD_SYS_CFG_FNAME(task_brd)
     || EC_FALSE == c_file_access((char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd), F_OK | R_OK))
     {
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_default_init: %s not accessible\n",
@@ -7981,6 +7981,11 @@ LOG * task_brd_default_init(int argc, char **argv)
 
         if(CMPI_ERROR_TCID != this_tcid)
         {
+            if(NULL_PTR == TASK_BRD_SYS_CFG_FNAME(task_brd))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: cfg file name is not given\n");
+                task_brd_default_abort();
+            }
             if(EC_FALSE == task_brd_make_config(task_brd, this_tcid))
             {
                 dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: make config failed\n");

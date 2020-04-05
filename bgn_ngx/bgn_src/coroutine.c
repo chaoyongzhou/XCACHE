@@ -23,7 +23,7 @@ extern "C"{
 #include "coroutine.h"
 
 
-#if (64 == WORDSIZE) && ((__GLIBC__ < 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 19)))
+#if (64 == WORDSIZE) && ((__GLIBC__ < 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 18)))
 #define COROUTINE_FIX_BUG_SWITCH SWITCH_ON
 #else
 #define COROUTINE_FIX_BUG_SWITCH SWITCH_OFF
@@ -872,7 +872,7 @@ UINT32 coroutine_node_free(COROUTINE_NODE *coroutine_node)
 *   note:
 *       __coroutine_make_context is to fix glibc-2.5 bug
 *       which regard the args after argc as int type (32 bits), super hit!
-*       the bug has been fixed in glibc-2.19, and I do not study other glibc version
+*       the bug has been fixed in glibc-2.18, and I do not study other glibc version
 *
 *    --- chaoyong.zhou
 */
