@@ -651,7 +651,7 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                         );
     }
 
-    dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_add_node: "
+    dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_add_node: "
                     "add cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
                     cmon_node_t,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),

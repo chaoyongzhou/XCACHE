@@ -228,6 +228,20 @@ void cxfs_end(const UINT32 cxfs_md_id);
 
 /**
 *
+* report xfs service
+*
+**/
+EC_BOOL cxfs_sdisc_sender(const UINT32 cxfs_md_id, CSDISC_NODE *csdisc_node);
+
+/**
+*
+* gather ngx service
+*
+**/
+EC_BOOL cxfs_sdisc_recver(const UINT32 cxfs_md_id, CSDISC_NODE *csdisc_node);
+
+/**
+*
 * wait sync bit flag cleared
 *
 **/

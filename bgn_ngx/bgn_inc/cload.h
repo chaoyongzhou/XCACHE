@@ -106,7 +106,7 @@ EC_BOOL cload_node_dec_que(CLOAD_NODE *cload_node, const UINT32 rank);
 
 EC_BOOL cload_node_fast_dec_que(CLOAD_NODE *cload_node, const UINT32 interval_nsec);
 
-EC_BOOL cload_node_cmp_tcid(const CLOAD_NODE *cload_node_1st, const CLOAD_NODE *cload_node_2nd);
+EC_BOOL cload_node_cmp_tcid_comm(const CLOAD_NODE *cload_node_1st, const CLOAD_NODE *cload_node_2nd);
 
 UINT32 cload_node_get_obj(CLOAD_NODE *cload_node, const UINT32 rank);
 
@@ -132,31 +132,31 @@ EC_BOOL cload_mgr_rmv(CLIST *cload_mgr, const CLOAD_NODE *cload_node);
 
 EC_BOOL cload_mgr_update(CLIST *cload_mgr, const CLOAD_NODE *cload_node);
 
-CLOAD_NODE * cload_mgr_search(const CLIST *cload_mgr, const UINT32 tcid);
+CLOAD_NODE * cload_mgr_search(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm);
 
-CLOAD_STAT * cload_mgr_get(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+CLOAD_STAT * cload_mgr_get(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-EC_BOOL cload_mgr_set(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat);
+EC_BOOL cload_mgr_set(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat);
 
-EC_BOOL cload_mgr_set_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank, const UINT32 que_load);
+EC_BOOL cload_mgr_set_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 que_load);
 
-UINT32  cload_mgr_get_que(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_que(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-UINT32  cload_mgr_get_obj(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_obj(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-UINT32  cload_mgr_get_cpu(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_cpu(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-UINT32  cload_mgr_get_mem(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_mem(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-UINT32  cload_mgr_get_dsk(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_dsk(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-UINT32  cload_mgr_get_net(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+UINT32  cload_mgr_get_net(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-EC_BOOL cload_mgr_del(CLIST *cload_mgr, const UINT32 tcid);
+EC_BOOL cload_mgr_del(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm);
 
-EC_BOOL cload_mgr_inc_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+EC_BOOL cload_mgr_inc_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
-EC_BOOL cload_mgr_dec_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank);
+EC_BOOL cload_mgr_dec_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
 EC_BOOL cload_mgr_fast_decrease(CLIST *cload_mgr, const UINT32 interval_nsec);
 

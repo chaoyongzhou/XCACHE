@@ -54,6 +54,8 @@ extern "C"{
 #include "cxfsop.h"
 #include "cxfsnpdel.h"
 
+#include "csdisc.h"
+
 #include "cmd5.h"
 #include "cbase64code.h"
 
@@ -578,6 +580,19 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: reg xfs https rest api done\n");
         }
 #endif
+
+        /*self-discovery of service*/
+        if(EC_TRUE == task_brd_default_check_sdisc_running())
+        {
+            CSDISC_NODE         *csdisc_node;
+
+            csdisc_node = task_brd_default_get_sdisc_running();
+            if(NULL_PTR != csdisc_node)
+            {
+                csdisc_node_push_sender(csdisc_node, (CSDISC_SENDER_FUNC)cxfs_sdisc_sender, (void *)cxfs_md_id);
+                csdisc_node_push_recver(csdisc_node, (CSDISC_SENDER_FUNC)cxfs_sdisc_recver, (void *)cxfs_md_id);
+            }
+        }
     }
 
     return ( cxfs_md_id );
@@ -1067,6 +1082,19 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             chttps_rest_list_push((const char *)CXFSHTTPS_REST_API_NAME, cxfshttps_commit_request);
         }
 #endif
+
+        /*self-discovery of service*/
+        if(EC_TRUE == task_brd_default_check_sdisc_running())
+        {
+            CSDISC_NODE         *csdisc_node;
+
+            csdisc_node = task_brd_default_get_sdisc_running();
+            if(NULL_PTR != csdisc_node)
+            {
+                csdisc_node_push_sender(csdisc_node, (CSDISC_SENDER_FUNC)cxfs_sdisc_sender, (void *)cxfs_md_id);
+                csdisc_node_push_recver(csdisc_node, (CSDISC_SENDER_FUNC)cxfs_sdisc_recver, (void *)cxfs_md_id);
+            }
+        }
     }
 
     return ( cxfs_md_id );
@@ -1188,6 +1216,205 @@ void cxfs_end(const UINT32 cxfs_md_id)
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_end: stop CXFS module #%ld\n", cxfs_md_id);
 
     return ;
+}
+
+EC_BOOL cxfs_sdisc_sender(const UINT32 cxfs_md_id, CSDISC_NODE *csdisc_node)
+{
+    static uint64_t     seq_no = 0;
+    TASKS_CFG          *tasks_cfg;
+    char                buff[ 128 ];
+    uint32_t            len;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_sdisc_sender: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd_default_get());
+
+    /* seq_no, xfs, tcid, ipv4, port, modi
+    *
+    * jason: {"service":"xfs","tcid":"10.10.67.18","ipv4":"127.0.0.1", "bgn":"618", "modi":"0"}
+    * string: xfs|<tcid>|<ipv4>|<bgn port>|<xfs modi>
+    *
+    */
+    len = snprintf(buff, sizeof(buff)/sizeof(buff[0]),
+                         "{%ld|xfs|%s|%s|%ld|%ld}",
+                         seq_no,
+                         c_word_to_ipv4(CMPI_LOCAL_TCID),
+                         c_word_to_ipv4(TASKS_CFG_SRVIPADDR(tasks_cfg)),
+                         TASKS_CFG_SRVPORT(tasks_cfg),
+                         cxfs_md_id);
+
+    if(EC_FALSE == csdisc_node_send_packet(csdisc_node, (const uint8_t *)buff, len))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_sdisc_sender: "
+                                             "send '%.*s' failed\n",
+                                             len, (char *)buff);
+        return (EC_FALSE);
+    }
+
+    seq_no ++;
+
+    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_sender: "
+                                         "send '%.*s' done\n",
+                                         len, (char *)buff);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_sdisc_recver(const UINT32 cxfs_md_id, CSDISC_NODE *csdisc_node)
+{
+    static char  buff[ 1024 ];
+    char        *s_buff;
+    char        *e_buff;
+    char        *c_buff;
+
+    uint32_t     len;
+    uint32_t     segs_num;
+    char        *segs[ 8 ];
+    char        *seg;
+    UINT32       ngx_tcid;
+    UINT32       ngx_ipv4;
+    UINT32       ngx_bgn_port;
+    MOD_NODE     recv_mod_node;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_sdisc_recver: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    if(EC_FALSE == csdisc_node_recv_packet(csdisc_node, (uint8_t *)buff,
+                            sizeof(buff)/sizeof(buff[0]), &len))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 == len)
+    {
+        return (EC_TRUE);
+    }
+
+    s_buff = (char *)buff;
+    e_buff = s_buff + len;
+
+    while(s_buff < e_buff)
+    {
+        while('{' != *s_buff && s_buff < e_buff)
+        {
+            s_buff ++;
+        }
+
+        if(s_buff >= e_buff)
+        {
+            return (EC_TRUE);
+        }
+
+        c_buff = s_buff + 1;
+        while('}' != *c_buff && c_buff < e_buff)
+        {
+            c_buff ++;
+        }
+
+        if(c_buff >= e_buff)
+        {
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                             "recv '%.*s' done\n",
+                                             c_buff - s_buff + 1, (char *)s_buff);
+        s_buff ++;
+        *c_buff = '\0';
+
+        segs_num = c_str_split((char *)s_buff, (const char *)"|",
+                                (char **)segs, sizeof(segs)/sizeof(segs[0]));
+
+        s_buff = c_buff + 1; /*update*/
+
+        /* seq_no, ngx, tcid, ipv4, port
+        *
+        * jason: {"service":"ngx","tcid":"10.10.67.18","ipv4":"127.0.0.1", "bgn":"618"}
+        * string: ngx|<tcid>|<ipv4>|<bgn port>
+        *
+        */
+
+        if(5 != segs_num)
+        {
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                                 "segs num %u is invalid => ignore\n",
+                                                 segs_num);
+            continue;
+        }
+
+        /*skip seq_no*/
+
+        seg = segs[1];
+        if(0 != STRCASECMP(seg, "ngx"))
+        {
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                                 "recv '%s' is not ngx => ignore\n",
+                                                 seg);
+            continue;
+        }
+
+        seg = segs[2];
+        ngx_tcid = c_ipv4_to_word(seg);
+        if(0 == ngx_tcid)
+        {
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                                 "recv '%s' invalid tcid => ignore\n",
+                                                 seg);
+            continue;
+        }
+
+        seg = segs[3];
+        ngx_ipv4 = c_ipv4_to_word(seg);
+        if(0 == ngx_ipv4)
+        {
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                                 "recv '%s' invalid ipv4 => ignore\n",
+                                                 seg);
+            continue;
+        }
+
+        seg = segs[4];
+        ngx_bgn_port = c_str_to_word(seg);
+        if(0 != (ngx_bgn_port & ~(0xFFFF)))
+        {
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_sdisc_recver: "
+                                                 "recv '%s' invalid bgn port => ignore\n",
+                                                 seg);
+            continue;
+        }
+
+        /*connect ngx if necessary*/
+
+        MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one super*/
+
+        task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                         &recv_mod_node,
+                         NULL_PTR,
+                         FI_super_add_connection, CMPI_ERROR_MODI, ngx_tcid, CMPI_ANY_COMM, ngx_ipv4, ngx_bgn_port,
+                         (UINT32)CSOCKET_CNODE_NUM);
+
+    }
+    return (EC_TRUE);
 }
 
 /**

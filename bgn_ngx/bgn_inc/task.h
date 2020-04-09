@@ -23,6 +23,7 @@ extern "C"{
 #include "cstring.h"
 #include "ipv4pool.h"
 #include "dhcp.h"
+#include "csdisc.h"
 
 #define CMPI_DBG_RANK      ((UINT32)  0)  /*define debug rank*/
 #define CMPI_MON_RANK      ((UINT32)  0)  /*define monitor rank*/
@@ -168,18 +169,18 @@ void    task_rank_tbl_print(LOG *log, const CVECTOR *task_rank_tbl);
 /*--------------------------------------------- task rank load interface ---------------------------------------------*/
 EC_BOOL task_brd_rank_load_tbl_init(TASK_BRD *task_brd);
 EC_BOOL task_brd_rank_load_tbl_clean(TASK_BRD *task_brd);
-EC_BOOL task_brd_rank_load_tbl_push(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 load);
-EC_BOOL task_brd_rank_load_tbl_push_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 size);
-EC_BOOL task_brd_rank_load_tbl_pop_all(TASK_BRD *task_brd, const UINT32 tcid);
-EC_BOOL task_brd_rank_load_tbl_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 load);
+EC_BOOL task_brd_rank_load_tbl_push(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 load);
+EC_BOOL task_brd_rank_load_tbl_push_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 size);
+EC_BOOL task_brd_rank_load_tbl_pop_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm);
+EC_BOOL task_brd_rank_load_tbl_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 load);
 EC_BOOL task_brd_rank_load_tbl_fast_decrease(TASK_BRD *task_brd, const UINT32 interval_nsec);
 
-UINT32  task_brd_rank_load_tbl_get_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-UINT32  task_brd_rank_load_tbl_get_obj(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-UINT32  task_brd_rank_load_tbl_get_cpu(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-UINT32  task_brd_rank_load_tbl_get_mem(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-UINT32  task_brd_rank_load_tbl_get_dsk(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-UINT32  task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_obj(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_cpu(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_mem(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_dsk(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+UINT32  task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 
 /*--------------------------------------------- task brd interface ---------------------------------------------*/
 LOG * task_brd_default_init(int argc, char **argv);
@@ -319,6 +320,10 @@ EC_BOOL task_brd_check_is_monitor_tcid(const UINT32 tcid);
 
 EC_BOOL task_brd_check_is_work_tcid(const UINT32 tcid);
 
+EC_BOOL task_brd_default_check_sdisc_running();
+CSDISC_NODE *task_brd_default_get_sdisc_running();
+
+EC_BOOL task_brd_default_check_sdisc_enabled();
 EC_BOOL task_brd_default_check_csrv_enabled();
 EC_BOOL task_brd_default_check_ssrv_enabled();
 
@@ -394,6 +399,8 @@ EC_BOOL task_brd_wait_proc_ready(const TASK_BRD *task_brd, const UINT32 recv_tci
 
 EC_BOOL task_brd_default_breathing();
 
+EC_BOOL task_brd_default_discovery();
+
 EC_BOOL task_brd_enable_slow_down(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_disable_slow_down(TASK_BRD *task_brd);
@@ -442,7 +449,7 @@ EC_BOOL task_brd_aging_list_add(TASK_BRD *task_brd, TASK_MGR *task_mgr);
 EC_BOOL task_brd_mod_mgr_add(TASK_BRD *task_brd, MOD_MGR *mod_mgr);
 EC_BOOL task_brd_mod_mgr_rmv(TASK_BRD *task_brd, MOD_MGR *mod_mgr);
 void    task_brd_mod_mgr_list_print(LOG *log, TASK_BRD *task_brd);
-EC_BOOL task_brd_mod_mgr_list_excl(TASK_BRD *task_brd, const UINT32 tcid);
+EC_BOOL task_brd_mod_mgr_list_excl(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm);
 
 void    task_brd_context_list_print(LOG *log, const TASK_BRD *task_brd);
 void    task_brd_report_list_print(LOG *log, const TASK_BRD *task_brd);
@@ -476,10 +483,10 @@ EC_BOOL task_brd_process_init(TASK_BRD *task_brd);
 EC_BOOL task_brd_process_clean(TASK_BRD *task_brd);
 EC_BOOL task_brd_process_do(TASK_BRD *task_brd);
 
-EC_BOOL task_brd_rank_load_set(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat);
-EC_BOOL task_brd_rank_load_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 que_load);
-EC_BOOL task_brd_rank_load_inc_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
-EC_BOOL task_brd_rank_load_dec_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank);
+EC_BOOL task_brd_rank_load_set(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat);
+EC_BOOL task_brd_rank_load_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 que_load);
+EC_BOOL task_brd_rank_load_inc_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
+EC_BOOL task_brd_rank_load_dec_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank);
 UINT32  task_brd_rank_load_print(LOG *log, const TASK_BRD *task_brd);
 
 void task_brd_send_task_mgr_list(TASK_BRD *task_brd);
@@ -502,8 +509,8 @@ TASK_REQ * task_mgr_search_task_req_by_recver(const TASK_MGR *task_mgr, const UI
 EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr);
 EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr);
 EC_BOOL task_mgr_recv(TASK_MGR *task_mgr);
-EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid);
-EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid);
+EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm);
+EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm);
 EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr);
 
 UINT32  task_mgr_time_elapsed(const TASK_MGR *task_mgr);
@@ -517,7 +524,7 @@ EC_BOOL task_context_clean(TASK_CONTEXT *task_context);
 EC_BOOL task_context_free(TASK_CONTEXT *task_context);
 
 EC_BOOL task_context_handle(TASK_BRD *task_brd, const TASK_RSP *task_rsp_ret);
-EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid);
+EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid, const UINT32 broken_comm);
 
 void    task_context_print(LOG *log, const TASK_CONTEXT *task_context);
 
@@ -552,22 +559,13 @@ void    task_queue_print(LOG *log, const CLIST *task_queue);
 void    task_queue_link_print(LOG *log, CLIST *task_queue);
 
 /*discard those being recved from the taskComm tcid*/
-EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid);
+EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid, const UINT32 comm);
 
 /*discard those will send to the taskComm tcid*/
-EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid);
-
-/*process those being recved from the taskComm tcid*/
-EC_BOOL task_queue_process_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid);
-
-/*process those being sending to the taskComm tcid*/
-EC_BOOL task_queue_process_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid);
-
-/*reschedule those being recved from the taskComm tcid*/
-EC_BOOL task_queue_reschedule_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid);
+EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid, const UINT32 comm);
 
 /*reschedule or discard those task req sending to the taskComm tcid according to each task mgr setting*/
-EC_BOOL task_mgr_list_handle_broken_taskcomm(TASK_BRD *task_brd, const UINT32 tcid);
+EC_BOOL task_mgr_list_handle_broken(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm);
 
 /* load info updating interface*/
 EC_BOOL load_set_when_task_req_isend(TASK_BRD *task_brd, TASK_REQ *task_req);
@@ -619,6 +617,9 @@ EC_BOOL task_brd_stop_https_srv(TASK_BRD *task_brd);
 EC_BOOL task_brd_default_stop_https_srv();
 EC_BOOL task_brd_bind_https_srv_modi(TASK_BRD *task_brd, const UINT32 modi);
 EC_BOOL task_brd_default_bind_https_srv_modi(const UINT32 modi);
+
+EC_BOOL task_brd_start_sdisc(TASK_BRD *task_brd);
+EC_BOOL task_brd_stop_sdisc(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_default_start_csrv();
 

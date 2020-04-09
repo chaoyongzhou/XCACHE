@@ -98,6 +98,20 @@ void    mcast_cfg_body_print_xml(LOG *log, const MCAST_CFG *mcast_cfg, const UIN
 
 void    mcast_cfg_print_xml(LOG *log, const MCAST_CFG *mcast_cfg, const UINT32 level);
 
+SDISC_CFG *sdisc_cfg_new();
+
+EC_BOOL sdisc_cfg_init(SDISC_CFG *sdisc_cfg);
+
+EC_BOOL sdisc_cfg_clean(SDISC_CFG *sdisc_cfg);
+
+EC_BOOL sdisc_cfg_free(SDISC_CFG *sdisc_cfg);
+
+EC_BOOL sdisc_cfg_is_enabled(SDISC_CFG *sdisc_cfg);
+
+void    sdisc_cfg_body_print_xml(LOG *log, const SDISC_CFG *sdisc_cfg, const UINT32 level);
+
+void    sdisc_cfg_print_xml(LOG *log, const SDISC_CFG *sdisc_cfg, const UINT32 level);
+
 BCAST_DHCP_CFG *bcast_dhcp_cfg_new();
 
 EC_BOOL bcast_dhcp_cfg_init(BCAST_DHCP_CFG *bcast_dhcp_cfg);
@@ -198,6 +212,8 @@ CVECTOR *sys_cfg_get_paras_cfg(const SYS_CFG *sys_cfg);
 CVECTOR *sys_cfg_get_macip_cfg_vec(const SYS_CFG *sys_cfg);
 
 MCAST_CFG *sys_cfg_get_mcast_cfg(const SYS_CFG *sys_cfg);
+
+SDISC_CFG *sys_cfg_get_sdisc_cfg(const SYS_CFG *sys_cfg);
 
 BCAST_DHCP_CFG *sys_cfg_get_bcast_dhcp_cfg(const SYS_CFG *sys_cfg);
 

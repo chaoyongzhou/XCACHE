@@ -65,7 +65,7 @@
 #define SEC_0055_CTDNSSVMGR                 ((UINT32)(     55)) /*ctdnssvmgr                      */
 #define SEC_0056_CNGX_HTTPS                 ((UINT32)(     56)) /*cngx_https                      */
 #define SEC_0057_TASKCFGCHK                 ((UINT32)(     57)) /*taskcfgchk                      */
-#define SEC_0058_XXXXXX                     ((UINT32)(     58)) /*-- obsolete --                  */
+#define SEC_0058_CSDISC                     ((UINT32)(     58)) /*csdisc                          */
 #define SEC_0059_CP2P                       ((UINT32)(     59)) /*cp2p                            */
 #define SEC_0060_CAGENT                     ((UINT32)(     60)) /*cagent                          */
 #define SEC_0061_CHASHDB                    ((UINT32)(     61)) /*chashdb                         */

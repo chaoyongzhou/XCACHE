@@ -630,6 +630,7 @@ EC_BOOL mcast_cfg_init(MCAST_CFG *mcast_cfg)
     MCAST_CFG_EXPIRE(mcast_cfg)    = CBTIMER_NEVER_EXPIRE;
     MCAST_CFG_TIMEOUT(mcast_cfg)   = MCAST_SRV_DEFAULT_INTERVAL;
     MCAST_CFG_AUTO_FLAG(mcast_cfg) = MCAST_SRV_NOT_AUTO_BOOTUP;
+
     return (EC_TRUE);
 }
 
@@ -690,8 +691,8 @@ void mcast_cfg_body_print_xml(LOG *log, const MCAST_CFG *mcast_cfg, const UINT32
     sys_print(log, "<udp");
     sys_print(log, " type=\"%s\""          , type_str);
     sys_print(log, " tcid=\"%s\""          , MCAST_CFG_TCID_STR(mcast_cfg));
-    sys_print(log, " srvipaddr=\"%s\""     , MCAST_CFG_IPADDR_STR(mcast_cfg));
-    sys_print(log, " srvport=\"%ld\""      , MCAST_CFG_PORT(mcast_cfg));
+    sys_print(log, " ipv4=\"%s\""     , MCAST_CFG_IPADDR_STR(mcast_cfg));
+    sys_print(log, " port=\"%ld\""      , MCAST_CFG_PORT(mcast_cfg));
     sys_print(log, " expire=\"%ld\""       , MCAST_CFG_EXPIRE(mcast_cfg));
     sys_print(log, " timeout=\"%ld\""      , MCAST_CFG_TIMEOUT(mcast_cfg));
     sys_print(log, " auto=\"%s\""          , auto_str);
@@ -710,6 +711,116 @@ void mcast_cfg_print_xml(LOG *log, const MCAST_CFG *mcast_cfg, const UINT32 leve
 
         c_ident_print(log, level);
         sys_print(log, "</udpMulticastConfig>\n");
+    }
+    return;
+}
+
+SDISC_CFG *sdisc_cfg_new()
+{
+    SDISC_CFG *sdisc_cfg;
+    alloc_static_mem(MM_SDISC_CFG, &sdisc_cfg, LOC_CSYSCFG_0017);
+    if(NULL_PTR != sdisc_cfg)
+    {
+        sdisc_cfg_init(sdisc_cfg);
+    }
+    return (sdisc_cfg);
+}
+
+EC_BOOL sdisc_cfg_init(SDISC_CFG *sdisc_cfg)
+{
+    cstring_init(SDISC_CFG_NETCARD(sdisc_cfg), NULL_PTR);
+
+    SDISC_CFG_IPADDR(sdisc_cfg)         = CMPI_ERROR_IPADDR;
+    SDISC_CFG_PORT(sdisc_cfg)           = CMPI_ERROR_SRVPORT;
+    SDISC_CFG_SWITCH(sdisc_cfg)         = SWITCH_OFF;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL sdisc_cfg_clean(SDISC_CFG *sdisc_cfg)
+{
+    cstring_clean(SDISC_CFG_NETCARD(sdisc_cfg));
+
+    SDISC_CFG_IPADDR(sdisc_cfg)         = CMPI_ERROR_IPADDR;
+    SDISC_CFG_PORT(sdisc_cfg)           = CMPI_ERROR_SRVPORT;
+    SDISC_CFG_SWITCH(sdisc_cfg)         = SWITCH_OFF;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL sdisc_cfg_free(SDISC_CFG *sdisc_cfg)
+{
+    if(NULL_PTR != sdisc_cfg)
+    {
+        sdisc_cfg_clean(sdisc_cfg);
+        free_static_mem(MM_SDISC_CFG, sdisc_cfg, LOC_CSYSCFG_0018);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL sdisc_cfg_is_enabled(SDISC_CFG *sdisc_cfg)
+{
+    if(NULL_PTR == sdisc_cfg)
+    {
+        return (EC_FALSE);
+    }
+
+    if(CMPI_ERROR_IPADDR == SDISC_CFG_IPADDR(sdisc_cfg))
+    {
+        return (EC_FALSE);
+    }
+
+    if(CMPI_ERROR_SRVPORT == SDISC_CFG_PORT(sdisc_cfg))
+    {
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_OFF == SDISC_CFG_SWITCH(sdisc_cfg))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+void sdisc_cfg_body_print_xml(LOG *log, const SDISC_CFG *sdisc_cfg, const UINT32 level)
+{
+    c_ident_print(log, level);
+
+    sys_print(log, "<udp");
+    if(EC_FALSE == cstring_is_empty(SDISC_CFG_NETCARD(sdisc_cfg)))
+    {
+        sys_print(log, " eth=\"%s\""        , SDISC_CFG_NETCARD_STR(sdisc_cfg));
+    }
+
+    sys_print(log, " ipv4=\"%s\""       , SDISC_CFG_IPADDR_STR(sdisc_cfg));
+    sys_print(log, " port=\"%ld\""      , SDISC_CFG_PORT(sdisc_cfg));
+
+    if(SWITCH_ON == SDISC_CFG_SWITCH(sdisc_cfg))
+    {
+        sys_print(log, " switch=\"on\"");
+    }
+    else
+    {
+        sys_print(log, " switch=\"off\"");
+    }
+
+    sys_print(log, "/>\n");
+    return;
+}
+
+void sdisc_cfg_print_xml(LOG *log, const SDISC_CFG *sdisc_cfg, const UINT32 level)
+{
+    if(CMPI_ERROR_IPADDR != SDISC_CFG_IPADDR(sdisc_cfg)
+    && CMPI_ERROR_SRVPORT != SDISC_CFG_PORT(sdisc_cfg))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<udpSelfDiscovery>\n");
+
+        sdisc_cfg_body_print_xml(log, sdisc_cfg, level + 1);
+
+        c_ident_print(log, level);
+        sys_print(log, "</udpSelfDiscovery>\n");
     }
     return;
 }
@@ -1512,6 +1623,11 @@ MCAST_CFG *sys_cfg_get_mcast_cfg(const SYS_CFG *sys_cfg)
     return SYS_CFG_MCAST_CFG((SYS_CFG *)sys_cfg);
 }
 
+SDISC_CFG *sys_cfg_get_sdisc_cfg(const SYS_CFG *sys_cfg)
+{
+    return SYS_CFG_SDISC_CFG((SYS_CFG *)sys_cfg);
+}
+
 BCAST_DHCP_CFG *sys_cfg_get_bcast_dhcp_cfg(const SYS_CFG *sys_cfg)
 {
     return SYS_CFG_BCAST_DHCP_CFG((SYS_CFG *)sys_cfg);
@@ -1691,6 +1807,7 @@ void sys_cfg_print_xml(LOG *log, const SYS_CFG *sys_cfg, const UINT32 level)
     task_cfg_print_xml(log, SYS_CFG_TASK_CFG(sys_cfg), level + 1);
     sys_cfg_cluster_cfg_vec_print_xml(log, SYS_CFG_CLUSTER_VEC(sys_cfg), level + 1);
     mcast_cfg_print_xml(log, SYS_CFG_MCAST_CFG(sys_cfg), level + 1);
+    sdisc_cfg_print_xml(log, SYS_CFG_SDISC_CFG(sys_cfg), level + 1);
     bcast_dhcp_cfg_print_xml(log, SYS_CFG_BCAST_DHCP_CFG(sys_cfg), level + 1);
     paras_cfg_print_xml(log, SYS_CFG_PARAS_CFG(sys_cfg), level + 1);
     macip_cfg_vec_print_xml(log, SYS_CFG_MACIP_CFG_VEC(sys_cfg), level + 1);

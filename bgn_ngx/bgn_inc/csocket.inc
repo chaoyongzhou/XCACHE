@@ -69,6 +69,7 @@ typedef struct tcp_connection_info      CSOCKET_TCPI;
 #define CSOCKET_TCP_KEEPCNT             TCP_KEEPCNT
 #define CSOCKET_SO_KEEPALIVE            SO_KEEPALIVE
 #define CSOCKET_SO_REUSEADDR            SO_REUSEADDR
+#define CSOCKET_SO_BINDTODEVICE         SO_BINDTODEVICE
 #define CSOCKET_SO_SNDTIMEO             SO_SNDTIMEO
 #define CSOCKET_SO_RCVTIMEO             SO_RCVTIMEO
 #define CSOCKET_SO_RCVLOWAT             SO_RCVLOWAT
@@ -83,6 +84,7 @@ typedef struct tcp_connection_info      CSOCKET_TCPI;
 #define CSOCKET_IP_MULTICAST_LOOP       IP_MULTICAST_LOOP
 #define CSOCKET_IP_ADD_MEMBERSHIP       IP_ADD_MEMBERSHIP
 #define CSOCKET_IP_DROP_MEMBERSHIP      IP_DROP_MEMBERSHIP
+
 #endif /*__APPLE__*/
 
 #ifdef __linux__
@@ -114,6 +116,7 @@ typedef struct tcp_info                 CSOCKET_TCPI;
 #define CSOCKET_TCP_KEEPCNT             TCP_KEEPCNT
 #define CSOCKET_SO_KEEPALIVE            SO_KEEPALIVE
 #define CSOCKET_SO_REUSEADDR            SO_REUSEADDR
+#define CSOCKET_SO_BINDTODEVICE         SO_BINDTODEVICE
 #define CSOCKET_SO_SNDTIMEO             SO_SNDTIMEO
 #define CSOCKET_SO_RCVTIMEO             SO_RCVTIMEO
 #define CSOCKET_SO_RCVLOWAT             SO_RCVLOWAT

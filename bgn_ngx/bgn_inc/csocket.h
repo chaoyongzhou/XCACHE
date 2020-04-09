@@ -186,6 +186,18 @@ EC_BOOL csocket_enable_keepalive(int sockfd);
 
 EC_BOOL csocket_disable_keepalive(int sockfd);
 
+EC_BOOL csocket_bind_nic(int sockfd, const char *eth_name, const uint32_t eth_name_len);
+
+EC_BOOL csocket_enable_reuse_addr(int sockfd);
+
+EC_BOOL csocket_disable_reuse_addr(int sockfd);
+
+EC_BOOL csocket_enable_mcast_loop(int sockfd);
+
+EC_BOOL csocket_disable_mcast_loop(int sockfd);
+
+EC_BOOL csocket_bind_mcast(int sockfd, const UINT32 ipaddr, const UINT32 port);
+
 EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode);
 
 EC_BOOL csocket_srv_optimize(int sockfd, const UINT32 csocket_block_mode);
@@ -243,6 +255,11 @@ EC_BOOL csocket_drop_mcast(const int sockfd, const UINT32 mcast_ipaddr);
 EC_BOOL csocket_udp_mcast_sendto(const int sockfd, const UINT32 mcast_ipaddr, const UINT32 mcast_port, const UINT8 *data, const UINT32 dlen);
 
 EC_BOOL csocket_udp_mcast_recvfrom(const int sockfd, const UINT32 mcast_ipaddr, const UINT32 mcast_port, UINT8 *data, const UINT32 max_dlen, UINT32 *dlen);
+
+EC_BOOL csocket_sendto(const int sockfd, struct sockaddr_in *addr, socklen_t addr_len,
+                            const uint8_t *data, const uint32_t len, uint32_t *complete_len);
+
+EC_BOOL csocket_recvfrom(const int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *data_len);
 
 EC_BOOL csocket_udp_sendto(const int sockfd, const UINT32 mcast_ipaddr, const UINT32 mcast_port, const UINT8 *data, const UINT32 dlen);
 

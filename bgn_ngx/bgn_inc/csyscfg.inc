@@ -87,6 +87,7 @@ typedef struct
 {
     UINT32      type;
     UINT32      tcid;
+
     UINT32      ipaddr;   /*udp mcast ipaddr*/
     UINT32      port;     /*udp mcast port*/
     UINT32      expire;   /*mcast expire interval, in seconds*/
@@ -102,6 +103,23 @@ typedef struct
 #define MCAST_CFG_EXPIRE(mcast_cfg)       ((mcast_cfg)->expire)
 #define MCAST_CFG_TIMEOUT(mcast_cfg)      ((mcast_cfg)->timeout)
 #define MCAST_CFG_AUTO_FLAG(mcast_cfg)    ((mcast_cfg)->auto_flag)
+
+
+/*self-discovery of service over udp mcast*/
+typedef struct
+{
+    CSTRING     netcard;        /*[optional] nic name*/
+    UINT32      ipaddr;         /*udp mcast ipaddr*/
+    UINT32      port;           /*udp mcast port*/
+    UINT32      switch_flag;    /*on|off, default is off*/
+}SDISC_CFG;
+
+#define SDISC_CFG_NETCARD(sdisc_cfg)      (&((sdisc_cfg)->netcard))
+#define SDISC_CFG_NETCARD_STR(sdisc_cfg)  (cstring_get_str(SDISC_CFG_NETCARD(sdisc_cfg)))
+#define SDISC_CFG_IPADDR(sdisc_cfg)       ((sdisc_cfg)->ipaddr)
+#define SDISC_CFG_IPADDR_STR(sdisc_cfg)   (c_word_to_ipv4(SDISC_CFG_IPADDR(sdisc_cfg)))
+#define SDISC_CFG_PORT(sdisc_cfg)         ((sdisc_cfg)->port)
+#define SDISC_CFG_SWITCH(sdisc_cfg)       ((sdisc_cfg)->switch_flag)
 
 #define BCAST_DHCP_TYPE_IS_MASTER             ((UINT32) 1)
 #define BCAST_DHCP_TYPE_IS_SLAVE              ((UINT32) 2)
@@ -152,6 +170,7 @@ typedef struct
     CVECTOR         macip_cfg_vec;      /*item is MACIP_CFG*/
     CVECTOR         paras_cfg;
     MCAST_CFG       mcast_cfg;
+    SDISC_CFG       sdisc_cfg;/*self-discovery of service over udp mcast*/
     BCAST_DHCP_CFG  bcast_dhcp_cfg;
 }SYS_CFG;
 
@@ -160,6 +179,7 @@ typedef struct
 #define SYS_CFG_MACIP_CFG_VEC(sys_cfg)       (&((sys_cfg)->macip_cfg_vec))
 #define SYS_CFG_PARAS_CFG(sys_cfg)           (&((sys_cfg)->paras_cfg))
 #define SYS_CFG_MCAST_CFG(sys_cfg)           (&((sys_cfg)->mcast_cfg))
+#define SYS_CFG_SDISC_CFG(sys_cfg)           (&((sys_cfg)->sdisc_cfg))
 #define SYS_CFG_BCAST_DHCP_CFG(sys_cfg)      (&((sys_cfg)->bcast_dhcp_cfg))
 
 #endif/*_CSYSCFG_INC*/

@@ -1133,11 +1133,11 @@ EC_BOOL tasks_node_update_time(TASKS_NODE *tasks_node)
         last_end_tm    = CTIMET_TO_TM(TASKS_NODE_LAST_SEND_TIME(tasks_node));
 
         dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_update_time: "
-                                              "[%s] "
+                                              "[tcid %s comm %ld] "
                                               "last update time: %02d:%02d:%02d, "
                                               "last send time: %02d:%02d:%02d\n",
-
                                               TASKS_NODE_TCID_STR(tasks_node),
+                                              TASKS_NODE_COMM(tasks_node),
                                               CTM_HOUR(last_update_tm),
                                               CTM_MIN(last_update_tm),
                                               CTM_SEC(last_update_tm),
@@ -1190,14 +1190,22 @@ EC_BOOL tasks_node_trigger(TASK_BRD *task_brd, TASKS_NODE *tasks_node)
         task_p2p_no_wait(MOD_NODE_MODI(&send_mod_node),
                         TASK_DEFAULT_LIVE, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                         &recv_mod_node,
-                        NULL_PTR, FI_super_notify_broken_tcid, CMPI_ERROR_MODI, TASKS_NODE_TCID(tasks_node));
+                        NULL_PTR, FI_super_notify_broken_tcid_comm, CMPI_ERROR_MODI, TASKS_NODE_TCID(tasks_node), TASKS_NODE_COMM(tasks_node));
 
         last_update_tm = CTIMET_TO_TM(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
         last_end_tm    = CTIMET_TO_TM(TASKS_NODE_LAST_SEND_TIME(tasks_node));
         cur_tm         = CTIMET_TO_TM(cur);
 
-        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[%s] last update time: %02d:%02d:%02d, last send time: %02d:%02d:%02d, cur time: %02d:%02d:%02d, CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), elapsed from last update: %ld, elapsed from last send: %ld, trigger broken\n",
+        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[DEBUG] tasks_node_trigger: "
+                "[tcid %s comm %ld] last update time: %02d:%02d:%02d, "
+                "last send time: %02d:%02d:%02d, "
+                "cur time: %02d:%02d:%02d, "
+                "CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), "
+                "elapsed from last update: %ld, "
+                "elapsed from last send: %ld, "
+                "trigger broken\n",
                 TASKS_NODE_TCID_STR(tasks_node),
+                TASKS_NODE_COMM(tasks_node),
                 CTM_HOUR(last_update_tm),
                 CTM_MIN(last_update_tm ),
                 CTM_SEC(last_update_tm ),
@@ -1232,10 +1240,12 @@ EC_BOOL tasks_node_trigger(TASK_BRD *task_brd, TASKS_NODE *tasks_node)
         MOD_NODE_HOPS(&recv_mod_node) = 0;
         MOD_NODE_LOAD(&recv_mod_node) = 0;
 
-        cload_node = cload_mgr_search(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd));
+        cload_node = cload_mgr_search(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd));
         if(NULL_PTR == cload_node)
         {
-            dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_node_trigger: cload node of tcid %s not exist\n", TASK_BRD_TCID_STR(task_brd));
+            dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_node_trigger: "
+                                                  "cload node of tcid %s not exist\n",
+                                                  TASK_BRD_TCID_STR(task_brd));
             return (EC_FALSE);
         }
 
@@ -1248,8 +1258,16 @@ EC_BOOL tasks_node_trigger(TASK_BRD *task_brd, TASKS_NODE *tasks_node)
         last_end_tm    = CTIMET_TO_TM(TASKS_NODE_LAST_SEND_TIME(tasks_node));
         cur_tm         = CTIMET_TO_TM(cur);
 
-        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[%s] last update time: %02d:%02d:%02d, last send time: %02d:%02d:%02d, cur time: %02d:%02d:%02d, CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), elapsed from last update: %ld, elapsed from last send: %ld, trigger heartbeat\n",
+        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[DEBUG] tasks_node_trigger: "
+                "[tcid %s comm %ld] last update time: %02d:%02d:%02d, "
+                "last send time: %02d:%02d:%02d, "
+                "cur time: %02d:%02d:%02d, "
+                "CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), "
+                "elapsed from last update: %ld, "
+                "elapsed from last send: %ld, "
+                "trigger heartbeat\n",
                 TASKS_NODE_TCID_STR(tasks_node),
+                TASKS_NODE_COMM(tasks_node),
                 CTM_HOUR(last_update_tm),
                 CTM_MIN(last_update_tm ),
                 CTM_SEC(last_update_tm ),
@@ -1294,9 +1312,16 @@ EC_BOOL tasks_node_trigger(TASK_BRD *task_brd, TASKS_NODE *tasks_node)
         last_end_tm    = CTIMET_TO_TM(TASKS_NODE_LAST_SEND_TIME(tasks_node));
         cur_tm         = CTIMET_TO_TM(cur);
 
-        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[%s] last update time: %02d:%02d:%02d, last send time: %02d:%02d:%02d, cur time: %02d:%02d:%02d, "
-                                              "CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), elapsed from last update: %ld, elapsed from last send: %ld, trigger heartbeat\n",
+        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "[DEBUG] tasks_node_trigger: "
+                "[tcid %s comm %ld] last update time: %02d:%02d:%02d, "
+                "last send time: %02d:%02d:%02d, "
+                "cur time: %02d:%02d:%02d, "
+                "CSOCKET_HEARTBEAT_INTVL_NSEC = (%ld), "
+                "elapsed from last update: %ld, "
+                "elapsed from last send: %ld, "
+                "trigger heartbeat\n",
                 TASKS_NODE_TCID_STR(tasks_node),
+                TASKS_NODE_COMM(tasks_node),
                 CTM_HOUR(last_update_tm),
                 CTM_MIN(last_update_tm ),
                 CTM_SEC(last_update_tm ),
@@ -1736,6 +1761,14 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
 
         tasks_node_set_callback(tasks_node, csocket_cnode);
 
+        /*update tasks_node comm if necessary*/
+        if(CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node)
+        && CMPI_ANY_COMM != CSOCKET_CNODE_COMM(csocket_cnode)
+        && EC_TRUE == cvector_is_empty(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)))
+        {
+            TASKS_NODE_COMM(tasks_node) = CSOCKET_CNODE_COMM(csocket_cnode);
+        }
+
         cvector_push(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);
 
         tasks_worker_callback_when_add(tasks_worker, tasks_node);
@@ -1757,25 +1790,32 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_add_csocket_cnode: new tasks_node failed\n");
         return (EC_FALSE);
     }
-    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: new tasks_node %p (tcid %s, ip %s, port %ld)\n",
-                                          tasks_node,
-                                          TASKS_NODE_TCID_STR(tasks_node),
-                                          TASKS_NODE_SRVIPADDR_STR(tasks_node),
-                                          TASKS_NODE_SRVPORT(tasks_node));
 
     /*note: when reach here, tasks_node and csocket_cnode always match*/
     tasks_node_set_callback(tasks_node, csocket_cnode);
 
-    cvector_push(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);/*add csocket_cnode to tasks_node*/
+    /*update tasks_node comm if necessary*/
+    if(CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node)
+    && CMPI_ANY_COMM != CSOCKET_CNODE_COMM(csocket_cnode)
+    && EC_TRUE == cvector_is_empty(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)))
+    {
+        TASKS_NODE_COMM(tasks_node) = CSOCKET_CNODE_COMM(csocket_cnode);
+    }
 
-    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: add sockfd %d to tasks_node %p (tcid %s, ip %s, port %ld)\n",
+    /*add csocket_cnode to tasks_node*/
+    cvector_push(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), (void *)csocket_cnode);
+
+    dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_worker_add_csocket_cnode: "
+                                          "add sockfd %d to tasks_node %p (tcid %s, comm %ld, ip %s, port %ld)\n",
                                           CSOCKET_CNODE_SOCKFD(csocket_cnode),
                                           tasks_node,
                                           TASKS_NODE_TCID_STR(tasks_node),
+                                          TASKS_NODE_COMM(tasks_node),
                                           TASKS_NODE_SRVIPADDR_STR(tasks_node),
                                           TASKS_NODE_SRVPORT(tasks_node));
 
-    cvector_push(TASKS_WORKER_NODES(tasks_worker), (void *)tasks_node);           /*add tasks_node to tasks_work   */
+    /*add tasks_node to tasks_work   */
+    cvector_push(TASKS_WORKER_NODES(tasks_worker), (void *)tasks_node);
 
     tasks_worker_callback_when_add(tasks_worker, tasks_node);
 
@@ -1988,7 +2028,11 @@ EC_BOOL tasks_node_set_writable(TASKS_NODE  *tasks_node)
             continue;
         }
 
-        if(BIT_FALSE == CSOCKET_CNODE_WRITING(csocket_cnode))
+        if(BIT_FALSE == CSOCKET_CNODE_WRITING(csocket_cnode)
+        && (TASKS_NODE_COMM(tasks_node) == CSOCKET_CNODE_COMM(csocket_cnode)
+            || CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node)
+            || CMPI_ANY_COMM == CSOCKET_CNODE_COMM(csocket_cnode))
+        )
         {
             /*May 3,2017*/
             cepoll_set_event(task_brd_default_get_cepoll(),
@@ -2020,13 +2064,17 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
             return (EC_AGAIN);
         }
 
-        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: des_tcid %s does not exist when (tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld)\n",
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: "
+                        "des_tcid %s does not exist when "
+                        "(tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld)\n",
                         c_word_to_ipv4(des_tcid),
                         TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
                         TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node)
                         );
 
-        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "lost route: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
+        dbg_log(SEC_0121_TASKS, 5)(LOGSTDOUT, "lost route: "
+                        "from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) "
+                        "with priority %ld, type %ld, tag %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
                         TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
                         TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
                         TASK_NODE_PRIO(task_node), TASK_NODE_TYPE(task_node),
@@ -2049,7 +2097,7 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
             task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                              &recv_mod_node,
                              NULL_PTR,
-                             FI_super_add_connection, CMPI_ERROR_MODI, des_tcid,
+                             FI_super_add_connection, CMPI_ERROR_MODI, des_tcid, des_comm,
                              TASKS_CFG_SRVIPADDR(remote_tasks_cfg), TASKS_CFG_SRVPORT(remote_tasks_cfg),
                              (UINT32)CSOCKET_CNODE_NUM);
 
@@ -2069,7 +2117,7 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
             task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                              &recv_mod_node,
                              NULL_PTR,
-                             FI_super_connect, CMPI_ERROR_MODI, des_tcid, (UINT32)1/*CSOCKET_CNODE_NUM*/);
+                             FI_super_connect, CMPI_ERROR_MODI, des_tcid, des_comm, (UINT32)1/*CSOCKET_CNODE_NUM*/);
 
             return (EC_AGAIN);
         }
@@ -2077,16 +2125,20 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0121_TASKS, 7)(LOGSTDOUT, "[DEBUG] tasks_worker_isend_node: tcid %s own %ld connections\n",
-                TASKS_NODE_TCID_STR(tasks_node), cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)));
+    dbg_log(SEC_0121_TASKS, 7)(LOGSTDOUT, "[DEBUG] tasks_worker_isend_node: "
+                                          "tcid %s comm %ld own %ld connections\n",
+                                          TASKS_NODE_TCID_STR(tasks_node),
+                                          TASKS_NODE_COMM(tasks_node),
+                                          cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)));
 
     /*note: task_node is only mounted to sending list*/
     clist_push_back(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node);
 
     if(EC_FALSE == tasks_node_set_writable(tasks_node))
     {
-        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: tcid %s has no connections, register again\n",
-                    TASKS_NODE_TCID_STR(tasks_node));
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: "
+                    "tcid %s comm %ld has no connections, register again\n",
+                    TASKS_NODE_TCID_STR(tasks_node), TASKS_NODE_COMM(tasks_node));
 
         /*register remote tcid if none or insufficient connections*/
         /*task_brd_register_node(task_brd_default_get(), TASKS_NODE_TCID(tasks_node));*//*no meaningful*/
@@ -2955,7 +3007,10 @@ EC_BOOL tasks_handshake_complete(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_
             /*callback and epoll will be reset during add csocket_cnode*/
             tasks_worker_add_csocket_cnode(tasks_worker, csocket_cnode);
 
-            task_brd_rank_load_tbl_push_all(task_brd, CSOCKET_CNODE_TCID(csocket_cnode), CSOCKET_CNODE_SIZE(csocket_cnode));
+            task_brd_rank_load_tbl_push_all(task_brd,
+                                            CSOCKET_CNODE_TCID(csocket_cnode),
+                                            CSOCKET_CNODE_COMM(csocket_cnode),
+                                            CSOCKET_CNODE_SIZE(csocket_cnode));
             break;
         }
     }

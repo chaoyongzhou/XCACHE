@@ -364,7 +364,7 @@ void super_check_slowdown(const UINT32 super_md_id, LOG *log);
 * handle broken taskcomm when current taskcomm receive notification
 *
 **/
-void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid);
+void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm);
 
 /**
 *
@@ -373,7 +373,7 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
 * note: here does not notify other taskcomm(s)
 *
 **/
-void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid);
+void super_notify_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm);
 
 /**
 *
@@ -499,14 +499,14 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
 * try to connect
 *
 **/
-EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 conn_num);
+EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 conn_num);
 
 /**
 *
 * add socket connection
 *
 **/
-void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_srv_ipaddr, const UINT32 des_srv_port, const UINT32 conn_num);
+void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 des_srv_ipaddr, const UINT32 des_srv_port, const UINT32 conn_num);
 
 
 /**
@@ -575,7 +575,7 @@ void super_disable_task_brd(const UINT32 super_md_id);
 **/
 void super_heartbeat_on_node(const UINT32 super_md_id, const CLOAD_NODE *cload_node);
 
-void super_heartbeat_on_rank(const UINT32 super_md_id, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat);
+void super_heartbeat_on_rank(const UINT32 super_md_id, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat);
 
 void super_heartbeat_all(const UINT32 super_md_id, const CLOAD_MGR *cload_mgr);
 

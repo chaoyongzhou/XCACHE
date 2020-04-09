@@ -42,6 +42,7 @@ extern "C"{
 #include "croutine.h"
 #include "cepoll.inc"
 #include "cconnp.inc"
+#include "csdisc.h"
 
 #define ERR_TASK_SEQNO ((UINT32)(~((UINT32)0)))
 #define ERR_FUNC_ID    ((UINT32)(~((UINT32)0)))
@@ -472,6 +473,8 @@ typedef struct _TASK_BRD
     int          udp_srv_sockfd;
     int          rsvd02;
 
+    CSDISC_NODE *csdisc_node;     /*udp self-discovery of service*/
+
     UINT32       reg_type;
 
     CLIST        recv_task_mgr_list;  /* recving task mgr list*/
@@ -531,7 +534,7 @@ typedef struct _TASK_BRD
 
     CLIST        cload_mgr;
 
-    CVECTOR      broken_tcid_tbl;  /*broken tcid table.*/
+    CVECTOR      broken_tbl;  /*broken tcid and comm table. item is MOD_NODE*/
 
     CLIST        mod_mgr_list;     /*each MODULE will maintain a mod_mgr which is registered to TASK_BRD*/
     CLIST        context_list;     /*task context list will maintain the task rsp to activate a module*/
@@ -571,8 +574,8 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define MOD_NODE_STAT(mod_node)             ((mod_node)->stat)
 #define MOD_NODE_CLOAD_STAT(mod_node)       (&((mod_node)->cload_stat))
 
-#define MOD_NODE_LOAD_GET_QUE(task_brd, mod_node)             task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_RANK(mod_node))
-#define MOD_NODE_LOAD_SET_QUE(task_brd, mod_node, new_load)   task_brd_rank_load_tbl_set_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_RANK(mod_node), new_load)
+#define MOD_NODE_LOAD_GET_QUE(task_brd, mod_node)             task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node))
+#define MOD_NODE_LOAD_SET_QUE(task_brd, mod_node, new_load)   task_brd_rank_load_tbl_set_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_COMM(mod_node), MOD_NODE_RANK(mod_node), new_load)
 
 #define MOD_NODE_MATCH(mod_node, tcid, comm, rank, modi) \
 (\
@@ -950,7 +953,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 
 #define TASK_BRD_CLOAD_MGR(this_task_brd)                                           (&((this_task_brd)->cload_mgr))
 
-#define TASK_BRD_BROKEN_TCID_TBL(task_brd)                  (&((task_brd)->broken_tcid_tbl))
+#define TASK_BRD_BROKEN_TBL(task_brd)                        (&((task_brd)->broken_tbl))
 
 #define TASK_BRD_SYS_CFG_FNAME(task_brd)                     ((task_brd)->sys_cfg_xml_fname_cstr)
 #define TASK_BRD_SYS_CFG_FNAME_STR(task_brd)                 (cstring_get_str(TASK_BRD_SYS_CFG_FNAME(task_brd)))
@@ -972,6 +975,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_LOCAL_TASKS_CFG(task_brd)                   ((task_brd)->local_tasks_cfg)
 #define TASK_BRD_DETECT_TASKS_CFG(task_brd)                  ((task_brd)->detect_tasks_cfg)
 #define TASK_BRD_UDP_SRV_SOCKFD(task_brd)                    ((task_brd)->udp_srv_sockfd)
+#define TASK_BRD_CSDISC_NODE(task_brd)                       ((task_brd)->csdisc_node)
 #define TASK_BRD_RECV_TASK_MGR_LIST(task_brd)                (&((task_brd)->recv_task_mgr_list))
 #define TASK_BRD_AGING_TASK_MGR_LIST(task_brd)               (&((task_brd)->aging_task_mgr_list))
 #define TASK_BRD_MOD_MGR_LIST(task_brd)                      (&((task_brd)->mod_mgr_list))

@@ -235,8 +235,14 @@ EC_BOOL mod_node_vote_gt_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -250,8 +256,14 @@ EC_BOOL mod_node_vote_ge_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -266,8 +278,14 @@ EC_BOOL mod_node_vote_lt_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -281,8 +299,14 @@ EC_BOOL mod_node_vote_le_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -296,8 +320,14 @@ EC_BOOL mod_node_vote_gt_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -311,8 +341,14 @@ EC_BOOL mod_node_vote_ge_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -327,8 +363,14 @@ EC_BOOL mod_node_vote_lt_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -342,8 +384,14 @@ EC_BOOL mod_node_vote_le_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -357,8 +405,14 @@ EC_BOOL mod_node_vote_gt_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -372,8 +426,14 @@ EC_BOOL mod_node_vote_ge_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -388,8 +448,14 @@ EC_BOOL mod_node_vote_lt_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -403,8 +469,14 @@ EC_BOOL mod_node_vote_le_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -418,8 +490,14 @@ EC_BOOL mod_node_vote_gt_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -433,8 +511,14 @@ EC_BOOL mod_node_vote_ge_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -449,8 +533,14 @@ EC_BOOL mod_node_vote_lt_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -464,8 +554,14 @@ EC_BOOL mod_node_vote_le_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -479,8 +575,14 @@ EC_BOOL mod_node_vote_gt_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -494,8 +596,14 @@ EC_BOOL mod_node_vote_ge_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -510,8 +618,14 @@ EC_BOOL mod_node_vote_lt_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -525,8 +639,14 @@ EC_BOOL mod_node_vote_le_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -541,8 +661,14 @@ EC_BOOL mod_node_vote_gt_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                              MOD_NODE_TCID(src_mod_node_1),
+                                              MOD_NODE_COMM(src_mod_node_1),
+                                              MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                              MOD_NODE_TCID(src_mod_node_2),
+                                              MOD_NODE_COMM(src_mod_node_2),
+                                              MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -556,8 +682,14 @@ EC_BOOL mod_node_vote_ge_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -572,8 +704,14 @@ EC_BOOL mod_node_vote_lt_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -587,8 +725,14 @@ EC_BOOL mod_node_vote_le_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -627,8 +771,14 @@ EC_BOOL mod_node_lt_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -643,8 +793,14 @@ EC_BOOL mod_node_le_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -659,8 +815,14 @@ EC_BOOL mod_node_gt_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -675,8 +837,14 @@ EC_BOOL mod_node_ge_que(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_que(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -691,8 +859,14 @@ EC_BOOL mod_node_lt_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -707,8 +881,14 @@ EC_BOOL mod_node_le_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -723,8 +903,14 @@ EC_BOOL mod_node_gt_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -739,8 +925,14 @@ EC_BOOL mod_node_ge_obj(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_obj(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -756,8 +948,14 @@ EC_BOOL mod_node_lt_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -772,8 +970,14 @@ EC_BOOL mod_node_le_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -788,8 +992,14 @@ EC_BOOL mod_node_gt_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -804,8 +1014,14 @@ EC_BOOL mod_node_ge_cpu(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_cpu(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -820,8 +1036,14 @@ EC_BOOL mod_node_lt_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -836,8 +1058,14 @@ EC_BOOL mod_node_le_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -852,8 +1080,14 @@ EC_BOOL mod_node_gt_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -868,8 +1102,14 @@ EC_BOOL mod_node_ge_mem(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_mem(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -884,8 +1124,14 @@ EC_BOOL mod_node_lt_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -900,8 +1146,14 @@ EC_BOOL mod_node_le_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -916,8 +1168,14 @@ EC_BOOL mod_node_gt_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -932,8 +1190,14 @@ EC_BOOL mod_node_ge_dsk(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_dsk(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -948,8 +1212,14 @@ EC_BOOL mod_node_lt_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st < load_2nd)
     {
@@ -964,8 +1234,14 @@ EC_BOOL mod_node_le_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st <= load_2nd)
     {
@@ -980,8 +1256,14 @@ EC_BOOL mod_node_gt_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st > load_2nd)
     {
@@ -996,8 +1278,14 @@ EC_BOOL mod_node_ge_net(const MOD_NODE *src_mod_node_1, const MOD_NODE *src_mod_
     UINT32 load_1st;
     UINT32 load_2nd;
 
-    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_1), MOD_NODE_RANK(src_mod_node_1));
-    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(), MOD_NODE_TCID(src_mod_node_2), MOD_NODE_RANK(src_mod_node_2));
+    load_1st = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_1),
+                                                MOD_NODE_COMM(src_mod_node_1),
+                                                MOD_NODE_RANK(src_mod_node_1));
+    load_2nd = task_brd_rank_load_tbl_get_net(task_brd_default_get(),
+                                                MOD_NODE_TCID(src_mod_node_2),
+                                                MOD_NODE_COMM(src_mod_node_2),
+                                                MOD_NODE_RANK(src_mod_node_2));
 
     if(load_1st >= load_2nd)
     {
@@ -1118,7 +1406,7 @@ EC_BOOL mod_mgr_clean(MOD_MGR * mod_mgr)
     CVECTOR *remote_mod_node_list;
 
     remote_mod_node_list = MOD_MGR_REMOTE_LIST(mod_mgr);
-    cvector_clean(remote_mod_node_list, (CLIST_DATA_DATA_CLEANER)mod_node_free, LOC_MOD_0008);
+    cvector_clean(remote_mod_node_list, (CVECTOR_DATA_CLEANER)mod_node_free, LOC_MOD_0008);
     MOD_MGR_REMOTE_POS(mod_mgr) = 0;
     MOD_MGR_LOCAL_MOD_POS(mod_mgr) = CVECTOR_ERR_POS;
 
@@ -2111,7 +2399,10 @@ void mod_mgr_remote_mod_load_print(LOG *log, TASK_BRD *task_brd, MOD_NODE *mod_n
                 MOD_NODE_RANK(mod_node),
                 MOD_NODE_MODI(mod_node),
                 MOD_NODE_LOAD(mod_node),
-                task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_RANK(mod_node)));
+                task_brd_rank_load_tbl_get_que(task_brd,
+                                                MOD_NODE_TCID(mod_node),
+                                                MOD_NODE_COMM(mod_node),
+                                                MOD_NODE_RANK(mod_node)));
 }
 
 void mod_mgr_remote_mod_list_load_print(LOG *log, TASK_BRD *task_brd, MOD_MGR *mod_mgr)
@@ -2131,7 +2422,10 @@ void mod_mgr_remote_mod_list_load_print(LOG *log, TASK_BRD *task_brd, MOD_MGR *m
                     MOD_NODE_RANK(mod_node),
                     MOD_NODE_MODI(mod_node),
                     MOD_NODE_LOAD(mod_node),
-                    task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node), MOD_NODE_RANK(mod_node)));
+                    task_brd_rank_load_tbl_get_que(task_brd,
+                                                    MOD_NODE_TCID(mod_node),
+                                                    MOD_NODE_COMM(mod_node),
+                                                    MOD_NODE_RANK(mod_node)));
     }
     return;
 }
@@ -2604,7 +2898,10 @@ MOD_NODE * mod_mgr_ldb_que_get(MOD_MGR *mod_mgr)
     }
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), 0);
-    load_min     = task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_que(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = 1; pos < num; pos ++)
     {
@@ -2617,7 +2914,10 @@ MOD_NODE * mod_mgr_ldb_que_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_que(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_que(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;
@@ -2659,7 +2959,10 @@ MOD_NODE * mod_mgr_ldb_obj_get(MOD_MGR *mod_mgr)
     remote_mod_pos = (MOD_MGR_REMOTE_POS(mod_mgr) % num);
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), remote_mod_pos);
-    load_min     = task_brd_rank_load_tbl_get_obj(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_obj(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = ((remote_mod_pos + 1) % num); pos != remote_mod_pos; pos = ((pos + 1) % num))
     {
@@ -2672,7 +2975,10 @@ MOD_NODE * mod_mgr_ldb_obj_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_obj(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_obj(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;
@@ -2712,7 +3018,10 @@ MOD_NODE * mod_mgr_ldb_cpu_get(MOD_MGR *mod_mgr)
     }
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), 0);
-    load_min     = task_brd_rank_load_tbl_get_cpu(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_cpu(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = 1; pos < num; pos ++)
     {
@@ -2725,7 +3034,10 @@ MOD_NODE * mod_mgr_ldb_cpu_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_cpu(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_cpu(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;
@@ -2764,7 +3076,10 @@ MOD_NODE * mod_mgr_ldb_mem_get(MOD_MGR *mod_mgr)
     }
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), 0);
-    load_min     = task_brd_rank_load_tbl_get_mem(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_mem(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = 1; pos < num; pos ++)
     {
@@ -2777,7 +3092,10 @@ MOD_NODE * mod_mgr_ldb_mem_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_mem(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_mem(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;
@@ -2816,7 +3134,10 @@ MOD_NODE * mod_mgr_ldb_dsk_get(MOD_MGR *mod_mgr)
     }
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), 0);
-    load_min     = task_brd_rank_load_tbl_get_dsk(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_dsk(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = 1; pos < num; pos ++)
     {
@@ -2829,7 +3150,10 @@ MOD_NODE * mod_mgr_ldb_dsk_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_dsk(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_dsk(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;
@@ -2868,7 +3192,10 @@ MOD_NODE * mod_mgr_ldb_net_get(MOD_MGR *mod_mgr)
     }
 
     mod_node_min = (MOD_NODE *)cvector_get_no_lock(MOD_MGR_REMOTE_LIST(mod_mgr), 0);
-    load_min     = task_brd_rank_load_tbl_get_net(task_brd, MOD_NODE_TCID(mod_node_min), MOD_NODE_RANK(mod_node_min));
+    load_min     = task_brd_rank_load_tbl_get_net(task_brd,
+                                                    MOD_NODE_TCID(mod_node_min),
+                                                    MOD_NODE_COMM(mod_node_min),
+                                                    MOD_NODE_RANK(mod_node_min));
 
     for(pos = 1; pos < num; pos ++)
     {
@@ -2881,7 +3208,10 @@ MOD_NODE * mod_mgr_ldb_net_get(MOD_MGR *mod_mgr)
             continue;
         }
 
-        load_cur = task_brd_rank_load_tbl_get_net(task_brd, MOD_NODE_TCID(mod_node_cur), MOD_NODE_RANK(mod_node_cur));
+        load_cur = task_brd_rank_load_tbl_get_net(task_brd,
+                                                    MOD_NODE_TCID(mod_node_cur),
+                                                    MOD_NODE_COMM(mod_node_cur),
+                                                    MOD_NODE_RANK(mod_node_cur));
         if(CLOAD_ERR_LOAD != load_cur && load_min > load_cur)
         {
             mod_node_min = mod_node_cur;

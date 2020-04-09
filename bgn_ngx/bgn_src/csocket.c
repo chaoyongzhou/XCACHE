@@ -335,11 +335,12 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
 {
     if(NULL_PTR != csocket_cnode)
     {
-        ASSERT(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode));
+        if(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode))
+        {
+            csocket_cnode_clean(csocket_cnode);
 
-        csocket_cnode_clean(csocket_cnode);
-
-        free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0001);
+            free_static_mem(MM_CSOCKET_CNODE, csocket_cnode, LOC_CSOCKET_0001);
+        }
     }
     return (EC_TRUE);
 }
@@ -1130,6 +1131,115 @@ EC_BOOL csocket_disable_keepalive(int sockfd)
     return (ret);
 }
 
+EC_BOOL csocket_bind_nic(int sockfd, const char *eth_name, const uint32_t eth_name_len)
+{
+    struct ifreq ifr;
+
+    strncpy(ifr.ifr_ifrn.ifrn_name, eth_name, eth_name_len);
+    if(0 > setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_BINDTODEVICE, (char *)&ifr, sizeof(ifr)))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_bind_nic: "
+                                                "sockfd %d bind nic '%.*s' failed, "
+                                                "errno = %d, errstr = %s\n",
+                                                sockfd, eth_name_len, eth_name,
+                                                errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_enable_reuse_addr(int sockfd)
+{
+    int flag;
+
+    flag = 1;
+    if(0 > setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_REUSEADDR, (char *)&flag, sizeof(flag)))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_enable_reuse_addr: "
+                                                "sockfd %d enable reuse addr failed\n",
+                                                sockfd);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_disable_reuse_addr(int sockfd)
+{
+    int flag;
+
+    flag = 0;
+    if(0 > setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_REUSEADDR, (char *)&flag, sizeof(flag)))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_disable_reuse_addr: "
+                                                "sockfd %d disable reuse addr failed\n",
+                                                sockfd);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_enable_mcast_loop(int sockfd)
+{
+    int flag;
+
+    flag = 1; /*0:disable mcast loop, 1: enable mcast loop*/
+    if(0 > setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, &flag, sizeof(flag)))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_enable_mcast_loop: "
+                                                "sockfd %d enable mcast loop failed\n",
+                                                sockfd);
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_disable_mcast_loop(int sockfd)
+{
+    int flag;
+
+    flag = 0; /*0:disable mcast loop, 1: enable mcast loop*/
+    if(0 > setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, &flag, sizeof(flag)))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_disable_mcast_loop: "
+                                                "sockfd %d disable mcast loop failed\n",
+                                                sockfd);
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_bind_mcast(int sockfd, const UINT32 ipaddr, const UINT32 port)
+{
+    struct sockaddr_in mcast_addr;
+    socklen_t          mcast_addr_len;
+    char              *mcast_ipaddr_str;
+    char              *mcast_port_str;
+
+    mcast_ipaddr_str = c_word_to_ipv4(ipaddr);
+    mcast_port_str   = c_word_to_port(port);
+
+    memset(&mcast_addr, 0, sizeof(mcast_addr));
+    mcast_addr.sin_family      = AF_INET;
+    mcast_addr.sin_addr.s_addr = inet_addr(mcast_ipaddr_str);
+    /*mcast_addr.sin_addr.s_addr = INADDR_ANY;*/
+    mcast_addr.sin_port        = htons(atoi(mcast_port_str) );
+
+    mcast_addr_len = sizeof(mcast_addr);
+
+    if(0 != bind(sockfd, (struct sockaddr *)&mcast_addr, mcast_addr_len))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_bind_mcast: "
+                                                "sockfd %d bind mcast '%s:%s' failed\n",
+                                                sockfd, mcast_ipaddr_str, mcast_port_str);
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
 {
     EC_BOOL ret;
@@ -1290,7 +1400,7 @@ EC_BOOL csocket_optimize(int sockfd, const UINT32 csocket_block_mode)
     if(1)
     {
         struct linger linger_disable;
-        linger_disable.l_onoff  = 0; /*disable*/
+        linger_disable.l_onoff  = 0; /*enable FIN*/
         linger_disable.l_linger = 0; /*stop after 0 second, i.e., stop at once*/
 
         if( 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_LINGER, (const char*)&linger_disable, sizeof(struct linger)))
@@ -2336,6 +2446,86 @@ EC_BOOL csocket_drop_mcast(const int sockfd, const UINT32 mcast_ipaddr)
     return (EC_TRUE);
 }
 
+EC_BOOL csocket_sendto(const int sockfd, struct sockaddr_in *addr, socklen_t addr_len,
+                            const uint8_t *data, const uint32_t len, uint32_t *complete_len)
+{
+    ssize_t o_len;
+
+    o_len = sendto(sockfd, data, len, 0, (struct sockaddr*)addr, addr_len);
+    if(0 > o_len)
+    {
+        if(EAGAIN != errno)
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_sendto: "
+                                                    "udp sockfd %u send data %p, len %u failed, "
+                                                    "errno = %d, errstr = %s\n",
+                                                    sockfd, data, len,
+                                                    errno, strerror(errno));
+        }
+
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != complete_len)
+    {
+        (*complete_len) = o_len;
+    }
+
+    dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_sendto: "
+                                            "udp sockfd %u send data %p, len %u done\n",
+                                            sockfd, data, len);
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_recvfrom(const int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *data_len)
+{
+    struct sockaddr_in peer_addr;
+    socklen_t          peer_addr_len;
+    ssize_t o_len;
+
+    o_len = recvfrom(sockfd, data, data_max_len, 0,
+                (struct sockaddr *)&peer_addr, &peer_addr_len);
+    if(0 > o_len)
+    {
+        if(EAGAIN != errno)
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_recvfrom: "
+                                                    "udp sockfd %u recv failed, "
+                                                    "errno = %d, errstr = %s\n",
+                                                    sockfd,
+                                                    errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        /*else*/
+        if(NULL_PTR != data_len)
+        {
+            (*data_len) = 0; /*set zero*/
+        }
+
+        return (EC_TRUE);
+    }
+
+    if(NULL_PTR != data_len)
+    {
+        (*data_len) = o_len;
+    }
+
+    if (0 == o_len)
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "[DEBUG] csocket_recvfrom: "
+                                                "udp sockfd %u recv nothing\n");
+    }
+    else
+    {
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_recvfrom: "
+                                                "udp sockfd %u recv len %u done\n",
+                                                sockfd, o_len);
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL csocket_udp_sendto(const int sockfd, const UINT32 mcast_ipaddr, const UINT32 mcast_port, const UINT8 *data, const UINT32 dlen)
 {
     struct sockaddr_in mcast_addr;
@@ -2343,7 +2533,7 @@ EC_BOOL csocket_udp_sendto(const int sockfd, const UINT32 mcast_ipaddr, const UI
 
     BSET(&mcast_addr, 0, sizeof(mcast_addr));
     mcast_addr.sin_family = AF_INET;
-    mcast_addr.sin_addr.s_addr = htonl(UINT32_TO_INT32(mcast_ipaddr));
+    mcast_addr.sin_addr.s_addr = inet_addr(c_word_to_ipv4(mcast_ipaddr));
     mcast_addr.sin_port = htons( atoi(c_word_to_port(mcast_port)) );
 
     if(0 > (o_len = sendto(sockfd, data, dlen, 0, (struct sockaddr*)&mcast_addr,sizeof(mcast_addr))))

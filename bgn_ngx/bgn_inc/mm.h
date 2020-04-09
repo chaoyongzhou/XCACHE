@@ -154,9 +154,9 @@ extern "C"{
 #define                      MM_CCONHASH    ((UINT32) 86)
 #define                MM_CCONHASH_RNODE    ((UINT32) 87)
 #define                MM_CCONHASH_VNODE    ((UINT32) 88)
-#define                        MM_000090    ((UINT32) 90) /*-- obsolete --*/
-#define                        MM_000091    ((UINT32) 91) /*-- obsolete --*/
-#define                        MM_000092    ((UINT32) 92) /*-- obsolete --*/
+#define                   MM_CSDISC_NODE    ((UINT32) 90)
+#define                 MM_CSDISC_SENDER    ((UINT32) 91)
+#define                 MM_CSDISC_RECVER    ((UINT32) 92)
 #define                        MM_000093    ((UINT32) 93) /*-- obsolete --*/
 #define                    MM_CLOAD_STAT    ((UINT32) 94)
 #define                    MM_CLOAD_NODE    ((UINT32) 95)
@@ -182,7 +182,7 @@ extern "C"{
 #define                 MM_CSESSION_NODE    ((UINT32)115)
 #define                 MM_CSESSION_ITEM    ((UINT32)116)
 #define                        MM_CTIMET    ((UINT32)117)
-#define                        MM_000118    ((UINT32)118) /*-- obsolete --*/
+#define                     MM_SDISC_CFG    ((UINT32)118)
 #define                        MM_000119    ((UINT32)119) /*-- obsolete --*/
 #define                        MM_000120    ((UINT32)120) /*-- obsolete --*/
 #define                        MM_000121    ((UINT32)121) /*-- obsolete --*/

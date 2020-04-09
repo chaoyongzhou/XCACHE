@@ -4750,7 +4750,8 @@ EC_BOOL api_cmd_ui_add_conn(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        task_pos_inc(task_mgr, remote_mod_node_idx, NULL, FI_super_add_connection, CMPI_ERROR_MODI, des_tcid, des_srv_ipaddr, des_srv_port, conn_num);
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL, FI_super_add_connection,
+                     CMPI_ERROR_MODI, des_tcid, CMPI_ANY_COMM, des_srv_ipaddr, des_srv_port, conn_num);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
@@ -4797,7 +4798,8 @@ EC_BOOL api_cmd_ui_add_conn_all(CMD_PARA_VEC * param)
     remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
     {
-        task_pos_inc(task_mgr, remote_mod_node_idx, NULL, FI_super_add_connection, CMPI_ERROR_MODI, des_tcid, des_srv_ipaddr, des_srv_port, conn_num);
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL, FI_super_add_connection,
+                     CMPI_ERROR_MODI, des_tcid, CMPI_ANY_COMM, des_srv_ipaddr, des_srv_port, conn_num);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 

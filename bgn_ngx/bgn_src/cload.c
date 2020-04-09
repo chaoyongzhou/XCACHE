@@ -448,9 +448,13 @@ EC_BOOL cload_node_fast_dec_que(CLOAD_NODE *cload_node, const UINT32 interval_ns
     return (EC_TRUE);
 }
 
-EC_BOOL cload_node_cmp_tcid(const CLOAD_NODE *cload_node_1st, const CLOAD_NODE *cload_node_2nd)
+EC_BOOL cload_node_cmp_tcid_comm(const CLOAD_NODE *cload_node_1st, const CLOAD_NODE *cload_node_2nd)
 {
-    if(CLOAD_NODE_TCID(cload_node_1st) == CLOAD_NODE_TCID(cload_node_2nd))
+    if(CLOAD_NODE_TCID(cload_node_1st) == CLOAD_NODE_TCID(cload_node_2nd)
+    &&(CMPI_ANY_COMM == CLOAD_NODE_COMM(cload_node_1st)
+        || CMPI_ANY_COMM == CLOAD_NODE_COMM(cload_node_2nd)
+        || CLOAD_NODE_COMM(cload_node_1st) == CLOAD_NODE_COMM(cload_node_2nd))
+    )
     {
         return (EC_TRUE);
     }
@@ -565,7 +569,7 @@ EC_BOOL cload_mgr_free(CLIST *cload_mgr)
 
 EC_BOOL cload_mgr_add(CLIST *cload_mgr, const CLOAD_NODE *cload_node)
 {
-    if(NULL_PTR != clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid))
+    if(NULL_PTR != clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm))
     {
         dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_add: cload node of tcid %s already exist\n", CLOAD_NODE_TCID_STR(cload_node));
         return (EC_FALSE);
@@ -578,7 +582,7 @@ EC_BOOL cload_mgr_rmv(CLIST *cload_mgr, const CLOAD_NODE *cload_node)
 {
     CLIST_DATA *clist_data;
 
-    clist_data = clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid);
+    clist_data = clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm);
     if(NULL_PTR == clist_data)
     {
         dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_rmv: cload node of tcid %s not exist\n", CLOAD_NODE_TCID_STR(cload_node));
@@ -594,7 +598,7 @@ EC_BOOL cload_mgr_update(CLIST *cload_mgr, const CLOAD_NODE *cload_node)
     CLIST_DATA *clist_data;
     CLOAD_NODE *cload_node_des;
 
-    clist_data = clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid);
+    clist_data = clist_search_front(cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm);
     if(NULL_PTR == clist_data)
     {
         cload_node_des = cload_node_new(CLOAD_NODE_TCID(cload_node), CLOAD_NODE_COMM(cload_node), cvector_size(CLOAD_NODE_RANK_LOAD_STAT_VEC(cload_node)));
@@ -607,13 +611,14 @@ EC_BOOL cload_mgr_update(CLIST *cload_mgr, const CLOAD_NODE *cload_node)
     return cload_node_update(cload_node, cload_node_des);
 }
 
-CLOAD_NODE * cload_mgr_search(const CLIST *cload_mgr, const UINT32 tcid)
+CLOAD_NODE * cload_mgr_search(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm)
 {
     CLOAD_NODE cload_node;
     CLIST_DATA *clist_data;
 
     CLOAD_NODE_TCID(&cload_node) = tcid;
-    clist_data = clist_search_front(cload_mgr, (void *)&cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid);
+    CLOAD_NODE_COMM(&cload_node) = comm;
+    clist_data = clist_search_front(cload_mgr, (void *)&cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm);
     if(NULL_PTR == clist_data)
     {
         //dbg_log(SEC_0086_CLOAD, 1)(LOGSTDOUT, "warn:cload_mgr_search: cload node of tcid %s not exist\n", c_word_to_ipv4(tcid));
@@ -623,11 +628,11 @@ CLOAD_NODE * cload_mgr_search(const CLIST *cload_mgr, const UINT32 tcid)
     return (CLOAD_NODE *)CLIST_DATA_DATA(clist_data);
 }
 
-CLOAD_STAT * cload_mgr_get(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+CLOAD_STAT * cload_mgr_get(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get(cload_node, rank);
@@ -637,23 +642,21 @@ CLOAD_STAT * cload_mgr_get(const CLIST *cload_mgr, const UINT32 tcid, const UINT
     return (NULL_PTR);
 }
 
-EC_BOOL cload_mgr_set(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat)
+EC_BOOL cload_mgr_set(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat)
 {
     CLOAD_NODE *cload_node;
 
-    //dbg_log(SEC_0086_CLOAD, 9)(LOGSTDOUT, "[DEBUG] cload_mgr_set: try to set tcid %s rank %ld load %ld\n", c_word_to_ipv4(tcid), rank, load);
-
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_set(cload_node, rank, cload_stat);
     }
 
-    cload_node = cload_node_new(tcid, CMPI_ANY_COMM, rank + 1);
+    cload_node = cload_node_new(tcid, comm, rank + 1);
     if(NULL_PTR == cload_node)
     {
-        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_set_que: new cload node for tcid %s, size %ld failed\n",
-                            c_word_to_ipv4(tcid), rank + 1);
+        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_set: new cload node for tcid %s, comm %ld, size %ld failed\n",
+                            c_word_to_ipv4(tcid), comm, rank + 1);
         return (EC_FALSE);
     }
     clist_push_back(cload_mgr, (void *)cload_node);
@@ -661,23 +664,21 @@ EC_BOOL cload_mgr_set(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank, co
     return cload_node_set(cload_node, rank, cload_stat);
 }
 
-EC_BOOL cload_mgr_set_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank, const UINT32 que_load)
+EC_BOOL cload_mgr_set_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 que_load)
 {
     CLOAD_NODE *cload_node;
 
-    //dbg_log(SEC_0086_CLOAD, 9)(LOGSTDOUT, "[DEBUG] cload_mgr_set: try to set tcid %s rank %ld load %ld\n", c_word_to_ipv4(tcid), rank, que_load);
-
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_set_que(cload_node, rank, que_load);
     }
 
-    cload_node = cload_node_new(tcid, CMPI_ANY_COMM, rank + 1);
+    cload_node = cload_node_new(tcid, comm, rank + 1);
     if(NULL_PTR == cload_node)
     {
-        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_set_que: new cload node for tcid %s, size %ld failed\n",
-                            c_word_to_ipv4(tcid), rank + 1);
+        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_set_que: new cload node for tcid %s, comm %ld, size %ld failed\n",
+                            c_word_to_ipv4(tcid), comm, rank + 1);
         return (EC_FALSE);
     }
     clist_push_back(cload_mgr, (void *)cload_node);
@@ -685,11 +686,11 @@ EC_BOOL cload_mgr_set_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank
     return cload_node_set_que(cload_node, rank, que_load);
 }
 
-UINT32 cload_mgr_get_que(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_que(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_que(cload_node, rank);
@@ -698,11 +699,11 @@ UINT32 cload_mgr_get_que(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-UINT32 cload_mgr_get_obj(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_obj(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_obj(cload_node, rank);
@@ -711,11 +712,11 @@ UINT32 cload_mgr_get_obj(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-UINT32 cload_mgr_get_cpu(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_cpu(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_cpu(cload_node, rank);
@@ -724,11 +725,11 @@ UINT32 cload_mgr_get_cpu(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-UINT32 cload_mgr_get_mem(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_mem(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_mem(cload_node, rank);
@@ -737,11 +738,11 @@ UINT32 cload_mgr_get_mem(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-UINT32 cload_mgr_get_dsk(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_dsk(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_dsk(cload_node, rank);
@@ -750,11 +751,11 @@ UINT32 cload_mgr_get_dsk(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-UINT32 cload_mgr_get_net(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+UINT32 cload_mgr_get_net(const CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_get_net(cload_node, rank);
@@ -763,14 +764,15 @@ UINT32 cload_mgr_get_net(const CLIST *cload_mgr, const UINT32 tcid, const UINT32
     //return ((UINT32)0);
 }
 
-EC_BOOL cload_mgr_del(CLIST *cload_mgr, const UINT32 tcid)
+EC_BOOL cload_mgr_del(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm)
 {
     CLOAD_NODE  cload_node_t;
     CLOAD_NODE *cload_node;
     CLIST_DATA *clist_data;
 
     CLOAD_NODE_TCID(&cload_node_t) = tcid;
-    clist_data = clist_search_front(cload_mgr, (void *)&cload_node_t, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid);
+    CLOAD_NODE_COMM(&cload_node_t) = comm;
+    clist_data = clist_search_front(cload_mgr, (void *)&cload_node_t, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm);
     if(NULL_PTR == clist_data)
     {
         //dbg_log(SEC_0086_CLOAD, 7)(LOGSTDOUT, "error:cload_mgr_del: cload node of tcid %s not exist\n", c_word_to_ipv4(tcid));
@@ -782,21 +784,21 @@ EC_BOOL cload_mgr_del(CLIST *cload_mgr, const UINT32 tcid)
     return (EC_TRUE);
 }
 
-EC_BOOL cload_mgr_inc_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+EC_BOOL cload_mgr_inc_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_inc_que(cload_node, rank);
     }
 
-    cload_node = cload_node_new(tcid, CMPI_ANY_COMM, rank + 1);
+    cload_node = cload_node_new(tcid, comm, rank + 1);
     if(NULL_PTR == cload_node)
     {
-        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_inc_que: new cload node for tcid %s, size %ld failed\n",
-                            c_word_to_ipv4(tcid), rank + 1);
+        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_inc_que: new cload node for tcid %s, comm %ld, size %ld failed\n",
+                            c_word_to_ipv4(tcid), comm, rank + 1);
         return (EC_FALSE);
     }
     clist_push_back(cload_mgr, (void *)cload_node);
@@ -804,21 +806,21 @@ EC_BOOL cload_mgr_inc_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank
     return cload_node_inc_que(cload_node, rank);
 }
 
-EC_BOOL cload_mgr_dec_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 rank)
+EC_BOOL cload_mgr_dec_que(CLIST *cload_mgr, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
     CLOAD_NODE *cload_node;
 
-    cload_node = cload_mgr_search(cload_mgr, tcid);
+    cload_node = cload_mgr_search(cload_mgr, tcid, comm);
     if(NULL_PTR != cload_node)
     {
         return cload_node_dec_que(cload_node, rank);
     }
 
-    cload_node = cload_node_new(tcid, CMPI_ANY_COMM, rank + 1);
+    cload_node = cload_node_new(tcid, comm, rank + 1);
     if(NULL_PTR == cload_node)
     {
-        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_dec_que: new cload node for tcid %s, size %ld failed\n",
-                            c_word_to_ipv4(tcid), rank + 1);
+        dbg_log(SEC_0086_CLOAD, 0)(LOGSTDOUT, "error:cload_mgr_dec_que: new cload node for tcid %s, comm %ld, size %ld failed\n",
+                            c_word_to_ipv4(tcid), comm, rank + 1);
         return (EC_FALSE);
     }
     clist_push_back(cload_mgr, (void *)cload_node);

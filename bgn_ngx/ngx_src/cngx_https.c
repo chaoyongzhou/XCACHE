@@ -1657,7 +1657,7 @@ EC_BOOL cngx_https_handle_xfs_add_get_request(CHTTPS_NODE *chttps_node)
         cmon_node_init(&cmon_node);
 
         CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
-        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;
 
         v = chttps_node_get_header(chttps_node, (const char *)"xfs-tcid");
         if(NULL_PTR != v)
@@ -2829,7 +2829,7 @@ EC_BOOL cngx_https_handle_rfs_add_get_request(CHTTPS_NODE *chttps_node)
         cmon_node_init(&cmon_node);
 
         CMON_NODE_MODI(&cmon_node)   = 0; /*default*/
-        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;/*useless*/
+        CMON_NODE_STATE(&cmon_node) = CMON_NODE_IS_UP;
 
         v = chttps_node_get_header(chttps_node, (const char *)"rfs-tcid");
         if(NULL_PTR != v)

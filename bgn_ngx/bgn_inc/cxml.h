@@ -52,6 +52,10 @@ EC_BOOL cxml_parse_mcast_cfg(xmlNodePtr node, MCAST_CFG *mcast_cfg);
 
 EC_BOOL cxml_parse_udp_mcast_cfg(xmlNodePtr node, MCAST_CFG *mcast_cfg);
 
+EC_BOOL cxml_parse_sdisc_cfg(xmlNodePtr node, SDISC_CFG *sdisc_cfg);
+
+EC_BOOL cxml_parse_udp_sdisc_cfg(xmlNodePtr node, SDISC_CFG *sdisc_cfg);
+
 EC_BOOL cxml_parse_bcast_dhcp_cfg(xmlNodePtr node, BCAST_DHCP_CFG *bcast_dhcp_cfg);
 
 EC_BOOL cxml_parse_udp_bcast_dhcp_cfg(xmlNodePtr node, BCAST_DHCP_CFG *bcast_dhcp_cfg);

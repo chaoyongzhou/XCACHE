@@ -1452,6 +1452,45 @@ EC_BOOL cxml_parse_udp_mcast_cfg(xmlNodePtr node, MCAST_CFG *mcast_cfg)
     return (EC_TRUE);
 }
 
+EC_BOOL cxml_parse_sdisc_cfg(xmlNodePtr node, SDISC_CFG *sdisc_cfg)
+{
+    sdisc_cfg_init(sdisc_cfg);
+
+    __cxml_parse_tag_cstr(node, (const char *)"eth", SDISC_CFG_NETCARD(sdisc_cfg));
+
+    __cxml_parse_any_of_tags(node, (const char *)"srvipaddr:ipaddr:ipv4:ip", &(SDISC_CFG_IPADDR(sdisc_cfg)), (CXML_PARSE_TAG)__cxml_parse_tag_ipv4_addr);
+    __cxml_parse_any_of_tags(node, (const char *)"srvport:port"            , &(SDISC_CFG_PORT(sdisc_cfg)  ), (CXML_PARSE_TAG)__cxml_parse_tag_srv_port);
+
+    __cxml_parse_tag_switch(node, (const char *)"switch", &(SDISC_CFG_SWITCH(sdisc_cfg)));
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxml_parse_udp_sdisc_cfg(xmlNodePtr node, SDISC_CFG *sdisc_cfg)
+{
+    xmlNodePtr cur;
+
+    dbg_log(SEC_0046_CXML, 5)(LOGSTDNULL,"cxml_parse_udp_sdisc_cfg: [%s]\n", node->name);
+    if(0 != xmlStrcmp(node->name, (const xmlChar*)"udpSelfDiscovery"))
+    {
+        dbg_log(SEC_0046_CXML, 9)(LOGSTDNULL, "error:cxml_parse_udp_sdisc_cfg: found no udpSelfDiscovery\n");
+        return (EC_FALSE);
+    }
+
+    for(cur = node->xmlChildrenNode; NULL_PTR != cur; cur = cur->next)
+    {
+        XML_SKIP_TEXT_NODE(cur);
+        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"udp"))
+        {
+            cxml_parse_sdisc_cfg(cur, sdisc_cfg);
+            continue;
+        }
+    }
+
+    return (EC_TRUE);
+}
+
+
 EC_BOOL cxml_parse_bcast_dhcp_cfg(xmlNodePtr node, BCAST_DHCP_CFG *bcast_dhcp_cfg)
 {
     bcast_dhcp_cfg_init(bcast_dhcp_cfg);
@@ -2047,6 +2086,12 @@ EC_BOOL cxml_parse_sys_cfg(xmlNodePtr node, SYS_CFG *sys_cfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"udpMulticastConfig"))
         {
             cxml_parse_udp_mcast_cfg(cur, SYS_CFG_MCAST_CFG(sys_cfg));
+            continue;
+        }
+
+        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"udpSelfDiscovery"))
+        {
+            cxml_parse_udp_sdisc_cfg(cur, SYS_CFG_SDISC_CFG(sys_cfg));
             continue;
         }
 

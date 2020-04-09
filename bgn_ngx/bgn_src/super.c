@@ -884,7 +884,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
         //cload_node_print(LOGSTDOUT, cload_node);
 
         /*if duplicate, give up pushing to list*/
-        if(NULL_PTR != clist_search_front(des_cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid))
+        if(NULL_PTR != clist_search_front(des_cload_mgr, (void *)cload_node, (CLIST_DATA_DATA_CMP)cload_node_cmp_tcid_comm))
         {
             cload_node_free(cload_node);
             continue;/*give up*/
@@ -2069,7 +2069,7 @@ void super_check_slowdown(const UINT32 super_md_id, LOG *log)
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_handle_broken_tcid: super module #0x%lx not started.\n",
+                "error:super_check_slowdown: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
@@ -2084,7 +2084,7 @@ void super_check_slowdown(const UINT32 super_md_id, LOG *log)
     return;
 }
 
-void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid)
+void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)
 {
     TASK_BRD *task_brd;
 
@@ -2092,14 +2092,14 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_handle_broken_tcid: super module #0x%lx not started.\n",
+                "error:super_handle_broken_tcid_comm: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_handle_broken_tcid beg: broken tcid %s ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
+    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_handle_broken_tcid_comm: beg: broken tcid %s comm %ld\n",
+                                          c_word_to_ipv4(broken_tcid), broken_comm);
     //super_show_queues(super_md_id);/*debug only!*/
 
     task_brd = task_brd_default_get();
@@ -2112,10 +2112,10 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
         //TASKS_CFG *tasks_cfg;
 
         /*clean TASKC_NODE list*/
-        super_excl_taskc_node(super_md_id, broken_tcid, CMPI_ANY_COMM);
+        super_excl_taskc_node(super_md_id, broken_tcid, broken_comm);
 
         /*clean up all mod_mgr in task_brd. if found tcid in mod_node of some mod_mgr, then delete the mod_node*/
-        task_brd_mod_mgr_list_excl(task_brd, broken_tcid);
+        task_brd_mod_mgr_list_excl(task_brd, broken_tcid, broken_comm);
 
         /*the socket to the broken taskComm would be closed automatically*/
         //tasks_cfg = taskc_get_local_tasks_cfg(TASK_BRD_TASKC_MD_ID(task_brd));
@@ -2138,12 +2138,12 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
         *
         **/
 
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_REQ, broken_tcid);
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_FWD, broken_tcid);
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_REQ, broken_tcid, broken_comm);
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_FWD, broken_tcid, broken_comm);
 
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid);/*new add*/
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid);/*new add*/
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_FWD, broken_tcid);/*new add*/
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid, broken_comm);/*new add*/
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid, broken_comm);/*new add*/
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_FWD, broken_tcid, broken_comm);/*new add*/
 
         /**
         *
@@ -2160,25 +2160,25 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
         * note: X means to discard, - means no such tag in the queue
         *
         **/
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_FWD, broken_tcid);
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_FWD, broken_tcid, broken_comm);
 
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid);/*new add*/
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid);/*new add*/
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_FWD, broken_tcid);/*new add*/
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid, broken_comm);/*new add*/
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid, broken_comm);/*new add*/
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_FWD, broken_tcid, broken_comm);/*new add*/
 
         /*reschedule all TASK_REQ to the borken taskComm*/
-        task_mgr_list_handle_broken_taskcomm(task_brd, broken_tcid);/*2014.09.14*/
+        task_mgr_list_handle_broken(task_brd, broken_tcid, broken_comm);/*2014.09.14*/
 
         /*discard all contexts (end module) from the broken taskComm*/
-        task_context_discard_from(task_brd, broken_tcid);
+        task_context_discard_from(task_brd, broken_tcid, broken_comm);
 
-        task_brd_rank_load_tbl_pop_all(task_brd, broken_tcid);
+        task_brd_rank_load_tbl_pop_all(task_brd, broken_tcid, broken_comm);
     }
 
     else
     {
         /*clean up all mod_mgr in task_brd. if found tcid in mod_node of some mod_mgr, then delete the mod_node*/
-        task_brd_mod_mgr_list_excl(task_brd, broken_tcid);
+        task_brd_mod_mgr_list_excl(task_brd, broken_tcid, broken_comm);
 
         /**
         *
@@ -2197,7 +2197,7 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
         * note: when TAG_TASK_REQ in TASK_RECVING_QUEUE, it must from the broken taskComm be to FWD rank of current taskComm
         *
         **/
-        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_REQ, broken_tcid);
+        task_queue_discard_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), TAG_TASK_REQ, broken_tcid, broken_comm);
 
         /**
         *
@@ -2216,35 +2216,27 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
         * note: when TAG_TASK_REQ in TASK_RECVING_QUEUE, it must from the broken taskComm be to FWD rank of current taskComm
         *
         **/
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid);/*new add*/
-        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid);/*new add*/
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_REQ, broken_tcid, broken_comm);/*new add*/
+        task_queue_discard_to(task_brd, TASK_BRD_QUEUE(task_brd, TASK_TO_SEND_QUEUE), TAG_TASK_RSP, broken_tcid, broken_comm);/*new add*/
 
         /*reschedule all TASK_REQ to the borken taskComm*/
-        task_mgr_list_handle_broken_taskcomm(task_brd, broken_tcid);
+        task_mgr_list_handle_broken(task_brd, broken_tcid, broken_comm);
 
         /*process all TASK_RSP from the broken taskComm*/
         /*task_queue_process_from(task_brd, TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE), TAG_TASK_RSP, broken_tcid);*/
 
         /*discard all contexts (end module) from the broken taskComm*/
-        task_context_discard_from(task_brd, broken_tcid);
+        task_context_discard_from(task_brd, broken_tcid, broken_comm);
 
-        task_brd_rank_load_tbl_pop_all(task_brd, broken_tcid);
+        task_brd_rank_load_tbl_pop_all(task_brd, broken_tcid, broken_comm);
     }
 
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_handle_broken_tcid end: broken tcid %s ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
+    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_handle_broken_tcid_comm: end: broken tcid %s comm %ld\n",
+                                          c_word_to_ipv4(broken_tcid), broken_comm);
     //super_show_queues(super_md_id);/*debug only!*/
-#if 0
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_handle_broken_tcid end: register tcid %s beg ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
-
-    task_brd_register_node(task_brd, broken_tcid);
-
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_handle_broken_tcid end: register tcid %s end ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
-#endif
     return;
 }
+
 /**
 *
 * when fwd rank found some broken taskcomm, then notify all ranks in current taskcomm
@@ -2252,7 +2244,7 @@ void super_handle_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
 * note: here does not notify other taskcomm(s)
 *
 **/
-void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid)
+void super_notify_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)
 {
     TASK_BRD  *task_brd;
 
@@ -2263,13 +2255,14 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
     UINT32 mod_node_num;
     UINT32 mod_node_idx;
 
+    MOD_NODE *mod_node;
     UINT32 broken_tcid_pos;
 
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_notify_broken_tcid: super module #0x%lx not started.\n",
+                "error:super_notify_broken_tcid_comm: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
@@ -2277,22 +2270,43 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
 
     task_brd = task_brd_default_get();
 
-    /*pre-checking*/
-    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0045);
-    broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid, NULL_PTR);
-    if(CVECTOR_ERR_POS != broken_tcid_pos)
+    mod_node = mod_node_new();
+    if(NULL_PTR == mod_node)
     {
-        /*okay, someone is working on this broken tcid, terminate on-going*/
-        CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0046);
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_notify_broken_tcid_comm: new mod_node for broken tcid %s failed\n",
+                            c_word_to_ipv4(broken_tcid));
         return;
     }
-    cvector_push_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid);
-    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0047);
 
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_notify_broken_tcid beg: broken tcid %s ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
+    MOD_NODE_TCID(mod_node) = broken_tcid;
+    MOD_NODE_COMM(mod_node) = broken_comm;
+    MOD_NODE_RANK(mod_node) = CMPI_ANY_RANK;
+    MOD_NODE_MODI(mod_node) = CMPI_ANY_MODI;
+
+    /*pre-checking*/
+    CVECTOR_LOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_SUPER_0045);
+    broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TBL(task_brd), (void *)mod_node, (CVECTOR_DATA_CMP)mod_node_cmp);
+    if(CVECTOR_ERR_POS != broken_tcid_pos)
+    {
+        mod_node_free(mod_node);
+        /*okay, someone is working on this broken tcid, terminate on-going*/
+        CVECTOR_UNLOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_SUPER_0046);
+        return;
+    }
+    cvector_push_no_lock(TASK_BRD_BROKEN_TBL(task_brd), (void *)mod_node);
+    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_SUPER_0047);
+
+    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_notify_broken_tcid_comm: beg: broken tcid %s comm %ld\n",
+                                          c_word_to_ipv4(broken_tcid), broken_comm);
 
     mod_mgr = mod_mgr_new(super_md_id, LOAD_BALANCING_LOOP);
+    if(NULL_PTR == mod_mgr)
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_notify_broken_tcid_comm: "
+                                              "new mod_mgr for broken tcid %s comm %ld failed\n",
+                                              c_word_to_ipv4(broken_tcid), broken_comm);
+        return;
+    }
 
     /*set mod_mgr*/
     rank_set_new(&rank_set);
@@ -2304,9 +2318,9 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
 #if 1
     if(do_log(SEC_0117_SUPER, 5))
     {
-        sys_log(LOGSTDOUT, "------------------------------------ super_notify_broken_tcid beg ----------------------------------\n");
+        sys_log(LOGSTDOUT, "[DEBUG] super_notify_broken_tcid_comm: beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ super_notify_broken_tcid end ----------------------------------\n");
+        sys_log(LOGSTDOUT, "DEBUG] super_notify_broken_tcid_comm: end ----------------------------------\n");
     }
 #endif
 
@@ -2316,20 +2330,24 @@ void super_notify_broken_tcid(const UINT32 super_md_id, const UINT32 broken_tcid
     mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
     for(mod_node_idx = 0; mod_node_idx < mod_node_num; mod_node_idx ++)
     {
-        task_pos_inc(task_mgr, mod_node_idx, NULL_PTR, FI_super_handle_broken_tcid, CMPI_ERROR_MODI, broken_tcid);
+        task_pos_inc(task_mgr, mod_node_idx, NULL_PTR, FI_super_handle_broken_tcid_comm, CMPI_ERROR_MODI, broken_tcid, broken_comm);
     }
 
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     /*ok, complete the broken tcid handling, remove it from table*/
-    CVECTOR_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0048);
+    CVECTOR_LOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_SUPER_0048);
     /*we have to search it again because the broken tcid position maybe changed under multiple thread environment*/
-    broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), (void *)broken_tcid, NULL_PTR);
-    cvector_erase_no_lock(TASK_BRD_BROKEN_TCID_TBL(task_brd), broken_tcid_pos);
-    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_SUPER_0049);
+    broken_tcid_pos = cvector_search_front_no_lock(TASK_BRD_BROKEN_TBL(task_brd), (void *)mod_node, (CVECTOR_DATA_CMP)mod_node_cmp);
+    mod_node = cvector_erase_no_lock(TASK_BRD_BROKEN_TBL(task_brd), broken_tcid_pos);
+    if(NULL_PTR != mod_node)
+    {
+        mod_node_free(mod_node);
+    }
+    CVECTOR_UNLOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_SUPER_0049);
 
-    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "============================== super_notify_broken_tcid end: broken tcid %s ==============================\n",
-                        c_word_to_ipv4(broken_tcid));
+    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_notify_broken_tcid_comm: end: broken tcid %s comm %ld\n",
+                        c_word_to_ipv4(broken_tcid), broken_comm);
 
     return;
 }
@@ -2381,8 +2399,8 @@ void super_notify_broken_route(const UINT32 super_md_id, const UINT32 src_tcid, 
 
     /*set task_mgr*/
     task_mgr = task_new(mod_mgr, TASK_PRIO_PREEMPT, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
-    task_pos_inc(task_mgr, local_mod_node_pos , NULL_PTR, FI_super_handle_broken_tcid, CMPI_ERROR_MODI, broken_tcid);
-    task_pos_inc(task_mgr, remote_mod_node_pos, NULL_PTR, FI_super_notify_broken_tcid, CMPI_ERROR_MODI, broken_tcid);
+    task_pos_inc(task_mgr, local_mod_node_pos , NULL_PTR, FI_super_handle_broken_tcid_comm, CMPI_ERROR_MODI, broken_tcid, CMPI_ANY_COMM);
+    task_pos_inc(task_mgr, remote_mod_node_pos, NULL_PTR, FI_super_handle_broken_tcid_comm, CMPI_ERROR_MODI, broken_tcid, CMPI_ANY_COMM);
     task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "============================== super_notify_broken_route end: src tcid %s, broken tcid %s ==============================\n",
@@ -3249,7 +3267,7 @@ void super_del_route(const UINT32 super_md_id, const UINT32 des_tcid, const UINT
 * try to connect
 *
 **/
-EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 conn_num)
+EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 conn_num)
 {
     TASK_BRD  *task_brd;
 
@@ -3274,22 +3292,45 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UIN
         return (EC_FALSE);
     }
 
-    if(des_tcid == TASK_BRD_TCID(task_brd))
+    if(des_tcid == TASK_BRD_TCID(task_brd)
+    && (CMPI_ANY_COMM == des_comm || des_comm == TASK_BRD_COMM(task_brd)))
     {
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == c_tdns_resolve(des_tcid, &des_ipv4, &des_port))
+    if(TDNS_RESOLVE_SWITCH == SWITCH_ON)
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n",
-                            c_word_to_ipv4(des_tcid));
+        if(EC_FALSE == c_tdns_resolve(des_tcid, &des_ipv4, &des_port))
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_connect: tdns resolve tcid '%s' failed\n",
+                                c_word_to_ipv4(des_tcid));
 
-        super_handle_broken_tcid(super_md_id, des_tcid);
-        return (EC_FALSE);
+            /*DANGEROUS! if des_comm is any comm, all connections of tcid would be lost ...*/
+            super_handle_broken_tcid_comm(super_md_id, des_tcid, des_comm);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n",
+                            c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
     }
+    else
+    {
+        TASKS_CFG               *tasks_cfg;
 
-    dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: tdns resolve tcid '%s' => ip '%s', port %ld\n",
-                        c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
+        tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), des_tcid, CMPI_ANY_MASK, CMPI_ANY_MASK);
+        if(NULL_PTR == tasks_cfg)
+        {
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "warn:super_connect: tcid '%s' not configured\n",
+                                                 c_word_to_ipv4(des_tcid));
+            return (EC_FALSE);
+        }
+
+        des_ipv4 = TASKS_CFG_SRVIPADDR(tasks_cfg);
+        des_port = TASKS_CFG_SRVPORT(tasks_cfg);
+
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_connect: configured tcid '%s' => ip '%s', port %ld\n",
+                            c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_ipv4), des_port);
+    }
 
     if(EC_FALSE == task_brd_register_one(task_brd, des_tcid, des_ipv4, des_port, conn_num))
     {
@@ -3306,7 +3347,7 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UIN
 * add socket connection
 *
 **/
-void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_srv_ipaddr, const UINT32 des_srv_port, const UINT32 conn_num)
+void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 des_srv_ipaddr, const UINT32 des_srv_port, const UINT32 conn_num)
 {
     //UINT32     csocket_cnode_idx;
     TASK_BRD  *task_brd;
@@ -3330,32 +3371,15 @@ void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const
         return;
     }
 
-    if(des_tcid == TASK_BRD_TCID(task_brd))
+    if(des_tcid == TASK_BRD_TCID(task_brd)
+    && (CMPI_ANY_COMM == des_comm || des_comm == TASK_BRD_COMM(task_brd)))
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "warn:super_add_connection: giveup connect to itself\n");
         return;
     }
 
     task_brd_register_one(task_brd, des_tcid, des_srv_ipaddr, des_srv_port, conn_num);
-#if 0
-    local_tasks_cfg = taskc_get_local_tasks_cfg(TASK_BRD_TASKC_MD_ID(task_brd));
-    if(NULL_PTR == local_tasks_cfg)
-    {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_add_connection: local tasks cfg is null\n");
-        return;
-    }
 
-    /*setup multi sockets to remote taskcomm*/
-    for(csocket_cnode_idx = 0; csocket_cnode_idx < conn_num; csocket_cnode_idx ++)
-    {
-        if(EC_FALSE == tasks_monitor_open(TASKS_CFG_MONITOR(local_tasks_cfg), des_tcid, des_srv_ipaddr, des_srv_port))
-        {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_add_connection: failed connect to des tcid %s, srvipaddr %s, srvport %ld\n",
-                                c_word_to_ipv4(des_tcid), c_word_to_ipv4(des_srv_ipaddr), des_srv_port);
-            break;
-        }
-    }
-#endif
     return;
 }
 
@@ -4188,7 +4212,7 @@ void super_sync_rank_load(const UINT32 super_md_id, const UINT32 tcid, const UIN
                     &recv_mod_node,
                     NULL_PTR, FI_super_sync_cload_stat, CMPI_ERROR_MODI, &cload_stat);
 
-    task_brd_rank_load_set(task_brd_default_get(), tcid, rank, &cload_stat);
+    task_brd_rank_load_set(task_brd_default_get(), tcid, CMPI_ANY_COMM, rank, &cload_stat);
 
     return;
 }
@@ -4210,7 +4234,7 @@ void super_set_rank_load(const UINT32 super_md_id, const UINT32 tcid, const UINT
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    task_brd_rank_load_set(task_brd_default_get(), tcid, rank, cload_stat);
+    task_brd_rank_load_set(task_brd_default_get(), tcid, CMPI_ANY_COMM, rank, cload_stat);
 
     return;
 }
@@ -4290,7 +4314,7 @@ void super_heartbeat_on_node(const UINT32 super_md_id, const CLOAD_NODE *cload_n
     return;
 }
 
-void super_heartbeat_on_rank(const UINT32 super_md_id, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat)
+void super_heartbeat_on_rank(const UINT32 super_md_id, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat)
 {
     TASK_BRD  *task_brd;
 
@@ -4306,7 +4330,7 @@ void super_heartbeat_on_rank(const UINT32 super_md_id, const UINT32 tcid, const 
 
     task_brd = task_brd_default_get();
 
-    cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank, cload_stat);
+    cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank, cload_stat);
     return;
 }
 

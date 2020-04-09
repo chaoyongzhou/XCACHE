@@ -86,6 +86,8 @@ extern "C"{
 #include "cagent.h"
 #include "ctdns.h"
 
+#include "csdisc.h"
+
 #include "findex.inc"
 
 extern char** environ;
@@ -1280,7 +1282,7 @@ EC_BOOL task_req_ldb(TASK_REQ *task_req)
 
         mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
         /*TASK_REQ_RECV_MOD_FLAG(task_req) = EC_FALSE;*//*due to possible re-schedule, here does not change flag*/
-        task_brd_rank_load_inc_que(task_brd_default_get(), MOD_NODE_TCID(recv_mod_node), MOD_NODE_RANK(recv_mod_node));
+        task_brd_rank_load_inc_que(task_brd_default_get(), MOD_NODE_TCID(recv_mod_node), MOD_NODE_COMM(recv_mod_node), MOD_NODE_RANK(recv_mod_node));
 
         if(NULL_PTR != TASK_REQ_RECV_MOD_NEW(task_req))
         {
@@ -4337,7 +4339,7 @@ EC_BOOL task_context_handle(TASK_BRD *task_brd, const TASK_RSP *task_rsp_ret)
     return (EC_TRUE);
 }
 
-EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid)
+EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid, const UINT32 broken_comm)
 {
     CLIST_DATA *clist_data;
 
@@ -4351,7 +4353,8 @@ EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid)
         task_rsp     = TASK_CONTEXT_TASK_RSP(task_context);
 
         /*TASK_RSP RECV_TCID is same as  TASK_REQ SEND_TCID, hence here TASK_RSP_RECV_TCID mark the ACT task req from where*/
-        if( TASK_RSP_RECV_TCID(task_rsp) == broken_tcid )
+        if( TASK_RSP_RECV_TCID(task_rsp) == broken_tcid
+        && (CMPI_ANY_COMM == broken_comm || TASK_RSP_RECV_COMM(task_rsp) == broken_comm))
         {
             TASK_FUNC *task_func;
             FUNC_ADDR_NODE *func_addr_node;
@@ -4359,14 +4362,14 @@ EC_BOOL task_context_discard_from(TASK_BRD *task_brd, const UINT32 broken_tcid)
             CLIST_DATA *clist_data_rmv;
 
             dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "lost contx: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) "
-                               "with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx from broken tcid %s\n",
+                               "with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx from broken tcid %s, comm %ld\n",
                             TASK_RSP_SEND_TCID_STR(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_SEND_MODI(task_rsp),
                             TASK_RSP_RECV_TCID_STR(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp), TASK_RSP_RECV_MODI(task_rsp),
                             TASK_RSP_PRIO(task_rsp), TASK_RSP_TYPE(task_rsp),
                             TASK_RSP_TAG(task_rsp), TASK_RSP_LDB_CHOICE(task_rsp),
                             TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_SEQNO(task_rsp), TASK_RSP_SUB_SEQNO(task_rsp),
                             TASK_RSP_FUNC_ID(task_rsp),
-                            c_word_to_ipv4(broken_tcid)
+                            c_word_to_ipv4(broken_tcid), broken_comm
                             );
 
             task_func      = TASK_RSP_FUNC(task_rsp);
@@ -4689,7 +4692,7 @@ void task_queue_print(LOG *log, const CLIST *task_queue)
 }
 
 /*discard those being recved from the taskComm tcid*/
-EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid)
+EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid, const UINT32 comm)
 {
     CLIST_DATA *clist_data;
 
@@ -4707,7 +4710,8 @@ EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UIN
             continue;
         }
 #endif
-        if(tag == TASK_ANY_TAG(task_any) && tcid == TASK_ANY_SEND_TCID(task_any))
+        if(tag == TASK_ANY_TAG(task_any) && tcid == TASK_ANY_SEND_TCID(task_any)
+        &&(CMPI_ANY_COMM == TASK_ANY_SEND_COMM(task_any) || comm == TASK_ANY_SEND_COMM(task_any)))
         {
             CLIST_DATA *clist_data_rmv;
 
@@ -4754,7 +4758,7 @@ EC_BOOL task_queue_discard_from(TASK_BRD *task_brd, CLIST *task_queue, const UIN
 }
 
 /*discard those will send to the taskComm tcid*/
-EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid)
+EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid, const UINT32 comm)
 {
     CLIST_DATA *clist_data;
 
@@ -4772,7 +4776,8 @@ EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT3
             continue;
         }
 #endif
-        if(tag == TASK_ANY_TAG(task_any) && tcid == TASK_ANY_RECV_TCID(task_any))
+        if(tag == TASK_ANY_TAG(task_any) && tcid == TASK_ANY_RECV_TCID(task_any)
+        &&(CMPI_ANY_COMM == comm || comm == TASK_ANY_RECV_COMM(task_any)))
         {
             CLIST_DATA *clist_data_rmv;
 
@@ -4799,43 +4804,8 @@ EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT3
     return (EC_TRUE);
 }
 
-/*process those being recved from the taskComm tcid*/
-EC_BOOL task_queue_process_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid)
-{
-    if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
-    {
-        /*continue forwarding to target (taskComm, Rank)*/
-        /*okay, nothing to do, just keep the task node in queue*/
-        return (EC_TRUE);
-    }
-
-    if(TAG_TASK_RSP == tag)
-    {
-        /*continue decoding TASK_RSP to fetch response of the TASK_REQ*/
-        /*okay, nothing to do, just keep the task node in queue*/
-        return (EC_TRUE);
-    }
-
-    /*nothing to do*/
-    return (EC_TRUE);
-}
-
-/*process those being sending to the taskComm tcid*/
-EC_BOOL task_queue_process_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid)
-{
-    /*nothing to do*/
-    return (EC_TRUE);
-}
-
-/*reschedule those being recved from the taskComm tcid*/
-EC_BOOL task_queue_reschedule_from(TASK_BRD *task_brd, CLIST *task_queue, const UINT32 tag, const UINT32 tcid)
-{
-    /*TODO:*/
-    return (EC_TRUE);
-}
-
 /*reschedule or discard those task req sending to the taskComm tcid according to each task mgr setting*/
-EC_BOOL task_mgr_list_handle_broken_taskcomm(TASK_BRD *task_brd, const UINT32 tcid)
+EC_BOOL task_mgr_list_handle_broken(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm)
 {
     CLIST      *task_mgr_list;
     CLIST_DATA *clist_data;
@@ -4852,12 +4822,12 @@ EC_BOOL task_mgr_list_handle_broken_taskcomm(TASK_BRD *task_brd, const UINT32 tc
         if(TASK_NEED_RESCHEDULE_FLAG == TASK_MGR_NEED_RESCHEDULE_FLAG(task_mgr))
         {
             /*reschedule task req to broken taskComm: reset its status to TASK_REQ_TO_SEND and wait for re-sending by load balance strategy*/
-            task_mgr_reschedule_to(task_brd, task_mgr, tcid);
+            task_mgr_reschedule_to(task_brd, task_mgr, tcid, comm);
         }
         else
         {
             /*discard task req to broken taskComm: reset its status to TASK_REQ_DISCARD*/
-            task_mgr_discard_to(task_brd, task_mgr, tcid);
+            task_mgr_discard_to(task_brd, task_mgr, tcid, comm);
         }
     }
     CLIST_UNLOCK(task_mgr_list, LOC_TASK_0070);
@@ -4883,7 +4853,7 @@ void task_brd_task_mgr_list_print(LOG *log, const TASK_BRD *task_brd)
     return;
 }
 
-EC_BOOL task_brd_mod_mgr_list_excl(TASK_BRD *task_brd, const UINT32 tcid)
+EC_BOOL task_brd_mod_mgr_list_excl(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm)
 {
     CLIST *mod_mgr_list;
     CLIST_DATA *clist_data;
@@ -4897,7 +4867,7 @@ EC_BOOL task_brd_mod_mgr_list_excl(TASK_BRD *task_brd, const UINT32 tcid)
         MOD_MGR *mod_mgr;
 
         mod_mgr = (MOD_MGR *)CLIST_DATA_DATA(clist_data);
-        mod_mgr_excl(tcid, CMPI_ANY_COMM, CMPI_ANY_RANK, CMPI_ANY_MODI, mod_mgr);
+        mod_mgr_excl(tcid, comm, CMPI_ANY_RANK, CMPI_ANY_MODI, mod_mgr);
     }
     CLIST_UNLOCK(mod_mgr_list, LOC_TASK_0074);
     return (EC_TRUE);
@@ -5323,7 +5293,7 @@ EC_BOOL task_brd_md_node_tbl_init(TASK_BRD *task_brd)
 EC_BOOL task_brd_rank_load_tbl_init(TASK_BRD *task_brd)
 {
     cload_mgr_init(TASK_BRD_CLOAD_MGR(task_brd));
-    task_brd_rank_load_tbl_push_all(task_brd, TASK_BRD_TCID(task_brd), TASK_BRD_SIZE(task_brd));
+    task_brd_rank_load_tbl_push_all(task_brd, TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_SIZE(task_brd));
     return (EC_TRUE);
 }
 
@@ -5332,26 +5302,26 @@ EC_BOOL task_brd_rank_load_tbl_clean(TASK_BRD *task_brd)
     return cload_mgr_clean(TASK_BRD_CLOAD_MGR(task_brd));
 }
 
-EC_BOOL task_brd_rank_load_tbl_push(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 load)
+EC_BOOL task_brd_rank_load_tbl_push(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 load)
 {
-    return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank, load);
+    return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank, load);
 }
 
-EC_BOOL task_brd_rank_load_tbl_push_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 size)
+EC_BOOL task_brd_rank_load_tbl_push_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 size)
 {
     UINT32 rank;
 
     for(rank = 0; rank < size; rank ++)
     {
-        task_brd_rank_load_tbl_set_que(task_brd, tcid, rank, 0);
+        task_brd_rank_load_tbl_set_que(task_brd, tcid, comm, rank, 0);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL task_brd_rank_load_tbl_pop_all(TASK_BRD *task_brd, const UINT32 tcid)
+EC_BOOL task_brd_rank_load_tbl_pop_all(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm)
 {
-    return cload_mgr_del(TASK_BRD_CLOAD_MGR(task_brd), tcid);
+    return cload_mgr_del(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm);
 }
 
 EC_BOOL task_brd_rank_load_tbl_fast_decrease(TASK_BRD *task_brd, const UINT32 interval_nsec)
@@ -5359,44 +5329,44 @@ EC_BOOL task_brd_rank_load_tbl_fast_decrease(TASK_BRD *task_brd, const UINT32 in
     return cload_mgr_fast_decrease(TASK_BRD_CLOAD_MGR(task_brd), interval_nsec);
 }
 
-EC_BOOL task_brd_rank_load_tbl_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 que_load)
+EC_BOOL task_brd_rank_load_tbl_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 que_load)
 {
-    return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank, que_load);
+    return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank, que_load);
 }
 
-UINT32 task_brd_rank_load_tbl_get_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
-UINT32 task_brd_rank_load_tbl_get_obj(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_obj(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_obj(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_obj(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
-UINT32 task_brd_rank_load_tbl_get_cpu(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_cpu(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_cpu(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_cpu(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
-UINT32 task_brd_rank_load_tbl_get_mem(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_mem(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_mem(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_mem(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
-UINT32 task_brd_rank_load_tbl_get_dsk(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_dsk(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_dsk(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_dsk(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
-UINT32 task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+UINT32 task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    return cload_mgr_get_net(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+    return cload_mgr_get_net(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
 }
 
 EC_BOOL task_brd_broken_tcid_tbl_init(TASK_BRD *task_brd)
 {
-    cvector_init(TASK_BRD_BROKEN_TCID_TBL(task_brd), 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_TASK_0095);
+    cvector_init(TASK_BRD_BROKEN_TBL(task_brd), 0, MM_MOD_NODE, CVECTOR_LOCK_ENABLE, LOC_TASK_0095);
     return (EC_TRUE);
 }
 
@@ -5599,6 +5569,7 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
     TASK_BRD_LOCAL_TASKS_CFG(task_brd)      = NULL_PTR;
     TASK_BRD_DETECT_TASKS_CFG(task_brd)     = NULL_PTR;
     TASK_BRD_UDP_SRV_SOCKFD(task_brd)       = CMPI_ERROR_SOCKFD;
+    TASK_BRD_CSDISC_NODE(task_brd)          = NULL_PTR;
     TASK_BRD_REG_TYPE(task_brd)             = TASK_REGISTER_ALL_SERVER;
 
     TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, LOC_TASK_0104);
@@ -7014,9 +6985,6 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
         return (EC_TRUE);
     }
 
-    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: tasks_cfg %lx of task_brd\n", TASK_BRD_LOCAL_TASKS_CFG(task_brd));
-    //tasks_cfg_print(LOGSTDOUT, TASK_BRD_LOCAL_TASKS_CFG(task_brd));
-
     for(;;)
     {
         UINT32 conn_count;
@@ -8008,6 +7976,12 @@ LOG * task_brd_default_init(int argc, char **argv)
         }
         else
         {
+            if(EC_TRUE == cstring_is_empty(bcast_dhcp_netcard_cstr))
+            {
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: no config and dhcp disabled => quit\n");
+                task_brd_default_abort();
+            }
+
             if(EC_FALSE == task_brd_wait_config(task_brd, bcast_dhcp_netcard_cstr, &this_tcid))
             {
                 dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: wait config failed\n");
@@ -8297,7 +8271,7 @@ LOG * task_brd_default_init(int argc, char **argv)
             }
         }
 
-        TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
+        //TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: start server done\n");
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     }
@@ -8463,8 +8437,17 @@ LOG * task_brd_default_init(int argc, char **argv)
         {
             task_brd_start_http_srv(task_brd, task_brd_default_get_srv_ipaddr(), task_brd_default_get_csrv_port());
         }
-   }
+    }
 
+    /*self-discovery of service*/
+    if(EC_TRUE == task_brd_default_check_sdisc_enabled())
+    {
+        task_brd_start_sdisc(task_brd);
+    }
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+    TASK_BRD_TASKS_IS_RUNNING(task_brd) = BIT_TRUE;
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
     return (log);
 }
 
@@ -8615,6 +8598,38 @@ EC_BOOL task_brd_check_is_work_tcid(const UINT32 tcid)
     }
 
     return (EC_TRUE);
+}
+
+EC_BOOL task_brd_default_check_sdisc_running()
+{
+    TASK_BRD    *task_brd;
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR != TASK_BRD_CSDISC_NODE(task_brd))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+CSDISC_NODE *task_brd_default_get_sdisc_running()
+{
+    TASK_BRD    *task_brd;
+
+    task_brd = task_brd_default_get();
+    return TASK_BRD_CSDISC_NODE(task_brd);
+}
+
+EC_BOOL task_brd_default_check_sdisc_enabled()
+{
+    SYS_CFG         *sys_cfg;
+    SDISC_CFG       *sdisc_cfg;
+
+    sys_cfg   = TASK_BRD_SYS_CFG(task_brd_default_get());
+    sdisc_cfg = sys_cfg_get_sdisc_cfg(sys_cfg);
+
+    return sdisc_cfg_is_enabled(sdisc_cfg);
 }
 
 EC_BOOL task_brd_default_check_csrv_enabled()
@@ -8820,15 +8835,12 @@ EC_BOOL task_brd_sync_mod_nodes(const TASK_BRD *task_brd, const UINT32 max_hops,
 EC_BOOL task_brd_sync_cload_node(TASK_BRD *task_brd, CLOAD_NODE *cload_node)
 {
     UINT32 tcid;
+    UINT32 comm;
     UINT32 rank;
     UINT32 size;
 
-#if 0/*will impact on performance*/
-    /*sync once at first :-)*/
-    task_brd_cload_stat_collect(task_brd);
-    cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
-#endif
     tcid = CLOAD_NODE_TCID(cload_node);
+    comm = CLOAD_NODE_COMM(cload_node);
     size = cvector_size(CLOAD_NODE_RANK_LOAD_STAT_VEC(cload_node));
     for(rank = 0; rank < size; rank ++)
     {
@@ -8836,7 +8848,7 @@ EC_BOOL task_brd_sync_cload_node(TASK_BRD *task_brd, CLOAD_NODE *cload_node)
         CLOAD_STAT *cload_stat_des;
 
         cload_stat_des = CLOAD_NODE_RANK_LOAD_STAT(cload_node, rank);
-        cload_stat_src = cload_mgr_get(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+        cload_stat_src = cload_mgr_get(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
         cload_stat_clone(cload_stat_src, cload_stat_des);
     }
     return (EC_TRUE);
@@ -9008,7 +9020,7 @@ EC_BOOL task_brd_clean(TASK_BRD *task_brd)
     task_brd_rank_load_tbl_clean(task_brd);
 
     /*broken tcid table clean*/
-    cvector_clean(TASK_BRD_BROKEN_TCID_TBL(task_brd), NULL_PTR, LOC_TASK_0146);
+    cvector_clean(TASK_BRD_BROKEN_TBL(task_brd), (CVECTOR_DATA_CLEANER)mod_node_free, LOC_TASK_0146);
 
     /*mod mgr list clean*/
     clist_clean(TASK_BRD_MOD_MGR_LIST(task_brd), (CLIST_DATA_DATA_CLEANER)mod_mgr_free);
@@ -9117,7 +9129,6 @@ EC_BOOL task_brd_collect_ipaddr(const TASK_BRD *task_brd, CVECTOR *ipaddr_vec)
     tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     return tasks_worker_collect_ipaddr(TASKS_CFG_WORKER(tasks_cfg), ipaddr_vec);
 }
-
 
 EC_BOOL task_brd_check_tcid_connected(const TASK_BRD *task_brd, const UINT32 tcid)
 {
@@ -9568,43 +9579,51 @@ EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_r
 }
 
 /*if rank != except_rank, then upload rank load in task_brd rank table*/
-EC_BOOL task_brd_rank_load_set(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const CLOAD_STAT *cload_stat)
+EC_BOOL task_brd_rank_load_set(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const CLOAD_STAT *cload_stat)
 {
-    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd))
+    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd)
+    || (CMPI_ANY_COMM != comm && comm != TASK_BRD_COMM(task_brd))
+    )
     {
-        return cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank, cload_stat);
+        return cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank, cload_stat);
     }
 
     return (EC_FALSE);
 }
 
 /*if rank != except_rank, then upload rank load in task_brd rank table*/
-EC_BOOL task_brd_rank_load_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank, const UINT32 que_load)
+EC_BOOL task_brd_rank_load_set_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank, const UINT32 que_load)
 {
-    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd))
+    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd)
+    || (CMPI_ANY_COMM != comm && comm != TASK_BRD_COMM(task_brd))
+    )
     {
-        return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank, que_load);
+        return cload_mgr_set_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank, que_load);
     }
 
     return (EC_FALSE);
 }
 
 /*if rank != except_rank, then increase rank load in task_brd rank table*/
-EC_BOOL task_brd_rank_load_inc_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+EC_BOOL task_brd_rank_load_inc_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd))
+    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd)
+    || (CMPI_ANY_COMM != comm && comm != TASK_BRD_COMM(task_brd))
+    )
     {
-        return cload_mgr_inc_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+        return cload_mgr_inc_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
     }
 
     return (EC_FALSE);
 }
 
-EC_BOOL task_brd_rank_load_dec_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 rank)
+EC_BOOL task_brd_rank_load_dec_que(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm, const UINT32 rank)
 {
-    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd))
+    if(tcid != TASK_BRD_TCID(task_brd) || rank != TASK_BRD_RANK(task_brd)
+    || (CMPI_ANY_COMM != comm && comm != TASK_BRD_COMM(task_brd))
+    )
     {
-        return cload_mgr_dec_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, rank);
+        return cload_mgr_dec_que(TASK_BRD_CLOAD_MGR(task_brd), tcid, comm, rank);
     }
 
     return (EC_FALSE);
@@ -9621,8 +9640,8 @@ UINT32 task_brd_rank_load_print(LOG *log, const TASK_BRD *task_brd)
 EC_BOOL load_set_when_task_req_isend(TASK_BRD *task_brd, TASK_REQ *task_req)
 {
     /*update rank load of task_brd*/
-    task_brd_rank_load_inc_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req));
-    task_brd_rank_load_inc_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_RANK(task_req));
+    task_brd_rank_load_inc_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req));
+    task_brd_rank_load_inc_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req));
 
     return (EC_TRUE);
 }
@@ -9630,55 +9649,55 @@ EC_BOOL load_set_when_task_req_isend(TASK_BRD *task_brd, TASK_REQ *task_req)
 EC_BOOL load_set_when_task_req_commit(TASK_BRD *task_brd, TASK_REQ *task_req)
 {
     /*update rank load of task_brd*/
-    task_brd_rank_load_inc_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req));
-    task_brd_rank_load_inc_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_RANK(task_req));
+    task_brd_rank_load_inc_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req));
+    task_brd_rank_load_inc_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req));
 
-    task_brd_rank_load_set(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_CLOAD_STAT(task_req));
+    task_brd_rank_load_set(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_CLOAD_STAT(task_req));
 
     return (EC_TRUE);
 }
 
 EC_BOOL load_set_when_task_rsp_isend(TASK_BRD *task_brd, TASK_RSP *task_rsp)
 {
-    task_brd_rank_load_dec_que(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_RANK(task_rsp));
-    task_brd_rank_load_dec_que(task_brd, TASK_RSP_RECV_TCID(task_rsp), TASK_RSP_RECV_RANK(task_rsp));
+    task_brd_rank_load_dec_que(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp));
+    task_brd_rank_load_dec_que(task_brd, TASK_RSP_RECV_TCID(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp));
     return (EC_TRUE);
 }
 
 EC_BOOL load_set_when_task_rsp_commit(TASK_BRD *task_brd, TASK_RSP *task_rsp)
 {
-    task_brd_rank_load_dec_que(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_RANK(task_rsp));
-    task_brd_rank_load_dec_que(task_brd, TASK_RSP_RECV_TCID(task_rsp), TASK_RSP_RECV_RANK(task_rsp));
+    task_brd_rank_load_dec_que(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp));
+    task_brd_rank_load_dec_que(task_brd, TASK_RSP_RECV_TCID(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp));
 
     /*TASK_RSP take back the load of remote mod node(or remote rank)*/
     /*if the sender of TASK_RSP is NOT its recver, then update load of sender*/
     /*otherwise, do not update load of sender because sender maintain the load info more precisely*/
-    task_brd_rank_load_set(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_CLOAD_STAT(task_rsp));
+    task_brd_rank_load_set(task_brd, TASK_RSP_SEND_TCID(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_CLOAD_STAT(task_rsp));
 
     return (EC_TRUE);
 }
 
 EC_BOOL load_set_when_task_req_is_sent(TASK_BRD *task_brd, TASK_REQ *task_req)
 {
-    task_brd_rank_load_dec_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req));
-    task_brd_rank_load_dec_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_RANK(task_req));
+    task_brd_rank_load_dec_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req));
+    task_brd_rank_load_dec_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req));
     return (EC_TRUE);
 }
 
 EC_BOOL load_set_when_task_rsp_is_ignore(TASK_BRD *task_brd, TASK_REQ *task_req)
 {
-    task_brd_rank_load_dec_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req));
-    task_brd_rank_load_dec_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_RANK(task_req));
+    task_brd_rank_load_dec_que(task_brd, TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req));
+    task_brd_rank_load_dec_que(task_brd, TASK_REQ_RECV_TCID(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req));
     return (EC_TRUE);
 }
 
 EC_BOOL load_set_when_task_fwd_commit(TASK_BRD *task_brd, TASK_FWD *task_fwd)
 {
     /*update rank load of task_brd*/
-    task_brd_rank_load_inc_que(task_brd, TASK_FWD_SEND_TCID(task_fwd), TASK_FWD_SEND_RANK(task_fwd));
-    task_brd_rank_load_inc_que(task_brd, TASK_FWD_RECV_TCID(task_fwd), TASK_FWD_RECV_RANK(task_fwd));
+    task_brd_rank_load_inc_que(task_brd, TASK_FWD_SEND_TCID(task_fwd), TASK_FWD_SEND_COMM(task_fwd), TASK_FWD_SEND_RANK(task_fwd));
+    task_brd_rank_load_inc_que(task_brd, TASK_FWD_RECV_TCID(task_fwd), TASK_FWD_RECV_COMM(task_fwd), TASK_FWD_RECV_RANK(task_fwd));
 
-    task_brd_rank_load_set(task_brd, TASK_FWD_SEND_TCID(task_fwd), TASK_FWD_SEND_RANK(task_fwd), TASK_FWD_CLOAD_STAT(task_fwd));
+    task_brd_rank_load_set(task_brd, TASK_FWD_SEND_TCID(task_fwd), TASK_FWD_SEND_COMM(task_fwd), TASK_FWD_SEND_RANK(task_fwd), TASK_FWD_CLOAD_STAT(task_fwd));
 
     return (EC_TRUE);
 }
@@ -11112,7 +11131,7 @@ EC_BOOL task_mgr_recv(TASK_MGR *task_mgr)
     return (EC_FALSE);
 }
 
-EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid)
+EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm)
 {
     CLIST      *task_queue;
     CLIST_DATA *clist_data;
@@ -11135,6 +11154,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
 
         /*only the TASK_REQ which did not recv reponse as well as apply load balancing need to re-schedule*/
         if( tcid != TASK_NODE_RECV_TCID(task_node)
+         || (CMPI_ANY_COMM != TASK_NODE_RECV_COMM(task_node) && comm != TASK_NODE_RECV_COMM(task_node))
          || TASK_RSP_IS_RECV == TASK_NODE_STATUS(task_node)
          || TASK_REQ_TIMEOUT == TASK_NODE_STATUS(task_node)
          || TASK_REQ_DISCARD == TASK_NODE_STATUS(task_node)
@@ -11180,7 +11200,7 @@ EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UIN
     return (EC_TRUE);
 }
 
-EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid)
+EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm)
 {
     CLIST      *task_queue;
     CLIST_DATA *clist_data;
@@ -11202,6 +11222,7 @@ EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32
 
         /*only the TASK_REQ which did not recv reponse as well as apply load balancing need to discard*/
         if( tcid != TASK_NODE_RECV_TCID(task_node)
+         || (CMPI_ANY_COMM != TASK_NODE_RECV_COMM(task_node) && comm != TASK_NODE_RECV_COMM(task_node))
          || TASK_RSP_IS_RECV == TASK_NODE_STATUS(task_node)
          || TASK_REQ_DISCARD == TASK_NODE_STATUS(task_node)
          || TASK_REQ_TIMEOUT == TASK_NODE_STATUS(task_node)
@@ -11459,7 +11480,9 @@ EC_BOOL task_brd_heartbeat_once(TASK_BRD *task_brd)
     if(1)
     {
         /*update current rank load info to rank load table*/
-        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd),
+                        TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd),
+                        TASK_BRD_CLOAD_STAT(task_brd));
 
         if(SWITCH_ON == RANK_HEARTBEAT_FASTDEC_SWITCH)
         {
@@ -11528,7 +11551,7 @@ EC_BOOL task_brd_heartbeat_once(TASK_BRD *task_brd)
             task_mgr = task_new(NULL_PTR, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
             task_super_inc(task_mgr, &send_mod_node, &recv_mod_node,
                            NULL_PTR, FI_super_heartbeat_on_rank, CMPI_ERROR_MODI,
-                           TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+                           TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
             task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
         }
     }
@@ -11566,7 +11589,9 @@ EC_BOOL task_brd_heartbeat(TASK_BRD *task_brd)
         CTIMET_GET(last_update);
 
         /*update current rank load info to rank load table*/
-        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd),
+                    TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd),
+                    TASK_BRD_CLOAD_STAT(task_brd));
 
         if(SWITCH_ON == RANK_HEARTBEAT_FASTDEC_SWITCH)
         {
@@ -11634,7 +11659,7 @@ EC_BOOL task_brd_heartbeat(TASK_BRD *task_brd)
             task_mgr = task_new(NULL_PTR, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP);
             task_super_inc(task_mgr, &send_mod_node, &recv_mod_node,
                            NULL_PTR, FI_super_heartbeat_on_rank, CMPI_ERROR_MODI,
-                           TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+                           TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
             task_no_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
         }
     }
@@ -11662,7 +11687,9 @@ EC_BOOL task_brd_cload_stat_update_once(TASK_BRD *task_brd)
     task_brd_cload_stat_collect(task_brd);
 
     /*update current rank load info to rank load table*/
-    cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+    cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd),
+                    TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd),
+                    TASK_BRD_CLOAD_STAT(task_brd));
     return (EC_TRUE);
 }
 
@@ -11695,7 +11722,9 @@ EC_BOOL task_brd_cload_stat_update(TASK_BRD *task_brd)
         task_brd_cload_stat_collect(task_brd);
 
         /*update current rank load info to rank load table*/
-        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd), TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_BRD_CLOAD_STAT(task_brd));
+        cload_mgr_set(TASK_BRD_CLOAD_MGR(task_brd),
+                        TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_RANK(task_brd),
+                        TASK_BRD_CLOAD_STAT(task_brd));
     }
     return (EC_TRUE);
 }
@@ -11850,7 +11879,60 @@ EC_BOOL task_brd_default_bind_https_srv_modi(const UINT32 modi)
 }
 #endif
 
+EC_BOOL task_brd_start_sdisc(TASK_BRD *task_brd)
+{
+    SYS_CFG                 *sys_cfg;
+    SDISC_CFG               *sdisc_cfg;
+    CSDISC_NODE             *csdisc_node;
 
+    if(NULL_PTR != TASK_BRD_CSDISC_NODE(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_start_sdisc: "
+                            "self-discovery of service is already running\n");
+        return (EC_FALSE);
+    }
+
+    sys_cfg   = TASK_BRD_SYS_CFG(task_brd);
+    sdisc_cfg = SYS_CFG_SDISC_CFG(sys_cfg);
+
+    csdisc_node = csdisc_node_start(SDISC_CFG_NETCARD(sdisc_cfg),
+                                    SDISC_CFG_IPADDR(sdisc_cfg),
+                                    SDISC_CFG_PORT(sdisc_cfg));
+
+    if(NULL_PTR == csdisc_node)
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_start_sdisc: "
+                            "start self-discovery of service "
+                            "over '%.*s:%s:%ld' failed\n",
+                            (uint32_t)cstring_get_len(SDISC_CFG_NETCARD(sdisc_cfg)),
+                            (char   *)cstring_get_str(SDISC_CFG_NETCARD(sdisc_cfg)),
+                            c_word_to_ipv4(SDISC_CFG_IPADDR(sdisc_cfg)),
+                            SDISC_CFG_PORT(sdisc_cfg));
+        return (EC_FALSE);
+    }
+
+    TASK_BRD_CSDISC_NODE(task_brd) = csdisc_node;
+
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_start_sdisc: "
+                                         "start self-discovery of service "
+                                         "over '%.*s:%s:%ld' done\n",
+                                         (uint32_t)cstring_get_len(SDISC_CFG_NETCARD(sdisc_cfg)),
+                                         (char   *)cstring_get_str(SDISC_CFG_NETCARD(sdisc_cfg)),
+                                         c_word_to_ipv4(SDISC_CFG_IPADDR(sdisc_cfg)),
+                                         SDISC_CFG_PORT(sdisc_cfg));
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_stop_sdisc(TASK_BRD *task_brd)
+{
+    if(NULL_PTR != TASK_BRD_CSDISC_NODE(task_brd))
+    {
+        csdisc_node_end(TASK_BRD_CSDISC_NODE(task_brd));
+
+        TASK_BRD_CSDISC_NODE(task_brd) = NULL_PTR;
+    }
+    return (EC_TRUE);
+}
 
 EC_BOOL task_brd_start_csrv(TASK_BRD *task_brd, const UINT32 md_id, const UINT32 srv_ipaddr, const UINT32 csrv_port)
 {
@@ -11887,6 +11969,8 @@ EC_BOOL task_brd_default_stop_srvs()
     TASKS_CFG *tasks_cfg;
 
     task_brd = task_brd_default_get();
+
+    task_brd_stop_sdisc(task_brd); /*stop self-discovery of service*/
 
     task_brd_stop_http_srv(task_brd);
 
@@ -12116,7 +12200,7 @@ EC_BOOL task_brd_reset_cmutex_all(TASK_BRD *task_brd)
     CVECTOR_INIT_LOCK(TASK_BRD_MD_NODE_TBL(task_brd), LOC_TASK_0219);
 
     CLIST_INIT_LOCK(TASK_BRD_CLOAD_MGR(task_brd), LOC_TASK_0220);
-    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TCID_TBL(task_brd), LOC_TASK_0221);
+    CVECTOR_INIT_LOCK(TASK_BRD_BROKEN_TBL(task_brd), LOC_TASK_0221);
     CLIST_INIT_LOCK(TASK_BRD_MOD_MGR_LIST(task_brd), LOC_TASK_0222);
 
     CLIST_INIT_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0223);
@@ -12229,6 +12313,45 @@ EC_BOOL task_brd_default_breathing()
         }
     }
 
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_default_discovery()
+{
+    CSDISC_NODE         *csdisc_node;
+
+    csdisc_node = TASK_BRD_CSDISC_NODE(task_brd_default_get());
+    if(NULL_PTR != csdisc_node)
+    {
+        static uint64_t              time_msec_handled = 0; /*init*/
+        uint64_t                     time_msec_cur;
+        uint64_t                     time_msec_interval;
+
+        time_msec_cur = c_get_cur_time_msec(); /*current time in msec*/
+
+        /*self-discovery of service*/
+
+        time_msec_interval = 1 * 1000; /*1s*/
+
+        if(time_msec_cur >= time_msec_handled + time_msec_interval)
+        {
+            csdisc_node_send(csdisc_node);
+            csdisc_node_recv(csdisc_node);
+
+            if(0 == time_msec_handled)
+            {
+                time_msec_handled = time_msec_cur;
+            }
+            else
+            {
+                /*note:
+                 *   here time_msec_handled inc 60 but not update to time_msec_cur
+                 *   to avoid time deviation accumulated
+                 */
+                time_msec_handled += time_msec_interval;
+            }
+        }
+    }
     return (EC_TRUE);
 }
 
@@ -12524,6 +12647,8 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         task_brd_update_time(task_brd);
 
         task_brd_default_breathing();
+
+        task_brd_default_discovery();
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
         /*handle timeout event or expired event, check each second*/

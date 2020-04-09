@@ -967,7 +967,7 @@ EC_BOOL api_cmd_para_vec_init(CMD_PARA_VEC *cmd_para_vec)
 
 EC_BOOL api_cmd_para_vec_clean(CMD_PARA_VEC *cmd_para_vec)
 {
-    cvector_clean(CMD_PARA_VAL_LIST(cmd_para_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_para_free, LOC_API_0012);
+    cvector_clean(CMD_PARA_VAL_LIST(cmd_para_vec), (CVECTOR_DATA_CLEANER)api_cmd_para_free, LOC_API_0012);
     return (EC_TRUE);
 }
 
@@ -1161,7 +1161,7 @@ EC_BOOL api_cmd_help_vec_init(CMD_HELP_VEC *cmd_help_vec)
 
 EC_BOOL api_cmd_help_vec_clean(CMD_HELP_VEC *cmd_help_vec)
 {
-    cvector_clean(CMD_HELP_NODE_VEC(cmd_help_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_help_free, LOC_API_0018);
+    cvector_clean(CMD_HELP_NODE_VEC(cmd_help_vec), (CVECTOR_DATA_CLEANER)api_cmd_help_free, LOC_API_0018);
     return (EC_TRUE);
 }
 
@@ -1463,7 +1463,7 @@ EC_BOOL api_cmd_elem_vec_init(CMD_ELEM_VEC *cmd_elem_vec)
 
 EC_BOOL api_cmd_elem_vec_clean(CMD_ELEM_VEC *cmd_elem_vec)
 {
-    cvector_clean(CMD_ELEM_NODE_VEC(cmd_elem_vec), (CLIST_DATA_DATA_CLEANER)api_cmd_elem_free, LOC_API_0027);
+    cvector_clean(CMD_ELEM_NODE_VEC(cmd_elem_vec), (CVECTOR_DATA_CLEANER)api_cmd_elem_free, LOC_API_0027);
     return (EC_TRUE);
 }
 
