@@ -213,15 +213,19 @@ EC_BOOL cssl_node_create_ctx(CSSL_NODE *cssl_node)
             return (EC_FALSE);
         }
 
-        SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL_PTR);
-
         if(EC_TRUE == cstring_is_empty(CSSL_NODE_CA_FILE(cssl_node)))
         {
+            /*client not verify certificate if no ca*/
+            SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL_PTR);
+
             SSL_CTX_set_default_verify_paths(ctx);
         }
         else
         {
             const char *ca_certificate;
+
+            /* Specify that we need to verify the client as well */
+            SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL_PTR);
 
             ca_certificate = (const char *)cstring_get_str(CSSL_NODE_CA_FILE(cssl_node));
             SSL_CTX_load_verify_locations(ctx, ca_certificate, NULL_PTR);

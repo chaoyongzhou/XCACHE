@@ -49,6 +49,9 @@ extern "C"{
 #include "chttp.h"
 #include "crfshttp.h"
 #include "cxfshttp.h"
+#include "chttps.h"
+#include "crfshttps.h"
+#include "cxfshttps.h"
 #include "cdns.h"
 #include "findex.inc"
 

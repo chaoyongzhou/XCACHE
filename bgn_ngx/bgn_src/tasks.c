@@ -1190,7 +1190,8 @@ EC_BOOL tasks_node_trigger(TASK_BRD *task_brd, TASKS_NODE *tasks_node)
         task_p2p_no_wait(MOD_NODE_MODI(&send_mod_node),
                         TASK_DEFAULT_LIVE, TASK_PRIO_HIGH, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                         &recv_mod_node,
-                        NULL_PTR, FI_super_notify_broken_tcid_comm, CMPI_ERROR_MODI, TASKS_NODE_TCID(tasks_node), TASKS_NODE_COMM(tasks_node));
+                        NULL_PTR, FI_super_notify_broken_tcid_comm, CMPI_ERROR_MODI,
+                        TASKS_NODE_TCID(tasks_node), TASKS_NODE_COMM(tasks_node));
 
         last_update_tm = CTIMET_TO_TM(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
         last_end_tm    = CTIMET_TO_TM(TASKS_NODE_LAST_SEND_TIME(tasks_node));

@@ -2675,6 +2675,113 @@ EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
         }
     }while(0);
 
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CVENDOR_MD_CHTTP_REQ(cvendor_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+    }while(0);
+
     /*set http request method*/
     if(EC_FALSE == cngx_get_req_method_str(r, &v))
     {
@@ -3732,6 +3839,113 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
                                                         "filter server failed\n");
                 return (EC_FALSE);
             }
+        }
+    }while(0);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CVENDOR_MD_CHTTP_REQ(cvendor_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
         }
     }while(0);
 
@@ -5626,6 +5840,113 @@ EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
                                                         "filter server failed\n");
                 return (EC_FALSE);
             }
+        }
+    }while(0);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CVENDOR_MD_CHTTP_REQ(cvendor_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
         }
     }while(0);
 
@@ -7686,6 +8007,113 @@ EC_BOOL cvendor_content_orig_header_in_filter(const UINT32 cvendor_md_id)
         }
     }while(0);
 
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+    }while(0);
+
     /*set http request method*/
     if(EC_FALSE == cngx_get_req_method_str(r, &v))
     {
@@ -9716,8 +10144,8 @@ EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id)
             return (EC_FALSE);
         }
 
-        if(EC_TRUE == chttp_req_has_ipaddr(CVENDOR_MD_CHTTP_REQ(cvendor_md))
-        && EC_TRUE == chttp_req_has_port(CVENDOR_MD_CHTTP_REQ(cvendor_md)))
+        if(EC_TRUE == chttp_req_has_ipaddr(chttp_req)
+        && EC_TRUE == chttp_req_has_port(chttp_req))
         {
             break; /*ok*/
         }
@@ -9741,6 +10169,113 @@ EC_BOOL cvendor_content_ms_header_in_filter(const UINT32 cvendor_md_id)
                                                         "filter server failed\n");
                 return (EC_FALSE);
             }
+        }
+    }while(0);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
         }
     }while(0);
 
@@ -11603,7 +12138,7 @@ EC_BOOL cvendor_content_preload_parse_header(const UINT32 cvendor_md_id, const C
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == ccache_parse_header(header_cbytes, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    if(EC_FALSE == ccache_parse_http_header(header_cbytes, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_preload_parse_header: "
                                                 "parse header failed\n");
@@ -12803,6 +13338,113 @@ EC_BOOL cvendor_content_ims_header_in_filter(const UINT32 cvendor_md_id)
                                                         "filter server failed\n");
                 return (EC_FALSE);
             }
+        }
+    }while(0);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CVENDOR_MD_CHTTP_REQ(cvendor_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set ca '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set ca '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set certificate '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set certificate '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] get var '%s':'%s' done\n",
+                                                    k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_header_in_filter: "
+                                                        "[conf] set certificate key '%s' to http req failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0028);
+
+                cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0029);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter: "
+                                                    "[conf] set certificate key '%s' to http req done\n",
+                                                    v);
+
+            safe_free(v, LOC_CVENDOR_0030);
+
+            /*fall through*/
         }
     }while(0);
 
@@ -14795,7 +15437,7 @@ EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBY
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == ccache_parse_header(header_cbytes, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
+    if(EC_FALSE == ccache_parse_http_header(header_cbytes, CVENDOR_MD_CHTTP_RSP(cvendor_md)))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_parse_header: "
                                                 "parse header failed\n");

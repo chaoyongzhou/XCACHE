@@ -23,86 +23,90 @@ extern "C"{
 #include "task.h"
 
 #include "chttp.h"
+#include "chttps.h"
 
 #include "crfshttp.h"
+#include "crfshttps.h"
+
 #include "cxfshttp.h"
+#include "cxfshttps.h"
 
 #include "ccache.h"
 
 #include "findex.inc"
 
 /*---------------------------------------- HTTP PASER INTERFACE ----------------------------------------*/
-int ccache_on_message_begin(http_parser_t* http_parser)
+int ccache_on_http_message_begin(http_parser_t* http_parser)
 {
     CHTTP_RSP  *chttp_rsp;
 
     chttp_rsp = (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_message_begin: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_message_begin: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_message_begin: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_message_begin: "
                                             "chttp_rsp %p, ***MESSAGE BEGIN***\n",
                                             chttp_rsp);
     return (0);
 }
 
-int ccache_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
+int ccache_on_http_headers_complete(http_parser_t* http_parser, const char* last, size_t length)
 {
     CHTTP_RSP     *chttp_rsp;
 
     chttp_rsp = (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_headers_complete: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_headers_complete: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_headers_complete: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_headers_complete: "
                                             "http_parser %p done\n",
                                             http_parser);
     return (0);/*succ*/
 }
 
-int ccache_on_message_complete(http_parser_t* http_parser)
+int ccache_on_http_message_complete(http_parser_t* http_parser)
 {
     CHTTP_RSP     *chttp_rsp;
 
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_message_complete: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_message_complete: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
     }
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_message_complete: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_message_complete: "
                                             "http_parser %p done\n",
                                             http_parser);
     return (0);
 }
 
-int ccache_on_url(http_parser_t* http_parser, const char* at, size_t length)
+int ccache_on_http_url(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
 
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_url: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_url: "
                                                "http_parser %p -> chttp_rsp is null\n",
                                                http_parser);
         return (-1);/*error*/
     }
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_url: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_url: "
                                            "chttp_rsp %p, url: %.*s\n",
                                            chttp_rsp, (uint32_t)length, at);
 
@@ -110,14 +114,14 @@ int ccache_on_url(http_parser_t* http_parser, const char* at, size_t length)
 }
 
 /*only for http response*/
-int ccache_on_status(http_parser_t* http_parser, const char* at, size_t length)
+int ccache_on_http_status(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
 
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_status: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_status: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
@@ -125,14 +129,14 @@ int ccache_on_status(http_parser_t* http_parser, const char* at, size_t length)
 
     CHTTP_RSP_STATUS(chttp_rsp) = http_parser->status_code;
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_status: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_status: "
                                             "http_parser %p => status %d done\n",
                                             http_parser, http_parser->status_code);
 
     return (0);
 }
 
-int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t length)
+int ccache_on_http_header_field(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
     CSTRKV       *cstrkv;
@@ -140,7 +144,7 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_field: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_header_field: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
@@ -149,7 +153,7 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     cstrkv = cstrkv_new(NULL_PTR, NULL_PTR);
     if(NULL_PTR == cstrkv)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_field: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_header_field: "
                                                "new cstrkv failed where header field: %.*s\n",
                                                (uint32_t)length, at);
         return (-1);
@@ -158,13 +162,13 @@ int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t le
     cstrkv_set_key_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0001);
     cstrkv_mgr_add_kv(CHTTP_RSP_HEADER(chttp_rsp), cstrkv);
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_field: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_header_field: "
                                            "chttp_rsp %p, Header field: '%.*s'\n",
                                            chttp_rsp, (uint32_t)length, at);
     return (0);
 }
 
-int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t length)
+int ccache_on_http_header_value(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP    *chttp_rsp;
     CSTRKV       *cstrkv;
@@ -172,7 +176,7 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_value: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_header_value: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
@@ -181,28 +185,28 @@ int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t le
     cstrkv = cstrkv_mgr_last_kv(CHTTP_RSP_HEADER(chttp_rsp));
     if(NULL_PTR == cstrkv)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_header_value: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_header_value: "
                                                "no cstrkv existing where value field: %.*s\n",
                                                (uint32_t)length, at);
         return (-1);
     }
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CCACHE_0002);
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_header_value: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_header_value: "
                                            "chttp_rsp %p, Header value: '%.*s'\n",
                                            chttp_rsp, (uint32_t)length, at);
 
     return (0);
 }
 
-int ccache_on_body(http_parser_t* http_parser, const char* at, size_t length)
+int ccache_on_http_body(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_RSP     *chttp_rsp;
 
     chttp_rsp= (CHTTP_RSP *)http_parser->data;
     if(NULL_PTR == chttp_rsp)
     {
-        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_body: "
+        dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_on_http_body: "
                                                 "http_parser %p -> chttp_rsp is null\n",
                                                 http_parser);
         return (-1);/*error*/
@@ -210,13 +214,13 @@ int ccache_on_body(http_parser_t* http_parser, const char* at, size_t length)
 
     cbytes_append(CHTTP_RSP_BODY(chttp_rsp), (uint8_t *)at, length);
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_body: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_on_http_body: "
                                            "chttp_rsp %p, body len %d\n",
                                            chttp_rsp, (uint32_t)length);
     return (0);
 }
 
-EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
+EC_BOOL ccache_parse_http_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
 {
     http_parser_t                http_parser;
     http_parser_settings_t       http_parser_setting;
@@ -228,29 +232,29 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
     http_parser.state = s_header_field_start;
     http_parser.data  = (void *)chttp_rsp;
 
-    http_parser_setting.on_message_begin    = ccache_on_message_begin;/*xxx*/
-    http_parser_setting.on_url              = ccache_on_url;/*xxx*/
-    http_parser_setting.on_status           = ccache_on_status;/*xxx*/
-    http_parser_setting.on_header_field     = ccache_on_header_field;
-    http_parser_setting.on_header_value     = ccache_on_header_value;
-    http_parser_setting.on_headers_complete = ccache_on_headers_complete;
-    http_parser_setting.on_body             = ccache_on_body;
-    http_parser_setting.on_message_complete = ccache_on_message_complete;
+    http_parser_setting.on_message_begin    = ccache_on_http_message_begin;/*xxx*/
+    http_parser_setting.on_url              = ccache_on_http_url;/*xxx*/
+    http_parser_setting.on_status           = ccache_on_http_status;/*xxx*/
+    http_parser_setting.on_header_field     = ccache_on_http_header_field;
+    http_parser_setting.on_header_value     = ccache_on_http_header_value;
+    http_parser_setting.on_headers_complete = ccache_on_http_headers_complete;
+    http_parser_setting.on_body             = ccache_on_http_body;
+    http_parser_setting.on_message_complete = ccache_on_http_message_complete;
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: to parse '%.*s'\n",
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_http_header: to parse '%.*s'\n",
                 (uint32_t)CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
 
     parsed_len = http_parser_execute(&http_parser, &http_parser_setting,
                                      (char *)CBYTES_BUF(header_cbytes), CBYTES_LEN(header_cbytes));
 
-    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: "
+    dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_http_header: "
                                            "parsed %u, cbytes len %ld \n",
                                            parsed_len, CBYTES_LEN(header_cbytes));
 
     if(HPE_OK != HTTP_PARSER_ERRNO(&http_parser))
     {
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT,
-                            "error:ccache_parse_header: "
+                            "error:ccache_parse_http_header: "
                             "http parser encounter error "
                             "where errno = %d, name = %s, description = %s\n\n",
                             HTTP_PARSER_ERRNO(&http_parser),
@@ -264,7 +268,7 @@ EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp)
 
     if(do_log(SEC_0177_CCACHE, 9))
     {
-        dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_header: header '%.*s' => \n",
+        dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_parse_http_header: header '%.*s' => \n",
                     (uint32_t)CBYTES_LEN(header_cbytes), (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);

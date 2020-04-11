@@ -3873,6 +3873,8 @@ UINT32 cmpi_encode_chttp_req(const UINT32 comm, const CHTTP_REQ *chttp_req, UINT
     cmpi_encode_uint32(comm, CHTTP_REQ_IPADDR(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_REQ_PORT(chttp_req), out_buff, out_buff_max_len, position);
 
+    cmpi_encode_uint32(comm, CHTTP_REQ_SSL_FLAG(chttp_req), out_buff, out_buff_max_len, position);
+
     cmpi_encode_cstring(comm, CHTTP_REQ_METHOD(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_REQ_URI(chttp_req), out_buff, out_buff_max_len, position);
 
@@ -3888,6 +3890,8 @@ UINT32 cmpi_encode_chttp_req_size(const UINT32 comm, const CHTTP_REQ *chttp_req,
 {
     cmpi_encode_uint32_size(comm, CHTTP_REQ_IPADDR(chttp_req), size);
     cmpi_encode_uint32_size(comm, CHTTP_REQ_PORT(chttp_req), size);
+
+    cmpi_encode_uint32_size(comm, CHTTP_REQ_SSL_FLAG(chttp_req), size);
 
     cmpi_encode_cstring_size(comm, CHTTP_REQ_METHOD(chttp_req), size);
     cmpi_encode_cstring_size(comm, CHTTP_REQ_URI(chttp_req), size);
@@ -3922,6 +3926,8 @@ UINT32 cmpi_decode_chttp_req(const UINT32 comm, const UINT8 *in_buff, const UINT
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_REQ_IPADDR(chttp_req));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_REQ_PORT(chttp_req));
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_REQ_SSL_FLAG(chttp_req));
 
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_METHOD(chttp_req));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_URI(chttp_req));

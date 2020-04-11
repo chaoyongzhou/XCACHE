@@ -79,12 +79,13 @@ extern "C"{
 #include "cstrkv.h"
 #include "cbuffer.h"
 #include "chttp.h"
-#include "crfshttp.h"
 #include "chttps.h"
+#include "crfshttp.h"
 #include "chunk.h"
 #include "cmd5.h"
 
 #include "chttp.inc"
+#include "chttps.inc"
 #include "cdns.inc"
 
 #include "cexpat.h"
@@ -401,8 +402,6 @@ STATIC_CAST static UINT32 init_mem_manager()
 
     MM_MGR_DEF(MM_CCONNP                       ,"MM_CCONNP                       ",256       , sizeof(CCONNP)                     , LOC_MM_0152);
     MM_MGR_DEF(MM_CCONNP_MGR                   ,"MM_CCONNP_MGR                   ",256       , sizeof(CCONNP_MGR)                 , LOC_MM_0153);
-    MM_MGR_DEF(MM_CHTTPS_NODE                  ,"MM_CHTTPS_NODE                  ",256       , sizeof(CHTTPS_NODE)                , LOC_MM_0154);
-    MM_MGR_DEF(MM_CHTTPS_REST                  ,"MM_CHTTPS_REST                  ",256       , sizeof(CHTTPS_REST)                , LOC_MM_0155);
     MM_MGR_DEF(MM_CSSL_NODE                    ,"MM_CSSL_NODE                    ",256       , sizeof(CSSL_NODE)                  , LOC_MM_0156);
 
     MM_MGR_DEF(MM_CRANGE_SEG                   ,"MM_CRANGE_SEG                   ",32        , sizeof(CRANGE_SEG)                 , LOC_MM_0157);

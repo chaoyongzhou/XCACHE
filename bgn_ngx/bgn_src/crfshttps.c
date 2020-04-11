@@ -94,10 +94,10 @@ extern "C"{
 #if 1
 //#define CRFSHTTPS_TIME_COST_FORMAT " BegTime:%u.%03u EndTime:%u.%03u Elapsed:%u "
 #define CRFSHTTPS_TIME_COST_FORMAT " %u.%03u %u.%03u %u "
-#define CRFSHTTPS_TIME_COST_VALUE(chttps_node)  \
-    (uint32_t)CTMV_NSEC(CHTTPS_NODE_START_TMV(chttps_node)), (uint32_t)CTMV_MSEC(CHTTPS_NODE_START_TMV(chttps_node)), \
+#define CRFSHTTPS_TIME_COST_VALUE(chttp_node)  \
+    (uint32_t)CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node)), (uint32_t)CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)), \
     (uint32_t)CTMV_NSEC(task_brd_default_get_daytime()), (uint32_t)CTMV_MSEC(task_brd_default_get_daytime()), \
-    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTPS_NODE_START_TMV(chttps_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTPS_NODE_START_TMV(chttps_node)))
+    (uint32_t)((CTMV_NSEC(task_brd_default_get_daytime()) - CTMV_NSEC(CHTTP_NODE_START_TMV(chttp_node))) * 1000 + CTMV_MSEC(task_brd_default_get_daytime()) - CTMV_MSEC(CHTTP_NODE_START_TMV(chttp_node)))
 #endif
 
 static EC_BOOL g_crfshttps_log_init = EC_FALSE;
@@ -204,25 +204,25 @@ EC_BOOL crfshttps_log_start()
 }
 
 /*---------------------------------------- ENTRY: HTTP COMMIT REQUEST FOR HANDLER  ----------------------------------------*/
-EC_BOOL crfshttps_commit_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_request(CHTTP_NODE *chttp_node)
 {
     http_parser_t *http_parser;
 
-    http_parser = CHTTPS_NODE_PARSER(chttps_node);
+    http_parser = CHTTP_NODE_PARSER(chttp_node);
 
     if(HTTP_GET == http_parser->method)
     {
         CROUTINE_NODE  *croutine_node;
 
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_get, 1, chttps_node);
+                                           (UINT32)crfshttps_commit_http_get, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_GET failed\n");
             return (EC_BUSY);
         }
-        CHTTPS_NODE_LOG_TIME_WHEN_LOADED(chttps_node);/*record http request was loaded time in coroutine*/
-        CHTTPS_NODE_CROUTINE_NODE(chttps_node) = croutine_node;
+        CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
+        CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
         CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0004);
 
         return (EC_TRUE);
@@ -233,14 +233,14 @@ EC_BOOL crfshttps_commit_request(CHTTPS_NODE *chttps_node)
         CROUTINE_NODE  *croutine_node;
 
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_post, 1, chttps_node);
+                                           (UINT32)crfshttps_commit_http_post, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_POST failed\n");
             return (EC_BUSY);
         }
-        CHTTPS_NODE_LOG_TIME_WHEN_LOADED(chttps_node);/*record http request was loaded time in coroutine*/
-        CHTTPS_NODE_CROUTINE_NODE(chttps_node) = croutine_node;
+        CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
+        CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
         CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0005);
 
         return (EC_TRUE);
@@ -251,215 +251,215 @@ EC_BOOL crfshttps_commit_request(CHTTPS_NODE *chttps_node)
         CROUTINE_NODE  *croutine_node;
 
         croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_head, 1, chttps_node);
+                                           (UINT32)crfshttps_commit_http_head, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_HEAD failed\n");
             return (EC_BUSY);
         }
-        CHTTPS_NODE_LOG_TIME_WHEN_LOADED(chttps_node);/*record http request was loaded time in coroutine*/
-        CHTTPS_NODE_CROUTINE_NODE(chttps_node) = croutine_node;
+        CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
+        CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
         CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0006);
 
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: not support http method %d yet\n", http_parser->method);
-    return (EC_FALSE);/*note: this chttps_node must be discarded*/
+    return (EC_FALSE);/*note: this chttp_node must be discarded*/
 }
 
-EC_BOOL crfshttps_commit_http_head(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_http_head(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    CHTTPS_NODE_LOG_TIME_WHEN_HANDLE(chttps_node);/*record rfs beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record rfs beg to handle time*/
 
-    if(EC_TRUE == crfshttps_is_http_head_getsmf(chttps_node))
+    if(EC_TRUE == crfshttps_is_http_head_getsmf(chttp_node))
     {
-        ret = crfshttps_commit_getsmf_head_request(chttps_node);
+        ret = crfshttps_commit_getsmf_head_request(chttp_node);
     }
     else
     {
         CBUFFER *uri_cbuffer;
 
-        uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_head: invalid uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
     }
 
-    return crfshttps_commit_end(chttps_node, ret);
+    return crfshttps_commit_end(chttp_node, ret);
 }
 
-EC_BOOL crfshttps_commit_http_post(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_http_post(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    CHTTPS_NODE_LOG_TIME_WHEN_HANDLE(chttps_node);/*record rfs beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record rfs beg to handle time*/
 
-    if(EC_TRUE == crfshttps_is_http_post_setsmf(chttps_node))
+    if(EC_TRUE == crfshttps_is_http_post_setsmf(chttp_node))
     {
-        ret = crfshttps_commit_setsmf_post_request(chttps_node);
+        ret = crfshttps_commit_setsmf_post_request(chttp_node);
     }
-    else if(EC_TRUE == crfshttps_is_http_post_mexpire(chttps_node))
+    else if(EC_TRUE == crfshttps_is_http_post_mexpire(chttp_node))
     {
-        ret = crfshttps_commit_mexpire_post_request(chttps_node);
+        ret = crfshttps_commit_mexpire_post_request(chttp_node);
     }
-    else if(EC_TRUE == crfshttps_is_http_post_mdsmf(chttps_node))
+    else if(EC_TRUE == crfshttps_is_http_post_mdsmf(chttp_node))
     {
-        ret = crfshttps_commit_mdsmf_post_request(chttps_node);
+        ret = crfshttps_commit_mdsmf_post_request(chttp_node);
     }
-    else if(EC_TRUE == crfshttps_is_http_post_mddir(chttps_node))
+    else if(EC_TRUE == crfshttps_is_http_post_mddir(chttp_node))
     {
-        ret = crfshttps_commit_mddir_post_request(chttps_node);
+        ret = crfshttps_commit_mddir_post_request(chttp_node);
     }
-    else if(EC_TRUE == crfshttps_is_http_post_update(chttps_node))
+    else if(EC_TRUE == crfshttps_is_http_post_update(chttp_node))
     {
-        ret = crfshttps_commit_update_post_request(chttps_node);
+        ret = crfshttps_commit_update_post_request(chttp_node);
     }
-    else if(EC_TRUE == crfshttps_is_http_post_renew(chttps_node))
+    else if(EC_TRUE == crfshttps_is_http_post_renew(chttp_node))
     {
-        ret = crfshttps_commit_renew_post_request(chttps_node);
+        ret = crfshttps_commit_renew_post_request(chttp_node);
     }
     else
     {
         CBUFFER *uri_cbuffer;
 
-        uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_post: invalid uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         ret = EC_FALSE;
     }
 
-    return crfshttps_commit_end(chttps_node, ret);
+    return crfshttps_commit_end(chttp_node, ret);
 }
 
-EC_BOOL crfshttps_commit_http_get(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_http_get(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_http_get: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(CHTTPS_NODE_URI(chttps_node)),
-                        CBUFFER_DATA(CHTTPS_NODE_URI(chttps_node)),
-                        CBUFFER_USED(CHTTPS_NODE_URI(chttps_node)));
+                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)),
+                        CBUFFER_DATA(CHTTP_NODE_URI(chttp_node)),
+                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)));
 
-    CHTTPS_NODE_LOG_TIME_WHEN_HANDLE(chttps_node);/*record rfs beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record rfs beg to handle time*/
 
-    if(EC_TRUE == crfshttps_is_http_get_getsmf(chttps_node))
+    if(EC_TRUE == crfshttps_is_http_get_getsmf(chttp_node))
     {
-        ret = crfshttps_commit_getsmf_get_request(chttps_node);
+        ret = crfshttps_commit_getsmf_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_dsmf(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_dsmf(chttp_node))
     {
-        ret = crfshttps_commit_dsmf_get_request(chttps_node);
+        ret = crfshttps_commit_dsmf_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_ddir(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_ddir(chttp_node))
     {
-        ret = crfshttps_commit_ddir_get_request(chttps_node);
+        ret = crfshttps_commit_ddir_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_sexpire(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_sexpire(chttp_node))
     {
-        ret = crfshttps_commit_sexpire_get_request(chttps_node);
+        ret = crfshttps_commit_sexpire_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_lock_req(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_lock_req(chttp_node))
     {
-        ret = crfshttps_commit_lock_req_get_request(chttps_node);
+        ret = crfshttps_commit_lock_req_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_unlock_req(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_unlock_req(chttp_node))
     {
-        ret = crfshttps_commit_unlock_req_get_request(chttps_node);
+        ret = crfshttps_commit_unlock_req_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_unlock_notify_req(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_unlock_notify_req(chttp_node))
     {
-        ret = crfshttps_commit_unlock_notify_req_get_request(chttps_node);
+        ret = crfshttps_commit_unlock_notify_req_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_recycle(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_recycle(chttp_node))
     {
-        ret = crfshttps_commit_recycle_get_request(chttps_node);
+        ret = crfshttps_commit_recycle_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_flush(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_flush(chttp_node))
     {
-        ret = crfshttps_commit_flush_get_request(chttps_node);
+        ret = crfshttps_commit_flush_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_retire(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_retire(chttp_node))
     {
-        ret = crfshttps_commit_retire_get_request(chttps_node);
+        ret = crfshttps_commit_retire_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_breathe(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_breathe(chttp_node))
     {
-        ret = crfshttps_commit_breathe_get_request(chttps_node);
+        ret = crfshttps_commit_breathe_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_logrotate(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_logrotate(chttp_node))
     {
-        ret = crfshttps_commit_logrotate_get_request(chttps_node);
+        ret = crfshttps_commit_logrotate_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_actsyscfg(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_actsyscfg(chttp_node))
     {
-        ret = crfshttps_commit_actsyscfg_get_request(chttps_node);
+        ret = crfshttps_commit_actsyscfg_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_qtree(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_qtree(chttp_node))
     {
-        ret = crfshttps_commit_qtree_get_request(chttps_node);
+        ret = crfshttps_commit_qtree_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_file_wait(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_file_wait(chttp_node))
     {
-        ret = crfshttps_commit_file_wait_get_request(chttps_node);
+        ret = crfshttps_commit_file_wait_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_file_notify(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_file_notify(chttp_node))
     {
-        ret = crfshttps_commit_file_notify_get_request(chttps_node);
+        ret = crfshttps_commit_file_notify_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_cond_wakeup(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_cond_wakeup(chttp_node))
     {
-        ret = crfshttps_commit_cond_wakeup_get_request(chttps_node);
+        ret = crfshttps_commit_cond_wakeup_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_renew_header(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_renew_header(chttp_node))
     {
-        ret = crfshttps_commit_renew_header_get_request(chttps_node);
+        ret = crfshttps_commit_renew_header_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_wait_header(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_wait_header(chttp_node))
     {
-        ret = crfshttps_commit_wait_header_get_request(chttps_node);
+        ret = crfshttps_commit_wait_header_get_request(chttp_node);
     }
-    else if (EC_TRUE == crfshttps_is_http_get_locked_file_retire(chttps_node))
+    else if (EC_TRUE == crfshttps_is_http_get_locked_file_retire(chttp_node))
     {
-        ret = crfshttps_commit_locked_file_retire_get_request(chttps_node);
+        ret = crfshttps_commit_locked_file_retire_get_request(chttp_node);
     }
     else
     {
         CBUFFER *uri_cbuffer;
 
-        uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_get: invalid uri %.*s\n",
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_commit_http_get: invalid uri %.*s",
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_commit_http_get: invalid uri %.*s",
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_ACCEPTABLE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
     }
 
-    return crfshttps_commit_end(chttps_node, ret);
+    return crfshttps_commit_end(chttp_node, ret);
 }
 
-EC_BOOL crfshttps_commit_end(CHTTPS_NODE *chttps_node, EC_BOOL result)
+EC_BOOL crfshttps_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
 {
     EC_BOOL ret;
 
     ret = result;
 
-    CHTTPS_NODE_CROUTINE_NODE(chttps_node) = NULL_PTR; /*clear croutine mounted point*/
+    CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR; /*clear croutine mounted point*/
 
     if(EC_DONE == ret)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(NULL_PTR != csocket_cnode)
         {
             CEPOLL *cepoll;
@@ -473,23 +473,23 @@ EC_BOOL crfshttps_commit_end(CHTTPS_NODE *chttps_node, EC_BOOL result)
             CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
-            /*chttps_node resume for next request handling if keep-alive*/
-            chttps_node_wait_resume(chttps_node);
+            /*chttp_node resume for next request handling if keep-alive*/
+            chttp_node_wait_resume(chttp_node);
 
             return (EC_DONE);
         }
 
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_end: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_end: csocket_cnode of chttp_node %p is null\n", chttp_node);
 
-        CHTTPS_NODE_KEEPALIVE(chttps_node) = EC_FALSE;
-        chttps_node_free(chttps_node);
+        CHTTP_NODE_KEEPALIVE(chttp_node) = EC_FALSE;
+        chttp_node_free(chttp_node);
 
         return (EC_FALSE);
     }
 
     if(EC_FALSE == ret)
     {
-        ret = chttps_commit_error_request(chttps_node);
+        ret = chttps_commit_error_request(chttp_node);
     }
 
     if(EC_FALSE == ret)
@@ -497,9 +497,9 @@ EC_BOOL crfshttps_commit_end(CHTTPS_NODE *chttps_node, EC_BOOL result)
         CSOCKET_CNODE * csocket_cnode;
 
         /*umount from defer request queue if necessary*/
-        chttps_defer_request_queue_erase(chttps_node);
+        chttps_defer_request_queue_erase(chttp_node);
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(NULL_PTR != csocket_cnode)
         {
             CEPOLL *cepoll;
@@ -514,19 +514,19 @@ EC_BOOL crfshttps_commit_end(CHTTPS_NODE *chttps_node, EC_BOOL result)
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
             /* umount */
-            CHTTPS_NODE_CSOCKET_CNODE(chttps_node) = NULL_PTR;
+            CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
             csocket_cnode_close(csocket_cnode);
 
             /*free*/
-            chttps_node_free(chttps_node);
+            chttp_node_free(chttp_node);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_end: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_end: csocket_cnode of chttp_node %p is null\n", chttp_node);
 
         /*free*/
-        chttps_node_free(chttps_node);
+        chttp_node_free(chttp_node);
 
         return (EC_FALSE);
     }
@@ -535,19 +535,19 @@ EC_BOOL crfshttps_commit_end(CHTTPS_NODE *chttps_node, EC_BOOL result)
     return (ret);
 }
 
-EC_BOOL crfshttps_commit_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
     EC_BOOL ret;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    ret = chttps_node_send_rsp(chttps_node, csocket_cnode);
+    ret = chttp_node_send_rsp(chttp_node, csocket_cnode);
     if(EC_AGAIN != ret)
     {
         return (ret);
@@ -585,11 +585,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_getsmf_get_op(const CBUFFER *uri_c
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_getsmf(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_getsmf(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_getsmf: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -604,23 +604,23 @@ EC_BOOL crfshttps_is_http_get_getsmf(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_getsmf_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_getsmf_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_getsmf_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_getsmf_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_getsmf_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_getsmf_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_getsmf_get_response(chttps_node);
+    ret = crfshttps_commit_getsmf_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_get_request: commit 'GET' response failed\n");
@@ -630,7 +630,7 @@ EC_BOOL crfshttps_commit_getsmf_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -645,7 +645,7 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
     char          *store_offset_str;
     char          *store_size_str;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
@@ -655,13 +655,13 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -673,19 +673,19 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_getsmf_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_getsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_getsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    store_offset_str = chttps_node_get_header(chttps_node, (const char *)"store-offset");
+    store_offset_str = chttp_node_get_header(chttp_node, (const char *)"store-offset");
     if(NULL_PTR != store_offset_str)
     {
         CSOCKET_CNODE * csocket_cnode;
@@ -696,12 +696,12 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         UINT32   offset;
         UINT32   max_len;
 
-        store_size_str   = chttps_node_get_header(chttps_node, (const char *)"store-size");
+        store_size_str   = chttp_node_get_header(chttp_node, (const char *)"store-size");
 
         store_offset = c_str_to_uint32_t(store_offset_str);
         store_size   = c_str_to_uint32_t(store_size_str);/*note: when store_size_str is null, store_size is zero*/
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         offset        = store_offset;
         max_len       = store_size;
 
@@ -710,11 +710,11 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u failed\n",
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             cbytes_clean(content_cbytes);
@@ -725,27 +725,27 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u done\n",
                             (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else/*read whole file content*/
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_get_request: crfs read %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_getsmf_get_request: crfs read %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_getsmf_get_request: crfs read %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             cbytes_clean(content_cbytes);
@@ -756,11 +756,11 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_getsmf_get_request: crfs read %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     cstring_clean(&path_cstr);
@@ -768,12 +768,12 @@ EC_BOOL crfshttps_handle_getsmf_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_getsmf_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_getsmf_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
     if(do_log(SEC_0158_CRFSHTTPS, 9))
@@ -782,36 +782,36 @@ EC_BOOL crfshttps_make_getsmf_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_getsmf_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_get_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -824,18 +824,18 @@ EC_BOOL crfshttps_make_getsmf_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_getsmf_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_getsmf_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 #if 1
@@ -857,11 +857,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_lock_req_get_op(const CBUFFER *uri
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_lock_req(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_lock_req(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_lock_req: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -876,23 +876,23 @@ EC_BOOL crfshttps_is_http_get_lock_req(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_lock_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_lock_req_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_lock_req_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_lock_req_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_lock_req_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_lock_req_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_lock_req_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_lock_req_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_lock_req_get_response(chttps_node);
+    ret = crfshttps_commit_lock_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_lock_req_get_request: commit 'GET' response failed\n");
@@ -943,7 +943,7 @@ STATIC_CAST static UINT32 __crfshttps_convert_expires_str_to_nseconds(const char
     safe_free(str, LOC_CRFSHTTPS_0010);
     return ((UINT32)0);
 }
-EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -959,7 +959,7 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
     uint8_t        auth_token_header[CMD5_DIGEST_LEN * 8];
     uint32_t       auth_token_header_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/lock_req");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
@@ -971,13 +971,13 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_lock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_lock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -989,17 +989,17 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_lock_req_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_lock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_lock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_lock_req_get_op(uri_cbuffer))
@@ -1010,14 +1010,14 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
         UINT32   expires_nsec;
         UINT32   locked_flag;
 
-        expires_str  = chttps_node_get_header(chttps_node, (const char *)"Expires");
+        expires_str  = chttp_node_get_header(chttp_node, (const char *)"Expires");
         expires_nsec = __crfshttps_convert_expires_str_to_nseconds(expires_str);
         locked_flag  = EC_FALSE;
 
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] crfshttps_handle_lock_req_get_request: header Expires %s => %ld\n",
                                 expires_str, expires_nsec);
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_lock(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expires_nsec, &token_cstr, &locked_flag))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "error:crfshttps_handle_lock_req_get_request: crfs lock %s failed\n",
@@ -1026,19 +1026,19 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
             if(EC_TRUE == locked_flag)/*flag was set*/
             {
                 cbytes_set(content_cbytes, (UINT8 *)"locked-already:true\r\n", sizeof("locked-already:true\r\n") - 1);
-                CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
             else /*flag was not set which means some error happen*/
             {
-                CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
 
             cstring_clean(&path_cstr);
@@ -1049,11 +1049,11 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_lock_req_get_request: crfs lock %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_lock_req_get_request: crfs lock %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_lock_req_get_request: crfs lock %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     auth_token_header_len = snprintf((char *)auth_token_header, sizeof(auth_token_header),
@@ -1067,14 +1067,14 @@ EC_BOOL crfshttps_handle_lock_req_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_lock_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_lock_req_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *token_buf;
     uint32_t       token_len;
 
     /*note: content carry on auth-token info but not response body*/
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     token_buf      = CBYTES_BUF(content_cbytes);
     token_len      = (uint32_t)CBYTES_LEN(content_cbytes);
 
@@ -1084,35 +1084,35 @@ EC_BOOL crfshttps_make_lock_req_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/lock_req");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_lock_req_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_lock_req_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_lock_req_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_token(chttps_node, token_buf, token_len))
+    if(EC_FALSE == chttp_make_response_header_token(chttp_node, token_buf, token_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_lock_req_get_response: make response header token failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_lock_req_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -1121,18 +1121,18 @@ EC_BOOL crfshttps_make_lock_req_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_lock_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_lock_req_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_lock_req_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_lock_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -1155,11 +1155,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_unlock_req_get_op(const CBUFFER *u
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_unlock_req(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_unlock_req(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_unlock_req: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1174,23 +1174,23 @@ EC_BOOL crfshttps_is_http_get_unlock_req(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_unlock_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_unlock_req_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_unlock_req_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_unlock_req_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_req_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_unlock_req_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_unlock_req_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_req_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_unlock_req_get_response(chttps_node);
+    ret = crfshttps_commit_unlock_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_req_get_request: commit 'GET' response failed\n");
@@ -1200,7 +1200,7 @@ EC_BOOL crfshttps_commit_unlock_req_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -1213,7 +1213,7 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_req");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
@@ -1223,13 +1223,13 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1241,16 +1241,16 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_unlock_req_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_unlock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_unlock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_unlock_req_get_op(uri_cbuffer))
@@ -1261,18 +1261,18 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
 
         CSTRING  token_cstr;
 
-        auth_token_header = chttps_node_get_header(chttps_node, (const char *)"auth-token");
+        auth_token_header = chttp_node_get_header(chttp_node, (const char *)"auth-token");
         if(NULL_PTR == auth_token_header)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT,
                             "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed due to header 'auth-token' absence\n",
                             (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed due to header 'auth-token' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed due to header 'auth-token' absence", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -1280,17 +1280,17 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
 
         cstring_set_str(&token_cstr, (const UINT8 *)auth_token_header);
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_unlock(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &token_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_unlock_req_get_request: crfs unlock %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -1299,11 +1299,11 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_req_get_request: crfs unlock %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_unlock_req_get_request: crfs unlock %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_unlock_req_get_request: crfs unlock %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     cstring_clean(&path_cstr);
@@ -1311,7 +1311,7 @@ EC_BOOL crfshttps_handle_unlock_req_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_unlock_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_unlock_req_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -1319,29 +1319,29 @@ EC_BOOL crfshttps_make_unlock_req_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_req");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_unlock_req_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_req_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_req_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_req_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -1350,18 +1350,18 @@ EC_BOOL crfshttps_make_unlock_req_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_unlock_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_unlock_req_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_req_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -1384,11 +1384,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_unlock_notify_req_get_op(const CBU
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_unlock_notify_req(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_unlock_notify_req(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_unlock_notify_req: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1403,23 +1403,23 @@ EC_BOOL crfshttps_is_http_get_unlock_notify_req(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_unlock_notify_req_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_unlock_notify_req_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_notify_req_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_unlock_notify_req_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_unlock_notify_req_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_notify_req_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_unlock_notify_req_get_response(chttps_node);
+    ret = crfshttps_commit_unlock_notify_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_notify_req_get_request: commit 'GET' response failed\n");
@@ -1429,7 +1429,7 @@ EC_BOOL crfshttps_commit_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -1442,7 +1442,7 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_notify_req");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
@@ -1452,13 +1452,13 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -1470,33 +1470,33 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_unlock_notify_req_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_unlock_notify_req_get_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_unlock_notify(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -1505,11 +1505,11 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_unlock_notify_req_get_request: crfs unlock_notify %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     cstring_clean(&path_cstr);
@@ -1517,7 +1517,7 @@ EC_BOOL crfshttps_handle_unlock_notify_req_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_unlock_notify_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -1525,29 +1525,29 @@ EC_BOOL crfshttps_make_unlock_notify_req_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_notify_req");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_unlock_notify_req_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_notify_req_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_notify_req_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_unlock_notify_req_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -1556,18 +1556,18 @@ EC_BOOL crfshttps_make_unlock_notify_req_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_unlock_notify_req_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_notify_req_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_unlock_notify_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -1591,11 +1591,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_recycle_get_op(const CBUFFER *uri_
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_recycle(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_recycle(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_recycle: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1610,23 +1610,23 @@ EC_BOOL crfshttps_is_http_get_recycle(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_recycle_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_recycle_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_recycle_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_recycle_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_recycle_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_recycle_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_recycle_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_recycle_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_recycle_get_response(chttps_node);
+    ret = crfshttps_commit_recycle_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_recycle_get_request: commit 'GET' response failed\n");
@@ -1636,7 +1636,7 @@ EC_BOOL crfshttps_commit_recycle_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_recycle_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_recycle_get_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     CBUFFER       *uri_cbuffer;
@@ -1646,18 +1646,18 @@ EC_BOOL crfshttps_handle_recycle_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/recycle");
     //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/recycle");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_recycle_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -1667,15 +1667,15 @@ EC_BOOL crfshttps_handle_recycle_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_recycle_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_recycle_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_recycle_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_recycle_get_op(uri_cbuffer))
@@ -1688,19 +1688,19 @@ EC_BOOL crfshttps_handle_recycle_get_request(CHTTPS_NODE *chttps_node)
         uint8_t  recycle_result[ 32 ];
         uint32_t recycle_result_len;
 
-        max_num_per_np_str = chttps_node_get_header(chttps_node, (const char *)"max-num-per-np");
+        max_num_per_np_str = chttp_node_get_header(chttp_node, (const char *)"max-num-per-np");
         max_num_per_np = c_str_to_word(max_num_per_np_str);
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_recycle(CSOCKET_CNODE_MODI(csocket_cnode), max_num_per_np, &complete_num))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_recycle_get_request: crfs recycle failed\n");
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_recycle_get_request: crfs recycle failed");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_recycle_get_request: crfs recycle failed");
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
@@ -1711,49 +1711,49 @@ EC_BOOL crfshttps_handle_recycle_get_request(CHTTPS_NODE *chttps_node)
         recycle_result_len = snprintf((char *)recycle_result, sizeof(recycle_result), "recycle-completion:%ld\r\n", complete_num);
         cbytes_set(content_cbytes, recycle_result, recycle_result_len);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_recycle_get_request: crfs recycle done");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_recycle_get_request: crfs recycle done");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_recycle_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_recycle_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *recycle_result_buf;
     uint32_t       recycle_result_len;
 
     /*note: content carry on recycle-completion info but not response body*/
-    content_cbytes    = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes    = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     recycle_result_buf = CBYTES_BUF(content_cbytes);
     recycle_result_len = (uint32_t)CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_recycle_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_recycle_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_recycle(chttps_node, recycle_result_buf, recycle_result_len))
+    if(EC_FALSE == chttp_make_response_header_recycle(chttp_node, recycle_result_buf, recycle_result_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_recycle_get_response: make response header recycle failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_recycle_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -1762,18 +1762,18 @@ EC_BOOL crfshttps_make_recycle_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_recycle_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_recycle_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_recycle_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_recycle_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -1796,11 +1796,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_flush_get_op(const CBUFFER *uri_cb
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_flush(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_flush(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_flush: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1815,23 +1815,23 @@ EC_BOOL crfshttps_is_http_get_flush(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_flush_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_flush_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_flush_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_flush_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_flush_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_flush_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_flush_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_flush_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_flush_get_response(chttps_node);
+    ret = crfshttps_commit_flush_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_flush_get_request: commit 'GET' response failed\n");
@@ -1841,7 +1841,7 @@ EC_BOOL crfshttps_commit_flush_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_flush_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_flush_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -1850,18 +1850,18 @@ EC_BOOL crfshttps_handle_flush_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/flush");
     //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/flush");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_flush_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -1871,11 +1871,11 @@ EC_BOOL crfshttps_handle_flush_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_flush_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_flush_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_flush_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -1883,48 +1883,48 @@ EC_BOOL crfshttps_handle_flush_get_request(CHTTPS_NODE *chttps_node)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_flush(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_flush_get_request: crfs flush failed\n");
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_flush_get_request: crfs flush failed");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_flush_get_request: crfs flush failed");
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_flush_get_request: crfs flush done\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_flush_get_request: crfs flush done");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_flush_get_request: crfs flush done");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_flush_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_flush_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_flush_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_flush_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_flush_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -1933,18 +1933,18 @@ EC_BOOL crfshttps_make_flush_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_flush_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_flush_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_flush_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_flush_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -1967,11 +1967,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_retire_get_op(const CBUFFER *uri_c
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_retire(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_retire(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_retire: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -1986,23 +1986,23 @@ EC_BOOL crfshttps_is_http_get_retire(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_retire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_retire_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_retire_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_retire_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_retire_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_retire_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_retire_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_retire_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_retire_get_response(chttps_node);
+    ret = crfshttps_commit_retire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_retire_get_request: commit 'GET' response failed\n");
@@ -2012,7 +2012,7 @@ EC_BOOL crfshttps_commit_retire_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_retire_get_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
 
@@ -2022,13 +2022,13 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_retire_get_request\n");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_retire_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -2038,27 +2038,27 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_retire_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_retire_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    retire_files_str   = chttps_node_get_header(chttps_node, (const char *)"retire-files");
+    retire_files_str   = chttp_node_get_header(chttp_node, (const char *)"retire-files");
     if(NULL_PTR == retire_files_str) /*invalid retire request*/
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_retire_get_request: http header 'retire-files' absence\n");
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_retire_get_request: http header 'retire-files' absence");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_retire_get_request: http header 'retire-files' absence");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -2075,19 +2075,19 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
         retire_files   = c_str_to_word(retire_files_str);
 
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
         if(EC_FALSE == crfs_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_files, &complete_num))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_retire_get_request: crfs retire with expect retire num %ld failed\n",
                                 retire_files);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_retire_get_request: crfs retire with expect retire num %ld failed",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_retire_get_request: crfs retire with expect retire num %ld failed",
                                 retire_files);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
         }
 
@@ -2098,50 +2098,50 @@ EC_BOOL crfshttps_handle_retire_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done\n",
                             retire_files, complete_num);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done",
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done",
                             retire_files, complete_num);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_retire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_retire_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *retire_result_buf;
     uint32_t       retire_result_len;
 
     /*note: content carry on retire-completion info but not response body*/
-    content_cbytes    = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes    = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     retire_result_buf = CBYTES_BUF(content_cbytes);
     retire_result_len = (uint32_t)CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_retire_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_retire_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_retire(chttps_node, retire_result_buf, retire_result_len))
+    if(EC_FALSE == chttp_make_response_header_retire(chttp_node, retire_result_buf, retire_result_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_retire_get_response: make response header retire failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_retire_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -2150,18 +2150,18 @@ EC_BOOL crfshttps_make_retire_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_retire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_retire_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_retire_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -2184,11 +2184,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_breathe_get_op(const CBUFFER *uri_
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_breathe(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_breathe(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_breathe: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -2203,23 +2203,23 @@ EC_BOOL crfshttps_is_http_get_breathe(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_breathe_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_breathe_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_breathe_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_breathe_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_breathe_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_breathe_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_breathe_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_breathe_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_breathe_get_response(chttps_node);
+    ret = crfshttps_commit_breathe_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_breathe_get_request: commit 'GET' response failed\n");
@@ -2229,7 +2229,7 @@ EC_BOOL crfshttps_commit_breathe_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_breathe_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_breathe_get_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
 
@@ -2237,13 +2237,13 @@ EC_BOOL crfshttps_handle_breathe_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_breathe_get_request\n");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_breathe_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -2253,55 +2253,55 @@ EC_BOOL crfshttps_handle_breathe_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_breathe_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_breathe_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_breathe_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(1)
     {
         //CSOCKET_CNODE * csocket_cnode;
 
-        //csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
         breathing_static_mem();
 
         dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_breathe_get_request: memory breathing done\n");
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_breathe_get_request: memory breathing done");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_breathe_get_request: memory breathing done");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_breathe_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_breathe_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_breathe_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_breathe_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_breathe_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -2310,18 +2310,18 @@ EC_BOOL crfshttps_make_breathe_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_breathe_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_breathe_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_breathe_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_breathe_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -2345,11 +2345,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_setsmf_post_op(const CBUFFER *uri_
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_post_setsmf(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_setsmf(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_setsmf: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -2364,17 +2364,17 @@ EC_BOOL crfshttps_is_http_post_setsmf(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_setsmf_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_setsmf_post_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_setsmf_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_setsmf_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_setsmf_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_setsmf_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_setsmf_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_setsmf_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -2382,7 +2382,7 @@ EC_BOOL crfshttps_commit_setsmf_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_setsmf_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_setsmf_post_response(chttps_node);
+    ret = crfshttps_commit_setsmf_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_setsmf_post_request: commit 'SET' response failed\n");
@@ -2393,7 +2393,7 @@ EC_BOOL crfshttps_commit_setsmf_post_request(CHTTPS_NODE *chttps_node)
 }
 
 
-EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -2406,14 +2406,14 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);/*note: maybe request does not carry on Content-Lenght header*/
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);/*note: maybe request does not carry on Content-Lenght header*/
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64"\n",
                                                  (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),
@@ -2426,13 +2426,13 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_setsmf_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64,
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf")),content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -2444,13 +2444,13 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_setsmf_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_setsmf_post_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
@@ -2462,11 +2462,11 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_setsmf_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_setsmf_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_setsmf_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -2475,11 +2475,11 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     if(content_len > body_len)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -2489,25 +2489,25 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_setsmf_post_request: new cbytes without buff failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_setsmf_post_request: new cbytes without buff failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_setsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_setsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cstring_clean(&path_cstr);
         cbytes_free(content_cbytes);
@@ -2515,24 +2515,24 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_setsmf_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
         if(EC_FALSE == crfs_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -2541,9 +2541,9 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
         if(EC_FALSE == crfs_write_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CRFS_MAX_REPLICA_NUM))
@@ -2551,11 +2551,11 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -2564,9 +2564,9 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
     else
@@ -2578,30 +2578,30 @@ EC_BOOL crfshttps_handle_setsmf_post_request(CHTTPS_NODE *chttps_node)
     cstring_clean(&path_cstr);
     cbytes_free(content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_setsmf_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_setsmf_post_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_setsmf_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_setsmf_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_setsmf_post_response: make header end failed\n");
         return (EC_FALSE);
@@ -2610,18 +2610,18 @@ EC_BOOL crfshttps_make_setsmf_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_setsmf_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_setsmf_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_setsmf_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_setsmf_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -2645,11 +2645,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_getsmf_head_op(const CBUFFER *uri_
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_head_getsmf(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_head_getsmf(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_head_getsmf: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -2663,17 +2663,17 @@ EC_BOOL crfshttps_is_http_head_getsmf(const CHTTPS_NODE *chttps_node)
 
     return (EC_FALSE);
 }
-EC_BOOL crfshttps_commit_getsmf_head_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_getsmf_head_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_getsmf_head_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_getsmf_head_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_head_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_getsmf_head_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_getsmf_head_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_head_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -2681,7 +2681,7 @@ EC_BOOL crfshttps_commit_getsmf_head_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_getsmf_head_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_getsmf_head_response(chttps_node);
+    ret = crfshttps_commit_getsmf_head_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_head_request: commit 'SET' response failed\n");
@@ -2691,7 +2691,7 @@ EC_BOOL crfshttps_commit_getsmf_head_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -2702,7 +2702,7 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
 
     CBYTES        *content_cbytes;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
@@ -2712,7 +2712,7 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_head_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_getsmf_head_op(uri_cbuffer))
@@ -2723,17 +2723,17 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
         uint8_t        file_size_header[32];
         uint32_t       file_size_header_len;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_size(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &file_size))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_getsmf_head_request: crfs get size of %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "HEAD", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_getsmf_head_request: crfs get size of %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "HEAD", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_getsmf_head_request: crfs get size of %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -2741,9 +2741,9 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_getsmf_head_request: crfs get size of %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %"PRId64, "HEAD", CHTTP_OK, file_size);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_getsmf_head_request: crfs get size of %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %"PRId64, "HEAD", CHTTP_OK, file_size);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_getsmf_head_request: crfs get size of %s done", (char *)cstring_get_str(&path_cstr));
 
         file_size_header_len = snprintf((char *)file_size_header, sizeof(file_size_header),
                                         "file-size:%"PRId64"\r\n", file_size);
@@ -2757,45 +2757,45 @@ EC_BOOL crfshttps_handle_getsmf_head_request(CHTTPS_NODE *chttps_node)
 
     cstring_clean(&path_cstr);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_getsmf_head_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_getsmf_head_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *file_size_buf;
     uint32_t       file_size_len;
 
     /*note: content carry on file-size info but not response body*/
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     file_size_buf  = CBYTES_BUF(content_cbytes);
     file_size_len  = (uint32_t)CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_head_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_head_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_data(chttps_node, file_size_buf, file_size_len))
+    if(EC_FALSE == chttp_make_response_header_data(chttp_node, file_size_buf, file_size_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_head_response: make response header file-size failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_getsmf_head_response: make header end failed\n");
         return (EC_FALSE);
@@ -2804,18 +2804,18 @@ EC_BOOL crfshttps_make_getsmf_head_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_getsmf_head_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_getsmf_head_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_head_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_getsmf_head_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -2838,11 +2838,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_update_post_op(const CBUFFER *uri_
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_post_update(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_update(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_update: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -2857,17 +2857,17 @@ EC_BOOL crfshttps_is_http_post_update(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_update_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_update_post_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_update_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_update_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_update_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_update_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_update_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_update_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -2875,7 +2875,7 @@ EC_BOOL crfshttps_commit_update_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_update_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_update_post_response(chttps_node);
+    ret = crfshttps_commit_update_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_update_post_request: commit 'SET' response failed\n");
@@ -2885,7 +2885,7 @@ EC_BOOL crfshttps_commit_update_post_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_update_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -2898,14 +2898,14 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(!((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_update_post_request: path %.*s, invalid content length %"PRId64"\n",
                                                  (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
@@ -2918,13 +2918,13 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_update_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_post_request: path %.*s, invalid content length %"PRId64,
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_update_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -2936,13 +2936,13 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_update_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_update_post_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
@@ -2954,11 +2954,11 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_update_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_update_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_update_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -2968,11 +2968,11 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -2982,25 +2982,25 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_update_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_update_post_request: new cbytes with len zero failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_update_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_update_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cstring_clean(&path_cstr);
         cbytes_free(content_cbytes);
@@ -3008,24 +3008,24 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_update_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
         if(EC_FALSE == crfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: crfs update %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -3034,9 +3034,9 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_update_post_request: crfs update %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_update_post_request: crfs update %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_update_post_request: crfs update %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
         if(EC_FALSE == crfs_update_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes, CRFS_MAX_REPLICA_NUM))
@@ -3044,11 +3044,11 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_update_post_request: crfs update %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -3066,30 +3066,30 @@ EC_BOOL crfshttps_handle_update_post_request(CHTTPS_NODE *chttps_node)
     cstring_clean(&path_cstr);
     cbytes_free(content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_update_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_update_post_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_update_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_update_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_update_post_response: make header end failed\n");
         return (EC_FALSE);
@@ -3098,18 +3098,18 @@ EC_BOOL crfshttps_make_update_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_update_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_update_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_update_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_update_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -3134,11 +3134,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_renew_post_op(const CBUFFER *uri_c
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_post_renew(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_renew(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_renew: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -3153,17 +3153,17 @@ EC_BOOL crfshttps_is_http_post_renew(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_renew_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_renew_post_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_renew_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_renew_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_renew_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_renew_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -3171,7 +3171,7 @@ EC_BOOL crfshttps_commit_renew_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_renew_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_renew_post_response(chttps_node);
+    ret = crfshttps_commit_renew_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_post_request: commit 'SET' response failed\n");
@@ -3181,7 +3181,7 @@ EC_BOOL crfshttps_commit_renew_post_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_renew_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3194,14 +3194,14 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_post_request: path %.*s, invalid content length %"PRId64"\n",
                                                  (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
@@ -3214,13 +3214,13 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
                         (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
                         (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew")),content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -3232,13 +3232,13 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_post_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
@@ -3250,11 +3250,11 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_post_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_renew_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_renew_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -3263,11 +3263,11 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     if(content_len > body_len)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -3277,25 +3277,25 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_post_request: new cbytes without buff failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_post_request: new cbytes without buff failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cstring_clean(&path_cstr);
         cbytes_free(content_cbytes);
@@ -3303,24 +3303,24 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_renew_post_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
         if(EC_FALSE == crfs_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: crfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_post_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_post_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -3329,9 +3329,9 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_post_request: crfs renew %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_renew_post_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_renew_post_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
         if(EC_FALSE == crfs_renew_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFS_MAX_REPLICA_NUM))
@@ -3339,11 +3339,11 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_post_request: crfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_post_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_post_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             cbytes_free(content_cbytes);
@@ -3360,30 +3360,30 @@ EC_BOOL crfshttps_handle_renew_post_request(CHTTPS_NODE *chttps_node)
     cstring_clean(&path_cstr);
     cbytes_free(content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_renew_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_renew_post_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_post_response: make header end failed\n");
         return (EC_FALSE);
@@ -3392,18 +3392,18 @@ EC_BOOL crfshttps_make_renew_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_renew_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_renew_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -3428,11 +3428,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_dsmf_get_op(const CBUFFER *uri_cbu
 }
 
 /*delete small/regular file*/
-EC_BOOL crfshttps_is_http_get_dsmf(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_dsmf(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_dsmf: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -3447,23 +3447,23 @@ EC_BOOL crfshttps_is_http_get_dsmf(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_dsmf_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_dsmf_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_dsmf_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_dsmf_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_dsmf_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_dsmf_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_dsmf_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_dsmf_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_dsmf_get_response(chttps_node);
+    ret = crfshttps_commit_dsmf_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_dsmf_get_request: commit 'GET' response failed\n");
@@ -3473,7 +3473,7 @@ EC_BOOL crfshttps_commit_dsmf_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3484,7 +3484,7 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/dsmf");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
@@ -3494,13 +3494,13 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3512,11 +3512,11 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_dsmf_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_dsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_dsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -3526,18 +3526,18 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
         if(EC_FALSE == crfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFSNP_ITEM_FILE_IS_REG))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -3545,9 +3545,9 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_dsmf_get_request: crfs delete file %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_dsmf_get_request: crfs delete file %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_dsmf_get_request: crfs delete file %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
         if(EC_FALSE == crfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFSNP_ITEM_FILE_IS_REG, CRFS_MAX_REPLICA_NUM))
@@ -3555,17 +3555,17 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 #endif
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
@@ -3578,24 +3578,24 @@ EC_BOOL crfshttps_handle_dsmf_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_dsmf_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_dsmf_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_dsmf_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_dsmf_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_dsmf_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -3604,18 +3604,18 @@ EC_BOOL crfshttps_make_dsmf_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_dsmf_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_dsmf_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_dsmf_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_dsmf_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -3639,11 +3639,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_ddir_get_op(const CBUFFER *uri_cbu
 }
 
 /*delete dir*/
-EC_BOOL crfshttps_is_http_get_ddir(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_ddir(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_ddir: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -3658,23 +3658,23 @@ EC_BOOL crfshttps_is_http_get_ddir(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_ddir_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_ddir_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_ddir_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_ddir_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_ddir_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_ddir_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_ddir_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_ddir_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_ddir_get_response(chttps_node);
+    ret = crfshttps_commit_ddir_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_ddir_get_request: commit 'GET' response failed\n");
@@ -3684,7 +3684,7 @@ EC_BOOL crfshttps_commit_ddir_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_ddir_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3695,7 +3695,7 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/ddir");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
@@ -3705,13 +3705,13 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3723,11 +3723,11 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_ddir_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_ddir_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_ddir_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -3737,18 +3737,18 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
         if(EC_FALSE == crfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFSNP_ITEM_FILE_IS_DIR))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -3756,9 +3756,9 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_ddir_get_request: crfs delete dir %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_ddir_get_request: crfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_ddir_get_request: crfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
         if(EC_FALSE == crfs_delete_r(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CRFSNP_ITEM_FILE_IS_DIR, CRFS_MAX_REPLICA_NUM))
@@ -3766,17 +3766,17 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 #endif
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
@@ -3789,24 +3789,24 @@ EC_BOOL crfshttps_handle_ddir_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_ddir_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_ddir_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_ddir_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_ddir_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_ddir_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -3815,18 +3815,18 @@ EC_BOOL crfshttps_make_ddir_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_ddir_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_ddir_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_ddir_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_ddir_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -3851,11 +3851,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_sexpire_get_op(const CBUFFER *uri_
 }
 
 /*expire single file*/
-EC_BOOL crfshttps_is_http_get_sexpire(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_sexpire(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_sexpire: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -3870,23 +3870,23 @@ EC_BOOL crfshttps_is_http_get_sexpire(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_sexpire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_sexpire_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_sexpire_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_sexpire_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_sexpire_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_sexpire_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_sexpire_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_sexpire_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_sexpire_get_response(chttps_node);
+    ret = crfshttps_commit_sexpire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_sexpire_get_request: commit 'GET' response failed\n");
@@ -3896,7 +3896,7 @@ EC_BOOL crfshttps_commit_sexpire_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3907,7 +3907,7 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/sexpire");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sexpire");
@@ -3917,13 +3917,13 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -3935,11 +3935,11 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_sexpire_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_sexpire_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_sexpire_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -3949,17 +3949,17 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_expire(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_sexpire_get_request: crfs exipre file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_sexpire_get_request: crfs exipre file %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_sexpire_get_request: crfs exipre file %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -3967,11 +3967,11 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_sexpire_get_request: crfs exipre file %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_sexpire_get_request: crfs exipre file %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_sexpire_get_request: crfs exipre file %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
@@ -3984,24 +3984,24 @@ EC_BOOL crfshttps_handle_sexpire_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_sexpire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_sexpire_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_sexpire_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_sexpire_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_sexpire_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -4010,18 +4010,18 @@ EC_BOOL crfshttps_make_sexpire_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_sexpire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_sexpire_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_sexpire_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_sexpire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -4046,11 +4046,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_mexpire_post_op(const CBUFFER *uri
 }
 
 /*expire multiple files*/
-EC_BOOL crfshttps_is_http_post_mexpire(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_mexpire(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_mexpire: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -4065,23 +4065,23 @@ EC_BOOL crfshttps_is_http_post_mexpire(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_mexpire_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mexpire_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mexpire_post_request: uri %.*s\n",
                     CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
 
-    if(EC_FALSE == crfshttps_handle_mexpire_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_mexpire_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mexpire_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_mexpire_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_mexpire_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mexpire_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -4089,7 +4089,7 @@ EC_BOOL crfshttps_commit_mexpire_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mexpire_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_mexpire_post_response(chttps_node);
+    ret = crfshttps_commit_mexpire_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mexpire_post_request: commit 'SET' response failed\n");
@@ -4099,7 +4099,7 @@ EC_BOOL crfshttps_commit_mexpire_post_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4109,13 +4109,13 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mexpire_post_request: invalid content length %"PRId64"\n",
                                                  content_len);
@@ -4126,20 +4126,20 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mexpire_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mexpire_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mexpire_post_request: invalid content length %"PRId64, content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mexpire_post_request: invalid body length %"PRId64"\n",
                                                  body_len);
@@ -4150,22 +4150,22 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mexpire_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mexpire_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mexpire_post_request: invalid body length %"PRId64, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
     if(content_len > body_len)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         return (EC_TRUE);
     }
@@ -4173,11 +4173,11 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "info:crfshttps_handle_mexpire_post_request: request body is empty\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "info:crfshttps_handle_mexpire_post_request: request body is empty");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttps_handle_mexpire_post_request: request body is empty");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
     }
 
@@ -4185,30 +4185,30 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == req_content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mexpire_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mexpire_post_request: new cbytes with len zero failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, req_content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mexpire_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mexpire_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cbytes_free(req_content_cbytes);
         return (EC_TRUE);
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_mexpire_post_op(uri_cbuffer))
     {
@@ -4218,9 +4218,9 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
         const char    * rsp_body_str;
         size_t          idx;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        rsp_content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
 
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
@@ -4228,12 +4228,12 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mexpire_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mexpire_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
             cbytes_free(req_content_cbytes);
             /*no response body*/
@@ -4289,9 +4289,9 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mexpire_post_request: crfs expire %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mexpire_post_request: crfs expire %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mexpire_post_request: crfs expire %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
@@ -4300,9 +4300,9 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_mexpire_post_request: crfs expire %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_mexpire_post_request: crfs expire %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_mexpire_post_request: crfs expire %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -4324,43 +4324,43 @@ EC_BOOL crfshttps_handle_mexpire_post_request(CHTTPS_NODE *chttps_node)
 
     cbytes_free(req_content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_mexpire_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_mexpire_post_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mexpire_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mexpire_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mexpire_post_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -4373,18 +4373,18 @@ EC_BOOL crfshttps_make_mexpire_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_mexpire_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mexpire_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mexpire_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mexpire_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -4409,11 +4409,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_mdsmf_post_op(const CBUFFER *uri_c
 }
 
 /*delete multiple files*/
-EC_BOOL crfshttps_is_http_post_mdsmf(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_mdsmf(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_mdsmf: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -4428,22 +4428,22 @@ EC_BOOL crfshttps_is_http_post_mdsmf(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_mdsmf_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mdsmf_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mdsmf_post_request: uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
-    if(EC_FALSE == crfshttps_handle_mdsmf_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_mdsmf_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mdsmf_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_mdsmf_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_mdsmf_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mdsmf_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -4451,7 +4451,7 @@ EC_BOOL crfshttps_commit_mdsmf_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mdsmf_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_mdsmf_post_response(chttps_node);
+    ret = crfshttps_commit_mdsmf_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mdsmf_post_request: commit 'SET' response failed\n");
@@ -4461,7 +4461,7 @@ EC_BOOL crfshttps_commit_mdsmf_post_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4471,13 +4471,13 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mdsmf_post_request: invalid content length %"PRId64"\n",
                                                  content_len);
@@ -4488,20 +4488,20 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mdsmf_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mdsmf_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mdsmf_post_request: invalid content length %"PRId64, content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mdsmf_post_request: invalid body length %"PRId64"\n",
                                                  body_len);
@@ -4512,22 +4512,22 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mdsmf_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mdsmf_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mdsmf_post_request: invalid body length %"PRId64, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
     if(content_len > body_len)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         return (EC_TRUE);
     }
@@ -4535,10 +4535,10 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "info:crfshttps_handle_mdsmf_post_request: request body is empty\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "info:crfshttps_handle_mdsmf_post_request: request body is empty");
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttps_handle_mdsmf_post_request: request body is empty");
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
     }
 
@@ -4546,30 +4546,30 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == req_content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mdsmf_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mdsmf_post_request: new cbytes with len zero failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, req_content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mdsmf_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mdsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cbytes_free(req_content_cbytes);
         return (EC_TRUE);
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_mdsmf_post_op(uri_cbuffer))
     {
@@ -4579,9 +4579,9 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
         const char    * rsp_body_str;
         size_t          idx;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        rsp_content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
 
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
@@ -4589,12 +4589,12 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mdsmf_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mdsmf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
             cbytes_free(req_content_cbytes);
             /*no response body*/
@@ -4649,9 +4649,9 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mdsmf_post_request: crfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mdsmf_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mdsmf_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
@@ -4660,9 +4660,9 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_mdsmf_post_request: crfs delete %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_mdsmf_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_mdsmf_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -4684,43 +4684,43 @@ EC_BOOL crfshttps_handle_mdsmf_post_request(CHTTPS_NODE *chttps_node)
 
     cbytes_free(req_content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_mdsmf_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mdsmf_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mdsmf_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mdsmf_post_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -4733,18 +4733,18 @@ EC_BOOL crfshttps_make_mdsmf_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_mdsmf_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mdsmf_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mdsmf_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mdsmf_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -4770,11 +4770,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_mddir_post_op(const CBUFFER *uri_c
 }
 
 /*delete multiple files*/
-EC_BOOL crfshttps_is_http_post_mddir(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_post_mddir(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_post_mddir: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -4789,23 +4789,23 @@ EC_BOOL crfshttps_is_http_post_mddir(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_mddir_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mddir_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mddir_post_request: uri %.*s\n",
                         CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
 
-    if(EC_FALSE == crfshttps_handle_mddir_post_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_mddir_post_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mddir_post_request: handle 'SET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_mddir_post_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_mddir_post_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mddir_post_request: make 'SET' response failed\n");
         return (EC_FALSE);
@@ -4813,7 +4813,7 @@ EC_BOOL crfshttps_commit_mddir_post_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_mddir_post_request: make 'SET' response done\n");
 
-    ret = crfshttps_commit_mddir_post_response(chttps_node);
+    ret = crfshttps_commit_mddir_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mddir_post_request: commit 'SET' response failed\n");
@@ -4823,7 +4823,7 @@ EC_BOOL crfshttps_commit_mddir_post_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_mddir_post_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4833,13 +4833,13 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
-    content_len  = CHTTPS_NODE_CONTENT_LENGTH(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mddir_post_request: invalid content length %"PRId64"\n",
                                                  content_len);
@@ -4850,20 +4850,20 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mddir_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mddir_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mddir_post_request: invalid content length %"PRId64, content_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    body_len = chttps_node_recv_len(chttps_node);
+    body_len = chttp_node_recv_len(chttp_node);
     /*CRFSHTTPS_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > body_len))
     {
         CHUNK_MGR *req_body_chunks;
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mddir_post_request: invalid body length %"PRId64"\n",
                                                  body_len);
@@ -4874,22 +4874,22 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_mddir_post_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_mddir_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_mddir_post_request: invalid body length %"PRId64, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
     if(content_len > body_len)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "warn:crfshttps_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "warn:crfshttps_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttps_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_PARTIAL_CONTENT;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
         return (EC_TRUE);
     }
@@ -4897,11 +4897,11 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "info:crfshttps_handle_mddir_post_request: request body is empty\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "info:crfshttps_handle_mddir_post_request: request body is empty");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttps_handle_mddir_post_request: request body is empty");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
     }
 
@@ -4909,30 +4909,30 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
     if(NULL_PTR == req_content_cbytes)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mddir_post_request: new cbytes without buff failed\n");
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mddir_post_request: new cbytes with len zero failed");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INSUFFICIENT_STORAGE;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chttps_node_recv_export_to_cbytes(chttps_node, req_content_cbytes, (UINT32)body_len))
+    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mddir_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mddir_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cbytes_free(req_content_cbytes);
         return (EC_TRUE);
     }
 
     /*clean body chunks*/
-    chttps_node_recv_clean(chttps_node);
+    chttp_node_recv_clean(chttp_node);
 
     if(EC_TRUE == __crfshttps_uri_is_mddir_post_op(uri_cbuffer))
     {
@@ -4942,9 +4942,9 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
         const char    * rsp_body_str;
         size_t          idx;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        rsp_content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
 
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
@@ -4952,12 +4952,12 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mddir_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mddir_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
             cbytes_free(req_content_cbytes);
             /*no response body*/
@@ -5012,9 +5012,9 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_mddir_post_request: crfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_mddir_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_mddir_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
@@ -5023,9 +5023,9 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
                 dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_mddir_post_request: crfs delete %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
-                CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-                CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_mddir_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_mddir_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -5047,43 +5047,43 @@ EC_BOOL crfshttps_handle_mddir_post_request(CHTTPS_NODE *chttps_node)
 
     cbytes_free(req_content_cbytes);
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_mddir_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_mddir_post_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mddir_post_response: make response header failed\n");
 
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mddir_post_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_mddir_post_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -5096,18 +5096,18 @@ EC_BOOL crfshttps_make_mddir_post_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_mddir_post_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_mddir_post_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mddir_post_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_mddir_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -5130,11 +5130,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_logrotate_get_op(const CBUFFER *ur
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_logrotate(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_logrotate(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_logrotate: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -5149,23 +5149,23 @@ EC_BOOL crfshttps_is_http_get_logrotate(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_logrotate_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_logrotate_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_logrotate_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_logrotate_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_logrotate_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_logrotate_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_logrotate_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_logrotate_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_logrotate_get_response(chttps_node);
+    ret = crfshttps_commit_logrotate_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_logrotate_get_request: commit 'GET' response failed\n");
@@ -5175,7 +5175,7 @@ EC_BOOL crfshttps_commit_logrotate_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_logrotate_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -5184,18 +5184,18 @@ EC_BOOL crfshttps_handle_logrotate_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/logrotate");
     //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/logrotate");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_logrotate_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -5205,11 +5205,11 @@ EC_BOOL crfshttps_handle_logrotate_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_logrotate_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_logrotate_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_logrotate_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -5222,9 +5222,9 @@ EC_BOOL crfshttps_handle_logrotate_get_request(CHTTPS_NODE *chttps_node)
         UINT32 log_index;
 
         super_md_id = 0;
-        //csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-        log_index_str = chttps_node_get_header(chttps_node, (const char *)"log-index");
+        log_index_str = chttp_node_get_header(chttp_node, (const char *)"log-index");
         if(NULL_PTR != log_index_str)
         {
             log_index = c_str_to_word(log_index_str);
@@ -5238,45 +5238,45 @@ EC_BOOL crfshttps_handle_logrotate_get_request(CHTTPS_NODE *chttps_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_logrotate_get_request: log rotate %ld failed", log_index);
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_logrotate_get_request: log rotate %ld failed", log_index);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_logrotate_get_request: log rotate %ld done\n", log_index);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_logrotate_get_request: log rotate %ld done", log_index);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_logrotate_get_request: log rotate %ld done", log_index);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_logrotate_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_logrotate_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_logrotate_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_logrotate_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_logrotate_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -5285,18 +5285,18 @@ EC_BOOL crfshttps_make_logrotate_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_logrotate_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_logrotate_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_logrotate_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_logrotate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -5319,11 +5319,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_actsyscfg_get_op(const CBUFFER *ur
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_actsyscfg(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_actsyscfg: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -5338,23 +5338,23 @@ EC_BOOL crfshttps_is_http_get_actsyscfg(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_actsyscfg_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_actsyscfg_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_actsyscfg_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_actsyscfg_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_actsyscfg_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_actsyscfg_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_actsyscfg_get_response(chttps_node);
+    ret = crfshttps_commit_actsyscfg_get_response(chttp_node);
 
     if(EC_FALSE == ret)
     {
@@ -5365,7 +5365,7 @@ EC_BOOL crfshttps_commit_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -5374,18 +5374,18 @@ EC_BOOL crfshttps_handle_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/actsyscfg");
     //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/actsyscfg");
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_actsyscfg_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -5395,11 +5395,11 @@ EC_BOOL crfshttps_handle_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_actsyscfg_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_actsyscfg_get_request: bad request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_actsyscfg_get_request: bad request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
@@ -5413,34 +5413,34 @@ EC_BOOL crfshttps_handle_actsyscfg_get_request(CHTTPS_NODE *chttps_node)
 
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_actsyscfg_get_request done\n");
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_actsyscfg_get_request done");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_actsyscfg_get_request done");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_actsyscfg_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_actsyscfg_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_actsyscfg_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_actsyscfg_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_actsyscfg_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -5449,18 +5449,18 @@ EC_BOOL crfshttps_make_actsyscfg_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_actsyscfg_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_actsyscfg_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_actsyscfg_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_actsyscfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -5484,11 +5484,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_qtree_get_op(const CBUFFER *uri_cb
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_qtree(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_qtree(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_qtree: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -5503,23 +5503,23 @@ EC_BOOL crfshttps_is_http_get_qtree(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_qtree_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_qtree_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_qtree_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_qtree_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_qtree_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_qtree_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_qtree_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_qtree_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_qtree_get_response(chttps_node);
+    ret = crfshttps_commit_qtree_get_response(chttp_node);
 
     if(EC_FALSE == ret)
     {
@@ -5530,7 +5530,7 @@ EC_BOOL crfshttps_commit_qtree_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER     *uri_cbuffer;
 
@@ -5541,7 +5541,7 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
     UINT32       req_body_chunk_num;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/qtree");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/qtree");
@@ -5551,13 +5551,13 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
 
@@ -5569,11 +5569,11 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_qtree_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_qtree_get_request: bad request: path %s", (char *)cstring_get_str(&path));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_qtree_get_request: bad request: path %s", (char *)cstring_get_str(&path));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
         cstring_clean(&path);
 
@@ -5599,11 +5599,11 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_qtree_get_request failed\n");
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_qtree_get_request failed");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_qtree_get_request failed");
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             cstring_clean(&path);
 
@@ -5615,7 +5615,7 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
         /* qtree success, get path from path_cstr_vec */
 
-        rsp_content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
         cbytes_clean(rsp_content_cbytes);
 
         rsp_body_obj = json_object_new_array();
@@ -5644,11 +5644,11 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
 
         dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_qtree_get_request done\n");
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_qtree_get_request done");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_qtree_get_request done");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
         cstring_clean(&path);
 
@@ -5662,38 +5662,38 @@ EC_BOOL crfshttps_handle_qtree_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_qtree_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_qtree_get_response(CHTTP_NODE *chttp_node)
 {
 
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_qtree_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_qtree_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_qtree_get_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -5706,18 +5706,18 @@ EC_BOOL crfshttps_make_qtree_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_qtree_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_qtree_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_qtree_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_qtree_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -5740,11 +5740,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_file_wait_get_op(const CBUFFER *ur
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_file_wait(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_file_wait(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_file_wait: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -5759,23 +5759,23 @@ EC_BOOL crfshttps_is_http_get_file_wait(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_file_wait_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_file_wait_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_file_wait_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_file_wait_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_wait_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_file_wait_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_file_wait_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_wait_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_file_wait_get_response(chttps_node);
+    ret = crfshttps_commit_file_wait_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_wait_get_request: commit 'GET' response failed\n");
@@ -5785,7 +5785,7 @@ EC_BOOL crfshttps_commit_file_wait_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_file_wait_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -5806,7 +5806,7 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
     char          *store_size_str;
 
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_wait");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_wait");
@@ -5816,13 +5816,13 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_wait_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_file_wait_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5834,36 +5834,36 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_file_wait_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_file_wait_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_file_wait_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     mod_node_init(&mod_node);
 
     k = (const char *)"tcid";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_file_wait_get_request: path %s, tcid absence", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_file_wait_get_request: path %s, tcid absence", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
     MOD_NODE_TCID(&mod_node) = c_ipv4_to_word(v);
 
     k = (const char *)"comm";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
         MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
@@ -5874,7 +5874,7 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
     }
 
     k = (const char *)"rank";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
         MOD_NODE_RANK(&mod_node) = CMPI_ANY_RANK;
@@ -5884,13 +5884,13 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         MOD_NODE_RANK(&mod_node) = c_str_to_word(v);
     }
 
-    wait_data_str = chttps_node_get_header(chttps_node, (const char *)"wait-data");
+    wait_data_str = chttp_node_get_header(chttp_node, (const char *)"wait-data");
     if(NULL_PTR != wait_data_str && EC_FALSE == c_str_to_bool(wait_data_str))
     {
         CSOCKET_CNODE  *csocket_cnode;
         EC_BOOL         data_ready;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         data_ready    = EC_OBSCURE;/*means wait file only without reading data util file is ready and notification is sent*/
 
         if(EC_FALSE == crfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, NULL_PTR, &data_ready))
@@ -5898,11 +5898,11 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_file_wait_get_request: crfs wait %s only failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s only failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s only failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             cstring_clean(&path_cstr);
             //return (EC_FALSE);
@@ -5912,20 +5912,20 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s only done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s only done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s only done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"data-ready", c_bool_str(data_ready));
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"data-ready", c_bool_str(data_ready));
 
         cstring_clean(&path_cstr);
 
         return (EC_TRUE);
     }
 
-    store_offset_str = chttps_node_get_header(chttps_node, (const char *)"store-offset");
+    store_offset_str = chttp_node_get_header(chttp_node, (const char *)"store-offset");
     if(NULL_PTR != store_offset_str)
     {
         CSOCKET_CNODE * csocket_cnode;
@@ -5938,12 +5938,12 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
 
         EC_BOOL  data_ready;
 
-        store_size_str   = chttps_node_get_header(chttps_node, (const char *)"store-size");
+        store_size_str   = chttp_node_get_header(chttp_node, (const char *)"store-size");
 
         store_offset = c_str_to_uint32_t(store_offset_str);
         store_size   = c_str_to_uint32_t(store_size_str);/*note: when store_size_str is null, store_size is zero*/
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         offset        = store_offset;
         max_len       = store_size;
         data_ready    = EC_FALSE;
@@ -5953,11 +5953,11 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u failed\n",
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             cbytes_clean(content_cbytes);
@@ -5968,13 +5968,13 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u done\n",
                             (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"data-ready", c_bool_str(data_ready));
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"data-ready", c_bool_str(data_ready));
 
         cstring_clean(&path_cstr);
     }
@@ -5983,7 +5983,7 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         CSOCKET_CNODE  *csocket_cnode;
         EC_BOOL         data_ready;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         data_ready    = EC_FALSE;
 
         if(EC_FALSE == crfs_file_wait(CSOCKET_CNODE_MODI(csocket_cnode), &mod_node, &path_cstr, content_cbytes, &data_ready))
@@ -5991,11 +5991,11 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_file_wait_get_request: crfs wait %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_file_wait_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             cbytes_clean(content_cbytes);
@@ -6006,13 +6006,13 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_file_wait_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"data-ready", c_bool_str(data_ready));
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"data-ready", c_bool_str(data_ready));
 
         cstring_clean(&path_cstr);
     }
@@ -6020,12 +6020,12 @@ EC_BOOL crfshttps_handle_file_wait_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_file_wait_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_file_wait_get_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     content_len    = CBYTES_LEN(content_cbytes);
 
     if(do_log(SEC_0158_CRFSHTTPS, 9))
@@ -6034,42 +6034,42 @@ EC_BOOL crfshttps_make_file_wait_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_wait");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_wait");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_file_wait_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, content_len))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_wait_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_wait_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_kvs(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_wait_get_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_wait_get_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     /*no data copying but data transfering*/
-    if(EC_FALSE == chttps_make_response_body_ext(chttps_node,
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
                                               CBYTES_BUF(content_cbytes),
                                               (uint32_t)CBYTES_LEN(content_cbytes)))
     {
@@ -6082,18 +6082,18 @@ EC_BOOL crfshttps_make_file_wait_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_file_wait_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_file_wait_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_wait_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_wait_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -6116,11 +6116,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_file_notify_get_op(const CBUFFER *
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_file_notify(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_file_notify(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_file_notify: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -6135,23 +6135,23 @@ EC_BOOL crfshttps_is_http_get_file_notify(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_file_notify_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_file_notify_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_file_notify_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_file_notify_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_notify_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_file_notify_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_file_notify_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_notify_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_file_notify_get_response(chttps_node);
+    ret = crfshttps_commit_file_notify_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_notify_get_request: commit 'GET' response failed\n");
@@ -6161,7 +6161,7 @@ EC_BOOL crfshttps_commit_file_notify_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -6174,7 +6174,7 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
     UINT32         req_body_chunk_num;
 
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_notify");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
@@ -6184,13 +6184,13 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6202,33 +6202,33 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_file_notify_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_file_notify_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_file_notify_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_file_notify_get_op(uri_cbuffer))
     {
         CSOCKET_CNODE * csocket_cnode;
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_file_notify(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_file_notify_get_request: crfs notify %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_file_notify_get_request: crfs notify %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_file_notify_get_request: crfs notify %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_NOT_FOUND;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
 
@@ -6239,11 +6239,11 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_file_notify_get_request: crfs notify %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_file_notify_get_request: crfs notify %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_file_notify_get_request: crfs notify %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     cstring_clean(&path_cstr);
@@ -6251,7 +6251,7 @@ EC_BOOL crfshttps_handle_file_notify_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_file_notify_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_file_notify_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -6259,29 +6259,29 @@ EC_BOOL crfshttps_make_file_notify_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_notify");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_file_notify_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_notify_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_notify_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_notify_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -6290,18 +6290,18 @@ EC_BOOL crfshttps_make_file_notify_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_file_notify_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_file_notify_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_notify_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_file_notify_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -6324,11 +6324,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_cond_wakeup_get_op(const CBUFFER *
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_cond_wakeup(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_cond_wakeup(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_cond_wakeup: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -6343,23 +6343,23 @@ EC_BOOL crfshttps_is_http_get_cond_wakeup(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_cond_wakeup_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_cond_wakeup_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_cond_wakeup_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_cond_wakeup_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_cond_wakeup_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_cond_wakeup_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_cond_wakeup_get_response(chttps_node);
+    ret = crfshttps_commit_cond_wakeup_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_cond_wakeup_get_request: commit 'GET' response failed\n");
@@ -6369,7 +6369,7 @@ EC_BOOL crfshttps_commit_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -6382,7 +6382,7 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
     UINT32         req_body_chunk_num;
 
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_wakeup");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
@@ -6392,13 +6392,13 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6410,16 +6410,16 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_cond_wakeup_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_cond_wakeup_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_cond_wakeup_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_cond_wakeup_get_op(uri_cbuffer))
@@ -6429,17 +6429,17 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
 
         tag = MD_CRFS;
 
-        //csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == super_cond_wakeup(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_cond_wakeup_get_request: cond wakeup %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_cond_wakeup_get_request: cond wakeup %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_cond_wakeup_get_request: cond wakeup %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             cstring_clean(&path_cstr);
 
@@ -6450,11 +6450,11 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_cond_wakeup_get_request: cond wakeup %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_cond_wakeup_get_request: cond wakeup %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_cond_wakeup_get_request: cond wakeup %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
 
     cstring_clean(&path_cstr);
@@ -6462,7 +6462,7 @@ EC_BOOL crfshttps_handle_cond_wakeup_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_cond_wakeup_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -6470,29 +6470,29 @@ EC_BOOL crfshttps_make_cond_wakeup_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_wakeup");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_cond_wakeup_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_cond_wakeup_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_cond_wakeup_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_cond_wakeup_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -6501,18 +6501,18 @@ EC_BOOL crfshttps_make_cond_wakeup_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_cond_wakeup_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_cond_wakeup_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_cond_wakeup_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -6535,11 +6535,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_renew_header_get_op(const CBUFFER 
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_renew_header(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_renew_header(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_renew_header: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -6554,23 +6554,23 @@ EC_BOOL crfshttps_is_http_get_renew_header(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_renew_header_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_renew_header_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_renew_header_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_renew_header_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_header_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_renew_header_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_renew_header_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_header_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_renew_header_get_response(chttps_node);
+    ret = crfshttps_commit_renew_header_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_header_get_request: commit 'GET' response failed\n");
@@ -6580,7 +6580,7 @@ EC_BOOL crfshttps_commit_renew_header_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -6599,7 +6599,7 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
     uint32_t       num;
     uint32_t       idx;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew_header");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
@@ -6609,13 +6609,13 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6627,21 +6627,21 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_renew_header_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_renew_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_renew_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
-    renew_num  = chttps_node_get_header(chttps_node, (const char *)"renew-num");
+    renew_num  = chttp_node_get_header(chttp_node, (const char *)"renew-num");
     if(NULL_PTR == renew_num)
     {
         char    *renew_key;
@@ -6650,23 +6650,23 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         CSTRING  renew_key_cstr;
         CSTRING  renew_val_cstr;
 
-        renew_key  = chttps_node_get_header(chttps_node, (const char *)"renew-key");
+        renew_key  = chttp_node_get_header(chttp_node, (const char *)"renew-key");
         if(NULL_PTR == renew_key)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-key' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-key' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-key' absence", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 
-        renew_val  = chttps_node_get_header(chttps_node, (const char *)"renew-val");
+        renew_val  = chttp_node_get_header(chttp_node, (const char *)"renew-val");
         if(NULL_PTR == renew_val)
         {
 #if 1
@@ -6677,11 +6677,11 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-val' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-val' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to 'renew-val' absence", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -6696,11 +6696,11 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -6709,11 +6709,11 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
@@ -6724,12 +6724,12 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to new cstrkv_mgr failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to new cstrkv_mgr failed",
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to new cstrkv_mgr failed",
                 (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -6747,25 +6747,25 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         snprintf(renew_key_tag, sizeof(renew_key_tag)/sizeof(renew_key_tag[ 0 ]), "renew-key-%u", idx + 1);
         snprintf(renew_val_tag, sizeof(renew_val_tag)/sizeof(renew_val_tag[ 0 ]), "renew-val-%u", idx + 1);
 
-        renew_key  = chttps_node_get_header(chttps_node, (const char *)renew_key_tag);
+        renew_key  = chttp_node_get_header(chttp_node, (const char *)renew_key_tag);
         if(NULL_PTR == renew_key)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 
-        renew_val  = chttps_node_get_header(chttps_node, (const char *)renew_val_tag);
+        renew_val  = chttp_node_get_header(chttp_node, (const char *)renew_val_tag);
         if(NULL_PTR == renew_val)
         {
 #if 1
@@ -6776,12 +6776,12 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
@@ -6794,12 +6794,12 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to add '%s:%s' failed\n",
                                 (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to add '%s:%s' failed",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed due to add '%s:%s' failed",
                     (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
@@ -6812,11 +6812,11 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
         cstrkv_mgr_free(cstrkv_mgr);
         cstring_clean(&path_cstr);
@@ -6826,11 +6826,11 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
     dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done\n",
                         (char *)cstring_get_str(&path_cstr));
 
-    CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-    CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-    CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
+    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     cstrkv_mgr_free(cstrkv_mgr);
     cstring_clean(&path_cstr);
@@ -6838,7 +6838,7 @@ EC_BOOL crfshttps_handle_renew_header_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_renew_header_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_renew_header_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -6846,29 +6846,29 @@ EC_BOOL crfshttps_make_renew_header_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew_header");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_renew_header_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_header_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_header_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_renew_header_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -6877,18 +6877,18 @@ EC_BOOL crfshttps_make_renew_header_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_renew_header_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_renew_header_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_header_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_renew_header_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -6911,11 +6911,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_wait_header_get_op(const CBUFFER *
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_wait_header(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_wait_header(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_wait_header: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -6930,23 +6930,23 @@ EC_BOOL crfshttps_is_http_get_wait_header(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_wait_header_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_wait_header_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_wait_header_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_wait_header_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_wait_header_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_wait_header_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_wait_header_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_wait_header_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_wait_header_get_response(chttps_node);
+    ret = crfshttps_commit_wait_header_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_wait_header_get_request: commit 'GET' response failed\n");
@@ -6956,7 +6956,7 @@ EC_BOOL crfshttps_commit_wait_header_get_request(CHTTPS_NODE *chttps_node)
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_wait_header_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -6981,7 +6981,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
 
     EC_BOOL        header_ready;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/wait_header");
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
@@ -6991,13 +6991,13 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_wait_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7009,31 +7009,31 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_wait_header_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_wait_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_wait_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     mod_node_init(&mod_node);
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
     k = (const char *)"tcid";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error: crfshttps_handle_wait_header_get_request: path %s, tcid absence", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttps_handle_wait_header_get_request: path %s, tcid absence", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
         return (EC_TRUE);
     }
@@ -7041,7 +7041,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
     MOD_NODE_TCID(&mod_node)= c_ipv4_to_word(v);
 
     k = (const char *)"comm";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
         MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
@@ -7052,7 +7052,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
     }
 
     k = (const char *)"rank";
-    v = chttps_node_get_header(chttps_node, k);
+    v = chttp_node_get_header(chttp_node, k);
     if(NULL_PTR == v)
     {
         MOD_NODE_RANK(&mod_node) = CMPI_ANY_RANK;
@@ -7062,7 +7062,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         MOD_NODE_RANK(&mod_node) = c_str_to_word(v);
     }
 
-    wait_num  = chttps_node_get_header(chttps_node, (const char *)"wait-num");
+    wait_num  = chttp_node_get_header(chttp_node, (const char *)"wait-num");
     if(NULL_PTR == wait_num)
     {
         char    *wait_key;
@@ -7071,23 +7071,23 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         CSTRING  wait_key_cstr;
         CSTRING  wait_val_cstr;
 
-        wait_key  = chttps_node_get_header(chttps_node, (const char *)"wait-key");
+        wait_key  = chttp_node_get_header(chttp_node, (const char *)"wait-key");
         if(NULL_PTR == wait_key)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-key' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-key' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-key' absence", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 
-        wait_val  = chttps_node_get_header(chttps_node, (const char *)"wait-val");
+        wait_val  = chttp_node_get_header(chttp_node, (const char *)"wait-val");
         if(NULL_PTR == wait_val)
         {
 #if 1
@@ -7098,11 +7098,11 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-val' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-val' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to 'wait-val' absence", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -7117,11 +7117,11 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
@@ -7130,13 +7130,13 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-        cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"header-ready", c_bool_str(header_ready));
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"header-ready", c_bool_str(header_ready));
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -7148,12 +7148,12 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to new cstrkv_mgr failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to new cstrkv_mgr failed",
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to new cstrkv_mgr failed",
                 (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
         cstring_clean(&path_cstr);
         return (EC_TRUE);
@@ -7171,25 +7171,25 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         snprintf(wait_key_tag, sizeof(wait_key_tag)/sizeof(wait_key_tag[ 0 ]), "wait-key-%u", idx + 1);
         snprintf(wait_val_tag, sizeof(wait_val_tag)/sizeof(wait_val_tag[ 0 ]), "wait-val-%u", idx + 1);
 
-        wait_key  = chttps_node_get_header(chttps_node, (const char *)wait_key_tag);
+        wait_key  = chttp_node_get_header(chttp_node, (const char *)wait_key_tag);
         if(NULL_PTR == wait_key)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)wait_key_tag);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)wait_key_tag);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
 
-        wait_val  = chttps_node_get_header(chttps_node, (const char *)wait_val_tag);
+        wait_val  = chttp_node_get_header(chttp_node, (const char *)wait_val_tag);
         if(NULL_PTR == wait_val)
         {
 #if 1
@@ -7200,12 +7200,12 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)wait_val_tag);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)wait_val_tag);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
@@ -7218,12 +7218,12 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to add '%s:%s' failed\n",
                                 (char *)cstring_get_str(&path_cstr), wait_key, wait_val);
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to add '%s:%s' failed",
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed due to add '%s:%s' failed",
                     (char *)cstring_get_str(&path_cstr), wait_key, wait_val);
 
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             cstrkv_mgr_free(cstrkv_mgr);
             cstring_clean(&path_cstr);
@@ -7236,11 +7236,11 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_wait_header_get_request: crfs wait %s failed", (char *)cstring_get_str(&path_cstr));
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
         cstrkv_mgr_free(cstrkv_mgr);
         cstring_clean(&path_cstr);
@@ -7250,13 +7250,13 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
     dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done\n",
                         (char *)cstring_get_str(&path_cstr));
 
-    CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-    CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-    CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
+    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_wait_header_get_request: crfs wait %s done", (char *)cstring_get_str(&path_cstr));
 
-    CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
-    cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"header-ready", c_bool_str(header_ready));
+    cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"header-ready", c_bool_str(header_ready));
 
     cstrkv_mgr_free(cstrkv_mgr);
     cstring_clean(&path_cstr);
@@ -7264,7 +7264,7 @@ EC_BOOL crfshttps_handle_wait_header_get_request(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_wait_header_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_wait_header_get_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0158_CRFSHTTPS, 9))
     {
@@ -7272,35 +7272,35 @@ EC_BOOL crfshttps_make_wait_header_get_response(CHTTPS_NODE *chttps_node)
         uint8_t       *cache_key;
         uint32_t       cache_len;
 
-        uri_cbuffer    = CHTTPS_NODE_URI(chttps_node);
+        uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
         cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/wait_header");
         cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/wait_header");
 
         sys_log(LOGSTDOUT, "[DEBUG] crfshttps_make_wait_header_get_response: path %.*s\n", cache_len, cache_key);
     }
 
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_wait_header_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_wait_header_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_kvs(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_file_wait_get_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_wait_header_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -7309,18 +7309,18 @@ EC_BOOL crfshttps_make_wait_header_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_wait_header_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_wait_header_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_wait_header_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_wait_header_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 
@@ -7343,11 +7343,11 @@ STATIC_CAST static EC_BOOL __crfshttps_uri_is_locked_file_retire_get_op(const CB
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_is_http_get_locked_file_retire(const CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_is_http_get_locked_file_retire(const CHTTP_NODE *chttp_node)
 {
     const CBUFFER *uri_cbuffer;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_is_http_get_locked_file_retire: uri: '%.*s' [len %d]\n",
                         CBUFFER_USED(uri_cbuffer),
@@ -7362,23 +7362,23 @@ EC_BOOL crfshttps_is_http_get_locked_file_retire(const CHTTPS_NODE *chttps_node)
     return (EC_FALSE);
 }
 
-EC_BOOL crfshttps_commit_locked_file_retire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == crfshttps_handle_locked_file_retire_get_request(chttps_node))
+    if(EC_FALSE == crfshttps_handle_locked_file_retire_get_request(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_locked_file_retire_get_request: handle 'GET' request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfshttps_make_locked_file_retire_get_response(chttps_node))
+    if(EC_FALSE == crfshttps_make_locked_file_retire_get_response(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_locked_file_retire_get_request: make 'GET' response failed\n");
         return (EC_FALSE);
     }
 
-    ret = crfshttps_commit_locked_file_retire_get_response(chttps_node);
+    ret = crfshttps_commit_locked_file_retire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_locked_file_retire_get_request: commit 'GET' response failed\n");
@@ -7388,7 +7388,7 @@ EC_BOOL crfshttps_commit_locked_file_retire_get_request(CHTTPS_NODE *chttps_node
     return (ret);
 }
 
-EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7396,15 +7396,15 @@ EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTPS_NODE *chttps_node
 
     CBYTES        *content_cbytes;
 
-    uri_cbuffer  = CHTTPS_NODE_URI(chttps_node);
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    req_body_chunk_num = chttps_node_recv_chunks_num(chttps_node);
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CRFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttps_node_recv_chunks(chttps_node);
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_locked_file_retire_get_request: chunk num %ld\n", req_body_chunk_num);
 
@@ -7414,15 +7414,15 @@ EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTPS_NODE *chttps_node
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error: crfshttps_handle_locked_file_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_locked_file_retire_get_request");
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_locked_file_retire_get_request");
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_BAD_REQUEST;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    content_cbytes = CHTTPS_NODE_CONTENT_CBYTES(chttps_node);
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
     if(EC_TRUE == __crfshttps_uri_is_locked_file_retire_get_op(uri_cbuffer))
@@ -7433,64 +7433,64 @@ EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTPS_NODE *chttps_node
         UINT32   retire_max_num;
         UINT32   retire_num;
 
-        retire_max_num_str = chttps_node_get_header(chttps_node, (const char *)"retire-max-num");
+        retire_max_num_str = chttp_node_get_header(chttp_node, (const char *)"retire-max-num");
         retire_max_num     = c_str_to_word(retire_max_num_str);
         retire_num         = 0;
 
         dbg_log(SEC_0158_CRFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] crfshttps_handle_locked_file_retire_get_request: header retire-max-num %s => %ld\n",
                                 retire_max_num_str, retire_max_num);
 
-        csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == crfs_locked_file_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_max_num, &retire_num))
         {
-            CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_FORBIDDEN;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-            CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "error:crfshttps_handle_locked_file_retire_get_request failed");
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_handle_locked_file_retire_get_request failed");
 
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0158_CRFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] crfshttps_handle_locked_file_retire_get_request: complete %ld\n", retire_num);
 
-        CHTTPS_NODE_LOG_TIME_WHEN_DONE(chttps_node);
-        CHTTPS_NODE_LOG_STAT_WHEN_DONE(chttps_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTPS_NODE_LOG_INFO_WHEN_DONE(chttps_node, "[DEBUG] crfshttps_handle_locked_file_retire_get_request: complete %ld", retire_num);
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttps_handle_locked_file_retire_get_request: complete %ld", retire_num);
 
-        CHTTPS_NODE_RSP_STATUS(chttps_node) = CHTTP_OK;
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
         /*prepare response header*/
-        cstrkv_mgr_add_kv_str(CHTTPS_NODE_HEADER_OUT_KVS(chttps_node), (char *)"retire-completion", c_word_to_str(retire_num));
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"retire-completion", c_word_to_str(retire_num));
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_make_locked_file_retire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == chttps_make_response_header_common(chttps_node, (uint64_t)0))
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_locked_file_retire_get_response: make response header failed\n");
         return (EC_FALSE);
     }
 
-    if(BIT_TRUE == CHTTPS_NODE_KEEPALIVE(chttps_node))
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
     {
-        if(EC_FALSE == chttps_make_response_header_keepalive(chttps_node))
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_locked_file_retire_get_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
-    if(EC_FALSE == chttps_make_response_header_kvs(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_locked_file_retire_get_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == chttps_make_response_header_end(chttps_node))
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
         dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_make_locked_file_retire_get_response: make header end failed\n");
         return (EC_FALSE);
@@ -7499,18 +7499,18 @@ EC_BOOL crfshttps_make_locked_file_retire_get_response(CHTTPS_NODE *chttps_node)
     return (EC_TRUE);
 }
 
-EC_BOOL crfshttps_commit_locked_file_retire_get_response(CHTTPS_NODE *chttps_node)
+EC_BOOL crfshttps_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
-    csocket_cnode = CHTTPS_NODE_CSOCKET_CNODE(chttps_node);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_locked_file_retire_get_response: csocket_cnode of chttps_node %p is null\n", chttps_node);
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_locked_file_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
-    return crfshttps_commit_response(chttps_node);
+    return crfshttps_commit_response(chttp_node);
 }
 #endif
 

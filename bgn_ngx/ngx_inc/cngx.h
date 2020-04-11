@@ -68,6 +68,11 @@ extern "C"{
 #define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.request_uri*/
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
+#define  CNGX_VAR_SSL_ORIG_SWITCH                 ("c_orig_ssl_switch")         /*default: off*/
+#define  CNGX_VAR_SSL_CA                          ("c_orig_ssl_ca")
+#define  CNGX_VAR_SSL_CERTIFICATE                 ("c_orig_ssl_certificate")
+#define  CNGX_VAR_SSL_CERTIFICATE_KEY             ("c_orig_ssl_certificate_key")
+
 #define  CNGX_VAR_DIRECT_ORIG_SWITCH              ("c_orig_direct_switch")      /*default: off*/
 #define  CNGX_VAR_ORIG_FORCE_SWITCH               ("c_orig_force_switch")       /*default: off*/
 #define  CNGX_VAR_ORIG_REDIRECT_MAX_TIMES         ("c_orig_redirect_max_times") /*default: 3*/

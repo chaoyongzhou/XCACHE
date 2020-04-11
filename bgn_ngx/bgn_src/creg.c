@@ -44,6 +44,7 @@ extern "C"{
 #include "tasks.h"
 #include "cstrkv.h"
 #include "chttp.h"
+#include "chttps.h"
 
 #include "findex.inc"
 
@@ -56,6 +57,7 @@ extern "C"{
 #include "cxfs.inc"
 #include "cmon.inc"
 #include "chttp.inc"
+#include "chttps.inc"
 #include "ctdns.inc"
 #include "cdetect.inc"
 #include "cdetectn.inc"

@@ -44,6 +44,7 @@ extern "C"{
 
 #include "chttp.inc"
 #include "chttp.h"
+#include "chttps.h"
 #include "cdns.h"
 #include "coroutine.h"
 #include "csrv.h"
@@ -389,14 +390,11 @@ STATIC_CAST static int __chttp_on_message_complete(http_parser_t* http_parser)
         return (-1);/*error*/
     }
 
-    if(do_log(SEC_0149_CHTTP, 9))
-    {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT,
-                "[DEBUG] __chttp_on_message_complete: sockfd %d, http state %s, header pased %u, body parsed %"PRId64", errno = %d, name = %s, description = %s\n",
-                CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state),
-                CHTTP_NODE_HEADER_PARSED_LEN(chttp_node),CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
-                HTTP_PARSER_ERRNO(http_parser), http_errno_name(HTTP_PARSER_ERRNO(http_parser)), http_errno_description(HTTP_PARSER_ERRNO(http_parser)));
-    }
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT,
+            "[DEBUG] __chttp_on_message_complete: sockfd %d, http state %s, header pased %u, body parsed %"PRId64", errno = %d, name = %s, description = %s\n",
+            CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state),
+            CHTTP_NODE_HEADER_PARSED_LEN(chttp_node),CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
+            HTTP_PARSER_ERRNO(http_parser), http_errno_name(HTTP_PARSER_ERRNO(http_parser)), http_errno_description(HTTP_PARSER_ERRNO(http_parser)));
 
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
@@ -1619,6 +1617,13 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
     if(NULL_PTR != chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_init: chttp_node: %p\n", chttp_node);
+
+        CHTTP_NODE_SSL_STATUS(chttp_node)             = CHTTP_NODE_SSL_STATUS_UNDEF;
+        CHTTP_NODE_CSSL_NODE(chttp_node)              = NULL_PTR; /* initialize ssl */
+        CHTTP_NODE_CA_FILE(chttp_node)                = NULL_PTR;
+        CHTTP_NODE_CLIENT_CERT_FILE(chttp_node)       = NULL_PTR;
+        CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node)    = NULL_PTR;
+
         CHTTP_NODE_IS_ERROR(chttp_node)      = BIT_FALSE;
         CHTTP_NODE_COUNTER(chttp_node)       = 1; /*one owner*/
 
@@ -1823,6 +1828,32 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
             CHTTP_NODE_STORE(chttp_node) = NULL_PTR;
         }
         chttp_stat_clean(CHTTP_NODE_STAT(chttp_node));
+
+        /* free CSSL_NODE */
+        if(NULL_PTR != CHTTP_NODE_CSSL_NODE(chttp_node))
+        {
+            cssl_node_free(CHTTP_NODE_CSSL_NODE(chttp_node));
+            CHTTP_NODE_CSSL_NODE(chttp_node) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CHTTP_NODE_CA_FILE(chttp_node))
+        {
+            cstring_free(CHTTP_NODE_CA_FILE(chttp_node));
+            CHTTP_NODE_CA_FILE(chttp_node) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CHTTP_NODE_CLIENT_CERT_FILE(chttp_node))
+        {
+            cstring_free(CHTTP_NODE_CLIENT_CERT_FILE(chttp_node));
+            CHTTP_NODE_CLIENT_CERT_FILE(chttp_node) = NULL_PTR;
+        }
+
+        if(NULL_PTR != CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node))
+        {
+            cstring_free(CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node));
+            CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node) = NULL_PTR;
+        }
+        CHTTP_NODE_SSL_STATUS(chttp_node) = CHTTP_NODE_SSL_STATUS_UNDEF;
     }
 
     return (EC_TRUE);
@@ -2074,10 +2105,10 @@ void chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node)
 
     sys_log(log, "chttp_node_print:header content length: %"PRId64"\n", CHTTP_NODE_CONTENT_LENGTH(chttp_node));
 
-    //sys_log(LOGSTDOUT, "chttp_node_print:req body chunks: total length %"PRId64"\n", chttp_node_recv_len(chttp_node));
+    //sys_log(log, "chttp_node_print:req body chunks: total length %"PRId64"\n", chttp_node_recv_len(chttp_node));
 
-    //chunk_mgr_print_str(LOGSTDOUT, chttp_node_recv_chunks(chttp_node));
-    //chunk_mgr_print_info(LOGSTDOUT, chttp_node_recv_chunks(chttp_node));
+    //chunk_mgr_print_str(log, chttp_node_recv_chunks(chttp_node));
+    //chunk_mgr_print_info(log, chttp_node_recv_chunks(chttp_node));
 
     return;
 }
@@ -5345,6 +5376,32 @@ UINT32 chttp_req_get_port(const CHTTP_REQ *chttp_req)
     return CHTTP_REQ_PORT(chttp_req);
 }
 
+EC_BOOL chttp_req_enable_ssl(CHTTP_REQ *chttp_req)
+{
+    CHTTP_REQ_SSL_FLAG(chttp_req) = EC_TRUE;
+    return (EC_TRUE);
+}
+
+EC_BOOL chttp_req_disable_ssl(CHTTP_REQ *chttp_req)
+{
+    CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
+    return (EC_TRUE);
+}
+
+EC_BOOL chttp_req_set_ssl(CHTTP_REQ *chttp_req, const UINT32 ssl_flag)
+{
+    if(SWITCH_ON == ssl_flag)
+    {
+        CHTTP_REQ_SSL_FLAG(chttp_req) = EC_TRUE;
+    }
+    else
+    {
+        CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL chttp_req_set_method(CHTTP_REQ *chttp_req, const char *method)
 {
     cstring_append_str(CHTTP_REQ_METHOD(chttp_req), (UINT8 *)method);
@@ -7686,6 +7743,11 @@ STATIC_CAST static EC_BOOL __chttp_node_store_ddir_after_lock_header(CHTTP_NODE 
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_node_store_ddir_after_lock_header(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
+{
+    return __chttp_node_store_ddir_after_lock_header(chttp_node, chttp_req);
+}
+
 /*ms procedure*/
 STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
 {
@@ -7726,6 +7788,11 @@ STATIC_CAST static EC_BOOL __chttp_node_store_unlock_header_after_http(CHTTP_NOD
     return (EC_TRUE);
 }
 
+EC_BOOL chttp_node_store_unlock_header_after_http(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
+{
+    return __chttp_node_store_unlock_header_after_http(chttp_node, chttp_req);
+}
+
 STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
 {
     CBYTES        *cbytes;
@@ -7761,6 +7828,11 @@ STATIC_CAST static EC_BOOL __chttp_node_store_header_after_ddir(CHTTP_NODE *chtt
     cbytes_free(cbytes);
 
     return (EC_TRUE);
+}
+
+EC_BOOL chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
+{
+    return __chttp_node_store_header_after_ddir(chttp_node, chttp_store, max_store_size, has_stored_size, path, store_srv_tcid, store_srv_ipaddr, store_srv_port);
 }
 
 STATIC_CAST static EC_BOOL __chttp_node_store_header(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port)
@@ -9401,6 +9473,12 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     uint64_t       rsp_body_len;
 
+    if(EC_TRUE == CHTTP_REQ_SSL_FLAG(chttp_req))
+    {
+        dbg_log(SEC_0149_CHTTP, 5)(LOGSTDOUT, "[DEBUG] chttp_request_basic: ssl on => https\n");
+        return chttps_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat);
+    }
+
     chttp_node = chttp_node_new(CHTTP_TYPE_DO_CLT_RSP);
     if(NULL_PTR == chttp_node)
     {
@@ -10434,7 +10512,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_read(const CHTTP_REQ *cht
                     c_word_to_ipv4(store_srv_tcid), c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
     /*parse http response*/
-    if(EC_FALSE == ccache_parse_header(&cbytes, chttp_rsp))
+    if(EC_FALSE == ccache_parse_http_header(&cbytes, chttp_rsp))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_header_file_read: "
                                               "parse header failed\n");
@@ -10536,7 +10614,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == ccache_parse_header(&content_cbytes, chttp_rsp))
+    if(EC_FALSE == ccache_parse_http_header(&content_cbytes, chttp_rsp))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_header_file_wait: "
                                               "parse header failed\n");

@@ -19,27 +19,28 @@ extern "C"{
 #include "cbytes.h"
 
 #include "chttp.h"
+#include "chttps.h"
 
 #include "http_parser.h"
 
-int ccache_on_message_begin(http_parser_t* http_parser);
+int ccache_on_http_message_begin(http_parser_t* http_parser);
 
-int ccache_on_headers_complete(http_parser_t* http_parser, const char* last, size_t length);
+int ccache_on_http_headers_complete(http_parser_t* http_parser, const char* last, size_t length);
 
-int ccache_on_message_complete(http_parser_t* http_parser);
+int ccache_on_http_message_complete(http_parser_t* http_parser);
 
-int ccache_on_url(http_parser_t* http_parser, const char* at, size_t length);
+int ccache_on_http_url(http_parser_t* http_parser, const char* at, size_t length);
 
 /*only for http response*/
-int ccache_on_status(http_parser_t* http_parser, const char* at, size_t length);
+int ccache_on_http_status(http_parser_t* http_parser, const char* at, size_t length);
 
-int ccache_on_header_field(http_parser_t* http_parser, const char* at, size_t length);
+int ccache_on_http_header_field(http_parser_t* http_parser, const char* at, size_t length);
 
-int ccache_on_header_value(http_parser_t* http_parser, const char* at, size_t length);
+int ccache_on_http_header_value(http_parser_t* http_parser, const char* at, size_t length);
 
-int ccache_on_body(http_parser_t* http_parser, const char* at, size_t length);
+int ccache_on_http_body(http_parser_t* http_parser, const char* at, size_t length);
 
-EC_BOOL ccache_parse_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp);
+EC_BOOL ccache_parse_http_header(const CBYTES *header_cbytes, CHTTP_RSP *chttp_rsp);
 
 EC_BOOL ccache_trigger_http_request_merge(const CHTTP_REQ *chttp_req, const CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
 

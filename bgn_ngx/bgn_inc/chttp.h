@@ -306,6 +306,9 @@ char *  chttp_req_get_ipaddr_str(const CHTTP_REQ *chttp_req);
 EC_BOOL chttp_req_set_port(CHTTP_REQ *chttp_req, const char *port);
 EC_BOOL chttp_req_has_port(const CHTTP_REQ *chttp_req);
 UINT32  chttp_req_get_port(const CHTTP_REQ *chttp_req);
+EC_BOOL chttp_req_enable_ssl(CHTTP_REQ *chttp_req);
+EC_BOOL chttp_req_disable_ssl(CHTTP_REQ *chttp_req);
+EC_BOOL chttp_req_set_ssl(CHTTP_REQ *chttp_req, const UINT32 ssl_flag);
 EC_BOOL chttp_req_set_method(CHTTP_REQ *chttp_req, const char *method);
 EC_BOOL chttp_req_set_uri(CHTTP_REQ *chttp_req, const char *uri);
 EC_BOOL chttp_req_add_param(CHTTP_REQ *chttp_req, const char *k, const char *v);
@@ -427,6 +430,12 @@ EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node);
 EC_BOOL chttp_node_send_rsp_body(CHTTP_NODE *chttp_node, const UINT32 seg_no, const UINT8 *data, const UINT32 len);
 
 EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat);
+
+EC_BOOL chttp_node_store_ddir_after_lock_header(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req);
+
+EC_BOOL chttp_node_store_unlock_header_after_http(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req);
+
+EC_BOOL chttp_node_store_header_after_ddir(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint32_t max_store_size, uint32_t *has_stored_size, const CSTRING *path, const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port);
 
 EC_BOOL chttp_node_filter_on_header_complete(CHTTP_NODE *chttp_node);
 

@@ -43,6 +43,7 @@ extern "C"{
 
 #include "cstrkv.h"
 #include "chttp.inc"
+#include "chttps.inc"
 
 #include "ctdnssv.h"
 #include "cp2p.h"

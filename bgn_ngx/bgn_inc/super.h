@@ -24,6 +24,7 @@ extern "C"{
 #include "cmutex.h"
 #include "crb.h"
 #include "chttp.inc"
+#include "chttps.inc"
 
 /*bitmap of open flags*/
 #define SUPER_O_RDONLY               ((UINT32)1)

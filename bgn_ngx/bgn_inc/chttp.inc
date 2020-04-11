@@ -201,7 +201,6 @@ typedef struct
 #define CHTTP_STORE_LAST_MODIFIED_STR(chttp_store)            (CSTRING_STR(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
 #define CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store)            (CSTRING_LEN(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
 
-
 /*statistics*/
 typedef struct
 {
@@ -374,6 +373,10 @@ typedef struct
 
 typedef EC_BOOL (*CHTTP_NODE_SEND_MORE_FUNC)(void *);
 
+#define  CHTTP_NODE_SSL_STATUS_UNDEF                 ((UINT32)0)
+#define  CHTTP_NODE_SSL_STATUS_HANDSHAKE_ONGOING     ((UINT32)1)
+#define  CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE     ((UINT32)2)
+
 typedef struct _CHTTP_NODE
 {
     uint32_t                  is_error:1;
@@ -457,6 +460,14 @@ typedef struct _CHTTP_NODE
 
     /*statistics*/
     CHTTP_STAT                chttp_stat;/*mount point*/
+
+    /*beg: for ssl only*/
+    UINT32                    ssl_status;           /*ONGOING or IS_DONE*/
+    CSSL_NODE                *cssl_node;            /* for ssl */
+    CSTRING                  *ca_file;              /* for ssl */
+    CSTRING                  *client_cert_file;     /* for ssl */
+    CSTRING                  *client_privkey_file;  /* for ssl */
+    /*end: for ssl only*/
 }CHTTP_NODE;
 
 #define CHTTP_NODE_IS_ERROR(chttp_node)                    ((chttp_node)->is_error)
@@ -532,6 +543,12 @@ typedef struct _CHTTP_NODE
 #define CHTTP_NODE_STORE(chttp_node)                       ((chttp_node)->chttp_store)
 
 #define CHTTP_NODE_STAT(chttp_node)                        (&((chttp_node)->chttp_stat))
+
+#define CHTTP_NODE_SSL_STATUS(chttp_node)                  ((chttp_node)->ssl_status)
+#define CHTTP_NODE_CSSL_NODE(chttp_node)                   ((chttp_node)->cssl_node)
+#define CHTTP_NODE_CA_FILE(chttp_node)                     ((chttp_node)->ca_file)
+#define CHTTP_NODE_CLIENT_CERT_FILE(chttp_node)            ((chttp_node)->client_cert_file)
+#define CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node)         ((chttp_node)->client_privkey_file)
 
 typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK)(CHTTP_NODE *chttp_node);
 typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK)(CHTTP_NODE *chttp_node);

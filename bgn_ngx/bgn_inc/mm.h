@@ -251,7 +251,7 @@ extern "C"{
 #define                        MM_CCONNP    ((UINT32)180)
 #define                    MM_CCONNP_MGR    ((UINT32)181)
 #define                        MM_000182    ((UINT32)182) /*-- obsolete --*/
-#define                   MM_CHTTPS_NODE    ((UINT32)183)
+#define                        MM_000183    ((UINT32)183) /*-- obsolete --*/
 #define                     MM_CSSL_NODE    ((UINT32)184)
 #define                        MM_000185    ((UINT32)185) /*-- obsolete --*/
 #define                        MM_000186    ((UINT32)186) /*-- obsolete --*/
@@ -275,7 +275,7 @@ extern "C"{
 #define                        MM_000204    ((UINT32)204) /*-- obsolete --*/
 #define                        MM_000205    ((UINT32)205) /*-- obsolete --*/
 #define                    MM_CHTTP_REST    ((UINT32)206)
-#define                   MM_CHTTPS_REST    ((UINT32)207)
+#define                        MM_000207    ((UINT32)207) /*-- obsolete --*/
 
 #define                    MM_CRANGE_SEG    ((UINT32)208)
 #define                   MM_CRANGE_NODE    ((UINT32)209)
